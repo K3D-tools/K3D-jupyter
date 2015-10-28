@@ -2,9 +2,10 @@ from ipywidgets import DOMWidget
 from IPython.display import display
 from traitlets import Unicode, Dict, Int
 from objects import Objects
+from factory import Factory
 
 
-class K3D(DOMWidget):
+class K3D(DOMWidget, Factory):
     _view_module = Unicode('nbextensions/k3d_widget/view', sync=True)
     _view_name = Unicode('K3DView', sync=True)
     _model_module = Unicode('nbextensions/k3d_widget/model', sync=True)
@@ -29,19 +30,3 @@ class K3D(DOMWidget):
 
     def __show(self, obj):
         self.object = obj
-
-    @staticmethod
-    def torus_knot(position):
-        return {
-            "type": "TorusKnot",
-            "modelViewMatrix": [
-                1.0, 0.0, 0.0, position,
-                0.0, 1.0, 0.0, 0.0,
-                0.0, 0.0, 1.0, 0.0,
-                0.0, 0.0, 0.0, 1.0
-            ],
-            "color": 0xff00ff,
-            "knotsNumber": 16,
-            "radius": 7,
-            "tube": 2
-        }
