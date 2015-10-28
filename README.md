@@ -2,6 +2,10 @@
 
 Juyter notebook extension for K3D visualization library.
 
+## Requirements
+
+* [bower](http://bower.io/#install-bower) (to fetch K3D dependency)
+
 ## Installation
 
 ### Locally

@@ -2,7 +2,8 @@
   "name": "k3d-jupyter",
   "version": "0.1.0",
   "authors": [
-    "Artur Trzęsiok <artur.trzesiok@gmail.com>"
+    "Artur Trzęsiok <artur.trzesiok@gmail.com>",
+    "Sebastian Kremiec <sebastian.kremiec@gmail.com>"
   ],
   "description": "Juyter notebook extension for K3D visualization library.",
   "license": "GPLv2",
