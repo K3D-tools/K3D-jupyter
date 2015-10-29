@@ -1,14 +1,14 @@
 class jupyter ($user = 'vagrant', $directory = '/home/vagrant') {
     file { '/etc/profile.d/locale.sh':
         content => 'export LC_ALL=en_US.utf8',
-        ensure => present
+        ensure => present,
     }
 
     package { ['git', 'python-dev', 'python-pip']:
         ensure => installed,
     }
     ->
-    package { ['jupyter', 'jupyter-pip']:
+    package { ['jupyter', 'jupyter-pip', 'numpy']:
         provider => pip,
         ensure => installed,
     }
