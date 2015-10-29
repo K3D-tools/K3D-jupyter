@@ -10,7 +10,7 @@ except:
 
 setup(
     name='k3d',
-    version='0.1.2',
+    version='0.1.3',
     packages=['k3d'],
     include_package_data=True,
     install_requires=['jupyter-pip'],

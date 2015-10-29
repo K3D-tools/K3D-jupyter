@@ -1,8 +1,8 @@
 from ipywidgets import DOMWidget
 from IPython.display import display
 from traitlets import Unicode, Dict, Int
-from objects import Objects
-from factory import Factory
+from .objects import Objects
+from .factory import Factory
 
 
 class K3D(DOMWidget, Factory):
