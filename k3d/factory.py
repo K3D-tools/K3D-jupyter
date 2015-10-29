@@ -36,6 +36,16 @@ class Factory:
         }
 
     @classmethod
+    def line(cls, view_matrix, positions, width=1, color=0xFFFFFF):
+        return {
+            'type': 'Line',
+            'modelViewMatrix': cls.__matrix_to_list(view_matrix),
+            'color': color,
+            'lineWidth': width,
+            'pointsPositions': cls.__matrix_to_list(positions),
+        }
+
+    @classmethod
     def __to_list(cls, arg):
         if not hasattr(arg, '__iter__'):
             return [arg]
