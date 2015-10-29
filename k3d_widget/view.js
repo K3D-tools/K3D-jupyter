@@ -2,7 +2,7 @@
 
 requirejs.config({
     paths: {
-        'k3d': '/nbextensions/k3d_widget/lib/k3d'
+        'k3d': '../nbextensions/k3d_widget/lib/k3d'
     },
     shim: {
         'k3d/providers/k3d.threejs': {
