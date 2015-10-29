@@ -46,6 +46,15 @@ class Factory:
         }
 
     @classmethod
+    def surface(cls, view_matrix, heights, resolution):
+        return {
+            'type': 'Surface',
+            'modelViewMatrix': cls.__matrix_to_list(view_matrix),
+            'heights': list(heights),
+            'resolution': resolution,
+        }
+
+    @classmethod
     def __to_list(cls, arg):
         if not hasattr(arg, '__iter__'):
             return [arg]
