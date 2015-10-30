@@ -55,6 +55,17 @@ class Factory:
         }
 
     @classmethod
+    def marching_cubes(cls, view_matrix, scalars_field, resolution, isolation, color=0xFFFFFF):
+        return {
+            'type': 'MarchingCubes',
+            'modelViewMatrix': cls.__matrix_to_list(view_matrix),
+            'resolution': resolution,
+            'color': color,
+            'isolation': isolation,
+            'scalarsField': cls.__matrix_to_list(scalars_field),
+        }
+
+    @classmethod
     def __to_list(cls, arg):
         if not hasattr(arg, '__iter__'):
             return [arg]
