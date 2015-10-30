@@ -39,17 +39,17 @@ class Factory:
     def line(cls, view_matrix, positions, width=1, color=0xFFFFFF):
         return {
             'type': 'Line',
-            'modelViewMatrix': cls.__matrix_to_list(view_matrix),
+            'modelViewMatrix': cls.__to_list(view_matrix),
             'color': color,
             'lineWidth': width,
-            'pointsPositions': cls.__matrix_to_list(positions),
+            'pointsPositions': cls.__to_list(positions),
         }
 
     @classmethod
     def surface(cls, view_matrix, heights, resolution):
         return {
             'type': 'Surface',
-            'modelViewMatrix': cls.__matrix_to_list(view_matrix),
+            'modelViewMatrix': cls.__to_list(view_matrix),
             'heights': list(heights),
             'resolution': resolution,
         }
@@ -58,11 +58,11 @@ class Factory:
     def marching_cubes(cls, view_matrix, scalars_field, resolution, isolation, color=0xFFFFFF):
         return {
             'type': 'MarchingCubes',
-            'modelViewMatrix': cls.__matrix_to_list(view_matrix),
+            'modelViewMatrix': cls.__to_list(view_matrix),
             'resolution': resolution,
             'color': color,
             'isolation': isolation,
-            'scalarsField': cls.__matrix_to_list(scalars_field),
+            'scalarsField': cls.__to_list(scalars_field),
         }
 
     @classmethod

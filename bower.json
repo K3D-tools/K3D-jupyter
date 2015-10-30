@@ -1,6 +1,6 @@
 {
   "name": "k3d-jupyter",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "authors": [
     "Artur Trzęsiok <artur.trzesiok@gmail.com>",
     "Sebastian Kremiec <sebastian.kremiec@gmail.com>"
