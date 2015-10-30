@@ -1,6 +1,6 @@
 # K3D Jupyter
 
-Juyter notebook extension for K3D visualization library.
+Jupyter notebook extension for K3D visualization library.
 
 ## Requirements
 
