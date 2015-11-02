@@ -1,4 +1,4 @@
-from itertools import chain
+import numpy
 
 class Factory:
     @classmethod
@@ -64,6 +64,20 @@ class Factory:
             'isolation': isolation,
             'scalarsField': cls.__to_list(scalars_field),
         }
+
+    @classmethod
+    def stl(cls, view_matrix, stl, color=0xFFFFFF):
+        return {
+            'type': 'STL',
+            'modelViewMatrix': cls.__to_list(view_matrix),
+            'color': color,
+            'STL': stl,
+        }
+
+    @classmethod
+    def stl_load(cls, filename, view_matrix=numpy.identity(4)):
+        with open(filename) as stl:
+            return cls.stl(view_matrix, stl.read())
 
     @classmethod
     def __to_list(cls, arg):
