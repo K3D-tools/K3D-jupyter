@@ -1,4 +1,4 @@
-class Objects:
+class Objects(object):
     def __init__(self, output):
         self.__items = []
         self.__output = output
@@ -6,7 +6,6 @@ class Objects:
 
     def add(self, item):
         self.__strategy(item)
-        pass
 
     def flush(self):
         self.__flush_items()

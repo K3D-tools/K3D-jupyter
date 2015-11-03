@@ -1,8 +1,11 @@
 from ipywidgets import DOMWidget
 from IPython.display import display
-from traitlets import Unicode, Dict, Int
+from traitlets import Unicode, Bytes, Int
 from .objects import Objects
 from .factory import Factory
+import base64
+import zlib
+import json
 
 
 class K3D(DOMWidget, Factory):
@@ -11,10 +14,12 @@ class K3D(DOMWidget, Factory):
     _model_module = Unicode('nbextensions/k3d_widget/model', sync=True)
     _model_name = Unicode('K3DModel', sync=True)
 
-    height = Int(sync=True)
-    object = Dict(sync=True)
+    COMPRESSION_LEVEL = 9
 
-    def __init__(self, height = 512):
+    height = Int(sync=True)
+    data = Bytes(sync=True)
+
+    def __init__(self, height=512):
         super(K3D, self).__init__()
 
         self.__objects = Objects(self.__show)
@@ -29,4 +34,4 @@ class K3D(DOMWidget, Factory):
         display(self)
 
     def __show(self, obj):
-        self.object = obj
+        self.data = base64.b64encode(zlib.compress(json.dumps(obj, separators=(',', ':')), self.COMPRESSION_LEVEL))

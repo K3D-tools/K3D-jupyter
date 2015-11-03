@@ -4,7 +4,7 @@ from objects import Objects
 class TestObjects(unittest.TestCase):
     def setUp(self):
         self.outputed = []
-        self.objects = Objects(lambda x: self.outputed.append(x))
+        self.objects = Objects(self.outputed.append)
 
     def test_adds_are_buffered(self):
         self.objects.add('x')

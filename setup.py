@@ -4,9 +4,10 @@ from setuptools import setup
 
 try:
     from jupyterpip import cmdclass
-except:
+except ImportError:
     import pip, importlib
-    pip.main(['install', 'jupyter-pip']); cmdclass = importlib.import_module('jupyterpip').cmdclass
+    pip.main(['install', 'jupyter-pip'])
+    cmdclass = importlib.import_module('jupyterpip').cmdclass
 
 setup(
     name='k3d',

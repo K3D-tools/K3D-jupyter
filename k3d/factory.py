@@ -1,6 +1,6 @@
 import numpy
 
-class Factory:
+class Factory(object):
     @classmethod
     def torus_knot(cls, view_matrix):
         return {
@@ -13,7 +13,7 @@ class Factory:
         }
 
     @classmethod
-    def text(cls, view_matrix, string, color = 0xFFFFFF, font_weight = 'bold', font_face = 'Courier New'):
+    def text(cls, view_matrix, string, color=0xFFFFFF, font_weight='bold', font_face='Courier New'):
         return {
             'type': 'Text',
             'modelViewMatrix': cls.__to_list(view_matrix),
@@ -26,7 +26,7 @@ class Factory:
         }
 
     @classmethod
-    def points(cls, view_matrix, positions, colors, point_size = 1.0):
+    def points(cls, view_matrix, positions, colors, point_size=1.0):
         return {
             'type': 'Points',
             'modelViewMatrix': cls.__to_list(view_matrix),
@@ -84,4 +84,4 @@ class Factory:
         if not hasattr(arg, '__iter__'):
             return [arg]
 
-        return sum(map(cls.__to_list, list(arg)), [])
+        return sum([cls.__to_list(item) for item in list(arg)], [])

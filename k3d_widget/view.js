@@ -5,14 +5,13 @@ requirejs.config({
         'k3d': '../nbextensions/k3d_widget/lib/k3d'
     },
     shim: {
-        'k3d/providers/k3d.threejs': {
-            deps: ['k3d/k3d', 'k3d/providers/k3d.threejs.deps']
+        'k3d/providers/k3d.threejs.min': {
+            deps: ['k3d/k3d.min', 'k3d/providers/k3d.threejs.deps.min']
         }
     }
 });
 
-define(['nbextensions/widgets/widgets/js/widget', 'k3d/providers/k3d.threejs'], function (widget) {
-    'use strict';
+define(['nbextensions/widgets/widgets/js/widget', 'k3d/providers/k3d.threejs.min'], function (widget) {
 
     return {
         K3DView: widget.DOMWidgetView.extend({

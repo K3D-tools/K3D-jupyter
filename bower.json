@@ -8,6 +8,7 @@
   "description": "Juyter notebook extension for K3D visualization library.",
   "license": "GPLv2",
   "dependencies": {
-    "k3d": "~0.4.0"
+    "k3d": "~0.4.0",
+    "pako": "~0.2.8"
   }
 }
