@@ -1,6 +1,6 @@
 from ipywidgets import DOMWidget
 from IPython.display import display
-from traitlets import Unicode, Bytes, Int
+from traitlets import Unicode, Bytes, Dict
 from .objects import Objects
 from .factory import Factory
 import base64
@@ -16,15 +16,20 @@ class K3D(DOMWidget, Factory):
 
     COMPRESSION_LEVEL = 9
 
-    height = Int(sync=True)
     data = Bytes(sync=True)
+    parameters = Dict(sync=True)
 
-    def __init__(self, height=512):
+    def __init__(self, antialias=False, background_color=0xFFFFFF, height=512):
         super(K3D, self).__init__()
 
         self.__objects = Objects(self.__show)
-        self.height = height
         self.on_displayed(lambda x: self.__objects.flush())
+
+        self.parameters = {
+            'antialias': antialias,
+            'backgroundColor': background_color,
+            'height': height,
+        }
 
     def __add__(self, obj):
         self.__objects.add(obj)
