@@ -79,9 +79,6 @@ class Factory(object):
         with open(filename) as stl:
             return cls.stl(view_matrix, stl.read())
 
-    @classmethod
-    def __to_list(cls, arg):
-        if not hasattr(arg, '__iter__'):
-            return [arg]
-
-        return sum([cls.__to_list(item) for item in list(arg)], [])
+    @staticmethod
+    def __to_list(arg):
+        return numpy.array(arg).flatten().tolist()
