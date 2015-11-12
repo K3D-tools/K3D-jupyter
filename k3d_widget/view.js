@@ -5,6 +5,9 @@ requirejs.config({
         'k3d': '../nbextensions/k3d_widget/lib/k3d'
     },
     shim: {
+        'k3d/k3d.min': {
+            deps: ['k3d/k3d.deps.min']
+        },
         'k3d/providers/k3d.threejs.min': {
             deps: ['k3d/k3d.min', 'k3d/providers/k3d.threejs.deps.min']
         }
