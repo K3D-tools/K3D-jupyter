@@ -3,9 +3,7 @@ from IPython.display import display
 from traitlets import Unicode, Bytes, Dict
 from .objects import Objects
 from .factory import Factory
-import base64
-import zlib
-import json
+import base64, json, zlib
 
 
 class K3D(DOMWidget, Factory):
@@ -14,7 +12,7 @@ class K3D(DOMWidget, Factory):
     _model_module = Unicode('nbextensions/k3d_widget/model', sync=True)
     _model_name = Unicode('K3DModel', sync=True)
 
-    COMPRESSION_LEVEL = 9
+    COMPRESSION_LEVEL = 1
 
     data = Bytes(sync=True)
     parameters = Dict(sync=True)

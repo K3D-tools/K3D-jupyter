@@ -1,4 +1,4 @@
-import numpy
+import base64, numpy
 
 class Factory(object):
     @classmethod
@@ -31,8 +31,8 @@ class Factory(object):
             'type': 'Points',
             'modelViewMatrix': cls.__to_list(view_matrix),
             'pointSize': point_size,
-            'pointsPositions': cls.__to_list(positions),
-            'pointsColors': cls.__to_list(colors),
+            'pointsPositions': cls.__to_base64(positions),
+            'pointsColors': cls.__to_base64(colors),
         }
 
     @classmethod
@@ -42,7 +42,7 @@ class Factory(object):
             'modelViewMatrix': cls.__to_list(view_matrix),
             'color': color,
             'lineWidth': width,
-            'pointsPositions': cls.__to_list(positions),
+            'pointsPositions': cls.__to_base64(positions),
         }
 
     @classmethod
@@ -62,7 +62,7 @@ class Factory(object):
             'resolution': resolution,
             'color': color,
             'isolation': isolation,
-            'scalarsField': cls.__to_list(scalars_field),
+            'scalarsField': cls.__to_base64(scalars_field),
         }
 
     @classmethod
@@ -81,4 +81,8 @@ class Factory(object):
 
     @staticmethod
     def __to_list(arg):
-        return numpy.array(arg).flatten().tolist()
+        return numpy.array(arg, dtype=numpy.float32).flatten().tolist()
+
+    @staticmethod
+    def __to_base64(arg):
+        return base64.b64encode(numpy.array(arg, dtype=numpy.float32).data)
