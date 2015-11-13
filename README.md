@@ -8,10 +8,16 @@ Jupyter notebook extension for K3D visualization library.
 
 ## Installation
 
-### Locally
+### Locally (as user)
 
 ```console
-make install
+make install-user
+```
+
+### Locally (global)
+
+```console
+make install-global
 ```
 
 ### Using vagrant

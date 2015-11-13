@@ -1,11 +1,16 @@
-.PHONY: test install install-vagrant
+.PHONY: test install-user install-global install-vagrant install-deps
 
 test:
 	@cd k3d; python -m unittest discover -t test
 
-install:
-	@bower install --config.interactive=false
+install-user: install-deps
+	@pip install --user .
+
+install-global: install-deps
 	@sudo pip install .
 
 install-vagrant:
-	@vagrant ssh -c "cd /vagrant; make install"
+	@vagrant ssh -c "cd /vagrant; make install-user"
+
+install-deps:
+	@bower install --config.interactive=false
