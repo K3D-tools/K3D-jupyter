@@ -1,8 +1,9 @@
-import base64, numpy
+import base64
+import numpy
 
 class Factory(object):
     @classmethod
-    def torus_knot(cls, view_matrix):
+    def torus_knot(cls, view_matrix=numpy.identity(4)):
         return {
             'type': 'TorusKnot',
             'modelViewMatrix': cls.__to_list(view_matrix),
@@ -13,10 +14,10 @@ class Factory(object):
         }
 
     @classmethod
-    def text(cls, view_matrix, string, color=0xFFFFFF, font_weight='bold', font_face='Courier New'):
+    def text(cls, string, position=(0, 0, 0), color=0xFFFFFF, font_weight='bold', font_face='Courier New'):
         return {
             'type': 'Text',
-            'modelViewMatrix': cls.__to_list(view_matrix),
+            'position': cls.__to_list(position),
             'text': string,
             'color': color,
             'fontOptions': {
@@ -26,7 +27,7 @@ class Factory(object):
         }
 
     @classmethod
-    def points(cls, view_matrix, positions, colors, point_size=1.0):
+    def points(cls, positions, colors, view_matrix=numpy.identity(4), point_size=1.0):
         return {
             'type': 'Points',
             'modelViewMatrix': cls.__to_list(view_matrix),
@@ -36,7 +37,7 @@ class Factory(object):
         }
 
     @classmethod
-    def line(cls, view_matrix, positions, width=1, color=0xFFFFFF):
+    def line(cls, positions, view_matrix=numpy.identity(4), width=1, color=0xFFFFFF):
         return {
             'type': 'Line',
             'modelViewMatrix': cls.__to_list(view_matrix),
@@ -46,27 +47,31 @@ class Factory(object):
         }
 
     @classmethod
-    def surface(cls, view_matrix, heights, resolution):
+    def surface(cls, heights, width, height, view_matrix=numpy.identity(4), color=0xFFFFFF):
         return {
             'type': 'Surface',
             'modelViewMatrix': cls.__to_list(view_matrix),
+            'color': color,
+            'width': width,
+            'height': height,
             'heights': list(heights),
-            'resolution': resolution,
         }
 
     @classmethod
-    def marching_cubes(cls, view_matrix, scalars_field, resolution, isolation, color=0xFFFFFF):
+    def marching_cubes(cls, scalars_field, width, height, length, isolation, view_matrix=numpy.identity(4), color=0xFFFFFF):
         return {
             'type': 'MarchingCubes',
             'modelViewMatrix': cls.__to_list(view_matrix),
-            'resolution': resolution,
+            'width': width,
+            'height': height,
+            'length': length,
             'color': color,
             'isolation': isolation,
             'scalarsField': cls.__to_base64(scalars_field),
         }
 
     @classmethod
-    def stl(cls, view_matrix, stl, color=0xFFFFFF):
+    def stl(cls, stl, view_matrix=numpy.identity(4), color=0xFFFFFF):
         return {
             'type': 'STL',
             'modelViewMatrix': cls.__to_list(view_matrix),
@@ -77,7 +82,7 @@ class Factory(object):
     @classmethod
     def stl_load(cls, filename, view_matrix=numpy.identity(4)):
         with open(filename) as stl:
-            return cls.stl(view_matrix, stl.read())
+            return cls.stl(stl.read(), view_matrix)
 
     @staticmethod
     def __to_list(arg):

@@ -3,7 +3,9 @@ from IPython.display import display
 from traitlets import Unicode, Bytes, Dict
 from .objects import Objects
 from .factory import Factory
-import base64, json, zlib
+import base64
+import json
+import zlib
 
 
 class K3D(DOMWidget, Factory):

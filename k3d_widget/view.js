@@ -19,8 +19,14 @@ define(['nbextensions/widgets/widgets/js/widget', 'k3d/providers/k3d.threejs.min
     return {
         K3DView: widget.DOMWidgetView.extend({
             render: function () {
+                var container = $('<div />').css('position', 'relative'),
+                    toolbar = $('<div class="toolbar" />').appendTo(container).css({
+                        'position': 'absolute',
+                        'right': 0
+                    });
+
                 this.parameters = this.model.get('parameters');
-                this.canvas = $('<div />').css({'height': this.parameters.height}).appendTo(this.$el).get(0);
+                this.container = container.css({'height': this.parameters.height}).appendTo(this.$el).get(0);
                 this.on('displayed', this._init, this);
                 this.model.on('change:object', this._add, this);
             },
@@ -30,7 +36,7 @@ define(['nbextensions/widgets/widgets/js/widget', 'k3d/providers/k3d.threejs.min
                     antialias: this.parameters.antialias,
                 });
 
-                this.K3D = K3D.Core(K3D.Providers.ThreeJS, this.canvas, {
+                this.K3D = K3D.Core(K3D.Providers.ThreeJS, this.container, {
                     renderer: renderer
                 });
 
