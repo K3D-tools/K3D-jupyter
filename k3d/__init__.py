@@ -21,6 +21,7 @@ class K3D(DOMWidget, Factory):
         super(K3D, self).__init__()
 
         self.__objects = Objects(self.__show)
+        self.__display_strategy = self.__display
         self.on_displayed(lambda x: self.__objects.flush())
 
         self.parameters = {
@@ -34,7 +35,14 @@ class K3D(DOMWidget, Factory):
         return self
 
     def display(self):
+        self.__display_strategy()
+
+    def __display(self):
         display(self)
+        self.__display_strategy = self.__pass
 
     def __show(self, obj):
         self.data = base64.b64encode(zlib.compress(json.dumps(obj, separators=(',', ':')), self.COMPRESSION_LEVEL))
+
+    def __pass(self):
+        pass
