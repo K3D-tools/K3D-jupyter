@@ -108,6 +108,19 @@ class Factory(object):
             'colors': cls.__to_base64(colors)
         }
 
+    @classmethod
+    def vector3d(cls, vectors, colors, width, height, length, view_matrix=numpy.identity(4), use_head=True):
+        return {
+            'type': 'Vector3D',
+            'useHead': use_head,
+            'modelViewMatrix': cls.__to_list(view_matrix),
+            'width': width,
+            'height': height,
+            'length': length,
+            'vectors': cls.__to_base64(vectors),
+            'colors': cls.__to_base64(colors)
+        }
+
     @staticmethod
     def __to_list(arg):
         return numpy.array(arg, dtype=numpy.float32).flatten().tolist()
