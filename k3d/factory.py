@@ -96,6 +96,18 @@ class Factory(object):
             'label': label
         }
 
+    @classmethod
+    def vector2d(cls, vectors, colors, width, height, view_matrix=numpy.identity(4), use_head=True):
+        return {
+            'type': 'Vector2D',
+            'useHead': use_head,
+            'modelViewMatrix': cls.__to_list(view_matrix),
+            'width': width,
+            'height': height,
+            'vectors': cls.__to_base64(vectors),
+            'colors': cls.__to_base64(colors)
+        }
+
     @staticmethod
     def __to_list(arg):
         return numpy.array(arg, dtype=numpy.float32).flatten().tolist()
