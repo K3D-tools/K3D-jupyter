@@ -84,6 +84,18 @@ class Factory(object):
         with open(filename) as stl:
             return cls.stl(stl.read(), view_matrix)
 
+    @classmethod
+    def vector(cls, origin, vector, view_matrix=numpy.identity(4), label='', color=0xFFFFFF, line_width=1):
+        return {
+            'type' : 'Vector',
+            'modelViewMatrix' : cls.__to_list(view_matrix),
+            'origin' : cls.__to_list(origin),
+            'vector' : cls.__to_list(vector),
+            'color' : color,
+            'lineWidth' : line_width,
+            'label': label
+        }
+
     @staticmethod
     def __to_list(arg):
         return numpy.array(arg, dtype=numpy.float32).flatten().tolist()
