@@ -121,6 +121,14 @@ class Factory(object):
             'colors': cls.__to_base64(colors)
         }
 
+    @classmethod
+    def texture(cls, image, view_matrix=numpy.identity(4)):
+        return {
+            'type': 'Texture',
+            'modelViewMatrix': cls.__to_list(view_matrix),
+            'image': image,
+        }
+
     @staticmethod
     def __to_list(arg):
         return numpy.array(arg, dtype=numpy.float32).flatten().tolist()
