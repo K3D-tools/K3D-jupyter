@@ -129,10 +129,22 @@ class Factory(object):
             'image': image,
         }
 
-    @staticmethod
-    def __to_list(arg):
-        return numpy.array(arg, dtype=numpy.float32).flatten().tolist()
+    @classmethod
+    def voxels(cls, voxels, color_map, width, height, length, view_matrix=numpy.identity(4)):
+        return {
+            'type': 'Voxels',
+            'modelViewMatrix': cls.__to_list(view_matrix),
+            'width': width,
+            'height': height,
+            'length': length,
+            'colorMap': cls.__to_list(color_map),
+            'voxels': cls.__to_base64(voxels, numpy.uint8),
+        }
 
     @staticmethod
-    def __to_base64(arg):
-        return base64.b64encode(numpy.array(arg, dtype=numpy.float32).data)
+    def __to_list(arg, dtype=numpy.float32):
+        return numpy.array(arg, dtype).flatten().tolist()
+
+    @staticmethod
+    def __to_base64(arg, dtype=numpy.float32):
+        return base64.b64encode(numpy.array(arg, dtype).data)
