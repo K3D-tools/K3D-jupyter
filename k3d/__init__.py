@@ -1,8 +1,9 @@
 from ipywidgets import DOMWidget
 from IPython.display import display
 from traitlets import Unicode, Bytes, Dict
-from .objects import Objects
 from .factory import Factory
+from .objects import Drawable
+from .queue import Queue
 import base64
 import json
 import zlib
@@ -22,9 +23,9 @@ class K3D(DOMWidget, Factory):
     def __init__(self, antialias=False, background_color=0xFFFFFF, height=512):
         super(K3D, self).__init__()
 
-        self.__objects = Objects(self.__show)
+        self.__queue = Queue(self.__show)
         self.__display_strategy = self.__display
-        self.on_displayed(lambda x: self.__objects.flush())
+        self.on_displayed(lambda x: self.__queue.flush())
 
         self.parameters = {
             'antialias': antialias,
@@ -33,7 +34,11 @@ class K3D(DOMWidget, Factory):
         }
 
     def __add__(self, obj):
-        self.__objects.add(obj)
+        assert isinstance(obj, Drawable)
+
+        if obj.set_plot(self):
+            self.__queue.add(obj)
+
         return self
 
     def display(self):
@@ -43,8 +48,9 @@ class K3D(DOMWidget, Factory):
         display(self)
         self.__display_strategy = self.__pass
 
-    def __show(self, obj):
-        self.data = base64.b64encode(zlib.compress(json.dumps(obj, separators=(',', ':')), self.COMPRESSION_LEVEL))
+    def __show(self, objs):
+        for obj in objs:
+            self.data = base64.b64encode(zlib.compress(json.dumps(obj.__dict__, separators=(',', ':')), self.COMPRESSION_LEVEL))
 
     def __pass(self):
         pass
