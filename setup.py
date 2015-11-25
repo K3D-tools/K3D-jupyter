@@ -11,7 +11,7 @@ except ImportError:
 
 setup(
     name='k3d',
-    version='0.6.0',
+    version='0.6.1',
     packages=['k3d'],
     include_package_data=True,
     install_requires=['jupyter-pip'],

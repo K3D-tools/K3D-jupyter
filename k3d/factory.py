@@ -43,7 +43,7 @@ class Factory(object):
             'color': color,
             'width': width,
             'height': height,
-            'heights': cls.__to_ndarray(heights),
+            'heights': cls.__to_ndarray(heights, order='F'),
         })
 
     @classmethod
