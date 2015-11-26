@@ -34,7 +34,7 @@ class SingleObject(Drawable):
 
     @property
     def __dict__(self):
-        items = self.__obj.items() + [('type', self.__class__.__name__)]
+        items = list(self.__obj.items()) + [('type', self.__class__.__name__)]
 
         return {key: value for key, value in items if not self.__is_empty(value)}
 
@@ -63,7 +63,7 @@ class SingleObject(Drawable):
         assert isinstance(ndarray, numpy.ndarray)
         assert ndarray.dtype == dtype
 
-        return base64.b64encode(ndarray.data)
+        return base64.b64encode(ndarray.data).decode(encoding='ascii')
 
     @staticmethod
     def __is_empty(value):

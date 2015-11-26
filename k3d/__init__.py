@@ -4,6 +4,7 @@ from traitlets import Unicode, Bytes, Dict
 from .factory import Factory
 from .objects import Drawable
 from .queue import Queue
+from .version import version
 import base64
 import json
 import zlib
@@ -50,7 +51,7 @@ class K3D(DOMWidget, Factory):
 
     def __show(self, objs):
         for obj in objs:
-            self.data = base64.b64encode(zlib.compress(json.dumps(obj.__dict__, separators=(',', ':')), self.COMPRESSION_LEVEL))
+            self.data = base64.b64encode(zlib.compress(json.dumps(obj.__dict__, separators=(',', ':')).encode(encoding='ascii'), self.COMPRESSION_LEVEL))
 
     def __pass(self):
         pass

@@ -8,8 +8,6 @@ Vagrant.configure(2) do |config|
     config.vm.network "forwarded_port", guest: 8888, host: 8888
     config.vm.synced_folder "examples", "/home/vagrant/examples"
 
-    config.vm.provision :shell, inline: "puppet module list | grep puppetlabs-nodejs > /dev/null || puppet module install puppetlabs-nodejs"
-
     config.vm.provision :puppet do |puppet|
         puppet.manifests_path = "puppet"
         puppet.module_path = "puppet/modules"

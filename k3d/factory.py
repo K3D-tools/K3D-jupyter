@@ -1,5 +1,5 @@
 import numpy
-import objects
+import k3d.objects as objects
 
 
 class Factory(object):
@@ -35,11 +35,11 @@ class Factory(object):
         })
 
     @classmethod
-    def surface(cls, heights, xmin=-.5, xmax=.5, ymin=-.5, ymax=.5, zmin=-.5, zmax=.5, view_matrix=numpy.identity(4), width=None, height=None, color=DEFAULT_COLOR):
+    def surface(cls, heights, xmin=-.5, xmax=.5, ymin=-.5, ymax=.5, view_matrix=numpy.identity(4), width=None, height=None, color=DEFAULT_COLOR):
         width, height = cls.__get_dimensions(numpy.shape(heights), width, height)
 
         return objects.Surface(**{
-            'model_view_matrix': cls.__get_view_matrix(view_matrix, xmin, xmax, ymin, ymax, zmin, zmax),
+            'model_view_matrix': cls.__get_view_matrix(view_matrix, xmin, xmax, ymin, ymax),
             'color': color,
             'width': width,
             'height': height,
@@ -158,6 +158,6 @@ class Factory(object):
                 raise TypeError('%s: expected float, %s given' % (name, type(value).__name__))
 
         matrix = numpy.diagflat(numpy.array((xmax - xmin, ymax - ymin, zmax - zmin, 1.0), numpy.float32, order='C'))
-        matrix[0:3, 3] = ((xmax + xmin) / 2, (ymax + ymin) / 2, (zmax + zmin) / 2)
+        matrix[0:3, 3] = ((xmax + xmin) / 2.0, (ymax + ymin) / 2.0, (zmax + zmin) / 2.0)
 
         return matrix

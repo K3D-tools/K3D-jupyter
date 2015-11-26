@@ -1,16 +1,20 @@
 .PHONY: test install-user install-global install-vagrant install-deps
 
+PIP := 'pip'
+
 test:
-	@cd k3d; python -m unittest discover -t test
+	@vagrant ssh -c "cd /vagrant; python2 -m pytest"
+	@vagrant ssh -c "cd /vagrant; python3 -m pytest"
 
 install-user: install-deps
-	@pip install --user .
+	@$(PIP) install --user .
 
 install-global: install-deps
-	@sudo pip install .
+	@sudo $(PIP) install .
 
 install-vagrant:
 	@vagrant ssh -c "cd /vagrant; make install-user"
+	@vagrant ssh -c "cd /vagrant; make install-user PIP=pip3"
 
 install-deps:
 	@bower install --config.interactive=false
