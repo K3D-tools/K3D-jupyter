@@ -10,20 +10,22 @@ class jupyter ($user = 'vagrant', $directory = '/home/vagrant') {
     }
 
     pip { ['jupyter', 'jupyter-pip', 'numpy', 'pytest']:
-        ensure => installed,
+        ensure  => installed,
+        timeout => 0,
     }
     ->
     exec { 'install python2 kernel':
-        command => '/usr/local/bin/ipython2 kernelspec install-self',
+        command => 'ipython2 kernelspec install-self',
         creates => '/usr/local/share/jupyter/kernels/python2',
     }
 
     pip3 { ['jupyter', 'jupyter-pip', 'numpy', 'pytest']:
-        ensure => installed,
+        ensure  => installed,
+        timeout => 0,
     }
     ->
     exec { 'install python3 kernel':
-        command => '/usr/local/bin/ipython3 kernelspec install-self',
+        command => 'ipython3 kernelspec install-self',
         creates => '/usr/local/share/jupyter/kernels/python3',
     }
 

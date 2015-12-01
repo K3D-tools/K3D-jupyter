@@ -1,7 +1,51 @@
 from abc import ABCMeta, abstractmethod
 import base64
+from functools import partial, reduce
 import k3d
 import numpy
+from weakref import WeakKeyDictionary
+
+_NoneType = type(None)
+
+
+class _Attribute(object):
+    def __init__(self, expected_type, cast, path):
+        self.__expected_type = expected_type
+        self.__cast = cast
+        self.__path = '/' + path.strip('/')
+        self.__values = WeakKeyDictionary()
+
+    def __set__(self, instance, value):
+        if not isinstance(value, self.__expected_type):
+            raise TypeError('Expected type %s, %s given' % (self.__expected_type.__name__, type(value).__name__))
+
+        self.__values[instance] = value
+
+    def __get__(self, instance, cls):
+        if instance is None:
+            return self
+
+        return self.__get_value(instance)
+
+    def __get_value(self, instance):
+        return self.__values[instance] if instance in self.__values else None
+
+    @property
+    def path(self):
+        return self.__path
+
+    def get_output(self, instance):
+        value = self.__get_value(instance)
+
+        return self.__cast(value) if value is not None else None
+
+
+def _to_list(ndarray, dtype=numpy.float32):
+    return numpy.frombuffer(ndarray.astype(dtype).data, dtype).tolist()
+
+
+def _to_base64(ndarray, dtype=numpy.float32):
+    return base64.b64encode(ndarray.astype(dtype).data).decode(encoding='ascii')
 
 
 class Drawable(object):
@@ -14,6 +58,12 @@ class Drawable(object):
     def __add__(self, other):
         return Group(self, other)
 
+    def __setattr__(self, name, value):
+        if not hasattr(self, name):
+            raise AttributeError("'%s' object has no attribute '%s'" % (self.__class__.__name__, name))
+
+        super(Drawable, self).__setattr__(name, value)
+
     @abstractmethod
     def set_plot(self, plot):
         pass
@@ -22,21 +72,63 @@ class Drawable(object):
 class SingleObject(Drawable):
     __metaclass__ = ABCMeta
 
-    @abstractmethod
-    def __init__(self, obj):
-        assert isinstance(obj, dict)
+    __attributes = None
+    __plot = None
 
-        self.__obj = obj
-        self.__plot = None
+    def __init__(self, **kwargs):
+        self.__attributes = tuple(key for key, value in self.__class__.__dict__.items() if isinstance(value, _Attribute))
 
-    def __iter__(self):
-        return (self,).__iter__()
+        for attr in self.__attributes:
+            if attr not in kwargs:
+                raise AttributeError('Missing value for attribute "%s"' % attr)
+
+            setattr(self, attr, kwargs.get(attr))
+
+    def __setattr__(self, name, value):
+        is_set = getattr(self, name, None) is not None
+
+        super(SingleObject, self).__setattr__(name, value)
+
+        if is_set and name in self.__attributes and self.__plot is not None:
+            self.__plot.update(self.id, self.__attr(name))
 
     @property
     def __dict__(self):
-        items = list(self.__obj.items()) + [('type', self.__class__.__name__)]
+        return {attr: getattr(self, attr) for attr in self.__attributes}
 
-        return {key: value for key, value in items if not self.__is_empty(value)}
+    @property
+    def data(self):
+        output = {
+            'id': self.id,
+            'type': self.__class__.__name__,
+        }
+
+        for name in self.__attributes:
+            attr = self.__attr(name)
+            if not self.__is_empty(attr.get('value')):
+                self.__set_value(output, attr.get('path'), attr.get('value'))
+
+        return output
+
+    def __attr(self, name):
+        attr = getattr(self.__class__, name)
+
+        return {
+            'value': attr.get_output(self),
+            'path': attr.path,
+        }
+
+    @property
+    def id(self):
+        return id(self)
+
+    @staticmethod
+    def __set_value(obj, path, value):
+        parts = path.strip('/').split('/')
+        reduce(lambda obj, part: obj.setdefault(part, {}), parts[:-1], obj).setdefault(parts[-1], value)
+
+    def __iter__(self):
+        return (self,).__iter__()
 
     def set_plot(self, plot):
         assert isinstance(plot, k3d.K3D)
@@ -52,20 +144,6 @@ class SingleObject(Drawable):
         return True
 
     @staticmethod
-    def _to_list(ndarray, dtype=numpy.float32):
-        assert isinstance(ndarray, numpy.ndarray)
-        assert ndarray.dtype == dtype
-
-        return numpy.frombuffer(ndarray.data, ndarray.dtype).tolist()
-
-    @staticmethod
-    def _to_base64(ndarray, dtype=numpy.float32):
-        assert isinstance(ndarray, numpy.ndarray)
-        assert ndarray.dtype == dtype
-
-        return base64.b64encode(ndarray.data).decode(encoding='ascii')
-
-    @staticmethod
     def __is_empty(value):
         return any((
             value is None,
@@ -74,6 +152,8 @@ class SingleObject(Drawable):
 
 
 class Group(Drawable):
+    __objs = None
+
     def __init__(self, *args):
         self.__objs = tuple(self.__assert_drawable(drawable) for drawables in args for drawable in drawables)
 
@@ -91,116 +171,84 @@ class Group(Drawable):
 
 
 class Line(SingleObject):
-    def __init__(self, color, line_width, model_view_matrix, points_positions):
-        super(Line, self).__init__({
-            'color': int(color),
-            'lineWidth': float(line_width),
-            'modelViewMatrix': self._to_list(model_view_matrix),
-            'pointsPositions': self._to_base64(points_positions),
-        })
+    color = _Attribute(int, int, 'color')
+    line_width = _Attribute((int, float), float, 'lineWidth')
+    model_view_matrix = _Attribute(numpy.ndarray, _to_list, 'modelViewMatrix')
+    points_positions = _Attribute(numpy.ndarray, _to_base64, 'pointsPositions')
 
 
 class MarchingCubes(SingleObject):
-    def __init__(self, color, height, length, level, model_view_matrix, scalars_field, width):
-        super(MarchingCubes, self).__init__({
-            'color': int(color),
-            'height': int(height),
-            'length': int(length),
-            'level': float(level),
-            'modelViewMatrix': self._to_list(model_view_matrix),
-            'scalarsField': self._to_base64(scalars_field),
-            'width': int(width),
-        })
+    color = _Attribute(int, int, 'color')
+    height = _Attribute(int, int, 'height')
+    length = _Attribute(int, int, 'length')
+    level = _Attribute((int, float), float, 'level')
+    model_view_matrix = _Attribute(numpy.ndarray, _to_list, 'modelViewMatrix')
+    scalars_field = _Attribute(numpy.ndarray, _to_base64, 'scalarsField')
+    width = _Attribute(int, int, 'width')
 
 
 class Points(SingleObject):
-    def __init__(self, color, model_view_matrix, point_size, points_colors, points_positions):
-        super(Points, self).__init__({
-            'color': int(color),
-            'modelViewMatrix': self._to_list(model_view_matrix),
-            'pointSize': float(point_size),
-            'pointsColors': self._to_base64(points_colors, numpy.uint32),
-            'pointsPositions': self._to_base64(points_positions),
-        })
+    color = _Attribute(int, int, 'color')
+    model_view_matrix = _Attribute(numpy.ndarray, _to_list, 'modelViewMatrix')
+    point_size = _Attribute((int, float), float, 'pointSize')
+    points_colors = _Attribute(numpy.ndarray, partial(_to_base64, dtype=numpy.uint32), 'pointsColors')
+    points_positions = _Attribute(numpy.ndarray, _to_base64, 'pointsPositions')
 
 
 class STL(SingleObject):
-    def __init__(self, color, model_view_matrix, stl):
-        super(STL, self).__init__({
-            'color': int(color),
-            'modelViewMatrix': self._to_list(model_view_matrix),
-            'STL': bytes(stl),
-        })
+    color = _Attribute(int, int, 'color')
+    model_view_matrix = _Attribute(numpy.ndarray, _to_list, 'modelViewMatrix')
+    stl = _Attribute((bytes, str), str, 'STL')
 
 
 class Surface(SingleObject):
-    def __init__(self, color, height, heights, model_view_matrix, width):
-        super(Surface, self).__init__({
-            'color': int(color),
-            'height': int(height),
-            'heights': self._to_base64(heights),
-            'modelViewMatrix': self._to_list(model_view_matrix),
-            'width': int(width),
-        })
+    color = _Attribute(int, int, 'color')
+    height = _Attribute(int, int, 'height')
+    heights = _Attribute(numpy.ndarray, _to_base64, 'heights')
+    model_view_matrix = _Attribute(numpy.ndarray, _to_list, 'modelViewMatrix')
+    width = _Attribute(int, int, 'width')
 
 
 class Text(SingleObject):
-    def __init__(self, color, font_face, font_weight, position, text):
-        super(Text, self).__init__({
-            'color': int(color),
-            'fontOptions': {
-                'face': str(font_face),
-                'weight': str(font_weight),
-            },
-            'position': self._to_list(position),
-            'text': str(text),
-        })
+    color = _Attribute(int, int, 'color')
+    font_face = _Attribute(str, str, 'fontOptions/face')
+    font_weight = _Attribute(str, str, 'fontOptions/weight')
+    position = _Attribute(numpy.ndarray, _to_list, 'position')
+    text = _Attribute(str, str, 'text')
 
 
 class Texture(SingleObject):
-    def __init__(self, image, model_view_matrix):
-        super(Texture, self).__init__({
-            'image': str(image),
-            'modelViewMatrix': self._to_list(model_view_matrix),
-        })
+    image = _Attribute(str, str, 'image')
+    model_view_matrix = _Attribute(numpy.ndarray, _to_list, 'modelViewMatrix')
 
 
 class Vectors(SingleObject):
-    def __init__(self, colors, color, labels, line_width, model_view_matrix, origins, vectors):
-        super(Vectors, self).__init__({
-            'colors': self._to_base64(colors, numpy.uint32),
-            'headColor': int(color),
-            'labels': list(labels),
-            'lineWidth': float(line_width),
-            'modelViewMatrix': self._to_list(model_view_matrix),
-            'originColor': int(color),
-            'origins': self._to_base64(origins),
-            'vectors': self._to_base64(vectors),
-        })
+    colors = _Attribute(numpy.ndarray, partial(_to_base64, dtype=numpy.uint32), 'colors')
+    head_color = _Attribute(int, int, 'headColor')
+    labels = _Attribute((list, tuple), tuple, 'labels')
+    line_width = _Attribute((int, float), float, 'lineWidth')
+    model_view_matrix = _Attribute(numpy.ndarray, _to_list, 'modelViewMatrix')
+    origin_color = _Attribute(int, int, 'originColor')
+    origins = _Attribute(numpy.ndarray, _to_base64, 'origins')
+    vectors = _Attribute(numpy.ndarray, _to_base64, 'vectors')
 
 
 class VectorsFields(SingleObject):
-    def __init__(self, colors, color, height, length, model_view_matrix, use_head, vectors, width):
-        super(VectorsFields, self).__init__({
-            'colors': self._to_base64(colors, numpy.uint32),
-            'headColor': int(color),
-            'height': int(height),
-            'length': int(length) if length is not None else None,
-            'modelViewMatrix': self._to_list(model_view_matrix),
-            'originColor': int(color),
-            'useHead': bool(use_head),
-            'vectors': self._to_base64(vectors),
-            'width': int(width),
-        })
+    colors = _Attribute(numpy.ndarray, partial(_to_base64, dtype=numpy.uint32), 'colors')
+    head_color = _Attribute(int, int, 'headColor')
+    height = _Attribute(int, int, 'height')
+    length = _Attribute((int, _NoneType), int, 'length')
+    model_view_matrix = _Attribute(numpy.ndarray, _to_list, 'modelViewMatrix')
+    origin_color = _Attribute(int, int, 'originColor')
+    use_head = _Attribute(bool, bool, 'useHead')
+    vectors = _Attribute(numpy.ndarray, _to_base64, 'vectors')
+    width = _Attribute(int, int, 'width')
 
 
 class Voxels(SingleObject):
-    def __init__(self, color_map, height, length, model_view_matrix, voxels, width):
-        super(Voxels, self).__init__({
-            'colorMap': self._to_list(color_map, numpy.uint32),
-            'height': int(height),
-            'length': int(length),
-            'modelViewMatrix': self._to_list(model_view_matrix),
-            'voxels': self._to_base64(voxels, numpy.uint8),
-            'width': int(width),
-        })
+    color_map = _Attribute(numpy.ndarray, partial(_to_base64, dtype=numpy.uint32), 'colorMap')
+    height = _Attribute(int, int, 'height')
+    length = _Attribute(int, int, 'length')
+    model_view_matrix = _Attribute(numpy.ndarray, _to_list, 'modelViewMatrix')
+    voxels = _Attribute(numpy.ndarray, partial(_to_base64, dtype=numpy.uint8), 'voxels')
+    width = _Attribute(int, int, 'width')

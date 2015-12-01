@@ -4,7 +4,7 @@ from traitlets import Unicode, Bytes, Dict
 from .factory import Factory
 from .objects import Drawable
 from .queue import Queue
-from .version import version
+from .version import version  # noqa, pylint: disable=no-name-in-module
 import base64
 import json
 import zlib
@@ -26,7 +26,7 @@ class K3D(DOMWidget, Factory):
 
         self.__queue = Queue(self.__show)
         self.__display_strategy = self.__display
-        self.on_displayed(lambda x: self.__queue.flush())
+        self.__update_strategy = self.__pass
 
         self.parameters = {
             'antialias': antialias,
@@ -42,16 +42,41 @@ class K3D(DOMWidget, Factory):
 
         return self
 
-    def display(self):
-        self.__display_strategy()
+    def update(self, obj_id, attr):
+        self.__update_strategy(obj_id, attr)
 
-    def __display(self):
-        display(self)
-        self.__display_strategy = self.__pass
+    def __update(self, obj_id, attr):
+        data = {
+            'id': obj_id,
+            'attr': attr,
+        }
+
+        self.data = self.__to_compressed_base64(self.__to_json(data))
 
     def __show(self, objs):
         for obj in objs:
-            self.data = base64.b64encode(zlib.compress(json.dumps(obj.__dict__, separators=(',', ':')).encode(encoding='ascii'), self.COMPRESSION_LEVEL))
+            self.data = self.__to_compressed_base64(self.__to_json(obj.data))
 
-    def __pass(self):
+    @staticmethod
+    def __to_json(data):
+        return json.dumps(data, separators=(',', ':')).encode(encoding='ascii')
+
+    @classmethod
+    def __to_compressed_base64(cls, data):
+        return base64.b64encode(zlib.compress(data, cls.COMPRESSION_LEVEL))
+
+    def display(self):
+        display(self)
+
+    def _ipython_display_(self, **kwargs):
+        self.__display_strategy(**kwargs)
+
+    def __display(self, **kwargs):
+        super(K3D, self)._ipython_display_(**kwargs)
+
+        self.__queue.flush()
+        self.__display_strategy = self.__pass
+        self.__update_strategy = self.__update
+
+    def __pass(self, *args, **kwargs):
         pass

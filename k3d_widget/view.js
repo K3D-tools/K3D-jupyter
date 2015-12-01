@@ -28,7 +28,7 @@ define(['nbextensions/widgets/widgets/js/widget', 'k3d/providers/k3d.threejs.min
                 this.parameters = this.model.get('parameters');
                 this.container = container.css({'height': this.parameters.height}).appendTo(this.$el).get(0);
                 this.on('displayed', this._init, this);
-                this.model.on('change:object', this._add, this);
+                this.model.on('change:object', this._onChange, this);
             },
 
             _init: function () {
@@ -43,8 +43,24 @@ define(['nbextensions/widgets/widgets/js/widget', 'k3d/providers/k3d.threejs.min
                 renderer.setClearColor(this.parameters.backgroundColor);
             },
 
-            _add: function () {
-                K3D.Loader(this.K3D, {objects: [this.model.get('object')]});
+            _onChange: function () {
+                var object = this.model.get('object');
+
+                (object.type ? this._add : this._update).call(this, object);
+            },
+
+            _add: function (object) {
+                K3D.Loader(this.K3D, {objects: [object]});
+            },
+
+            _update: function (object) {
+                var patch = [{
+                    'op': 'replace',
+                    'path': object.attr.path,
+                    'value': object.attr.value
+                }];
+
+                K3D.applyPatchObject(this.K3D, object.id, patch);
             }
         })
     };
