@@ -26,7 +26,7 @@ setup(
     version=version,
     packages=['k3d'],
     include_package_data=True,
-    install_requires=['jupyter-pip'],
+    install_requires=['ipywidgets', 'jupyter-pip', 'numpy'],
     cmdclass={
         'install': InstallK3D
     },

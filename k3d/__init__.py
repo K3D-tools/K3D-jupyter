@@ -1,6 +1,6 @@
 from ipywidgets import DOMWidget
 from IPython.display import display
-from traitlets import Unicode, Bytes, Dict, Bool
+from traitlets import Unicode, Bytes, Dict, Bool, Int
 from functools import partial
 from .factory import Factory
 from .objects import Drawable
@@ -23,8 +23,9 @@ class K3D(DOMWidget, Factory):
     camera_auto_fit = Bool(sync=True)
     data = Bytes(sync=True)
     parameters = Dict(sync=True)
+    voxel_paint_color = Int(sync=True)
 
-    def __init__(self, antialias=False, background_color=0xFFFFFF, camera_auto_fit=True, height=512):
+    def __init__(self, antialias=False, background_color=0xFFFFFF, camera_auto_fit=True, height=512, voxel_paint_color=0):
         super(K3D, self).__init__()
         self.on_msg(self.__on_msg)
 
@@ -39,6 +40,7 @@ class K3D(DOMWidget, Factory):
             'backgroundColor': background_color,
             'height': height,
         }
+        self.voxel_paint_color = voxel_paint_color
 
     def __add__(self, obj):
         assert isinstance(obj, Drawable)

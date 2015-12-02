@@ -27,24 +27,34 @@ define(['nbextensions/widgets/widgets/js/widget', 'k3d/providers/k3d.threejs.min
 
                 this.model.on('change:camera_auto_fit', this._setCameraAutoFit, this);
                 this.model.on('change:object', this._onObjectChange, this);
+                this.model.on('change:voxel_paint_color', this._setVoxelPaintColor, this);
                 this.model.on('fetchData', this._fetchData, this);
             },
 
             _init: function () {
                 var renderer = new THREE.WebGLRenderer({
-                    antialias: this.parameters.antialias,
-                });
+                        antialias: this.parameters.antialias,
+                    }),
+                    self = this;
 
                 this.K3D = K3D.Core(K3D.Providers.ThreeJS, this.container, {
                     renderer: renderer
+                }, function (newInstance) {
+                    self.K3D = newInstance;
                 });
 
                 renderer.setClearColor(this.parameters.backgroundColor);
                 this._setCameraAutoFit();
+                this._setVoxelPaintColor();
             },
 
             _setCameraAutoFit: function () {
                 this.K3D.setCameraAutoFit(this.model.get('camera_auto_fit'));
+            },
+
+            _setVoxelPaintColor: function () {
+                this.K3D.parameters.voxelPaintColor = this.model.get('voxel_paint_color');
+                console.log(this.K3D.parameters.voxelPaintColor);
             },
 
             _onObjectChange: function (model, object) {

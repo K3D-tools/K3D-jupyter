@@ -9,6 +9,8 @@ Jupyter notebook extension for K3D visualization library.
 
 * [bower](http://bower.io/#install-bower) (to fetch K3D dependency)
 * [pip](https://pypi.python.org/pypi/pip) (to install Python module)
+* [jupyter-pip](https://pypi.python.org/pypi/jupyter-pip) (to install Jupyter nbextension)
+* [numpy](https://pypi.python.org/pypi/numpy) (for efficient data manipulation)
 
 ## Installation
 
