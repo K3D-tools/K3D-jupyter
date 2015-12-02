@@ -13,6 +13,7 @@ define(['nbextensions/widgets/widgets/js/widget', 'pako/pako_inflate.min'], func
         K3DModel: widget.WidgetModel.extend({
             initialize: function () {
                 this.on('change:data', this._decode, this);
+                this.on('msg:custom', this._fetchData, this);
             },
 
             _decode: function () {
@@ -21,6 +22,10 @@ define(['nbextensions/widgets/widgets/js/widget', 'pako/pako_inflate.min'], func
                 if (data) {
                     this.set('object', JSON.parse(pako.ungzip(atob(data), {'to': 'string'})));
                 }
+            },
+
+            _fetchData: function (id) {
+                this.trigger('fetchData', id);
             }
         })
     };

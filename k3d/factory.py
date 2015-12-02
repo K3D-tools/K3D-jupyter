@@ -43,7 +43,7 @@ class Factory(object):
             'color': color,
             'width': width,
             'height': height,
-            'heights': cls.__to_ndarray(heights, order='F'),
+            'heights': cls.__to_ndarray(heights),
         })
 
     @classmethod
@@ -57,7 +57,7 @@ class Factory(object):
             'length': length,
             'color': color,
             'level': level,
-            'scalars_field': cls.__to_ndarray(scalars_field, order='F'),
+            'scalars_field': cls.__to_ndarray(scalars_field),
         })
 
     @classmethod
@@ -96,7 +96,7 @@ class Factory(object):
         return objects.VectorsFields(**{
             'use_head': use_head,
             'model_view_matrix': cls.__get_view_matrix(view_matrix, xmin, xmax, ymin, ymax, zmin, zmax),
-            'vectors': cls.__to_ndarray(vectors, order='F'),
+            'vectors': cls.__to_ndarray(vectors),
             'width': width,
             'height': height,
             'colors': cls.__to_ndarray(colors, numpy.uint32),
@@ -129,14 +129,12 @@ class Factory(object):
             'height': height,
             'length': length,
             'color_map': cls.__to_ndarray(color_map, numpy.uint32),
-            'voxels': cls.__to_ndarray(voxels, numpy.uint8, order='F'),
+            'voxels': cls.__to_ndarray(voxels, numpy.uint8),
         })
 
     @staticmethod
-    def __to_ndarray(array_like, dtype=numpy.float32, order='C'):
-        array = numpy.array(array_like, dtype, order='C')
-
-        return array.T.copy() if order == 'F' else array
+    def __to_ndarray(array_like, dtype=numpy.float32):
+        return numpy.array(array_like, dtype, order='C')
 
     @staticmethod
     def __get_dimensions(shape, *dimensions):

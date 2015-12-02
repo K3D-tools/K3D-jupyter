@@ -19,16 +19,15 @@ define(['nbextensions/widgets/widgets/js/widget', 'k3d/providers/k3d.threejs.min
     return {
         K3DView: widget.DOMWidgetView.extend({
             render: function () {
-                var container = $('<div />').css('position', 'relative'),
-                    toolbar = $('<div class="toolbar" />').appendTo(container).css({
-                        'position': 'absolute',
-                        'right': 0
-                    });
+                var container = $('<div />').css('position', 'relative');
 
                 this.parameters = this.model.get('parameters');
                 this.container = container.css({'height': this.parameters.height}).appendTo(this.$el).get(0);
                 this.on('displayed', this._init, this);
-                this.model.on('change:object', this._onChange, this);
+
+                this.model.on('change:camera_auto_fit', this._setCameraAutoFit, this);
+                this.model.on('change:object', this._onObjectChange, this);
+                this.model.on('fetchData', this._fetchData, this);
             },
 
             _init: function () {
@@ -41,12 +40,19 @@ define(['nbextensions/widgets/widgets/js/widget', 'k3d/providers/k3d.threejs.min
                 });
 
                 renderer.setClearColor(this.parameters.backgroundColor);
+                this._setCameraAutoFit();
             },
 
-            _onChange: function () {
-                var object = this.model.get('object');
+            _setCameraAutoFit: function () {
+                this.K3D.setCameraAutoFit(this.model.get('camera_auto_fit'));
+            },
 
-                (object.type ? this._add : this._update).call(this, object);
+            _onObjectChange: function (model, object) {
+                if (object.type) {
+                    return this._add(object);
+                }
+
+                (object.attr ? this._update : this._remove).call(this, object);
             },
 
             _add: function (object) {
@@ -61,6 +67,14 @@ define(['nbextensions/widgets/widgets/js/widget', 'k3d/providers/k3d.threejs.min
                 }];
 
                 K3D.applyPatchObject(this.K3D, object.id, patch);
+            },
+
+            _remove: function (object) {
+                K3D.removeObject(this.K3D, object.id);
+            },
+
+            _fetchData: function (id) {
+                this.send(K3D.getPatchObject(this.K3D, id));
             }
         })
     };

@@ -5,6 +5,11 @@ import k3d
 import numpy
 from weakref import WeakKeyDictionary
 
+try:
+    from urllib import urlopen
+except ImportError:
+    from urllib.request import urlopen
+
 _NoneType = type(None)
 
 
@@ -14,8 +19,13 @@ class _Attribute(object):
         self.__cast = cast
         self.__path = '/' + path.strip('/')
         self.__values = WeakKeyDictionary()
+        self.__transforms = []
 
     def __set__(self, instance, value):
+        for input_type, transform in self.__transforms:
+            if isinstance(value, input_type):
+                value = transform(value)
+
         if not isinstance(value, self.__expected_type):
             raise TypeError('Expected type %s, %s given' % (self.__expected_type.__name__, type(value).__name__))
 
@@ -29,6 +39,11 @@ class _Attribute(object):
 
     def __get_value(self, instance):
         return self.__values[instance] if instance in self.__values else None
+
+    def transform(self, input_type, transform):
+        self.__transforms.append((input_type, transform))
+
+        return self
 
     @property
     def path(self):
@@ -44,8 +59,26 @@ def _to_list(ndarray, dtype=numpy.float32):
     return numpy.frombuffer(ndarray.astype(dtype).data, dtype).tolist()
 
 
-def _to_base64(ndarray, dtype=numpy.float32):
+def _to_base64(ndarray, dtype=numpy.float32, order='C'):
+    if order == 'F':
+        ndarray = ndarray.T.copy()
+
     return base64.b64encode(ndarray.astype(dtype).data).decode(encoding='ascii')
+
+
+def _to_image_src(url):
+    try:
+        response = urlopen(url)
+    except (IOError, ValueError):
+        return url
+
+    content_type = dict(response.info()).get('content-type', 'image/png')
+
+    return 'data:%s;base64,%s' % (content_type, base64.b64encode(response.read()).decode(encoding='ascii'))
+
+
+def _to_ndarray(data, dtype=numpy.float32):
+    return numpy.frombuffer(base64.b64decode(data), dtype=dtype)
 
 
 class Drawable(object):
@@ -73,10 +106,12 @@ class SingleObject(Drawable):
     __metaclass__ = ABCMeta
 
     __attributes = None
+    __paths = None
     __plot = None
 
     def __init__(self, **kwargs):
         self.__attributes = tuple(key for key, value in self.__class__.__dict__.items() if isinstance(value, _Attribute))
+        self.__paths = {value.path: key for key, value in self.__class__.__dict__.items() if isinstance(value, _Attribute)}
 
         for attr in self.__attributes:
             if attr not in kwargs:
@@ -122,6 +157,17 @@ class SingleObject(Drawable):
     def id(self):
         return id(self)
 
+    def fetch_data(self):
+        if self.__plot is not None:
+            self.__plot.fetch_data(self)
+
+    def update(self, data):
+        for patch in data:
+            assert patch['op'] == 'replace'
+            assert patch['path'] in self.__paths
+
+            getattr(self.__class__, self.__paths[patch['path']]).__set__(self, patch['value'])
+
     @staticmethod
     def __set_value(obj, path, value):
         parts = path.strip('/').split('/')
@@ -140,6 +186,19 @@ class SingleObject(Drawable):
             raise RuntimeError('Object is already added to another plot')
 
         self.__plot = plot
+
+        return True
+
+    def unset_plot(self, plot):
+        assert isinstance(plot, k3d.K3D)
+
+        if self.__plot is None:
+            return False
+
+        if self.__plot != plot:
+            raise RuntimeError('Object is added to another plot')
+
+        self.__plot = None
 
         return True
 
@@ -174,7 +233,7 @@ class Line(SingleObject):
     color = _Attribute(int, int, 'color')
     line_width = _Attribute((int, float), float, 'lineWidth')
     model_view_matrix = _Attribute(numpy.ndarray, _to_list, 'modelViewMatrix')
-    points_positions = _Attribute(numpy.ndarray, _to_base64, 'pointsPositions')
+    points_positions = _Attribute(numpy.ndarray, _to_base64, 'pointsPositions').transform(str, _to_ndarray)
 
 
 class MarchingCubes(SingleObject):
@@ -183,7 +242,7 @@ class MarchingCubes(SingleObject):
     length = _Attribute(int, int, 'length')
     level = _Attribute((int, float), float, 'level')
     model_view_matrix = _Attribute(numpy.ndarray, _to_list, 'modelViewMatrix')
-    scalars_field = _Attribute(numpy.ndarray, _to_base64, 'scalarsField')
+    scalars_field = _Attribute(numpy.ndarray, partial(_to_base64, order='F'), 'scalarsField').transform(str, _to_ndarray)
     width = _Attribute(int, int, 'width')
 
 
@@ -191,8 +250,8 @@ class Points(SingleObject):
     color = _Attribute(int, int, 'color')
     model_view_matrix = _Attribute(numpy.ndarray, _to_list, 'modelViewMatrix')
     point_size = _Attribute((int, float), float, 'pointSize')
-    points_colors = _Attribute(numpy.ndarray, partial(_to_base64, dtype=numpy.uint32), 'pointsColors')
-    points_positions = _Attribute(numpy.ndarray, _to_base64, 'pointsPositions')
+    points_colors = _Attribute(numpy.ndarray, partial(_to_base64, dtype=numpy.uint32), 'pointsColors').transform(str, partial(_to_ndarray, dtype=numpy.uint32))
+    points_positions = _Attribute(numpy.ndarray, _to_base64, 'pointsPositions').transform(str, _to_ndarray)
 
 
 class STL(SingleObject):
@@ -204,7 +263,7 @@ class STL(SingleObject):
 class Surface(SingleObject):
     color = _Attribute(int, int, 'color')
     height = _Attribute(int, int, 'height')
-    heights = _Attribute(numpy.ndarray, _to_base64, 'heights')
+    heights = _Attribute(numpy.ndarray, partial(_to_base64, order='F'), 'heights')
     model_view_matrix = _Attribute(numpy.ndarray, _to_list, 'modelViewMatrix')
     width = _Attribute(int, int, 'width')
 
@@ -218,37 +277,37 @@ class Text(SingleObject):
 
 
 class Texture(SingleObject):
-    image = _Attribute(str, str, 'image')
+    image = _Attribute(str, _to_image_src, 'image')
     model_view_matrix = _Attribute(numpy.ndarray, _to_list, 'modelViewMatrix')
 
 
 class Vectors(SingleObject):
-    colors = _Attribute(numpy.ndarray, partial(_to_base64, dtype=numpy.uint32), 'colors')
+    colors = _Attribute(numpy.ndarray, partial(_to_base64, dtype=numpy.uint32), 'colors').transform(str, partial(_to_ndarray, dtype=numpy.uint32))
     head_color = _Attribute(int, int, 'headColor')
     labels = _Attribute((list, tuple), tuple, 'labels')
     line_width = _Attribute((int, float), float, 'lineWidth')
     model_view_matrix = _Attribute(numpy.ndarray, _to_list, 'modelViewMatrix')
     origin_color = _Attribute(int, int, 'originColor')
-    origins = _Attribute(numpy.ndarray, _to_base64, 'origins')
-    vectors = _Attribute(numpy.ndarray, _to_base64, 'vectors')
+    origins = _Attribute(numpy.ndarray, _to_base64, 'origins').transform(str, _to_ndarray)
+    vectors = _Attribute(numpy.ndarray, _to_base64, 'vectors').transform(str, _to_ndarray)
 
 
 class VectorsFields(SingleObject):
-    colors = _Attribute(numpy.ndarray, partial(_to_base64, dtype=numpy.uint32), 'colors')
+    colors = _Attribute(numpy.ndarray, partial(_to_base64, dtype=numpy.uint32), 'colors').transform(str, partial(_to_ndarray, dtype=numpy.uint32))
     head_color = _Attribute(int, int, 'headColor')
     height = _Attribute(int, int, 'height')
     length = _Attribute((int, _NoneType), int, 'length')
     model_view_matrix = _Attribute(numpy.ndarray, _to_list, 'modelViewMatrix')
     origin_color = _Attribute(int, int, 'originColor')
     use_head = _Attribute(bool, bool, 'useHead')
-    vectors = _Attribute(numpy.ndarray, _to_base64, 'vectors')
+    vectors = _Attribute(numpy.ndarray, partial(_to_base64, order='F'), 'vectors').transform(str, _to_ndarray)
     width = _Attribute(int, int, 'width')
 
 
 class Voxels(SingleObject):
-    color_map = _Attribute(numpy.ndarray, partial(_to_base64, dtype=numpy.uint32), 'colorMap')
+    color_map = _Attribute(numpy.ndarray, partial(_to_base64, dtype=numpy.uint32), 'colorMap').transform(str, partial(_to_ndarray, dtype=numpy.uint32))
     height = _Attribute(int, int, 'height')
     length = _Attribute(int, int, 'length')
     model_view_matrix = _Attribute(numpy.ndarray, _to_list, 'modelViewMatrix')
-    voxels = _Attribute(numpy.ndarray, partial(_to_base64, dtype=numpy.uint8), 'voxels')
+    voxels = _Attribute(numpy.ndarray, partial(_to_base64, dtype=numpy.uint8, order='F'), 'voxels').transform(str, partial(_to_ndarray, dtype=numpy.uint8))
     width = _Attribute(int, int, 'width')
