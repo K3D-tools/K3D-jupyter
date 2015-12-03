@@ -2,6 +2,9 @@
 
 Jupyter notebook extension for K3D visualization library.
 
+## Try it Now!
+[![Binder](http://mybinder.org/badge.svg)](http://mybinder.org/repo/K3D-tools/K3D-jupyter)
+
 ## Requirements
 
 * [bower](http://bower.io/#install-bower) (to fetch K3D dependency)
