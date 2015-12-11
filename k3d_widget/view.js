@@ -1,4 +1,4 @@
-/* globals define, $ */
+/* globals $, define, requirejs, K3D, THREE */
 
 requirejs.config({
     paths: {
@@ -15,6 +15,7 @@ requirejs.config({
 });
 
 define(['nbextensions/widgets/widgets/js/widget', 'k3d/providers/k3d.threejs.min'], function (widget) {
+    'use strict';
 
     return {
         K3DView: widget.DOMWidgetView.extend({
@@ -54,7 +55,6 @@ define(['nbextensions/widgets/widgets/js/widget', 'k3d/providers/k3d.threejs.min
 
             _setVoxelPaintColor: function () {
                 this.K3D.parameters.voxelPaintColor = this.model.get('voxel_paint_color');
-                console.log(this.K3D.parameters.voxelPaintColor);
             },
 
             _onObjectChange: function (model, object) {

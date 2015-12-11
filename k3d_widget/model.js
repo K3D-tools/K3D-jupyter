@@ -1,4 +1,4 @@
-/* globals define */
+/* globals define, requirejs, atob */
 
 requirejs.config({
     paths: {

@@ -2,6 +2,8 @@
 
 Jupyter notebook extension for K3D visualization library.
 
+![screenshot](screenshot.png)
+
 ## Try it Now!
 [![Binder](http://mybinder.org/badge.svg)](http://mybinder.org/repo/K3D-tools/K3D-jupyter)
 
@@ -34,3 +36,7 @@ make install-global
 vagrant up
 make install-vagrant
 ```
+
+## How to
+
+Please make sure to take a look at the [HOW-TO.md](HOW-TO.md) document.
