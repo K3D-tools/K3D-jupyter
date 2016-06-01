@@ -14,6 +14,7 @@ RUN bower install --config.interactive=false
 
 RUN pip install jupyter-pip ipywidgets
 RUN pip install .
+RUN pip install numba
 
 RUN /home/main/anaconda/envs/python3/bin/pip install jupyter-pip ipywidgets
 RUN /home/main/anaconda/envs/python3/bin/pip install .
