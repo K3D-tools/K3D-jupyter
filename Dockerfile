@@ -16,6 +16,6 @@ RUN pip install jupyter-pip ipywidgets
 RUN pip install .
 RUN pip install numba
 
-RUN pip3 install jupyter-pip ipywidgets
-RUN pip3 install .
-RUN pip3 install numba
+RUN $HOME/anaconda2/envs/python3/bin/pip install jupyter-pip ipywidgets
+RUN $HOME/anaconda2/envs/python3/bin/pip install .
+RUN $HOME/anaconda2/envs/python3/bin/pip install numba
