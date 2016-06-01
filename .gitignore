@@ -1,4 +1,4 @@
 *.pyc
 /.vagrant/
-/examples/.ipynb_checkpoints
 /k3d_widget/lib
+**/.ipynb_checkpoints
