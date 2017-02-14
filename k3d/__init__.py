@@ -21,7 +21,7 @@ class K3D(DOMWidget, Factory):
     COMPRESSION_LEVEL = 1
 
     camera_auto_fit = Bool(sync=True)
-    data = Bytes(sync=True)
+    data = Unicode(sync=True)
     parameters = Dict(sync=True)
     voxel_paint_color = Int(sync=True)
 

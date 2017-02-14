@@ -14,7 +14,7 @@ requirejs.config({
     }
 });
 
-define(['nbextensions/widgets/widgets/js/widget', 'k3d/providers/k3d.threejs.min'], function (widget) {
+define(['jupyter-js-widgets', 'k3d/providers/k3d.threejs.min'], function (widget) {
     'use strict';
 
     return {

@@ -2,16 +2,18 @@
 
 requirejs.config({
     paths: {
-        'pako': '../nbextensions/k3d_widget/lib/pako/dist'
+        'pako': '../nbextensions/k3d_widget/lib/pako/dist',
+        'k3d': '../nbextensions/k3d_widget/'
     }
 });
 
-define(['nbextensions/widgets/widgets/js/widget', 'pako/pako_inflate.min'], function(widget, pako) {
+define(['jupyter-js-widgets', 'pako/pako_inflate.min'], function(widget, pako) {
     'use strict';
 
     return {
         K3DModel: widget.WidgetModel.extend({
             initialize: function () {
+                widget.WidgetView.prototype.initialize.apply(this, arguments);
                 this.on('change:data', this._decode, this);
                 this.on('msg:custom', this._fetchData, this);
             },
