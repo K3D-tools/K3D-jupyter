@@ -6,6 +6,7 @@ node_js:
 addons:
   firefox: "53.0"
 before_script:
+  - cd js
   - npm install grunt-cli -g
   - npm install
   - export DISPLAY=:99.0

@@ -17,15 +17,19 @@ module.exports = function (config) {
 
         // list of files / patterns to load in the browser
         files: [
-            'dev/index.js',
-            'test/test-main.js',
-            'node_modules/resemblejs/resemble.js',
-            'test/utils/*.js',
-            'node_modules/components-webfontloader/webfont.js',
-            'test/assets/lato.css',
+            {pattern: 'dev/index.js', included: false},
+            {pattern: 'node_modules/resemblejs/resemble.js', included: true},
+            {pattern: 'test/utils/*.js', included: true},
+            {pattern: 'node_modules/components-webfontloader/webfont.js', included: true},
+            {pattern: 'test/assets/lato.css', included: true},
             {pattern: 'test/assets/Lato-Regular.ttf', included: false},
 
+            {pattern: 'test/test-main.js', included: true},
             'test/**/*Spec.js'
+        ],
+
+        exclude: [
+            'require.js'
         ],
 
         // test results reporter to use
@@ -53,6 +57,6 @@ module.exports = function (config) {
 
         // Continuous Integration mode
         // if true, Karma captures browsers, runs the tests and exits
-        singleRun: true
+        singleRun: false
     });
 };

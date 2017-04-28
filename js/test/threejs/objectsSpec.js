@@ -1,4 +1,4 @@
-define(['K3D'], function (lib) {
+require(['K3D'], function (lib) {
     var K3D = lib.K3D;
     var ThreeJsProvider = lib.ThreeJsProvider;
 
@@ -34,6 +34,11 @@ define(['K3D'], function (lib) {
         beforeEach(function () {
             this.canvas = TestHelpers.createTestCanvas();
             window.K3DInstance = this.K3D = K3D(ThreeJsProvider, this.canvas, {antialias: false});
+
+            //simple fix for FF issues with GL_ARB_gpu_shader5
+            this.K3D.getWorld().renderer.context.getShaderInfoLog = function () {
+                return ''
+            };
         });
 
         afterEach(function () {

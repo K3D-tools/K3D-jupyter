@@ -1,7 +1,5 @@
 # K3D - a 3D visualization library
 
-[![Build Status](https://travis-ci.org/K3D-tools/K3D.svg)](https://travis-ci.org/K3D-tools/K3D)
-
 ## Requires
 
 * node.js

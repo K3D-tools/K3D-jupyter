@@ -1,6 +1,6 @@
 'use strict';
 
-define(['K3D'], function (lib) {
+require(['K3D'], function (lib) {
     var Config = lib.Config;
 
     describe('Config', function () {
