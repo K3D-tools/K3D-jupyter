@@ -1,0 +1,29 @@
+{
+   "metadata" : {},
+   "objects" : [{
+         "type" : "TorusKnot",
+         "modelViewMatrix" : [
+            1.0, 0.0, 0.0, 15.0,
+            0.0, 1.0, 0.0, -5.0,
+            0.0, 0.0, 1.0, 0.0,
+            0.0, 0.0, 0.0, 1.0
+         ],
+         "color" : 1401481,
+         "knotsNumber" : 16,
+         "radius" : 7,
+         "tube" : 2
+      }, {
+         "type" : "TorusKnot",
+         "modelViewMatrix" : [
+            1.0, 0.0, 0.0, -15.0,
+            0.0, 0.0, 1.0, 0.0,
+            0.0, 1.0, 0.0, 0.0,
+            0.0, 0.0, 0.0, 1.0
+         ],
+         "color" : 15732752,
+         "knotsNumber" : 16,
+         "radius" : 7,
+         "tube" : 2
+      }
+   ]
+}

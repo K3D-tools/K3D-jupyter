@@ -3,6 +3,7 @@ import base64
 from functools import partial, reduce
 import k3d
 import numpy
+import sys
 from weakref import WeakKeyDictionary
 
 try:
@@ -31,8 +32,12 @@ class _Attribute(object):
             if isinstance(value, input_type):
                 value = transform(value)
 
+        if sys.version_info < (3, 0) and isinstance(value, long):
+            value = int(value)
+
         if not isinstance(value, self.__expected_type):
-            raise TypeError('Expected type %s, %s given' % (self.__expected_type.__name__, type(value).__name__))
+            raise TypeError('Variable %s. Expected type %s, %s given' % (
+                self.__path, self.__expected_type.__name__, type(value).__name__))
 
         self.__values[instance] = value
 
@@ -115,8 +120,10 @@ class SingleObject(Drawable):
     __plot = None
 
     def __init__(self, **kwargs):
-        self.__attributes = tuple(key for key, value in self.__class__.__dict__.items() if isinstance(value, _Attribute))
-        self.__paths = {value.path: key for key, value in self.__class__.__dict__.items() if isinstance(value, _Attribute)}
+        self.__attributes = tuple(
+            key for key, value in self.__class__.__dict__.items() if isinstance(value, _Attribute))
+        self.__paths = {value.path: key for key, value in self.__class__.__dict__.items() if
+                        isinstance(value, _Attribute)}
 
         for attr in self.__attributes:
             if attr not in kwargs:
@@ -247,7 +254,8 @@ class MarchingCubes(SingleObject):
     length = _Attribute(int, int, 'length')
     level = _Attribute((int, float), float, 'level')
     model_view_matrix = _Attribute(numpy.ndarray, _to_list, 'modelViewMatrix')
-    scalars_field = _Attribute(numpy.ndarray, partial(_to_base64, order='F'), 'scalarsField').transform(_strings, _to_ndarray)
+    scalars_field = _Attribute(numpy.ndarray, partial(_to_base64, order='F'), 'scalarsField').transform(_strings,
+                                                                                                        _to_ndarray)
     width = _Attribute(int, int, 'width')
 
 
@@ -255,7 +263,8 @@ class Points(SingleObject):
     color = _Attribute(int, int, 'color')
     model_view_matrix = _Attribute(numpy.ndarray, _to_list, 'modelViewMatrix')
     point_size = _Attribute((int, float), float, 'pointSize')
-    points_colors = _Attribute(numpy.ndarray, partial(_to_base64, dtype=numpy.uint32), 'pointsColors').transform(_strings, partial(_to_ndarray, dtype=numpy.uint32))
+    points_colors = _Attribute(numpy.ndarray, partial(_to_base64, dtype=numpy.uint32), 'pointsColors').transform(
+        _strings, partial(_to_ndarray, dtype=numpy.uint32))
     points_positions = _Attribute(numpy.ndarray, _to_base64, 'pointsPositions').transform(_strings, _to_ndarray)
 
 
@@ -287,7 +296,9 @@ class Texture(SingleObject):
 
 
 class Vectors(SingleObject):
-    colors = _Attribute(numpy.ndarray, partial(_to_base64, dtype=numpy.uint32), 'colors').transform(_strings, partial(_to_ndarray, dtype=numpy.uint32))
+    colors = _Attribute(numpy.ndarray, partial(_to_base64, dtype=numpy.uint32), 'colors').transform(_strings,
+                                                                                                    partial(_to_ndarray,
+                                                                                                            dtype=numpy.uint32))
     head_color = _Attribute(int, int, 'headColor')
     labels = _Attribute((list, tuple), tuple, 'labels')
     line_width = _Attribute((int, float), float, 'lineWidth')
@@ -298,7 +309,9 @@ class Vectors(SingleObject):
 
 
 class VectorsFields(SingleObject):
-    colors = _Attribute(numpy.ndarray, partial(_to_base64, dtype=numpy.uint32), 'colors').transform(_strings, partial(_to_ndarray, dtype=numpy.uint32))
+    colors = _Attribute(numpy.ndarray, partial(_to_base64, dtype=numpy.uint32), 'colors').transform(_strings,
+                                                                                                    partial(_to_ndarray,
+                                                                                                            dtype=numpy.uint32))
     head_color = _Attribute(int, int, 'headColor')
     height = _Attribute(int, int, 'height')
     length = _Attribute((int, _NoneType), int, 'length')
@@ -310,9 +323,15 @@ class VectorsFields(SingleObject):
 
 
 class Voxels(SingleObject):
-    color_map = _Attribute(numpy.ndarray, partial(_to_base64, dtype=numpy.uint32), 'colorMap').transform(_strings, partial(_to_ndarray, dtype=numpy.uint32))
+    color_map = _Attribute(numpy.ndarray, partial(_to_base64, dtype=numpy.uint32), 'colorMap').transform(_strings,
+                                                                                                         partial(
+                                                                                                             _to_ndarray,
+                                                                                                             dtype=numpy.uint32))
     height = _Attribute(int, int, 'height')
     length = _Attribute(int, int, 'length')
     model_view_matrix = _Attribute(numpy.ndarray, _to_list, 'modelViewMatrix')
-    voxels = _Attribute(numpy.ndarray, partial(_to_base64, dtype=numpy.uint8, order='F'), 'voxels').transform(_strings, partial(_to_ndarray, dtype=numpy.uint8))
+    voxels = _Attribute(numpy.ndarray, partial(_to_base64, dtype=numpy.uint8, order='F'), 'voxels').transform(_strings,
+                                                                                                              partial(
+                                                                                                                  _to_ndarray,
+                                                                                                                  dtype=numpy.uint8))
     width = _Attribute(int, int, 'width')

@@ -1,4 +1,9 @@
+.idea/
+*.egg-info/
+js/dist/
+js/build/
+js/node_modules/
+k3d/static/
+.DS_Store
+.pypirc
 *.pyc
-/.vagrant/
-/k3d_widget/lib
-**/.ipynb_checkpoints

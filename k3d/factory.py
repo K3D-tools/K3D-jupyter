@@ -1,13 +1,12 @@
 import numpy
-import k3d.objects as objects
-
+from .objects import *
 
 class Factory(object):
     DEFAULT_COLOR = 0x0000FF
 
     @classmethod
     def text(cls, string, position=(0, 0, 0), color=DEFAULT_COLOR, font_weight='bold', font_face='Courier New'):
-        return objects.Text(**{
+        return Text(**{
             'position': cls.__to_ndarray(position),
             'text': string,
             'color': color,
@@ -17,7 +16,7 @@ class Factory(object):
 
     @classmethod
     def points(cls, positions, colors=(), color=DEFAULT_COLOR, view_matrix=numpy.identity(4), point_size=1.0):
-        return objects.Points(**{
+        return Points(**{
             'model_view_matrix': cls.__get_view_matrix(view_matrix),
             'point_size': point_size,
             'points_positions': cls.__to_ndarray(positions),
@@ -27,7 +26,7 @@ class Factory(object):
 
     @classmethod
     def line(cls, positions, xmin=-.5, xmax=.5, ymin=-.5, ymax=.5, zmin=-.5, zmax=.5, view_matrix=numpy.identity(4), width=1, color=DEFAULT_COLOR):
-        return objects.Line(**{
+        return Line(**{
             'model_view_matrix': cls.__get_view_matrix(view_matrix, xmin, xmax, ymin, ymax, zmin, zmax),
             'color': color,
             'line_width': width,
@@ -38,7 +37,7 @@ class Factory(object):
     def surface(cls, heights, xmin=-.5, xmax=.5, ymin=-.5, ymax=.5, view_matrix=numpy.identity(4), width=None, height=None, color=DEFAULT_COLOR):
         width, height = cls.__get_dimensions(numpy.shape(heights), width, height)
 
-        return objects.Surface(**{
+        return Surface(**{
             'model_view_matrix': cls.__get_view_matrix(view_matrix, xmin, xmax, ymin, ymax),
             'color': color,
             'width': width,
@@ -50,7 +49,7 @@ class Factory(object):
     def marching_cubes(cls, scalars_field, level, xmin=-.5, xmax=.5, ymin=-.5, ymax=.5, zmin=-.5, zmax=.5, view_matrix=numpy.identity(4), width=None, height=None, length=None, color=DEFAULT_COLOR):
         width, height, length = cls.__get_dimensions(numpy.shape(scalars_field), width, height, length)
 
-        return objects.MarchingCubes(**{
+        return MarchingCubes(**{
             'model_view_matrix': cls.__get_view_matrix(view_matrix, xmin, xmax, ymin, ymax, zmin, zmax),
             'width': width,
             'height': height,
@@ -62,7 +61,7 @@ class Factory(object):
 
     @classmethod
     def stl(cls, stl, view_matrix=numpy.identity(4), color=DEFAULT_COLOR):
-        return objects.STL(**{
+        return STL(**{
             'model_view_matrix': cls.__get_view_matrix(view_matrix),
             'color': color,
             'stl': stl,
@@ -75,7 +74,7 @@ class Factory(object):
 
     @classmethod
     def vectors(cls, origins, vectors, xmin=-.5, xmax=.5, ymin=-.5, ymax=.5, zmin=-.5, zmax=.5, view_matrix=numpy.identity(4), labels=(), colors=(), color=DEFAULT_COLOR, line_width=1, head_color=None, origin_color=None):
-        return objects.Vectors(**{
+        return Vectors(**{
             'model_view_matrix': cls.__get_view_matrix(view_matrix, xmin, xmax, ymin, ymax, zmin, zmax),
             'origins': cls.__to_ndarray(origins),
             'vectors': cls.__to_ndarray(vectors),
@@ -93,7 +92,7 @@ class Factory(object):
 
         cls.__validate_vectors_size(length, vector_size=shape[-1])
 
-        return objects.VectorsFields(**{
+        return VectorsFields(**{
             'use_head': use_head,
             'model_view_matrix': cls.__get_view_matrix(view_matrix, xmin, xmax, ymin, ymax, zmin, zmax),
             'vectors': cls.__to_ndarray(vectors),
@@ -114,7 +113,7 @@ class Factory(object):
 
     @classmethod
     def texture(cls, image, xmin=-.5, xmax=.5, ymin=-.5, ymax=.5, zmin=-.5, zmax=.5, view_matrix=numpy.identity(4)):
-        return objects.Texture(**{
+        return Texture(**{
             'model_view_matrix': cls.__get_view_matrix(view_matrix, xmin, xmax, ymin, ymax, zmin, zmax),
             'image': image,
         })
@@ -123,7 +122,7 @@ class Factory(object):
     def voxels(cls, voxels, color_map, xmin=-.5, xmax=.5, ymin=-.5, ymax=.5, zmin=-.5, zmax=.5, view_matrix=numpy.identity(4), width=None, height=None, length=None):
         width, height, length = cls.__get_dimensions(numpy.shape(voxels), width, height, length)
 
-        return objects.Voxels(**{
+        return Voxels(**{
             'model_view_matrix': cls.__get_view_matrix(view_matrix, xmin, xmax, ymin, ymax, zmin, zmax),
             'width': width,
             'height': height,

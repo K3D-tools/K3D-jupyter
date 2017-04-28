@@ -1,0 +1,13 @@
+sudo: required
+dist: trusty
+language: node_js
+node_js:
+  - "6.3"
+addons:
+  firefox: "53.0"
+before_script:
+  - npm install grunt-cli -g
+  - npm install
+  - export DISPLAY=:99.0
+  - sh -e /etc/init.d/xvfb start
+script: grunt test

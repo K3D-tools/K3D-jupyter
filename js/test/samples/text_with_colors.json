@@ -1,0 +1,15 @@
+{
+    "metadata": {},
+    "objects": [
+        {
+            "type": "Text",
+            "color": 65280,
+            "position": [0.0, 0.0, 0.0],
+            "text": "Hello World",
+            "fontOptions": {
+                "face": "Lato",
+                "strokeColor": 255
+            }
+        }
+    ]
+}
