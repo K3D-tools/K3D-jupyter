@@ -19,7 +19,8 @@ module.exports = function (config, K3D) {
         size = config.get('size', 1),
         position = config.get('position'),
         object = new THREE.Object3D(),
-        domElement = document.createElement('div');
+        domElement = document.createElement('div'),
+        overlayDOMNode = K3D.getWorld().overlayDOMNode;
 
     // domElement.style.textShadow = '-1px -1px 0 ' + colorToHex(colorStroke) + ',' +
     //     '1px -1px 0 ' + colorToHex(colorStroke) + ',' +
@@ -32,7 +33,8 @@ module.exports = function (config, K3D) {
     domElement.style.color = colorToHex(color);
     domElement.style.fontSize = size + 'em';
 
-    K3D.getWorld().overlayDOMNode.appendChild(domElement);
+    overlayDOMNode.appendChild(domElement);
+
     object.position.set(position[0], position[1], position[2]);
     object.updateMatrixWorld();
 
@@ -70,6 +72,10 @@ module.exports = function (config, K3D) {
     K3D.on(K3D.events.RENDERED, render);
 
     render();
+
+    object.onRemove = function () {
+        overlayDOMNode.removeChild(domElement);
+    };
 
     return Promise.resolve(object);
 };

@@ -5,6 +5,7 @@
     <title>K3D</title>
     <script src="node_modules/requirejs/require.js"></script>
     <script src="dev/index.js"></script>
+    <script src="node_modules/fast-json-patch/dist/json-patch-duplex.min.js"></script>
     <style>
         body, html {
             background-color: #F5F5F5;
@@ -43,11 +44,22 @@
         jsonLoader('test/samples/vector_label.json', function (json) {
             K3DInstance = new lib.K3D(
                     lib.ThreeJsProvider,
-                    document.getElementById('canvasTarget')
+                    document.getElementById('canvasTarget'),
+                    {cameraAutoFit: false}
             );
+
+            json.objects[0].id = 'test';
 
             K3DInstance.setClearColor(0xffffff, 1);
             K3DInstance.load(json);
+
+            setInterval(function () {
+
+                newObjectJson = _.cloneDeep(json.objects[0]);
+                newObjectJson.vectors = [0.5 - Math.random(), 0.5 - Math.random(), 0.5 - Math.random()];
+
+                K3DInstance.applyPatchObject('test', jsonpatch.compare(json, newObjectJson));
+            }, 1000);
         });
     });
 </script>

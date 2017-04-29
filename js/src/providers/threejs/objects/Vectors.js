@@ -102,6 +102,12 @@ module.exports = function (config, K3D) {
             object.add(text);
         });
 
+        object.onRemove = function () {
+            texts.forEach(function (text) {
+                text.onRemove();
+            });
+        };
+
         return object;
     });
 };

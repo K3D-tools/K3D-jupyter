@@ -87,7 +87,7 @@ function K3D(provider, targetDOMNode, parameters) {
     world.targetDOMNode.appendChild(world.overlayDOMNode);
     world.targetDOMNode.appendChild(world.toolbarDOMNode);
 
-    this.parameters = _.extend(parameters || {}, {
+    this.parameters = _.assign({
         viewMode: viewModes.view,
         voxelPaintColor: 0,
         cameraAutoFit: true,
@@ -95,7 +95,7 @@ function K3D(provider, targetDOMNode, parameters) {
             color: 0xffffff,
             alpha: 1.0
         }
-    });
+    }, parameters || {});
 
     this.autoRendering = false;
 
@@ -235,6 +235,10 @@ function K3D(provider, targetDOMNode, parameters) {
 
         if (object) {
             world.K3DObjects.remove(object);
+
+            if (object.onRemove) {
+                object.onRemove();
+            }
 
             if (object.geometry) {
                 object.geometry.dispose();
