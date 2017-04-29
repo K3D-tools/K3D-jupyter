@@ -15,6 +15,16 @@ class Factory(object):
         })
 
     @classmethod
+    def text2d(cls, string, position=(0, 0, 0), color=DEFAULT_COLOR, size=1.0, reference_point='lb'):
+        return Text2d(**{
+            'position': cls.__to_ndarray(position),
+            'reference_point': reference_point,
+            'text': string,
+            'size': size,
+            'color': color,
+        })
+
+    @classmethod
     def points(cls, positions, colors=(), color=DEFAULT_COLOR, view_matrix=numpy.identity(4), point_size=1.0):
         return Points(**{
             'model_view_matrix': cls.__get_view_matrix(view_matrix),
@@ -25,7 +35,8 @@ class Factory(object):
         })
 
     @classmethod
-    def line(cls, positions, xmin=-.5, xmax=.5, ymin=-.5, ymax=.5, zmin=-.5, zmax=.5, view_matrix=numpy.identity(4), width=1, color=DEFAULT_COLOR):
+    def line(cls, positions, xmin=-.5, xmax=.5, ymin=-.5, ymax=.5, zmin=-.5, zmax=.5, view_matrix=numpy.identity(4),
+             width=1, color=DEFAULT_COLOR):
         return Line(**{
             'model_view_matrix': cls.__get_view_matrix(view_matrix, xmin, xmax, ymin, ymax, zmin, zmax),
             'color': color,
@@ -34,7 +45,8 @@ class Factory(object):
         })
 
     @classmethod
-    def surface(cls, heights, xmin=-.5, xmax=.5, ymin=-.5, ymax=.5, view_matrix=numpy.identity(4), width=None, height=None, color=DEFAULT_COLOR):
+    def surface(cls, heights, xmin=-.5, xmax=.5, ymin=-.5, ymax=.5, view_matrix=numpy.identity(4), width=None,
+                height=None, color=DEFAULT_COLOR):
         width, height = cls.__get_dimensions(numpy.shape(heights), width, height)
 
         return Surface(**{
@@ -46,7 +58,8 @@ class Factory(object):
         })
 
     @classmethod
-    def marching_cubes(cls, scalars_field, level, xmin=-.5, xmax=.5, ymin=-.5, ymax=.5, zmin=-.5, zmax=.5, view_matrix=numpy.identity(4), width=None, height=None, length=None, color=DEFAULT_COLOR):
+    def marching_cubes(cls, scalars_field, level, xmin=-.5, xmax=.5, ymin=-.5, ymax=.5, zmin=-.5, zmax=.5,
+                       view_matrix=numpy.identity(4), width=None, height=None, length=None, color=DEFAULT_COLOR):
         width, height, length = cls.__get_dimensions(numpy.shape(scalars_field), width, height, length)
 
         return MarchingCubes(**{
@@ -73,20 +86,26 @@ class Factory(object):
             return cls.stl(stl.read(), view_matrix)
 
     @classmethod
-    def vectors(cls, origins, vectors, xmin=-.5, xmax=.5, ymin=-.5, ymax=.5, zmin=-.5, zmax=.5, view_matrix=numpy.identity(4), labels=(), colors=(), color=DEFAULT_COLOR, line_width=1, head_color=None, origin_color=None):
+    def vectors(cls, origins, vectors, xmin=-.5, xmax=.5, ymin=-.5, ymax=.5, zmin=-.5, zmax=.5,
+                view_matrix=numpy.identity(4), labels=(), colors=(), color=DEFAULT_COLOR, line_width=1, labels_size=1,
+                head_color=None,
+                origin_color=None):
         return Vectors(**{
             'model_view_matrix': cls.__get_view_matrix(view_matrix, xmin, xmax, ymin, ymax, zmin, zmax),
             'origins': cls.__to_ndarray(origins),
             'vectors': cls.__to_ndarray(vectors),
             'line_width': line_width,
             'labels': labels,
+            'labels_size': labels_size,
             'colors': cls.__to_ndarray(colors, numpy.uint32),
             'head_color': head_color if head_color is not None else color,
             'origin_color': origin_color if head_color is not None else color,
         })
 
     @classmethod
-    def vectors_fields(cls, vectors, colors=(), color=DEFAULT_COLOR, xmin=-.5, xmax=.5, ymin=-.5, ymax=.5, zmin=-.5, zmax=.5, view_matrix=numpy.identity(4), width=None, height=None, length=None, use_head=True, head_color=None, origin_color=None):
+    def vectors_fields(cls, vectors, colors=(), color=DEFAULT_COLOR, xmin=-.5, xmax=.5, ymin=-.5, ymax=.5, zmin=-.5,
+                       zmax=.5, view_matrix=numpy.identity(4), width=None, height=None, length=None, use_head=True,
+                       head_color=None, origin_color=None):
         shape = numpy.shape(vectors)
         width, height, length = cls.__get_dimensions(shape[:-1] + (None,), width, height, length)
 
@@ -119,7 +138,8 @@ class Factory(object):
         })
 
     @classmethod
-    def voxels(cls, voxels, color_map, xmin=-.5, xmax=.5, ymin=-.5, ymax=.5, zmin=-.5, zmax=.5, view_matrix=numpy.identity(4), width=None, height=None, length=None):
+    def voxels(cls, voxels, color_map, xmin=-.5, xmax=.5, ymin=-.5, ymax=.5, zmin=-.5, zmax=.5,
+               view_matrix=numpy.identity(4), width=None, height=None, length=None):
         width, height, length = cls.__get_dimensions(numpy.shape(voxels), width, height, length)
 
         return Voxels(**{

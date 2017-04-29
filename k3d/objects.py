@@ -290,6 +290,14 @@ class Text(SingleObject):
     text = _Attribute(str, str, 'text')
 
 
+class Text2d(SingleObject):
+    color = _Attribute(int, int, 'color')
+    size = _Attribute(float, float, 'size')
+    reference_point = _Attribute(str, str, 'referencePoint')
+    position = _Attribute(numpy.ndarray, _to_list, 'position')
+    text = _Attribute(str, str, 'text')
+
+
 class Texture(SingleObject):
     image = _Attribute(str, _to_image_src, 'image')
     model_view_matrix = _Attribute(numpy.ndarray, _to_list, 'modelViewMatrix')
@@ -301,6 +309,7 @@ class Vectors(SingleObject):
                                                                                                             dtype=numpy.uint32))
     head_color = _Attribute(int, int, 'headColor')
     labels = _Attribute((list, tuple), tuple, 'labels')
+    labels_size = _Attribute(float, float, 'labelsSize')
     line_width = _Attribute((int, float), float, 'lineWidth')
     model_view_matrix = _Attribute(numpy.ndarray, _to_list, 'modelViewMatrix')
     origin_color = _Attribute(int, int, 'originColor')

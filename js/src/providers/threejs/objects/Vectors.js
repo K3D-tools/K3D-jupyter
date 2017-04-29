@@ -129,7 +129,7 @@ function createText(text, origin, destination, labelsSize, K3D) {
         textConfig = {
             'position': [center.x, center.y, center.z],
             'text': text,
-            'labelsSize': labelsSize
+            'size': labelsSize
         };
 
     return new Text2d(new Config(textConfig), K3D);
