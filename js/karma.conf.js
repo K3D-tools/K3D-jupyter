@@ -12,20 +12,21 @@ module.exports = function (config) {
 
         // frameworks to use
         // available frameworks: https://npmjs.org/browse/keyword/karma-adapter
-        frameworks: ['jasmine', 'requirejs'],
+        frameworks: ['jasmine'],
 
 
         // list of files / patterns to load in the browser
         files: [
+            'node_modules/requirejs/require.js',
+            'node_modules/karma-requirejs/lib/adapter.js',
             {pattern: 'dev/index.js', included: false},
             {pattern: 'node_modules/resemblejs/resemble.js', included: true},
             {pattern: 'test/utils/*.js', included: true},
             {pattern: 'node_modules/components-webfontloader/webfont.js', included: true},
             {pattern: 'test/assets/lato.css', included: true},
             {pattern: 'test/assets/Lato-Regular.ttf', included: false},
-
             {pattern: 'test/test-main.js', included: true},
-            'test/**/*Spec.js'
+            {pattern: 'test/**/*Spec.js', included: false}
         ],
 
         exclude: [
@@ -46,7 +47,7 @@ module.exports = function (config) {
         // level of logging
         // possible values: config.LOG_DISABLE || config.LOG_ERROR || config.LOG_WARN || config.LOG_INFO ||
         // config.LOG_DEBUG
-        logLevel: config.LOG_INFO,
+        logLevel: config.LOG_ERROR,
 
         // enable / disable watching file and executing tests whenever any file changes
         autoWatch: true,
@@ -54,9 +55,9 @@ module.exports = function (config) {
         // start these browsers
         // available browser launchers: https://npmjs.org/browse/keyword/karma-launcher
         browsers: ['Firefox'],
-
+        browserNoActivityTimeout: 30000,
         // Continuous Integration mode
         // if true, Karma captures browsers, runs the tests and exits
-        singleRun: false
+        singleRun: true
     });
 };

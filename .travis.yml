@@ -4,7 +4,7 @@ language: node_js
 node_js:
   - "6.3"
 addons:
-  firefox: "53.0"
+  firefox: "latest"
 before_script:
   - cd js
   - npm install grunt-cli -g
