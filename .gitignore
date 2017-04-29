@@ -7,3 +7,5 @@ k3d/static/
 .DS_Store
 .pypirc
 *.pyc
+*~
+.ipynb_checkpoints/
