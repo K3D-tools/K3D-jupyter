@@ -2,7 +2,7 @@
 
 [![Build Status](https://travis-ci.org/K3D-tools/K3D-jupyter.svg)](https://travis-ci.org/K3D-tools/K3D-jupyter)
 
-Jupyter notebook extension for K3D visualization library.
+Jupyter notebook extension for 3D visualization.
 
 ![screenshot](screenshot.png)
 

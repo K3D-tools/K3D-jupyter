@@ -1,5 +1,7 @@
 'use strict';
 
+var _ = require('lodash');
+
 function detachWindowButton(container, K3D) {
     var newWindow,
         intervalID,
@@ -51,7 +53,7 @@ function detachWindowButton(container, K3D) {
         }, []);
 
         newK3D.load({objects: objects});
-        K3D = newK3D;
+        _.assign(K3D, newK3D);
     }
 
     function checkWindow() {

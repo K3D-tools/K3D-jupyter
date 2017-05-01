@@ -13,7 +13,8 @@ var rules = [
 var plugins = [];
 
 plugins.push(new webpack.optimize.UglifyJsPlugin({
-    compress: {warnings: false}
+    compress: {warnings: false},
+    sourceMap: true
 }));
 
 module.exports = [
@@ -45,11 +46,11 @@ module.exports = [
             path: __dirname + '/../K3D/static',
             libraryTarget: 'amd'
         },
+        plugins: plugins,
         devtool: 'source-map',
         module: {
             rules: rules
         },
-        plugins: plugins,
         externals: ['jupyter-js-widgets']
     },
     {// Embeddable K3D-jupyter bundle
