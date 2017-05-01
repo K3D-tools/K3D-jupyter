@@ -35,6 +35,9 @@ class _Attribute(object):
         if sys.version_info < (3, 0) and isinstance(value, long):
             value = int(value)
 
+        if isinstance(value, int) and self.__expected_type == float:
+            value = float(value)
+
         if not isinstance(value, self.__expected_type):
             raise TypeError('Variable %s. Expected type %s, %s given' % (
                 self.__path, self.__expected_type.__name__, type(value).__name__))

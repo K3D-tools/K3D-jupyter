@@ -87,7 +87,7 @@ class Factory(object):
 
     @classmethod
     def vectors(cls, origins, vectors, xmin=-.5, xmax=.5, ymin=-.5, ymax=.5, zmin=-.5, zmax=.5,
-                view_matrix=numpy.identity(4), labels=(), colors=(), color=DEFAULT_COLOR, line_width=1, labels_size=1,
+                view_matrix=numpy.identity(4), labels=(), colors=(), color=DEFAULT_COLOR, line_width=1, labels_size=1.0,
                 head_color=None,
                 origin_color=None):
         return Vectors(**{
