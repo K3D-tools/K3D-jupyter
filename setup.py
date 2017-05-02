@@ -40,6 +40,7 @@ with open(os.path.join(here, 'k3d', '_version.py')) as f:
 setup_args = {
     'name': 'K3D',
     'version': version_ns['__version__'],
+    'license': 'MIT',
     'description': 'Jupyter notebook extension for 3D visualization.',
     'long_description': LONG_DESCRIPTION,
     'include_package_data': True,
