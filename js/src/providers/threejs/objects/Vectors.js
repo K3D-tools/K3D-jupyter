@@ -49,7 +49,7 @@ module.exports = function (config, K3D) {
     vectors = toFloat32Array(vectors);
     origins = toFloat32Array(origins);
     colors = colors ? colorsToFloat32Array(colors) :
-             getTwoColorsArray(originColor, headColor, vectors.length / 3 * 2);
+        getTwoColorsArray(originColor, headColor, vectors.length / 3 * 2);
 
     if (vectors.length !== origins.length) {
         throw new Error('vectors and origins should have the same length');
@@ -75,9 +75,11 @@ module.exports = function (config, K3D) {
         );
 
         if (labels) {
-            labelsObjects.push(
-                createText(labels[i / 3], origin, destination, labelsSize, K3D)
-            );
+            if (labels[i / 3]) {
+                labelsObjects.push(
+                    createText(labels[i / 3], origin, destination, labelsSize, K3D)
+                );
+            }
         }
     }
 

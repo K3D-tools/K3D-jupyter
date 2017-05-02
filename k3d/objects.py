@@ -39,8 +39,13 @@ class _Attribute(object):
             value = float(value)
 
         if not isinstance(value, self.__expected_type):
+            if type(self.__expected_type) == tuple:
+                expected_type_str = ','.join([v.__name__ for v in self.__expected_type])
+            else:
+                expected_type_str = self.__expected_type.__name__
+
             raise TypeError('Variable %s. Expected type %s, %s given' % (
-                self.__path, self.__expected_type.__name__, type(value).__name__))
+                self.__path, expected_type_str, type(value).__name__))
 
         self.__values[instance] = value
 
