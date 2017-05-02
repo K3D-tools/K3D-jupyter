@@ -128,6 +128,7 @@ function createText(text, origin, destination, labelsSize, K3D) {
     var center = origin.clone().add(destination).divideScalar(2),
         textConfig = {
             'position': [center.x, center.y, center.z],
+            'referencePoint': 'cb',
             'text': text,
             'size': labelsSize
         };

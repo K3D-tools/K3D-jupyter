@@ -81,18 +81,5 @@ module.exports = [
         },
         plugins: plugins,
         externals: ['jupyter-js-widgets']
-    },
-    {
-        entry: './src/development.js',
-        output: {
-            filename: 'index.js',
-            path: __dirname + '/dev/',
-            library: "K3D",
-            libraryTarget: 'amd'
-        },
-        devtool: 'source-map',
-        module: {
-            rules: rules
-        }
     }
 ];

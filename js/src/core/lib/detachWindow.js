@@ -80,10 +80,12 @@ function detachWindowButton(container, K3D) {
         newWindow = window.open('', '_blank', 'width=800,height=600,resizable=1');
         newWindow.document.body.innerHTML = require('./helpers/detachedWindowHtml');
 
-        // copy katex css
-        newWindow.document.body.appendChild(
-            window.document.getElementById('k3d-katex').cloneNode(true)
-        );
+        // copy css
+        ['k3d-katex', 'k3d-style'].forEach(function (id) {
+            newWindow.document.body.appendChild(
+                window.document.getElementById(id).cloneNode(true)
+            );
+        });
 
         setTimeout(function () {
             K3D.getWorld().toolbarDOMNode.innerHTML = '';

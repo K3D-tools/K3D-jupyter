@@ -2,6 +2,7 @@
 'use strict';
 
 const webpackConfig = require('./webpack.config');
+const webpackConfigDev = require('./webpack.config.dev');
 
 var LIVERELOAD_PORT = 35729,
     compression = require('compression'),
@@ -20,7 +21,8 @@ module.exports = function (grunt) {
 
     grunt.initConfig({
         webpack: {
-            prod: webpackConfig
+            prod: webpackConfig,
+            dev: webpackConfigDev
         },
         jshint: {
             options: {
@@ -45,16 +47,17 @@ module.exports = function (grunt) {
                 },
                 files: [
                     'src/**/*.js',
+                    'src/**/*.css',
                     'development.html'
                 ]
             },
-            jsdoc: {
-                files: ['src/**/*.js'],
-                tasks: ['jsdoc']
-            },
+            // jsdoc: {
+            //     files: ['src/**/*.js'],
+            //     tasks: ['jsdoc']
+            // },
             webpack: {
                 files: ['src/**/*.js'],
-                tasks: ['webpack']
+                tasks: ['webpack:dev']
             }
         },
         connect: {
@@ -135,14 +138,14 @@ module.exports = function (grunt) {
     grunt.registerTask('build', function () {
         grunt.task.run([
             'clean',
-            'webpack'
+            'webpack:prod'
         ]);
     });
 
     grunt.registerTask('serve', function () {
         grunt.task.run([
             'clean',
-            'webpack',
+            'webpack:dev',
             'connect:livereload',
             'open:dev',
             'watch'
