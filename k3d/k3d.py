@@ -5,13 +5,14 @@ from functools import partial
 from .factory import Factory
 from .objects import Drawable
 from .queue import Queue
-from .version import version
+from ._version import version_info
 import base64
 import json
 import zlib
 
-class K3D(widgets.DOMWidget, Factory):
 
+class K3D(widgets.DOMWidget, Factory):
+    version = version_info
     _view_name = Unicode('K3DView').tag(sync=True)
     _model_name = Unicode('K3DModel').tag(sync=True)
     _view_module = Unicode('k3d').tag(sync=True)
@@ -19,6 +20,7 @@ class K3D(widgets.DOMWidget, Factory):
 
     _view_module_version = Unicode('^2.0.0').tag(sync=True)
     _model_module_version = Unicode('^2.0.0').tag(sync=True)
+    objects = []
 
     COMPRESSION_LEVEL = 1
 
@@ -45,11 +47,14 @@ class K3D(widgets.DOMWidget, Factory):
         }
         self.voxel_paint_color = voxel_paint_color
 
-    def __add__(self, obj):
-        assert isinstance(obj, Drawable)
+    def __add__(self, objs):
+        assert isinstance(objs, Drawable)
 
-        if obj.set_plot(self):
-            self.__queue.add(obj)
+        if objs.set_plot(self):
+            for obj in objs:
+                self.objects.append(obj)
+
+            self.__queue.add(objs)
 
         return self
 
@@ -59,6 +64,7 @@ class K3D(widgets.DOMWidget, Factory):
         for obj in objs:
             if obj.unset_plot(self):
                 self.__update_strategy(obj.id)
+                self.objects.remove(obj)
 
         return self
 
