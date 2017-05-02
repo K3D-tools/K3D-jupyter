@@ -73,6 +73,8 @@ K3DView = widgets.DOMWidgetView.extend({
 
     _init: function () {
         this.K3DInstance = new K3D(ThreeJsProvider, this.container);
+        this.objectsChangesQueue = [];
+        this.objectsChangesQueueRun = false;
 
         this.K3DInstance.setClearColor(this.parameters.backgroundColor);
         this._setCameraAutoFit();
@@ -87,12 +89,30 @@ K3DView = widgets.DOMWidgetView.extend({
         this.K3DInstance.parameters.voxelPaintColor = this.model.get('voxel_paint_color');
     },
 
-    _onObjectChange: function (model, object) {
+    _processObjectsChangesQueue: function (self) {
+        var object = self.objectsChangesQueue.shift();
+
         if (object.type) {
-            return this._add(object);
+            self._add(object);
+        } else {
+            (object.attr ? self._update : self._remove).call(self, object);
         }
 
-        (object.attr ? this._update : this._remove).call(this, object);
+        if (self.objectsChangesQueue.length > 0) {
+            setTimeout(self._processObjectsChangesQueue, 0, self);
+        } else {
+            self.objectsChangesQueueRun = false;
+        }
+    },
+
+    _onObjectChange: function (model, object) {
+        this.objectsChangesQueue.push(object);
+
+        // force setTimeout to avoid freeze on browser in case of heavy load
+        if (!this.objectsChangesQueueRun) {
+            this.objectsChangesQueueRun = true;
+            setTimeout(this._processObjectsChangesQueue, 0, this);
+        }
     },
 
     _add: function (object) {
