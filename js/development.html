@@ -41,25 +41,15 @@
     };
 
     var K3D = require(['K3D'], function (lib) {
-        jsonLoader('test/samples/vector_label.json', function (json) {
+        jsonLoader('test/samples/horse_with_colors.json', function (json) {
             K3DInstance = new lib.K3D(
                     lib.ThreeJsProvider,
                     document.getElementById('canvasTarget'),
-                    {cameraAutoFit: false}
+                    {cameraAutoFit: true}
             );
-
-            json.objects[0].id = 'test';
 
             K3DInstance.setClearColor(0xffffff, 1);
             K3DInstance.load(json);
-
-            setInterval(function () {
-
-                newObjectJson = _.cloneDeep(json.objects[0]);
-                newObjectJson.vectors = [0.5 - Math.random(), 0.5 - Math.random(), 0.5 - Math.random()];
-
-                K3DInstance.applyPatchObject('test', jsonpatch.compare(json, newObjectJson));
-            }, 1000);
         });
     });
 </script>

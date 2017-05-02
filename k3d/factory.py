@@ -35,6 +35,16 @@ class Factory(object):
         })
 
     @classmethod
+    def fancy_points(cls, positions, colors=(), color=DEFAULT_COLOR, view_matrix=numpy.identity(4), point_size=1.0):
+        return FancyPoints(**{
+            'model_view_matrix': cls.__get_view_matrix(view_matrix),
+            'point_size': point_size,
+            'points_positions': cls.__to_ndarray(positions),
+            'points_colors': cls.__to_ndarray(colors, numpy.uint32),
+            'color': color,
+        })
+
+    @classmethod
     def line(cls, positions, xmin=-.5, xmax=.5, ymin=-.5, ymax=.5, zmin=-.5, zmax=.5, view_matrix=numpy.identity(4),
              width=1, color=DEFAULT_COLOR):
         return Line(**{

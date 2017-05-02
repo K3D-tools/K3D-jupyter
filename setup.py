@@ -19,7 +19,7 @@ log.set_verbosity(log.DEBUG)
 log.info('setup.py entered')
 log.info('$PATH=%s' % os.environ['PATH'])
 
-LONG_DESCRIPTION = 'Jupyter notebook extension for K3D visualization library.'
+LONG_DESCRIPTION = 'Jupyter notebook extension for 3D visualization.'
 
 # Representative files that should exist after a successful build
 targets = [
@@ -40,13 +40,14 @@ with open(os.path.join(here, 'k3d', '_version.py')) as f:
 setup_args = {
     'name': 'K3D',
     'version': version_ns['__version__'],
-    'description': 'Jupyter notebook extension for K3D visualization library.',
+    'description': 'Jupyter notebook extension for 3D visualization.',
     'long_description': LONG_DESCRIPTION,
     'include_package_data': True,
     'data_files': [
         ('share/jupyter/nbextensions/k3d', [
             'k3d/static/extension.js',
-            'k3d/static/index.js'
+            'k3d/static/index.js',
+            'k3d/static/index.js.map'
         ]),
     ],
     'install_requires': [
@@ -56,7 +57,6 @@ setup_args = {
     'packages': find_packages(),
     'zip_safe': False,
     'cmdclass': cmdclass,
-
     'author': 'k3d team',
     'author_email': 'artur.trzesiok@gmail.com',
     'url': 'http://jupyter.org',

@@ -7,6 +7,10 @@ var rules = [
     {
         test: /\.(png|jpg|gif|svg|eot|ttf|woff|woff2)$/,
         use: 'url-loader'
+    },
+    {
+        test: /\.glsl/,
+        use: 'raw-loader'
     }
 ];
 

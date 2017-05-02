@@ -1,1 +1,1 @@
-recursive-include K3D/static *.*
+recursive-include k3d/static *

@@ -46,8 +46,7 @@ module.exports = function (grunt) {
                     livereload: LIVERELOAD_PORT
                 },
                 files: [
-                    'src/**/*.js',
-                    'src/**/*.css',
+                    'dev/*.js',
                     'development.html'
                 ]
             },
@@ -56,7 +55,11 @@ module.exports = function (grunt) {
             //     tasks: ['jsdoc']
             // },
             webpack: {
-                files: ['src/**/*.js'],
+                files: [
+                    'src/**/*.js',
+                    'src/**/*.glsl',
+                    'src/**/*.css'
+                ],
                 tasks: ['webpack:dev']
             }
         },

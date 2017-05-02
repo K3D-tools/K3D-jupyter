@@ -70,6 +70,8 @@ function K3D(provider, targetDOMNode, parameters) {
             self.Provider.Helpers.resizeListener(world);
             render();
         }
+
+        dispatch(self.events.RESIZED);
     };
 
     world.toolbarDOMNode = currentWindow.document.createElement('div');
@@ -352,7 +354,8 @@ K3D.prototype.frameUpdateHandlers = {
 
 K3D.prototype.events = {
     VIEW_MODE_CHANGE: 'viewModeChange',
-    RENDERED: 'rendered'
+    RENDERED: 'rendered',
+    RESIZED: 'resized'
 };
 
 /**
