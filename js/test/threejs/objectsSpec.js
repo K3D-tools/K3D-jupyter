@@ -100,6 +100,36 @@ require(['K3D'], function (lib) {
             });
         });
 
+        it('Points-based horse model with colors and shader=3d should be drawn (base64)', function (done) {
+
+            var self = this;
+
+            jsonLoader('http://localhost:9001/samples/horse_with_colors_3d_base64.json', function (json) {
+
+                self.K3D.addFrameUpdateListener('after', function () {
+                    TestHelpers.compareCanvasWithExpectedImage(self.canvas.id, 'horse_with_colors_3d_base64',
+                        RESAMBLEThreshold, done);
+                }, true);
+
+                self.K3D.load(json);
+            });
+        });
+
+        it('Points-based horse model with colors and shader=flat should be drawn (base64)', function (done) {
+
+            var self = this;
+
+            jsonLoader('http://localhost:9001/samples/horse_with_colors_flat_base64.json', function (json) {
+
+                self.K3D.addFrameUpdateListener('after', function () {
+                    TestHelpers.compareCanvasWithExpectedImage(self.canvas.id, 'horse_with_colors_flat_base64',
+                        RESAMBLEThreshold, done);
+                }, true);
+
+                self.K3D.load(json);
+            });
+        });
+
         it('Simple single line text label should be drawn', function (done) {
 
             var self = this;

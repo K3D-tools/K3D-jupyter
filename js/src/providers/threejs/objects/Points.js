@@ -11,7 +11,7 @@ var buffer = require('./../../../core/lib/helpers/buffer'),
  */
 module.exports = function (config) {
     var modelViewMatrix = new THREE.Matrix4(),
-        color = new THREE.Color(config.get('color', 0)),
+        color = new THREE.Color(config.get('color', 65280)),
         pointsPositions = config.get('pointsPositions'),
         pointsColors = config.get('pointsColors'),
         shader = config.get('shader', '3dSpecular'),
