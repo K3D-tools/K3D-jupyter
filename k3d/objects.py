@@ -269,20 +269,12 @@ class MarchingCubes(SingleObject):
 
 class Points(SingleObject):
     color = _Attribute(int, int, 'color')
+    shader = _Attribute(str, str, 'shader')
     model_view_matrix = _Attribute(numpy.ndarray, _to_list, 'modelViewMatrix')
     point_size = _Attribute((int, float), float, 'pointSize')
     points_colors = _Attribute(numpy.ndarray, partial(_to_base64, dtype=numpy.uint32), 'pointsColors').transform(
         _strings, partial(_to_ndarray, dtype=numpy.uint32))
     points_positions = _Attribute(numpy.ndarray, _to_base64, 'pointsPositions').transform(_strings, _to_ndarray)
-
-class FancyPoints(SingleObject):
-    color = _Attribute(int, int, 'color')
-    model_view_matrix = _Attribute(numpy.ndarray, _to_list, 'modelViewMatrix')
-    point_size = _Attribute((int, float), float, 'pointSize')
-    points_colors = _Attribute(numpy.ndarray, partial(_to_base64, dtype=numpy.uint32), 'pointsColors').transform(
-        _strings, partial(_to_ndarray, dtype=numpy.uint32))
-    points_positions = _Attribute(numpy.ndarray, _to_base64, 'pointsPositions').transform(_strings, _to_ndarray)
-
 
 class STL(SingleObject):
     color = _Attribute(int, int, 'color')

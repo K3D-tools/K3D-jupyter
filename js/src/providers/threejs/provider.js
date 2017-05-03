@@ -47,7 +47,6 @@ module.exports = {
         Line: require('./objects/Line'),
         MarchingCubes: require('./objects/MarchingCubes'),
         Points: require('./objects/Points'),
-        FancyPoints: require('./objects/FancyPoints'),
         STL: require('./objects/STL'),
         Surface: require('./objects/Surface'),
         Text: require('./objects/Text'),

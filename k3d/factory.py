@@ -1,6 +1,7 @@
 import numpy
 from .objects import *
 
+
 class Factory(object):
     DEFAULT_COLOR = 0x0000FF
 
@@ -25,23 +26,15 @@ class Factory(object):
         })
 
     @classmethod
-    def points(cls, positions, colors=(), color=DEFAULT_COLOR, view_matrix=numpy.identity(4), point_size=1.0):
+    def points(cls, positions, colors=(), color=DEFAULT_COLOR, view_matrix=numpy.identity(4), point_size=1.0,
+               shader='3dSpecular'):
         return Points(**{
             'model_view_matrix': cls.__get_view_matrix(view_matrix),
             'point_size': point_size,
             'points_positions': cls.__to_ndarray(positions),
             'points_colors': cls.__to_ndarray(colors, numpy.uint32),
             'color': color,
-        })
-
-    @classmethod
-    def fancy_points(cls, positions, colors=(), color=DEFAULT_COLOR, view_matrix=numpy.identity(4), point_size=1.0):
-        return FancyPoints(**{
-            'model_view_matrix': cls.__get_view_matrix(view_matrix),
-            'point_size': point_size,
-            'points_positions': cls.__to_ndarray(positions),
-            'points_colors': cls.__to_ndarray(colors, numpy.uint32),
-            'color': color,
+            'shader': shader,
         })
 
     @classmethod

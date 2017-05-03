@@ -10,21 +10,46 @@ var buffer = require('./../../../core/lib/helpers/buffer'),
  * @return {Object} 3D object ready to render
  */
 module.exports = function (config) {
-
     var modelViewMatrix = new THREE.Matrix4(),
         color = new THREE.Color(config.get('color', 0)),
-        material = new THREE.PointsMaterial({
-            size: config.get('pointSize'),
-            sizeAttenuation: !!config.get('pointSizeAttenuation', false),
-            vertexColors: THREE.VertexColors
-        }),
         pointsPositions = config.get('pointsPositions'),
         pointsColors = config.get('pointsColors'),
+        shader = config.get('shader', '3dSpecular'),
         positions,
         colors,
         object,
+        material,
         toFloat32Array = buffer.toFloat32Array,
-        colorsToFloat32Array = buffer.colorsToFloat32Array;
+        colorsToFloat32Array = buffer.colorsToFloat32Array,
+        fragmentShader,
+        fragmentShaderMap = {
+            'flat': require('./shaders/Points.flat.fragment.glsl'),
+            '3d': require('./shaders/Points.3d.fragment.glsl'),
+            '3dSpecular': require('./shaders/Points.3d.fragment.glsl')
+        };
+
+    fragmentShader = fragmentShaderMap[shader] || fragmentShaderMap.flat;
+
+    material = new THREE.ShaderMaterial({
+        uniforms: THREE.UniformsUtils.merge([
+            THREE.UniformsLib['lights'],
+            THREE.UniformsLib['points']
+        ]),
+        defines: {
+            USE_SPECULAR: (shader == '3dSpecular' ? 1 : 0)
+        },
+        vertexShader: require('./shaders/Points.vertex.glsl'),
+        fragmentShader: fragmentShader,
+        lights: true,
+        extensions: {
+            fragDepth: true
+        }
+    });
+
+    // monkey-patching for imitate THREE.PointsMaterial
+    material.size = config.get('pointSize');
+    material.map = null;
+    material.isPointsMaterial = true;
 
     if (typeof (pointsPositions) === 'string') {
         pointsPositions = buffer.base64ToArrayBuffer(pointsPositions);
