@@ -87,7 +87,7 @@ class simple_molecule_vis(object):
         colors = np.random.randint(0, 0x777777, points_number)
 
         self.plot = K3D()
-        self.pkts = K3D.points(positions, colors, point_size=4.0)
+        self.pkts = K3D.points(positions, colors, point_size=.3)
         self.plot += self.pkts
         self.plot.camera_auto_fit = False
         
@@ -95,7 +95,7 @@ class simple_molecule_vis(object):
            (-bs/2,0,0,0,-bs/2,0,0,0,-bs/2), 
            (bs,0,0,0,bs,0,0,0,bs), 
            colors=(0xff0000, 0xff0000, 0x0000ff, 0x0000ff, 0x00ff00, 0x00ff00), 
-           labels=('Axis x', 'Axis y', 'Axis z')
+           labels=('x', 'y', 'z')
         )
         self.axes.line_width = 2
 
