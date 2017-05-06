@@ -46,6 +46,7 @@ class K3D(widgets.DOMWidget, Factory):
             'height': height,
         }
         self.voxel_paint_color = voxel_paint_color
+        self.objects = []
 
     def __add__(self, objs):
         assert isinstance(objs, Drawable)
