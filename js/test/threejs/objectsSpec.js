@@ -2,7 +2,7 @@ require(['K3D'], function (lib) {
     var K3D = lib.K3D;
     var ThreeJsProvider = lib.ThreeJsProvider;
 
-    const RESAMBLEThreshold = 0.25;
+    const RESAMBLEThreshold = 0.35;
 
     function jsonLoader(url, callback) {
 
