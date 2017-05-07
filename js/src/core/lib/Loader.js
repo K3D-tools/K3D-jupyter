@@ -38,7 +38,7 @@ function loader(K3D, json) {
 
                     K3DObject.lastSynchJsonObject = object;
                     objectNumber = K3D.addObject(K3DObject);
- 
+
                     K3DObject.K3DIdentifier = object.id || ('K3DAutoIncrement_' + objectNumber);
 
                     console.log('K3D: Object type "' + object.type + '" loaded in: ',

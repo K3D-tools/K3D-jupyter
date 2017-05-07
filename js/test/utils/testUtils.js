@@ -1,61 +1,36 @@
 window.TestHelpers.compareCanvasWithExpectedImage =
-    function (canvasId, expectedImagePath, misMatchPercentage, callback) {
+    function (K3D, expectedImagePath, misMatchPercentage, callback) {
 
         'use strict';
 
         var header = 'data:image/png;base64,',
-            finalCanvas = document.createElement('canvas'),
-            canvas = document.getElementById(canvasId).getElementsByTagName('canvas')[0],
             xhrLoad = new XMLHttpRequest(),
             xhrSaveResult,
             xhrSaveDiff;
 
-        finalCanvas.width = canvas.width;
-        finalCanvas.height = canvas.height;
-
         xhrLoad.onreadystatechange = function () {
+            if (xhrLoad.readyState === 4) {
+                K3D.getScreenshot().then(function (canvas) {
 
-            var data = '<svg xmlns="http://www.w3.org/2000/svg" width="' + finalCanvas.width + '" height="' +
-                finalCanvas.height + '">' +
-                '<foreignObject width="100%" height="100%">' +
-                document.getElementById('k3d-katex').outerHTML +
-                '<div xmlns="http://www.w3.org/1999/xhtml">' +
-                document.getElementById(canvasId).getElementsByTagName('div')[0].outerHTML +
-                '</div>' +
-                '</foreignObject>' +
-                '</svg>';
+                    var saveRender = function () {
+                            var xhrSave = new XMLHttpRequest();
 
-            var DOMURL = window.URL || window.webkitURL || window;
-            var img = new Image();
-            var svg = new Blob([data], {type: 'image/svg+xml;charset=utf-8'});
-            var url = DOMURL.createObjectURL(svg);
+                            xhrSave.open('POST', 'http://localhost:9001/screenshots/' + expectedImagePath + '.png', true);
+                            xhrSave.send(png.replace(header, ''));
 
-            img.onload = function () {
+                            return xhrSave;
+                        },
+                        saveDiff = function (data) {
+                            var xhrSaveDiff = new XMLHttpRequest();
 
-                var saveRender = function () {
-                        var xhrSave = new XMLHttpRequest();
+                            xhrSaveDiff.open('POST', 'http://localhost:9001/screenshots/' + expectedImagePath + '_diff.png',
+                                true);
+                            xhrSaveDiff.send(data.getImageDataUrl().replace(header, ''));
 
-                        xhrSave.open('POST', 'http://localhost:9001/screenshots/' + expectedImagePath + '.png', true);
-                        xhrSave.send(png.replace(header, ''));
+                            return xhrSaveDiff;
+                        };
 
-                        return xhrSave;
-                    },
-                    saveDiff = function (data) {
-                        var xhrSaveDiff = new XMLHttpRequest();
-
-                        xhrSaveDiff.open('POST', 'http://localhost:9001/screenshots/' + expectedImagePath + '_diff.png',
-                            true);
-                        xhrSaveDiff.send(data.getImageDataUrl().replace(header, ''));
-
-                        return xhrSaveDiff;
-                    };
-
-                if (xhrLoad.readyState === 4) {
-                    finalCanvas.getContext('2d').drawImage(canvas, 0, 0);
-                    finalCanvas.getContext('2d').drawImage(img, 0, 0);
-                    DOMURL.revokeObjectURL(url);
-
-                    var png = finalCanvas.toDataURL();
+                    var png = canvas.toDataURL();
 
                     resemble.outputSettings({
                         errorColor: {
@@ -107,10 +82,8 @@ window.TestHelpers.compareCanvasWithExpectedImage =
                             callback();
                         }
                     });
-                }
-            };
-
-            img.src = url;
+                });
+            }
         };
 
         xhrLoad.open('GET', 'http://localhost:9001/screenshots/' + expectedImagePath + '.png', true);

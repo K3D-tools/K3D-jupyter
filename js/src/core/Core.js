@@ -47,11 +47,10 @@ function K3D(provider, targetDOMNode, parameters) {
             });
 
             return true;
-        },
-        katexStyle = require(
-            'style-loader?{attrs:{id: "k3d-katex"}}!css-loader!./../../node_modules/katex/dist/katex.min.css'),
-        k3dStyle = require(
-            'style-loader?{attrs:{id: "k3d-style"}}!css-loader!./../k3d.css');
+        };
+
+    require('style-loader?{attrs:{id: "k3d-katex"}}!css-loader!./../../node_modules/katex/dist/katex.min.css');
+    require('style-loader?{attrs:{id: "k3d-style"}}!css-loader!./../k3d.css');
 
     if (!(this instanceof (K3D))) {
         return new K3D(provider, targetDOMNode, parameters);

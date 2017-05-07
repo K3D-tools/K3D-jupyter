@@ -32,11 +32,11 @@ module.exports = function (config) {
 
     material = new THREE.ShaderMaterial({
         uniforms: THREE.UniformsUtils.merge([
-            THREE.UniformsLib['lights'],
-            THREE.UniformsLib['points']
+            THREE.UniformsLib.lights,
+            THREE.UniformsLib.points
         ]),
         defines: {
-            USE_SPECULAR: (shader == '3dSpecular' ? 1 : 0)
+            USE_SPECULAR: (shader === '3dSpecular' ? 1 : 0)
         },
         vertexShader: require('./shaders/Points.vertex.glsl'),
         fragmentShader: fragmentShader,

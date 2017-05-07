@@ -9,3 +9,7 @@ k3d/static/
 *.pyc
 *~
 .ipynb_checkpoints/
+build/
+dist/
+js/test/assets/Lato-Regular.ttf
+js/dev

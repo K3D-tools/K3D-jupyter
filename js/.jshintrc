@@ -23,6 +23,7 @@
   "maxstatements": 30,
   "maxdepth": 4,
   "globals": {
+    "$": true,
     "K3D": true,
     "THREE": true,
     "_": true,

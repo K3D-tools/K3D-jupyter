@@ -1,8 +1,8 @@
 /* jshint indent: false, quotmark: false */
 'use strict';
 
-const webpackConfig = require('./webpack.config');
-const webpackConfigDev = require('./webpack.config.dev');
+const webpackConfig = require('./webpack.config'),
+    webpackConfigDev = require('./webpack.config.dev');
 
 var LIVERELOAD_PORT = 35729,
     compression = require('compression'),
@@ -131,7 +131,7 @@ module.exports = function (grunt) {
     grunt.registerTask('test', function () {
         grunt.task.run([
             'clean',
-            'webpack',
+            'webpack:dev',
             'express:test',
             'curl',
             'karma'

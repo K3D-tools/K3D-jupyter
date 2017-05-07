@@ -29,7 +29,7 @@ module.exports = function (K3D) {
 
     self.renderer = new THREE.WebGLRenderer({
         antialias: K3D.parameters.antialias,
-        preserveDrawingBuffer: true
+        preserveDrawingBuffer: false
     });
 
     function render() {

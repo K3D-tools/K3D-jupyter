@@ -15,15 +15,16 @@ function getScreenshot(K3D) {
         finalCanvas.width = canvas3d.width;
         finalCanvas.height = canvas3d.height;
 
-        renderPromise = rasterizeHTML.drawHTML(document.getElementById('k3d-katex').outerHTML +
-            '<div xmlns="http://www.w3.org/1999/xhtml">' +
-            K3D.getWorld().overlayDOMNode.outerHTML +
-            '</div>', finalCanvas);
+        renderPromise = rasterizeHTML.drawHTML('<style>body{margin:0;}</style>' +
+            document.getElementById('k3d-katex').outerHTML +
+            document.getElementById('k3d-style').outerHTML +
+            K3D.getWorld().overlayDOMNode.outerHTML, finalCanvas);
 
         renderPromise.then(function (result) {
+            K3D.getWorld().render();
             finalCanvas.getContext('2d').drawImage(canvas3d, 0, 0);
             finalCanvas.getContext('2d').drawImage(result.image, 0, 0);
-            resolve(finalCanvas.toDataURL());
+            resolve(finalCanvas);
         }, function (e) {
             reject(e);
         });
@@ -31,8 +32,8 @@ function getScreenshot(K3D) {
 }
 
 function screenshotButton(container, K3D) {
-    var element = document.createElement('a');
-    var icon = document.createElement('img');
+    var element = document.createElement('a'),
+        icon = document.createElement('img');
 
     icon.style.cssText = [
         'background: white',
@@ -44,7 +45,6 @@ function screenshotButton(container, K3D) {
     ].join(';');
 
     element.style.cssText = 'margin: 0 3px';
-
     element.appendChild(icon);
 
     /* jshint -W101 */
@@ -53,8 +53,8 @@ function screenshotButton(container, K3D) {
 
     element.addEventListener('click', function (event) {
         if (!element.hasAttribute('to-download')) {
-            getScreenshot(K3D).then(function (href) {
-                element.href = href;
+            getScreenshot(K3D).then(function (canvas) {
+                element.href = canvas.toDataURL();
                 element.setAttribute('to-download', '1');
                 element.click();
             }, function () {
