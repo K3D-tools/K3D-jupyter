@@ -6,6 +6,7 @@ var viewModes = require('./lib/viewMode').viewModes,
     _ = require('lodash'),
     patchObject = require('./lib/patchObject'),
     resetCameraButton = require('./lib/resetCamera'),
+    screenshotButton = require('./lib/screenshot'),
     detachWindowButton = require('./lib/detachWindow'),
     fullscreen = require('./lib/fullscreen'),
     viewModeButton = require('./lib/viewMode').viewModeButton;
@@ -317,6 +318,7 @@ function K3D(provider, targetDOMNode, parameters) {
     currentWindow.addEventListener('resize', this.resizeHelper, false);
 
     // load toolbars
+    screenshotButton(world.toolbarDOMNode, this);
     resetCameraButton(world.toolbarDOMNode, this);
 
     if (currentWindow === window) {
