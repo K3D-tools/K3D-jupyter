@@ -40,13 +40,17 @@ K3DModel = widgets.DOMWidgetModel.extend({
         widgets.WidgetModel.prototype.initialize.apply(this, arguments);
         this.on('change:data', this._decode, this);
         this.on('msg:custom', this._fetchData, this);
+        this.objectUpdateHistory = [];
     },
 
     _decode: function () {
         var data = this.get('data');
 
         if (data) {
-            this.set('object', JSON.parse(pako.ungzip(atob(data), {'to': 'string'})));
+            var obj = JSON.parse(pako.ungzip(atob(data), {'to': 'string'}));
+
+            this.objectUpdateHistory.push(obj);
+            this.set('object', obj);
         }
     },
 
@@ -54,7 +58,6 @@ K3DModel = widgets.DOMWidgetModel.extend({
         this.trigger('fetchData', id);
     }
 });
-
 
 // Custom View. Renders the widget model.
 K3DView = widgets.DOMWidgetView.extend({
@@ -79,6 +82,10 @@ K3DView = widgets.DOMWidgetView.extend({
         this.K3DInstance.setClearColor(this.parameters.backgroundColor);
         this._setCameraAutoFit();
         this._setVoxelPaintColor();
+
+        this.model.objectUpdateHistory.forEach(function (obj) {
+            this._onObjectChange(this.model, obj);
+        }, this);
     },
 
     _setCameraAutoFit: function () {

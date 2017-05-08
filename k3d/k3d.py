@@ -4,7 +4,6 @@ from traitlets import Unicode, Bytes, Dict, Bool, Int
 from functools import partial
 from .factory import Factory
 from .objects import Drawable
-from .queue import Queue
 from ._version import version_info
 import base64
 import json
@@ -20,23 +19,20 @@ class K3D(widgets.DOMWidget, Factory):
 
     _view_module_version = Unicode('^2.0.0').tag(sync=True)
     _model_module_version = Unicode('^2.0.0').tag(sync=True)
-    objects = []
-
-    COMPRESSION_LEVEL = 1
 
     camera_auto_fit = Bool(True).tag(sync=True)
     data = Unicode().tag(sync=True)
     parameters = Dict().tag(sync=True)
     voxel_paint_color = Int().tag(sync=True)
 
+    objects = []
+    COMPRESSION_LEVEL = 1
+
     def __init__(self, antialias=True, background_color=0xFFFFFF, camera_auto_fit=True, height=512,
                  voxel_paint_color=0):
         super(K3D, self).__init__()
         self.on_msg(self.__on_msg)
 
-        self.__queue = Queue(self.__show)
-        self.__display_strategy = self.__display
-        self.__update_strategy = self.__pass
         self.__on_msg_strategy = self.__pass
 
         self.camera_auto_fit = camera_auto_fit
@@ -54,8 +50,7 @@ class K3D(widgets.DOMWidget, Factory):
         if objs.set_plot(self):
             for obj in objs:
                 self.objects.append(obj)
-
-            self.__queue.add(objs)
+                self.data = self.__to_compressed_base64(self.__to_json(obj.data))
 
         return self
 
@@ -64,7 +59,7 @@ class K3D(widgets.DOMWidget, Factory):
 
         for obj in objs:
             if obj.unset_plot(self):
-                self.__update_strategy(obj.id)
+                self.update(obj.id)
                 self.objects.remove(obj)
 
         return self
@@ -80,10 +75,7 @@ class K3D(widgets.DOMWidget, Factory):
         self.__on_msg_strategy = self.__pass
         obj.update(data)
 
-    def update(self, obj_id, attr):
-        self.__update_strategy(obj_id, attr)
-
-    def __update(self, obj_id, attr=None):
+    def update(self, obj_id, attr=None):
         data = {
             'id': obj_id,
             'attr': attr,
@@ -94,10 +86,6 @@ class K3D(widgets.DOMWidget, Factory):
 
         self.data = self.__to_compressed_base64(self.__to_json(data))
 
-    def __show(self, objs):
-        for obj in objs:
-            self.data = self.__to_compressed_base64(self.__to_json(obj.data))
-
     @staticmethod
     def __to_json(data):
         return json.dumps(data, separators=(',', ':')).encode(encoding='ascii')
@@ -107,17 +95,7 @@ class K3D(widgets.DOMWidget, Factory):
         return base64.b64encode(zlib.compress(data, cls.COMPRESSION_LEVEL))
 
     def display(self, **kwargs):
-        self._ipython_display_(**kwargs)
-
-    def _ipython_display_(self, **kwargs):
-        self.__display_strategy(**kwargs)
-
-    def __display(self, **kwargs):
         super(K3D, self)._ipython_display_(**kwargs)
-
-        self.__queue.flush()
-        self.__display_strategy = self.__pass
-        self.__update_strategy = self.__update
 
     def __pass(self, *args, **kwargs):
         pass
