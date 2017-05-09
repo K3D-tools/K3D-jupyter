@@ -17,7 +17,7 @@ To install use pip:
     $ jupyter nbextension install --py --sys-prefix k3d
     $ jupyter nbextension enable --py --sys-prefix k3d
 
-For a development installation (requires npm),
+For a development installation (requires npm and node.js),
 
     $ git clone https://github.com/K3D-tools/K3D-jupyter.git
     $ cd K3D-jupyter
