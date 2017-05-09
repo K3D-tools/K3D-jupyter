@@ -33,7 +33,7 @@ module.exports = [
         entry: './src/extension.js',
         output: {
             filename: 'extension.js',
-            path: __dirname + '/../K3D/static',
+            path: __dirname + '/../k3d/static',
             libraryTarget: 'amd'
         },
         plugins: plugins
@@ -47,7 +47,7 @@ module.exports = [
         entry: './src/index.js',
         output: {
             filename: 'index.js',
-            path: __dirname + '/../K3D/static',
+            path: __dirname + '/../k3d/static',
             libraryTarget: 'amd'
         },
         plugins: plugins,

@@ -1,7 +1,7 @@
 /* jshint indent: false, quotmark: false */
 'use strict';
 
-const webpackConfig = require('./webpack.config'),
+var webpackConfig = require('./webpack.config'),
     webpackConfigDev = require('./webpack.config.dev');
 
 var LIVERELOAD_PORT = 35729,
