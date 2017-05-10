@@ -3,6 +3,7 @@
 var widgets = require('jupyter-js-widgets'),
     _ = require('lodash'),
     pako = require('pako'),
+    jsonpatch = require('fast-json-patch'),
     K3D = require('./core/Core'),
     ThreeJsProvider = require('./providers/threejs/provider'),
     K3DModel,
@@ -25,6 +26,15 @@ require('es6-promise');
 
 // When serialiazing the entire widget state for embedding, only values that
 // differ from the defaults will be specified.
+
+function createPatchFromObject(object) {
+    return [{
+        'op': 'replace',
+        'path': object.attr.path,
+        'value': object.attr.value
+    }];
+}
+
 K3DModel = widgets.DOMWidgetModel.extend({
     defaults: _.extend(_.result({}, 'widgets.DOMWidgetModel.prototype.defaults'), {
         _model_name: 'K3D',
@@ -36,11 +46,24 @@ K3DModel = widgets.DOMWidgetModel.extend({
         value: 'K3D'
     }),
 
+    updateHistory: function (obj) {
+        switch (obj.k3dOperation) {
+            case 'Insert':
+                this.objectsList[obj.id] = _.omit(obj, 'k3dOperation');
+                break;
+            case 'Update':
+                jsonpatch.apply(this.objectsList[obj.id], createPatchFromObject(obj));
+                break;
+            case 'Delete':
+                delete this.objectsList[obj.id];
+        }
+    },
+
     initialize: function () {
         widgets.WidgetModel.prototype.initialize.apply(this, arguments);
         this.on('change:data', this._decode, this);
         this.on('msg:custom', this._fetchData, this);
-        this.objectUpdateHistory = [];
+        this.objectsList = {};
     },
 
     _decode: function () {
@@ -49,8 +72,10 @@ K3DModel = widgets.DOMWidgetModel.extend({
         if (data) {
             var obj = JSON.parse(pako.ungzip(atob(data), {'to': 'string'}));
 
-            this.objectUpdateHistory.push(obj);
-            this.set('object', obj);
+            if (typeof(obj.k3dOperation) !== 'undefined') {
+                this.updateHistory(obj);
+                this.set('object', obj);
+            }
         }
     },
 
@@ -83,7 +108,9 @@ K3DView = widgets.DOMWidgetView.extend({
         this._setCameraAutoFit();
         this._setVoxelPaintColor();
 
-        this.model.objectUpdateHistory.forEach(function (obj) {
+        Object.keys(this.model.objectsList).forEach(function (key) {
+            var obj = _.extend({}, this.model.objectsList[key], {'k3dOperation': 'Insert'});
+
             this._onObjectChange(this.model, obj);
         }, this);
     },
@@ -99,10 +126,15 @@ K3DView = widgets.DOMWidgetView.extend({
     _processObjectsChangesQueue: function (self) {
         var object = self.objectsChangesQueue.shift();
 
-        if (object.type) {
-            self._add(object);
-        } else {
-            (object.attr ? self._update : self._remove).call(self, object);
+        switch (object.k3dOperation) {
+            case 'Insert':
+                self._add(object);
+                break;
+            case 'Update':
+                self._update(object);
+                break;
+            case 'Delete':
+                self._remove(object);
         }
 
         if (self.objectsChangesQueue.length > 0) {
@@ -127,13 +159,7 @@ K3DView = widgets.DOMWidgetView.extend({
     },
 
     _update: function (object) {
-        var patch = [{
-            'op': 'replace',
-            'path': object.attr.path,
-            'value': object.attr.value
-        }];
-
-        this.K3DInstance.applyPatchObject(object.id, patch);
+        this.K3DInstance.applyPatchObject(object.id, createPatchFromObject(object));
     },
 
     _remove: function (object) {

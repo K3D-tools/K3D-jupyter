@@ -39,7 +39,7 @@ class K3D(widgets.DOMWidget, Factory):
         self.parameters = {
             'antialias': antialias,
             'backgroundColor': background_color,
-            'height': height,
+            'height': height
         }
         self.voxel_paint_color = voxel_paint_color
         self.objects = []
@@ -50,7 +50,10 @@ class K3D(widgets.DOMWidget, Factory):
         if objs.set_plot(self):
             for obj in objs:
                 self.objects.append(obj)
-                self.data = self.__to_compressed_base64(self.__to_json(obj.data))
+
+                sync_data = obj.data
+                sync_data['k3dOperation'] = 'Insert'
+                self.data = self.__to_compressed_base64(self.__to_json(sync_data))
 
         return self
 
@@ -77,12 +80,13 @@ class K3D(widgets.DOMWidget, Factory):
 
     def update(self, obj_id, attr=None):
         data = {
+            'k3dOperation': 'Update',
             'id': obj_id,
             'attr': attr,
         }
 
         if attr is None:
-            del data['attr']
+            data['k3dOperation'] = 'Delete'
 
         self.data = self.__to_compressed_base64(self.__to_json(data))
 
