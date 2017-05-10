@@ -30,19 +30,19 @@ function loader(K3D, json) {
 
             startTime = new Date().getTime();
 
-            K3DObjectPromise = loader(new Config(_.cloneDeep(object)), K3D);
-
-            K3DObjectPromise
+            K3DObjectPromise = loader(new Config(_.cloneDeep(object)), K3D)
                 .then(function (K3DObject) {
                     var objectNumber;
 
-                    K3DObject.lastSynchJsonObject = object;
                     objectNumber = K3D.addObject(K3DObject);
 
                     K3DObject.K3DIdentifier = object.id || ('K3DAutoIncrement_' + objectNumber);
+                    object.id = K3DObject.K3DIdentifier;
 
                     console.log('K3D: Object type "' + object.type + '" loaded in: ',
                         (new Date().getTime() - startTime) / 1000, 's');
+
+                    return object;
                 })
                 .catch(function () {
                     error('Loader Error', 'Object of type "' + object.type + '" was not loaded.');

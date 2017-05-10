@@ -67,12 +67,12 @@ K3DModel = widgets.DOMWidgetModel.extend({
     },
 
     _decode: function () {
-        var data = this.get('data');
+        var obj, data = this.get('data');
 
         if (data) {
-            var obj = JSON.parse(pako.ungzip(atob(data), {'to': 'string'}));
+            obj = JSON.parse(pako.ungzip(atob(data), {'to': 'string'}));
 
-            if (typeof(obj.k3dOperation) !== 'undefined') {
+            if (typeof (obj.k3dOperation) !== 'undefined') {
                 this.updateHistory(obj);
                 this.set('object', obj);
             }
@@ -100,7 +100,7 @@ K3DView = widgets.DOMWidgetView.extend({
     },
 
     _init: function () {
-        this.K3DInstance = new K3D(ThreeJsProvider, this.container);
+        this.K3DInstance = new K3D(ThreeJsProvider, this.container, {ObjectsListJson: this.model.objectsList});
         this.objectsChangesQueue = [];
         this.objectsChangesQueueRun = false;
 
@@ -128,13 +128,14 @@ K3DView = widgets.DOMWidgetView.extend({
 
         switch (object.k3dOperation) {
             case 'Insert':
-                self._add(object);
+                self.K3DInstance.load({objects: [_.omit(object, 'k3dOperation')]}, false);
                 break;
             case 'Update':
-                self._update(object);
+                object = self.model.objectsList[object.id];
+                self.K3DInstance.reload(object, false);
                 break;
             case 'Delete':
-                self._remove(object);
+                self.K3DInstance.removeObject(object.id, false);
         }
 
         if (self.objectsChangesQueue.length > 0) {
@@ -154,20 +155,12 @@ K3DView = widgets.DOMWidgetView.extend({
         }
     },
 
-    _add: function (object) {
-        this.K3DInstance.load({objects: [object]});
-    },
-
-    _update: function (object) {
-        this.K3DInstance.applyPatchObject(object.id, createPatchFromObject(object));
-    },
-
-    _remove: function (object) {
-        this.K3DInstance.removeObject(object.id);
-    },
-
     _fetchData: function (id) {
-        this.send(this.K3DInstance.getPatchObject(id));
+        var currentObjectJson = this.K3DInstance.getObjectJson(id);
+
+        if (currentObjectJson !== null) {
+            this.send(jsonpatch.compare(this.model.objectsList[id], currentObjectJson));
+        }
     }
 });
 

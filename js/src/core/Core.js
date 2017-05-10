@@ -4,7 +4,7 @@
 var viewModes = require('./lib/viewMode').viewModes,
     loader = require('./lib/Loader'),
     _ = require('lodash'),
-    patchObject = require('./lib/patchObject'),
+    error = require('./lib/Error').error,
     resetCameraButton = require('./lib/resetCamera'),
     screenshot = require('./lib/screenshot'),
     detachWindowButton = require('./lib/detachWindow'),
@@ -32,6 +32,7 @@ function K3D(provider, targetDOMNode, parameters) {
         objectIndex = 1,
         currentWindow = targetDOMNode.ownerDocument.defaultView || targetDOMNode.ownerDocument.parentWindow,
         world = {
+            ObjectsListJson: {},
             targetDOMNode: targetDOMNode,
             toolbarDOMNode: null,
             overlayDOMNode: null
@@ -103,6 +104,10 @@ function K3D(provider, targetDOMNode, parameters) {
     }, parameters || {});
 
     this.autoRendering = false;
+
+    if (typeof (this.parameters.ObjectsListJson) !== 'undefined') {
+        world.ObjectsListJson = this.parameters.ObjectsListJson;
+    }
 
     /**
      * Set autoRendering state
@@ -234,9 +239,10 @@ function K3D(provider, targetDOMNode, parameters) {
      * Remove object from current world
      * @memberof K3D.Core
      * @param {String} id
+     * @param {Bool} objectsListJsonUpdating
      */
-    this.removeObject = function (id) {
-        var object = this.Provider.Helpers.getObjectById(world, id);
+    this.removeObject = function (id, objectsListJsonUpdating) {
+        var object = self.Provider.Helpers.getObjectById(world, id);
 
         if (object) {
             world.K3DObjects.remove(object);
@@ -270,7 +276,75 @@ function K3D(provider, targetDOMNode, parameters) {
             throw new Error('Object with id ' + id + ' dosen\'t exists');
         }
 
+        if (typeof (objectsListJsonUpdating) === 'undefined' || objectsListJsonUpdating === true) {
+            delete world.ObjectsListJson[id];
+        }
+
+        self.rebuild();
+        world.setCameraToFitScene();
         render();
+    };
+
+
+    /**
+     * A convenient shortcut for doing K3D.Loader(K3DInstance, json);
+     * @memberof K3D.Core
+     * @public
+     * @param {Object} json K3D-JSON object
+     * @param {Bool} objectsListJsonUpdating
+     * @throws {Error} If Loader fails
+     */
+    this.load = function (json, objectsListJsonUpdating) {
+        loader(self, json).then(function (objects) {
+            if (typeof (objectsListJsonUpdating) === 'undefined' || objectsListJsonUpdating === true) {
+                objects.forEach(function (object) {
+                    world.ObjectsListJson[object.id] = object;
+                });
+            }
+        });
+    };
+
+    /**
+     * Reload object in current world
+     * @memberof K3D.Core
+     * @param {Object} json
+     * @param {Bool} objectsListJsonUpdating
+     */
+    this.reload = function (json, objectsListJsonUpdating) {
+        var object = self.Provider.Helpers.getObjectById(world, json.id);
+
+        if (!object) {
+            error('Apply Patch Object Error',
+                'K3D apply patches object failed, please consult browser error console!', false);
+            return;
+        }
+
+        if (typeof (objectsListJsonUpdating) === 'undefined' || objectsListJsonUpdating === true) {
+            world.ObjectsListJson[json.id] = json;
+        }
+
+        self.removeObject(json.id);
+        self.load({objects: [json]});
+    };
+
+    /**
+     * Get Json data of  object in current world
+     * @memberof K3D.Core
+     * @param {Integer} id
+     */
+    this.getObjectJson = function (id) {
+        var object = self.Provider.Helpers.getObjectById(world, id);
+
+        if (!object) {
+            error('Get Object Json Error', 'K3D get object json failed, please consult browser error console!', false);
+            return;
+        }
+
+        if (object.getJson) {
+            return object.getJson();
+        } else {
+            return null;
+        }
     };
 
     /**
@@ -402,23 +476,5 @@ K3D.prototype.removeFrameUpdateListener = function (when, listener) {
     this.refreshAutoRenderingState();
 };
 
-/**
- * A convenient shortcut for doing K3D.Loader(K3DInstance, json);
- * @memberof K3D.Core
- * @public
- * @param {Object} json K3D-JSON object
- * @throws {Error} If Loader fails
- */
-K3D.prototype.load = function (data) {
-    loader(this, data);
-};
-
-K3D.prototype.applyPatchObject = function (id, data) {
-    patchObject.applyPatchObject(this, id, data);
-};
-
-K3D.prototype.getPatchObject = function (id) {
-    patchObject.getPatchObject(this, id);
-};
 
 module.exports = K3D;
