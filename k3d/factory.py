@@ -50,7 +50,7 @@ class Factory(object):
     @classmethod
     def surface(cls, heights, xmin=-.5, xmax=.5, ymin=-.5, ymax=.5, view_matrix=numpy.identity(4), width=None,
                 height=None, color=DEFAULT_COLOR):
-        width, height = cls.__get_dimensions(numpy.shape(heights), width, height)
+        height, width = cls.__get_dimensions(numpy.shape(heights), height, width)
 
         return Surface(**{
             'model_view_matrix': cls.__get_view_matrix(view_matrix, xmin, xmax, ymin, ymax),
@@ -63,7 +63,7 @@ class Factory(object):
     @classmethod
     def marching_cubes(cls, scalars_field, level, xmin=-.5, xmax=.5, ymin=-.5, ymax=.5, zmin=-.5, zmax=.5,
                        view_matrix=numpy.identity(4), width=None, height=None, length=None, color=DEFAULT_COLOR):
-        width, height, length = cls.__get_dimensions(numpy.shape(scalars_field), width, height, length)
+        length, height, width = cls.__get_dimensions(numpy.shape(scalars_field), length, height, width)
 
         return MarchingCubes(**{
             'model_view_matrix': cls.__get_view_matrix(view_matrix, xmin, xmax, ymin, ymax, zmin, zmax),
@@ -110,7 +110,7 @@ class Factory(object):
                        zmax=.5, view_matrix=numpy.identity(4), width=None, height=None, length=None, use_head=True,
                        head_color=None, origin_color=None):
         shape = numpy.shape(vectors)
-        width, height, length = cls.__get_dimensions(shape[:-1] + (None,), width, height, length)
+        length, height, width = cls.__get_dimensions(shape[:-1] + (None,), length, height, width)
 
         cls.__validate_vectors_size(length, vector_size=shape[-1])
 
@@ -143,7 +143,7 @@ class Factory(object):
     @classmethod
     def voxels(cls, voxels, color_map, xmin=-.5, xmax=.5, ymin=-.5, ymax=.5, zmin=-.5, zmax=.5,
                view_matrix=numpy.identity(4), width=None, height=None, length=None):
-        width, height, length = cls.__get_dimensions(numpy.shape(voxels), width, height, length)
+        length, height, width = cls.__get_dimensions(numpy.shape(voxels), length, height, width)
 
         return Voxels(**{
             'model_view_matrix': cls.__get_view_matrix(view_matrix, xmin, xmax, ymin, ymax, zmin, zmax),

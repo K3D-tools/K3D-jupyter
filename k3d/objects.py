@@ -77,10 +77,7 @@ def _to_list(ndarray, dtype=numpy.float32):
     return numpy.frombuffer(ndarray.astype(dtype).data, dtype).tolist()
 
 
-def _to_base64(ndarray, dtype=numpy.float32, order='C'):
-    if order == 'F':
-        ndarray = ndarray.T.copy()
-
+def _to_base64(ndarray, dtype=numpy.float32):
     return base64.b64encode(ndarray.astype(dtype).data).decode(encoding='ascii')
 
 
@@ -262,8 +259,7 @@ class MarchingCubes(SingleObject):
     length = _Attribute(int, int, 'length')
     level = _Attribute((int, float), float, 'level')
     model_view_matrix = _Attribute(numpy.ndarray, _to_list, 'modelViewMatrix')
-    scalars_field = _Attribute(numpy.ndarray, partial(_to_base64, order='F'), 'scalarsField').transform(_strings,
-                                                                                                        _to_ndarray)
+    scalars_field = _Attribute(numpy.ndarray, partial(_to_base64), 'scalarsField').transform(_strings, _to_ndarray)
     width = _Attribute(int, int, 'width')
 
 
@@ -276,6 +272,7 @@ class Points(SingleObject):
         _strings, partial(_to_ndarray, dtype=numpy.uint32))
     points_positions = _Attribute(numpy.ndarray, _to_base64, 'pointsPositions').transform(_strings, _to_ndarray)
 
+
 class STL(SingleObject):
     color = _Attribute(int, int, 'color')
     model_view_matrix = _Attribute(numpy.ndarray, _to_list, 'modelViewMatrix')
@@ -285,7 +282,7 @@ class STL(SingleObject):
 class Surface(SingleObject):
     color = _Attribute(int, int, 'color')
     height = _Attribute(int, int, 'height')
-    heights = _Attribute(numpy.ndarray, partial(_to_base64, order='F'), 'heights')
+    heights = _Attribute(numpy.ndarray, partial(_to_base64), 'heights')
     model_view_matrix = _Attribute(numpy.ndarray, _to_list, 'modelViewMatrix')
     width = _Attribute(int, int, 'width')
 
@@ -312,9 +309,8 @@ class Texture(SingleObject):
 
 
 class Vectors(SingleObject):
-    colors = _Attribute(numpy.ndarray, partial(_to_base64, dtype=numpy.uint32), 'colors').transform(_strings,
-                                                                                                    partial(_to_ndarray,
-                                                                                                            dtype=numpy.uint32))
+    colors = _Attribute(numpy.ndarray, partial(_to_base64, dtype=numpy.uint32), 'colors') \
+        .transform(_strings, partial(_to_ndarray, dtype=numpy.uint32))
     head_color = _Attribute(int, int, 'headColor')
     labels = _Attribute((list, tuple), tuple, 'labels')
     labels_size = _Attribute(float, float, 'labelsSize')
@@ -326,29 +322,24 @@ class Vectors(SingleObject):
 
 
 class VectorsFields(SingleObject):
-    colors = _Attribute(numpy.ndarray, partial(_to_base64, dtype=numpy.uint32), 'colors').transform(_strings,
-                                                                                                    partial(_to_ndarray,
-                                                                                                            dtype=numpy.uint32))
+    colors = _Attribute(numpy.ndarray, partial(_to_base64, dtype=numpy.uint32), 'colors') \
+        .transform(_strings, partial(_to_ndarray, dtype=numpy.uint32))
     head_color = _Attribute(int, int, 'headColor')
     height = _Attribute(int, int, 'height')
     length = _Attribute((int, _NoneType), int, 'length')
     model_view_matrix = _Attribute(numpy.ndarray, _to_list, 'modelViewMatrix')
     origin_color = _Attribute(int, int, 'originColor')
     use_head = _Attribute(bool, bool, 'useHead')
-    vectors = _Attribute(numpy.ndarray, partial(_to_base64, order='F'), 'vectors').transform(_strings, _to_ndarray)
+    vectors = _Attribute(numpy.ndarray, partial(_to_base64), 'vectors').transform(_strings, _to_ndarray)
     width = _Attribute(int, int, 'width')
 
 
 class Voxels(SingleObject):
-    color_map = _Attribute(numpy.ndarray, partial(_to_base64, dtype=numpy.uint32), 'colorMap').transform(_strings,
-                                                                                                         partial(
-                                                                                                             _to_ndarray,
-                                                                                                             dtype=numpy.uint32))
+    color_map = _Attribute(numpy.ndarray, partial(_to_base64, dtype=numpy.uint32), 'colorMap') \
+        .transform(_strings, partial(_to_ndarray, dtype=numpy.uint32))
     height = _Attribute(int, int, 'height')
     length = _Attribute(int, int, 'length')
     model_view_matrix = _Attribute(numpy.ndarray, _to_list, 'modelViewMatrix')
-    voxels = _Attribute(numpy.ndarray, partial(_to_base64, dtype=numpy.uint8, order='F'), 'voxels').transform(_strings,
-                                                                                                              partial(
-                                                                                                                  _to_ndarray,
-                                                                                                                  dtype=numpy.uint8))
+    voxels = _Attribute(numpy.ndarray, partial(_to_base64, dtype=numpy.uint8), 'voxels') \
+        .transform(_strings, partial(_to_ndarray, dtype=numpy.uint8))
     width = _Attribute(int, int, 'width')
