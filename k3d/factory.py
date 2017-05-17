@@ -1,4 +1,13 @@
 import numpy
+
+# optional dependency
+try:
+    import vtk
+    from vtk.util import numpy_support
+except:
+    vtk = disabled
+    numpy_support = disabled
+
 from .objects import *
 
 
@@ -76,11 +85,39 @@ class Factory(object):
         })
 
     @classmethod
+    def mesh(cls, vertices, indices, view_matrix=numpy.identity(4), color=DEFAULT_COLOR):
+        return Mesh(**{
+            'model_view_matrix': cls.__get_view_matrix(view_matrix),
+            'vertices': cls.__to_ndarray(vertices),
+            'indices': cls.__to_ndarray(indices),
+            'color': color
+        })
+
+    @classmethod
+    def vtkPolyData(cls, polyData, view_matrix=numpy.identity(4), color=DEFAULT_COLOR):
+
+        if polyData.GetPolys().GetMaxCellSize() > 3:
+            cutTriangles = vtk.vtkTriangleFilter()
+            cutTriangles.SetInputData(polyData)
+            cutTriangles.Update()
+            polyData = cutTriangles.GetOutput()
+
+        vertices = numpy_support.vtk_to_numpy(polyData.GetPoints().GetData())
+        indices = numpy_support.vtk_to_numpy(polyData.GetPolys().GetData()).reshape(-1, 4)[:, 1:4]
+
+        return Mesh(**{
+            'model_view_matrix': cls.__get_view_matrix(view_matrix),
+            'vertices': cls.__to_ndarray(vertices),
+            'indices': cls.__to_ndarray(indices, numpy.uint32),
+            'color': color
+        })
+
+    @classmethod
     def stl(cls, stl, view_matrix=numpy.identity(4), color=DEFAULT_COLOR):
         return STL(**{
             'model_view_matrix': cls.__get_view_matrix(view_matrix),
             'color': color,
-            'stl': stl,
+            'stl': stl
         })
 
     @classmethod
@@ -110,7 +147,11 @@ class Factory(object):
                        zmax=.5, view_matrix=numpy.identity(4), width=None, height=None, length=None, use_head=True,
                        head_color=None, origin_color=None):
         shape = numpy.shape(vectors)
-        length, height, width = cls.__get_dimensions(shape[:-1] + (None,), length, height, width)
+
+        if len(shape[:-1]) < 3:
+            shape = (None,) + shape
+
+        length, height, width = cls.__get_dimensions(shape[:-1], length, height, width)
 
         cls.__validate_vectors_size(length, vector_size=shape[-1])
 

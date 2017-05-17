@@ -343,3 +343,11 @@ class Voxels(SingleObject):
     voxels = _Attribute(numpy.ndarray, partial(_to_base64, dtype=numpy.uint8), 'voxels') \
         .transform(_strings, partial(_to_ndarray, dtype=numpy.uint8))
     width = _Attribute(int, int, 'width')
+
+
+class Mesh(SingleObject):
+    model_view_matrix = _Attribute(numpy.ndarray, _to_list, 'modelViewMatrix')
+    vertices = _Attribute(numpy.ndarray, _to_base64, 'vertices').transform(_strings, _to_ndarray)
+    indices = _Attribute(numpy.ndarray, partial(_to_base64, dtype=numpy.uint32), 'indices') \
+        .transform(_strings, partial(_to_ndarray, dtype=numpy.uint32))
+    color = _Attribute(int, int, 'color')
