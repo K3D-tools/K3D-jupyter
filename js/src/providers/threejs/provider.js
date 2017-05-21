@@ -34,7 +34,7 @@ module.exports = {
         Canvas: require('./initializers/Canvas'),
         Camera: require('./initializers/Camera'),
         Renderer: require('./initializers/Renderer'),
-        Scene: require('./initializers/Scene'),
+        Scene: require('./initializers/Scene').Init,
         Setup: require('./initializers/Setup')
     },
     /**

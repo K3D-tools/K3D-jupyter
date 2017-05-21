@@ -52,9 +52,12 @@ function loader(K3D, json) {
         });
 
         return Promise.all(objectsPromieses).then(function (objects) {
-            K3D.rebuild();
             K3D.getWorld().setCameraToFitScene();
-            K3D.getWorld().render();
+
+            // rebuild scene + re-render
+            Promise.all(K3D.rebuild()).then(
+                K3D.render
+            );
 
             return objects;
         });

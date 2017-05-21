@@ -15,20 +15,14 @@ module.exports = function (config, K3D) {
     var text = config.get('text', '\\KaTeX'),
         color = config.get('color', 0),
         referencePoint = config.get('referencePoint', 'lb'),
-    // colorStroke = config.get('color', 0xffffff),
         size = config.get('size', 1),
         position = config.get('position'),
         object = new THREE.Object3D(),
         domElement = document.createElement('div'),
-        overlayDOMNode = K3D.getWorld().overlayDOMNode;
-
-    // domElement.style.textShadow = '-1px -1px 0 ' + colorToHex(colorStroke) + ',' +
-    //     '1px -1px 0 ' + colorToHex(colorStroke) + ',' +
-    //     '-1px 1px 0 ' + colorToHex(colorStroke) + ',' +
-    //     '1px 1px 0 ' + colorToHex(colorStroke);
+        overlayDOMNode = K3D.getWorld().overlayDOMNode,
+        listenersId;
 
     domElement.innerHTML = katex.renderToString(text, {displayMode: true});
-    domElement.style.display = 'inline-block';
     domElement.style.position = 'absolute';
     domElement.style.color = colorToHex(color);
     domElement.style.fontSize = size + 'em';
@@ -39,7 +33,12 @@ module.exports = function (config, K3D) {
     object.updateMatrixWorld();
 
     function render() {
-        var coord = toScreenPosition(object, K3D.getWorld()), x, y;
+        var coord, x, y;
+
+        if (domElement.style.display === 'hidden')
+            return;
+
+        coord = toScreenPosition(object, K3D.getWorld());
 
         switch (referencePoint[0]) {
             case 'l':
@@ -69,13 +68,22 @@ module.exports = function (config, K3D) {
         domElement.style.zIndex = 16777271 - Math.round(coord.z * 1e6);
     }
 
-    K3D.on(K3D.events.RENDERED, render);
-
-    render();
+    listenersId = K3D.on(K3D.events.RENDERED, render);
 
     object.onRemove = function () {
         overlayDOMNode.removeChild(domElement);
+        K3D.off(K3D.events.RENDERED, listenersId);
     };
+
+    object.hide = function () {
+        domElement.style.display = 'none';
+    };
+
+    object.show = function () {
+        domElement.style.display = 'inline-block';
+    };
+
+    object.show();
 
     return Promise.resolve(object);
 };

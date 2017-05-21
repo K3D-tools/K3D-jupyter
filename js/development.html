@@ -40,15 +40,31 @@
         xhrLoad.send(null);
     };
 
-    var K3D = require(['K3D'], function (lib) {
-        jsonLoader('test/samples/horse_with_colors_base64.json', function (json) {
-            K3DInstance = new lib.K3D(
-                    lib.ThreeJsProvider,
-                    document.getElementById('canvasTarget'),
-                    {cameraAutoFit: true}
-            );
+    require(['K3D'], function (lib) {
+        K3DInstance = new lib.K3D(
+            lib.ThreeJsProvider,
+            document.getElementById('canvasTarget'),
+            {cameraAutoFit: true, gridAutoFit: true}
+        );
 
-            K3DInstance.setClearColor(0xffffff, 1);
+        K3DInstance.setClearColor(0xffffff, 1);
+//        jsonLoader('test/samples/horse_with_colors_base64.json', function (json) {
+//            json.objects[0].id = 'test';
+//            K3DInstance.load(json);
+//
+//            var i = 0;
+//            setInterval(function () {
+//                if (i++ < 100) {
+//                    K3DInstance.reload(json.objects[0], false);
+//                }
+//            }, 10);
+//        });
+//
+//        jsonLoader('test/samples/torus-knots.json', function (json) {
+//            K3DInstance.load(json);
+//        });
+
+        jsonLoader('test/samples/mesh.json', function (json) {
             K3DInstance.load(json);
         });
     });

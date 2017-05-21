@@ -2,7 +2,7 @@ require(['K3D'], function (lib) {
     var K3D = lib.K3D;
     var ThreeJsProvider = lib.ThreeJsProvider;
 
-    const RESAMBLEThreshold = 0.35;
+    const RESAMBLEThreshold = 0.2;
 
     function jsonLoader(url, callback) {
 
@@ -550,6 +550,19 @@ require(['K3D'], function (lib) {
 
                 self.K3D.addFrameUpdateListener('after', function () {
                     TestHelpers.compareCanvasWithExpectedImage(self.K3D, 'voxels', RESAMBLEThreshold, done);
+                }, true);
+
+                self.K3D.load(json);
+            });
+        });
+
+        it('should draw a mesh from base64 array', function (done) {
+            var self = this;
+
+            jsonLoader('http://localhost:9001/samples/mesh.json', function (json) {
+
+                self.K3D.addFrameUpdateListener('after', function () {
+                    TestHelpers.compareCanvasWithExpectedImage(self.K3D, 'mesh', RESAMBLEThreshold, done);
                 }, true);
 
                 self.K3D.load(json);

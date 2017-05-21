@@ -38,13 +38,14 @@ function K3D(provider, targetDOMNode, parameters) {
             overlayDOMNode: null
         },
         listeners = {},
+        listenersIndex = 0,
         dispatch = function (eventName, data) {
             if (!listeners[eventName]) {
                 return false;
             }
 
-            listeners[eventName].forEach(function (listener) {
-                listener(data);
+            Object.keys(listeners[eventName]).forEach(function (key) {
+                listeners[eventName][key](data);
             });
 
             return true;
@@ -61,15 +62,15 @@ function K3D(provider, targetDOMNode, parameters) {
         throw new Error('Provider should be an object (a key-value map following convention)');
     }
 
-    function render() {
+    this.render = function () {
         world.render();
         dispatch(self.events.RENDERED);
-    }
+    };
 
     this.resizeHelper = function () {
         if (!this.disabling) {
             self.Provider.Helpers.resizeListener(world);
-            render();
+            self.render();
         }
 
         dispatch(self.events.RESIZED);
@@ -96,6 +97,7 @@ function K3D(provider, targetDOMNode, parameters) {
         viewMode: viewModes.view,
         voxelPaintColor: 0,
         cameraAutoFit: true,
+        gridAutoFit: true,
         antialias: true,
         clearColor: {
             color: 0xffffff,
@@ -138,7 +140,7 @@ function K3D(provider, targetDOMNode, parameters) {
         self.parameters.viewMode = mode;
 
         if (dispatch(self.events.VIEW_MODE_CHANGE, mode)) {
-            render();
+            self.render();
         }
     };
 
@@ -150,6 +152,16 @@ function K3D(provider, targetDOMNode, parameters) {
     this.setCameraAutoFit = function (state) {
         self.parameters.cameraAutoFit = state;
     };
+
+    /**
+     * Set grid auto fit mode of K3D
+     * @memberof K3D.Core
+     * @param {String} mode
+     */
+    this.setGridAutoFit = function (state) {
+        self.parameters.gridAutoFit = state;
+    };
+
 
     /**
      * Set voxelPaintColor of K3D
@@ -182,7 +194,7 @@ function K3D(provider, targetDOMNode, parameters) {
     this.updateMousePosition = function (x, y) {
         if (self.parameters.viewMode !== viewModes.view) {
             if (self.raycast(x, y, world.camera, false, self.parameters.viewMode) && !self.autoRendering) {
-                render();
+                self.render();
             }
         }
     };
@@ -196,16 +208,23 @@ function K3D(provider, targetDOMNode, parameters) {
     this.mouseClick = function (x, y) {
         if (self.parameters.viewMode !== viewModes.view) {
             if (self.raycast(x, y, world.camera, true, self.parameters.viewMode) && !self.autoRendering) {
-                render();
+                self.render();
             }
         }
     };
 
     this.on = function (eventName, listener) {
-        listeners[eventName] = listeners[eventName] || [];
-        listeners[eventName].push(listener);
+        listeners[eventName] = listeners[eventName] || {};
+        listeners[eventName][listenersIndex] = listener;
+
+        listenersIndex++;
+        return listenersIndex - 1;
     };
 
+    this.off = function (eventName, id) {
+        listeners[eventName] = listeners[eventName] || {};
+        delete listeners[eventName][id];
+    };
     /**
      * Get access to camera in current world
      * @memberof K3D.Core
@@ -282,7 +301,7 @@ function K3D(provider, targetDOMNode, parameters) {
 
         self.rebuild();
         world.setCameraToFitScene();
-        render();
+        self.render();
     };
 
 
@@ -352,7 +371,7 @@ function K3D(provider, targetDOMNode, parameters) {
      * @memberof K3D.Core
      */
     this.rebuild = function () {
-        self.rebuildOctree();
+        return self.rebuildSceneData();
     };
 
     /**
@@ -392,7 +411,7 @@ function K3D(provider, targetDOMNode, parameters) {
 
     world.controls.addEventListener('change', function () {
         if (self.frameUpdateHandlers.before.length === 0 && self.frameUpdateHandlers.after.length === 0) {
-            render();
+            self.render();
         }
     });
 
@@ -412,7 +431,8 @@ function K3D(provider, targetDOMNode, parameters) {
 
     viewModeButton(world.toolbarDOMNode, this);
 
-    render();
+    world.setCameraToFitScene();
+    self.render();
 }
 
 function isSupportedUpdateListener(when) {

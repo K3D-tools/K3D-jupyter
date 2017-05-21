@@ -38,6 +38,7 @@ module.exports = function (config) {
     object = new THREE.Mesh(geometry, material);
 
     geometry.computeBoundingSphere();
+    geometry.computeBoundingBox();
 
     modelViewMatrix.set.apply(modelViewMatrix, config.get('modelViewMatrix'));
     object.applyMatrix(modelViewMatrix);

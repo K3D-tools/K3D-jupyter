@@ -4,7 +4,7 @@
 
          "type" : "Text",
          "position" : [0, 0, 0],
-         "size": 5.0,
+         "size": 1.0,
          "text" : "Sample single line text",
          "fontOptions" : {
             "face" : "Lato"

@@ -20,6 +20,9 @@ module.exports = function (config) {
 
         mesh.children[0].geometry.computeBoundingSphere();
         mesh.children[1].geometry.computeBoundingSphere();
+
+        mesh.children[0].geometry.computeBoundingBox();
+        mesh.children[1].geometry.computeBoundingBox();
     }
 
     object.add(new THREE.LineSegments(
@@ -47,7 +50,7 @@ module.exports = function (config) {
             config.get('tube'),
             64,
             config.get('knotsNumber'),
-            2, 3, 1)
+            2, 3)
     );
 
     modelViewMatrix.set.apply(modelViewMatrix, config.get('modelViewMatrix'));

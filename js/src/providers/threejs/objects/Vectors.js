@@ -91,6 +91,7 @@ module.exports = function (config, K3D) {
     linesGeometry.addAttribute('color', new THREE.BufferAttribute(colors, 3));
 
     linesGeometry.computeBoundingSphere();
+    linesGeometry.computeBoundingBox();
 
     object.add(new THREE.LineSegments(linesGeometry, new THREE.LineBasicMaterial({
         vertexColors: THREE.VertexColors,
@@ -117,6 +118,7 @@ module.exports = function (config, K3D) {
 function addHeads(heads, object) {
     var headsGeometry = new THREE.BufferGeometry().fromGeometry(heads);
     headsGeometry.computeBoundingSphere();
+    headsGeometry.computeBoundingBox();
 
     object.add(
         new THREE.Mesh(

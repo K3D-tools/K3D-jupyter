@@ -94,6 +94,7 @@ K3DView = widgets.DOMWidgetView.extend({
         this.on('displayed', this._init, this);
 
         this.model.on('change:camera_auto_fit', this._setCameraAutoFit, this);
+        this.model.on('change:grid_auto_fit', this._setGridAutoFit, this);
         this.model.on('change:object', this._onObjectChange, this);
         this.model.on('change:voxel_paint_color', this._setVoxelPaintColor, this);
         this.model.on('fetchData', this._fetchData, this);
@@ -106,6 +107,7 @@ K3DView = widgets.DOMWidgetView.extend({
 
         this.K3DInstance.setClearColor(this.parameters.backgroundColor);
         this._setCameraAutoFit();
+        this._setGridAutoFit();
         this._setVoxelPaintColor();
 
         Object.keys(this.model.objectsList).forEach(function (key) {
@@ -117,6 +119,10 @@ K3DView = widgets.DOMWidgetView.extend({
 
     _setCameraAutoFit: function () {
         this.K3DInstance.setCameraAutoFit(this.model.get('camera_auto_fit'));
+    },
+
+    _setGridAutoFit: function () {
+        this.K3DInstance.setGridAutoFit(this.model.get('grid_auto_fit'));
     },
 
     _setVoxelPaintColor: function () {

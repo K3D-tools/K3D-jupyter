@@ -20,6 +20,7 @@ module.exports = function (config) {
         image.src = config.get('image');
 
         geometry.computeBoundingSphere();
+        geometry.computeBoundingBox();
 
         image.onload = function () {
             material = new THREE.MeshBasicMaterial({color: 0xffffff, side: THREE.DoubleSide, map: texture});

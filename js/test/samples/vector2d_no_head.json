@@ -5,8 +5,8 @@
          "useHead" : false,
          "modelViewMatrix" : [
 		 1, 0, 0, 0, 
-		 0, 1, 0, 0, 
-		 0, 0, 1, 0, 
+		 0, 0, 1, 0,
+		 0, 1, 0, 0,
 		 0, 0, 0, 1],
          "width" : 20,
          "height" : 20,

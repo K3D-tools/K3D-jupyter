@@ -54,6 +54,11 @@ module.exports = function (config) {
         new THREE.Vector3(0.5, 0.5, 0.5).length()
     );
 
+    geometry.boundingBox = new THREE.Box3(
+        new THREE.Vector3(-0.5, -0.5, -0.5),
+        new THREE.Vector3(0.5, 0.5, 0.5)
+    );
+
     object = new THREE.Mesh(geometry, material);
 
     modelViewMatrix.set.apply(modelViewMatrix, config.get('modelViewMatrix'));

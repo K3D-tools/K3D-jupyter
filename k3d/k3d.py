@@ -21,6 +21,7 @@ class K3D(widgets.DOMWidget, Factory):
     _model_module_version = Unicode('^2.0.0').tag(sync=True)
 
     camera_auto_fit = Bool(True).tag(sync=True)
+    grid_auto_fit = Bool(True).tag(sync=True)
     data = Unicode().tag(sync=True)
     parameters = Dict().tag(sync=True)
     voxel_paint_color = Int().tag(sync=True)
@@ -28,7 +29,7 @@ class K3D(widgets.DOMWidget, Factory):
     objects = []
     COMPRESSION_LEVEL = 1
 
-    def __init__(self, antialias=True, background_color=0xFFFFFF, camera_auto_fit=True, height=512,
+    def __init__(self, antialias=True, background_color=0xFFFFFF, camera_auto_fit=True, grid_auto_fit=True, height=512,
                  voxel_paint_color=0):
         super(K3D, self).__init__()
         self.on_msg(self.__on_msg)
@@ -36,8 +37,11 @@ class K3D(widgets.DOMWidget, Factory):
         self.__on_msg_strategy = self.__pass
 
         self.camera_auto_fit = camera_auto_fit
+        self.grid_auto_fit = grid_auto_fit
         self.parameters = {
             'antialias': antialias,
+            'camera_auto_fit': camera_auto_fit,
+            'grid_auto_fit': grid_auto_fit,
             'backgroundColor': background_color,
             'height': height
         }

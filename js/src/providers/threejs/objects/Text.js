@@ -113,8 +113,6 @@ function getSprite(canvas, position, size) {
 
     sprite.position.set(position[0], position[1], position[2]);
     sprite.scale.set(size, size, size);
-    // sprite.geometry.computeBoundingSphere();
-
     sprite.updateMatrixWorld();
 
     return sprite;

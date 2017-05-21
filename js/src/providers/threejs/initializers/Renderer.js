@@ -40,6 +40,7 @@ module.exports = function (K3D) {
 
         K3D.frameUpdateHandlers.before.forEach(handleListeners.bind(null, K3D, 'before'));
 
+        K3D.refreshGrid();
         self.renderer.render(self.scene, self.camera);
 
         K3D.frameUpdateHandlers.after.forEach(handleListeners.bind(null, K3D, 'after'));

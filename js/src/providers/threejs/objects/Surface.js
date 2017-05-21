@@ -62,6 +62,7 @@ module.exports = function (config) {
     geometry.addAttribute('position', new THREE.BufferAttribute(vertices, 3));
 
     geometry.computeBoundingSphere();
+    geometry.computeBoundingBox();
 
     object = new THREE.Mesh(geometry, material);
     modelViewMatrix.set.apply(modelViewMatrix, config.get('modelViewMatrix'));

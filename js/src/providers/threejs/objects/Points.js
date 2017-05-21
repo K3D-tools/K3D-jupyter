@@ -85,6 +85,7 @@ function getGeometry(positions, colors) {
     geometry.addAttribute('position', new THREE.BufferAttribute(positions, 3));
     geometry.addAttribute('color', new THREE.BufferAttribute(colors, 3));
     geometry.computeBoundingSphere();
+    geometry.computeBoundingBox();
 
     return geometry;
 }

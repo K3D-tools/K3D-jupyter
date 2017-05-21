@@ -27,6 +27,7 @@ module.exports = function (config) {
     geometry.addAttribute('position', new THREE.BufferAttribute(buffer.toFloat32Array(position), 3));
 
     geometry.computeBoundingSphere();
+    geometry.computeBoundingBox();
 
     modelViewMatrix.set.apply(modelViewMatrix, config.get('modelViewMatrix'));
     object.applyMatrix(modelViewMatrix);

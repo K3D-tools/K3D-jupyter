@@ -36,6 +36,7 @@ module.exports = function (config) {
     geometry.addAttribute('position', new THREE.BufferAttribute(new Float32Array(vertices), 3));
     geometry.setIndex(new THREE.BufferAttribute(new Uint32Array(indices), 1));
     geometry.computeBoundingSphere();
+    geometry.computeBoundingBox();
 
     object = new THREE.Mesh(geometry, material);
 

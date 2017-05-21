@@ -99,12 +99,21 @@ module.exports = function (config, K3D) {
 
     rollOverMesh.visible = false;
     rollOverMesh.geometry.computeBoundingSphere();
+    rollOverMesh.geometry.computeBoundingBox();
 
     object.add(rollOverMesh);
 
     object.updateMatrixWorld();
 
     object.getJson = getJson.bind(this, config, voxels);
+
+    var listenersId = K3D.on(K3D.events.VIEW_MODE_CHANGE, function () {
+        rollOverMesh.visible = false;
+    });
+
+    object.onRemove = function () {
+        K3D.off(K3D.events.VIEW_MODE_CHANGE, listenersId);
+    };
 
     return Promise.resolve(object);
 };
@@ -120,6 +129,7 @@ function getGeometry(chunkStructure) {
     );
 
     geometry.computeBoundingSphere();
+    geometry.computeBoundingBox();
 
     return geometry;
 }
