@@ -55,9 +55,7 @@ function loader(K3D, json) {
             K3D.getWorld().setCameraToFitScene();
 
             // rebuild scene + re-render
-            Promise.all(K3D.rebuild()).then(
-                K3D.render
-            );
+            Promise.all(K3D.rebuild()).then(K3D.render);
 
             return objects;
         });

@@ -4,8 +4,6 @@ var _ = require('lodash');
 var Text2d = require('./../objects/Text2d');
 var Config = require('./../../../core/lib/Config');
 
-var planes = {};
-var labelsOnEdges = {};
 var startingSceneBoundingBox = new THREE.Box3(new THREE.Vector3(-1, -1, -1), new THREE.Vector3(1, 1, 1));
 
 function pow10ceil(x) {
@@ -62,10 +60,10 @@ function generateEdgesPoints(box) {
             new THREE.Vector3(box.max.x, box.min.y, box.min.z),
             new THREE.Vector3(box.max.x, box.min.y, box.max.z)
         ]
-    }
+    };
 }
 
-function rebuildSceneData(K3D) {
+function rebuildSceneData(K3D, grids) {
     /*jshint validthis:true */
     var promises = [];
     var octree = this.octree = new THREE.Octree({
@@ -101,23 +99,19 @@ function rebuildSceneData(K3D) {
             }
         });
 
-        // cleanup previously data
-        if (typeof(planes) !== 'undefined') {
-            Object.keys(planes).forEach(function (axis) {
-                planes[axis].forEach(function (plane) {
-                    this.scene.remove(plane.obj);
-                    delete plane.obj;
-                }, this);
+        // cleanup previous data
+        Object.keys(grids.planes).forEach(function (axis) {
+            grids.planes[axis].forEach(function (plane) {
+                this.scene.remove(plane.obj);
+                delete plane.obj;
             }, this);
-        }
+        }, this);
 
-        if (typeof(labelsOnEdges) !== 'undefined') {
-            Object.keys(labelsOnEdges).forEach(function (key) {
-                labelsOnEdges[key].labels.forEach(function (label) {
-                    label.onRemove();
-                }, this);
+        Object.keys(grids.labelsOnEdges).forEach(function (key) {
+            grids.labelsOnEdges[key].labels.forEach(function (label) {
+                label.onRemove();
             }, this);
-        }
+        }, this);
 
         // generate new one
         var size = sceneBoundingBox.getSize();
@@ -141,7 +135,7 @@ function rebuildSceneData(K3D) {
 
         size = sceneBoundingBox.getSize();
 
-        planes = {
+        grids.planes = {
             'x': [
                 {
                     normal: new THREE.Vector3(-1.0, 0.0, 0.0),
@@ -189,25 +183,25 @@ function rebuildSceneData(K3D) {
         var extendedEdges = generateEdgesPoints(extendedSceneBoundingBox);
 
         Object.keys(originalEdges).forEach(function (key) {
-            labelsOnEdges[key] = {};
-            labelsOnEdges[key].v = originalEdges[key];
-            labelsOnEdges[key].p = extendedEdges[key];
-            labelsOnEdges[key].labels = [];
+            grids.labelsOnEdges[key] = {};
+            grids.labelsOnEdges[key].v = originalEdges[key];
+            grids.labelsOnEdges[key].p = extendedEdges[key];
+            grids.labelsOnEdges[key].labels = [];
         });
 
         // create labels
-        Object.keys(labelsOnEdges).forEach(function (key) {
+        Object.keys(grids.labelsOnEdges).forEach(function (key) {
             var iterateAxis = _.difference(['x', 'y', 'z'], key.replace(/[^xyz]/g, '').split(''))[0];
             var iterationCount = size[iterateAxis] / majorScale;
             var deltaValue = unitVectors[iterateAxis].clone().multiplyScalar(majorScale);
             var deltaPosition = unitVectors[iterateAxis].clone().multiplyScalar(
-                labelsOnEdges[key].p[0].distanceTo(labelsOnEdges[key].p[1]) / iterationCount
+                grids.labelsOnEdges[key].p[0].distanceTo(grids.labelsOnEdges[key].p[1]) / iterationCount
             );
 
             for (var j = 1; j <= iterationCount - 1; j++) {
 
-                var v = labelsOnEdges[key].v[0].clone().add(deltaValue.clone().multiplyScalar(j));
-                var p = labelsOnEdges[key].p[0].clone().add(deltaPosition.clone().multiplyScalar(j));
+                var v = grids.labelsOnEdges[key].v[0].clone().add(deltaValue.clone().multiplyScalar(j));
+                var p = grids.labelsOnEdges[key].p[0].clone().add(deltaPosition.clone().multiplyScalar(j));
 
                 var label = new Text2d(new Config({
                     'position': p.toArray(),
@@ -218,24 +212,26 @@ function rebuildSceneData(K3D) {
                 }), K3D);
 
                 promises.push(label.then(function (obj) {
-                    labelsOnEdges[key].labels.push(obj);
+                    grids.labelsOnEdges[key].labels.push(obj);
                 }));
             }
 
             // add axis label
-            var middleValue = labelsOnEdges[key].v[0].clone().add(
-                (new THREE.Vector3()).subVectors(labelsOnEdges[key].v[1], labelsOnEdges[key].v[0]).multiplyScalar(0.5)
+            var middleValue = grids.labelsOnEdges[key].v[0].clone().add(
+                (new THREE.Vector3()).subVectors(grids.labelsOnEdges[key].v[1], grids.labelsOnEdges[key].v[0])
+                    .multiplyScalar(0.5)
             );
 
-            var middlePosition = labelsOnEdges[key].p[0].clone().add(
-                (new THREE.Vector3()).subVectors(labelsOnEdges[key].p[1], labelsOnEdges[key].p[0]).multiplyScalar(0.5)
+            var middlePosition = grids.labelsOnEdges[key].p[0].clone().add(
+                (new THREE.Vector3()).subVectors(grids.labelsOnEdges[key].p[1], grids.labelsOnEdges[key].p[0])
+                    .multiplyScalar(0.5)
             );
 
             var middle = middlePosition.add(
                 (new THREE.Vector3()).subVectors(middlePosition, middleValue).multiplyScalar(2.0)
             );
 
-            var label = new Text2d(new Config({
+            var axisLabel = new Text2d(new Config({
                 'position': middle.toArray(),
                 'referencePoint': 'cc',
                 'color': 0x444444,
@@ -243,14 +239,14 @@ function rebuildSceneData(K3D) {
                 'size': 1.0
             }), K3D);
 
-            label.then(function (obj) {
-                labelsOnEdges[key].labels.push(obj);
+            axisLabel.then(function (obj) {
+                grids.labelsOnEdges[key].labels.push(obj);
             });
         });
 
         // create grids
-        Object.keys(planes).forEach(function (axis) {
-            planes[axis].forEach(function (plane) {
+        Object.keys(grids.planes).forEach(function (axis) {
+            grids.planes[axis].forEach(function (plane) {
                 var vertices = [], colors = [];
                 var geometry = new THREE.BufferGeometry();
                 var material = new THREE.LineBasicMaterial({vertexColors: THREE.VertexColors});
@@ -294,30 +290,30 @@ function rebuildSceneData(K3D) {
     return promises;
 }
 
-function refreshGrid() {
+function refreshGrid(grids) {
     /*jshint validthis:true */
     var visiblePlanes = [];
-    Object.keys(planes).forEach(function (axis) {
-        var dot1 = planes[axis][0].normal.dot(this.camera.position.clone().sub(planes[axis][0].p1));
-        var dot2 = planes[axis][1].normal.dot(this.camera.position.clone().sub(planes[axis][1].p1));
+    Object.keys(grids.planes).forEach(function (axis) {
+        var dot1 = grids.planes[axis][0].normal.dot(this.camera.position.clone().sub(grids.planes[axis][0].p1));
+        var dot2 = grids.planes[axis][1].normal.dot(this.camera.position.clone().sub(grids.planes[axis][1].p1));
 
-        planes[axis][0].obj.visible = dot1 >= dot2;
-        planes[axis][1].obj.visible = dot1 < dot2;
+        grids.planes[axis][0].obj.visible = dot1 >= dot2;
+        grids.planes[axis][1].obj.visible = dot1 < dot2;
 
-        if (planes[axis][0].obj.visible) {
+        if (grids.planes[axis][0].obj.visible) {
             visiblePlanes.push('+' + axis);
         }
 
-        if (planes[axis][1].obj.visible) {
+        if (grids.planes[axis][1].obj.visible) {
             visiblePlanes.push('-' + axis);
         }
     }, this);
 
-    Object.keys(labelsOnEdges).forEach(function (key) {
+    Object.keys(grids.labelsOnEdges).forEach(function (key) {
         var axes = key.match(/.{2}/g);
         var shouldBeVisible = _.intersection(axes, visiblePlanes).length == 1;
 
-        labelsOnEdges[key].labels.forEach(function (label) {
+        grids.labelsOnEdges[key].labels.forEach(function (label) {
             if (shouldBeVisible) {
                 label.show();
             } else {
@@ -381,7 +377,11 @@ module.exports = {
 
     Init: function (K3D) {
         var lights = [],
-            ambientLight = new THREE.AmbientLight(0x111111);
+            ambientLight = new THREE.AmbientLight(0x111111),
+            grids = {
+                planes: {},
+                labelsOnEdges: {}
+            };
 
         this.raycaster = new THREE.Raycaster();
 
@@ -408,10 +408,9 @@ module.exports = {
         this.scene.add(this.K3DObjects);
 
         K3D.raycast = raycast.bind(this);
-        K3D.rebuildSceneData = rebuildSceneData.bind(this, K3D);
-        K3D.refreshGrid = refreshGrid.bind(this);
+        K3D.rebuildSceneData = rebuildSceneData.bind(this, K3D, grids);
+        K3D.refreshGrid = refreshGrid.bind(this, grids);
 
-        K3D.rebuildSceneData();
-        K3D.refreshGrid();
+        Promise.all(K3D.rebuildSceneData()).then(K3D.refreshGrid);
     }
 };

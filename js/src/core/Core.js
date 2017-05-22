@@ -299,9 +299,10 @@ function K3D(provider, targetDOMNode, parameters) {
             delete world.ObjectsListJson[id];
         }
 
-        self.rebuild();
-        world.setCameraToFitScene();
-        self.render();
+        Promise.all(self.rebuild()).then(function () {
+            world.setCameraToFitScene();
+            self.render();
+        });
     };
 
 
