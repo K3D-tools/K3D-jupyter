@@ -20,6 +20,9 @@ class K3D(widgets.DOMWidget, Factory):
     _view_module_version = Unicode('^2.0.0').tag(sync=True)
     _model_module_version = Unicode('^2.0.0').tag(sync=True)
 
+    objects = []
+    COMPRESSION_LEVEL = 1
+
     data = Unicode().tag(sync=True)
 
     # readonly
@@ -32,9 +35,6 @@ class K3D(widgets.DOMWidget, Factory):
     grid = List().tag(sync=True)
     background_color = Int().tag(sync=True)
     voxel_paint_color = Int().tag(sync=True)
-
-    objects = []
-    COMPRESSION_LEVEL = 1
 
     def __init__(self, antialias=True, background_color=0xFFFFFF, camera_auto_fit=True, grid_auto_fit=True, height=512,
                  voxel_paint_color=0, grid=[-1, -1, -1, 1, 1, 1]):

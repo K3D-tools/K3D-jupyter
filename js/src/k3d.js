@@ -103,10 +103,15 @@ K3DView = widgets.DOMWidgetView.extend({
     },
 
     _init: function () {
-        this.K3DInstance = new K3D(ThreeJsProvider, this.container, {
-            antialias: this.model.get('antialias'),
-            ObjectsListJson: this.model.objectsList
-        });
+        try {
+            this.K3DInstance = new K3D(ThreeJsProvider, this.container, {
+                antialias: this.model.get('antialias'),
+                ObjectsListJson: this.model.objectsList
+            });
+        } catch (e) {
+            return;
+        }
+
         this.objectsChangesQueue = [];
         this.objectsChangesQueueRun = false;
 

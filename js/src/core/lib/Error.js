@@ -61,11 +61,6 @@ function error(title, message, permanent) {
     }
 }
 
-if (window.Detector && !window.Detector.webgl) {
-    error('General Error',
-        'It seams that your browser has no support for WebGL, while it\'s required. Please use a different one.');
-}
-
 module.exports = {
     error: error,
     defaultTimeout: defaultTimeout

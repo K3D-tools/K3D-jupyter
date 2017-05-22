@@ -58,6 +58,10 @@ function K3D(provider, targetDOMNode, parameters) {
         return new K3D(provider, targetDOMNode, parameters);
     }
 
+    if (!provider.Helpers.validateWebGL(world.targetDOMNode)) {
+        throw new Error('No WebGL');
+    }
+
     if (typeof (provider) !== 'object') {
         throw new Error('Provider should be an object (a key-value map following convention)');
     }
