@@ -5,8 +5,8 @@ try:
     import vtk
     from vtk.util import numpy_support
 except:
-    vtk = disabled
-    numpy_support = disabled
+    vtk = None
+    numpy_support = None
 
 from .objects import *
 

@@ -1,7 +1,5 @@
 'use strict';
 
-var startingSceneBoundingBox =  require('./Scene').startingSceneBoundingBox;
-
 /**
  * Camera initializer for Three.js library
  * @this K3D.Core~world
@@ -15,13 +13,13 @@ module.exports = function (K3D) {
     this.camera.position.set(2, -3, 0.2);
     this.camera.up.set(0, 0, 1);
 
-    this.setCameraToFitScene = function () {
+    this.setCameraToFitScene = function (force) {
         var camDistance,
-            sceneBoundingBox = startingSceneBoundingBox.clone(),
+            sceneBoundingBox = new THREE.Box3().setFromArray(K3D.parameters.grid),
             objectBoundingBox,
             sceneBoundingSphere;
 
-        if (!K3D.parameters.cameraAutoFit) {
+        if (!K3D.parameters.cameraAutoFit && !force) {
             return;
         }
 

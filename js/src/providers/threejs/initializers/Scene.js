@@ -4,8 +4,6 @@ var _ = require('lodash');
 var Text2d = require('./../objects/Text2d');
 var Config = require('./../../../core/lib/Config');
 
-var startingSceneBoundingBox = new THREE.Box3(new THREE.Vector3(-1, -1, -1), new THREE.Vector3(1, 1, 1));
-
 function pow10ceil(x) {
     return Math.pow(10, Math.ceil(Math.log10(x)));
 }
@@ -63,7 +61,7 @@ function generateEdgesPoints(box) {
     };
 }
 
-function rebuildSceneData(K3D, grids) {
+function rebuildSceneData(K3D, grids, force) {
     /*jshint validthis:true */
     var promises = [];
     var octree = this.octree = new THREE.Octree({
@@ -86,10 +84,10 @@ function rebuildSceneData(K3D, grids) {
 
     octree.update();
 
-    if (K3D.parameters.gridAutoFit) {
+    if (K3D.parameters.gridAutoFit || force) {
 
         // Grid generation
-        var objectBoundingBox, sceneBoundingBox = startingSceneBoundingBox.clone();
+        var objectBoundingBox, sceneBoundingBox = new THREE.Box3().setFromArray(K3D.parameters.grid);
 
         this.K3DObjects.traverse(function (object) {
             if (object.geometry) {
@@ -373,8 +371,6 @@ function raycast(x, y, camera, click, viewMode) {
  * @memberof K3D.Providers.ThreeJS.Initializers
  */
 module.exports = {
-    startingSceneBoundingBox: startingSceneBoundingBox,
-
     Init: function (K3D) {
         var lights = [],
             ambientLight = new THREE.AmbientLight(0x111111),

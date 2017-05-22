@@ -1,5 +1,5 @@
 import ipywidgets as widgets
-from traitlets import Unicode, Bytes, Dict, Bool, Int
+from traitlets import Unicode, Bytes, Dict, Bool, Int, List
 
 from functools import partial
 from .factory import Factory
@@ -20,32 +20,37 @@ class K3D(widgets.DOMWidget, Factory):
     _view_module_version = Unicode('^2.0.0').tag(sync=True)
     _model_module_version = Unicode('^2.0.0').tag(sync=True)
 
+    data = Unicode().tag(sync=True)
+
+    # readonly
+    antialias = Bool().tag(sync=True)
+    height = Int().tag(sync=True)
+
+    # read-write
     camera_auto_fit = Bool(True).tag(sync=True)
     grid_auto_fit = Bool(True).tag(sync=True)
-    data = Unicode().tag(sync=True)
-    parameters = Dict().tag(sync=True)
+    grid = List().tag(sync=True)
+    background_color = Int().tag(sync=True)
     voxel_paint_color = Int().tag(sync=True)
 
     objects = []
     COMPRESSION_LEVEL = 1
 
     def __init__(self, antialias=True, background_color=0xFFFFFF, camera_auto_fit=True, grid_auto_fit=True, height=512,
-                 voxel_paint_color=0):
+                 voxel_paint_color=0, grid=[-1, -1, -1, 1, 1, 1]):
         super(K3D, self).__init__()
         self.on_msg(self.__on_msg)
 
         self.__on_msg_strategy = self.__pass
 
+        self.antialias = antialias
         self.camera_auto_fit = camera_auto_fit
         self.grid_auto_fit = grid_auto_fit
-        self.parameters = {
-            'antialias': antialias,
-            'camera_auto_fit': camera_auto_fit,
-            'grid_auto_fit': grid_auto_fit,
-            'backgroundColor': background_color,
-            'height': height
-        }
+        self.grid = grid
+        self.background_color = background_color
         self.voxel_paint_color = voxel_paint_color
+        self.height = height
+
         self.objects = []
 
     def __add__(self, objs):

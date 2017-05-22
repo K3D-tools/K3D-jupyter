@@ -98,6 +98,7 @@ function K3D(provider, targetDOMNode, parameters) {
         voxelPaintColor: 0,
         cameraAutoFit: true,
         gridAutoFit: true,
+        grid: [-1, -1, -1, 1, 1, 1],
         antialias: true,
         clearColor: {
             color: 0xffffff,
@@ -162,6 +163,17 @@ function K3D(provider, targetDOMNode, parameters) {
         self.parameters.gridAutoFit = state;
     };
 
+    /**
+     * Set grid of K3D
+     * @memberof K3D.Core
+     * @param {Array} vectors
+     */
+    this.setGrid = function (vectors) {
+        self.parameters.grid = vectors;
+        self.rebuildSceneData(true);
+        world.setCameraToFitScene();
+        self.render();
+    };
 
     /**
      * Set voxelPaintColor of K3D
@@ -183,6 +195,7 @@ function K3D(provider, targetDOMNode, parameters) {
         self.parameters.clearColor.alpha = alpha;
 
         world.renderer.setClearColor(color, alpha);
+        self.render();
     };
 
     /**
