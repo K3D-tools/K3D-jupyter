@@ -289,8 +289,10 @@ class Surface(SingleObject):
 
 class Text(SingleObject):
     color = _Attribute(int, int, 'color')
+    size = _Attribute(float, float, 'size')
     font_face = _Attribute(str, str, 'fontOptions/face')
     font_weight = _Attribute(str, str, 'fontOptions/weight')
+    font_size = _Attribute(int, int, 'fontOptions/size')
     position = _Attribute(numpy.ndarray, _to_list, 'position')
     text = _Attribute(str, str, 'text')
 

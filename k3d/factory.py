@@ -15,12 +15,15 @@ class Factory(object):
     DEFAULT_COLOR = 0x0000FF
 
     @classmethod
-    def text(cls, string, position=(0, 0, 0), color=DEFAULT_COLOR, font_weight='bold', font_face='Courier New'):
+    def text(cls, string, position=(0, 0, 0), color=DEFAULT_COLOR, font_weight='bold', font_face='Courier New',
+             font_size=68, size=1.0):
         return Text(**{
             'position': cls.__to_ndarray(position),
             'text': string,
             'color': color,
+            'size': size,
             'font_face': font_face,
+            'font_size': font_size,
             'font_weight': font_weight,
         })
 
