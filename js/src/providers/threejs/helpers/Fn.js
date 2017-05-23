@@ -1,4 +1,6 @@
 'use strict';
+var Detector = require('./../../../../node_modules/three/examples/js/Detector');
+
 /**
  * Get object By id
  * @param String} id
@@ -136,5 +138,14 @@ module.exports = {
         }
 
         return heads;
+    },
+
+    validateWebGL: function (targetDOMNode) {
+        if (!Detector.webgl) {
+            Detector.addGetWebGLMessage({parent: targetDOMNode});
+            return false;
+        }
+
+        return true;
     }
 };

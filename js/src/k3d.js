@@ -89,23 +89,34 @@ K3DView = widgets.DOMWidgetView.extend({
     render: function () {
         var container = $('<div />').css('position', 'relative');
 
-        this.parameters = this.model.get('parameters');
-        this.container = container.css({'height': this.parameters.height}).appendTo(this.$el).get(0);
+        this.container = container.css({'height': this.model.get('height')}).appendTo(this.$el).get(0);
         this.on('displayed', this._init, this);
 
         this.model.on('change:camera_auto_fit', this._setCameraAutoFit, this);
         this.model.on('change:grid_auto_fit', this._setGridAutoFit, this);
-        this.model.on('change:object', this._onObjectChange, this);
         this.model.on('change:voxel_paint_color', this._setVoxelPaintColor, this);
+        this.model.on('change:background_color', this._setBackgroundColor, this);
+        this.model.on('change:grid', this._setGrid, this);
+
+        this.model.on('change:object', this._onObjectChange, this);
         this.model.on('fetchData', this._fetchData, this);
     },
 
     _init: function () {
-        this.K3DInstance = new K3D(ThreeJsProvider, this.container, {ObjectsListJson: this.model.objectsList});
+        try {
+            this.K3DInstance = new K3D(ThreeJsProvider, this.container, {
+                antialias: this.model.get('antialias'),
+                ObjectsListJson: this.model.objectsList
+            });
+        } catch (e) {
+            return;
+        }
+
         this.objectsChangesQueue = [];
         this.objectsChangesQueueRun = false;
 
-        this.K3DInstance.setClearColor(this.parameters.backgroundColor);
+        this.K3DInstance.setClearColor(this.model.get('background_color'));
+
         this._setCameraAutoFit();
         this._setGridAutoFit();
         this._setVoxelPaintColor();
@@ -127,6 +138,14 @@ K3DView = widgets.DOMWidgetView.extend({
 
     _setVoxelPaintColor: function () {
         this.K3DInstance.parameters.voxelPaintColor = this.model.get('voxel_paint_color');
+    },
+
+    _setBackgroundColor: function () {
+        this.K3DInstance.setClearColor(this.model.get('background_color'));
+    },
+
+    _setGrid: function () {
+        this.K3DInstance.setGrid(this.model.get('grid'));
     },
 
     _processObjectsChangesQueue: function (self) {

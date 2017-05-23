@@ -41,32 +41,56 @@
     };
 
     require(['K3D'], function (lib) {
-        K3DInstance = new lib.K3D(
-            lib.ThreeJsProvider,
-            document.getElementById('canvasTarget'),
-            {cameraAutoFit: true, gridAutoFit: true}
-        );
+        try {
+            K3DInstance = new lib.K3D(
+                lib.ThreeJsProvider,
+                document.getElementById('canvasTarget'),
+                {cameraAutoFit: true, gridAutoFit: true}
+            );
+        } catch (e) {
+            return;
+        }
 
-        K3DInstance.setClearColor(0xffffff, 1);
-//        jsonLoader('test/samples/horse_with_colors_base64.json', function (json) {
-//            json.objects[0].id = 'test';
-//            K3DInstance.load(json);
-//
-//            var i = 0;
-//            setInterval(function () {
-//                if (i++ < 100) {
-//                    K3DInstance.reload(json.objects[0], false);
-//                }
-//            }, 10);
-//        });
-//
-//        jsonLoader('test/samples/torus-knots.json', function (json) {
-//            K3DInstance.load(json);
-//        });
+        if (K3DInstance) {
+            K3DInstance.setClearColor(0xffffff, 1);
 
-        jsonLoader('test/samples/mesh.json', function (json) {
-            K3DInstance.load(json);
-        });
+            jsonLoader('test/samples/horse_with_colors_base64.json', function (json) {
+                json.objects[0].id = 'test1';
+                K3DInstance.load(json);
+            });
+
+            jsonLoader('test/samples/torus-knots.json', function (json) {
+                json.objects[0].id = 'test2a';
+                json.objects[1].id = 'test2b';
+                K3DInstance.load(json);
+            });
+
+            jsonLoader('test/samples/mesh.json', function (json) {
+                json.objects[0].id = 'test3';
+                K3DInstance.load(json);
+            });
+//
+//        setTimeout(function () {
+//            K3DInstance.removeObject('test1', false);
+//        }, 500);
+//
+//        setTimeout(function () {
+//            K3DInstance.removeObject('test2a', false);
+//        }, 1000);
+//
+//        setTimeout(function () {
+//            K3DInstance.removeObject('test2b', false);
+//        }, 1200);
+//
+//        setTimeout(function () {
+//            K3DInstance.removeObject('test3', false);
+//        }, 1500);
+//
+//        setTimeout(function () {
+//            K3DInstance.setGridAutoFit(false);
+//            K3DInstance.setGrid([-20, -20, -20, 50, 50, 50]);
+//        }, 2500);
+        }
     });
 </script>
 </body>
