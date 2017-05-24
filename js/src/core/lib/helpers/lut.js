@@ -17,17 +17,21 @@ module.exports = function (colorMap, size) {
         ctx = canvas.getContext('2d'),
         grd,
         segment,
-        i;
+        i,
+        min, max;
 
     canvas.height = 1;
     canvas.width = size;
 
     grd = ctx.createLinearGradient(0, 0, canvas.width, canvas.height);
 
+    min = colorMap[0];
+    max = colorMap[colorMap.length - 4];
+
     for (i = 0; i < colorMap.length / 4; i++) {
         segment = colorMap.slice(i * 4, i * 4 + 4);
 
-        grd.addColorStop(segment[0],
+        grd.addColorStop((segment[0] - min) / (max - min),
             'rgb(' + toColor(segment[1]) + ', ' + toColor(segment[2]) + ', ' + toColor(segment[3]) + ')');
     }
 

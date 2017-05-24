@@ -1,4 +1,4 @@
-class colorMaps():
+class basic_color_maps():
     CoolWarm = [
         0, 0.23137254902, 0.298039215686, 0.752941176471,
         0.5, 0.865, 0.865, 0.865,

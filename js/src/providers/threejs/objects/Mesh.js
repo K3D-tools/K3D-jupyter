@@ -62,7 +62,7 @@ module.exports = function (config) {
         material = new THREE.MeshPhongMaterial({
             color: config.get('color'),
             emissive: 0,
-            shininess: 50,
+            shininess: 25,
             specular: 0x111111,
             side: THREE.DoubleSide,
             shading: THREE.FlatShading

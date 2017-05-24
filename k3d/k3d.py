@@ -1,16 +1,18 @@
-import ipywidgets as widgets
-from traitlets import Unicode, Bytes, Dict, Bool, Int, List
-
-from functools import partial
-from .factory import Factory
-from .objects import Drawable
-from ._version import version_info
-from .colormaps import colorMaps
 import base64
 import json
 import warnings
 import zlib
+from functools import partial
 
+import ipywidgets as widgets
+from traitlets import Unicode, Bool, Int, List
+
+from ._version import version_info
+from .factory import Factory
+from .objects import Drawable
+
+from k3d.colorsmap.paraview_color_maps import paraview_color_maps
+from k3d.colorsmap.basic_color_maps import basic_color_maps
 
 class K3D(widgets.DOMWidget, Factory):
     version = version_info
@@ -38,7 +40,8 @@ class K3D(widgets.DOMWidget, Factory):
     background_color = Int().tag(sync=True)
     voxel_paint_color = Int().tag(sync=True)
 
-    color_maps = colorMaps
+    basic_color_maps = basic_color_maps
+    paraview_color_maps = paraview_color_maps
 
     def __init__(self, antialias=True, background_color=0xFFFFFF, camera_auto_fit=True, grid_auto_fit=True, height=512,
                  voxel_paint_color=0, grid=[-1, -1, -1, 1, 1, 1]):

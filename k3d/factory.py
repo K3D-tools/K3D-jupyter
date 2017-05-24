@@ -1,5 +1,3 @@
-import numpy
-
 # optional dependency
 try:
     import vtk
@@ -8,8 +6,8 @@ except:
     vtk = None
     numpy_support = None
 
+from k3d.colorsmap.basic_color_maps import basic_color_maps
 from .objects import *
-from .colormaps import colorMaps
 
 
 class Factory(object):
@@ -99,7 +97,7 @@ class Factory(object):
 
     @classmethod
     def vtkPolyData(cls, polyData, view_matrix=numpy.identity(4), color=DEFAULT_COLOR, color_attribute=None,
-                    color_map=colorMaps.Rainbow):
+                    color_map=basic_color_maps.Rainbow):
 
         if polyData.GetPolys().GetMaxCellSize() > 3:
             cutTriangles = vtk.vtkTriangleFilter()
