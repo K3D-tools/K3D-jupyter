@@ -25,6 +25,8 @@ For a development installation (requires npm and node.js),
     $ jupyter nbextension install --py --symlink --sys-prefix k3d
     $ jupyter nbextension enable --py --sys-prefix k3d
 
+Please note that the `ipywidgets` extension needs to be
+[installed and enabled](http://ipywidgets.readthedocs.io/en/latest/user_install.html).
 
 ## How to
 
