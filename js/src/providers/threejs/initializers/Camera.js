@@ -19,7 +19,6 @@ module.exports = function (K3D) {
             this.controls.object.up.fromArray(array, 6);
         }
         this.controls.target.fromArray(array, 3);
-        this.controls.update();
     };
 
     this.setCameraToFitScene = function (force) {

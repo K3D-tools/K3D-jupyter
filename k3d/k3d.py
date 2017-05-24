@@ -2,7 +2,6 @@ import base64
 import json
 import warnings
 import zlib
-from functools import partial
 
 import ipywidgets as widgets
 from traitlets import Unicode, Bool, Int, List
@@ -102,9 +101,6 @@ class K3D(widgets.DOMWidget, Factory):
             for obj in self.objects:
                 if obj.id == json['id']:
                     obj.update(json['data'])
-
-        if json['type'] == 'camera':
-            self.camera = json['data']
 
     def update(self, obj_id, attr=None):
         data = {

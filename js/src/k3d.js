@@ -132,7 +132,8 @@ K3DView = widgets.DOMWidgetView.extend({
         }, this);
 
         this.K3DInstance.on(this.K3DInstance.events.CAMERA_CHANGE, function (control) {
-            self.send({type: 'camera', 'data': control});
+            self.model.set('camera', control);
+            self.model.save_changes();
         });
     },
 
