@@ -39,7 +39,8 @@ module.exports = function (config, K3D) {
         ),
         colorsToFloat32Array = buffer.colorsToFloat32Array,
         base64ToArrayBuffer = buffer.base64ToArrayBuffer,
-        toUint8Array = buffer.toUint8Array;
+        toUint8Array = buffer.toUint8Array,
+        listenersId;
 
     if (typeof (voxels) === 'string') {
         voxels = base64ToArrayBuffer(voxels);
@@ -107,7 +108,7 @@ module.exports = function (config, K3D) {
 
     object.getJson = getJson.bind(this, config, voxels);
 
-    var listenersId = K3D.on(K3D.events.VIEW_MODE_CHANGE, function () {
+    listenersId = K3D.on(K3D.events.VIEW_MODE_CHANGE, function () {
         rollOverMesh.visible = false;
     });
 

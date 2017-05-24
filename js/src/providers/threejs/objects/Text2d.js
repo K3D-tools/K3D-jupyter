@@ -35,8 +35,9 @@ module.exports = function (config, K3D) {
     function render() {
         var coord, x, y;
 
-        if (domElement.style.display === 'hidden')
+        if (domElement.style.display === 'hidden') {
             return;
+        }
 
         coord = toScreenPosition(object, K3D.getWorld());
 

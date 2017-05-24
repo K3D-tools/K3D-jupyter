@@ -1,8 +1,8 @@
 'use strict';
 
-var _ = require('lodash');
-var Text2d = require('./../objects/Text2d');
-var Config = require('./../../../core/lib/Config');
+var _ = require('lodash'),
+    Text2d = require('./../objects/Text2d'),
+    Config = require('./../../../core/lib/Config');
 
 function pow10ceil(x) {
     return Math.pow(10, Math.ceil(Math.log10(x)));
@@ -63,14 +63,27 @@ function generateEdgesPoints(box) {
 
 function rebuildSceneData(K3D, grids, force) {
     /*jshint validthis:true */
-    var promises = [];
-    var octree = this.octree = new THREE.Octree({
-        //scene: this.scene,
-        undeferred: false,
-        depthMax: Infinity,
-        objectsThreshold: 2,
-        overlapPct: 0.5
-    });
+    var promises = [],
+        objectBoundingBox,
+        originalEdges,
+        extendedEdges,
+        size,
+        majorScale,
+        minorScale,
+        sceneBoundingBox = new THREE.Box3().setFromArray(K3D.parameters.grid),
+        extendedSceneBoundingBox = new THREE.Box3(),
+        unitVectors = {
+            'x': new THREE.Vector3(1.0, 0.0, 0.0),
+            'y': new THREE.Vector3(0.0, 1.0, 0.0),
+            'z': new THREE.Vector3(0.0, 0.0, 1.0)
+        },
+        octree = this.octree = new THREE.Octree({
+            //scene: this.scene,
+            undeferred: false,
+            depthMax: Infinity,
+            objectsThreshold: 2,
+            overlapPct: 0.5
+        });
 
     this.K3DObjects.children.forEach(function (object) {
         object.traverse(function (object) {
@@ -85,9 +98,7 @@ function rebuildSceneData(K3D, grids, force) {
     octree.update();
 
     if (K3D.parameters.gridAutoFit || force) {
-
         // Grid generation
-        var objectBoundingBox, sceneBoundingBox = new THREE.Box3().setFromArray(K3D.parameters.grid);
 
         this.K3DObjects.traverse(function (object) {
             if (object.geometry) {
@@ -112,14 +123,10 @@ function rebuildSceneData(K3D, grids, force) {
         }, this);
 
         // generate new one
-        var size = sceneBoundingBox.getSize();
-        var majorScale = pow10ceil(Math.max(size.x, size.y, size.z)) / 10.0;
-        var minorScale = majorScale / 10.0;
-        var unitVectors = {
-            'x': new THREE.Vector3(1.0, 0.0, 0.0),
-            'y': new THREE.Vector3(0.0, 1.0, 0.0),
-            'z': new THREE.Vector3(0.0, 0.0, 1.0)
-        };
+        size = sceneBoundingBox.getSize();
+        majorScale = pow10ceil(Math.max(size.x, size.y, size.z)) / 10.0;
+        minorScale = majorScale / 10.0;
+
 
         sceneBoundingBox.min = new THREE.Vector3(
             Math.floor(sceneBoundingBox.min.x / majorScale) * majorScale,
@@ -170,15 +177,13 @@ function rebuildSceneData(K3D, grids, force) {
         };
 
         // expand sceneBoundingBox to avoid labels overlapping
-        var extendedSceneBoundingBox = new THREE.Box3();
-
         extendedSceneBoundingBox.min = sceneBoundingBox.min.clone().add(sceneBoundingBox.min.clone()
             .setLength(majorScale * 0.2));
         extendedSceneBoundingBox.max = sceneBoundingBox.max.clone().add(sceneBoundingBox.max.clone()
             .setLength(majorScale * 0.2));
 
-        var originalEdges = generateEdgesPoints(sceneBoundingBox);
-        var extendedEdges = generateEdgesPoints(extendedSceneBoundingBox);
+        originalEdges = generateEdgesPoints(sceneBoundingBox);
+        extendedEdges = generateEdgesPoints(extendedSceneBoundingBox);
 
         Object.keys(originalEdges).forEach(function (key) {
             grids.labelsOnEdges[key] = {};
@@ -189,19 +194,22 @@ function rebuildSceneData(K3D, grids, force) {
 
         // create labels
         Object.keys(grids.labelsOnEdges).forEach(function (key) {
-            var iterateAxis = _.difference(['x', 'y', 'z'], key.replace(/[^xyz]/g, '').split(''))[0];
-            var iterationCount = size[iterateAxis] / majorScale;
-            var deltaValue = unitVectors[iterateAxis].clone().multiplyScalar(majorScale);
-            var deltaPosition = unitVectors[iterateAxis].clone().multiplyScalar(
-                grids.labelsOnEdges[key].p[0].distanceTo(grids.labelsOnEdges[key].p[1]) / iterationCount
-            );
+            var iterateAxis = _.difference(['x', 'y', 'z'], key.replace(/[^xyz]/g, '').split(''))[0],
+                iterationCount = size[iterateAxis] / majorScale,
+                deltaValue = unitVectors[iterateAxis].clone().multiplyScalar(majorScale),
+                deltaPosition = unitVectors[iterateAxis].clone().multiplyScalar(
+                    grids.labelsOnEdges[key].p[0].distanceTo(grids.labelsOnEdges[key].p[1]) / iterationCount
+                ),
+                j, v, p,
+                label,
+                middleValue, middlePosition, middle, axisLabel;
 
-            for (var j = 1; j <= iterationCount - 1; j++) {
+            for (j = 1; j <= iterationCount - 1; j++) {
 
-                var v = grids.labelsOnEdges[key].v[0].clone().add(deltaValue.clone().multiplyScalar(j));
-                var p = grids.labelsOnEdges[key].p[0].clone().add(deltaPosition.clone().multiplyScalar(j));
+                v = grids.labelsOnEdges[key].v[0].clone().add(deltaValue.clone().multiplyScalar(j));
+                p = grids.labelsOnEdges[key].p[0].clone().add(deltaPosition.clone().multiplyScalar(j));
 
-                var label = new Text2d(new Config({
+                label = new Text2d(new Config({
                     'position': p.toArray(),
                     'referencePoint': 'cc',
                     'color': 0x444444,
@@ -209,27 +217,29 @@ function rebuildSceneData(K3D, grids, force) {
                     'size': 0.75
                 }), K3D);
 
+                /*jshint loopfunc: true */
                 promises.push(label.then(function (obj) {
                     grids.labelsOnEdges[key].labels.push(obj);
                 }));
+                /*jshint loopfunc: false */
             }
 
             // add axis label
-            var middleValue = grids.labelsOnEdges[key].v[0].clone().add(
+            middleValue = grids.labelsOnEdges[key].v[0].clone().add(
                 (new THREE.Vector3()).subVectors(grids.labelsOnEdges[key].v[1], grids.labelsOnEdges[key].v[0])
                     .multiplyScalar(0.5)
             );
 
-            var middlePosition = grids.labelsOnEdges[key].p[0].clone().add(
+            middlePosition = grids.labelsOnEdges[key].p[0].clone().add(
                 (new THREE.Vector3()).subVectors(grids.labelsOnEdges[key].p[1], grids.labelsOnEdges[key].p[0])
                     .multiplyScalar(0.5)
             );
 
-            var middle = middlePosition.add(
+            middle = middlePosition.add(
                 (new THREE.Vector3()).subVectors(middlePosition, middleValue).multiplyScalar(2.0)
             );
 
-            var axisLabel = new Text2d(new Config({
+            axisLabel = new Text2d(new Config({
                 'position': middle.toArray(),
                 'referencePoint': 'cc',
                 'color': 0x444444,
@@ -245,22 +255,21 @@ function rebuildSceneData(K3D, grids, force) {
         // create grids
         Object.keys(grids.planes).forEach(function (axis) {
             grids.planes[axis].forEach(function (plane) {
-                var vertices = [], colors = [];
-                var geometry = new THREE.BufferGeometry();
-                var material = new THREE.LineBasicMaterial({vertexColors: THREE.VertexColors});
-
-                var iterableAxes = ['x', 'y', 'z'].filter(function (val) {
-                    return val !== axis;
-                });
+                var vertices = [], colors = [],
+                    geometry = new THREE.BufferGeometry(),
+                    material = new THREE.LineBasicMaterial({vertexColors: THREE.VertexColors}),
+                    iterableAxes = ['x', 'y', 'z'].filter(function (val) {
+                        return val !== axis;
+                    });
 
                 iterableAxes.forEach(function (iterateAxis) {
-                    var delta = unitVectors[iterateAxis].clone().multiplyScalar(minorScale);
+                    var delta = unitVectors[iterateAxis].clone().multiplyScalar(minorScale),
+                        p1, p2, j;
 
-                    for (var j = 0; j <= size[iterateAxis] / minorScale; j++) {
-
-                        var p1 = plane.p1.clone().add(delta.clone().multiplyScalar(j));
+                    for (j = 0; j <= size[iterateAxis] / minorScale; j++) {
+                        p1 = plane.p1.clone().add(delta.clone().multiplyScalar(j));
                         vertices = vertices.concat(p1.toArray());
-                        var p2 = plane.p2.clone();
+                        p2 = plane.p2.clone();
                         p2[iterateAxis] = p1[iterateAxis];
                         vertices = vertices.concat(p2.toArray());
 
@@ -292,8 +301,8 @@ function refreshGrid(grids) {
     /*jshint validthis:true */
     var visiblePlanes = [];
     Object.keys(grids.planes).forEach(function (axis) {
-        var dot1 = grids.planes[axis][0].normal.dot(this.camera.position.clone().sub(grids.planes[axis][0].p1));
-        var dot2 = grids.planes[axis][1].normal.dot(this.camera.position.clone().sub(grids.planes[axis][1].p1));
+        var dot1 = grids.planes[axis][0].normal.dot(this.camera.position.clone().sub(grids.planes[axis][0].p1)),
+            dot2 = grids.planes[axis][1].normal.dot(this.camera.position.clone().sub(grids.planes[axis][1].p1));
 
         grids.planes[axis][0].obj.visible = dot1 >= dot2;
         grids.planes[axis][1].obj.visible = dot1 < dot2;
@@ -308,8 +317,8 @@ function refreshGrid(grids) {
     }, this);
 
     Object.keys(grids.labelsOnEdges).forEach(function (key) {
-        var axes = key.match(/.{2}/g);
-        var shouldBeVisible = _.intersection(axes, visiblePlanes).length == 1;
+        var axes = key.match(/.{2}/g),
+            shouldBeVisible = _.intersection(axes, visiblePlanes).length === 1;
 
         grids.labelsOnEdges[key].labels.forEach(function (label) {
             if (shouldBeVisible) {

@@ -13,16 +13,19 @@ function toColor(val) {
 }
 
 module.exports = function (colorMap, size) {
-    var canvas = document.createElement('canvas');
+    var canvas = document.createElement('canvas'),
+        ctx = canvas.getContext('2d'),
+        grd,
+        segment,
+        i;
+
     canvas.height = 1;
     canvas.width = size;
 
-    var ctx = canvas.getContext('2d');
+    grd = ctx.createLinearGradient(0, 0, canvas.width, canvas.height);
 
-    var grd = ctx.createLinearGradient(0, 0, canvas.width, canvas.height);
-
-    for (var i = 0; i < colorMap.length / 4; i++) {
-        var segment = colorMap.slice(i * 4, i * 4 + 4);
+    for (i = 0; i < colorMap.length / 4; i++) {
+        segment = colorMap.slice(i * 4, i * 4 + 4);
 
         grd.addColorStop(segment[0],
             'rgb(' + toColor(segment[1]) + ', ' + toColor(segment[2]) + ', ' + toColor(segment[3]) + ')');
