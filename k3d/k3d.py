@@ -7,13 +7,14 @@ from functools import partial
 import ipywidgets as widgets
 from traitlets import Unicode, Bool, Int, List
 
-from ._version import version_info
+from ._version import version_info, __version__
 from .factory import Factory
 from .objects import Drawable
 
 from k3d.colorsmap.paraview_color_maps import paraview_color_maps
 from k3d.colorsmap.basic_color_maps import basic_color_maps
 from k3d.colorsmap.matplotlib_color_maps import matplotlib_color_maps
+
 
 class K3D(widgets.DOMWidget, Factory):
     version = version_info
@@ -22,8 +23,8 @@ class K3D(widgets.DOMWidget, Factory):
     _view_module = Unicode('k3d').tag(sync=True)
     _model_module = Unicode('k3d').tag(sync=True)
 
-    _view_module_version = Unicode('^2.0.0').tag(sync=True)
-    _model_module_version = Unicode('^2.0.0').tag(sync=True)
+    _view_module_version = Unicode('~' + __version__).tag(sync=True)
+    _model_module_version = Unicode('~' + __version__).tag(sync=True)
 
     objects = []
     COMPRESSION_LEVEL = 1
@@ -50,8 +51,6 @@ class K3D(widgets.DOMWidget, Factory):
                  voxel_paint_color=0, grid=[-1, -1, -1, 1, 1, 1]):
         super(K3D, self).__init__()
         self.on_msg(self.__on_msg)
-
-        self.__on_msg_strategy = self.__pass
 
         self.antialias = antialias
         self.camera_auto_fit = camera_auto_fit
@@ -95,15 +94,17 @@ class K3D(widgets.DOMWidget, Factory):
         return self.__isub__(objs)
 
     def fetch_data(self, obj):
-        self.__on_msg_strategy = partial(self.__on_data, obj=obj)
         self.send(obj.id)
 
     def __on_msg(self, *args):
-        self.__on_msg_strategy(args[1])
+        json = args[1]
+        if json['type'] == 'object':
+            for obj in self.objects:
+                if obj.id == json['id']:
+                    obj.update(json['data'])
 
-    def __on_data(self, data, obj):
-        self.__on_msg_strategy = self.__pass
-        obj.update(data)
+        if json['type'] == 'camera':
+            self.camera = json['data']
 
     def update(self, obj_id, attr=None):
         data = {

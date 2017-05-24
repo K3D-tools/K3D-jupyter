@@ -129,6 +129,8 @@ function K3D(provider, targetDOMNode, parameters) {
         self.autoRendering = handlersCount > 0;
     };
 
+    this.dispatch = dispatch;
+
     /**
      * Stores give provider
      * @memberof K3D.Core
@@ -186,8 +188,8 @@ function K3D(provider, targetDOMNode, parameters) {
      */
     this.setCamera = function (array) {
         world.setupCamera(array);
-        self.render();
     };
+
     /**
      * Set voxelPaintColor of K3D
      * @memberof K3D.Core
@@ -477,7 +479,8 @@ K3D.prototype.frameUpdateHandlers = {
 K3D.prototype.events = {
     VIEW_MODE_CHANGE: 'viewModeChange',
     RENDERED: 'rendered',
-    RESIZED: 'resized'
+    RESIZED: 'resized',
+    CAMERA_CHANGE: 'cameraChange'
 };
 
 /**

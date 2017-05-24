@@ -66,5 +66,15 @@ module.exports = function (K3D) {
     this.renderer.domElement.addEventListener('mousedown', onDocumentMouseDown, false);
     this.renderer.domElement.addEventListener('mouseup', onDocumentMouseUp, false);
 
+    this.controls.addEventListener('change', function (event) {
+        var r = [];
+
+        event.target.object.position.toArray(r);
+        event.target.target.toArray(r, 3);
+        event.target.object.up.toArray(r, 6);
+
+        K3D.dispatch(K3D.events.CAMERA_CHANGE, r);
+    });
+
     refresh();
 };

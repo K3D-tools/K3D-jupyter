@@ -7,7 +7,8 @@ var widgets = require('jupyter-js-widgets'),
     K3D = require('./core/Core'),
     ThreeJsProvider = require('./providers/threejs/provider'),
     K3DModel,
-    K3DView;
+    K3DView,
+    semverRange = '~' + require('../package.json').version;
 
 require('es6-promise');
 
@@ -41,8 +42,8 @@ K3DModel = widgets.DOMWidgetModel.extend({
         _view_name: 'K3D',
         _model_module: 'K3D',
         _view_module: 'K3D',
-        _model_module_version: '2.0.0',
-        _view_module_version: '2.0.0',
+        _model_module_version: semverRange,
+        _view_module_version: semverRange,
         value: 'K3D'
     }),
 
@@ -104,6 +105,8 @@ K3DView = widgets.DOMWidgetView.extend({
     },
 
     _init: function () {
+        var self = this;
+
         try {
             this.K3DInstance = new K3D(ThreeJsProvider, this.container, {
                 antialias: this.model.get('antialias'),
@@ -127,6 +130,10 @@ K3DView = widgets.DOMWidgetView.extend({
 
             this._onObjectChange(this.model, obj);
         }, this);
+
+        this.K3DInstance.on(this.K3DInstance.events.CAMERA_CHANGE, function (control) {
+            self.send({type: 'camera', 'data': control});
+        });
     },
 
     _setCameraAutoFit: function () {
@@ -189,7 +196,11 @@ K3DView = widgets.DOMWidgetView.extend({
         var currentObjectJson = this.K3DInstance.getObjectJson(id);
 
         if (currentObjectJson !== null) {
-            this.send(jsonpatch.compare(this.model.objectsList[id], currentObjectJson));
+            this.send({
+                type: 'object',
+                id: id,
+                'data': jsonpatch.compare(this.model.objectsList[id], currentObjectJson)
+            });
         }
     }
 });

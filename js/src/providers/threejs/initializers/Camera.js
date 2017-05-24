@@ -14,12 +14,12 @@ module.exports = function (K3D) {
     this.camera.up.set(0, 0, 1);
 
     this.setupCamera = function (array) {
-        this.camera.position.fromArray(array);
-        this.camera.lookAt((new THREE.Vector3()).fromArray(array, 3));
-
+        this.controls.object.position.fromArray(array);
         if (array.length === 9) {
-            this.camera.up.fromArray(array, 6);
+            this.controls.object.up.fromArray(array, 6);
         }
+        this.controls.target.fromArray(array, 3);
+        this.controls.update();
     };
 
     this.setCameraToFitScene = function (force) {
