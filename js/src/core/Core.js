@@ -180,6 +180,15 @@ function K3D(provider, targetDOMNode, parameters) {
     };
 
     /**
+     * Set camera of K3D
+     * @memberof K3D.Core
+     * @param {String} mode
+     */
+    this.setCamera = function (array) {
+        world.setupCamera(array);
+        self.render();
+    };
+    /**
      * Set voxelPaintColor of K3D
      * @memberof K3D.Core
      * @param {Number} color
@@ -241,14 +250,6 @@ function K3D(provider, targetDOMNode, parameters) {
     this.off = function (eventName, id) {
         listeners[eventName] = listeners[eventName] || {};
         delete listeners[eventName][id];
-    };
-    /**
-     * Get access to camera in current world
-     * @memberof K3D.Core
-     * @returns {Object|undefined} - should return the "camera" if provider uses such a thing
-     */
-    this.getCamera = function () {
-        return world.camera;
     };
 
     /**

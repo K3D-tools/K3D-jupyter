@@ -97,6 +97,7 @@ K3DView = widgets.DOMWidgetView.extend({
         this.model.on('change:voxel_paint_color', this._setVoxelPaintColor, this);
         this.model.on('change:background_color', this._setBackgroundColor, this);
         this.model.on('change:grid', this._setGrid, this);
+        this.model.on('change:camera', this._setCamera, this);
 
         this.model.on('change:object', this._onObjectChange, this);
         this.model.on('fetchData', this._fetchData, this);
@@ -146,6 +147,10 @@ K3DView = widgets.DOMWidgetView.extend({
 
     _setGrid: function () {
         this.K3DInstance.setGrid(this.model.get('grid'));
+    },
+
+    _setCamera: function () {
+        this.K3DInstance.setCamera(this.model.get('camera'));
     },
 
     _processObjectsChangesQueue: function (self) {

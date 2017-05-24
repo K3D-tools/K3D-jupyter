@@ -13,6 +13,15 @@ module.exports = function (K3D) {
     this.camera.position.set(2, -3, 0.2);
     this.camera.up.set(0, 0, 1);
 
+    this.setupCamera = function (array) {
+        this.camera.position.fromArray(array);
+        this.camera.lookAt((new THREE.Vector3()).fromArray(array, 3));
+
+        if (array.length === 9) {
+            this.camera.up.fromArray(array, 6);
+        }
+    };
+
     this.setCameraToFitScene = function (force) {
         var camDistance,
             sceneBoundingBox = new THREE.Box3().setFromArray(K3D.parameters.grid),

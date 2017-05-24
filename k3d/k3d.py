@@ -40,6 +40,7 @@ class K3D(widgets.DOMWidget, Factory):
     grid = List().tag(sync=True)
     background_color = Int().tag(sync=True)
     voxel_paint_color = Int().tag(sync=True)
+    camera = List().tag(sync=True)
 
     basic_color_maps = basic_color_maps
     paraview_color_maps = paraview_color_maps
