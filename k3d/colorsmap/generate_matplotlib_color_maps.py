@@ -8,7 +8,8 @@ file = open('matplotlib_color_maps.py', 'w')
 file.write('class matplotlib_color_maps():\n\n')
 
 for colorMap in root:
-    name = colorMap.attrib['name'].capitalize()
+    name = colorMap.attrib['name']
+    name = name[:1].upper() + name[1:]
     file.write('    ' + name + ' = [\n')
 
     for p in colorMap:
