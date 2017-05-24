@@ -13,6 +13,7 @@ from .objects import Drawable
 
 from k3d.colorsmap.paraview_color_maps import paraview_color_maps
 from k3d.colorsmap.basic_color_maps import basic_color_maps
+from k3d.colorsmap.matplotlib_color_maps import matplotlib_color_maps
 
 class K3D(widgets.DOMWidget, Factory):
     version = version_info
@@ -42,6 +43,7 @@ class K3D(widgets.DOMWidget, Factory):
 
     basic_color_maps = basic_color_maps
     paraview_color_maps = paraview_color_maps
+    matplotlib_color_maps = matplotlib_color_maps
 
     def __init__(self, antialias=True, background_color=0xFFFFFF, camera_auto_fit=True, grid_auto_fit=True, height=512,
                  voxel_paint_color=0, grid=[-1, -1, -1, 1, 1, 1]):

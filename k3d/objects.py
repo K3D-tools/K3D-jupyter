@@ -38,6 +38,9 @@ class _Attribute(object):
         if isinstance(value, int) and self.__expected_type == float:
             value = float(value)
 
+        if isinstance(value, list) and self.__expected_type == numpy.ndarray:
+            value = numpy.array(value, order='C')
+
         if not isinstance(value, self.__expected_type):
             if type(self.__expected_type) == tuple:
                 expected_type_str = ','.join([v.__name__ for v in self.__expected_type])

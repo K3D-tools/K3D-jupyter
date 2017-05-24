@@ -11,7 +11,7 @@ file.write('class paraview_color_maps():\n\n')
 for item in data:
     if 'RGBPoints' in item:
         name = item['Name'].replace(' ', '_').replace('-', '_').replace('(', '').replace(')', '').replace('2', 'two_')\
-            .replace(',', '')
+            .replace(',', '').capitalize()
         file.write('    ' + name + ' = [\n')
 
         list = [item['RGBPoints'][i:i + 4] for i in range(0, len(item['RGBPoints']), 4)]
