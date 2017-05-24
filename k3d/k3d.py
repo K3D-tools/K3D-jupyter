@@ -8,6 +8,7 @@ from ._version import version_info
 from .colormaps import colorMaps
 import base64
 import json
+import warnings
 import zlib
 
 
@@ -56,7 +57,7 @@ class K3D(widgets.DOMWidget, Factory):
 
         self.objects = []
 
-    def __add__(self, objs):
+    def __iadd__(self, objs):
         assert isinstance(objs, Drawable)
 
         if objs.set_plot(self):
@@ -69,7 +70,11 @@ class K3D(widgets.DOMWidget, Factory):
 
         return self
 
-    def __sub__(self, objs):
+    def __add__(self, objs):
+        warnings.warn('Using plus operator to add objects to plot is discouraged in favor of +=')
+        return self.__iadd__(objs)
+
+    def __isub__(self, objs):
         assert isinstance(objs, Drawable)
 
         for obj in objs:
@@ -78,6 +83,10 @@ class K3D(widgets.DOMWidget, Factory):
                 self.objects.remove(obj)
 
         return self
+
+    def __sub__(self, objs):
+        warnings.warn('Using minus operator to remove objects from plot is discouraged in favor of -=')
+        return self.__isub__(objs)
 
     def fetch_data(self, obj):
         self.__on_msg_strategy = partial(self.__on_data, obj=obj)
