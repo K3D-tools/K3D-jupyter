@@ -5,6 +5,7 @@ from functools import partial
 from .factory import Factory
 from .objects import Drawable
 from ._version import version_info
+from .colormaps import colorMaps
 import base64
 import json
 import zlib
@@ -35,6 +36,8 @@ class K3D(widgets.DOMWidget, Factory):
     grid = List().tag(sync=True)
     background_color = Int().tag(sync=True)
     voxel_paint_color = Int().tag(sync=True)
+
+    color_maps = colorMaps
 
     def __init__(self, antialias=True, background_color=0xFFFFFF, camera_auto_fit=True, grid_auto_fit=True, height=512,
                  voxel_paint_color=0, grid=[-1, -1, -1, 1, 1, 1]):

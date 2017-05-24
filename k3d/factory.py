@@ -9,6 +9,7 @@ except:
     numpy_support = None
 
 from .objects import *
+from .colormaps import colorMaps
 
 
 class Factory(object):
@@ -97,13 +98,21 @@ class Factory(object):
         })
 
     @classmethod
-    def vtkPolyData(cls, polyData, view_matrix=numpy.identity(4), color=DEFAULT_COLOR):
+    def vtkPolyData(cls, polyData, view_matrix=numpy.identity(4), color=DEFAULT_COLOR, color_attribute=None,
+                    color_map=colorMaps.Rainbow):
 
         if polyData.GetPolys().GetMaxCellSize() > 3:
             cutTriangles = vtk.vtkTriangleFilter()
             cutTriangles.SetInputData(polyData)
             cutTriangles.Update()
             polyData = cutTriangles.GetOutput()
+
+        if color_attribute is not None:
+            vertex_scalars = numpy_support.vtk_to_numpy(polyData.GetPointData().GetArray(color_attribute[0]))
+            color_range = color_attribute[1:3]
+        else:
+            vertex_scalars = ()
+            color_range = ()
 
         vertices = numpy_support.vtk_to_numpy(polyData.GetPoints().GetData())
         indices = numpy_support.vtk_to_numpy(polyData.GetPolys().GetData()).reshape(-1, 4)[:, 1:4]
@@ -112,7 +121,10 @@ class Factory(object):
             'model_view_matrix': cls.__get_view_matrix(view_matrix),
             'vertices': cls.__to_ndarray(vertices),
             'indices': cls.__to_ndarray(indices, numpy.uint32),
-            'color': color
+            'color': color,
+            'vertex_scalars': cls.__to_ndarray(vertex_scalars),
+            'color_range': cls.__to_ndarray(color_range),
+            'color_map': cls.__to_ndarray(color_map)
         })
 
     @classmethod
@@ -142,7 +154,7 @@ class Factory(object):
             'labels_size': labels_size,
             'colors': cls.__to_ndarray(colors, numpy.uint32),
             'head_color': head_color if head_color is not None else color,
-            'origin_color': origin_color if head_color is not None else color,
+            'origin_color': origin_color if origin_color is not None else color,
         })
 
     @classmethod

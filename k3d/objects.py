@@ -353,3 +353,6 @@ class Mesh(SingleObject):
     indices = _Attribute(numpy.ndarray, partial(_to_base64, dtype=numpy.uint32), 'indices') \
         .transform(_strings, partial(_to_ndarray, dtype=numpy.uint32))
     color = _Attribute(int, int, 'color')
+    vertex_scalars = _Attribute(numpy.ndarray, _to_base64, 'vertex_scalars').transform(_strings, _to_ndarray)
+    color_map = _Attribute(numpy.ndarray, _to_base64, 'color_map').transform(_strings, _to_ndarray)
+    color_range = _Attribute(numpy.ndarray, _to_base64, 'color_range').transform(_strings, _to_ndarray)
