@@ -87,12 +87,16 @@ class Factory(object):
         })
 
     @classmethod
-    def mesh(cls, vertices, indices, view_matrix=numpy.identity(4), color=DEFAULT_COLOR):
+    def mesh(cls, vertices, indices, vertex_scalars=(), color_range=(), color_map=(), view_matrix=numpy.identity(4),
+             color=DEFAULT_COLOR):
         return Mesh(**{
             'model_view_matrix': cls.__get_view_matrix(view_matrix),
             'vertices': cls.__to_ndarray(vertices),
             'indices': cls.__to_ndarray(indices),
-            'color': color
+            'color': color,
+            'vertex_scalars': cls.__to_ndarray(vertex_scalars),
+            'color_range': cls.__to_ndarray(color_range),
+            'color_map': cls.__to_ndarray(color_map)
         })
 
     @classmethod
