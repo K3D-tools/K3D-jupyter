@@ -18,7 +18,7 @@ module.exports = function (config) {
         }),
         object = new THREE.Line(geometry, material),
         modelMatrix = new THREE.Matrix4(),
-        position = config.get('pointsPositions');
+        position = config.get('pointPositions');
 
     if (typeof (position) === 'string') {
         position = buffer.base64ToArrayBuffer(position);

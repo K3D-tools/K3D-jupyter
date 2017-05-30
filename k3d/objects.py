@@ -253,7 +253,7 @@ class Line(SingleObject):
     color = _Attribute(int, int, 'color')
     line_width = _Attribute((int, float), float, 'lineWidth')
     model_matrix = _Attribute(numpy.ndarray, _to_list, 'modelMatrix')
-    points_positions = _Attribute(numpy.ndarray, _to_base64, 'pointsPositions').transform(_strings, _to_ndarray)
+    point_positions = _Attribute(numpy.ndarray, _to_base64, 'pointPositions').transform(_strings, _to_ndarray)
 
 
 class MarchingCubes(SingleObject):
@@ -262,7 +262,7 @@ class MarchingCubes(SingleObject):
     length = _Attribute(int, int, 'length')
     level = _Attribute((int, float), float, 'level')
     model_matrix = _Attribute(numpy.ndarray, _to_list, 'modelMatrix')
-    scalars_field = _Attribute(numpy.ndarray, partial(_to_base64), 'scalarsField').transform(_strings, _to_ndarray)
+    scalar_field = _Attribute(numpy.ndarray, partial(_to_base64), 'scalarField').transform(_strings, _to_ndarray)
     width = _Attribute(int, int, 'width')
 
 
@@ -271,9 +271,9 @@ class Points(SingleObject):
     shader = _Attribute(str, str, 'shader')
     model_matrix = _Attribute(numpy.ndarray, _to_list, 'modelMatrix')
     point_size = _Attribute((int, float), float, 'pointSize')
-    points_colors = _Attribute(numpy.ndarray, partial(_to_base64, dtype=numpy.uint32), 'pointsColors').transform(
+    point_colors = _Attribute(numpy.ndarray, partial(_to_base64, dtype=numpy.uint32), 'pointColors').transform(
         _strings, partial(_to_ndarray, dtype=numpy.uint32))
-    points_positions = _Attribute(numpy.ndarray, _to_base64, 'pointsPositions').transform(_strings, _to_ndarray)
+    point_positions = _Attribute(numpy.ndarray, _to_base64, 'pointPositions').transform(_strings, _to_ndarray)
 
 
 class STL(SingleObject):
@@ -318,8 +318,8 @@ class Vectors(SingleObject):
         .transform(_strings, partial(_to_ndarray, dtype=numpy.uint32))
     head_color = _Attribute(int, int, 'headColor')
     labels = _Attribute((list, tuple), tuple, 'labels')
-    labels_size = _Attribute(float, float, 'labelsSize')
     head_size = _Attribute(float, float, 'headSize')
+    label_size = _Attribute(float, float, 'labelSize')
     line_width = _Attribute((int, float), float, 'lineWidth')
     model_matrix = _Attribute(numpy.ndarray, _to_list, 'modelMatrix')
     origin_color = _Attribute(int, int, 'originColor')

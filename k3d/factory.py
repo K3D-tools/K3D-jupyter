@@ -2,12 +2,14 @@
 try:
     import vtk
     from vtk.util import numpy_support
-except:
+except ImportError:
     vtk = None
     numpy_support = None
 
-from k3d.colorsmap.basic_color_maps import basic_color_maps
-from .objects import *
+from k3d.colormaps.basic_color_maps import basic_color_maps
+from .objects import (Line, Mesh, MarchingCubes, Points, Surface, STL, Text, Text2d, Texture, Vectors, VectorFields,
+                      Voxels)
+import numpy as np
 
 
 class Factory(object):
@@ -37,31 +39,31 @@ class Factory(object):
         })
 
     @classmethod
-    def points(cls, positions, colors=(), color=DEFAULT_COLOR, model_matrix=numpy.identity(4), point_size=1.0,
+    def points(cls, positions, colors=(), color=DEFAULT_COLOR, model_matrix=np.identity(4), point_size=1.0,
                shader='3dSpecular'):
         return Points(**{
             'model_matrix': cls.__get_model_matrix(model_matrix),
             'point_size': point_size,
-            'points_positions': cls.__to_ndarray(positions),
-            'points_colors': cls.__to_ndarray(colors, numpy.uint32),
+            'point_positions': cls.__to_ndarray(positions),
+            'point_colors': cls.__to_ndarray(colors, np.uint32),
             'color': color,
             'shader': shader,
         })
 
     @classmethod
-    def line(cls, positions, xmin=-.5, xmax=.5, ymin=-.5, ymax=.5, zmin=-.5, zmax=.5, model_matrix=numpy.identity(4),
+    def line(cls, positions, xmin=-.5, xmax=.5, ymin=-.5, ymax=.5, zmin=-.5, zmax=.5, model_matrix=np.identity(4),
              width=1, color=DEFAULT_COLOR):
         return Line(**{
             'model_matrix': cls.__get_model_matrix(model_matrix, xmin, xmax, ymin, ymax, zmin, zmax),
             'color': color,
             'line_width': width,
-            'points_positions': cls.__to_ndarray(positions),
+            'point_positions': cls.__to_ndarray(positions),
         })
 
     @classmethod
-    def surface(cls, heights, xmin=-.5, xmax=.5, ymin=-.5, ymax=.5, model_matrix=numpy.identity(4), width=None,
+    def surface(cls, heights, xmin=-.5, xmax=.5, ymin=-.5, ymax=.5, model_matrix=np.identity(4), width=None,
                 height=None, color=DEFAULT_COLOR):
-        height, width = cls.__get_dimensions(numpy.shape(heights), height, width)
+        height, width = cls.__get_dimensions(np.shape(heights), height, width)
 
         return Surface(**{
             'model_matrix': cls.__get_model_matrix(model_matrix, xmin, xmax, ymin, ymax),
@@ -72,9 +74,9 @@ class Factory(object):
         })
 
     @classmethod
-    def marching_cubes(cls, scalars_field, level, xmin=-.5, xmax=.5, ymin=-.5, ymax=.5, zmin=-.5, zmax=.5,
-                       model_matrix=numpy.identity(4), width=None, height=None, length=None, color=DEFAULT_COLOR):
-        length, height, width = cls.__get_dimensions(numpy.shape(scalars_field), length, height, width)
+    def marching_cubes(cls, scalar_field, level, xmin=-.5, xmax=.5, ymin=-.5, ymax=.5, zmin=-.5, zmax=.5,
+                       model_matrix=np.identity(4), width=None, height=None, length=None, color=DEFAULT_COLOR):
+        length, height, width = cls.__get_dimensions(np.shape(scalar_field), length, height, width)
 
         return MarchingCubes(**{
             'model_matrix': cls.__get_model_matrix(model_matrix, xmin, xmax, ymin, ymax, zmin, zmax),
@@ -83,11 +85,11 @@ class Factory(object):
             'length': length,
             'color': color,
             'level': level,
-            'scalars_field': cls.__to_ndarray(scalars_field),
+            'scalar_field': cls.__to_ndarray(scalar_field),
         })
 
     @classmethod
-    def mesh(cls, vertices, indices, vertex_scalars=(), color_range=(), color_map=(), model_matrix=numpy.identity(4),
+    def mesh(cls, vertices, indices, vertex_scalars=(), color_range=(), color_map=(), model_matrix=np.identity(4),
              color=DEFAULT_COLOR):
         return Mesh(**{
             'model_matrix': cls.__get_model_matrix(model_matrix),
@@ -100,9 +102,8 @@ class Factory(object):
         })
 
     @classmethod
-    def vtk_poly_data(cls, poly_data, model_matrix=numpy.identity(4), color=DEFAULT_COLOR, color_attribute=None,
+    def vtk_poly_data(cls, poly_data, model_matrix=np.identity(4), color=DEFAULT_COLOR, color_attribute=None,
                       color_map=basic_color_maps.Rainbow):
-
         if poly_data.GetPolys().GetMaxCellSize() > 3:
             cutTriangles = vtk.vtkTriangleFilter()
             cutTriangles.SetInputData(poly_data)
@@ -122,7 +123,7 @@ class Factory(object):
         return Mesh(**{
             'model_matrix': cls.__get_model_matrix(model_matrix),
             'vertices': cls.__to_ndarray(vertices),
-            'indices': cls.__to_ndarray(indices, numpy.uint32),
+            'indices': cls.__to_ndarray(indices, np.uint32),
             'color': color,
             'vertex_scalars': cls.__to_ndarray(vertex_scalars),
             'color_range': cls.__to_ndarray(color_range),
@@ -130,7 +131,7 @@ class Factory(object):
         })
 
     @classmethod
-    def stl(cls, stl, model_matrix=numpy.identity(4), color=DEFAULT_COLOR):
+    def stl(cls, stl, model_matrix=np.identity(4), color=DEFAULT_COLOR):
         return STL(**{
             'model_matrix': cls.__get_model_matrix(model_matrix),
             'color': color,
@@ -138,32 +139,33 @@ class Factory(object):
         })
 
     @classmethod
-    def stl_load(cls, filename, model_matrix=numpy.identity(4)):
+    def stl_load(cls, filename, model_matrix=np.identity(4)):
         with open(filename) as stl:
             return cls.stl(stl.read(), model_matrix)
 
     @classmethod
     def vectors(cls, origins, vectors, xmin=-.5, xmax=.5, ymin=-.5, ymax=.5, zmin=-.5, zmax=.5,
-                model_matrix=numpy.identity(4), labels=(), colors=(), color=DEFAULT_COLOR, line_width=1,
-                labels_size=1.0, head_size=1.0, head_color=None, origin_color=None):
+                model_matrix=np.identity(4), labels=(), colors=(), color=DEFAULT_COLOR, line_width=1,
+                label_size=1.0, head_size=1.0, head_color=None, origin_color=None):
         return Vectors(**{
             'model_matrix': cls.__get_model_matrix(model_matrix, xmin, xmax, ymin, ymax, zmin, zmax),
             'origins': cls.__to_ndarray(origins),
             'vectors': cls.__to_ndarray(vectors),
             'line_width': line_width,
             'labels': labels,
-            'labels_size': labels_size,
+            'label_size': label_size,
             'head_size': head_size,
             'colors': cls.__to_ndarray(colors, numpy.uint32),
+            'colors': cls.__to_ndarray(colors, np.uint32),
             'head_color': head_color if head_color is not None else color,
             'origin_color': origin_color if origin_color is not None else color,
         })
 
     @classmethod
-    def vector_fields(cls, vectors, colors=(), color=DEFAULT_COLOR, xmin=-.5, xmax=.5, ymin=-.5, ymax=.5, zmin=-.5,
-                      zmax=.5, model_matrix=numpy.identity(4), width=None, height=None, length=None, use_head=True,
-                      head_color=None, head_size=1.0, origin_color=None):
-        shape = numpy.shape(vectors)
+    def vectors_fields(cls, vectors, colors=(), color=DEFAULT_COLOR, xmin=-.5, xmax=.5, ymin=-.5, ymax=.5, zmin=-.5,
+                       zmax=.5, model_matrix=np.identity(4), width=None, height=None, length=None, use_head=True,
+                       head_color=None, origin_color=None):
+        shape = np.shape(vectors)
 
         if len(shape[:-1]) < 3:
             shape = (None,) + shape
@@ -179,7 +181,7 @@ class Factory(object):
             'width': width,
             'height': height,
             'head_size': head_size,
-            'colors': cls.__to_ndarray(colors, numpy.uint32),
+            'colors': cls.__to_ndarray(colors, np.uint32),
             'head_color': head_color if head_color is not None else color,
             'origin_color': origin_color if head_color is not None else color,
             'length': length,
@@ -193,7 +195,7 @@ class Factory(object):
             raise TypeError('Invalid vectors size: expected %d, %d given' % (expected_vectors_size, vector_size))
 
     @classmethod
-    def texture(cls, image, xmin=-.5, xmax=.5, ymin=-.5, ymax=.5, zmin=-.5, zmax=.5, model_matrix=numpy.identity(4)):
+    def texture(cls, image, xmin=-.5, xmax=.5, ymin=-.5, ymax=.5, zmin=-.5, zmax=.5, model_matrix=np.identity(4)):
         return Texture(**{
             'model_matrix': cls.__get_model_matrix(model_matrix, xmin, xmax, ymin, ymax, zmin, zmax),
             'image': image,
@@ -201,7 +203,7 @@ class Factory(object):
 
     @classmethod
     def voxels(cls, voxels, color_map, xmin=-.5, xmax=.5, ymin=-.5, ymax=.5, zmin=-.5, zmax=.5,
-               model_matrix=numpy.identity(4), width=None, height=None, length=None):
+               model_matrix=np.identity(4), width=None, height=None, length=None):
         length, height, width = cls.__get_dimensions(numpy.shape(voxels), length, height, width)
 
         return Voxels(**{
@@ -209,13 +211,13 @@ class Factory(object):
             'width': width,
             'height': height,
             'length': length,
-            'color_map': cls.__to_ndarray(color_map, numpy.uint32),
-            'voxels': cls.__to_ndarray(voxels, numpy.uint8),
+            'color_map': cls.__to_ndarray(color_map, np.uint32),
+            'voxels': cls.__to_ndarray(voxels, np.uint8),
         })
 
     @staticmethod
-    def __to_ndarray(array_like, dtype=numpy.float32):
-        return numpy.array(array_like, dtype, order='C')
+    def __to_ndarray(array_like, dtype=np.float32):
+        return np.array(array_like, dtype, order='C')
 
     @staticmethod
     def __get_dimensions(shape, *dimensions):
@@ -223,13 +225,13 @@ class Factory(object):
 
     @classmethod
     def __get_model_matrix(cls, model_matrix, xmin=-.5, xmax=.5, ymin=-.5, ymax=.5, zmin=-.5, zmax=.5):
-        model_matrix = numpy.array(model_matrix, numpy.float32, order='C').reshape(4, -1)
+        model_matrix = np.array(model_matrix, np.float32, order='C').reshape(4, -1)
 
         if model_matrix.shape != (4, 4):
             raise ValueError(
                 'model_matrix: expected 4x4 matrix, %s given' % 'x'.join(str(i) for i in model_matrix.shape))
 
-        return numpy.dot(cls.__get_base_matrix(xmin, xmax, ymin, ymax, zmin, zmax), model_matrix)
+        return np.dot(cls.__get_base_matrix(xmin, xmax, ymin, ymax, zmin, zmax), model_matrix)
 
     @staticmethod
     def __get_base_matrix(xmin, xmax, ymin, ymax, zmin, zmax):
@@ -239,7 +241,7 @@ class Factory(object):
             except (TypeError, ValueError):
                 raise TypeError('%s: expected float, %s given' % (name, type(value).__name__))
 
-        matrix = numpy.diagflat(numpy.array((xmax - xmin, ymax - ymin, zmax - zmin, 1.0), numpy.float32, order='C'))
+        matrix = np.diagflat(np.array((xmax - xmin, ymax - ymin, zmax - zmin, 1.0), np.float32, order='C'))
         matrix[0:3, 3] = ((xmax + xmin) / 2.0, (ymax + ymin) / 2.0, (zmax + zmin) / 2.0)
 
         return matrix

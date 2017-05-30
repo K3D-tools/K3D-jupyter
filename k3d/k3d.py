@@ -10,9 +10,9 @@ from ._version import version_info, __version__
 from .factory import Factory
 from .objects import Drawable
 
-from k3d.colorsmap.paraview_color_maps import paraview_color_maps
-from k3d.colorsmap.basic_color_maps import basic_color_maps
-from k3d.colorsmap.matplotlib_color_maps import matplotlib_color_maps
+from k3d.colormaps.paraview_color_maps import paraview_color_maps
+from k3d.colormaps.basic_color_maps import basic_color_maps
+from k3d.colormaps.matplotlib_color_maps import matplotlib_color_maps
 
 
 class K3D(widgets.DOMWidget, Factory):

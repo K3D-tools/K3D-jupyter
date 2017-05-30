@@ -27,7 +27,7 @@ module.exports = function (config, K3D) {
         i,
         labels = config.get('labels'),
         labelsObjects = [],
-        labelsSize = config.get('labelsSize'),
+        labelSize = config.get('labelSize'),
         heads = null,
         singleConeGeometry,
         linesGeometry = new THREE.BufferGeometry(),
@@ -79,7 +79,7 @@ module.exports = function (config, K3D) {
         if (labels) {
             if (labels[i / 3]) {
                 labelsObjects.push(
-                    createText(labels[i / 3], origin, destination, labelsSize, K3D)
+                    createText(labels[i / 3], origin, destination, labelSize, K3D)
                 );
             }
         }
@@ -130,13 +130,13 @@ function addHeads(heads, object) {
     );
 }
 
-function createText(text, origin, destination, labelsSize, K3D) {
+function createText(text, origin, destination, labelSize, K3D) {
     var center = origin.clone().add(destination).divideScalar(2),
         textConfig = {
             'position': [center.x, center.y, center.z],
             'referencePoint': 'cb',
             'text': text,
-            'size': labelsSize
+            'size': labelSize
         };
 
     return new Text2d(new Config(textConfig), K3D);

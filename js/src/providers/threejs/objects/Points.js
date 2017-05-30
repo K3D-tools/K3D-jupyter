@@ -12,8 +12,8 @@ var buffer = require('./../../../core/lib/helpers/buffer'),
 module.exports = function (config) {
     var modelMatrix = new THREE.Matrix4(),
         color = new THREE.Color(config.get('color', 65280)),
-        pointsPositions = config.get('pointsPositions'),
-        pointsColors = config.get('pointsColors'),
+        pointPositions = config.get('pointPositions'),
+        pointColors = config.get('pointColors'),
         shader = config.get('shader', '3dSpecular'),
         positions,
         colors,
@@ -51,16 +51,16 @@ module.exports = function (config) {
     material.map = null;
     material.isPointsMaterial = true;
 
-    if (typeof (pointsPositions) === 'string') {
-        pointsPositions = buffer.base64ToArrayBuffer(pointsPositions);
+    if (typeof (pointPositions) === 'string') {
+        pointPositions = buffer.base64ToArrayBuffer(pointPositions);
     }
 
-    if (typeof (pointsColors) === 'string') {
-        pointsColors = buffer.base64ToArrayBuffer(pointsColors);
+    if (typeof (pointColors) === 'string') {
+        pointColors = buffer.base64ToArrayBuffer(pointColors);
     }
 
-    positions = toFloat32Array(pointsPositions);
-    colors = pointsColors ? colorsToFloat32Array(pointsColors) : getColorsArray(color, positions.length / 3);
+    positions = toFloat32Array(pointPositions);
+    colors = pointColors ? colorsToFloat32Array(pointColors) : getColorsArray(color, positions.length / 3);
     object = new THREE.Points(getGeometry(positions, colors), material);
 
     modelMatrix.set.apply(modelMatrix, config.get('modelMatrix'));

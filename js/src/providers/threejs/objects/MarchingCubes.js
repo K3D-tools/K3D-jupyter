@@ -11,7 +11,7 @@ var buffer = require('./../../../core/lib/helpers/buffer'),
  */
 module.exports = function (config) {
 
-    var scalarsField = config.get('scalarsField'),
+    var scalarField = config.get('scalarField'),
         width = config.get('width'),
         height = config.get('height'),
         length = config.get('length'),
@@ -32,16 +32,16 @@ module.exports = function (config) {
         polygonise = marchingCubesPolygonise,
         toFloat32Array = buffer.toFloat32Array;
 
-    if (typeof (scalarsField) === 'string') {
-        scalarsField = buffer.base64ToArrayBuffer(scalarsField);
+    if (typeof (scalarField) === 'string') {
+        scalarField = buffer.base64ToArrayBuffer(scalarField);
     }
 
-    scalarsField = toFloat32Array(scalarsField);
+    scalarField = toFloat32Array(scalarField);
 
     for (z = 0; z < length - 1; z++) {
         for (y = 0; y < height - 1; y++) {
             for (x = 0; x < width - 1; x++) {
-                polygonise(positions, scalarsField, width, height, length, level, x, y, z);
+                polygonise(positions, scalarField, width, height, length, level, x, y, z);
             }
         }
     }

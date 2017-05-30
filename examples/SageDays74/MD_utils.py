@@ -74,7 +74,7 @@ class simple_molecule_vis(object):
 
 
     def update_box(self, bs = 1):
-        self.box.points_positions = self.box_coords(bs=bs)
+        self.box.point_positions = self.box_coords(bs=bs)
         self.axes.origins = np.array( (-bs/2,0,0,0,-bs/2,0,0,0,-bs/2))
         self.axes.vectors = np.array( (bs,0,0,0,bs,0,0,0,bs) )
 
