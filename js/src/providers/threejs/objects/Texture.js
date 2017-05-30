@@ -10,7 +10,7 @@
 module.exports = function (config) {
     return new Promise(function (resolve) {
         var geometry = new THREE.PlaneBufferGeometry(1, 1),
-            modelViewMatrix = new THREE.Matrix4(),
+            modelMatrix = new THREE.Matrix4(),
             texture = new THREE.Texture(),
             image,
             material,
@@ -26,8 +26,8 @@ module.exports = function (config) {
             material = new THREE.MeshBasicMaterial({color: 0xffffff, side: THREE.DoubleSide, map: texture});
             object = new THREE.Mesh(geometry, material);
 
-            modelViewMatrix.set.apply(modelViewMatrix, config.get('modelViewMatrix'));
-            object.applyMatrix(modelViewMatrix);
+            modelMatrix.set.apply(modelMatrix, config.get('modelMatrix'));
+            object.applyMatrix(modelMatrix);
 
             object.updateMatrixWorld();
 

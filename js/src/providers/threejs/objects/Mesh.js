@@ -58,7 +58,7 @@ function handleColorMap(geometry, colorMap, colorRange, vertexScalars, material)
  */
 module.exports = function (config) {
 
-    var modelViewMatrix = new THREE.Matrix4(),
+    var modelMatrix = new THREE.Matrix4(),
         material = new THREE.MeshPhongMaterial({
             color: config.get('color'),
             emissive: 0,
@@ -96,8 +96,8 @@ module.exports = function (config) {
 
     object = new THREE.Mesh(geometry, material);
 
-    modelViewMatrix.set.apply(modelViewMatrix, config.get('modelViewMatrix'));
-    object.applyMatrix(modelViewMatrix);
+    modelMatrix.set.apply(modelMatrix, config.get('modelMatrix'));
+    object.applyMatrix(modelMatrix);
 
     object.updateMatrixWorld();
 

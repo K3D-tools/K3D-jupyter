@@ -14,7 +14,7 @@ var voxelMeshGenerator = require('./../../../core/lib/helpers/voxelMeshGenerator
 module.exports = function (config, K3D) {
     const chunkSize = 32;
 
-    var modelViewMatrix = new THREE.Matrix4().fromArray(config.get('modelViewMatrix')),
+    var modelMatrix = new THREE.Matrix4().fromArray(config.get('modelMatrix')),
         width = config.get('width'),
         height = config.get('height'),
         length = config.get('length'),
@@ -95,8 +95,8 @@ module.exports = function (config, K3D) {
     object.position.set(-0.5, -0.5, -0.5);
     object.updateMatrix();
 
-    modelViewMatrix.set.apply(modelViewMatrix, config.get('modelViewMatrix'));
-    object.applyMatrix(modelViewMatrix);
+    modelMatrix.set.apply(modelMatrix, config.get('modelMatrix'));
+    object.applyMatrix(modelMatrix);
 
     rollOverMesh.visible = false;
     rollOverMesh.geometry.computeBoundingSphere();

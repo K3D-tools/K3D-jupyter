@@ -3,7 +3,7 @@
    "objects" : [{
          "type" : "VectorsFields",
          "useHead" : false,
-         "modelViewMatrix" : [
+         "modelMatrix" : [
 		 1, 0, 0, 0, 
 		 0, 0, 1, 0,
 		 0, 1, 0, 0,

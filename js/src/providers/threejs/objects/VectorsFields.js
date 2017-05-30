@@ -11,7 +11,7 @@ var buffer = require('./../../../core/lib/helpers/buffer'),
  * @param {K3D.Config} config all configurations params from JSON
  */
 module.exports = function (config) {
-    var modelViewMatrix = new THREE.Matrix4().fromArray(config.get('modelViewMatrix')),
+    var modelMatrix = new THREE.Matrix4().fromArray(config.get('modelMatrix')),
         originColor = new THREE.Color(config.get('originColor', 255)),
         headColor = new THREE.Color(config.get('headColor', 255)),
         width = config.get('width'),
@@ -98,8 +98,8 @@ module.exports = function (config) {
     object.position.set(-0.5, -0.5, length === 1 ? 0 : -0.5);
     object.updateMatrix();
 
-    modelViewMatrix.set.apply(modelViewMatrix, config.get('modelViewMatrix'));
-    object.applyMatrix(modelViewMatrix);
+    modelMatrix.set.apply(modelMatrix, config.get('modelMatrix'));
+    object.applyMatrix(modelMatrix);
 
     object.updateMatrixWorld();
 

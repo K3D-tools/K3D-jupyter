@@ -2,7 +2,7 @@
    "metadata" : {},
    "objects" : [{
          "type" : "Line",
-         "modelViewMatrix" : [
+         "modelMatrix" : [
             1.5, 0.0, 0.0, 1.5,
             0.0, 0.0, 1.5, 0.0,
             0.0, 1.5, 0.0, 0.0,
@@ -12,7 +12,7 @@
          "pointsPositions" : "AABAwAAAAEAAAAAAAACAvwAAAEAAAAAAAACAvwAAgD8AAAAAAAAAwAAAAAAAAAAAAACAvwAAAAAAAAAAAACAvwAAAMAAAAAAAABAwAAAAMAAAAAA"
       }, {
          "type" : "Line",
-         "modelViewMatrix" : [
+         "modelMatrix" : [
             1.5, 0.0, 0.0, 1.5,
             0.0, 0.0, 1.5, 0.0,
             0.0, 1.5, 0.0, 0.0,

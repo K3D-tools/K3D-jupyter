@@ -2,7 +2,7 @@
    "metadata" : {},
    "objects" : [{
          "type" : "VectorsFields",
-         "modelViewMatrix" : [
+         "modelMatrix" : [
             1, 0, 0, 0,
             0, 1, 0, 0,
             0, 0, 1, 0,

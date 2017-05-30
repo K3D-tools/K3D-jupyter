@@ -14,7 +14,7 @@ module.exports = function (config) {
     var heights = config.get('heights'),
         width = config.get('width'),
         height = config.get('height'),
-        modelViewMatrix = new THREE.Matrix4(),
+        modelMatrix = new THREE.Matrix4(),
         material = new THREE.MeshPhongMaterial({
             color: config.get('color'),
             emissive: 0,
@@ -65,12 +65,12 @@ module.exports = function (config) {
     geometry.computeBoundingBox();
 
     object = new THREE.Mesh(geometry, material);
-    modelViewMatrix.set.apply(modelViewMatrix, config.get('modelViewMatrix'));
+    modelMatrix.set.apply(modelMatrix, config.get('modelMatrix'));
 
     object.position.set(-0.5, -0.5, 0);
     object.updateMatrix();
 
-    object.applyMatrix(modelViewMatrix);
+    object.applyMatrix(modelMatrix);
 
     object.updateMatrixWorld();
 

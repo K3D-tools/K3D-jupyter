@@ -2,7 +2,7 @@
    "metadata" : {},
    "objects" : [{
          "type" : "TorusKnot",
-         "modelViewMatrix" : [
+         "modelMatrix" : [
             1.0, 0.0, 0.0, 15.0,
             0.0, 1.0, 0.0, -5.0,
             0.0, 0.0, 1.0, 0.0,
@@ -14,7 +14,7 @@
          "tube" : 2
       }, {
          "type" : "TorusKnot",
-         "modelViewMatrix" : [
+         "modelMatrix" : [
             1.0, 0.0, 0.0, -15.0,
             0.0, 0.0, 1.0, 0.0,
             0.0, 1.0, 0.0, 0.0,

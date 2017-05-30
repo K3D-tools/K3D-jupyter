@@ -2,7 +2,7 @@
    "metadata" : {},
    "objects" : [{
          "type" : "Surface",
-         "modelViewMatrix" : [
+         "modelMatrix" : [
 		 30, 0, 0, 0, 
 		 0, 30, 0, 0, 
 		 0, 0, 30, 0.1,

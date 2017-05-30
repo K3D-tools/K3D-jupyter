@@ -102,7 +102,7 @@ function K3D(provider, targetDOMNode, parameters) {
         voxelPaintColor: 0,
         cameraAutoFit: true,
         gridAutoFit: true,
-        grid: [-2, -2, -2, 2, 2, 2],
+        grid: [-1, -1, -1, 1, 1, 1],
         antialias: true,
         clearColor: {
             color: 0xffffff,

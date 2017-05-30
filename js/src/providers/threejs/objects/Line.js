@@ -17,7 +17,7 @@ module.exports = function (config) {
             linewidth: config.get('lineWidth', 1)
         }),
         object = new THREE.Line(geometry, material),
-        modelViewMatrix = new THREE.Matrix4(),
+        modelMatrix = new THREE.Matrix4(),
         position = config.get('pointsPositions');
 
     if (typeof (position) === 'string') {
@@ -29,8 +29,8 @@ module.exports = function (config) {
     geometry.computeBoundingSphere();
     geometry.computeBoundingBox();
 
-    modelViewMatrix.set.apply(modelViewMatrix, config.get('modelViewMatrix'));
-    object.applyMatrix(modelViewMatrix);
+    modelMatrix.set.apply(modelMatrix, config.get('modelMatrix'));
+    object.applyMatrix(modelMatrix);
 
     object.updateMatrixWorld();
 

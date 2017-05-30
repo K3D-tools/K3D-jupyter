@@ -3,7 +3,7 @@
    "objects" : [{
          "type" : "Points",
          "shader": "flat",
-         "modelViewMatrix" : [
+         "modelMatrix" : [
 		 0, 0.1, 0, 0, 
 		 0.1, 0, 0, 0, 
 		 0, 0, 0.1, 0, 

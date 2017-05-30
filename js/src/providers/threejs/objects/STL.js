@@ -12,7 +12,7 @@ var buffer = require('./../../../core/lib/helpers/buffer');
 module.exports = function (config) {
 
     var loader = new THREE.STLLoader(),
-        modelViewMatrix = new THREE.Matrix4(),
+        modelMatrix = new THREE.Matrix4(),
         material = new THREE.MeshPhongMaterial({
             color: config.get('color'),
             emissive: 0x072534,
@@ -40,8 +40,8 @@ module.exports = function (config) {
     geometry.computeBoundingSphere();
     geometry.computeBoundingBox();
 
-    modelViewMatrix.set.apply(modelViewMatrix, config.get('modelViewMatrix'));
-    object.applyMatrix(modelViewMatrix);
+    modelMatrix.set.apply(modelMatrix, config.get('modelMatrix'));
+    object.applyMatrix(modelMatrix);
 
     object.updateMatrixWorld();
 

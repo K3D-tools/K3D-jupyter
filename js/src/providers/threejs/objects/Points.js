@@ -10,7 +10,7 @@ var buffer = require('./../../../core/lib/helpers/buffer'),
  * @return {Object} 3D object ready to render
  */
 module.exports = function (config) {
-    var modelViewMatrix = new THREE.Matrix4(),
+    var modelMatrix = new THREE.Matrix4(),
         color = new THREE.Color(config.get('color', 65280)),
         pointsPositions = config.get('pointsPositions'),
         pointsColors = config.get('pointsColors'),
@@ -63,8 +63,8 @@ module.exports = function (config) {
     colors = pointsColors ? colorsToFloat32Array(pointsColors) : getColorsArray(color, positions.length / 3);
     object = new THREE.Points(getGeometry(positions, colors), material);
 
-    modelViewMatrix.set.apply(modelViewMatrix, config.get('modelViewMatrix'));
-    object.applyMatrix(modelViewMatrix);
+    modelMatrix.set.apply(modelMatrix, config.get('modelMatrix'));
+    object.applyMatrix(modelMatrix);
 
     object.updateMatrixWorld();
 

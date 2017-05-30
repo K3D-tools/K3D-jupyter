@@ -9,7 +9,7 @@
 module.exports = function (config) {
 
     var object = new THREE.Object3D(),
-        modelViewMatrix = new THREE.Matrix4();
+        modelMatrix = new THREE.Matrix4();
 
     function updateGroupGeometry(mesh, geometry) {
         mesh.children[0].geometry.dispose();
@@ -53,8 +53,8 @@ module.exports = function (config) {
             2, 3)
     );
 
-    modelViewMatrix.set.apply(modelViewMatrix, config.get('modelViewMatrix'));
-    object.applyMatrix(modelViewMatrix);
+    modelMatrix.set.apply(modelMatrix, config.get('modelMatrix'));
+    object.applyMatrix(modelMatrix);
 
     object.updateMatrixWorld();
 
