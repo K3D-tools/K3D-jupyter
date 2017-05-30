@@ -155,16 +155,15 @@ class Factory(object):
             'labels': labels,
             'label_size': label_size,
             'head_size': head_size,
-            'colors': cls.__to_ndarray(colors, numpy.uint32),
             'colors': cls.__to_ndarray(colors, np.uint32),
             'head_color': head_color if head_color is not None else color,
             'origin_color': origin_color if origin_color is not None else color,
         })
 
     @classmethod
-    def vectors_fields(cls, vectors, colors=(), color=DEFAULT_COLOR, xmin=-.5, xmax=.5, ymin=-.5, ymax=.5, zmin=-.5,
-                       zmax=.5, model_matrix=np.identity(4), width=None, height=None, length=None, use_head=True,
-                       head_color=None, origin_color=None):
+    def vector_fields(cls, vectors, colors=(), color=DEFAULT_COLOR, xmin=-.5, xmax=.5, ymin=-.5, ymax=.5, zmin=-.5,
+                      zmax=.5, model_matrix=np.identity(4), width=None, height=None, length=None, use_head=True,
+                      head_color=None, head_size=1.0, origin_color=None):
         shape = np.shape(vectors)
 
         if len(shape[:-1]) < 3:
@@ -204,7 +203,7 @@ class Factory(object):
     @classmethod
     def voxels(cls, voxels, color_map, xmin=-.5, xmax=.5, ymin=-.5, ymax=.5, zmin=-.5, zmax=.5,
                model_matrix=np.identity(4), width=None, height=None, length=None):
-        length, height, width = cls.__get_dimensions(numpy.shape(voxels), length, height, width)
+        length, height, width = cls.__get_dimensions(np.shape(voxels), length, height, width)
 
         return Voxels(**{
             'model_matrix': cls.__get_model_matrix(model_matrix, xmin, xmax, ymin, ymax, zmin, zmax),
