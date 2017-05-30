@@ -20,6 +20,7 @@ module.exports = function (config, K3D) {
         origins = config.get('origins'),
         colors = config.get('colors'),
         useHead = config.get('useHead', true),
+        headSize = config.get('headSize', 1.0),
         object = new THREE.Group(),
         origin,
         destination,
@@ -59,7 +60,8 @@ module.exports = function (config, K3D) {
         throw new Error('there should be 2 colors for each vector');
     }
 
-    singleConeGeometry = new THREE.CylinderGeometry(0, 0.025, 0.2, 5, 1).translate(0, -0.1, 0);
+    singleConeGeometry = new THREE.CylinderGeometry(0, 0.025 * headSize, 0.2 * headSize, 5, 1)
+        .translate(0, -0.1 * headSize, 0);
 
     for (i = 0; i < vectors.length; i += 3) {
         origin = new THREE.Vector3(origins[i], origins[i + 1], origins[i + 2]);

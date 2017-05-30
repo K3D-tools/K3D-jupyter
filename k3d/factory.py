@@ -145,9 +145,7 @@ class Factory(object):
     @classmethod
     def vectors(cls, origins, vectors, xmin=-.5, xmax=.5, ymin=-.5, ymax=.5, zmin=-.5, zmax=.5,
                 model_matrix=numpy.identity(4), labels=(), colors=(), color=DEFAULT_COLOR, line_width=1,
-                labels_size=1.0,
-                head_color=None,
-                origin_color=None):
+                labels_size=1.0, head_size=1.0, head_color=None, origin_color=None):
         return Vectors(**{
             'model_matrix': cls.__get_model_matrix(model_matrix, xmin, xmax, ymin, ymax, zmin, zmax),
             'origins': cls.__to_ndarray(origins),
@@ -155,15 +153,16 @@ class Factory(object):
             'line_width': line_width,
             'labels': labels,
             'labels_size': labels_size,
+            'head_size': head_size,
             'colors': cls.__to_ndarray(colors, numpy.uint32),
             'head_color': head_color if head_color is not None else color,
             'origin_color': origin_color if origin_color is not None else color,
         })
 
     @classmethod
-    def vectors_fields(cls, vectors, colors=(), color=DEFAULT_COLOR, xmin=-.5, xmax=.5, ymin=-.5, ymax=.5, zmin=-.5,
-                       zmax=.5, model_matrix=numpy.identity(4), width=None, height=None, length=None, use_head=True,
-                       head_color=None, origin_color=None):
+    def vector_fields(cls, vectors, colors=(), color=DEFAULT_COLOR, xmin=-.5, xmax=.5, ymin=-.5, ymax=.5, zmin=-.5,
+                      zmax=.5, model_matrix=numpy.identity(4), width=None, height=None, length=None, use_head=True,
+                      head_color=None, head_size=1.0, origin_color=None):
         shape = numpy.shape(vectors)
 
         if len(shape[:-1]) < 3:
@@ -173,12 +172,13 @@ class Factory(object):
 
         cls.__validate_vectors_size(length, vector_size=shape[-1])
 
-        return VectorsFields(**{
+        return VectorFields(**{
             'use_head': use_head,
             'model_matrix': cls.__get_model_matrix(model_matrix, xmin, xmax, ymin, ymax, zmin, zmax),
             'vectors': cls.__to_ndarray(vectors),
             'width': width,
             'height': height,
+            'head_size': head_size,
             'colors': cls.__to_ndarray(colors, numpy.uint32),
             'head_color': head_color if head_color is not None else color,
             'origin_color': origin_color if head_color is not None else color,

@@ -319,6 +319,7 @@ class Vectors(SingleObject):
     head_color = _Attribute(int, int, 'headColor')
     labels = _Attribute((list, tuple), tuple, 'labels')
     labels_size = _Attribute(float, float, 'labelsSize')
+    head_size = _Attribute(float, float, 'headSize')
     line_width = _Attribute((int, float), float, 'lineWidth')
     model_matrix = _Attribute(numpy.ndarray, _to_list, 'modelMatrix')
     origin_color = _Attribute(int, int, 'originColor')
@@ -326,7 +327,7 @@ class Vectors(SingleObject):
     vectors = _Attribute(numpy.ndarray, _to_base64, 'vectors').transform(_strings, _to_ndarray)
 
 
-class VectorsFields(SingleObject):
+class VectorFields(SingleObject):
     colors = _Attribute(numpy.ndarray, partial(_to_base64, dtype=numpy.uint32), 'colors') \
         .transform(_strings, partial(_to_ndarray, dtype=numpy.uint32))
     head_color = _Attribute(int, int, 'headColor')
@@ -335,6 +336,7 @@ class VectorsFields(SingleObject):
     model_matrix = _Attribute(numpy.ndarray, _to_list, 'modelMatrix')
     origin_color = _Attribute(int, int, 'originColor')
     use_head = _Attribute(bool, bool, 'useHead')
+    head_size = _Attribute(float, float, 'headSize')
     vectors = _Attribute(numpy.ndarray, partial(_to_base64), 'vectors').transform(_strings, _to_ndarray)
     width = _Attribute(int, int, 'width')
 

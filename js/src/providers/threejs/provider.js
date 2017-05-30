@@ -53,7 +53,7 @@ module.exports = {
         Texture: require('./objects/Texture'),
         TorusKnot: require('./objects/TorusKnot'),
         Vectors: require('./objects/Vectors'),
-        VectorsFields: require('./objects/VectorsFields'),
+        VectorFields: require('./objects/VectorFields'),
         Voxels: require('./objects/Voxels'),
         Mesh: require('./objects/Mesh')
     },
