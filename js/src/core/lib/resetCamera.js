@@ -21,6 +21,8 @@ function resetCameraButton(container, K3D) {
         K3D.getWorld().render();
     });
 
+    element.setAttribute('title', 'Camera reset');
+
     container.insertBefore(element, container.firstChild);
 }
 

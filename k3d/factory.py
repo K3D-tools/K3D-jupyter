@@ -100,24 +100,24 @@ class Factory(object):
         })
 
     @classmethod
-    def vtkPolyData(cls, polyData, view_matrix=numpy.identity(4), color=DEFAULT_COLOR, color_attribute=None,
-                    color_map=basic_color_maps.Rainbow):
+    def vtk_poly_data(cls, poly_data, view_matrix=numpy.identity(4), color=DEFAULT_COLOR, color_attribute=None,
+                      color_map=basic_color_maps.Rainbow):
 
-        if polyData.GetPolys().GetMaxCellSize() > 3:
+        if poly_data.GetPolys().GetMaxCellSize() > 3:
             cutTriangles = vtk.vtkTriangleFilter()
-            cutTriangles.SetInputData(polyData)
+            cutTriangles.SetInputData(poly_data)
             cutTriangles.Update()
-            polyData = cutTriangles.GetOutput()
+            poly_data = cutTriangles.GetOutput()
 
         if color_attribute is not None:
-            vertex_scalars = numpy_support.vtk_to_numpy(polyData.GetPointData().GetArray(color_attribute[0]))
+            vertex_scalars = numpy_support.vtk_to_numpy(poly_data.GetPointData().GetArray(color_attribute[0]))
             color_range = color_attribute[1:3]
         else:
             vertex_scalars = ()
             color_range = ()
 
-        vertices = numpy_support.vtk_to_numpy(polyData.GetPoints().GetData())
-        indices = numpy_support.vtk_to_numpy(polyData.GetPolys().GetData()).reshape(-1, 4)[:, 1:4]
+        vertices = numpy_support.vtk_to_numpy(poly_data.GetPoints().GetData())
+        indices = numpy_support.vtk_to_numpy(poly_data.GetPolys().GetData()).reshape(-1, 4)[:, 1:4]
 
         return Mesh(**{
             'model_view_matrix': cls.__get_view_matrix(view_matrix),

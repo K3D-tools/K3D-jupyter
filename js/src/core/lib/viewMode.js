@@ -30,6 +30,8 @@ function viewModeButton(container, K3D) {
         activeViewMode = mode;
         element.src = images[mode];
         K3D.setViewMode(mode);
+
+        element.setAttribute('title', 'Voxels mode: ' + mode);
     }
 
     element.addEventListener('click', function () {
