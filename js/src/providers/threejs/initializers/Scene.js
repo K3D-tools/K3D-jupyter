@@ -8,6 +8,20 @@ function pow10ceil(x) {
     return Math.pow(10, Math.ceil(Math.log10(x)));
 }
 
+function ensureTwoTicksOnGrids(sceneBoundingBox, majorScale) {
+    var size = sceneBoundingBox.getSize();
+    var dist;
+
+    ['x', 'y', 'z'].forEach(function (axis) {
+        var dist = size[axis] / majorScale;
+
+        if (dist <= 2.0) {
+            sceneBoundingBox.min[axis] -= (1.0 - dist / 2 + 0.01) * majorScale;
+            sceneBoundingBox.max[axis] += (1.0 - dist / 2 + 0.01) * majorScale;
+        }
+    });
+}
+
 function generateEdgesPoints(box) {
     return {
         '-x+z': [
@@ -127,6 +141,7 @@ function rebuildSceneData(K3D, grids, force) {
         majorScale = pow10ceil(Math.max(size.x, size.y, size.z)) / 10.0;
         minorScale = majorScale / 10.0;
 
+        ensureTwoTicksOnGrids(sceneBoundingBox, majorScale);
 
         sceneBoundingBox.min = new THREE.Vector3(
             Math.floor(sceneBoundingBox.min.x / majorScale) * majorScale,
