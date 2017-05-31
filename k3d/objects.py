@@ -119,6 +119,14 @@ class Drawable(object):
     def set_plot(self, plot):
         pass
 
+    def _ipython_display_(self, **kwargs):
+        """Called when `IPython.display.display` is called on the widget."""
+        from IPython.display import display
+        from k3d.k3d import K3D
+        plot = K3D()
+        plot += self
+        return display(plot)
+
 
 class SingleObject(Drawable):
     __metaclass__ = ABCMeta
