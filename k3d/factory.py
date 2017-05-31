@@ -6,7 +6,7 @@ except ImportError:
     vtk = None
     numpy_support = None
 
-from k3d.colormaps.basic_color_maps import basic_color_maps
+from .colormaps.basic_color_maps import basic_color_maps
 from .objects import (Line, Mesh, MarchingCubes, Points, Surface, STL, Text, Text2d, Texture, Vectors, VectorFields,
                       Voxels)
 import numpy as np
