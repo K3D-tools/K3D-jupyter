@@ -176,9 +176,12 @@ function K3D(provider, targetDOMNode, parameters) {
      */
     this.setGrid = function (vectors) {
         self.parameters.grid = vectors;
-        self.rebuildSceneData(true);
-        world.setCameraToFitScene();
-        self.render();
+
+        Promise.all(self.rebuildSceneData(true)).then(function () {
+            self.refreshGrid();
+            world.setCameraToFitScene();
+            self.render();
+        });
     };
 
     /**
@@ -424,6 +427,7 @@ function K3D(provider, targetDOMNode, parameters) {
     viewModeButton(world.toolbarDOMNode, this);
 
     world.setCameraToFitScene();
+    self.rebuildSceneData(true);
     self.render();
 }
 

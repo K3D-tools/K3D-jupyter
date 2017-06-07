@@ -112,13 +112,15 @@ function rebuildSceneData(K3D, grids, force) {
     if (K3D.parameters.gridAutoFit || force) {
         // Grid generation
 
-        this.K3DObjects.traverse(function (object) {
-            if (object.geometry) {
-                objectBoundingBox = object.geometry.boundingBox.clone();
-                objectBoundingBox.applyMatrix4(object.matrixWorld);
-                sceneBoundingBox.union(objectBoundingBox);
-            }
-        });
+        if (K3D.parameters.gridAutoFit) {
+            this.K3DObjects.traverse(function (object) {
+                if (object.geometry) {
+                    objectBoundingBox = object.geometry.boundingBox.clone();
+                    objectBoundingBox.applyMatrix4(object.matrixWorld);
+                    sceneBoundingBox.union(objectBoundingBox);
+                }
+            });
+        }
 
         // cleanup previous data
         Object.keys(grids.planes).forEach(function (axis) {
