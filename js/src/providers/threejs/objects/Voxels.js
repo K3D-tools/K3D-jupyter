@@ -63,7 +63,8 @@ module.exports = function (config, K3D) {
                     getGeometry(generate()),
                     new THREE.MeshPhongMaterial({
                         vertexColors: THREE.VertexColors,
-                        shading: THREE.FlatShading
+                        shading: THREE.FlatShading,
+                        side: THREE.DoubleSide
                     })
                 );
 

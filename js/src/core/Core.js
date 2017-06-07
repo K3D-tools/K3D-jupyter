@@ -323,6 +323,8 @@ function K3D(provider, targetDOMNode, parameters) {
             world.setCameraToFitScene();
             self.render();
         });
+
+        dispatch(self.events.OBJECT_REMOVED);
     };
 
 
@@ -338,6 +340,8 @@ function K3D(provider, targetDOMNode, parameters) {
             objects.forEach(function (object) {
                 world.ObjectsListJson[object.id] = object;
             });
+
+            dispatch(self.events.OBJECT_LOADED);
         });
     };
 
@@ -395,6 +399,7 @@ function K3D(provider, targetDOMNode, parameters) {
         this.frameUpdateHandlers.before = [];
         this.frameUpdateHandlers.after = [];
         this.autoRendering = false;
+        listeners = {};
         currentWindow.removeEventListener('resize', this.resizeHelper);
     };
 
@@ -455,7 +460,9 @@ K3D.prototype.events = {
     VIEW_MODE_CHANGE: 'viewModeChange',
     RENDERED: 'rendered',
     RESIZED: 'resized',
-    CAMERA_CHANGE: 'cameraChange'
+    CAMERA_CHANGE: 'cameraChange',
+    OBJECT_LOADED: 'objectLoaded',
+    OBJECT_REMOVED: 'objectRemoved'
 };
 
 /**
