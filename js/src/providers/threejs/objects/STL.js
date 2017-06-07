@@ -1,12 +1,10 @@
 'use strict';
 
-var buffer = require('./../../../core/lib/helpers/buffer');
-
 /**
  * Loader strategy to handle STL object
  * @method STL
  * @memberof K3D.Providers.ThreeJS.Objects
- * @param {K3D.Config} config all configurations params from JSON
+ * @param {Object} config all configurations params from JSON
  * @return {Object} 3D object ready to render
  */
 module.exports = function (config) {
@@ -14,21 +12,20 @@ module.exports = function (config) {
     var loader = new THREE.STLLoader(),
         modelMatrix = new THREE.Matrix4(),
         material = new THREE.MeshPhongMaterial({
-            color: config.get('color'),
+            color: config.color,
             emissive: 0x072534,
-            shading: THREE.FlatShading
+            shading: THREE.FlatShading,
+            side: THREE.DoubleSide
         }),
-        STL = config.get('STL'),
+        text = config.text,
+        binary = config.binary,
         geometry,
         object;
 
-    try {
-        //Check if string is in base64 format
-        STL = buffer.base64ToArrayBuffer(STL);
-        geometry = loader.parseBinary(STL);
-    } catch (e) {
-        //plain string with STL
-        geometry = loader.parseASCII(STL);
+    if (binary && binary.byteLength > 0) {
+        geometry = loader.parseBinary(binary.buffer);
+    } else {
+        geometry = loader.parseASCII(text);
     }
 
     if (geometry.hasColors) {
@@ -40,7 +37,7 @@ module.exports = function (config) {
     geometry.computeBoundingSphere();
     geometry.computeBoundingBox();
 
-    modelMatrix.set.apply(modelMatrix, config.get('modelMatrix'));
+    modelMatrix.set.apply(modelMatrix, config.model_matrix);
     object.applyMatrix(modelMatrix);
 
     object.updateMatrixWorld();

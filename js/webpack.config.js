@@ -16,10 +16,10 @@ var rules = [
 
 var plugins = [];
 
-plugins.push(new webpack.optimize.UglifyJsPlugin({
-    compress: {warnings: false},
-    sourceMap: true
-}));
+// plugins.push(new webpack.optimize.UglifyJsPlugin({
+//     compress: {warnings: false},
+//     sourceMap: true
+// }));
 
 module.exports = [
     {// Notebook extension
@@ -55,7 +55,7 @@ module.exports = [
         module: {
             rules: rules
         },
-        externals: ['jupyter-js-widgets']
+        externals: ['@jupyter-widgets/controls']
     },
     {// Embeddable K3D-jupyter bundle
         //
@@ -84,6 +84,6 @@ module.exports = [
             rules: rules
         },
         plugins: plugins,
-        externals: ['jupyter-js-widgets']
+        externals: ['@jupyter-widgets/controls']
     }
 ];

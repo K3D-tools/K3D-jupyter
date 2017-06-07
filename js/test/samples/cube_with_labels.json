@@ -4,58 +4,42 @@
          "type" : "Text",
          "position" : [1, 1, 1],
          "text" : "vertex #5",
-         "fontOptions" : {
-            "face" : "Lato"
-         }
+         "font_face" : "Lato"
       }, {
          "type" : "Text",
          "position" : [1, 1, -1],
          "text" : "vertex #6",
-         "fontOptions" : {
-            "face" : "Lato"
-         }
+          "font_face" : "Lato"
       }, {
          "type" : "Text",
          "position" : [1, -1, 1],
          "text" : "vertex #1",
-         "fontOptions" : {
-            "face" : "Lato"
-         }
+          "font_face" : "Lato"
       }, {
          "type" : "Text",
          "position" : [1, -1, -1],
          "text" : "vertex #2",
-         "fontOptions" : {
-            "face" : "Lato"
-         }
+          "font_face" : "Lato"
       }, {
          "type" : "Text",
          "position" : [-1, 1, -1],
          "text" : "vertex #7",
-         "fontOptions" : {
-            "face" : "Lato"
-         }
+          "font_face" : "Lato"
       }, {
          "type" : "Text",
          "position" : [-1, 1, 1],
          "text" : "vertex #8",
-         "fontOptions" : {
-            "face" : "Lato"
-         }
+          "font_face" : "Lato"
       }, {
          "type" : "Text",
          "position" : [-1, -1, -1],
          "text" : "vertex #3",
-         "fontOptions" : {
-            "face" : "Lato"
-         }
+          "font_face" : "Lato"
       }, {
          "type" : "Text",
          "position" : [-1, -1, 1],
          "text" : "vertex #4",
-         "fontOptions" : {
-            "face" : "Lato"
-         }
+          "font_face" : "Lato"
       }
    ]
 }

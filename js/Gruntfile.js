@@ -60,6 +60,14 @@ module.exports = function (grunt) {
                     'src/**/*.css'
                 ],
                 tasks: ['webpack:dev']
+            },
+            webpackProd: {
+                files: [
+                    'src/**/*.js',
+                    'src/**/*.glsl',
+                    'src/**/*.css'
+                ],
+                tasks: ['webpack:prod']
             }
         },
         connect: {

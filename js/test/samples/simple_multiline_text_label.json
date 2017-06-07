@@ -6,9 +6,7 @@
          "position" : [0, 0, 0],
          "size": 1.0,
          "text" : "Sample single \nline text",
-         "fontOptions" : {
-            "face" : "Lato"
-         }
+         "font_face" : "Lato"
       }
    ]
 }

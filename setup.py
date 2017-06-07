@@ -14,7 +14,6 @@ from setupbase import (
 here = os.path.dirname(os.path.abspath(__file__))
 node_root = os.path.join(here, 'js')
 
-
 log.set_verbosity(log.DEBUG)
 log.info('setup.py entered')
 log.info('$PATH=%s' % os.environ['PATH'])
@@ -30,12 +29,12 @@ targets = [
 cmdclass = create_cmdclass(('jsdeps',))
 cmdclass['jsdeps'] = combine_commands(
     install_npm(node_root),
-    ensure_targets(targets),
+    ensure_targets(targets)
 )
 
 version_ns = {}
 with open(os.path.join(here, 'k3d', '_version.py')) as f:
-    exec (f.read(), {}, version_ns)
+    exec(f.read(), {}, version_ns)
 
 setup_args = {
     'name': 'K3D',
@@ -52,7 +51,9 @@ setup_args = {
         ]),
     ],
     'install_requires': [
-        'ipywidgets>=6.0.0',
+        'ipywidgets>=7.0.0',
+        'traittypes',
+        'traitlets',
         'numpy>=1.11.0'
     ],
     'packages': find_packages(),

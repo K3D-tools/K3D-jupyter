@@ -1,24 +1,23 @@
 'use strict';
 
-var buffer = require('./../../../core/lib/helpers/buffer'),
-    marchingCubesPolygonise = require('./../../../core/lib/helpers/marchingCubesPolygonise');
+var marchingCubesPolygonise = require('./../../../core/lib/helpers/marchingCubesPolygonise');
 /**
  * Loader strategy to handle Marching Cubes object
  * @method MarchingCubes
  * @memberof K3D.Providers.ThreeJS.Objects
- * @param {K3D.Config} config all configurations params from JSON
+ * @param {Object} config all configurations params from JSON
  * @return {Object} 3D object ready to render
  */
 module.exports = function (config) {
 
-    var scalarField = config.get('scalarField'),
-        width = config.get('width'),
-        height = config.get('height'),
-        length = config.get('length'),
-        level = config.get('level'),
+    var scalarField = config.scalar_field,
+        width = config.width,
+        height = config.height,
+        length = config.length,
+        level = config.level,
         modelMatrix = new THREE.Matrix4(),
         material = new THREE.MeshPhongMaterial({
-            color: config.get('color'),
+            color: config.color,
             emissive: 0,
             shininess: 50,
             specular: 0x111111,
@@ -29,14 +28,7 @@ module.exports = function (config) {
         positions = [],
         object,
         x, y, z,
-        polygonise = marchingCubesPolygonise,
-        toFloat32Array = buffer.toFloat32Array;
-
-    if (typeof (scalarField) === 'string') {
-        scalarField = buffer.base64ToArrayBuffer(scalarField);
-    }
-
-    scalarField = toFloat32Array(scalarField);
+        polygonise = marchingCubesPolygonise;
 
     for (z = 0; z < length - 1; z++) {
         for (y = 0; y < height - 1; y++) {
@@ -61,7 +53,7 @@ module.exports = function (config) {
 
     object = new THREE.Mesh(geometry, material);
 
-    modelMatrix.set.apply(modelMatrix, config.get('modelMatrix'));
+    modelMatrix.set.apply(modelMatrix, config.model_matrix);
 
     object.position.set(-0.5, -0.5, -0.5);
     object.updateMatrix();

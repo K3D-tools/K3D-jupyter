@@ -1,12 +1,10 @@
 import numpy as np
 from functools import reduce
 
-
 _epsilon = 1e-6
 
 
 class Transform(object):
-
     """
     Abstraction of a 4x4 model transformation matrix with hierarchy support.
     """
@@ -67,9 +65,9 @@ class Transform(object):
         if self.rotation is not None:
             a, b, c, d = self.rotation
             rotation_matrix = np.array([
-                [a*a + b*b - c*c - d*d, 2*(b*c - a*d),         2*(b*d + a*c),         0.],
-                [2*(b*c + a*d),         a*a - b*b + c*c - d*d, 2*(c*d - a*b),         0.],
-                [2*(b*d - a*c),         2*(c*d - a*b),         a*a - b*b - c*c + d*d, 0.],
+                [a * a + b * b - c * c - d * d, 2 * (b * c - a * d), 2 * (b * d + a * c), 0.],
+                [2 * (b * c + a * d), a * a - b * b + c * c - d * d, 2 * (c * d - a * b), 0.],
+                [2 * (b * d - a * c), 2 * (c * d - a * b), a * a - b * b - c * c + d * d, 0.],
                 [0., 0., 0., 1.]
             ])
         else:
@@ -105,4 +103,3 @@ class Transform(object):
             child.parent_updated()
         for drawable in self.drawables:
             drawable.model_matrix = self.model_matrix
-

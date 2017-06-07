@@ -278,9 +278,8 @@ function K3D(provider, targetDOMNode, parameters) {
      * Remove object from current world
      * @memberof K3D.Core
      * @param {String} id
-     * @param {Bool} objectsListJsonUpdating
      */
-    this.removeObject = function (id, objectsListJsonUpdating) {
+    this.removeObject = function (id) {
         var object = self.Provider.Helpers.getObjectById(world, id);
 
         if (object) {
@@ -315,9 +314,7 @@ function K3D(provider, targetDOMNode, parameters) {
             throw new Error('Object with id ' + id + ' dosen\'t exists');
         }
 
-        if (typeof (objectsListJsonUpdating) === 'undefined' || objectsListJsonUpdating === true) {
-            delete world.ObjectsListJson[id];
-        }
+        delete world.ObjectsListJson[id];
 
         Promise.all(self.rebuild()).then(function () {
             world.setCameraToFitScene();
@@ -331,16 +328,13 @@ function K3D(provider, targetDOMNode, parameters) {
      * @memberof K3D.Core
      * @public
      * @param {Object} json K3D-JSON object
-     * @param {Bool} objectsListJsonUpdating
      * @throws {Error} If Loader fails
      */
-    this.load = function (json, objectsListJsonUpdating) {
+    this.load = function (json) {
         loader(self, json).then(function (objects) {
-            if (typeof (objectsListJsonUpdating) === 'undefined' || objectsListJsonUpdating === true) {
-                objects.forEach(function (object) {
-                    world.ObjectsListJson[object.id] = object;
-                });
-            }
+            objects.forEach(function (object) {
+                world.ObjectsListJson[object.id] = object;
+            });
         });
     };
 
@@ -348,9 +342,8 @@ function K3D(provider, targetDOMNode, parameters) {
      * Reload object in current world
      * @memberof K3D.Core
      * @param {Object} json
-     * @param {Bool} objectsListJsonUpdating
      */
-    this.reload = function (json, objectsListJsonUpdating) {
+    this.reload = function (json) {
         var object = self.Provider.Helpers.getObjectById(world, json.id);
 
         if (!object) {
@@ -359,32 +352,10 @@ function K3D(provider, targetDOMNode, parameters) {
             return;
         }
 
-        if (typeof (objectsListJsonUpdating) === 'undefined' || objectsListJsonUpdating === true) {
-            world.ObjectsListJson[json.id] = json;
-        }
+        world.ObjectsListJson[json.id] = json;
 
         self.removeObject(json.id);
         self.load({objects: [json]});
-    };
-
-    /**
-     * Get Json data of  object in current world
-     * @memberof K3D.Core
-     * @param {Integer} id
-     */
-    this.getObjectJson = function (id) {
-        var object = self.Provider.Helpers.getObjectById(world, id);
-
-        if (!object) {
-            error('Get Object Json Error', 'K3D get object json failed, please consult browser error console!', false);
-            return;
-        }
-
-        if (object.getJson) {
-            return object.getJson();
-        } else {
-            return null;
-        }
     };
 
     /**

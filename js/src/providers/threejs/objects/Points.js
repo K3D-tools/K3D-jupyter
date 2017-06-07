@@ -6,20 +6,18 @@ var buffer = require('./../../../core/lib/helpers/buffer'),
  * Loader strategy to handle Points object
  * @method Points
  * @memberof K3D.Providers.ThreeJS.Objects
- * @param {K3D.Config} config all configurations params from JSON
+ * @param {Object} config all configurations params from JSON
  * @return {Object} 3D object ready to render
  */
 module.exports = function (config) {
     var modelMatrix = new THREE.Matrix4(),
-        color = new THREE.Color(config.get('color', 65280)),
-        pointPositions = config.get('pointPositions'),
-        pointColors = config.get('pointColors'),
-        shader = config.get('shader', '3dSpecular'),
-        positions,
+        color = new THREE.Color(config.color || 65280),
+        pointPositions = config.point_positions,
+        pointColors = config.point_colors,
+        shader = config.shader || '3dSpecular',
         colors,
         object,
         material,
-        toFloat32Array = buffer.toFloat32Array,
         colorsToFloat32Array = buffer.colorsToFloat32Array,
         fragmentShader,
         fragmentShaderMap = {
@@ -47,23 +45,14 @@ module.exports = function (config) {
     });
 
     // monkey-patching for imitate THREE.PointsMaterial
-    material.size = config.get('pointSize');
+    material.size = config.point_size;
     material.map = null;
     material.isPointsMaterial = true;
 
-    if (typeof (pointPositions) === 'string') {
-        pointPositions = buffer.base64ToArrayBuffer(pointPositions);
-    }
+    colors = pointColors ? colorsToFloat32Array(pointColors) : getColorsArray(color, pointPositions.length / 3);
+    object = new THREE.Points(getGeometry(pointPositions, colors), material);
 
-    if (typeof (pointColors) === 'string') {
-        pointColors = buffer.base64ToArrayBuffer(pointColors);
-    }
-
-    positions = toFloat32Array(pointPositions);
-    colors = pointColors ? colorsToFloat32Array(pointColors) : getColorsArray(color, positions.length / 3);
-    object = new THREE.Points(getGeometry(positions, colors), material);
-
-    modelMatrix.set.apply(modelMatrix, config.get('modelMatrix'));
+    modelMatrix.set.apply(modelMatrix, config.model_matrix);
     object.applyMatrix(modelMatrix);
 
     object.updateMatrixWorld();

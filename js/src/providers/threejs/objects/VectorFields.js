@@ -8,19 +8,19 @@ var buffer = require('./../../../core/lib/helpers/buffer'),
  * Loader strategy to handle Vector Fields object
  * @method Vector
  * @memberof K3D.Providers.ThreeJS.Objects
- * @param {K3D.Config} config all configurations params from JSON
+ * @param {Object} config all configurations params from JSON
  */
 module.exports = function (config) {
-    var modelMatrix = new THREE.Matrix4().fromArray(config.get('modelMatrix')),
-        originColor = new THREE.Color(config.get('originColor', 255)),
-        headColor = new THREE.Color(config.get('headColor', 255)),
-        width = config.get('width'),
-        height = config.get('height'),
-        length = config.get('length'),
-        vectors = config.get('vectors'),
-        colors = config.get('colors'),
-        useHead = config.get('useHead', true),
-        headSize = config.get('headSize', 1.0),
+    var modelMatrix = new THREE.Matrix4().fromArray(config.model_matrix),
+        originColor = new THREE.Color(config.origin_color || 255),
+        headColor = new THREE.Color(config.head_color || 255),
+        width = config.width,
+        height = config.height,
+        length = config.length,
+        vectors = config.vectors,
+        colors = config.colors,
+        useHead = config.use_head || true,
+        headSize = config.head_size || 1.0,
         object = new THREE.Group(),
         x,
         y,
@@ -33,20 +33,9 @@ module.exports = function (config) {
         singleConeGeometry,
         linesGeometry = new THREE.BufferGeometry(),
         lineVertices = [],
-        toFloat32Array = buffer.toFloat32Array,
         colorsToFloat32Array = buffer.colorsToFloat32Array;
 
-    if (typeof (vectors) === 'string') {
-        vectors = buffer.base64ToArrayBuffer(vectors);
-    }
-
-    if (typeof (colors) === 'string') {
-        colors = buffer.base64ToArrayBuffer(colors);
-    }
-
-    vectors = toFloat32Array(vectors);
-
-    if (typeof (length) === 'undefined') {
+    if (length === null || typeof (length) === 'undefined') {
         // 2d vectors fields
         length = 1;
         vectors = convert2DVectorsTable(vectors);
@@ -85,7 +74,7 @@ module.exports = function (config) {
         addHeads(heads, object);
     }
 
-    linesGeometry.addAttribute('position', new THREE.BufferAttribute(toFloat32Array(lineVertices), 3));
+    linesGeometry.addAttribute('position', new THREE.BufferAttribute(new Float32Array(lineVertices), 3));
     linesGeometry.addAttribute('color', new THREE.BufferAttribute(colors, 3));
 
     linesGeometry.computeBoundingSphere();
@@ -93,13 +82,13 @@ module.exports = function (config) {
 
     object.add(new THREE.LineSegments(linesGeometry, new THREE.LineBasicMaterial({
         vertexColors: THREE.VertexColors,
-        linewidth: config.get('lineWidth', 1)
+        linewidth: config.lineWidth || 1
     })));
 
     object.position.set(-0.5, -0.5, length === 1 ? 0 : -0.5);
     object.updateMatrix();
 
-    modelMatrix.set.apply(modelMatrix, config.get('modelMatrix'));
+    modelMatrix.set.apply(modelMatrix, config.model_matrix);
     object.applyMatrix(modelMatrix);
 
     object.updateMatrixWorld();

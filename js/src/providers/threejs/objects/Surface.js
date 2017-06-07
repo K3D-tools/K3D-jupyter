@@ -1,22 +1,20 @@
 'use strict';
 
-var buffer = require('./../../../core/lib/helpers/buffer');
-
 /**
  * Loader strategy to handle Surface object
  * @method MarchingCubes
  * @memberof K3D.Providers.ThreeJS.Objects
- * @param {K3D.Config} config all configurations params from JSON
+ * @param {Object} config all configurations params from JSON
  * @return {Object} 3D object ready to render
  */
 module.exports = function (config) {
 
-    var heights = config.get('heights'),
-        width = config.get('width'),
-        height = config.get('height'),
+    var heights = config.heights,
+        width = config.width,
+        height = config.height,
         modelMatrix = new THREE.Matrix4(),
         material = new THREE.MeshPhongMaterial({
-            color: config.get('color'),
+            color: config.color,
             emissive: 0,
             shininess: 50,
             specular: 0x111111,
@@ -26,14 +24,7 @@ module.exports = function (config) {
         geometry = new THREE.BufferGeometry(),
         vertices = new Float32Array((width - 1) * (height - 1) * 3 * 3 * 2),
         object,
-        x, y, i, p,
-        toFloat32Array = buffer.toFloat32Array;
-
-    if (typeof (heights) === 'string') {
-        heights = buffer.base64ToArrayBuffer(heights);
-    }
-
-    heights = toFloat32Array(heights);
+        x, y, i, p;
 
     for (y = 0, i = 0, p = 0; y < height - 1; y++) {
         for (x = 0; x < width - 1; x++, p++, i += 18) {
@@ -65,7 +56,7 @@ module.exports = function (config) {
     geometry.computeBoundingBox();
 
     object = new THREE.Mesh(geometry, material);
-    modelMatrix.set.apply(modelMatrix, config.get('modelMatrix'));
+    modelMatrix.set.apply(modelMatrix, config.model_matrix);
 
     object.position.set(-0.5, -0.5, 0);
     object.updateMatrix();

@@ -1,97 +1,91 @@
 'use strict';
 
-var widgets = require('jupyter-js-widgets'),
+var widgets = require('@jupyter-widgets/controls'),
     _ = require('lodash'),
-    pako = require('pako'),
-    jsonpatch = require('fast-json-patch'),
+    // pako = require('pako'),
     K3D = require('./core/Core'),
+    serialize = require('./core/lib/helpers/serialize'),
     ThreeJsProvider = require('./providers/threejs/provider'),
-    K3DModel,
-    K3DView,
-    semverRange = '~' + require('../package.json').version;
+    PlotModel,
+    PlotView,
+    ObjectModel,
+    ObjectView,
+    semverRange = '~' + require('../package.json').version,
+    objectsList = {},
+    plotsList = [];
 
 require('es6-promise');
 
-// Custom Model. Custom widgets models must at least provide default values
-// for model attributes, including
-//
-//  - `_view_name`
-//  - `_view_module`
-//  - `_view_module_version`
-//
-//  - `_model_name`
-//  - `_model_module`
-//  - `_model_module_version`
-//
-//  when different from the base class.
-
-// When serialiazing the entire widget state for embedding, only values that
-// differ from the defaults will be specified.
-
-function createPatchFromObject(object) {
-    return [{
-        'op': 'replace',
-        'path': object.attr.path,
-        'value': object.attr.value
-    }];
-}
-
-K3DModel = widgets.DOMWidgetModel.extend({
-    defaults: _.extend(_.result({}, 'widgets.DOMWidgetModel.prototype.defaults'), {
-        _model_name: 'K3D',
-        _view_name: 'K3D',
-        _model_module: 'K3D',
-        _view_module: 'K3D',
+ObjectModel = widgets.WidgetModel.extend({
+    defaults: _.extend(_.result({}, 'widgets.WidgetModel.prototype.defaults'), {
+        _model_name: 'ObjectModel',
+        _view_name: 'ObjectView',
+        _model_module: 'k3d',
+        _view_module: 'k3d',
         _model_module_version: semverRange,
-        _view_module_version: semverRange,
-        value: 'K3D'
+        _view_module_version: semverRange
     }),
 
-    updateHistory: function (obj) {
-        switch (obj.k3dOperation) {
-            case 'Insert':
-                this.objectsList[obj.id] = _.omit(obj, 'k3dOperation');
-                break;
-            case 'Update':
-                jsonpatch.apply(this.objectsList[obj.id], createPatchFromObject(obj));
-                break;
-            case 'Delete':
-                delete this.objectsList[obj.id];
-        }
-    },
-
     initialize: function () {
+        var obj = arguments[0];
+
         widgets.WidgetModel.prototype.initialize.apply(this, arguments);
-        this.on('change:data', this._decode, this);
-        this.on('msg:custom', this._fetchData, this);
-        this.objectsList = {};
-    },
 
-    _decode: function () {
-        var obj, data = this.get('data');
-
-        if (data) {
-            obj = JSON.parse(pako.ungzip(atob(data), {'to': 'string'}));
-
-            if (typeof (obj.k3dOperation) !== 'undefined') {
-                this.updateHistory(obj);
-                this.set('object', obj);
+        this.on('change', this._change, this);
+        this.on('msg:custom', function (obj) {
+            if (obj.msg_type === 'fetch') {
+                this.save(obj.field, this.get(obj.field));
             }
-        }
+        }, this);
+
+        objectsList[obj.id] = this;
     },
 
-    _fetchData: function (id) {
-        this.trigger('fetchData', id);
+    _change: function () {
+        plotsList.forEach(function (plot) {
+            plot.refreshObject(this);
+        }, this);
+    }
+}, {
+    serializers: {
+        model_matrix: serialize.array_or_json,
+        point_positions: serialize.array_or_json,
+        point_colors: serialize.array_or_json,
+        scalar_field: serialize.array_or_json,
+        color_map: serialize.array_or_json,
+        attribute: serialize.array_or_json,
+        vertices: serialize.array_or_json,
+        indices: serialize.array_or_json,
+        colors: serialize.array_or_json,
+        origins: serialize.array_or_json,
+        vectors: serialize.array_or_json,
+        heights: serialize.array_or_json,
+        voxels: serialize.array_or_json
     }
 });
 
+ObjectView = widgets.WidgetView.extend({});
+
+PlotModel = widgets.DOMWidgetModel.extend({
+    defaults: _.extend(_.result({}, 'widgets.DOMWidgetModel.prototype.defaults'), {
+        _model_name: 'PlotModel',
+        _view_name: 'PlotView',
+        _model_module: 'k3d',
+        _view_module: 'k3d',
+        _model_module_version: semverRange,
+        _view_module_version: semverRange
+    })
+});
+
 // Custom View. Renders the widget model.
-K3DView = widgets.DOMWidgetView.extend({
+PlotView = widgets.DOMWidgetView.extend({
     render: function () {
         var container = $('<div />').css('position', 'relative');
 
         this.container = container.css({'height': this.model.get('height')}).appendTo(this.$el).get(0);
         this.on('displayed', this._init, this);
+
+        plotsList.push(this);
 
         this.model.on('change:camera_auto_fit', this._setCameraAutoFit, this);
         this.model.on('change:grid_auto_fit', this._setGridAutoFit, this);
@@ -99,9 +93,12 @@ K3DView = widgets.DOMWidgetView.extend({
         this.model.on('change:background_color', this._setBackgroundColor, this);
         this.model.on('change:grid', this._setGrid, this);
         this.model.on('change:camera', this._setCamera, this);
+        this.model.on('change:object_ids', this._onObjectsListChange, this);
+    },
 
-        this.model.on('change:object', this._onObjectChange, this);
-        this.model.on('fetchData', this._fetchData, this);
+    remove: function () {
+        _.pull(plotsList, this);
+        this.K3DInstance.off(this.K3DInstance.events.CAMERA_CHANGE, this.cameraChangeId);
     },
 
     _init: function () {
@@ -109,8 +106,7 @@ K3DView = widgets.DOMWidgetView.extend({
 
         try {
             this.K3DInstance = new K3D(ThreeJsProvider, this.container, {
-                antialias: this.model.get('antialias'),
-                ObjectsListJson: this.model.objectsList
+                antialias: this.model.get('antialias')
             });
         } catch (e) {
             return;
@@ -125,13 +121,15 @@ K3DView = widgets.DOMWidgetView.extend({
         this._setGridAutoFit();
         this._setVoxelPaintColor();
 
-        Object.keys(this.model.objectsList).forEach(function (key) {
-            var obj = _.extend({}, this.model.objectsList[key], {'k3dOperation': 'Insert'});
-
-            this._onObjectChange(this.model, obj);
+        this.model.get('object_ids').forEach(function (id) {
+            this.objectsChangesQueue.push({id: id, operation: 'insert'});
         }, this);
 
-        this.K3DInstance.on(this.K3DInstance.events.CAMERA_CHANGE, function (control) {
+        if (this.objectsChangesQueue.length > 0) {
+            this.startRefreshing();
+        }
+
+        this.cameraChangeId = this.K3DInstance.on(this.K3DInstance.events.CAMERA_CHANGE, function (control) {
             self.model.set('camera', control);
             self.model.save_changes();
         });
@@ -162,18 +160,24 @@ K3DView = widgets.DOMWidgetView.extend({
     },
 
     _processObjectsChangesQueue: function (self) {
-        var object = self.objectsChangesQueue.shift();
+        var obj;
 
-        switch (object.k3dOperation) {
-            case 'Insert':
-                self.K3DInstance.load({objects: [_.omit(object, 'k3dOperation')]}, false);
-                break;
-            case 'Update':
-                object = self.model.objectsList[object.id];
-                self.K3DInstance.reload(object, false);
-                break;
-            case 'Delete':
-                self.K3DInstance.removeObject(object.id, false);
+        if (self.objectsChangesQueue.length === 0) {
+            return;
+        }
+
+        obj = self.objectsChangesQueue.shift();
+
+        if (obj.operation === 'delete') {
+            self.K3DInstance.removeObject(obj.id);
+        }
+
+        if (obj.operation === 'insert') {
+            self.K3DInstance.load({objects: [objectsList[obj.id].attributes]});
+        }
+
+        if (obj.operation === 'update') {
+            self.K3DInstance.reload(objectsList[obj.id].attributes);
         }
 
         if (self.objectsChangesQueue.length > 0) {
@@ -183,30 +187,40 @@ K3DView = widgets.DOMWidgetView.extend({
         }
     },
 
-    _onObjectChange: function (model, object) {
-        this.objectsChangesQueue.push(object);
+    _onObjectsListChange: function () {
+        var old_object_ids = this.model.previous('object_ids'),
+            new_object_ids = this.model.get('object_ids');
 
+        _.difference(old_object_ids, new_object_ids).forEach(function (id) {
+            this.objectsChangesQueue.push({id: id, operation: 'delete'});
+        }, this);
+
+        _.difference(new_object_ids, old_object_ids).forEach(function (id) {
+            this.objectsChangesQueue.push({id: id, operation: 'insert'});
+        }, this);
+
+        this.startRefreshing();
+    },
+
+    refreshObject: function (obj) {
+        if (this.model.get('object_ids').indexOf(obj.get('id')) !== -1) {
+            this.objectsChangesQueue.push({id: obj.get('id'), operation: 'update'});
+            this.startRefreshing();
+        }
+    },
+
+    startRefreshing: function () {
         // force setTimeout to avoid freeze on browser in case of heavy load
         if (!this.objectsChangesQueueRun) {
             this.objectsChangesQueueRun = true;
             setTimeout(this._processObjectsChangesQueue, 0, this);
         }
-    },
-
-    _fetchData: function (id) {
-        var currentObjectJson = this.K3DInstance.getObjectJson(id);
-
-        if (currentObjectJson !== null) {
-            this.send({
-                type: 'object',
-                id: id,
-                'data': jsonpatch.compare(this.model.objectsList[id], currentObjectJson)
-            });
-        }
     }
 });
 
 module.exports = {
-    K3DModel: K3DModel,
-    K3DView: K3DView
+    PlotModel: PlotModel,
+    PlotView: PlotView,
+    ObjectModel: ObjectModel,
+    ObjectView: ObjectView
 };

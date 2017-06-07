@@ -4,26 +4,26 @@
  * Loader strategy to handle Text object
  * @method Text
  * @memberof K3D.Providers.ThreeJS.Objects
- * @param {K3D.Config} config all configurations params from JSON
+ * @param {Object} config all configurations params from JSON
  * @return {Object} 3D object ready to render
  */
 module.exports = function (config) {
 
-    var text = config.get('text', '+').split('\n'),
-        color = config.get('color', 0xFFFFFF),
-        position = config.get('position'),
-        size = config.get('size', 1.0),
+    var text = config.text.split('\n'),
+        color = config.color || 0xFFFFFF,
+        position = config.position,
+        size = config.size || 1.0,
 
-    // Setup font
-        fontFace = config.get('fontOptions.face', 'Courier New'),
-        fontSize = config.get('fontOptions.size', 68),
-        fontWeight = config.get('fontOptions.weight', 'bold'),
+        // Setup font
+        fontFace = config.font_face || 'Courier New',
+        fontSize = config.font_size || 68,
+        fontWeight = config.font_weight || 700,
         fontSpec = fontWeight + ' ' + fontSize + 'px ' + fontFace,
 
-    // Helper canvas
+        // Helper canvas
         canvas = document.createElement('canvas'),
         context = canvas.getContext('2d'),
-    // Helpers
+        // Helpers
         isMultiline = text.length > 1,
         longestLineWidth,
         object;
@@ -32,18 +32,13 @@ module.exports = function (config) {
 
     longestLineWidth = getLongestLineWidth(text, context);
 
-    canvas.width = config.has('textureOptions.usePredefinedSize') ? 1024 : closestPowOfTwo(longestLineWidth);
+    canvas.width = closestPowOfTwo(longestLineWidth);
     canvas.height = ~~canvas.width;
-
-    if (config.has('textureOptions.drawTextureBorder')) {
-        drawTextureBorder(context, canvas.width, canvas.height);
-    }
 
     context.font = fontSpec;
     context.textBaseline = 'top';
     context.fillStyle = colorToHex(color);
-    context.strokeStyle = colorToHex(config.get('fontOptions.strokeColor', 0));
-    context.lineWidth = config.get('fontOptions.strokeWidth', 5);
+    context.lineWidth = 5;
 
     text.forEach(function (line, index) {
         var x = (canvas.width - longestLineWidth) / 2,
@@ -57,18 +52,6 @@ module.exports = function (config) {
 
     return Promise.resolve(object);
 };
-
-/**
- * Draw Texture border for debugging
- * @param  {Object} context
- * @param  {Number} width
- * @param  {Number} height
- */
-function drawTextureBorder(context, width, height) {
-    context.strokeStyle = '#FF0000';
-    context.lineWidth = 20;
-    context.strokeRect(0, 0, width, height);
-}
 
 /**
  * Finds the nearest (greater than x) power of two of given x

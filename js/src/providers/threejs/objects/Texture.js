@@ -1,10 +1,12 @@
 'use strict';
 
+var buffer = require('./../../../core/lib/helpers/buffer');
+
 /**
  * Loader strategy to handle Texture object
  * @method Line
  * @memberof K3D.Providers.ThreeJS.Objects
- * @param {K3D.Config} config all configurations params from JSON
+ * @param {Object} config all configurations params from JSON
  * @return {Object} 3D object ready to render
  */
 module.exports = function (config) {
@@ -17,7 +19,8 @@ module.exports = function (config) {
             object;
 
         image = document.createElement('img');
-        image.src = config.get('image');
+        image.src = 'data:image/' + config.file_format + ';base64,' +
+            buffer.bufferToBase64(config.binary.buffer);
 
         geometry.computeBoundingSphere();
         geometry.computeBoundingBox();
@@ -26,7 +29,7 @@ module.exports = function (config) {
             material = new THREE.MeshBasicMaterial({color: 0xffffff, side: THREE.DoubleSide, map: texture});
             object = new THREE.Mesh(geometry, material);
 
-            modelMatrix.set.apply(modelMatrix, config.get('modelMatrix'));
+            modelMatrix.set.apply(modelMatrix, config.model_matrix);
             object.applyMatrix(modelMatrix);
 
             object.updateMatrixWorld();

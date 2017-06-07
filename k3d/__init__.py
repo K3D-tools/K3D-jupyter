@@ -1,6 +1,12 @@
-from ._version import version_info, __version__
+from ._version import version_info
 
-from .k3d import *
+from .colormaps.paraview_color_maps import paraview_color_maps
+from .colormaps.basic_color_maps import basic_color_maps
+from .colormaps.matplotlib_color_maps import matplotlib_color_maps
+
+from .k3d import plot, points, line, vtk_poly_data, stl, texture, vectors, vector_fields, voxels, marching_cubes, mesh, \
+    surface, text, text2d
+
 
 def _jupyter_nbextension_paths():
     return [{

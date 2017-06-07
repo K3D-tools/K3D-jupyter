@@ -49,7 +49,7 @@ function detachWindowButton(container, K3D) {
         newK3D = new K3D.constructor(K3D.Provider, DOM, K3D.parameters);
 
         objects = world.K3DObjects.children.reduce(function (prev, object) {
-            prev.push(object.getJson ? object.getJson() : world.ObjectsListJson[object.K3DIdentifier]);
+            prev.push(world.ObjectsListJson[object.K3DIdentifier]);
 
             return prev;
         }, []);

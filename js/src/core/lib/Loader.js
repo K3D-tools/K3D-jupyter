@@ -1,9 +1,7 @@
 'use strict';
 
 var validateAndPrepareObject = require('./helpers/objectValidator'),
-    error = require('./Error').error,
-    Config = require('./Config'),
-    _ = require('lodash');
+    error = require('./Error').error;
 
 /**
  * @method K3D.Loader
@@ -30,7 +28,7 @@ function loader(K3D, json) {
 
             startTime = new Date().getTime();
 
-            K3DObjectPromise = loader(new Config(_.cloneDeep(object)), K3D)
+            K3DObjectPromise = loader(object, K3D)
                 .then(function (K3DObject) {
                     var objectNumber;
 

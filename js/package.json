@@ -1,6 +1,6 @@
 {
   "name": "K3D",
-  "version": "2.0.18",
+  "version": "2.1.0",
   "description": "3D visualization library",
   "author": "k3d team",
   "main": "src/index.js",
@@ -59,7 +59,8 @@
   "dependencies": {
     "es6-promise": "^4.1.0",
     "fast-json-patch": "^1.1.9",
-    "jupyter-js-widgets": "^2.1.4",
+    "@jupyter-widgets/controls": "^0.2.0",
+    "@jupyter-widgets/base": "^0.2.0",
     "katex": "^0.7.1",
     "lodash": "^4.17.4",
     "pako": "^1.0.5",

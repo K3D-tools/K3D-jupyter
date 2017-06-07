@@ -3,7 +3,7 @@
  * Loader strategy to handle TorusKnot object
  * @method TorusKnot
  * @memberof K3D.Providers.ThreeJS.Objects
- * @param {K3D.Config} config all configurations params from JSON
+ * @param {Object} config all configurations params from JSON
  * @return {Object} 3D object ready to render
  */
 module.exports = function (config) {
@@ -37,7 +37,7 @@ module.exports = function (config) {
     object.add(new THREE.Mesh(
         new THREE.Geometry(),
         new THREE.MeshPhongMaterial({
-            color: config.get('color'),
+            color: config.color,
             emissive: 0x072534,
             side: THREE.DoubleSide,
             shading: THREE.FlatShading
@@ -46,14 +46,14 @@ module.exports = function (config) {
 
     updateGroupGeometry(object,
         new THREE.TorusKnotGeometry(
-            config.get('radius'),
-            config.get('tube'),
+            config.radius,
+            config.tube,
             64,
-            config.get('knotsNumber'),
+            config.knotsNumber,
             2, 3)
     );
 
-    modelMatrix.set.apply(modelMatrix, config.get('modelMatrix'));
+    modelMatrix.set.apply(modelMatrix, config.model_matrix);
     object.applyMatrix(modelMatrix);
 
     object.updateMatrixWorld();

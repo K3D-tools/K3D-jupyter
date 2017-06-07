@@ -1,129 +1,211 @@
-import base64
-import json
-import warnings
-import zlib
+# optional dependency
+try:
+    import vtk
+    from vtk.util import numpy_support
+except ImportError:
+    vtk = None
+    numpy_support = None
 
-import ipywidgets as widgets
-from traitlets import Unicode, Bool, Int, List
-
-from ._version import version_info, __version__
-from .factory import Factory
-from .objects import Drawable
-
-from .colormaps.paraview_color_maps import paraview_color_maps
+import numpy as np
+import six
 from .colormaps.basic_color_maps import basic_color_maps
-from .colormaps.matplotlib_color_maps import matplotlib_color_maps
+from .plot import Plot
+from .helpers import get_model_matrix, get_dimensions, validate_vectors_size
+from .objects import Line, Points, Text, Text2d, Surface, Mesh, MarchingCubes, Voxels, VectorFields, Vectors, Texture, \
+    STL
+
+_default_color = 0x0000FF
 
 
-class K3D(widgets.DOMWidget, Factory):
-    version = version_info
-    _view_name = Unicode('K3DView').tag(sync=True)
-    _model_name = Unicode('K3DModel').tag(sync=True)
-    _view_module = Unicode('k3d').tag(sync=True)
-    _model_module = Unicode('k3d').tag(sync=True)
+def vtk_poly_data(poly_data, model_matrix=np.identity(4), color=_default_color, color_attribute=None,
+                  color_map=basic_color_maps.Rainbow):
+    if poly_data.GetPolys().GetMaxCellSize() > 3:
+        cut_triangles = vtk.vtkTriangleFilter()
+        cut_triangles.SetInputData(poly_data)
+        cut_triangles.Update()
+        poly_data = cut_triangles.GetOutput()
 
-    _view_module_version = Unicode('~' + __version__).tag(sync=True)
-    _model_module_version = Unicode('~' + __version__).tag(sync=True)
+    if color_attribute is not None:
+        attribute = numpy_support.vtk_to_numpy(poly_data.GetPointData().GetArray(color_attribute[0]))
+        color_range = color_attribute[1:3]
+    else:
+        attribute = []
+        color_range = []
 
-    objects = []
-    COMPRESSION_LEVEL = 1
+    vertices = numpy_support.vtk_to_numpy(poly_data.GetPoints().GetData())
+    indices = numpy_support.vtk_to_numpy(poly_data.GetPolys().GetData()).reshape(-1, 4)[:, 1:4]
 
-    data = Unicode().tag(sync=True)
+    return Mesh(**{
+        'model_matrix': model_matrix,
+        'vertices': np.array(vertices, np.float32),
+        'indices': np.array(indices, np.uint32),
+        'color': color,
+        'attribute': np.array(attribute, np.float32),
+        'color_range': color_range,
+        'color_map': np.array(color_map, np.float32)
+    })
 
-    # readonly
-    antialias = Bool().tag(sync=True)
-    height = Int().tag(sync=True)
 
-    # read-write
-    camera_auto_fit = Bool(True).tag(sync=True)
-    grid_auto_fit = Bool(True).tag(sync=True)
-    grid = List().tag(sync=True)
-    background_color = Int().tag(sync=True)
-    voxel_paint_color = Int().tag(sync=True)
-    camera = List().tag(sync=True)
+def stl(stl, model_matrix=np.identity(4), color=_default_color):
+    return STL(**{
+        'model_matrix': model_matrix,
+        'color': color,
+        'text': stl if isinstance(stl, six.string_types) else None,
+        'binary': np.array(stl) if not isinstance(stl, six.string_types) else np.array([])
+    })
 
-    basic_color_maps = basic_color_maps
-    paraview_color_maps = paraview_color_maps
-    matplotlib_color_maps = matplotlib_color_maps
 
-    def __init__(self, antialias=True, background_color=0xFFFFFF, camera_auto_fit=True, grid_auto_fit=True, height=512,
-                 voxel_paint_color=0, grid=[-1, -1, -1, 1, 1, 1]):
-        super(K3D, self).__init__()
-        self.on_msg(self.__on_msg)
+def texture(binary, file_format, xmin=-.5, xmax=.5, ymin=-.5, ymax=.5, zmin=-.5, zmax=.5, model_matrix=np.identity(4)):
+    return Texture(**{
+        'model_matrix': get_model_matrix(model_matrix, xmin, xmax, ymin, ymax, zmin, zmax),
+        'binary': binary,
+        'file_format': file_format
+    })
 
-        self.antialias = antialias
-        self.camera_auto_fit = camera_auto_fit
-        self.grid_auto_fit = grid_auto_fit
-        self.grid = grid
-        self.background_color = background_color
-        self.voxel_paint_color = voxel_paint_color
-        self.height = height
 
-        self.objects = []
+def vectors(origins, vectors, xmin=-.5, xmax=.5, ymin=-.5, ymax=.5, zmin=-.5, zmax=.5,
+            model_matrix=np.identity(4), use_head=True, labels=[], colors=[], color=_default_color, line_width=1,
+            label_size=1.0, head_size=1.0, head_color=None, origin_color=None):
+    return Vectors(**{
+        'model_matrix': get_model_matrix(model_matrix, xmin, xmax, ymin, ymax, zmin, zmax),
+        'use_head': use_head,
+        'origins': np.array(origins, np.float32),
+        'vectors': np.array(vectors, np.float32),
+        'line_width': line_width,
+        'labels': labels,
+        'label_size': label_size,
+        'head_size': head_size,
+        'colors': np.array(colors, np.uint32),
+        'head_color': head_color if head_color is not None else color,
+        'origin_color': origin_color if origin_color is not None else color,
+    })
 
-    def __iadd__(self, objs):
-        assert isinstance(objs, Drawable)
 
-        if objs.set_plot(self):
-            for obj in objs:
-                self.objects.append(obj)
+def vector_fields(vectors, colors=[], color=_default_color, xmin=-.5, xmax=.5, ymin=-.5, ymax=.5, zmin=-.5,
+                  zmax=.5, model_matrix=np.identity(4), width=None, height=None, length=None, use_head=True,
+                  head_color=None, head_size=1.0, origin_color=None):
+    shape = np.shape(vectors)
 
-                sync_data = obj.data
-                sync_data['k3dOperation'] = 'Insert'
-                self.data = self.__to_compressed_base64(self.__to_json(sync_data))
+    if len(shape[:-1]) < 3:
+        shape = (None,) + shape
 
-        return self
+    length, height, width = get_dimensions(shape[:-1], length, height, width)
 
-    def __add__(self, objs):
-        warnings.warn('Using plus operator to add objects to plot is discouraged in favor of +=')
-        return self.__iadd__(objs)
+    validate_vectors_size(length, vector_size=shape[-1])
 
-    def __isub__(self, objs):
-        assert isinstance(objs, Drawable)
+    return VectorFields(**{
+        'model_matrix': get_model_matrix(model_matrix, xmin, xmax, ymin, ymax, zmin, zmax),
+        'use_head': use_head,
+        'vectors': np.array(vectors, np.float32),
+        'width': width,
+        'height': height,
+        'length': length,
+        'head_size': head_size,
+        'colors': np.array(colors, np.uint32),
+        'head_color': head_color if head_color is not None else color,
+        'origin_color': origin_color if head_color is not None else color
+    })
 
-        for obj in objs:
-            if obj.unset_plot(self):
-                self.update(obj.id)
-                self.objects.remove(obj)
 
-        return self
+def voxels(voxels, color_map, xmin=-.5, xmax=.5, ymin=-.5, ymax=.5, zmin=-.5, zmax=.5,
+           model_matrix=np.identity(4), width=None, height=None, length=None):
+    length, height, width = get_dimensions(np.shape(voxels), length, height, width)
 
-    def __sub__(self, objs):
-        warnings.warn('Using minus operator to remove objects from plot is discouraged in favor of -=')
-        return self.__isub__(objs)
+    return Voxels(**{
+        'model_matrix': get_model_matrix(model_matrix, xmin, xmax, ymin, ymax, zmin, zmax),
+        'width': width,
+        'height': height,
+        'length': length,
+        'color_map': np.array(color_map, np.float32),
+        'voxels': np.array(voxels, np.uint8)
+    })
 
-    def fetch_data(self, obj):
-        self.send(obj.id)
 
-    def __on_msg(self, *args):
-        json = args[1]
-        if json['type'] == 'object':
-            for obj in self.objects:
-                if obj.id == json['id']:
-                    obj.update(json['data'])
+def marching_cubes(scalar_field, level, xmin=-.5, xmax=.5, ymin=-.5, ymax=.5, zmin=-.5, zmax=.5,
+                   model_matrix=np.identity(4), width=None, height=None, length=None, color=_default_color):
+    length, height, width = get_dimensions(np.shape(scalar_field), length, height, width)
 
-    def update(self, obj_id, attr=None):
-        data = {
-            'k3dOperation': 'Update',
-            'id': obj_id,
-            'attr': attr,
-        }
+    return MarchingCubes(**{
+        'model_matrix': get_model_matrix(model_matrix, xmin, xmax, ymin, ymax, zmin, zmax),
+        'width': width,
+        'height': height,
+        'length': length,
+        'color': color,
+        'level': level,
+        'scalar_field': np.array(scalar_field, np.float32)
+    })
 
-        if attr is None:
-            data['k3dOperation'] = 'Delete'
 
-        self.data = self.__to_compressed_base64(self.__to_json(data))
+def mesh(vertices, indices, attribute=[], color_range=[], color_map=[], model_matrix=np.identity(4),
+         color=_default_color):
+    return Mesh(**{
+        'model_matrix': model_matrix,
+        'vertices': np.array(vertices, np.float32),
+        'indices': np.array(indices, np.uint32),
+        'color': color,
+        'attribute': np.array(attribute, np.float32),
+        'color_range': color_range,
+        'color_map': np.array(color_map, np.float32)
+    })
 
-    @staticmethod
-    def __to_json(data):
-        return json.dumps(data, separators=(',', ':')).encode(encoding='ascii')
 
-    @classmethod
-    def __to_compressed_base64(cls, data):
-        return base64.b64encode(zlib.compress(data, cls.COMPRESSION_LEVEL))
+def surface(heights, xmin=-.5, xmax=.5, ymin=-.5, ymax=.5, model_matrix=np.identity(4), width=None,
+            height=None, color=_default_color):
+    height, width = get_dimensions(np.shape(heights), height, width)
 
-    def display(self, **kwargs):
-        super(K3D, self)._ipython_display_(**kwargs)
+    return Surface(**{
+        'model_matrix': get_model_matrix(model_matrix, xmin, xmax, ymin, ymax),
+        'color': color,
+        'width': width,
+        'height': height,
+        'heights': np.array(heights, np.float32),
+    })
 
-    def __pass(self, *args, **kwargs):
-        pass
+
+def text(text, position=[0, 0, 0], color=_default_color, font_weight=400, font_face='Courier New',
+         font_size=68, size=1.0):
+    return Text(**{
+        'position': position,
+        'text': text,
+        'color': color,
+        'size': size,
+        'font_face': font_face,
+        'font_size': font_size,
+        'font_weight': font_weight
+    })
+
+
+def text2d(text, position=[0, 0, 0], color=_default_color, size=1.0, reference_point='lb'):
+    return Text2d(**{
+        'position': position,
+        'reference_point': reference_point,
+        'text': text,
+        'size': size,
+        'color': color,
+    })
+
+
+def points(positions, colors=[], color=_default_color, model_matrix=np.identity(4), point_size=1.0,
+           shader='3dSpecular'):
+    return Points(**{
+        'model_matrix': get_model_matrix(model_matrix),
+        'point_size': point_size,
+        'point_positions': np.array(positions, np.float32),
+        'point_colors': np.array(colors, np.float32),
+        'color': color,
+        'shader': shader
+    })
+
+
+def line(positions, xmin=-.5, xmax=.5, ymin=-.5, ymax=.5, zmin=-.5, zmax=.5, model_matrix=np.identity(4),
+         width=1, color=_default_color):
+    return Line(**{
+        'model_matrix': get_model_matrix(model_matrix, xmin, xmax, ymin, ymax, zmin, zmax),
+        'color': color,
+        'line_width': width,
+        'point_positions': np.array(positions, np.float32)
+    })
+
+
+def plot(*args, **kwargs):
+    return Plot(*args, **kwargs)

@@ -1,35 +1,29 @@
 'use strict';
 
-var buffer = require('./../../../core/lib/helpers/buffer');
-
 /**
  * Loader strategy to handle Line object
  * @method Line
  * @memberof K3D.Providers.ThreeJS.Objects
- * @param {K3D.Config} config all configurations params from JSON
+ * @param {Object} config all configurations params from JSON
  * @return {Object} 3D object ready to render
-*/
+ */
 module.exports = function (config) {
 
     var geometry = new THREE.BufferGeometry(),
         material = new THREE.LineBasicMaterial({
-            color: config.get('color', 0),
-            linewidth: config.get('lineWidth', 1)
+            color: config.color || 0,
+            linewidth: config.line_width || 1
         }),
         object = new THREE.Line(geometry, material),
         modelMatrix = new THREE.Matrix4(),
-        position = config.get('pointPositions');
+        position = config.point_positions;
 
-    if (typeof (position) === 'string') {
-        position = buffer.base64ToArrayBuffer(position);
-    }
-
-    geometry.addAttribute('position', new THREE.BufferAttribute(buffer.toFloat32Array(position), 3));
+    geometry.addAttribute('position', new THREE.BufferAttribute(position, 3));
 
     geometry.computeBoundingSphere();
     geometry.computeBoundingBox();
 
-    modelMatrix.set.apply(modelMatrix, config.get('modelMatrix'));
+    modelMatrix.set.apply(modelMatrix, config.model_matrix);
     object.applyMatrix(modelMatrix);
 
     object.updateMatrixWorld();

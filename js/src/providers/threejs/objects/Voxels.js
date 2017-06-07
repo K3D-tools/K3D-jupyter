@@ -8,18 +8,18 @@ var voxelMeshGenerator = require('./../../../core/lib/helpers/voxelMeshGenerator
  * Loader strategy to handle Voxels object
  * @method Voxel
  * @memberof K3D.Providers.ThreeJS.Objects
- * @param {K3D.Config} config all configurations params from JSON
+ * @param {Object} config all configurations params from JSON
  * @param {Object} K3D
  */
 module.exports = function (config, K3D) {
     const chunkSize = 32;
 
-    var modelMatrix = new THREE.Matrix4().fromArray(config.get('modelMatrix')),
-        width = config.get('width'),
-        height = config.get('height'),
-        length = config.get('length'),
-        voxels = config.get('voxels'),
-        colorMap = config.get('colorMap', [16777215, 16711680, 65280, 255, 16776960, 16711935, 65535]),
+    var modelMatrix = new THREE.Matrix4().fromArray(config.model_matrix),
+        width = config.width,
+        height = config.height,
+        length = config.length,
+        voxels = config.voxels,
+        colorMap = config.color_map || [16711680, 65280, 255, 16776960, 16711935, 65535],
         object = new THREE.Group(),
         generate,
         mesh,
@@ -38,19 +38,8 @@ module.exports = function (config, K3D) {
             new THREE.MeshBasicMaterial({color: 0xff0000, opacity: 0.5, transparent: true})
         ),
         colorsToFloat32Array = buffer.colorsToFloat32Array,
-        base64ToArrayBuffer = buffer.base64ToArrayBuffer,
-        toUint8Array = buffer.toUint8Array,
         listenersId;
 
-    if (typeof (voxels) === 'string') {
-        voxels = base64ToArrayBuffer(voxels);
-    }
-
-    if (typeof (colorMap) === 'string') {
-        colorMap = base64ToArrayBuffer(colorMap);
-    }
-
-    voxels = toUint8Array(voxels);
     colorMap = colorsToFloat32Array(colorMap);
 
     object.voxelSize = {width: width, height: height, length: length};
@@ -95,7 +84,7 @@ module.exports = function (config, K3D) {
     object.position.set(-0.5, -0.5, -0.5);
     object.updateMatrix();
 
-    modelMatrix.set.apply(modelMatrix, config.get('modelMatrix'));
+    modelMatrix.set.apply(modelMatrix, config.model_matrix);
     object.applyMatrix(modelMatrix);
 
     rollOverMesh.visible = false;
@@ -103,10 +92,7 @@ module.exports = function (config, K3D) {
     rollOverMesh.geometry.computeBoundingBox();
 
     object.add(rollOverMesh);
-
     object.updateMatrixWorld();
-
-    object.getJson = getJson.bind(this, config, voxels);
 
     listenersId = K3D.on(K3D.events.VIEW_MODE_CHANGE, function () {
         rollOverMesh.visible = false;
@@ -133,10 +119,4 @@ function getGeometry(chunkStructure) {
     geometry.computeBoundingBox();
 
     return geometry;
-}
-
-function getJson(config, voxels) {
-    config.config.voxels = buffer.bufferToBase64(voxels.buffer);
-
-    return config.config;
 }

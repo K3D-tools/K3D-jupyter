@@ -1,8 +1,7 @@
 'use strict';
 
 var _ = require('lodash'),
-    Text2d = require('./../objects/Text2d'),
-    Config = require('./../../../core/lib/Config');
+    Text2d = require('./../objects/Text2d');
 
 function pow10ceil(x) {
     return Math.pow(10, Math.ceil(Math.log10(x)));
@@ -10,7 +9,6 @@ function pow10ceil(x) {
 
 function ensureTwoTicksOnGrids(sceneBoundingBox, majorScale) {
     var size = sceneBoundingBox.getSize();
-    var dist;
 
     ['x', 'y', 'z'].forEach(function (axis) {
         var dist = size[axis] / majorScale;
@@ -224,13 +222,13 @@ function rebuildSceneData(K3D, grids, force) {
                 v = grids.labelsOnEdges[key].v[0].clone().add(deltaValue.clone().multiplyScalar(j));
                 p = grids.labelsOnEdges[key].p[0].clone().add(deltaPosition.clone().multiplyScalar(j));
 
-                label = new Text2d(new Config({
+                label = new Text2d({
                     'position': p.toArray(),
-                    'referencePoint': 'cc',
+                    'reference_point': 'cc',
                     'color': 0x444444,
                     'text': parseFloat((v[iterateAxis]).toFixed(15)).toString(),
                     'size': 0.75
-                }), K3D);
+                }, K3D);
 
                 /*jshint loopfunc: true */
                 promises.push(label.then(function (obj) {
@@ -254,13 +252,13 @@ function rebuildSceneData(K3D, grids, force) {
                 (new THREE.Vector3()).subVectors(middlePosition, middleValue).multiplyScalar(2.0)
             );
 
-            axisLabel = new Text2d(new Config({
+            axisLabel = new Text2d({
                 'position': middle.toArray(),
-                'referencePoint': 'cc',
+                'reference_point': 'cc',
                 'color': 0x444444,
                 'text': iterateAxis,
                 'size': 1.0
-            }), K3D);
+            }, K3D);
 
             axisLabel.then(function (obj) {
                 grids.labelsOnEdges[key].labels.push(obj);

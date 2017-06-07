@@ -6,17 +6,17 @@ var katex = require('katex');
  * Loader strategy to handle LaTex object
  * @method DOM
  * @memberof K3D.Providers.ThreeJS.Objects
- * @param {K3D.Config} config all configurations params from JSON
+ * @param {Object} config all configurations params from JSON
  * @param {K3D}
  * @return {Object} 3D object ready to render
  */
 module.exports = function (config, K3D) {
 
-    var text = config.get('text', '\\KaTeX'),
-        color = config.get('color', 0),
-        referencePoint = config.get('referencePoint', 'lb'),
-        size = config.get('size', 1),
-        position = config.get('position'),
+    var text = config.text || '\\KaTeX',
+        color = config.color || 0,
+        referencePoint = config.reference_point || 'lb',
+        size = config.size || 1,
+        position = config.position,
         object = new THREE.Object3D(),
         domElement = document.createElement('div'),
         overlayDOMNode = K3D.getWorld().overlayDOMNode,
