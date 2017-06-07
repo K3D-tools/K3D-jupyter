@@ -6,6 +6,8 @@ var widgets = require('@jupyter-widgets/controls'),
     K3D = require('./core/Core'),
     serialize = require('./core/lib/helpers/serialize'),
     ThreeJsProvider = require('./providers/threejs/provider'),
+    getScreenshot = require('./core/lib/screenshot').getScreenshot,
+    buffer = require('./core/lib/helpers/buffer'),
     PlotModel,
     PlotView,
     ObjectModel,
@@ -47,7 +49,7 @@ ObjectModel = widgets.WidgetModel.extend({
         }, this);
     }
 }, {
-    serializers: {
+    serializers: _.extend({
         model_matrix: serialize.array_or_json,
         point_positions: serialize.array_or_json,
         point_colors: serialize.array_or_json,
@@ -61,7 +63,7 @@ ObjectModel = widgets.WidgetModel.extend({
         vectors: serialize.array_or_json,
         heights: serialize.array_or_json,
         voxels: serialize.array_or_json
-    }
+    }, widgets.WidgetModel.serializers)
 });
 
 ObjectView = widgets.WidgetView.extend({});
@@ -87,6 +89,19 @@ PlotView = widgets.DOMWidgetView.extend({
 
         plotsList.push(this);
 
+        this.model.on('msg:custom', function (obj) {
+            var model = this.model;
+
+            if (obj.msg_type === 'fetch_screenshot') {
+                getScreenshot(this.K3DInstance).then(function (canvas) {
+                    var data = canvas.toDataURL().split(',')[1];
+
+                    // todo
+                    //model.save('screenshot', buffer.base64ToArrayBuffer(data));
+                    model.save('screenshot', data);
+                });
+            }
+        }, this);
         this.model.on('change:camera_auto_fit', this._setCameraAutoFit, this);
         this.model.on('change:grid_auto_fit', this._setGridAutoFit, this);
         this.model.on('change:voxel_paint_color', this._setVoxelPaintColor, this);

@@ -1,5 +1,5 @@
 import ipywidgets as widgets
-from traitlets import Unicode, Bool, Int, List, Instance
+from traitlets import Unicode, Bool, Int, List, Bytes
 import warnings
 
 from ._version import __version__
@@ -27,13 +27,13 @@ class Plot(widgets.DOMWidget):
     background_color = Int().tag(sync=True)
     voxel_paint_color = Int().tag(sync=True)
     camera = List().tag(sync=True)
+    screenshot = Unicode().tag(sync=True)
 
     objects = []
 
     def __init__(self, antialias=True, background_color=0xFFFFFF, camera_auto_fit=True, grid_auto_fit=True, height=512,
                  voxel_paint_color=0, grid=[-1, -1, -1, 1, 1, 1]):
         super(Plot, self).__init__()
-        # self.on_msg(self.__on_msg)
 
         self.antialias = antialias
         self.camera_auto_fit = camera_auto_fit
@@ -86,3 +86,6 @@ class Plot(widgets.DOMWidget):
 
     def display(self, **kwargs):
         super(Plot, self)._ipython_display_(**kwargs)
+
+    def fetch_screenshot(self):
+        self.send({'msg_type': 'fetch_screenshot'})
