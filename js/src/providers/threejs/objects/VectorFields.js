@@ -21,6 +21,7 @@ module.exports = function (config) {
         colors = config.colors,
         useHead = config.use_head || true,
         headSize = config.head_size || 1.0,
+        scale = config.scale || 1.0,
         object = new THREE.Group(),
         x,
         y,
@@ -41,7 +42,7 @@ module.exports = function (config) {
         vectors = convert2DVectorsTable(vectors);
     }
 
-    scalar = 1.0 / Math.max(width, height, length);
+    scalar = scale / Math.max(width, height, length);
     colors = colors ? colorsToFloat32Array(colors) :
         getTwoColorsArray(originColor, headColor, width * height * length * 2);
     singleConeGeometry = new THREE.CylinderGeometry(0, 0.025 * headSize * scalar, 0.2 * headSize * scalar, 5, 1)

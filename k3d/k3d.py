@@ -65,7 +65,7 @@ def texture(binary, file_format, xmin=-.5, xmax=.5, ymin=-.5, ymax=.5, zmin=-.5,
 
 def vectors(origins, vectors, xmin=-.5, xmax=.5, ymin=-.5, ymax=.5, zmin=-.5, zmax=.5,
             model_matrix=np.identity(4), use_head=True, labels=[], colors=[], color=_default_color, line_width=1,
-            label_size=1.0, head_size=1.0, head_color=None, origin_color=None):
+            label_size=1.0, head_size=1.0, head_color=None, origin_color=None, scale=1.0):
     return Vectors(**{
         'model_matrix': get_model_matrix(model_matrix, xmin, xmax, ymin, ymax, zmin, zmax),
         'use_head': use_head,
@@ -75,6 +75,7 @@ def vectors(origins, vectors, xmin=-.5, xmax=.5, ymin=-.5, ymax=.5, zmin=-.5, zm
         'labels': labels,
         'label_size': label_size,
         'head_size': head_size,
+        'scale': scale,
         'colors': np.array(colors, np.uint32),
         'head_color': head_color if head_color is not None else color,
         'origin_color': origin_color if origin_color is not None else color,

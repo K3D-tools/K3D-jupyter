@@ -178,6 +178,7 @@ class VectorFields(SingleObject):
     origin_color = Int().tag(sync=True)
     use_head = Bool().tag(sync=True)
     head_size = Float().tag(sync=True)
+    scale = Float().tag(sync=True)
     vectors = Array().tag(sync=True, **array_serialization)
     model_matrix = Array().tag(sync=True, **array_serialization)
 
@@ -190,6 +191,7 @@ class Voxels(SingleObject):
     length = Int().tag(sync=True)
     voxels = Array().tag(sync=True, **array_serialization)
     model_matrix = Array().tag(sync=True, **array_serialization)
+
 
 class Mesh(SingleObject):
     type = Unicode(default_value='Mesh', read_only=True).tag(sync=True)
