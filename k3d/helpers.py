@@ -1,5 +1,4 @@
 import numpy as np
-from ipython_genutils.py3compat import string_types, PY3
 
 
 def get_dimensions(shape, *dimensions):
@@ -38,9 +37,6 @@ def get_model_matrix(model_matrix, xmin=-.5, xmax=.5, ymin=-.5, ymax=.5, zmin=-.
 
 # from ipyvolume
 
-def array_to_json(ar, obj=None):
-    return ar.tolist() if ar is not None else None
-
 
 def array_to_binary(ar, obj=None, force_contiguous=True):
     if ar.dtype.kind not in ['u', 'i', 'f']:  # ints and floats
@@ -54,29 +50,8 @@ def array_to_binary(ar, obj=None, force_contiguous=True):
     return {'buffer': memoryview(ar), 'dtype': str(ar.dtype), 'shape': ar.shape}
 
 
-def array_to_binary_or_json(ar, obj=None):
-    if ar is None:
-        return None
-    element = ar
-    dimension = 0
-    try:
-        while True:
-            element = element[0]
-            dimension += 1
-    except:
-        pass
-    try:
-        element = element.item()  # for instance get back the value from array(1)
-    except:
-        pass
-    if isinstance(element, string_types):
-        return array_to_json(ar)
-
-    return array_to_binary(ar)
-
-
 def from_json_to_array(value, obj=None):
     return np.frombuffer(value['buffer'], dtype=value['dtype']) if value else None
 
 
-array_serialization = dict(to_json=array_to_binary_or_json, from_json=from_json_to_array)
+array_serialization = dict(to_json=array_to_binary, from_json=from_json_to_array)

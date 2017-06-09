@@ -10,10 +10,6 @@ try:
 except ImportError:
     from urllib.request import urlopen
 
-try:
-    _strings = (bytes, str, unicode)
-except NameError:
-    _strings = (bytes, str)
 
 _NoneType = type(None)
 

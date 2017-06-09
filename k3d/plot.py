@@ -1,5 +1,5 @@
 import ipywidgets as widgets
-from traitlets import Unicode, Bool, Int, List, Bytes
+from traitlets import Unicode, Bool, Int, List
 import warnings
 
 from ._version import __version__
@@ -73,16 +73,6 @@ class Plot(widgets.DOMWidget):
     def __sub__(self, objs):
         warnings.warn('Using minus operator to remove objects from plot is discouraged in favor of -=')
         return self.__isub__(objs)
-
-    # def fetch_data(self, obj):
-    #     self.send({msg_type: 'fetch_data', id: obj.id})
-    #
-    # def __on_msg(self, *args):
-    #     json = args[1]
-    #     if json['type'] == 'object':
-    #         for obj in self.objects:
-    #             if obj.id == json['id']:
-    #                 obj.update(json['data'])
 
     def display(self, **kwargs):
         super(Plot, self)._ipython_display_(**kwargs)
