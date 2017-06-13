@@ -7,6 +7,10 @@ from .objects import Drawable
 
 
 class Plot(widgets.DOMWidget):
+    """
+    Main K3D widget.
+    """
+
     _view_name = Unicode('PlotView').tag(sync=True)
     _model_name = Unicode('PlotModel').tag(sync=True)
     _view_module = Unicode('k3d').tag(sync=True)

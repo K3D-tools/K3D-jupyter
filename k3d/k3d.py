@@ -19,6 +19,10 @@ _default_color = 0x0000FF
 
 def vtk_poly_data(poly_data, model_matrix=np.identity(4), color=_default_color, color_attribute=None,
                   color_map=basic_color_maps.Rainbow):
+    """Create a Mesh drawable from given vtkPolyData."""
+    if vtk is None:
+        raise RuntimeError('Module vtk is not available')
+
     if poly_data.GetPolys().GetMaxCellSize() > 3:
         cut_triangles = vtk.vtkTriangleFilter()
         cut_triangles.SetInputData(poly_data)
@@ -47,6 +51,7 @@ def vtk_poly_data(poly_data, model_matrix=np.identity(4), color=_default_color, 
 
 
 def stl(stl, model_matrix=np.identity(4), color=_default_color):
+    """Create an STL drawable."""
     return STL(**{
         'model_matrix': model_matrix,
         'color': color,
@@ -56,6 +61,7 @@ def stl(stl, model_matrix=np.identity(4), color=_default_color):
 
 
 def texture(binary, file_format, xmin=-.5, xmax=.5, ymin=-.5, ymax=.5, zmin=-.5, zmax=.5, model_matrix=np.identity(4)):
+    """Create a Texture drawable."""
     return Texture(**{
         'model_matrix': get_model_matrix(model_matrix, xmin, xmax, ymin, ymax, zmin, zmax),
         'binary': binary,
@@ -66,6 +72,7 @@ def texture(binary, file_format, xmin=-.5, xmax=.5, ymin=-.5, ymax=.5, zmin=-.5,
 def vectors(origins, vectors, xmin=-.5, xmax=.5, ymin=-.5, ymax=.5, zmin=-.5, zmax=.5,
             model_matrix=np.identity(4), use_head=True, labels=[], colors=[], color=_default_color, line_width=1,
             label_size=1.0, head_size=1.0, head_color=None, origin_color=None, scale=1.0):
+    """Create a Vectors drawable."""
     return Vectors(**{
         'model_matrix': get_model_matrix(model_matrix, xmin, xmax, ymin, ymax, zmin, zmax),
         'use_head': use_head,
@@ -85,6 +92,7 @@ def vectors(origins, vectors, xmin=-.5, xmax=.5, ymin=-.5, ymax=.5, zmin=-.5, zm
 def vector_fields(vectors, colors=[], color=_default_color, xmin=-.5, xmax=.5, ymin=-.5, ymax=.5, zmin=-.5,
                   zmax=.5, model_matrix=np.identity(4), width=None, height=None, length=None, use_head=True,
                   head_color=None, head_size=1.0, origin_color=None):
+    """Create a VectorFields drawable."""
     shape = np.shape(vectors)
 
     if len(shape[:-1]) < 3:
@@ -111,7 +119,7 @@ def vector_fields(vectors, colors=[], color=_default_color, xmin=-.5, xmax=.5, y
 def voxels(voxels, color_map, xmin=-.5, xmax=.5, ymin=-.5, ymax=.5, zmin=-.5, zmax=.5,
            model_matrix=np.identity(4), width=None, height=None, length=None):
     length, height, width = get_dimensions(np.shape(voxels), length, height, width)
-
+    """Create a Voxels drawable."""
     return Voxels(**{
         'model_matrix': get_model_matrix(model_matrix, xmin, xmax, ymin, ymax, zmin, zmax),
         'width': width,
@@ -124,6 +132,9 @@ def voxels(voxels, color_map, xmin=-.5, xmax=.5, ymin=-.5, ymax=.5, zmin=-.5, zm
 
 def marching_cubes(scalar_field, level, xmin=-.5, xmax=.5, ymin=-.5, ymax=.5, zmin=-.5, zmax=.5,
                    model_matrix=np.identity(4), width=None, height=None, length=None, color=_default_color):
+    """Create a MarchingCubes drawable.
+
+    Plot an isosurface of a scalar field obtained through a Marching Cubes algorithm."""
     length, height, width = get_dimensions(np.shape(scalar_field), length, height, width)
 
     return MarchingCubes(**{
@@ -139,6 +150,7 @@ def marching_cubes(scalar_field, level, xmin=-.5, xmax=.5, ymin=-.5, ymax=.5, zm
 
 def mesh(vertices, indices, attribute=[], color_range=[], color_map=[], model_matrix=np.identity(4),
          color=_default_color):
+    """Create a Mesh drawable."""
     return Mesh(**{
         'model_matrix': model_matrix,
         'vertices': np.array(vertices, np.float32),
@@ -152,6 +164,7 @@ def mesh(vertices, indices, attribute=[], color_range=[], color_map=[], model_ma
 
 def surface(heights, xmin=-.5, xmax=.5, ymin=-.5, ymax=.5, model_matrix=np.identity(4), width=None,
             height=None, color=_default_color):
+    """Create a Surface drawable."""
     height, width = get_dimensions(np.shape(heights), height, width)
 
     return Surface(**{
@@ -165,6 +178,7 @@ def surface(heights, xmin=-.5, xmax=.5, ymin=-.5, ymax=.5, model_matrix=np.ident
 
 def text(text, position=[0, 0, 0], color=_default_color, font_weight=400, font_face='Courier New',
          font_size=68, size=1.0):
+    """Create a Text drawable."""
     return Text(**{
         'position': position,
         'text': text,
@@ -177,6 +191,7 @@ def text(text, position=[0, 0, 0], color=_default_color, font_weight=400, font_f
 
 
 def text2d(text, position=[0, 0, 0], color=_default_color, size=1.0, reference_point='lb'):
+    """Create a Text2d drawable."""
     return Text2d(**{
         'position': position,
         'reference_point': reference_point,
@@ -188,6 +203,7 @@ def text2d(text, position=[0, 0, 0], color=_default_color, size=1.0, reference_p
 
 def points(positions, colors=[], color=_default_color, model_matrix=np.identity(4), point_size=1.0,
            shader='3dSpecular'):
+    """Create a Points drawable."""
     return Points(**{
         'model_matrix': get_model_matrix(model_matrix),
         'point_size': point_size,
@@ -200,6 +216,7 @@ def points(positions, colors=[], color=_default_color, model_matrix=np.identity(
 
 def line(positions, xmin=-.5, xmax=.5, ymin=-.5, ymax=.5, zmin=-.5, zmax=.5, model_matrix=np.identity(4),
          width=1, color=_default_color):
+    """Create a Line drawable for plotting segments and polylines."""
     return Line(**{
         'model_matrix': get_model_matrix(model_matrix, xmin, xmax, ymin, ymax, zmin, zmax),
         'color': color,
@@ -209,4 +226,5 @@ def line(positions, xmin=-.5, xmax=.5, ymin=-.5, ymax=.5, zmin=-.5, zmax=.5, mod
 
 
 def plot(*args, **kwargs):
+    """Create a K3D Plot widget."""
     return Plot(*args, **kwargs)

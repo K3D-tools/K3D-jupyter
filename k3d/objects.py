@@ -26,6 +26,10 @@ def _to_image_src(url):
 
 
 class Drawable(widgets.CoreWidget):
+    """
+    Base class for drawable objects and groups.
+    """
+
     _model_name = Unicode('ObjectModel').tag(sync=True)
     _model_module = Unicode('k3d').tag(sync=True)
     _model_module_version = Unicode('~' + __version__).tag(sync=True)
@@ -38,7 +42,7 @@ class Drawable(widgets.CoreWidget):
         super(Drawable, self).__init__(**kwargs)
 
     def __iter__(self):
-        pass
+        return (self,).__iter__()
 
     def __add__(self, other):
         return Group(self, other)
@@ -55,12 +59,12 @@ class Drawable(widgets.CoreWidget):
         return display(plot)
 
 
-class SingleObject(Drawable):
-    def __iter__(self):
-        return (self,).__iter__()
-
-
 class Group(Drawable):
+    """
+    An aggregated group of Drawables, itself a Drawable.
+
+    It can be inserted or removed from a Plot including all members.
+    """
     __objs = None
 
     def __init__(self, *args):
@@ -76,7 +80,7 @@ class Group(Drawable):
         return arg
 
 
-class Line(SingleObject):
+class Line(Drawable):
     type = Unicode(default_value='Line', read_only=True).tag(sync=True)
     color = Int().tag(sync=True)
     line_width = Float().tag(sync=True)
@@ -84,7 +88,7 @@ class Line(SingleObject):
     point_positions = Array().tag(sync=True, **array_serialization)
 
 
-class MarchingCubes(SingleObject):
+class MarchingCubes(Drawable):
     type = Unicode(default_value='MarchingCubes', read_only=True).tag(sync=True)
     color = Int().tag(sync=True)
     width = Int().tag(sync=True)
@@ -95,7 +99,7 @@ class MarchingCubes(SingleObject):
     scalar_field = Array().tag(sync=True, **array_serialization)
 
 
-class Points(SingleObject):
+class Points(Drawable):
     type = Unicode(default_value='Points', read_only=True).tag(sync=True)
     color = Int().tag(sync=True)
     shader = Unicode().tag(sync=True)
@@ -105,7 +109,7 @@ class Points(SingleObject):
     point_positions = Array().tag(sync=True, **array_serialization)
 
 
-class STL(SingleObject):
+class STL(Drawable):
     type = Unicode(default_value='STL', read_only=True).tag(sync=True)
     color = Int().tag(sync=True)
     model_matrix = Array().tag(sync=True, **array_serialization)
@@ -113,7 +117,7 @@ class STL(SingleObject):
     binary = Array().tag(sync=True, **array_serialization)
 
 
-class Surface(SingleObject):
+class Surface(Drawable):
     type = Unicode(default_value='Surface', read_only=True).tag(sync=True)
     color = Int().tag(sync=True)
     width = Int().tag(sync=True)
@@ -122,7 +126,7 @@ class Surface(SingleObject):
     model_matrix = Array().tag(sync=True, **array_serialization)
 
 
-class Text(SingleObject):
+class Text(Drawable):
     type = Unicode(default_value='Text', read_only=True).tag(sync=True)
     color = Int().tag(sync=True)
     size = Float().tag(sync=True)
@@ -133,7 +137,7 @@ class Text(SingleObject):
     text = Unicode().tag(sync=True)
 
 
-class Text2d(SingleObject):
+class Text2d(Drawable):
     type = Unicode(default_value='Text2d', read_only=True).tag(sync=True)
     color = Int().tag(sync=True)
     size = Float().tag(sync=True)
@@ -142,14 +146,14 @@ class Text2d(SingleObject):
     text = Unicode().tag(sync=True)
 
 
-class Texture(SingleObject):
+class Texture(Drawable):
     type = Unicode(default_value='Texture', read_only=True).tag(sync=True)
     binary = Bytes().tag(sync=True)
     file_format = Unicode().tag(sync=True)
     model_matrix = Array().tag(sync=True, **array_serialization)
 
 
-class Vectors(SingleObject):
+class Vectors(Drawable):
     type = Unicode(default_value='Vectors', read_only=True).tag(sync=True)
     colors = Array().tag(sync=True, **array_serialization)
     head_color = Int().tag(sync=True)
@@ -164,7 +168,7 @@ class Vectors(SingleObject):
     model_matrix = Array().tag(sync=True, **array_serialization)
 
 
-class VectorFields(SingleObject):
+class VectorFields(Drawable):
     type = Unicode(default_value='VectorFields', read_only=True).tag(sync=True)
     colors = Array().tag(sync=True, **array_serialization)
     head_color = Int().tag(sync=True)
@@ -179,7 +183,7 @@ class VectorFields(SingleObject):
     model_matrix = Array().tag(sync=True, **array_serialization)
 
 
-class Voxels(SingleObject):
+class Voxels(Drawable):
     type = Unicode(default_value='Voxels', read_only=True).tag(sync=True)
     color_map = Array().tag(sync=True, **array_serialization)
     width = Int().tag(sync=True)
@@ -189,7 +193,7 @@ class Voxels(SingleObject):
     model_matrix = Array().tag(sync=True, **array_serialization)
 
 
-class Mesh(SingleObject):
+class Mesh(Drawable):
     type = Unicode(default_value='Mesh', read_only=True).tag(sync=True)
     vertices = Array().tag(sync=True, **array_serialization)
     indices = Array().tag(sync=True, **array_serialization)
