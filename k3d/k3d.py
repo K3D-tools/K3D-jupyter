@@ -39,54 +39,47 @@ def vtk_poly_data(poly_data, model_matrix=np.identity(4), color=_default_color, 
     vertices = numpy_support.vtk_to_numpy(poly_data.GetPoints().GetData())
     indices = numpy_support.vtk_to_numpy(poly_data.GetPolys().GetData()).reshape(-1, 4)[:, 1:4]
 
-    return Mesh(**{
-        'model_matrix': model_matrix,
-        'vertices': np.array(vertices, np.float32),
-        'indices': np.array(indices, np.uint32),
-        'color': color,
-        'attribute': np.array(attribute, np.float32),
-        'color_range': color_range,
-        'color_map': np.array(color_map, np.float32)
-    })
+    return Mesh(model_matrix=model_matrix,
+                vertices=np.array(vertices, np.float32),
+                indices=np.array(indices, np.uint32),
+                color=color,
+                attribute=np.array(attribute, np.float32),
+                color_range=color_range,
+                color_map=np.array(color_map, np.float32))
 
 
 def stl(stl, model_matrix=np.identity(4), color=_default_color):
     """Create an STL drawable."""
-    return STL(**{
-        'model_matrix': model_matrix,
-        'color': color,
-        'text': stl if isinstance(stl, six.string_types) else None,
-        'binary': np.array(stl) if not isinstance(stl, six.string_types) else np.array([])
-    })
+    return STL(model_matrix=model_matrix,
+               color=color,
+               text=stl if isinstance(stl, six.string_types) else None,
+               binary=np.array(stl) if not isinstance(stl, six.string_types) else np.array([]))
 
 
-def texture(binary, file_format, xmin=-.5, xmax=.5, ymin=-.5, ymax=.5, zmin=-.5, zmax=.5, model_matrix=np.identity(4)):
+def texture(binary, file_format, xmin=-.5, xmax=.5, ymin=-.5, ymax=.5, zmin=-.5, zmax=.5,
+            model_matrix=np.identity(4)):
     """Create a Texture drawable."""
-    return Texture(**{
-        'model_matrix': get_model_matrix(model_matrix, xmin, xmax, ymin, ymax, zmin, zmax),
-        'binary': binary,
-        'file_format': file_format
-    })
+    return Texture(model_matrix=get_model_matrix(model_matrix, xmin, xmax, ymin, ymax, zmin, zmax),
+                   binary=binary,
+                   file_format=file_format)
 
 
 def vectors(origins, vectors, xmin=-.5, xmax=.5, ymin=-.5, ymax=.5, zmin=-.5, zmax=.5,
             model_matrix=np.identity(4), use_head=True, labels=[], colors=[], color=_default_color, line_width=1,
             label_size=1.0, head_size=1.0, head_color=None, origin_color=None, scale=1.0):
     """Create a Vectors drawable."""
-    return Vectors(**{
-        'model_matrix': get_model_matrix(model_matrix, xmin, xmax, ymin, ymax, zmin, zmax),
-        'use_head': use_head,
-        'origins': np.array(origins, np.float32),
-        'vectors': np.array(vectors, np.float32),
-        'line_width': line_width,
-        'labels': labels,
-        'label_size': label_size,
-        'head_size': head_size,
-        'scale': scale,
-        'colors': np.array(colors, np.uint32),
-        'head_color': head_color if head_color is not None else color,
-        'origin_color': origin_color if origin_color is not None else color,
-    })
+    return Vectors(model_matrix=get_model_matrix(model_matrix, xmin, xmax, ymin, ymax, zmin, zmax),
+                   use_head=use_head,
+                   origins=np.array(origins, np.float32),
+                   vectors=np.array(vectors, np.float32),
+                   line_width=line_width,
+                   labels=labels,
+                   label_size=label_size,
+                   head_size=head_size,
+                   scale=scale,
+                   colors=np.array(colors, np.uint32),
+                   head_color=head_color if head_color is not None else color,
+                   origin_color=origin_color if origin_color is not None else color)
 
 
 def vector_fields(vectors, colors=[], color=_default_color, xmin=-.5, xmax=.5, ymin=-.5, ymax=.5, zmin=-.5,
@@ -102,32 +95,24 @@ def vector_fields(vectors, colors=[], color=_default_color, xmin=-.5, xmax=.5, y
 
     validate_vectors_size(length, vector_size=shape[-1])
 
-    return VectorFields(**{
-        'model_matrix': get_model_matrix(model_matrix, xmin, xmax, ymin, ymax, zmin, zmax),
-        'use_head': use_head,
-        'vectors': np.array(vectors, np.float32),
-        'width': width,
-        'height': height,
-        'length': length,
-        'head_size': head_size,
-        'colors': np.array(colors, np.uint32),
-        'head_color': head_color if head_color is not None else color,
-        'origin_color': origin_color if head_color is not None else color
-    })
+    return VectorFields(model_matrix=get_model_matrix(model_matrix, xmin, xmax, ymin, ymax, zmin, zmax),
+                        use_head=use_head,
+                        vectors=np.array(vectors, np.float32),
+                        width=width, height=height, length=length,
+                        head_size=head_size,
+                        colors=np.array(colors, np.uint32),
+                        head_color=head_color if head_color is not None else color,
+                        origin_color=origin_color if head_color is not None else color)
 
 
 def voxels(voxels, color_map, xmin=-.5, xmax=.5, ymin=-.5, ymax=.5, zmin=-.5, zmax=.5,
            model_matrix=np.identity(4), width=None, height=None, length=None):
     length, height, width = get_dimensions(np.shape(voxels), length, height, width)
     """Create a Voxels drawable."""
-    return Voxels(**{
-        'model_matrix': get_model_matrix(model_matrix, xmin, xmax, ymin, ymax, zmin, zmax),
-        'width': width,
-        'height': height,
-        'length': length,
-        'color_map': np.array(color_map, np.float32),
-        'voxels': np.array(voxels, np.uint8)
-    })
+    return Voxels(model_matrix=get_model_matrix(model_matrix, xmin, xmax, ymin, ymax, zmin, zmax),
+                  width=width, height=height, length=length,
+                  color_map=np.array(color_map, np.float32),
+                  voxels=np.array(voxels, np.uint8))
 
 
 def marching_cubes(scalar_field, level, xmin=-.5, xmax=.5, ymin=-.5, ymax=.5, zmin=-.5, zmax=.5,
@@ -137,29 +122,22 @@ def marching_cubes(scalar_field, level, xmin=-.5, xmax=.5, ymin=-.5, ymax=.5, zm
     Plot an isosurface of a scalar field obtained through a Marching Cubes algorithm."""
     length, height, width = get_dimensions(np.shape(scalar_field), length, height, width)
 
-    return MarchingCubes(**{
-        'model_matrix': get_model_matrix(model_matrix, xmin, xmax, ymin, ymax, zmin, zmax),
-        'width': width,
-        'height': height,
-        'length': length,
-        'color': color,
-        'level': level,
-        'scalar_field': np.array(scalar_field, np.float32)
-    })
+    return MarchingCubes(model_matrix=get_model_matrix(model_matrix, xmin, xmax, ymin, ymax, zmin, zmax),
+                         width=width, height=height, length=length,
+                         color=color,
+                         level=level,
+                         scalar_field=np.array(scalar_field, np.float32))
 
 
 def mesh(vertices, indices, attribute=[], color_range=[], color_map=[], model_matrix=np.identity(4),
          color=_default_color):
     """Create a Mesh drawable."""
-    return Mesh(**{
-        'model_matrix': model_matrix,
-        'vertices': np.array(vertices, np.float32),
-        'indices': np.array(indices, np.uint32),
-        'color': color,
-        'attribute': np.array(attribute, np.float32),
-        'color_range': color_range,
-        'color_map': np.array(color_map, np.float32)
-    })
+    return Mesh(model_matrix=model_matrix,
+                vertices=np.array(vertices, np.float32),
+                indices=np.array(indices, np.uint32),
+                color=color,
+                attribute=np.array(attribute, np.float32),
+                color_range=color_range, color_map=np.array(color_map, np.float32))
 
 
 def surface(heights, xmin=-.5, xmax=.5, ymin=-.5, ymax=.5, model_matrix=np.identity(4), width=None,
@@ -167,62 +145,37 @@ def surface(heights, xmin=-.5, xmax=.5, ymin=-.5, ymax=.5, model_matrix=np.ident
     """Create a Surface drawable."""
     height, width = get_dimensions(np.shape(heights), height, width)
 
-    return Surface(**{
-        'model_matrix': get_model_matrix(model_matrix, xmin, xmax, ymin, ymax),
-        'color': color,
-        'width': width,
-        'height': height,
-        'heights': np.array(heights, np.float32),
-    })
+    return Surface(model_matrix=get_model_matrix(model_matrix, xmin, xmax, ymin, ymax),
+                   color=color,
+                   width=width, height=height,
+                   heights=np.array(heights, np.float32))
 
 
 def text(text, position=[0, 0, 0], color=_default_color, font_weight=400, font_face='Courier New',
          font_size=68, size=1.0):
     """Create a Text drawable."""
-    return Text(**{
-        'position': position,
-        'text': text,
-        'color': color,
-        'size': size,
-        'font_face': font_face,
-        'font_size': font_size,
-        'font_weight': font_weight
-    })
+    return Text(position=position, text=text, color=color, size=size,
+                font_face=font_face, font_size=font_size, font_weight=font_weight)
 
 
 def text2d(text, position=[0, 0, 0], color=_default_color, size=1.0, reference_point='lb'):
     """Create a Text2d drawable."""
-    return Text2d(**{
-        'position': position,
-        'reference_point': reference_point,
-        'text': text,
-        'size': size,
-        'color': color,
-    })
+    return Text2d(position=position, reference_point=reference_point, text=text, size=size, color=color)
 
 
 def points(positions, colors=[], color=_default_color, model_matrix=np.identity(4), point_size=1.0,
            shader='3dSpecular'):
     """Create a Points drawable."""
-    return Points(**{
-        'model_matrix': get_model_matrix(model_matrix),
-        'point_size': point_size,
-        'point_positions': np.array(positions, np.float32),
-        'point_colors': np.array(colors, np.float32),
-        'color': color,
-        'shader': shader
-    })
+    return Points(model_matrix=get_model_matrix(model_matrix), point_size=point_size,
+                  point_positions=np.array(positions, np.float32), point_colors=np.array(colors, np.float32),
+                  color=color, shader=shader)
 
 
 def line(positions, xmin=-.5, xmax=.5, ymin=-.5, ymax=.5, zmin=-.5, zmax=.5, model_matrix=np.identity(4),
          width=1, color=_default_color):
     """Create a Line drawable for plotting segments and polylines."""
-    return Line(**{
-        'model_matrix': get_model_matrix(model_matrix, xmin, xmax, ymin, ymax, zmin, zmax),
-        'color': color,
-        'line_width': width,
-        'point_positions': np.array(positions, np.float32)
-    })
+    return Line(model_matrix=get_model_matrix(model_matrix, xmin, xmax, ymin, ymax, zmin, zmax), color=color,
+                line_width=width, point_positions=np.array(positions, np.float32))
 
 
 def plot(*args, **kwargs):
