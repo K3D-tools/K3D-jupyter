@@ -89,5 +89,5 @@ class Plot(widgets.DOMWidget):
                 print('Done fetching screenshot')
             self.unobserve_all('screenshot')
 
-        self.observe('screenshot', default_callback)
+        self.observe(default_callback, 'screenshot')
         self.send({'msg_type': 'fetch_screenshot'})
