@@ -81,5 +81,13 @@ class Plot(widgets.DOMWidget):
     def display(self, **kwargs):
         super(Plot, self)._ipython_display_(**kwargs)
 
-    def fetch_screenshot(self):
+    def fetch_screenshot(self, callback=None):
+        def default_callback():
+            if callback:
+                callback()
+            else:
+                print('Done fetching screenshot')
+            self.unobserve_all('screenshot')
+
+        self.observe('screenshot', default_callback)
         self.send({'msg_type': 'fetch_screenshot'})
