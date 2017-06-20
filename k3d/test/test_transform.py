@@ -1,7 +1,7 @@
 import unittest
 import numpy as np
+import k3d
 from ..transform import Transform
-from ..factory import Factory
 
 
 class TestTransform(unittest.TestCase):
@@ -34,8 +34,8 @@ class TestTransform(unittest.TestCase):
     def test_drawable_notification(self):
         # given
         transform = Transform()
-        points = Factory.points([0, 0, 1])
-        transform._add_drawable(points)
+        points = k3d.points([0, 0, 1])
+        transform.add_drawable(points)
         # when
         transform.scaling = [1., 2., 3.]
         # then
@@ -49,4 +49,3 @@ class TestTransform(unittest.TestCase):
 
 if __name__ == '__main__':
     unittest.main()
-
