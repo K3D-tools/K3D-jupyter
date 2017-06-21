@@ -85,7 +85,11 @@ def vectors(origins, vectors, xmin=-.5, xmax=.5, ymin=-.5, ymax=.5, zmin=-.5, zm
 def vector_fields(vectors, colors=[], color=_default_color, xmin=-.5, xmax=.5, ymin=-.5, ymax=.5, zmin=-.5,
                   zmax=.5, model_matrix=np.identity(4), width=None, height=None, length=None, use_head=True,
                   head_color=None, head_size=1.0, origin_color=None):
-    """Create a VectorFields drawable."""
+    """Create a VectorFields drawable.
+
+    Arguments:
+        vectors: `array_like`
+    """
     shape = np.shape(vectors)
 
     if len(shape[:-1]) < 3:

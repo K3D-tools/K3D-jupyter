@@ -1,6 +1,7 @@
 import base64
 import ipywidgets as widgets
 from traitlets import Unicode, Int, Float, List, Bool, Bytes
+from traitlets import validate, TraitError
 from traittypes import Array
 from .helpers import array_serialization
 from ._version import __version__
@@ -9,9 +10,6 @@ try:
     from urllib import urlopen
 except ImportError:
     from urllib.request import urlopen
-
-
-_NoneType = type(None)
 
 
 def _to_image_src(url):
@@ -81,6 +79,10 @@ class Group(Drawable):
 
 
 class Line(Drawable):
+    """
+    Drawable
+    """
+
     type = Unicode(default_value='Line', read_only=True).tag(sync=True)
     color = Int().tag(sync=True)
     line_width = Float().tag(sync=True)
@@ -107,6 +109,14 @@ class Points(Drawable):
     point_size = Float().tag(sync=True)
     point_colors = Array().tag(sync=True, **array_serialization)
     point_positions = Array().tag(sync=True, **array_serialization)
+
+    @validate('point_colors')
+    def _validate_colors(self, proposal):
+        required = self.point_positions.size
+        actual = proposal['value'].size
+        if actual != 0 and required != actual:
+            raise TraitError('point_colors has wrong size: %s (%s required)' % (actual, required))
+        return proposal['value']
 
 
 class STL(Drawable):

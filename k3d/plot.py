@@ -1,6 +1,8 @@
 import ipywidgets as widgets
 from traitlets import Unicode, Bool, Int, List
 import warnings
+import types
+import codecs
 
 from ._version import __version__
 from .objects import Drawable
@@ -22,7 +24,9 @@ class Plot(widgets.DOMWidget):
     # readonly
     antialias = Bool().tag(sync=True)
     height = Int().tag(sync=True)
+    """Height of the Widget in piexels."""
     object_ids = List().tag(sync=True)
+
 
     # read-write
     camera_auto_fit = Bool(True).tag(sync=True)
@@ -49,6 +53,9 @@ class Plot(widgets.DOMWidget):
 
         self.object_ids = []
         self.objects = []
+
+        self._screenshot_handler = None
+        self.observe(self._screenshot_changed, names=['screenshot'])
 
     def __iadd__(self, objs):
         assert isinstance(objs, Drawable)
@@ -81,13 +88,26 @@ class Plot(widgets.DOMWidget):
     def display(self, **kwargs):
         super(Plot, self)._ipython_display_(**kwargs)
 
-    def fetch_screenshot(self, callback=None):
-        def default_callback():
-            if callback:
-                callback()
-            else:
-                print('Done fetching screenshot')
-            self.unobserve_all('screenshot')
-
-        self.observe(default_callback, 'screenshot')
+    def fetch_screenshot(self, handler=None):
+        self._screenshot_handler = handler
+        if isinstance(self._screenshot_handler, types.GeneratorType):
+            if handler is not self._screenshot_handler:
+                # start (only new) generator
+                next(self._screenshot_handler)
         self.send({'msg_type': 'fetch_screenshot'})
+
+    def _screenshot_changed(self, change):
+        with open('change.txt', a) as f:
+            print(change, file=f)
+        if self._screenshot_handler is not None:
+            data = codecs.decode(change['new'].encode('ascii'), 'base64')
+            if isinstance(self._screenshot_handler, types.GeneratorType):
+                try:
+                    self._screenshot_handler.send(data)
+                except StopIteration:
+                    # unregister used up generator
+                    self._screenshot_handler = None
+            elif callable(self._screenshot_handler):
+                self._screenshot_handler(data)
+            else:
+                raise TypeError('Screenshot handler of wrong type')
