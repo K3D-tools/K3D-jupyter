@@ -171,7 +171,7 @@ def points(positions, colors=[], color=_default_color, model_matrix=np.identity(
            shader='3dSpecular'):
     """Create a Points drawable."""
     return Points(model_matrix=get_model_matrix(model_matrix), point_size=point_size,
-                  point_positions=np.array(positions, np.float32), point_colors=np.array(colors, np.float32),
+                  positions=np.array(positions, np.float32), colors=np.array(colors, np.float32),
                   color=color, shader=shader)
 
 

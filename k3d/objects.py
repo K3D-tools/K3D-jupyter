@@ -103,12 +103,12 @@ class MarchingCubes(Drawable):
 
 class Points(Drawable):
     type = Unicode(default_value='Points', read_only=True).tag(sync=True)
+    positions = Array().tag(sync=True, **array_serialization)
     color = Int().tag(sync=True)
+    colors = Array().tag(sync=True, **array_serialization)
     shader = Unicode().tag(sync=True)
     model_matrix = Array().tag(sync=True, **array_serialization)
     point_size = Float().tag(sync=True)
-    point_colors = Array().tag(sync=True, **array_serialization)
-    point_positions = Array().tag(sync=True, **array_serialization)
 
     @validate('point_colors')
     def _validate_colors(self, proposal):
