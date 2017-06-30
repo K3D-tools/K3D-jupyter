@@ -71,6 +71,14 @@ class Group(Drawable):
     def __iter__(self):
         return self.__objs.__iter__()
 
+    def __setattr__(self, key, value):
+        """Special method override which allows for setting model matrix for all members of the group."""
+        if key == 'model_matrix':
+            for d in self:
+                d.model_matrix = value
+        else:
+            super(Group, self).__setattr__(key, value)
+
     @staticmethod
     def __assert_drawable(arg):
         assert isinstance(arg, Drawable)
@@ -80,14 +88,20 @@ class Group(Drawable):
 
 class Line(Drawable):
     """
-    Drawable
+    A path (polyline) made up of line segments.
+
+    Attributes:
+        vertices: `array_like`. An array with (x, y, z) coordinates of segment endpoints.
+        color: `int`. Packed RGB color of the lines (0xff0000 is red, 0xff is blue).
+        width: `float`. The thickness of the lines.
+        model_matrix: `array_like`. 4x4 model transform matrix.
     """
 
     type = Unicode(default_value='Line', read_only=True).tag(sync=True)
+    vertices = Array().tag(sync=True, **array_serialization)
     color = Int().tag(sync=True)
-    line_width = Float().tag(sync=True)
+    width = Float().tag(sync=True)
     model_matrix = Array().tag(sync=True, **array_serialization)
-    point_positions = Array().tag(sync=True, **array_serialization)
 
 
 class MarchingCubes(Drawable):
@@ -102,13 +116,26 @@ class MarchingCubes(Drawable):
 
 
 class Points(Drawable):
+    """
+    A point cloud.
+
+    Attributes:
+        positions: `array_like`. Array with (x, y, z) coordinates of the points.
+        colors: `array_like`. Same-length array of (`int`) packed RGB color of the points (0xff0000 is red, 0xff is blue).
+        color: `int`. Packed RGB color of the points (0xff0000 is red, 0xff is blue) when `colors` is empty.
+        point_size: `float`. Diameter of the balls representing the points in 3D space.
+        shader: `str`. Display style (name of the shader used) of the points.
+            Legal values are: `flat`, `3d` and `3dSpecular`.
+        model_matrix: `array_like`. 4x4 model transform matrix.
+    """
+
     type = Unicode(default_value='Points', read_only=True).tag(sync=True)
     positions = Array().tag(sync=True, **array_serialization)
-    color = Int().tag(sync=True)
     colors = Array().tag(sync=True, **array_serialization)
+    color = Int().tag(sync=True)
+    point_size = Float().tag(sync=True)
     shader = Unicode().tag(sync=True)
     model_matrix = Array().tag(sync=True, **array_serialization)
-    point_size = Float().tag(sync=True)
 
     @validate('point_colors')
     def _validate_colors(self, proposal):

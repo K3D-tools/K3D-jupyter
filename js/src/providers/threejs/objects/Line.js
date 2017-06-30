@@ -12,11 +12,11 @@ module.exports = function (config) {
     var geometry = new THREE.BufferGeometry(),
         material = new THREE.LineBasicMaterial({
             color: config.color || 0,
-            linewidth: config.line_width || 1
+            linewidth: config.width || 1
         }),
         object = new THREE.Line(geometry, material),
         modelMatrix = new THREE.Matrix4(),
-        position = config.point_positions;
+        position = config.vertices;
 
     geometry.addAttribute('position', new THREE.BufferAttribute(position, 3));
 

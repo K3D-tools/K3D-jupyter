@@ -169,17 +169,32 @@ def text2d(text, position=[0, 0, 0], color=_default_color, size=1.0, reference_p
 
 def points(positions, colors=[], color=_default_color, model_matrix=np.identity(4), point_size=1.0,
            shader='3dSpecular'):
-    """Create a Points drawable."""
-    return Points(model_matrix=get_model_matrix(model_matrix), point_size=point_size,
-                  positions=np.array(positions, np.float32), colors=np.array(colors, np.float32),
-                  color=color, shader=shader)
+    """Create a Points drawable representing a point cloud.
+
+    Arguments:
+        positions: `array_like`. Array with (x, y, z) coordinates of the points.
+        colors: `array_like`. Same-length array of (`int`) packed RGB color of the points (0xff0000 is red, 0xff is blue).
+        color: `int`. Packed RGB color of the points (0xff0000 is red, 0xff is blue) when `colors` is empty.
+        point_size: `float`. Diameter of the balls representing the points in 3D space.
+        shader: `str`. Display style (name of the shader used) of the points.
+            Legal values are: `flat`, `3d` and `3dSpecular`.
+        model_matrix: `array_like`. 4x4 model transform matrix."""
+    return Points(positions=np.array(positions, np.float32), colors=np.array(colors, np.float32),
+                  color=color, point_size=point_size, shader=shader,
+                  model_matrix=get_model_matrix(model_matrix))
 
 
-def line(positions, xmin=-.5, xmax=.5, ymin=-.5, ymax=.5, zmin=-.5, zmax=.5, model_matrix=np.identity(4),
-         width=1, color=_default_color):
-    """Create a Line drawable for plotting segments and polylines."""
-    return Line(model_matrix=get_model_matrix(model_matrix, xmin, xmax, ymin, ymax, zmin, zmax), color=color,
-                line_width=width, point_positions=np.array(positions, np.float32))
+def line(vertices, color=_default_color, width=1,
+         xmin=-.5, xmax=.5, ymin=-.5, ymax=.5, zmin=-.5, zmax=.5, model_matrix=np.identity(4)):
+    """Create a Line drawable for plotting segments and polylines.
+
+    Arguments:
+        vertices: `array_like`. Array with (x, y, z) coordinates of segment endpoints.
+        color: `int`. Packed RGB color of the lines (0xff0000 is red, 0xff is blue).
+        width: `float`. Thickness of the lines.
+        model_matrix: `array_like`. 4x4 model transform matrix."""
+    return Line(vertices=np.array(vertices, np.float32), color=color,width=width,
+                model_matrix=get_model_matrix(model_matrix, xmin, xmax, ymin, ymax, zmin, zmax))
 
 
 def plot(*args, **kwargs):
