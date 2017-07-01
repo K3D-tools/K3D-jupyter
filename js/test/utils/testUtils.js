@@ -23,7 +23,9 @@ window.TestHelpers.jsonLoader = function (url, callback) {
         converters = {
             model_matrix: arrayToTypedArray.bind(null, Float32Array),
             point_positions: arrayToTypedArray.bind(null, Float32Array),
+            positions: arrayToTypedArray.bind(null, Float32Array),
             point_colors: arrayToTypedArray.bind(null, Float32Array),
+            colors: arrayToTypedArray.bind(null, Float32Array),
             scalar_field: arrayToTypedArray.bind(null, Float32Array),
             color_map: arrayToTypedArray.bind(null, Float32Array),
             attribute: arrayToTypedArray.bind(null, Float32Array),

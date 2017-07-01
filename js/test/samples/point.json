@@ -8,8 +8,8 @@
       0, 0, 1, 0,
       0, 0, 0, 1],
     "point_size" : 10,
-    "point_positions" : [10,10,10],
-    "point_colors" : [12740637]
+    "positions" : [10,10,10],
+    "colors" : [12740637]
   }
   ]
 }
