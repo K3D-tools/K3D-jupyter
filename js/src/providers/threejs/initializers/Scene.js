@@ -1,7 +1,7 @@
 'use strict';
 
 var _ = require('lodash'),
-    Text2d = require('./../objects/Text2d');
+    Text = require('./../objects/Text');
 
 function pow10ceil(x) {
     return Math.pow(10, Math.ceil(Math.log10(x)));
@@ -224,7 +224,7 @@ function rebuildSceneData(K3D, grids, force) {
                 v = grids.labelsOnEdges[key].v[0].clone().add(deltaValue.clone().multiplyScalar(j));
                 p = grids.labelsOnEdges[key].p[0].clone().add(deltaPosition.clone().multiplyScalar(j));
 
-                label = new Text2d({
+                label = new Text({
                     'position': p.toArray(),
                     'reference_point': 'cc',
                     'color': 0x444444,
@@ -254,7 +254,7 @@ function rebuildSceneData(K3D, grids, force) {
                 (new THREE.Vector3()).subVectors(middlePosition, middleValue).multiplyScalar(2.0)
             );
 
-            axisLabel = new Text2d({
+            axisLabel = new Text({
                 'position': middle.toArray(),
                 'reference_point': 'cc',
                 'color': 0x444444,

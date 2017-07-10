@@ -2,7 +2,7 @@
    "metadata" : {},
    "objects" : [{
 
-         "type" : "Text",
+         "type" : "TextureText",
          "position" : [0, 0, 0],
          "size": 1.0,
          "text" : "Sample single line text",

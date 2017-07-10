@@ -1,42 +1,42 @@
 {
    "metadata" : {},
    "objects" : [{
-         "type" : "Text",
+         "type" : "TextureText",
          "position" : [1, 1, 1],
          "text" : "vertex #5",
          "font_face" : "Lato"
       }, {
-         "type" : "Text",
+         "type" : "TextureText",
          "position" : [1, 1, -1],
          "text" : "vertex #6",
           "font_face" : "Lato"
       }, {
-         "type" : "Text",
+         "type" : "TextureText",
          "position" : [1, -1, 1],
          "text" : "vertex #1",
           "font_face" : "Lato"
       }, {
-         "type" : "Text",
+         "type" : "TextureText",
          "position" : [1, -1, -1],
          "text" : "vertex #2",
           "font_face" : "Lato"
       }, {
-         "type" : "Text",
+         "type" : "TextureText",
          "position" : [-1, 1, -1],
          "text" : "vertex #7",
           "font_face" : "Lato"
       }, {
-         "type" : "Text",
+         "type" : "TextureText",
          "position" : [-1, 1, 1],
          "text" : "vertex #8",
           "font_face" : "Lato"
       }, {
-         "type" : "Text",
+         "type" : "TextureText",
          "position" : [-1, -1, -1],
          "text" : "vertex #3",
           "font_face" : "Lato"
       }, {
-         "type" : "Text",
+         "type" : "TextureText",
          "position" : [-1, -1, 1],
          "text" : "vertex #4",
           "font_face" : "Lato"

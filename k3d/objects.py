@@ -86,6 +86,9 @@ class Group(Drawable):
         return arg
 
 
+# DRAWABLE OBJECTS
+
+
 class Line(Drawable):
     """
     A path (polyline) made up of line segments.
@@ -105,6 +108,9 @@ class Line(Drawable):
 
 
 class MarchingCubes(Drawable):
+    """
+    An isosurface in a scala field
+    """
     type = Unicode(default_value='MarchingCubes', read_only=True).tag(sync=True)
     color = Int().tag(sync=True)
     width = Int().tag(sync=True)
@@ -113,6 +119,17 @@ class MarchingCubes(Drawable):
     level = Float().tag(sync=True)
     model_matrix = Array().tag(sync=True, **array_serialization)
     scalar_field = Array().tag(sync=True, **array_serialization)
+
+
+class Mesh(Drawable):
+    type = Unicode(default_value='Mesh', read_only=True).tag(sync=True)
+    vertices = Array().tag(sync=True, **array_serialization)
+    indices = Array().tag(sync=True, **array_serialization)
+    color = Int().tag(sync=True)
+    attribute = Array().tag(sync=True, **array_serialization)
+    color_map = Array().tag(sync=True, **array_serialization)
+    color_range = List().tag(sync=True)
+    model_matrix = Array().tag(sync=True, **array_serialization)
 
 
 class Points(Drawable):
@@ -167,17 +184,6 @@ class Text(Drawable):
     type = Unicode(default_value='Text', read_only=True).tag(sync=True)
     color = Int().tag(sync=True)
     size = Float().tag(sync=True)
-    font_face = Unicode().tag(sync=True)
-    font_weight = Int().tag(sync=True)
-    font_size = Int().tag(sync=True)
-    position = List().tag(sync=True)
-    text = Unicode().tag(sync=True)
-
-
-class Text2d(Drawable):
-    type = Unicode(default_value='Text2d', read_only=True).tag(sync=True)
-    color = Int().tag(sync=True)
-    size = Float().tag(sync=True)
     reference_point = Unicode().tag(sync=True)
     position = List().tag(sync=True)
     text = Unicode().tag(sync=True)
@@ -187,6 +193,32 @@ class Texture(Drawable):
     type = Unicode(default_value='Texture', read_only=True).tag(sync=True)
     binary = Bytes().tag(sync=True)
     file_format = Unicode().tag(sync=True)
+    model_matrix = Array().tag(sync=True, **array_serialization)
+
+
+class TextureText(Drawable):
+    type = Unicode(default_value='TextureText', read_only=True).tag(sync=True)
+    color = Int().tag(sync=True)
+    size = Float().tag(sync=True)
+    font_face = Unicode().tag(sync=True)
+    font_weight = Int().tag(sync=True)
+    font_size = Int().tag(sync=True)
+    position = List().tag(sync=True)
+    text = Unicode().tag(sync=True)
+
+
+class VectorField(Drawable):
+    type = Unicode(default_value='VectorField', read_only=True).tag(sync=True)
+    vectors = Array().tag(sync=True, **array_serialization)
+    colors = Array().tag(sync=True, **array_serialization)
+    head_color = Int().tag(sync=True)
+    width = Int().tag(sync=True)
+    height = Int().tag(sync=True)
+    length = Int(allow_none=True).tag(sync=True)
+    origin_color = Int().tag(sync=True)
+    use_head = Bool().tag(sync=True)
+    head_size = Float().tag(sync=True)
+    scale = Float().tag(sync=True)
     model_matrix = Array().tag(sync=True, **array_serialization)
 
 
@@ -205,21 +237,6 @@ class Vectors(Drawable):
     model_matrix = Array().tag(sync=True, **array_serialization)
 
 
-class VectorFields(Drawable):
-    type = Unicode(default_value='VectorFields', read_only=True).tag(sync=True)
-    colors = Array().tag(sync=True, **array_serialization)
-    head_color = Int().tag(sync=True)
-    width = Int().tag(sync=True)
-    height = Int().tag(sync=True)
-    length = Int(allow_none=True).tag(sync=True)
-    origin_color = Int().tag(sync=True)
-    use_head = Bool().tag(sync=True)
-    head_size = Float().tag(sync=True)
-    scale = Float().tag(sync=True)
-    vectors = Array().tag(sync=True, **array_serialization)
-    model_matrix = Array().tag(sync=True, **array_serialization)
-
-
 class Voxels(Drawable):
     type = Unicode(default_value='Voxels', read_only=True).tag(sync=True)
     color_map = Array().tag(sync=True, **array_serialization)
@@ -227,15 +244,4 @@ class Voxels(Drawable):
     height = Int().tag(sync=True)
     length = Int().tag(sync=True)
     voxels = Array().tag(sync=True, **array_serialization)
-    model_matrix = Array().tag(sync=True, **array_serialization)
-
-
-class Mesh(Drawable):
-    type = Unicode(default_value='Mesh', read_only=True).tag(sync=True)
-    vertices = Array().tag(sync=True, **array_serialization)
-    indices = Array().tag(sync=True, **array_serialization)
-    color = Int().tag(sync=True)
-    attribute = Array().tag(sync=True, **array_serialization)
-    color_map = Array().tag(sync=True, **array_serialization)
-    color_range = List().tag(sync=True)
     model_matrix = Array().tag(sync=True, **array_serialization)

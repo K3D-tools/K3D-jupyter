@@ -3,7 +3,7 @@
 var buffer = require('./../../../core/lib/helpers/buffer'),
     getTwoColorsArray = require('./../helpers/Fn').getTwoColorsArray,
     generateArrow = require('./../helpers/Fn').generateArrow,
-    Text2d = require('./Text2d');
+    Text = require('./Text');
 
 /**
  * Loader strategy to handle Vectors  object
@@ -122,5 +122,5 @@ function createText(text, origin, destination, labelSize, K3D) {
             'size': labelSize
         };
 
-    return new Text2d(textConfig, K3D);
+    return new Text(textConfig, K3D);
 }

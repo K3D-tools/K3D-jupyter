@@ -43,19 +43,19 @@ module.exports = {
      * @type {Object}
      */
     Objects: {
-        Text2d: require('./objects/Text2d'),
         Line: require('./objects/Line'),
         MarchingCubes: require('./objects/MarchingCubes'),
+        Mesh: require('./objects/Mesh'),
         Points: require('./objects/Points'),
         STL: require('./objects/STL'),
         Surface: require('./objects/Surface'),
-        Text: require('./objects/Text'),
+        TextureText: require('./objects/TextureText'),
         Texture: require('./objects/Texture'),
+        Text: require('./objects/Text'),
         TorusKnot: require('./objects/TorusKnot'),
+        VectorField: require('./objects/VectorField'),
         Vectors: require('./objects/Vectors'),
-        VectorFields: require('./objects/VectorFields'),
-        Voxels: require('./objects/Voxels'),
-        Mesh: require('./objects/Mesh')
+        Voxels: require('./objects/Voxels')
     },
     /**
      * @namespace Interactions

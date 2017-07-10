@@ -1,12 +1,12 @@
 {
    "metadata" : {},
    "objects" : [{
-         "type" : "VectorFields",
+         "type" : "VectorField",
          "model_matrix" : [
-		 1, 0, 0, 0, 
-		 0, 1, 0, 0, 
-		 0, 0, 1, 0, 
-		 0, 0, 0, 1],
+         1, 0, 0, 0,
+         0, 1, 0, 0,
+         0, 0, 1, 0,
+         0, 0, 0, 1],
          "width" : 20,
          "height" : 20,
          "length" : 20,

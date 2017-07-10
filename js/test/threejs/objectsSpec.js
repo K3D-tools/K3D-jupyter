@@ -269,7 +269,7 @@ require(['K3D'], function (lib) {
             });
         });
 
-        it('should draw a text2d', function (done) {
+        it('should draw a text with LaTeX', function (done) {
             var self = this;
 
             jsonLoader('http://localhost:9001/samples/latex.json', function (json) {
@@ -297,26 +297,26 @@ require(['K3D'], function (lib) {
             });
         });
 
-        it('should draw a vector field 2d', function (done) {
+        it('should draw a 2d vector field', function (done) {
             var self = this;
 
-            jsonLoader('http://localhost:9001/samples/vector2d.json', function (json) {
+            jsonLoader('http://localhost:9001/samples/vector_field_2d.json', function (json) {
 
                 self.K3D.addFrameUpdateListener('after', function () {
-                    TestHelpers.compareCanvasWithExpectedImage(self.K3D, 'vector2d', RESAMBLEThreshold, done);
+                    TestHelpers.compareCanvasWithExpectedImage(self.K3D, 'vector_field_2d', RESAMBLEThreshold, done);
                 }, true);
 
                 self.K3D.load(json);
             });
         });
 
-        it('should draw a vector field 2d with single color', function (done) {
+        it('should draw a 2d vector field with a single color', function (done) {
             var self = this;
 
-            jsonLoader('http://localhost:9001/samples/vector2d_single_color.json', function (json) {
+            jsonLoader('http://localhost:9001/samples/vector_field_2d_single_color.json', function (json) {
 
                 self.K3D.addFrameUpdateListener('after', function () {
-                    TestHelpers.compareCanvasWithExpectedImage(self.K3D, 'vector2d', RESAMBLEThreshold, done);
+                    TestHelpers.compareCanvasWithExpectedImage(self.K3D, 'vector_field_2d', RESAMBLEThreshold, done);
                 }, true);
 
                 self.K3D.load(json);
@@ -324,13 +324,13 @@ require(['K3D'], function (lib) {
         });
 
 
-        it('should draw a vector field 2d without head', function (done) {
+        it('should draw a 2d vector field without heads', function (done) {
             var self = this;
 
-            jsonLoader('http://localhost:9001/samples/vector2d_no_head.json', function (json) {
+            jsonLoader('http://localhost:9001/samples/vector_field_2d_no_head.json', function (json) {
 
                 self.K3D.addFrameUpdateListener('after', function () {
-                    TestHelpers.compareCanvasWithExpectedImage(self.K3D, 'vector2d_no_head', RESAMBLEThreshold,
+                    TestHelpers.compareCanvasWithExpectedImage(self.K3D, 'vector_field_2d_no_head', RESAMBLEThreshold,
                         done);
                 }, true);
 
@@ -338,52 +338,52 @@ require(['K3D'], function (lib) {
             });
         });
 
-        it('should draw a vector field 3d', function (done) {
+        it('should draw a 3d vector field', function (done) {
             var self = this;
 
-            jsonLoader('http://localhost:9001/samples/vector3d.json', function (json) {
+            jsonLoader('http://localhost:9001/samples/vector_field_3d.json', function (json) {
 
                 self.K3D.addFrameUpdateListener('after', function () {
-                    TestHelpers.compareCanvasWithExpectedImage(self.K3D, 'vector3d', RESAMBLEThreshold, done);
+                    TestHelpers.compareCanvasWithExpectedImage(self.K3D, 'vector_field_3d', RESAMBLEThreshold, done);
                 }, true);
 
                 self.K3D.load(json);
             });
         });
 
-        it('should draw a vector field 3d (not cube)', function (done) {
+        it('should draw a 3d vector field (not cube)', function (done) {
             var self = this;
 
-            jsonLoader('http://localhost:9001/samples/vector3d_box.json', function (json) {
+            jsonLoader('http://localhost:9001/samples/vector_field_3d_box.json', function (json) {
 
                 self.K3D.addFrameUpdateListener('after', function () {
-                    TestHelpers.compareCanvasWithExpectedImage(self.K3D, 'vector3d_box', RESAMBLEThreshold, done);
+                    TestHelpers.compareCanvasWithExpectedImage(self.K3D, 'vector_field_3d_box', RESAMBLEThreshold, done);
                 }, true);
 
                 self.K3D.load(json);
             });
         });
 
-        it('should draw a vector field 3d with single color', function (done) {
+        it('should draw a 3d vector field with single color', function (done) {
             var self = this;
 
-            jsonLoader('http://localhost:9001/samples/vector3d_single_color.json', function (json) {
+            jsonLoader('http://localhost:9001/samples/vector_field_3d_single_color.json', function (json) {
 
                 self.K3D.addFrameUpdateListener('after', function () {
-                    TestHelpers.compareCanvasWithExpectedImage(self.K3D, 'vector3d', RESAMBLEThreshold, done);
+                    TestHelpers.compareCanvasWithExpectedImage(self.K3D, 'vector_field_3d', RESAMBLEThreshold, done);
                 }, true);
 
                 self.K3D.load(json);
             });
         });
 
-        it('should draw a vector field 3d without head', function (done) {
+        it('should draw a 3d vector field without heads', function (done) {
             var self = this;
 
-            jsonLoader('http://localhost:9001/samples/vector3d_no_head.json', function (json) {
+            jsonLoader('http://localhost:9001/samples/vector_field_3d_no_head.json', function (json) {
 
                 self.K3D.addFrameUpdateListener('after', function () {
-                    TestHelpers.compareCanvasWithExpectedImage(self.K3D, 'vector3d_no_head', RESAMBLEThreshold,
+                    TestHelpers.compareCanvasWithExpectedImage(self.K3D, 'vector_field_3d_no_head', RESAMBLEThreshold,
                         done);
                 }, true);
 
@@ -404,7 +404,7 @@ require(['K3D'], function (lib) {
             });
         });
 
-        it('should draw a voxels', function (done) {
+        it('should draw voxels', function (done) {
             var self = this;
 
             jsonLoader('http://localhost:9001/samples/voxels.json', function (json) {
@@ -417,7 +417,7 @@ require(['K3D'], function (lib) {
             });
         });
 
-        it('should draw a voxels (not cube)', function (done) {
+        it('should draw voxels (not cube)', function (done) {
             var self = this;
 
             jsonLoader('http://localhost:9001/samples/voxels_box.json', function (json) {
