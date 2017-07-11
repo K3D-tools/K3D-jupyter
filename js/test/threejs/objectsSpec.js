@@ -197,7 +197,7 @@ require(['K3D'], function (lib) {
             });
         });
 
-        it('Cube with described vertices', function (done) {
+        it('should draw texture texts at cube vertices', function (done) {
 
             var self = this;
 
