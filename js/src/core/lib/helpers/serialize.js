@@ -25,7 +25,10 @@ function deserialize_array_or_json(obj) {
         return obj;
     } else { // should be an array of buffer+dtype+shape
         if (typeof (obj.buffer) !== 'undefined') {
-            return new typesToArray[obj.dtype](obj.buffer.buffer);
+            return {
+                buffer: new typesToArray[obj.dtype](obj.buffer.buffer),
+                shape: obj.shape
+            };
         } else {
             return null;
         }

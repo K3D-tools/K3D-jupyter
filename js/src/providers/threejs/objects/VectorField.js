@@ -11,14 +11,14 @@ var buffer = require('./../../../core/lib/helpers/buffer'),
  * @param {Object} config all configurations params from JSON
  */
 module.exports = function (config) {
-    var modelMatrix = new THREE.Matrix4().fromArray(config.model_matrix),
+    var modelMatrix = new THREE.Matrix4().fromArray(config.model_matrix.buffer),
         originColor = new THREE.Color(config.origin_color || 255),
         headColor = new THREE.Color(config.head_color || 255),
-        width = config.width,
-        height = config.height,
-        length = config.length,
-        vectors = config.vectors,
-        colors = config.colors,
+        width = config.vectors.shape[2],
+        height = config.vectors.shape[1],
+        length = config.vectors.shape[0],
+        vectors = config.vectors.buffer,
+        colors = (config.colors && config.colors.buffer) || null,
         useHead = config.use_head || true,
         headSize = config.head_size || 1.0,
         scale = config.scale || 1.0,
@@ -36,8 +36,10 @@ module.exports = function (config) {
         lineVertices = [],
         colorsToFloat32Array = buffer.colorsToFloat32Array;
 
-    if (length === null || typeof (length) === 'undefined') {
+    if (width === null || typeof (width) === 'undefined') {
         // 2d vectors fields
+        width = height;
+        height = length;
         length = 1;
         vectors = convert2DVectorsTable(vectors);
     }
@@ -88,8 +90,6 @@ module.exports = function (config) {
 
     object.position.set(-0.5, -0.5, length === 1 ? 0 : -0.5);
     object.updateMatrix();
-
-    modelMatrix.set.apply(modelMatrix, config.model_matrix);
     object.applyMatrix(modelMatrix);
 
     object.updateMatrixWorld();

@@ -13,8 +13,22 @@ function base64ToArrayBuffer(base64) {
     return new DataView(bytes.buffer);
 }
 
-function arrayToTypedArray(typedArray, array) {
-    return typedArray.from(array);
+function arrayToTypedArray(typedArray, array, obj) {
+    // hack to preserve current samples structure
+
+    var shape = null;
+
+    if (typeof(obj.length) !== 'undefined') {
+        shape = [obj.length, obj.height, obj.width];
+
+    } else if (typeof(obj.width) !== 'undefined') {
+        shape = [obj.height, obj.width];
+    }
+
+    return {
+        buffer: typedArray.from(array),
+        shape: shape
+    };
 }
 
 window.TestHelpers.jsonLoader = function (url, callback) {
@@ -22,10 +36,7 @@ window.TestHelpers.jsonLoader = function (url, callback) {
         json,
         converters = {
             model_matrix: arrayToTypedArray.bind(null, Float32Array),
-            point_positions: arrayToTypedArray.bind(null, Float32Array),
             positions: arrayToTypedArray.bind(null, Float32Array),
-            point_colors: arrayToTypedArray.bind(null, Float32Array),
-            colors: arrayToTypedArray.bind(null, Float32Array),
             scalar_field: arrayToTypedArray.bind(null, Float32Array),
             color_map: arrayToTypedArray.bind(null, Float32Array),
             attribute: arrayToTypedArray.bind(null, Float32Array),
@@ -48,7 +59,7 @@ window.TestHelpers.jsonLoader = function (url, callback) {
             json.objects.forEach(function (obj) {
                 Object.keys(obj).forEach(function (key) {
                     if (typeof(converters[key]) !== 'undefined') {
-                        obj[key] = converters[key](obj[key]);
+                        obj[key] = converters[key](obj[key], obj);
                     }
                 });
             });

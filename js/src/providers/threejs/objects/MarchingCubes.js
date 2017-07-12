@@ -10,10 +10,10 @@ var marchingCubesPolygonise = require('./../../../core/lib/helpers/marchingCubes
  */
 module.exports = function (config) {
 
-    var scalarField = config.scalar_field,
-        width = config.width,
-        height = config.height,
-        length = config.length,
+    var scalarField = config.scalar_field.buffer,
+        width = config.scalar_field.shape[2],
+        height = config.scalar_field.shape[1],
+        length = config.scalar_field.shape[0],
         level = config.level,
         modelMatrix = new THREE.Matrix4(),
         material = new THREE.MeshPhongMaterial({
@@ -53,7 +53,7 @@ module.exports = function (config) {
 
     object = new THREE.Mesh(geometry, material);
 
-    modelMatrix.set.apply(modelMatrix, config.model_matrix);
+    modelMatrix.set.apply(modelMatrix, config.model_matrix.buffer);
 
     object.position.set(-0.5, -0.5, -0.5);
     object.updateMatrix();

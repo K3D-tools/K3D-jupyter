@@ -29,7 +29,7 @@ module.exports = function (config) {
             material = new THREE.MeshBasicMaterial({color: 0xffffff, side: THREE.DoubleSide, map: texture});
             object = new THREE.Mesh(geometry, material);
 
-            modelMatrix.set.apply(modelMatrix, config.model_matrix);
+            modelMatrix.set.apply(modelMatrix, config.model_matrix.buffer);
             object.applyMatrix(modelMatrix);
 
             object.updateMatrixWorld();

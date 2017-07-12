@@ -9,9 +9,9 @@
  */
 module.exports = function (config) {
 
-    var heights = config.heights,
-        width = config.width,
-        height = config.height,
+    var heights = config.heights.buffer,
+        width = config.heights.shape[1],
+        height = config.heights.shape[0],
         modelMatrix = new THREE.Matrix4(),
         material = new THREE.MeshPhongMaterial({
             color: config.color,
@@ -56,7 +56,7 @@ module.exports = function (config) {
     geometry.computeBoundingBox();
 
     object = new THREE.Mesh(geometry, material);
-    modelMatrix.set.apply(modelMatrix, config.model_matrix);
+    modelMatrix.set.apply(modelMatrix, config.model_matrix.buffer);
 
     object.position.set(-0.5, -0.5, 0);
     object.updateMatrix();

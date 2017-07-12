@@ -51,10 +51,7 @@ ObjectModel = widgets.WidgetModel.extend({
 }, {
     serializers: _.extend({
         model_matrix: serialize.array_or_json,
-        point_positions: serialize.array_or_json,
         positions: serialize.array_or_json,
-        point_colors: serialize.array_or_json,
-        colors: serialize.array_or_json,
         scalar_field: serialize.array_or_json,
         color_map: serialize.array_or_json,
         attribute: serialize.array_or_json,

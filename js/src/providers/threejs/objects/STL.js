@@ -37,7 +37,7 @@ module.exports = function (config) {
     geometry.computeBoundingSphere();
     geometry.computeBoundingBox();
 
-    modelMatrix.set.apply(modelMatrix, config.model_matrix);
+    modelMatrix.set.apply(modelMatrix, config.model_matrix.buffer);
     object.applyMatrix(modelMatrix);
 
     object.updateMatrixWorld();

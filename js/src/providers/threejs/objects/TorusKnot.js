@@ -53,7 +53,7 @@ module.exports = function (config) {
             2, 3)
     );
 
-    modelMatrix.set.apply(modelMatrix, config.model_matrix);
+    modelMatrix.set.apply(modelMatrix, config.model_matrix.buffer);
     object.applyMatrix(modelMatrix);
 
     object.updateMatrixWorld();

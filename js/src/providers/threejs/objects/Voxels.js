@@ -14,12 +14,12 @@ var voxelMeshGenerator = require('./../../../core/lib/helpers/voxelMeshGenerator
 module.exports = function (config, K3D) {
     const chunkSize = 32;
 
-    var modelMatrix = new THREE.Matrix4().fromArray(config.model_matrix),
-        width = config.width,
-        height = config.height,
-        length = config.length,
-        voxels = config.voxels,
-        colorMap = config.color_map || [16711680, 65280, 255, 16776960, 16711935, 65535],
+    var modelMatrix = new THREE.Matrix4().fromArray(config.model_matrix.buffer),
+        width = config.voxels.shape[2],
+        height = config.voxels.shape[1],
+        length = config.voxels.shape[0],
+        voxels = config.voxels.buffer,
+        colorMap = config.color_map.buffer || [16711680, 65280, 255, 16776960, 16711935, 65535],
         object = new THREE.Group(),
         generate,
         mesh,
@@ -85,7 +85,7 @@ module.exports = function (config, K3D) {
     object.position.set(-0.5, -0.5, -0.5);
     object.updateMatrix();
 
-    modelMatrix.set.apply(modelMatrix, config.model_matrix);
+    modelMatrix.set.apply(modelMatrix, config.model_matrix.buffer);
     object.applyMatrix(modelMatrix);
 
     rollOverMesh.visible = false;

@@ -50,10 +50,10 @@ module.exports = function (config) {
             shading: THREE.FlatShading
         }),
         colorRange = config.color_range,
-        colorMap = config.color_map,
-        attribute = config.attribute,
-        vertices = config.vertices,
-        indices = config.indices,
+        colorMap = (config.color_map && config.color_map.buffer) || null,
+        attribute = (config.attribute && config.attribute.buffer) || null,
+        vertices = (config.vertices && config.vertices.buffer) || null,
+        indices = (config.indices && config.indices.buffer) || null,
         geometry = new THREE.BufferGeometry(),
         object;
 
@@ -68,7 +68,7 @@ module.exports = function (config) {
 
     object = new THREE.Mesh(geometry, material);
 
-    modelMatrix.set.apply(modelMatrix, config.model_matrix);
+    modelMatrix.set.apply(modelMatrix, config.model_matrix.buffer);
     object.applyMatrix(modelMatrix);
 
     object.updateMatrixWorld();

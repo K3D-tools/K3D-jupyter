@@ -12,8 +12,8 @@ var buffer = require('./../../../core/lib/helpers/buffer'),
 module.exports = function (config) {
     var modelMatrix = new THREE.Matrix4(),
         color = new THREE.Color(config.color || 65280),
-        pointPositions = config.positions,
-        pointColors = config.colors,
+        pointPositions = config.positions.buffer,
+        pointColors = (config.colors && config.colors.buffer) || null,
         shader = config.shader || '3dSpecular',
         colors,
         object,
@@ -52,7 +52,7 @@ module.exports = function (config) {
     colors = pointColors ? colorsToFloat32Array(pointColors) : getColorsArray(color, pointPositions.length / 3);
     object = new THREE.Points(getGeometry(pointPositions, colors), material);
 
-    modelMatrix.set.apply(modelMatrix, config.model_matrix);
+    modelMatrix.set.apply(modelMatrix, config.model_matrix.buffer);
     object.applyMatrix(modelMatrix);
 
     object.updateMatrixWorld();

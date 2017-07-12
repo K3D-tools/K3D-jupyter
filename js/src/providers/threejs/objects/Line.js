@@ -16,14 +16,14 @@ module.exports = function (config) {
         }),
         object = new THREE.Line(geometry, material),
         modelMatrix = new THREE.Matrix4(),
-        position = config.vertices;
+        position = config.vertices.buffer;
 
     geometry.addAttribute('position', new THREE.BufferAttribute(position, 3));
 
     geometry.computeBoundingSphere();
     geometry.computeBoundingBox();
 
-    modelMatrix.set.apply(modelMatrix, config.model_matrix);
+    modelMatrix.set.apply(modelMatrix, config.model_matrix.buffer);
     object.applyMatrix(modelMatrix);
 
     object.updateMatrixWorld();
