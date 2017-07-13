@@ -188,6 +188,14 @@ class Text(Drawable):
     position = List().tag(sync=True)
     text = Unicode().tag(sync=True)
 
+class Text2d(Drawable):
+    type = Unicode(default_value='Text2d', read_only=True).tag(sync=True)
+    color = Int().tag(sync=True)
+    size = Float().tag(sync=True)
+    reference_point = Unicode().tag(sync=True)
+    position = List().tag(sync=True)
+    text = Unicode().tag(sync=True)
+
 
 class Texture(Drawable):
     type = Unicode(default_value='Texture', read_only=True).tag(sync=True)

@@ -298,6 +298,19 @@ require(['K3D'], function (lib) {
             });
         });
 
+        it('should draw a 2d text with LaTeX', function (done) {
+            var self = this;
+
+            jsonLoader('http://localhost:9001/samples/text2d.json', function (json) {
+
+                self.K3D.addFrameUpdateListener('after', function () {
+                    TestHelpers.compareCanvasWithExpectedImage(self.K3D, 'text2d', RESAMBLEThreshold, done);
+                }, true);
+
+                self.K3D.load(json);
+            });
+        });
+
         it('should draw a vector with a label', function (done) {
             var self = this;
 

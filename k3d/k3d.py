@@ -11,7 +11,7 @@ import six
 from .colormaps.basic_color_maps import basic_color_maps
 from .plot import Plot
 from .helpers import get_model_matrix, get_dimensions, validate_vectors_size
-from .objects import (Line, MarchingCubes, Mesh, Points, STL, Surface, Text, Texture, TextureText, VectorField,
+from .objects import (Line, MarchingCubes, Mesh, Points, STL, Surface, Text, Text2d, Texture, TextureText, VectorField,
                       Vectors, Voxels)
 
 _default_color = 0x0000FF
@@ -94,6 +94,11 @@ def surface(heights, xmin=-.5, xmax=.5, ymin=-.5, ymax=.5, model_matrix=np.ident
 def text(text, position=[0, 0, 0], color=_default_color, size=1.0, reference_point='lb'):
     """Create a Text drawable."""
     return Text(position=position, reference_point=reference_point, text=text, size=size, color=color)
+
+
+def text2d(text, position=[0, 0, 0], color=_default_color, size=1.0, reference_point='lb'):
+    """Create a Text drawable."""
+    return Text2d(position=position, reference_point=reference_point, text=text, size=size, color=color)
 
 
 def texture(binary, file_format, xmin=-.5, xmax=.5, ymin=-.5, ymax=.5, zmin=-.5, zmax=.5,
