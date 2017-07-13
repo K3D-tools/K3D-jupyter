@@ -100,6 +100,21 @@ require(['K3D'], function (lib) {
             });
         });
 
+        it('Points-based horse model with colors and shader=mesh should be drawn', function (done) {
+
+            var self = this;
+
+            jsonLoader('http://localhost:9001/samples/horse_with_colors_mesh.json', function (json) {
+
+                self.K3D.addFrameUpdateListener('after', function () {
+                    TestHelpers.compareCanvasWithExpectedImage(self.K3D, 'horse_with_colors_mesh',
+                        RESAMBLEThreshold, done);
+                }, true);
+
+                self.K3D.load(json);
+            });
+        });
+
         it('Simple single line text label should be drawn', function (done) {
 
             var self = this;
