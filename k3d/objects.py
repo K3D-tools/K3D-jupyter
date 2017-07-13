@@ -156,7 +156,7 @@ class Points(Drawable):
 
     @validate('point_colors')
     def _validate_colors(self, proposal):
-        required = self.point_positions.size
+        required = self.positions.size
         actual = proposal['value'].size
         if actual != 0 and required != actual:
             raise TraitError('point_colors has wrong size: %s (%s required)' % (actual, required))
