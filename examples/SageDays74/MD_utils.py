@@ -74,7 +74,7 @@ class simple_molecule_vis(object):
 
 
     def update_box(self, bs = 1):
-        self.box.point_positions = self.box_coords(bs=bs)
+        self.box.vertices = self.box_coords(bs=bs)
 
     def __init__(self,bs=1.0):
         self.new_plot(bs=bs)

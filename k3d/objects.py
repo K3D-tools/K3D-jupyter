@@ -109,16 +109,13 @@ class Line(Drawable):
 
 class MarchingCubes(Drawable):
     """
-    An isosurface in a scala field
+    An isosurface in a scalar field obtained through Marching Cubes algorithm.
     """
     type = Unicode(default_value='MarchingCubes', read_only=True).tag(sync=True)
-    color = Int().tag(sync=True)
-    width = Int().tag(sync=True)
-    height = Int().tag(sync=True)
-    length = Int().tag(sync=True)
-    level = Float().tag(sync=True)
-    model_matrix = Array().tag(sync=True, **array_serialization)
     scalar_field = Array().tag(sync=True, **array_serialization)
+    level = Float().tag(sync=True)
+    color = Int().tag(sync=True)
+    model_matrix = Array().tag(sync=True, **array_serialization)
 
 
 class Mesh(Drawable):
@@ -154,12 +151,12 @@ class Points(Drawable):
     shader = Unicode().tag(sync=True)
     model_matrix = Array().tag(sync=True, **array_serialization)
 
-    @validate('point_colors')
+    @validate('colors')
     def _validate_colors(self, proposal):
-        required = self.positions.size
+        required = self.positions.size // 3  # (x, y, z) triplet per 1 color
         actual = proposal['value'].size
         if actual != 0 and required != actual:
-            raise TraitError('point_colors has wrong size: %s (%s required)' % (actual, required))
+            raise TraitError('colors has wrong size: %s (%s required)' % (actual, required))
         return proposal['value']
 
 
@@ -173,9 +170,6 @@ class STL(Drawable):
 
 class Surface(Drawable):
     type = Unicode(default_value='Surface', read_only=True).tag(sync=True)
-    color = Int().tag(sync=True)
-    width = Int().tag(sync=True)
-    height = Int().tag(sync=True)
     heights = Array().tag(sync=True, **array_serialization)
     model_matrix = Array().tag(sync=True, **array_serialization)
 
@@ -187,6 +181,7 @@ class Text(Drawable):
     reference_point = Unicode().tag(sync=True)
     position = List().tag(sync=True)
     text = Unicode().tag(sync=True)
+
 
 class Text2d(Drawable):
     type = Unicode(default_value='Text2d', read_only=True).tag(sync=True)
@@ -220,9 +215,6 @@ class VectorField(Drawable):
     vectors = Array().tag(sync=True, **array_serialization)
     colors = Array().tag(sync=True, **array_serialization)
     head_color = Int().tag(sync=True)
-    width = Int().tag(sync=True)
-    height = Int().tag(sync=True)
-    length = Int(allow_none=True).tag(sync=True)
     origin_color = Int().tag(sync=True)
     use_head = Bool().tag(sync=True)
     head_size = Float().tag(sync=True)
@@ -248,8 +240,5 @@ class Vectors(Drawable):
 class Voxels(Drawable):
     type = Unicode(default_value='Voxels', read_only=True).tag(sync=True)
     color_map = Array().tag(sync=True, **array_serialization)
-    width = Int().tag(sync=True)
-    height = Int().tag(sync=True)
-    length = Int().tag(sync=True)
     voxels = Array().tag(sync=True, **array_serialization)
     model_matrix = Array().tag(sync=True, **array_serialization)
