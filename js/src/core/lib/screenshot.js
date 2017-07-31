@@ -40,8 +40,7 @@ function screenshotButton(container, K3D) {
         'cursor: pointer',
         'width: 24px',
         'height: 24px',
-        'padding: 2px',
-        'vertical-align: top;'
+        'padding: 2px'
     ].join(';');
 
     element.style.cssText = 'margin: 0 3px';
