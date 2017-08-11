@@ -171,6 +171,7 @@ class STL(Drawable):
 class Surface(Drawable):
     type = Unicode(default_value='Surface', read_only=True).tag(sync=True)
     heights = Array().tag(sync=True, **array_serialization)
+    color = Int().tag(sync=True)
     model_matrix = Array().tag(sync=True, **array_serialization)
 
 
