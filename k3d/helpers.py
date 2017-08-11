@@ -51,7 +51,7 @@ def array_to_binary(ar, obj=None, force_contiguous=True):
 
 
 def from_json_to_array(value, obj=None):
-    return np.frombuffer(value['buffer'], dtype=value['dtype']) if value else None
+    return np.frombuffer(value['buffer'], dtype=value['dtype']).reshape(value['shape']) if value else None
 
 
 array_serialization = dict(to_json=array_to_binary, from_json=from_json_to_array)

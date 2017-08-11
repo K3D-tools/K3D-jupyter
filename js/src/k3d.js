@@ -36,7 +36,10 @@ ObjectModel = widgets.WidgetModel.extend({
         this.on('change', this._change, this);
         this.on('msg:custom', function (obj) {
             if (obj.msg_type === 'fetch') {
-                this.save(obj.field, this.get(obj.field));
+                // this.save(obj.field, this.get(obj.field));
+                this._changing = true;
+                this.set(obj.field, this.get(obj.field));
+                this.save_changes();
             }
         }, this);
 
