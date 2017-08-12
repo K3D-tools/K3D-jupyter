@@ -408,23 +408,21 @@ module.exports = {
         lights[0] = new THREE.PointLight(0xffffff, 1, 0);
         lights[1] = new THREE.PointLight(0xffffff, 1, 0);
         lights[2] = new THREE.PointLight(0xffffff, 1, 0);
-        lights[3] = new THREE.PointLight(0xffffff, 1, 0);
 
-        lights[0].position.set(-100, -1000, -500);
-        lights[1].position.set(-3000, 1000, -500);
-
-        lights[2].position.set(-5000, 1000, 1000);
-        lights[3].position.set(5000, -1000, 1000);
+        lights[0].position.set(2000, -1000, 2000);
+        lights[1].position.set(-2000, 0, 2000);
+        lights[2].position.set(50, 200, 500);
 
         this.scene = new THREE.Scene();
 
         this.K3DObjects = new THREE.Group();
 
-        this.scene.add(lights[0]);
-        this.scene.add(lights[1]);
-        this.scene.add(lights[2]);
-        this.scene.add(lights[3]);
+        this.camera.add(lights[0]);
+        this.camera.add(lights[1]);
+        this.camera.add(lights[2]);
+
         this.scene.add(ambientLight);
+        this.scene.add(this.camera);
         this.scene.add(this.K3DObjects);
 
         K3D.raycast = raycast.bind(this);
