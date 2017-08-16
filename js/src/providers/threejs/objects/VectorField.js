@@ -36,7 +36,8 @@ module.exports = function (config) {
         lineVertices = [],
         colorsToFloat32Array = buffer.colorsToFloat32Array;
 
-    if (width === null || typeof (width) === 'undefined') {
+    if (config.vectors.shape.length === 3)
+    {
         // 2d vectors fields
         width = height;
         height = length;

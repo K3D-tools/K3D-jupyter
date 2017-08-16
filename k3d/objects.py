@@ -1,26 +1,10 @@
-import base64
 import ipywidgets as widgets
 from traitlets import Unicode, Int, Float, List, Bool, Bytes
 from traitlets import validate, TraitError
 from traittypes import Array
 from .helpers import array_serialization
 from ._version import __version__
-
-try:
-    from urllib import urlopen
-except ImportError:
-    from urllib.request import urlopen
-
-
-def _to_image_src(url):
-    try:
-        response = urlopen(url)
-    except (IOError, ValueError):
-        return url
-
-    content_type = dict(response.info()).get('content-type', 'image/png')
-
-    return 'data:%s;base64,%s' % (content_type, base64.b64encode(response.read()).decode(encoding='ascii'))
+import numpy as np
 
 
 class Drawable(widgets.CoreWidget):
@@ -46,6 +30,15 @@ class Drawable(widgets.CoreWidget):
         return Group(self, other)
 
     def fetch_data(self, field):
+        """Request updating the value of a field modified in browser.
+
+        For data modified in the widget on the browser side, this triggers an asynchronous
+        update of the value in the Python kernel.
+
+        Only specific features require this mechanism, e.g. the in-browser editing of voxels.
+
+        Arguments:
+            field: `str`. the field name."""
         self.send({'msg_type': 'fetch', 'field': field})
 
     def _ipython_display_(self, **kwargs):
@@ -63,6 +56,7 @@ class Group(Drawable):
 
     It can be inserted or removed from a Plot including all members.
     """
+
     __objs = None
 
     def __init__(self, *args):
@@ -110,7 +104,17 @@ class Line(Drawable):
 class MarchingCubes(Drawable):
     """
     An isosurface in a scalar field obtained through Marching Cubes algorithm.
+
+    The default domain of the scalar field is -0.5 < x, y, z < 0.5.
+    If the domain should be different, the bounding box needs to be transformed using the model_matrix.
+
+    Attributes:
+        scalar_field: `array_like`. A 3D scalar field of values.
+        level: `float`. Value at the computed isosurface.
+        color: `int`. Packed RGB color of the isosurface (0xff0000 is red, 0xff is blue).
+        model_matrix: `array_like`. 4x4 model transform matrix.
     """
+
     type = Unicode(default_value='MarchingCubes', read_only=True).tag(sync=True)
     scalar_field = Array().tag(sync=True, **array_serialization)
     level = Float().tag(sync=True)
@@ -119,6 +123,21 @@ class MarchingCubes(Drawable):
 
 
 class Mesh(Drawable):
+    """
+    A 3D triangles mesh.
+
+    Attributes:
+        vertices: `array_like`. Array of triangle vertices: float (x, y, z) coordinate triplets.
+        indices: `array_like`.  Array of vertex indices: int triplets of indices from vertices array.
+        color: `int`. Packed RGB color of the mesh (0xff0000 is red, 0xff is blue) when not using color maps.
+        attribute: `array_like`. Array of float attribute for the color mapping, coresponding to each vertex.
+        color_map: `list`. A list of float quadruplets (attribute value, R, G, B), sorted by attribute value. The first
+            quadruplet should have value 0.0, the last 1.0; R, G, B are RGB color components in the range 0.0 to 1.0.
+        color_range: `list`. A pair [min_value, max_value], which determines the levels of color attribute mapped
+            to 0 and 1 in the color map respectively.
+        model_matrix: `array_like`. 4x4 model transform matrix.
+    """
+
     type = Unicode(default_value='Mesh', read_only=True).tag(sync=True)
     vertices = Array().tag(sync=True, **array_serialization)
     indices = Array().tag(sync=True, **array_serialization)
@@ -139,7 +158,11 @@ class Points(Drawable):
         color: `int`. Packed RGB color of the points (0xff0000 is red, 0xff is blue) when `colors` is empty.
         point_size: `float`. Diameter of the balls representing the points in 3D space.
         shader: `str`. Display style (name of the shader used) of the points.
-            Legal values are: `flat`, `3d` and `3dSpecular`.
+            Legal values are:
+            `flat`: simple circles with uniform color,
+            `3d`: little 3D balls,
+            `3dSpecular`: little 3D balls with specular lightning,
+            `mesh`: high precision triangle mesh of a ball (high quality and GPU load).
         model_matrix: `array_like`. 4x4 model transform matrix.
     """
 
@@ -161,14 +184,39 @@ class Points(Drawable):
 
 
 class STL(Drawable):
+    """
+    A STereoLitograpy 3D geometry.
+
+    STL is a popular format introduced for 3D printing. There are two sub-formats - ASCII and binary.
+
+    Attributes:
+        text: `str`. STL data in text format (ASCII STL).
+        binary: `bytes`. STL data in binary format (Binary STL).
+            Takes precedence over text when both specified.
+        color: `int`. Packed RGB color of the resulting mesh (0xff0000 is red, 0xff is blue).
+        model_matrix: `array_like`. 4x4 model transform matrix.
+    """
+
     type = Unicode(default_value='STL', read_only=True).tag(sync=True)
-    color = Int().tag(sync=True)
-    model_matrix = Array().tag(sync=True, **array_serialization)
     text = Unicode().tag(sync=True)
     binary = Array().tag(sync=True, **array_serialization)
+    color = Int().tag(sync=True)
+    model_matrix = Array().tag(sync=True, **array_serialization)
 
 
 class Surface(Drawable):
+    """
+    Surface plot of a 2D function z = f(x, y).
+
+    The default domain of the scalar field is -0.5 < x, y < 0.5.
+    If the domain should be different, the bounding box needs to be transformed using the model_matrix.
+
+    Attributes:
+        heights: `array_like`. 2D scalar field of Z values.
+        color: `int`. Packed RGB color of the resulting mesh (0xff0000 is red, 0xff is blue).
+        model_matrix: `array_like`. 4x4 model transform matrix.
+    """
+
     type = Unicode(default_value='Surface', read_only=True).tag(sync=True)
     heights = Array().tag(sync=True, **array_serialization)
     color = Int().tag(sync=True)
@@ -176,15 +224,41 @@ class Surface(Drawable):
 
 
 class Text(Drawable):
+    """
+    Text rendered using KaTeX with a 3D position.
+
+    Attributes:
+        text: `str`. Content of the text.
+        position: `list`. Coordinates (x, y, z) of the text's position.
+        color: `int`. Packed RGB color of the text (0xff0000 is red, 0xff is blue).
+        reference_point: `str`. Two-letter string representing the text's alignment.
+            First letter: 'l', 'c' or 'r': left, center or right
+            Second letter: 't', 'c' or 'b': top, center or bottom.
+        size: `float`. Font size in 'em' HTML units.
+    """
+
     type = Unicode(default_value='Text', read_only=True).tag(sync=True)
-    color = Int().tag(sync=True)
-    size = Float().tag(sync=True)
-    reference_point = Unicode().tag(sync=True)
-    position = List().tag(sync=True)
     text = Unicode().tag(sync=True)
+    position = List().tag(sync=True)
+    color = Int().tag(sync=True)
+    reference_point = Unicode().tag(sync=True)
+    size = Float().tag(sync=True)
 
 
 class Text2d(Drawable):
+    """
+    Text rendered using KaTeX with a fixed 2D position, independent of camera settings.
+
+    Attributes:
+        text: `str`. Content of the text.
+        position: `list`. Ratios (r_x, r_y) of the text's position in range (0, 1) - relative to canvas size.
+        color: `int`. Packed RGB color of the text (0xff0000 is red, 0xff is blue).
+        reference_point: `str`. Two-letter string representing the text's alignment.
+            First letter: 'l', 'c' or 'r': left, center or right
+            Second letter: 't', 'c' or 'b': top, center or bottom.
+        size: `float`. Font size in 'em' HTML units.
+    """
+
     type = Unicode(default_value='Text2d', read_only=True).tag(sync=True)
     color = Int().tag(sync=True)
     size = Float().tag(sync=True)
@@ -194,6 +268,20 @@ class Text2d(Drawable):
 
 
 class Texture(Drawable):
+    """
+    A 2D image displayed as a texture.
+
+    By default, the texture image is mapped into the square: -0.5 < x, y < 0.5, z = 1.
+    If the size (scale, aspect ratio) or position should be different then the texture should be transformed
+    using the model_matrix.
+
+    Attributes:
+        binary: `bytes`. Image data in a specific format.
+        file_format: `str`. Format of the data, it should be the second part of MIME format of type 'image/',
+            for example 'jpeg', 'png', 'gif', 'tiff'.
+        model_matrix: `array_like`. 4x4 model transform matrix.
+    """
+
     type = Unicode(default_value='Texture', read_only=True).tag(sync=True)
     binary = Bytes().tag(sync=True)
     file_format = Unicode().tag(sync=True)
@@ -201,45 +289,140 @@ class Texture(Drawable):
 
 
 class TextureText(Drawable):
+    """
+    A text in the 3D space rendered using a texture.
+
+    Compared to Text and Text2d this drawable has less features (no KaTeX support), but the labels are located
+    in the GPU memory, and not the browser's DOM tree. This has performance consequences, and may be preferable when
+    many simple labels need to be displayed.
+
+    Attributes:
+        text: `str`. Content of the text.
+        position: `list`. Coordinates (x, y, z) of the text's position.
+        color: `int`. Packed RGB color of the text (0xff0000 is red, 0xff is blue).
+        size: `float`. Size of the texture sprite containing the text.
+        font_face: `str`. Name of the font to use for rendering the text.
+        font_weight: `int`. Thickness of the characters in HTML-like units from the range (100, 900), where
+            400 is normal and 600 is bold font.
+        font_size: `int`. The font size inside the sprite texture in px units. This does not affect the size of the
+            text in the scene, only the accuracy and raster size of the texture.
+    """
+
     type = Unicode(default_value='TextureText', read_only=True).tag(sync=True)
+    text = Unicode().tag(sync=True)
+    position = List().tag(sync=True)
     color = Int().tag(sync=True)
     size = Float().tag(sync=True)
     font_face = Unicode().tag(sync=True)
     font_weight = Int().tag(sync=True)
     font_size = Int().tag(sync=True)
-    position = List().tag(sync=True)
-    text = Unicode().tag(sync=True)
 
 
 class VectorField(Drawable):
+    """
+    A dense 3D or 2D vector field.
+
+    By default, the origins of the vectors are assumed to be a grid inscribed in the -0.5 < x, y, z < 0.5 cube
+    or -0.5 < x, y < 0.5 square, regardless of the passed vector field shape (aspect ratio etc.).
+    Different grid size, shape and rotation can be obtained using the model_matrix.
+
+    The color of the vectors is a gradient from origin_color to head_color. Heads, when used, have uniform head_color.
+
+    For sparse (i.e. not forming a grid) 3D vectors, use the `Vectors` drawable.
+
+    Attributes:
+        vectors: `array_like`. Vector field of shape (L, H, W, 3) for 3D fields or (H, W, 2) for 2D fields.
+        colors: `array_like`. Twice the length of vectors array of int: packed RGB colors
+            (0xff0000 is red, 0xff is blue).
+            The array has consecutive pairs (origin_color, head_color) for vectors in row-major order.
+        origin_color: `int`. Packed RGB color of the origins (0xff0000 is red, 0xff is blue) when `colors` is empty.
+        head_color: `int`. Packed RGB color of the vector heads (0xff0000 is red, 0xff is blue) when `colors` is empty.
+        use_head: `bool`. Whether vectors should display an arrow head.
+        head_size: `float`. The size of the arrow heads.
+        scale: `float`. Scale factor for the vector lengths, for artificially scaling the vectors in place.
+        model_matrix: `array_like`. 4x4 model transform matrix.
+    """
+
     type = Unicode(default_value='VectorField', read_only=True).tag(sync=True)
     vectors = Array().tag(sync=True, **array_serialization)
     colors = Array().tag(sync=True, **array_serialization)
-    head_color = Int().tag(sync=True)
     origin_color = Int().tag(sync=True)
+    head_color = Int().tag(sync=True)
     use_head = Bool().tag(sync=True)
     head_size = Float().tag(sync=True)
     scale = Float().tag(sync=True)
     model_matrix = Array().tag(sync=True, **array_serialization)
 
+    @validate('vectors')
+    def _validate_vectors(self, proposal):
+        shape = proposal['value'].shape
+        if len(shape) not in (3, 4) or len(shape) != shape[-1] + 1:
+            raise TraitError('Vector field has invalid shape: {}, '
+                             'expected (L, H, W, 3) for a 3D or (H, W, 2) for a 2D field'.format(shape))
+        return np.array(proposal['value'], np.float32)
+
 
 class Vectors(Drawable):
+    """
+    3D vectors.
+
+    The color of the vectors is a gradient from origin_color to head_color. Heads, when used, have uniform head_color.
+
+    For dense (i.e. forming a grid) 3D or 2D vectors, use the `VectorField` drawable.
+
+    Attributes:
+        vectors: `array_like`. The vectors as (dx, dy, dz) float triples.
+        origins: `array_like`. Same-size array of (x, y, z) coordinates of vector origins.
+        colors: `array_like`. Twice the length of vectors array of int: packed RGB colors
+            (0xff0000 is red, 0xff is blue).
+            The array has consecutive pairs (origin_color, head_color) for vectors in row-major order.
+        origin_color: `int`. Packed RGB color of the origins (0xff0000 is red, 0xff is blue), default: same as color.
+        head_color: `int`. Packed RGB color of the vector heads (0xff0000 is red, 0xff is blue), default: same as color.
+        use_head: `bool`. Whether vectors should display an arrow head.
+        head_size: `float`. The size of the arrow heads.
+        labels: `list` of `str`. Captions to display next to the vectors.
+        label_size: `float`. Label font size in 'em' HTML units.
+        line_width: `float`. Width of the vector segments.
+        model_matrix: `array_like`. 4x4 model transform matrix.
+    """
+
     type = Unicode(default_value='Vectors', read_only=True).tag(sync=True)
+    vectors = Array().tag(sync=True, **array_serialization)
+    origins = Array().tag(sync=True, **array_serialization)
     colors = Array().tag(sync=True, **array_serialization)
-    head_color = Int().tag(sync=True)
     origin_color = Int().tag(sync=True)
-    labels = List().tag(sync=True)
+    head_color = Int().tag(sync=True)
+    use_head = Bool().tag(sync=True)
     head_size = Float().tag(sync=True)
+    labels = List().tag(sync=True)
     label_size = Float().tag(sync=True)
     line_width = Float().tag(sync=True)
-    use_head = Bool().tag(sync=True)
-    origins = Array().tag(sync=True, **array_serialization)
-    vectors = Array().tag(sync=True, **array_serialization)
     model_matrix = Array().tag(sync=True, **array_serialization)
 
 
 class Voxels(Drawable):
+    """
+    3D volumetric data.
+
+    By default, the voxels are a grid inscribed in the -0.5 < x, y, z < 0.5 cube
+    regardless of the passed voxel array shape (aspect ratio etc.).
+    Different grid size, shape and rotation can be obtained using the model_matrix.
+
+    Attributes:
+        voxels: `array_like`. 3D array of `int` in range (0, 255).
+            0 means empty voxel, 1 and above refer to consecutive color_map entries.
+        color_map: `array_like`. Flat array of `int` packed RGB colors (0xff0000 is red, 0xff is blue).
+            The color defined at index i is for voxel value (i+1), e.g.:
+            color_map = [0xff, 0x00ff]
+            voxels = [[[
+                0, # empty voxel
+                1, # blue voxel
+                2  # red voxel
+            ]]]
+        model_matrix: `array_like`. 4x4 model transform matrix.
+    """
+
     type = Unicode(default_value='Voxels', read_only=True).tag(sync=True)
-    color_map = Array().tag(sync=True, **array_serialization)
     voxels = Array().tag(sync=True, **array_serialization)
+    color_map = Array().tag(sync=True, **array_serialization)
     model_matrix = Array().tag(sync=True, **array_serialization)
