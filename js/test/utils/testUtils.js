@@ -20,9 +20,12 @@ function arrayToTypedArray(typedArray, array, obj) {
 
     if (typeof(obj.length) !== 'undefined') {
         shape = [obj.length, obj.height, obj.width];
-
     } else if (typeof(obj.width) !== 'undefined') {
         shape = [obj.height, obj.width];
+    }
+
+    if (typeof(obj.dimensions) !== 'undefined') {
+        shape.push(obj.dimensions);
     }
 
     return {
