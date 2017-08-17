@@ -113,9 +113,10 @@ def stl(stl, color=_default_color, **kwargs):
         stl: `str` or `bytes`. STL data in either ASCII STL (string) or Binary STL (bytes).
         color: `int`. Packed RGB color of the resulting mesh (0xff0000 is red, 0xff is blue).
         kwargs: `dict`. Dictionary arguments to configure transform and model_matrix."""
+    plain = isinstance(stl, six.string_types)
     return process_transform_arguments(
-        STL(text=stl if isinstance(stl, six.string_types) else None,
-            binary=np.array(stl) if not isinstance(stl, six.string_types) else np.array([]),
+        STL(text=stl if plain else None,
+            binary=[] if plain else np.fromstring(stl, dtype=np.uint8),  # allow_null doesn't really work for Array...
             color=color),
         **kwargs
     )

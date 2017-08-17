@@ -198,7 +198,7 @@ class STL(Drawable):
     """
 
     type = Unicode(default_value='STL', read_only=True).tag(sync=True)
-    text = Unicode().tag(sync=True)
+    text = Unicode(allow_none=True).tag(sync=True)
     binary = Array().tag(sync=True, **array_serialization)
     color = Int().tag(sync=True)
     model_matrix = Array().tag(sync=True, **array_serialization)
