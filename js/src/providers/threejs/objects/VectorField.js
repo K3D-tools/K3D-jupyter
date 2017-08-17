@@ -19,7 +19,7 @@ module.exports = function (config) {
         length = config.vectors.shape[0],
         vectors = config.vectors.buffer,
         colors = (config.colors && config.colors.buffer) || null,
-        useHead = config.use_head || true,
+        useHead = !(config.use_head === false),
         headSize = config.head_size || 1.0,
         scale = config.scale || 1.0,
         object = new THREE.Group(),
