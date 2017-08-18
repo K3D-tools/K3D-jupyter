@@ -1,5 +1,5 @@
 import ipywidgets as widgets
-from traitlets import Unicode, Int, Float, List, Bool, Bytes
+from traitlets import Unicode, Int, Float, List, Bool, Bytes, Integer
 from traitlets import validate, TraitError
 from traittypes import Array
 from .helpers import array_serialization
@@ -16,7 +16,7 @@ class Drawable(widgets.CoreWidget):
     _model_module = Unicode('k3d').tag(sync=True)
     _model_module_version = Unicode('~' + __version__).tag(sync=True)
 
-    id = Int().tag(sync=True)
+    id = Integer().tag(sync=True)
 
     def __init__(self, **kwargs):
         self.id = id(self)
@@ -192,7 +192,7 @@ class STL(Drawable):
     Attributes:
         text: `str`. STL data in text format (ASCII STL).
         binary: `bytes`. STL data in binary format (Binary STL).
-            Takes precedence over text when both specified.
+            The `text` attribute should be set to None when using Binary STL.
         color: `int`. Packed RGB color of the resulting mesh (0xff0000 is red, 0xff is blue).
         model_matrix: `array_like`. 4x4 model transform matrix.
     """

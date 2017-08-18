@@ -1,3 +1,4 @@
+from __future__ import print_function
 import ipywidgets as widgets
 from traitlets import Unicode, Bool, Int, List
 import warnings

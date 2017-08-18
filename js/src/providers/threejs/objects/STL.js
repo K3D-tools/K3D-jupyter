@@ -22,8 +22,8 @@ module.exports = function (config) {
         geometry,
         object;
 
-    if (binary && binary.byteLength > 0) {
-        geometry = loader.parseBinary(binary.buffer);
+    if (text === null) {
+        geometry = loader.parseBinary(binary.buffer.buffer);
     } else {
         geometry = loader.parseASCII(text);
     }

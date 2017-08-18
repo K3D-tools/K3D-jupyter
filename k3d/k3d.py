@@ -116,7 +116,9 @@ def stl(stl, color=_default_color, **kwargs):
     plain = isinstance(stl, six.string_types)
     return process_transform_arguments(
         STL(text=stl if plain else None,
-            binary=[] if plain else np.fromstring(stl, dtype=np.uint8),  # allow_null doesn't really work for Array...
+            binary=([]  # allow_null doesn't really work for Array...
+                    if plain
+                    else np.frombuffer(stl, dtype=np.uint8)),
             color=color),
         **kwargs
     )
