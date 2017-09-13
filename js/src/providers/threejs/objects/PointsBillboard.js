@@ -49,7 +49,11 @@ module.exports = function (config) {
     material.map = null;
     material.isPointsMaterial = true;
 
-    colors = pointColors ? colorsToFloat32Array(pointColors) : getColorsArray(color, pointPositions.length / 3);
+    colors = ( pointColors && pointColors.length ===  pointPositions.length / 3
+        ? colorsToFloat32Array(pointColors)
+        : getColorsArray(color, pointPositions.length / 3)
+    );
+
     object = new THREE.Points(getGeometry(pointPositions, colors), material);
 
     modelMatrix.set.apply(modelMatrix, config.model_matrix.buffer);

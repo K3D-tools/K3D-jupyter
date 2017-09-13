@@ -6,7 +6,7 @@ var buffer = require('./../../../core/lib/helpers/buffer'),
  * Loader strategy to handle Points object
  * @method PointsMesh
  * @memberof K3D.Providers.ThreeJS.Objects
- * @param {Object} config all configurations params from JSON
+ * @param {Object} config all configuration params from JSON
  * @return {Object} 3D object ready to render
  */
 module.exports = function (config) {
@@ -25,12 +25,15 @@ module.exports = function (config) {
             lights: true,
             vertexColors: THREE.VertexColors
         }),
-        sphereGeometry = new THREE.IcosahedronBufferGeometry(config.point_size * 5.0, 2),
+        sphereGeometry = new THREE.IcosahedronBufferGeometry(config.point_size * 0.5, 2),
         instancedGeometry = new THREE.InstancedBufferGeometry().copy(sphereGeometry),
         geometry = new THREE.BufferGeometry();
 
 
-    colors = pointColors ? colorsToFloat32Array(pointColors) : getColorsArray(color, positions.length / 3);
+    colors = ( pointColors && pointColors.length ===  positions.length / 3
+        ? colorsToFloat32Array(pointColors)
+        : getColorsArray(color, positions.length / 3)
+    );
 
     instancedGeometry.addAttribute('offset', new THREE.InstancedBufferAttribute(new Float32Array(positions), 3));
     instancedGeometry.addAttribute('color', new THREE.InstancedBufferAttribute(new Float32Array(colors), 3));

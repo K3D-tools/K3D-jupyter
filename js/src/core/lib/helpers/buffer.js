@@ -24,7 +24,7 @@ function base64ToArrayBuffer(base64) {
  * Setup a Float32Array based on input
  * @method colorsToFloat32Array
  * @memberof K3D.Helpers
- * @param  {*} values
+ * @param  {*} array
  * @return {Float32Array}
  */
 function colorsToFloat32Array(array) {

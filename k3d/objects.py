@@ -47,7 +47,7 @@ class Drawable(widgets.CoreWidget):
         import k3d
         plot = k3d.plot()
         plot += self
-        return display(plot)
+        return display(plot, **kwargs)
 
 
 class Group(Drawable):
