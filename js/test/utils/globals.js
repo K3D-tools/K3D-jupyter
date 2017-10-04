@@ -1,4 +1,4 @@
-var originalConsoleLog = console.log;
+// var originalConsoleLog = console.log;
 
 window.TestHelpers = {};
 
@@ -22,11 +22,11 @@ window.TestHelpers.removeTestCanvas = function (canvasHolder) {
     document.body.removeChild(canvasHolder);
 };
 
-console.log = function () {
-
-    'use strict';
-
-    if (arguments[0] !== 'THREE.WebGLRenderer' && parseInt(arguments[arguments[1]]) > 0) {
-        originalConsoleLog.apply(originalConsoleLog, arguments);
-    }
-};
+// console.log = function () {
+//
+//     'use strict';
+//
+//     if (arguments[0] !== 'THREE.WebGLRenderer' && parseInt(arguments[arguments[1]]) > 0) {
+//         originalConsoleLog.apply(originalConsoleLog, arguments);
+//     }
+// };

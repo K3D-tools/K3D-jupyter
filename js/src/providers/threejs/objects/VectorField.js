@@ -93,6 +93,8 @@ module.exports = function (config) {
     object.updateMatrix();
     object.applyMatrix(modelMatrix);
 
+    object.boundingBox = linesGeometry.boundingBox;
+
     object.updateMatrixWorld();
 
     return Promise.resolve(object);

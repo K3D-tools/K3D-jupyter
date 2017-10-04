@@ -51,7 +51,7 @@ setup_args = {
         ]),
     ],
     'install_requires': [
-        'ipywidgets>=7.0.0b11',  # TODO: update when 7.0 released
+        'ipywidgets>=7.0.1',
         'traittypes',
         'traitlets',
         'numpy>=1.11.0'

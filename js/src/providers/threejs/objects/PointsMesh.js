@@ -30,9 +30,8 @@ module.exports = function (config) {
         geometry = new THREE.BufferGeometry();
 
 
-    colors = ( pointColors && pointColors.length ===  positions.length / 3
-        ? colorsToFloat32Array(pointColors)
-        : getColorsArray(color, positions.length / 3)
+    colors = ( pointColors && pointColors.length === positions.length / 3 ?
+            colorsToFloat32Array(pointColors) : getColorsArray(color, positions.length / 3)
     );
 
     instancedGeometry.addAttribute('offset', new THREE.InstancedBufferAttribute(new Float32Array(positions), 3));

@@ -47,8 +47,8 @@ module.exports = function (config) {
     );
 
     geometry.boundingBox = new THREE.Box3(
-        new THREE.Vector3(-0.5, -0.5, -0.5),
-        new THREE.Vector3(0.5, 0.5, 0.5)
+        new THREE.Vector3(0.0, 0.0, 0.0),
+        new THREE.Vector3(1.0, 1.0, 1.0)
     );
 
     object = new THREE.Mesh(geometry, material);

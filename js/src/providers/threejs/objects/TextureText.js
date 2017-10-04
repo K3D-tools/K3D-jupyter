@@ -96,6 +96,10 @@ function getSprite(canvas, position, size) {
 
     sprite.position.set(position[0], position[1], position[2]);
     sprite.scale.set(size, size, size);
+    sprite.boundingBox = new THREE.Box3().setFromCenterAndSize(
+        new THREE.Vector3(),
+        new THREE.Vector3(size, size, size)
+    );
     sprite.updateMatrixWorld();
 
     return sprite;

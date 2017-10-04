@@ -24,20 +24,15 @@ module.exports = function (K3D) {
     this.setCameraToFitScene = function (force) {
         var camDistance,
             sceneBoundingBox = new THREE.Box3().setFromArray(K3D.parameters.grid),
-            objectBoundingBox,
             sceneBoundingSphere;
 
         if (!K3D.parameters.cameraAutoFit && !force) {
             return;
         }
 
-        this.K3DObjects.traverse(function (object) {
-            if (object.geometry && object.geometry.boundingSphere.radius > 0) {
-                objectBoundingBox = object.geometry.boundingSphere.getBoundingBox();
-                objectBoundingBox.applyMatrix4(object.matrixWorld);
-                sceneBoundingBox.union(objectBoundingBox);
-            }
-        });
+        if (this.K3DObjects.children.length > 0) {
+            sceneBoundingBox = K3D.getSceneBoundingBox() || sceneBoundingBox;
+        }
 
         // Compute the distance the camera should be to fit the entire bounding sphere
 
@@ -90,17 +85,12 @@ module.exports = function (K3D) {
 
         sceneBoundingSphere = sceneBoundingBox.getBoundingSphere();
 
-        camDistance = Math.max(sceneBoundingSphere.radius, 0.5) / Math.sin(THREE.Math.degToRad(fov / 2.0));
+        camDistance = sceneBoundingSphere.radius * 1.5 / Math.sin(THREE.Math.degToRad(fov / 2.0));
 
         this.camera.position.subVectors(
             sceneBoundingSphere.center,
             this.camera.getWorldDirection().setLength(camDistance)
         );
         this.controls.target = sceneBoundingSphere.center;
-
-        if (currentFar * 0.75 < camDistance) {
-            this.camera.far = currentFar = camDistance * 1.25;
-            this.camera.updateProjectionMatrix();
-        }
     };
 };
