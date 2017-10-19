@@ -11,7 +11,8 @@ var buffer = require('./../../../core/lib/helpers/buffer'),
  */
 module.exports = function (config) {
     var modelMatrix = new THREE.Matrix4(),
-        color = new THREE.Color(config.color || 65280),
+        color = typeof(config.color) !== 'number' || config.color < 0 || config.color > 0xffffff ?
+            0xff00 : new THREE.Color(config.color),
         pointPositions = config.positions.buffer,
         pointColors = (config.colors && config.colors.buffer) || null,
         shader = config.shader || '3dSpecular',
@@ -20,6 +21,7 @@ module.exports = function (config) {
         material,
         colorsToFloat32Array = buffer.colorsToFloat32Array,
         fragmentShader,
+        bbox,
         fragmentShaderMap = {
             'flat': require('./shaders/Points.flat.fragment.glsl'),
             '3d': require('./shaders/Points.3d.fragment.glsl'),
@@ -54,6 +56,14 @@ module.exports = function (config) {
     );
 
     object = new THREE.Points(getGeometry(pointPositions, colors), material);
+
+    bbox = object.geometry.boundingBox;
+    bbox.min.x -= config.point_size * 0.5;
+    bbox.max.x += config.point_size * 0.5;
+    bbox.min.y -= config.point_size * 0.5;
+    bbox.max.y += config.point_size * 0.5;
+    bbox.min.z -= config.point_size * 0.5;
+    bbox.max.z += config.point_size * 0.5;
 
     modelMatrix.set.apply(modelMatrix, config.model_matrix.buffer);
     object.applyMatrix(modelMatrix);
