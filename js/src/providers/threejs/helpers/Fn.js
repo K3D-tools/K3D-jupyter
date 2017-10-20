@@ -1,19 +1,21 @@
 'use strict';
 var Detector = require('./../../../../node_modules/three/examples/js/Detector');
 
-/**
- * Get object By id
- * @param String} id
- * @method getObjectById
- * @memberof K3D.Providers.ThreeJS.Helpers
- * @returns {Object}
- */
+
 
 function getSpaceDimensionsFromTargetElement(world) {
     return [world.targetDOMNode.offsetWidth, world.targetDOMNode.offsetHeight];
 }
 
 module.exports = {
+    /**
+     * Get object By id
+     * @param {K3D.Core} world
+     * @param {String} id
+     * @method getObjectById
+     * @memberof K3D.Providers.ThreeJS.Helpers
+     * @returns {Object}
+     */
     getObjectById: function (world, id) {
         return world.K3DObjects.getObjectByProperty('K3DIdentifier', id);
     },
@@ -69,7 +71,8 @@ module.exports = {
     /**
      * getTwoColorsArray
      * @memberof K3D.Providers.ThreeJS.Helpers
-     * @param  {THREE.Color} color
+     * @param  {THREE.Color} color1
+     * @param  {THREE.Color} color2
      * @param  {Number} size
      * @return {Float32Array}
      */
@@ -88,6 +91,21 @@ module.exports = {
         }
 
         return colors;
+    },
+
+    /**
+     * Increase dimensions of a bounding box by delta in all 6 directions
+     * @memberof K3D.Providers.ThreeJS.Helpers
+     * @param  {Box3} bbox
+     * @param  {Number} delta
+     */
+    expandBoundingBox: function (bbox, delta) {
+        bbox.min.x -= delta;
+        bbox.max.x += delta;
+        bbox.min.y -= delta;
+        bbox.max.y += delta;
+        bbox.min.z -= delta;
+        bbox.max.z += delta;
     },
 
     /**

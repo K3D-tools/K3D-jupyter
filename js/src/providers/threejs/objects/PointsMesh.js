@@ -1,7 +1,9 @@
 'use strict';
 
 var buffer = require('./../../../core/lib/helpers/buffer'),
-    getColorsArray = require('./../helpers/Fn').getColorsArray;
+    Fn = require('./../helpers/Fn'),
+    getColorsArray = Fn.getColorsArray;
+
 /**
  * Loader strategy to handle Points object
  * @method PointsMesh
@@ -11,7 +13,8 @@ var buffer = require('./../../../core/lib/helpers/buffer'),
  */
 module.exports = function (config) {
     var modelMatrix = new THREE.Matrix4(),
-        color = new THREE.Color(config.color || 65280),
+        color = typeof(config.color) !== 'number' || config.color < 0 || config.color > 0xffffff ?
+            new THREE.Color(0xff00) : new THREE.Color(config.color),
         positions = config.positions.buffer,
         pointColors = (config.colors && config.colors.buffer) || null,
         colors,
@@ -29,7 +32,6 @@ module.exports = function (config) {
         instancedGeometry = new THREE.InstancedBufferGeometry().copy(sphereGeometry),
         geometry = new THREE.BufferGeometry();
 
-
     colors = ( pointColors && pointColors.length === positions.length / 3 ?
             colorsToFloat32Array(pointColors) : getColorsArray(color, positions.length / 3)
     );
@@ -43,7 +45,7 @@ module.exports = function (config) {
     instancedGeometry.boundingSphere = geometry.boundingSphere.clone();
     geometry.computeBoundingBox();
     instancedGeometry.boundingBox = geometry.boundingBox.clone();
-
+    Fn.expandBoundingBox(instancedGeometry.boundingBox, config.point_size * 0.5);
 
     object = new THREE.Mesh(instancedGeometry, material);
 
