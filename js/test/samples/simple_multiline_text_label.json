@@ -1,14 +1,11 @@
 {
    "metadata" : {},
    "objects" : [{
-
-         "type" : "Text",
+         "type" : "TextureText",
          "position" : [0, 0, 0],
-         "size": 5.0,
-         "text" : "Sample single \nline text",
-         "fontOptions" : {
-            "face" : "Lato"
-         }
+         "size": 1.0,
+         "text" : "Sample multiple\nlines text",
+         "font_face" : "Lato"
       }
    ]
 }

@@ -170,10 +170,6 @@ module.exports = function (object, mesh, rollOverMesh, K3D) {
         return true;
     }
 
-    K3D.on(K3D.events.VIEW_MODE_CHANGE, function () {
-        rollOverMesh.visible = false;
-    });
-
     return {
         onHover: function (intersect, viewMode) {
             switch (viewMode) {

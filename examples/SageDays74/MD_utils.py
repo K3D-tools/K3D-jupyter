@@ -1,6 +1,6 @@
 import numpy as np
 from numba import double, jit
-from k3d import K3D
+import k3d
    
 
 @jit((double[:,:], double[:], double, double))
@@ -74,9 +74,7 @@ class simple_molecule_vis(object):
 
 
     def update_box(self, bs = 1):
-        self.box.points_positions = self.box_coords(bs=bs)
-        self.axes.origins = np.array( (-bs/2,0,0,0,-bs/2,0,0,0,-bs/2))
-        self.axes.vectors = np.array( (bs,0,0,0,bs,0,0,0,bs) )
+        self.box.vertices = self.box_coords(bs=bs)
 
     def __init__(self,bs=1.0):
         self.new_plot(bs=bs)
@@ -86,21 +84,12 @@ class simple_molecule_vis(object):
         positions = 50 * np.random.random_sample((points_number,3)) - 25
         colors = np.random.randint(0, 0x777777, points_number)
 
-        self.plot = K3D()
-        self.pkts = K3D.points(positions, colors, point_size=.3)
+        self.plot = k3d.plot()
+        self.pkts = k3d.points(positions, colors, point_size=.3)
         self.plot += self.pkts
         self.plot.camera_auto_fit = False
-        
-        self.axes = K3D.vectors(
-           (-bs/2,0,0,0,-bs/2,0,0,0,-bs/2), 
-           (bs,0,0,0,bs,0,0,0,bs), 
-           colors=(0xff0000, 0xff0000, 0x0000ff, 0x0000ff, 0x00ff00, 0x00ff00), 
-           labels=('x', 'y', 'z')
-        )
-        self.axes.line_width = 2
-
-        self.plot += self.axes
-        self.box = K3D.line(self.box_coords(bs=bs))
+        self.plot.grid_auto_fit = False
+        self.box = k3d.line(self.box_coords(bs=bs))
       
         self.plot += self.box
     def __repr__(self):

@@ -1,24 +1,22 @@
 'use strict';
 
-var buffer = require('./../../../core/lib/helpers/buffer');
-
 /**
  * Loader strategy to handle Surface object
  * @method MarchingCubes
  * @memberof K3D.Providers.ThreeJS.Objects
- * @param {K3D.Config} config all configurations params from JSON
+ * @param {Object} config all configurations params from JSON
  * @return {Object} 3D object ready to render
  */
 module.exports = function (config) {
 
-    var heights = config.get('heights'),
-        width = config.get('width'),
-        height = config.get('height'),
-        modelViewMatrix = new THREE.Matrix4(),
+    var heights = config.heights.buffer,
+        width = config.heights.shape[1],
+        height = config.heights.shape[0],
+        modelMatrix = new THREE.Matrix4(),
         material = new THREE.MeshPhongMaterial({
-            color: config.get('color'),
+            color: config.color,
             emissive: 0,
-            shininess: 50,
+            shininess: 25,
             specular: 0x111111,
             side: THREE.DoubleSide,
             shading: THREE.FlatShading
@@ -26,14 +24,7 @@ module.exports = function (config) {
         geometry = new THREE.BufferGeometry(),
         vertices = new Float32Array((width - 1) * (height - 1) * 3 * 3 * 2),
         object,
-        x, y, i, p,
-        toFloat32Array = buffer.toFloat32Array;
-
-    if (typeof (heights) === 'string') {
-        heights = buffer.base64ToArrayBuffer(heights);
-    }
-
-    heights = toFloat32Array(heights);
+        x, y, i, p;
 
     for (y = 0, i = 0, p = 0; y < height - 1; y++) {
         for (x = 0; x < width - 1; x++, p++, i += 18) {
@@ -62,14 +53,15 @@ module.exports = function (config) {
     geometry.addAttribute('position', new THREE.BufferAttribute(vertices, 3));
 
     geometry.computeBoundingSphere();
+    geometry.computeBoundingBox();
 
     object = new THREE.Mesh(geometry, material);
-    modelViewMatrix.set.apply(modelViewMatrix, config.get('modelViewMatrix'));
+    modelMatrix.set.apply(modelMatrix, config.model_matrix.buffer);
 
     object.position.set(-0.5, -0.5, 0);
     object.updateMatrix();
 
-    object.applyMatrix(modelViewMatrix);
+    object.applyMatrix(modelMatrix);
 
     object.updateMatrixWorld();
 

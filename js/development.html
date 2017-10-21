@@ -6,6 +6,8 @@
     <script src="node_modules/requirejs/require.js"></script>
     <script src="dev/index.js"></script>
     <script src="node_modules/fast-json-patch/dist/json-patch-duplex.min.js"></script>
+    <script src="test/utils/globals.js"></script>
+    <script src="test/utils/testUtils.js"></script>
     <style>
         body, html {
             background-color: #F5F5F5;
@@ -25,32 +27,32 @@
 <div id="canvasTarget"></div>
 <script>
     var K3DInstance;
-    var jsonLoader = function (url, callback) {
+    var jsonLoader = TestHelpers.jsonLoader;
 
-        var xhrLoad = new XMLHttpRequest();
-
-        xhrLoad.open('GET', url, true);
-
-        xhrLoad.onreadystatechange = function () {
-            if (xhrLoad.readyState === 4) {
-                callback(JSON.parse(xhrLoad.response));
-            }
-        };
-
-        xhrLoad.send(null);
-    };
-
-    var K3D = require(['K3D'], function (lib) {
-        jsonLoader('test/samples/vector_label.json', function (json) {
+    require(['K3D'], function (lib) {
+        try {
             K3DInstance = new lib.K3D(
-                    lib.ThreeJsProvider,
-                    document.getElementById('canvasTarget'),
-                    {cameraAutoFit: true}
+                lib.ThreeJsProvider,
+                document.getElementById('canvasTarget'),
+                {
+                    cameraAutoFit: true,
+                    gridAutoFit: true,
+                    grid: [
+                        -1, -1, -1,
+                        1, 1, 1]
+                }
             );
+        } catch (e) {
+            return;
+        }
 
+        if (K3DInstance) {
             K3DInstance.setClearColor(0xffffff, 1);
-            K3DInstance.load(json);
-        });
+
+            jsonLoader('test/samples/vector_label.json', function (json) {
+                K3DInstance.load(json);
+            });
+        }
     });
 </script>
 </body>

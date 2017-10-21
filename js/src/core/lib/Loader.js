@@ -1,9 +1,7 @@
 'use strict';
 
 var validateAndPrepareObject = require('./helpers/objectValidator'),
-    error = require('./Error').error,
-    Config = require('./Config'),
-    _ = require('lodash');
+    error = require('./Error').error;
 
 /**
  * @method K3D.Loader
@@ -30,19 +28,19 @@ function loader(K3D, json) {
 
             startTime = new Date().getTime();
 
-            K3DObjectPromise = loader(new Config(_.cloneDeep(object)), K3D);
-
-            K3DObjectPromise
+            K3DObjectPromise = loader(object, K3D)
                 .then(function (K3DObject) {
                     var objectNumber;
 
-                    K3DObject.lastSynchJsonObject = object;
                     objectNumber = K3D.addObject(K3DObject);
 
                     K3DObject.K3DIdentifier = object.id || ('K3DAutoIncrement_' + objectNumber);
+                    object.id = K3DObject.K3DIdentifier;
 
                     console.log('K3D: Object type "' + object.type + '" loaded in: ',
                         (new Date().getTime() - startTime) / 1000, 's');
+
+                    return object;
                 })
                 .catch(function () {
                     error('Loader Error', 'Object of type "' + object.type + '" was not loaded.');
@@ -52,9 +50,10 @@ function loader(K3D, json) {
         });
 
         return Promise.all(objectsPromieses).then(function (objects) {
-            K3D.rebuild();
             K3D.getWorld().setCameraToFitScene();
-            K3D.getWorld().render();
+
+            // rebuild scene + re-render
+            Promise.all(K3D.rebuild()).then(K3D.render);
 
             return objects;
         });

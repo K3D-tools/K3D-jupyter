@@ -3,52 +3,36 @@
 var buffer = require('./../../../core/lib/helpers/buffer'),
     getTwoColorsArray = require('./../helpers/Fn').getTwoColorsArray,
     generateArrow = require('./../helpers/Fn').generateArrow,
-    Text2d = require('./Text2d'),
-    Config = require('./../../../core/lib/Config');
+    Text = require('./Text');
 
 /**
  * Loader strategy to handle Vectors  object
  * @method Vector
  * @memberof K3D.Providers.ThreeJS.Objects
- * @param {K3D.Config} config all configurations params from JSON
+ * @param {Object} config all configurations params from JSON
  * @param {K3D}
  */
 module.exports = function (config, K3D) {
-    var originColor = new THREE.Color(config.get('originColor', 255)),
-        headColor = new THREE.Color(config.get('headColor', 255)),
-        vectors = config.get('vectors'),
-        origins = config.get('origins'),
-        colors = config.get('colors'),
-        useHead = config.get('useHead', true),
+    var originColor = new THREE.Color(config.origin_color || 255),
+        headColor = new THREE.Color(config.head_color || 255),
+        vectors = config.vectors.buffer,
+        origins = config.origins.buffer,
+        colors = (config.colors && config.colors.buffer) || [],
+        useHead = config.use_head || true,
+        headSize = config.head_size || 1.0,
         object = new THREE.Group(),
         origin,
         destination,
         i,
-        labels = config.get('labels'),
+        labelSize = config.label_size,
+        labels = config.labels,
         labelsObjects = [],
-        labelsSize = config.get('labelsSize'),
         heads = null,
         singleConeGeometry,
         linesGeometry = new THREE.BufferGeometry(),
-        lineVertices = [],
-        toFloat32Array = buffer.toFloat32Array,
-        colorsToFloat32Array = buffer.colorsToFloat32Array;
+        lineVertices = [];
 
-    if (typeof (vectors) === 'string') {
-        vectors = buffer.base64ToArrayBuffer(vectors);
-    }
-
-    if (typeof (origins) === 'string') {
-        origins = buffer.base64ToArrayBuffer(origins);
-    }
-
-    if (typeof (colors) === 'string') {
-        colors = buffer.base64ToArrayBuffer(colors);
-    }
-
-    vectors = toFloat32Array(vectors);
-    origins = toFloat32Array(origins);
-    colors = colors ? colorsToFloat32Array(colors) :
+    colors = colors.length > 0 ? buffer.colorsToFloat32Array(colors) :
         getTwoColorsArray(originColor, headColor, vectors.length / 3 * 2);
 
     if (vectors.length !== origins.length) {
@@ -59,7 +43,8 @@ module.exports = function (config, K3D) {
         throw new Error('there should be 2 colors for each vector');
     }
 
-    singleConeGeometry = new THREE.CylinderGeometry(0, 0.025, 0.2, 5, 1).translate(0, -0.1, 0);
+    singleConeGeometry = new THREE.CylinderGeometry(0, 0.025 * headSize, 0.2 * headSize, 5, 1)
+        .translate(0, -0.1 * headSize, 0);
 
     for (i = 0; i < vectors.length; i += 3) {
         origin = new THREE.Vector3(origins[i], origins[i + 1], origins[i + 2]);
@@ -77,7 +62,7 @@ module.exports = function (config, K3D) {
         if (labels) {
             if (labels[i / 3]) {
                 labelsObjects.push(
-                    createText(labels[i / 3], origin, destination, labelsSize, K3D)
+                    createText(labels[i / 3], origin, destination, labelSize, K3D)
                 );
             }
         }
@@ -87,14 +72,15 @@ module.exports = function (config, K3D) {
         addHeads(heads, object);
     }
 
-    linesGeometry.addAttribute('position', new THREE.BufferAttribute(toFloat32Array(lineVertices), 3));
+    linesGeometry.addAttribute('position', new THREE.BufferAttribute(new Float32Array(lineVertices), 3));
     linesGeometry.addAttribute('color', new THREE.BufferAttribute(colors, 3));
 
     linesGeometry.computeBoundingSphere();
+    linesGeometry.computeBoundingBox();
 
     object.add(new THREE.LineSegments(linesGeometry, new THREE.LineBasicMaterial({
         vertexColors: THREE.VertexColors,
-        linewidth: config.get('lineWidth', 1)
+        linewidth: config.line_width || 1.0
     })));
 
     object.updateMatrixWorld();
@@ -117,6 +103,7 @@ module.exports = function (config, K3D) {
 function addHeads(heads, object) {
     var headsGeometry = new THREE.BufferGeometry().fromGeometry(heads);
     headsGeometry.computeBoundingSphere();
+    headsGeometry.computeBoundingBox();
 
     object.add(
         new THREE.Mesh(
@@ -126,14 +113,14 @@ function addHeads(heads, object) {
     );
 }
 
-function createText(text, origin, destination, labelsSize, K3D) {
+function createText(text, origin, destination, labelSize, K3D) {
     var center = origin.clone().add(destination).divideScalar(2),
         textConfig = {
             'position': [center.x, center.y, center.z],
             'referencePoint': 'cb',
             'text': text,
-            'size': labelsSize
+            'size': labelSize
         };
 
-    return new Text2d(new Config(textConfig), K3D);
+    return new Text(textConfig, K3D);
 }

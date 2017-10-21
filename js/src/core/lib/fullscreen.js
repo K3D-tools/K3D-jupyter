@@ -36,6 +36,8 @@ function fullscreen(container, toolbarContainer, currentWindow) {
         'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABgAAAAYCAYAAADgdz34AAABXElEQVRIS7WVbU2EQQyE5xwgAQeAAg4FSAAUAEo4HIADHIADkIAEJJBn8zZpeu12+cEml0vebWf6Me3u9M9nt+GfSLqRxH88P5Kek+8zn29Jr/gYwV7S+ySZK0kf4f5B0lPns0JAJLdFBpCeFSQjqI6gAjdMylSRLBG8SLqblAECSnue2CwR4FeRzMDxKwlG9zdVWWCRJAN/3HplPUkJfM0BRbqRJAOnjNj7nlxI+rImA4JUoxQzEurta27gvvGngPs5mM1zJPG2EfwIx2fwV5IWfDWDSi2dhEfAXQadFFsSv+zut6XGcuNUakEMmbqsxAjg0hZkXBV0Hv1y4oT6mlcSBhw/gisHbcirkSL3keRtk7qt/OVVMVPLTMJLBIz/YaZfSUR+ndgsEVhPrPERx9c83i0R4FSRsA4+i2cWv2UCjMfiCiF2T+bRsiPd7NHnAeeXndanm+Smv/31L00TYRmfNUExAAAAAElFTkSuQmCC';
     /* jshint +W101 */
 
+    element.setAttribute('title', 'Fullscreen');
+
     currentWindow.addEventListener(screenfull.raw.fullscreenchange, fullscreenChangeListener);
     element.addEventListener('click', function () {
         screenfull.request(container);

@@ -17,7 +17,7 @@ To install use pip:
     $ jupyter nbextension install --py --sys-prefix k3d
     $ jupyter nbextension enable --py --sys-prefix k3d
 
-For a development installation (requires npm),
+For a development installation (requires npm and node.js),
 
     $ git clone https://github.com/K3D-tools/K3D-jupyter.git
     $ cd K3D-jupyter
@@ -25,6 +25,8 @@ For a development installation (requires npm),
     $ jupyter nbextension install --py --symlink --sys-prefix k3d
     $ jupyter nbextension enable --py --sys-prefix k3d
 
+Please note that the `ipywidgets` extension needs to be
+[installed and enabled](http://ipywidgets.readthedocs.io/en/latest/user_install.html).
 
 ## How to
 

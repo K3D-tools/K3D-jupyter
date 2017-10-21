@@ -1,123 +1,112 @@
 'use strict';
 
+var katex = require('katex');
+
 /**
- * Loader strategy to handle Text object
- * @method Text
+ * Loader strategy to handle LaTex object
+ * @method DOM
  * @memberof K3D.Providers.ThreeJS.Objects
- * @param {K3D.Config} config all configurations params from JSON
+ * @param {Object} config all configurations params from JSON
+ * @param {K3D}
  * @return {Object} 3D object ready to render
  */
-module.exports = function (config) {
+module.exports = function (config, K3D) {
 
-    var text = config.get('text', '+').split('\n'),
-        color = config.get('color', 0xFFFFFF),
-        position = config.get('position'),
-        size = config.get('size', 1.0),
+    var text = config.text || '\\KaTeX',
+        color = config.color || 0,
+        referencePoint = config.reference_point || 'lb',
+        size = config.size || 1,
+        position = config.position,
+        object = new THREE.Object3D(),
+        domElement = document.createElement('div'),
+        overlayDOMNode = K3D.getWorld().overlayDOMNode,
+        listenersId;
 
-    // Setup font
-        fontFace = config.get('fontOptions.face', 'Courier New'),
-        fontSize = config.get('fontOptions.size', 68),
-        fontWeight = config.get('fontOptions.weight', 'bold'),
-        fontSpec = fontWeight + ' ' + fontSize + 'px ' + fontFace,
+    domElement.innerHTML = katex.renderToString(text, {displayMode: true});
+    domElement.style.position = 'absolute';
+    domElement.style.color = colorToHex(color);
+    domElement.style.fontSize = size + 'em';
 
-    // Helper canvas
-        canvas = document.createElement('canvas'),
-        context = canvas.getContext('2d'),
-    // Helpers
-        isMultiline = text.length > 1,
-        longestLineWidth,
-        object;
+    overlayDOMNode.appendChild(domElement);
 
-    context.font = fontSpec;
+    object.position.set(position[0], position[1], position[2]);
+    object.updateMatrixWorld();
 
-    longestLineWidth = getLongestLineWidth(text, context);
+    function render() {
+        var coord, x, y;
 
-    canvas.width = config.has('textureOptions.usePredefinedSize') ? 1024 : closestPowOfTwo(longestLineWidth);
-    canvas.height = ~~canvas.width;
+        if (domElement.style.display === 'hidden') {
+            return;
+        }
 
-    if (config.has('textureOptions.drawTextureBorder')) {
-        drawTextureBorder(context, canvas.width, canvas.height);
+        coord = toScreenPosition(object, K3D.getWorld());
+
+        switch (referencePoint[0]) {
+            case 'l':
+                x = coord.x + 'px';
+                break;
+            case 'c':
+                x = 'calc(' + coord.x + 'px - 50%)';
+                break;
+            case 'r':
+                x = 'calc(' + coord.x + 'px - 100%)';
+                break;
+        }
+
+        switch (referencePoint[1]) {
+            case 't':
+                y = coord.y + 'px';
+                break;
+            case 'c':
+                y = 'calc(' + coord.y + 'px - 50%)';
+                break;
+            case 'b':
+                y = 'calc(' + coord.y + 'px - 100%)';
+                break;
+        }
+
+        domElement.style.transform = 'translate(' + x + ',' + y + ')';
+        domElement.style.zIndex = 16777271 - Math.round(coord.z * 1e6);
     }
 
-    context.font = fontSpec;
-    context.textBaseline = 'top';
-    context.fillStyle = colorToHex(color);
-    context.strokeStyle = colorToHex(config.get('fontOptions.strokeColor', 0));
-    context.lineWidth = config.get('fontOptions.strokeWidth', 5);
+    listenersId = K3D.on(K3D.events.RENDERED, render);
 
-    text.forEach(function (line, index) {
-        var x = (canvas.width - longestLineWidth) / 2,
-            y = canvas.height / 2 - (isMultiline ? fontSize : fontSize / 2) + (fontSize * index);
+    object.onRemove = function () {
+        overlayDOMNode.removeChild(domElement);
+        K3D.off(K3D.events.RENDERED, listenersId);
+    };
 
-        context.strokeText(line, x, y);
-        context.fillText(line, x, y);
-    });
+    object.hide = function () {
+        domElement.style.display = 'none';
+    };
 
-    object = getSprite(canvas, position, size);
+    object.show = function () {
+        domElement.style.display = 'inline-block';
+    };
+
+    object.show();
 
     return Promise.resolve(object);
 };
 
-/**
- * Draw Texture border for debugging
- * @param  {Object} context
- * @param  {Number} width
- * @param  {Number} height
- */
-function drawTextureBorder(context, width, height) {
-    context.strokeStyle = '#FF0000';
-    context.lineWidth = 20;
-    context.strokeRect(0, 0, width, height);
-}
+function toScreenPosition(obj, world) {
+    var vector = new THREE.Vector3(),
+        widthHalf = 0.5 * world.width,
+        heightHalf = 0.5 * world.height;
 
-/**
- * Finds the nearest (greater than x) power of two of given x
- * @inner
- * @memberof K3D.Providers.ThreeJS.Objects.Text
- * @param {Number} x
- * @returns {Number}
- */
-function closestPowOfTwo(x) {
-    return Math.pow(2, Math.ceil(Math.log(x) / Math.log(2)));
-}
+    obj.updateMatrixWorld();
+    vector.setFromMatrixPosition(obj.matrixWorld);
+    vector.project(world.camera);
 
-/**
- * Gets the longest line
- * @inner
- * @memberof K3D.Providers.ThreeJS.Objects.Text
- * @param {Array} lines
- * @param {CanvasRenderingContext2D} context
- * @returns {*}
- */
-function getLongestLineWidth(lines, context) {
-    return lines.reduce(function (longest, text) {
-        return Math.max(longest, context.measureText(text).width);
-    }, 0);
-}
+    vector.x = (vector.x + 1) * widthHalf;
+    vector.y = (-vector.y + 1) * heightHalf;
 
-/**
- * Get a THREE.Sprite based on helper canvas
- * @inner
- * @memberof K3D.Providers.ThreeJS.Objects.Text
- * @param {Element} canvas
- * @param {Array} position
- *
- * @returns {THREE.Sprite}
- */
-function getSprite(canvas, position, size) {
-    var texture = new THREE.Texture(canvas),
-        material = new THREE.SpriteMaterial({map: texture}),
-        sprite = new THREE.Sprite(material);
+    return {
+        x: Math.round(vector.x),
+        y: Math.round(vector.y),
+        z: vector.z
+    };
 
-    texture.needsUpdate = true;
-
-    sprite.position.set(position[0], position[1], position[2]);
-    sprite.scale.set(size, size, size);
-    // sprite.geometry.computeBoundingSphere();
-
-    sprite.updateMatrixWorld();
-
-    return sprite;
 }
 
 function colorToHex(color) {

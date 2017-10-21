@@ -13,3 +13,5 @@ build/
 dist/
 js/test/assets/Lato-Regular.ttf
 js/dev
+examples/*.vtk
+examples/*.vtp

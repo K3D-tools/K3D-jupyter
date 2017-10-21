@@ -8,7 +8,7 @@ if (window.require) {
         map: {
             '*': {
                 'k3d': 'nbextensions/k3d/index',
-                'jupyter-js-widgets': 'nbextensions/jupyter-js-widgets/extension'
+                'jupyter-widgets-controls': 'nbextensions/jupyter-widgets-controls/extension'
             }
         }
     });

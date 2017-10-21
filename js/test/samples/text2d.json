@@ -1,0 +1,48 @@
+{
+  "metadata" : {},
+  "objects" : [{
+    "type" : "Text2d",
+    "position" : [0.2, 0.2],
+    "text" : "\\int_{-\\infty}^\\infty \\hat f(\\xi)\\,e^{2 \\pi i \\xi x} \\,d\\xi",
+    "size" : 1,
+    "color": 255
+  }, {
+    "type" : "Text2d",
+    "position" : [0.5, 0.5],
+    "text" : "{(1,1,\\frac{1}{n})}",
+    "size" : 1
+  }, {
+    "type" : "Text2d",
+    "position" : [0.75, 0.8],
+    "text" : "{(1,1,\\frac{5}{\\pi})}",
+    "size" : 1,
+    "color": 65280
+  }, {
+    "type" : "Text2d",
+    "position" : [0.5, 0.75],
+    "text" : "{(1,\\frac{5}{\\pi}, \\sqrt{2})}",
+    "size" : 1,
+    "color": 16711680
+  }, {
+    "type" : "Text2d",
+    "position" : [0.2, 0.8],
+    "text" : "{(0,-\\pi,\\omega)}",
+    "size" : 2
+  }, {
+    "type" : "Text2d",
+    "position" : [0.8, 0.2],
+    "text" : "{(\\alpha, \\beta, \\theta)}",
+    "size" : 1
+  }, {
+    "type" : "Text2d",
+    "position" : [0.7, 0.2],
+    "text" : "{(0,0,0)}",
+    "size" : 1
+  }, {
+    "type" : "Text2d",
+    "position" : [0.4, 0.2],
+    "text" : "c = \\pm\\sqrt{a^2 + b^2}",
+    "size" : 1
+  }
+  ]
+}

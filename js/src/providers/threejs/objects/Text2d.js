@@ -6,29 +6,24 @@ var katex = require('katex');
  * Loader strategy to handle LaTex object
  * @method DOM
  * @memberof K3D.Providers.ThreeJS.Objects
- * @param {K3D.Config} config all configurations params from JSON
+ * @param {Object} config all configurations params from JSON
  * @param {K3D}
  * @return {Object} 3D object ready to render
  */
 module.exports = function (config, K3D) {
 
-    var text = config.get('text', '\\KaTeX'),
-        color = config.get('color', 0),
-        referencePoint = config.get('referencePoint', 'lb'),
-    // colorStroke = config.get('color', 0xffffff),
-        size = config.get('size', 1),
-        position = config.get('position'),
+    var text = config.text || '\\KaTeX',
+        color = config.color || 0,
+        referencePoint = config.reference_point || 'lb',
+        position = config.position,
+        size = config.size || 1,
         object = new THREE.Object3D(),
         domElement = document.createElement('div'),
-        overlayDOMNode = K3D.getWorld().overlayDOMNode;
-
-    // domElement.style.textShadow = '-1px -1px 0 ' + colorToHex(colorStroke) + ',' +
-    //     '1px -1px 0 ' + colorToHex(colorStroke) + ',' +
-    //     '-1px 1px 0 ' + colorToHex(colorStroke) + ',' +
-    //     '1px 1px 0 ' + colorToHex(colorStroke);
+        overlayDOMNode = K3D.getWorld().overlayDOMNode,
+        listenersId,
+        world = K3D.getWorld();
 
     domElement.innerHTML = katex.renderToString(text, {displayMode: true});
-    domElement.style.display = 'inline-block';
     domElement.style.position = 'absolute';
     domElement.style.color = colorToHex(color);
     domElement.style.fontSize = size + 'em';
@@ -39,7 +34,10 @@ module.exports = function (config, K3D) {
     object.updateMatrixWorld();
 
     function render() {
-        var coord = toScreenPosition(object, K3D.getWorld()), x, y;
+        var x, y, coord = {
+            x: position[0] * world.width,
+            y: position[1] * world.height
+        };
 
         switch (referencePoint[0]) {
             case 'l':
@@ -66,39 +64,18 @@ module.exports = function (config, K3D) {
         }
 
         domElement.style.transform = 'translate(' + x + ',' + y + ')';
-        domElement.style.zIndex = 16777271 - Math.round(coord.z * 1e6);
+        domElement.style.zIndex = 16777271;
     }
 
-    K3D.on(K3D.events.RENDERED, render);
-
-    render();
+    listenersId = K3D.on(K3D.events.RENDERED, render);
 
     object.onRemove = function () {
         overlayDOMNode.removeChild(domElement);
+        K3D.off(K3D.events.RENDERED, listenersId);
     };
 
     return Promise.resolve(object);
 };
-
-function toScreenPosition(obj, world) {
-    var vector = new THREE.Vector3(),
-        widthHalf = 0.5 * world.width,
-        heightHalf = 0.5 * world.height;
-
-    obj.updateMatrixWorld();
-    vector.setFromMatrixPosition(obj.matrixWorld);
-    vector.project(world.camera);
-
-    vector.x = (vector.x + 1) * widthHalf;
-    vector.y = (-vector.y + 1) * heightHalf;
-
-    return {
-        x: Math.round(vector.x),
-        y: Math.round(vector.y),
-        z: vector.z
-    };
-
-}
 
 function colorToHex(color) {
     color = parseInt(color, 10) + 0x1000000;

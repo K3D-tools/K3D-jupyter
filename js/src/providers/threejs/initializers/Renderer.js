@@ -29,7 +29,8 @@ module.exports = function (K3D) {
 
     self.renderer = new THREE.WebGLRenderer({
         antialias: K3D.parameters.antialias,
-        preserveDrawingBuffer: false
+        preserveDrawingBuffer: false,
+        alpha: true
     });
 
     function render() {
@@ -39,6 +40,7 @@ module.exports = function (K3D) {
 
         K3D.frameUpdateHandlers.before.forEach(handleListeners.bind(null, K3D, 'before'));
 
+        K3D.refreshGrid();
         self.renderer.render(self.scene, self.camera);
 
         K3D.frameUpdateHandlers.after.forEach(handleListeners.bind(null, K3D, 'after'));

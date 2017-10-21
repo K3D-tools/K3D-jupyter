@@ -5,7 +5,7 @@
          "vectors" : [1.0, 0.25, 0.5],
          "origins": [0.0, 0.0, 0.0],
          "labels" : ["\\dot{\\vec{p}} = m\\vec{v}"],
-         "labelsSize" : 1
+         "labelSize" : 1
       }
    ]
 }

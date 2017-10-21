@@ -4,7 +4,7 @@
 var viewModes = require('./lib/viewMode').viewModes,
     loader = require('./lib/Loader'),
     _ = require('lodash'),
-    patchObject = require('./lib/patchObject'),
+    error = require('./lib/Error').error,
     resetCameraButton = require('./lib/resetCamera'),
     screenshot = require('./lib/screenshot'),
     detachWindowButton = require('./lib/detachWindow'),
@@ -32,18 +32,20 @@ function K3D(provider, targetDOMNode, parameters) {
         objectIndex = 1,
         currentWindow = targetDOMNode.ownerDocument.defaultView || targetDOMNode.ownerDocument.parentWindow,
         world = {
+            ObjectsListJson: {},
             targetDOMNode: targetDOMNode,
             toolbarDOMNode: null,
             overlayDOMNode: null
         },
         listeners = {},
+        listenersIndex = 0,
         dispatch = function (eventName, data) {
             if (!listeners[eventName]) {
                 return false;
             }
 
-            listeners[eventName].forEach(function (listener) {
-                listener(data);
+            Object.keys(listeners[eventName]).forEach(function (key) {
+                listeners[eventName][key](data);
             });
 
             return true;
@@ -56,19 +58,23 @@ function K3D(provider, targetDOMNode, parameters) {
         return new K3D(provider, targetDOMNode, parameters);
     }
 
+    if (!provider.Helpers.validateWebGL(world.targetDOMNode)) {
+        throw new Error('No WebGL');
+    }
+
     if (typeof (provider) !== 'object') {
         throw new Error('Provider should be an object (a key-value map following convention)');
     }
 
-    function render() {
+    this.render = function () {
         world.render();
         dispatch(self.events.RENDERED);
-    }
+    };
 
     this.resizeHelper = function () {
         if (!this.disabling) {
             self.Provider.Helpers.resizeListener(world);
-            render();
+            self.render();
         }
 
         dispatch(self.events.RESIZED);
@@ -95,6 +101,8 @@ function K3D(provider, targetDOMNode, parameters) {
         viewMode: viewModes.view,
         voxelPaintColor: 0,
         cameraAutoFit: true,
+        gridAutoFit: true,
+        grid: [-1, -1, -1, 1, 1, 1],
         antialias: true,
         clearColor: {
             color: 0xffffff,
@@ -103,6 +111,10 @@ function K3D(provider, targetDOMNode, parameters) {
     }, parameters || {});
 
     this.autoRendering = false;
+
+    if (typeof (this.parameters.ObjectsListJson) !== 'undefined') {
+        world.ObjectsListJson = this.parameters.ObjectsListJson;
+    }
 
     /**
      * Set autoRendering state
@@ -116,6 +128,8 @@ function K3D(provider, targetDOMNode, parameters) {
 
         self.autoRendering = handlersCount > 0;
     };
+
+    this.dispatch = dispatch;
 
     /**
      * Stores give provider
@@ -133,7 +147,7 @@ function K3D(provider, targetDOMNode, parameters) {
         self.parameters.viewMode = mode;
 
         if (dispatch(self.events.VIEW_MODE_CHANGE, mode)) {
-            render();
+            self.render();
         }
     };
 
@@ -144,6 +158,39 @@ function K3D(provider, targetDOMNode, parameters) {
      */
     this.setCameraAutoFit = function (state) {
         self.parameters.cameraAutoFit = state;
+    };
+
+    /**
+     * Set grid auto fit mode of K3D
+     * @memberof K3D.Core
+     * @param {String} mode
+     */
+    this.setGridAutoFit = function (state) {
+        self.parameters.gridAutoFit = state;
+    };
+
+    /**
+     * Set grid of K3D
+     * @memberof K3D.Core
+     * @param {Array} vectors
+     */
+    this.setGrid = function (vectors) {
+        self.parameters.grid = vectors;
+
+        Promise.all(self.rebuildSceneData(true)).then(function () {
+            self.refreshGrid();
+            world.setCameraToFitScene();
+            self.render();
+        });
+    };
+
+    /**
+     * Set camera of K3D
+     * @memberof K3D.Core
+     * @param {String} mode
+     */
+    this.setCamera = function (array) {
+        world.setupCamera(array);
     };
 
     /**
@@ -166,6 +213,7 @@ function K3D(provider, targetDOMNode, parameters) {
         self.parameters.clearColor.alpha = alpha;
 
         world.renderer.setClearColor(color, alpha);
+        self.render();
     };
 
     /**
@@ -177,7 +225,7 @@ function K3D(provider, targetDOMNode, parameters) {
     this.updateMousePosition = function (x, y) {
         if (self.parameters.viewMode !== viewModes.view) {
             if (self.raycast(x, y, world.camera, false, self.parameters.viewMode) && !self.autoRendering) {
-                render();
+                self.render();
             }
         }
     };
@@ -191,23 +239,22 @@ function K3D(provider, targetDOMNode, parameters) {
     this.mouseClick = function (x, y) {
         if (self.parameters.viewMode !== viewModes.view) {
             if (self.raycast(x, y, world.camera, true, self.parameters.viewMode) && !self.autoRendering) {
-                render();
+                self.render();
             }
         }
     };
 
     this.on = function (eventName, listener) {
-        listeners[eventName] = listeners[eventName] || [];
-        listeners[eventName].push(listener);
+        listeners[eventName] = listeners[eventName] || {};
+        listeners[eventName][listenersIndex] = listener;
+
+        listenersIndex++;
+        return listenersIndex - 1;
     };
 
-    /**
-     * Get access to camera in current world
-     * @memberof K3D.Core
-     * @returns {Object|undefined} - should return the "camera" if provider uses such a thing
-     */
-    this.getCamera = function () {
-        return world.camera;
+    this.off = function (eventName, id) {
+        listeners[eventName] = listeners[eventName] || {};
+        delete listeners[eventName][id];
     };
 
     /**
@@ -236,7 +283,7 @@ function K3D(provider, targetDOMNode, parameters) {
      * @param {String} id
      */
     this.removeObject = function (id) {
-        var object = this.Provider.Helpers.getObjectById(world, id);
+        var object = self.Provider.Helpers.getObjectById(world, id);
 
         if (object) {
             world.K3DObjects.remove(object);
@@ -270,7 +317,52 @@ function K3D(provider, targetDOMNode, parameters) {
             throw new Error('Object with id ' + id + ' dosen\'t exists');
         }
 
-        render();
+        delete world.ObjectsListJson[id];
+
+        Promise.all(self.rebuild()).then(function () {
+            world.setCameraToFitScene();
+            self.render();
+        });
+
+        dispatch(self.events.OBJECT_REMOVED);
+    };
+
+
+    /**
+     * A convenient shortcut for doing K3D.Loader(K3DInstance, json);
+     * @memberof K3D.Core
+     * @public
+     * @param {Object} json K3D-JSON object
+     * @throws {Error} If Loader fails
+     */
+    this.load = function (json) {
+        loader(self, json).then(function (objects) {
+            objects.forEach(function (object) {
+                world.ObjectsListJson[object.id] = object;
+            });
+
+            dispatch(self.events.OBJECT_LOADED);
+        });
+    };
+
+    /**
+     * Reload object in current world
+     * @memberof K3D.Core
+     * @param {Object} json
+     */
+    this.reload = function (json) {
+        var object = self.Provider.Helpers.getObjectById(world, json.id);
+
+        if (!object) {
+            error('Apply Patch Object Error',
+                'K3D apply patches object failed, please consult browser error console!', false);
+            return;
+        }
+
+        world.ObjectsListJson[json.id] = json;
+
+        self.removeObject(json.id);
+        self.load({objects: [json]});
     };
 
     /**
@@ -278,7 +370,7 @@ function K3D(provider, targetDOMNode, parameters) {
      * @memberof K3D.Core
      */
     this.rebuild = function () {
-        self.rebuildOctree();
+        return self.rebuildSceneData();
     };
 
     /**
@@ -307,6 +399,7 @@ function K3D(provider, targetDOMNode, parameters) {
         this.frameUpdateHandlers.before = [];
         this.frameUpdateHandlers.after = [];
         this.autoRendering = false;
+        listeners = {};
         currentWindow.removeEventListener('resize', this.resizeHelper);
     };
 
@@ -318,7 +411,7 @@ function K3D(provider, targetDOMNode, parameters) {
 
     world.controls.addEventListener('change', function () {
         if (self.frameUpdateHandlers.before.length === 0 && self.frameUpdateHandlers.after.length === 0) {
-            render();
+            self.render();
         }
     });
 
@@ -338,7 +431,9 @@ function K3D(provider, targetDOMNode, parameters) {
 
     viewModeButton(world.toolbarDOMNode, this);
 
-    render();
+    world.setCameraToFitScene();
+    self.rebuildSceneData(true);
+    self.render();
 }
 
 function isSupportedUpdateListener(when) {
@@ -364,7 +459,10 @@ K3D.prototype.frameUpdateHandlers = {
 K3D.prototype.events = {
     VIEW_MODE_CHANGE: 'viewModeChange',
     RENDERED: 'rendered',
-    RESIZED: 'resized'
+    RESIZED: 'resized',
+    CAMERA_CHANGE: 'cameraChange',
+    OBJECT_LOADED: 'objectLoaded',
+    OBJECT_REMOVED: 'objectRemoved'
 };
 
 /**
@@ -402,23 +500,5 @@ K3D.prototype.removeFrameUpdateListener = function (when, listener) {
     this.refreshAutoRenderingState();
 };
 
-/**
- * A convenient shortcut for doing K3D.Loader(K3DInstance, json);
- * @memberof K3D.Core
- * @public
- * @param {Object} json K3D-JSON object
- * @throws {Error} If Loader fails
- */
-K3D.prototype.load = function (data) {
-    loader(this, data);
-};
-
-K3D.prototype.applyPatchObject = function (id, data) {
-    patchObject.applyPatchObject(this, id, data);
-};
-
-K3D.prototype.getPatchObject = function (id) {
-    patchObject.getPatchObject(this, id);
-};
 
 module.exports = K3D;

@@ -1,7 +1,81 @@
+'use strict';
+
+function base64ToArrayBuffer(base64) {
+    var binary_string = window.atob(base64),
+        len = binary_string.length,
+        bytes = new Uint8Array(len),
+        i;
+
+    for (i = 0; i < len; i++) {
+        bytes[i] = binary_string.charCodeAt(i);
+    }
+
+    return new DataView(bytes.buffer);
+}
+
+function arrayToTypedArray(typedArray, array, obj) {
+    // hack to preserve current samples structure
+
+    var shape = null;
+
+    if (typeof(obj.length) !== 'undefined') {
+        shape = [obj.length, obj.height, obj.width];
+    } else if (typeof(obj.width) !== 'undefined') {
+        shape = [obj.height, obj.width];
+    }
+
+    if (typeof(obj.dimensions) !== 'undefined') {
+        shape.push(obj.dimensions);
+    }
+
+    return {
+        buffer: typedArray.from(array),
+        shape: shape
+    };
+}
+
+window.TestHelpers.jsonLoader = function (url, callback) {
+    var xhrLoad = new XMLHttpRequest(),
+        json,
+        converters = {
+            model_matrix: arrayToTypedArray.bind(null, Float32Array),
+            positions: arrayToTypedArray.bind(null, Float32Array),
+            scalar_field: arrayToTypedArray.bind(null, Float32Array),
+            color_map: arrayToTypedArray.bind(null, Float32Array),
+            attribute: arrayToTypedArray.bind(null, Float32Array),
+            vertices: arrayToTypedArray.bind(null, Float32Array),
+            indices: arrayToTypedArray.bind(null, Uint32Array),
+            colors: arrayToTypedArray.bind(null, Uint32Array),
+            origins: arrayToTypedArray.bind(null, Float32Array),
+            vectors: arrayToTypedArray.bind(null, Float32Array),
+            heights: arrayToTypedArray.bind(null, Float32Array),
+            voxels: arrayToTypedArray.bind(null, Uint8Array),
+            binary: base64ToArrayBuffer
+        };
+
+    xhrLoad.open('GET', url, true);
+
+    xhrLoad.onreadystatechange = function () {
+        if (xhrLoad.readyState === 4) {
+            json = JSON.parse(xhrLoad.response);
+
+            json.objects.forEach(function (obj) {
+                Object.keys(obj).forEach(function (key) {
+                    if (typeof(converters[key]) !== 'undefined') {
+                        obj[key] = converters[key](obj[key], obj);
+                    }
+                });
+            });
+
+            callback(json);
+        }
+    };
+
+    xhrLoad.send(null);
+};
+
 window.TestHelpers.compareCanvasWithExpectedImage =
     function (K3D, expectedImagePath, misMatchPercentage, callback) {
-
-        'use strict';
 
         var header = 'data:image/png;base64,',
             xhrLoad = new XMLHttpRequest(),

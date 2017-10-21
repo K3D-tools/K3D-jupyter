@@ -30,6 +30,8 @@ function viewModeButton(container, K3D) {
         activeViewMode = mode;
         element.src = images[mode];
         K3D.setViewMode(mode);
+
+        element.setAttribute('title', 'Voxels mode: ' + mode);
     }
 
     element.addEventListener('click', function () {
@@ -42,6 +44,21 @@ function viewModeButton(container, K3D) {
         activeViewMode = modes[(modes.indexOf(activeViewMode) + 1) % modes.length];
 
         setMode(activeViewMode);
+    });
+
+    [K3D.events.OBJECT_LOADED, K3D.events.OBJECT_REMOVED].forEach(function (event) {
+        K3D.on(event, function () {
+            var ObjectsListJson = K3D.getWorld().ObjectsListJson,
+                voxelPresent = false;
+
+            Object.keys(ObjectsListJson).forEach(function (id) {
+                if (ObjectsListJson[id].type === 'Voxels') {
+                    voxelPresent = true;
+                }
+            });
+
+            element.style.display = voxelPresent ? 'initial' : 'none';
+        });
     });
 
     setMode(K3D.parameters.viewMode);

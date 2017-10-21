@@ -19,7 +19,7 @@ module.exports = function (K3D, object) {
         isValid = isObject && hasType && hasValidType,
 
         defaultOptions = {
-            modelViewMatrix: [
+            model_matrix: [
                 1.0, 0.0, 0.0, 0.0,
                 0.0, 1.0, 0.0, 0.0,
                 0.0, 0.0, 1.0, 0.0,
@@ -35,8 +35,8 @@ module.exports = function (K3D, object) {
         throw new Error('Unknown object type (' + object.type + ') passed, no loader supporting it found!');
     }
 
-    if (isValid && !object.hasOwnProperty('modelViewMatrix')) {
-        object.modelViewMatrix = defaultOptions.modelViewMatrix;
+    if (isValid && !object.hasOwnProperty('model_matrix')) {
+        object.model_matrix = defaultOptions.model_matrix;
     }
 
     return object;

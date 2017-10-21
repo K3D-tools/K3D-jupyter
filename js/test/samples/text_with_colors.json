@@ -2,14 +2,11 @@
     "metadata": {},
     "objects": [
         {
-            "type": "Text",
+            "type": "TextureText",
             "color": 65280,
             "position": [0.0, 0.0, 0.0],
             "text": "Hello World",
-            "fontOptions": {
-                "face": "Lato",
-                "strokeColor": 255
-            }
+            "font_face" : "Lato"
         }
     ]
 }

@@ -2,14 +2,14 @@
   "metadata" : {},
   "objects" : [{
     "type" : "Points",
-    "modelViewMatrix" : [
+    "model_matrix" : [
       1, 0, 0, 0,
       0, 1, 0, 0,
       0, 0, 1, 0,
       0, 0, 0, 1],
-    "pointSize" : 10,
-    "pointsPositions" : [10,10,10],
-    "pointsColors" : [12740637]
+    "point_size" : 1,
+    "positions" : [0,0,0],
+    "colors" : [12740637]
   }
   ]
 }

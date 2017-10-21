@@ -34,7 +34,7 @@ module.exports = {
         Canvas: require('./initializers/Canvas'),
         Camera: require('./initializers/Camera'),
         Renderer: require('./initializers/Renderer'),
-        Scene: require('./initializers/Scene'),
+        Scene: require('./initializers/Scene').Init,
         Setup: require('./initializers/Setup')
     },
     /**
@@ -43,17 +43,19 @@ module.exports = {
      * @type {Object}
      */
     Objects: {
-        Text2d: require('./objects/Text2d'),
         Line: require('./objects/Line'),
         MarchingCubes: require('./objects/MarchingCubes'),
+        Mesh: require('./objects/Mesh'),
         Points: require('./objects/Points'),
         STL: require('./objects/STL'),
         Surface: require('./objects/Surface'),
-        Text: require('./objects/Text'),
+        TextureText: require('./objects/TextureText'),
         Texture: require('./objects/Texture'),
+        Text: require('./objects/Text'),
+        Text2d: require('./objects/Text2d'),
         TorusKnot: require('./objects/TorusKnot'),
+        VectorField: require('./objects/VectorField'),
         Vectors: require('./objects/Vectors'),
-        VectorsFields: require('./objects/VectorsFields'),
         Voxels: require('./objects/Voxels')
     },
     /**
