@@ -1,11 +1,9 @@
 import numpy as np
 
-# from ipyvolume
-
 
 def array_to_binary(ar, obj=None, force_contiguous=True):
     if ar.dtype.kind not in ['u', 'i', 'f']:  # ints and floats
-        raise ValueError("unsupported dtype: %s" % (ar.dtype))
+        raise ValueError("unsupported dtype: %s" % ar.dtype)
     if ar.dtype == np.float64:  # WebGL does not support float64, case it here
         ar = ar.astype(np.float32)
     if ar.dtype == np.int64:  # JS does not support int64

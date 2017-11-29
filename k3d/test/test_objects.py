@@ -23,5 +23,6 @@ class TestDrawable(unittest.TestCase):
         for obj in self.obj:
             self.assertTrue(isinstance(obj, Drawable))
 
+
 if __name__ == '__main__':
     unittest.main()

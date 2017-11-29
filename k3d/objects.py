@@ -387,8 +387,8 @@ class Vectors(Drawable):
     """
 
     type = Unicode(default_value='Vectors', read_only=True).tag(sync=True)
-    vectors = Array().tag(sync=True, **array_serialization)
     origins = Array().tag(sync=True, **array_serialization)
+    vectors = Array().tag(sync=True, **array_serialization)
     colors = Array().tag(sync=True, **array_serialization)
     origin_color = Int().tag(sync=True)
     head_color = Int().tag(sync=True)

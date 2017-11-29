@@ -260,7 +260,7 @@ def vector_field(vectors,
     )
 
 
-def vectors(vectors, origins, colors=[],
+def vectors(origins, vectors=None, colors=[],
             origin_color=None, head_color=None, color=_default_color,
             use_head=True, head_size=1.0,
             labels=[], label_size=1.0,
@@ -272,8 +272,10 @@ def vectors(vectors, origins, colors=[],
     For dense (i.e. forming a grid) 3D or 2D vectors, use the `vector_field` function.
 
     Arguments:
-        vectors: `array_like`. The vectors as (dx, dy, dz) float triples.
-        origins: `array_like`. Same-size array of (x, y, z) coordinates of vector origins.
+        origins: `array_like`. Array of (x, y, z) coordinates of vector origins, when `vectors` is None, these
+            are (dx, dy, dz) components of unbound vectors (which are displayed as originating in (0, 0, 0)).
+        vectors: `array_like`. The vectors as (dx, dy, dz) float triples. When not given, the `origins` are taken
+            as vectors. When given, it must be same size as `origins`.
         colors: `array_like`. Twice the length of vectors array of int: packed RGB colors
             (0xff0000 is red, 0xff is blue).
             The array has consecutive pairs (origin_color, head_color) for vectors in row-major order.
@@ -289,8 +291,8 @@ def vectors(vectors, origins, colors=[],
         kwargs: `dict`. Dictionary arguments to configure transform and model_matrix."""
     return process_transform_arguments(
         Vectors(
-            vectors=vectors,
-            origins=origins,
+            vectors=vectors if vectors is not None else origins,
+            origins=origins if vectors is not None else np.zeros_like(vectors),
             colors=np.array(colors, np.uint32),
             origin_color=origin_color if origin_color is not None else color,
             head_color=head_color if head_color is not None else color,
