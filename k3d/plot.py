@@ -1,9 +1,10 @@
 from __future__ import print_function
-import ipywidgets as widgets
-from traitlets import Unicode, Bool, Int, List
 import warnings
 import types
 import codecs
+
+import ipywidgets as widgets
+from traitlets import Unicode, Bool, Int, List
 
 from ._version import __version__
 from .objects import Drawable
@@ -27,7 +28,6 @@ class Plot(widgets.DOMWidget):
     height = Int().tag(sync=True)
     """Height of the Widget in piexels."""
     object_ids = List().tag(sync=True)
-
 
     # read-write
     camera_auto_fit = Bool(True).tag(sync=True)
@@ -76,7 +76,7 @@ class Plot(widgets.DOMWidget):
         assert isinstance(objs, Drawable)
 
         for obj in objs:
-            self.object_ids = [id for id in self.object_ids if id != obj.id]
+            self.object_ids = [id_ for id_ in self.object_ids if id_ != obj.id]
             if obj in self.objects:
                 self.objects.remove(obj)
 
@@ -98,8 +98,6 @@ class Plot(widgets.DOMWidget):
         self.send({'msg_type': 'fetch_screenshot'})
 
     def _screenshot_changed(self, change):
-        with open('change.txt', a) as f:
-            print(change, file=f)
         if self._screenshot_handler is not None:
             data = codecs.decode(change['new'].encode('ascii'), 'base64')
             if isinstance(self._screenshot_handler, types.GeneratorType):
