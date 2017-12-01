@@ -1,5 +1,4 @@
 # optional dependency
-
 try:
     import vtk
     from vtk.util import numpy_support
@@ -59,7 +58,7 @@ def marching_cubes(scalar_field, level, color=_default_color, **kwargs):
     )
 
 
-def mesh(vertices, indices, color=_default_color, attribute=[], color_map=[], color_range=[], **kwargs):
+def mesh(vertices, indices, color=_default_color, attribute=(), color_map=(), color_range=(), **kwargs):
     """Create a Mesh drawable representing a 3D triangles mesh.
 
     Arguments:
@@ -83,13 +82,12 @@ def mesh(vertices, indices, color=_default_color, attribute=[], color_map=[], co
     )
 
 
-def points(positions, colors=[], color=_default_color, model_matrix=np.identity(4), point_size=1.0,
-           shader='3dSpecular', **kwargs):
+def points(positions, colors=(), color=_default_color, point_size=1.0, shader='3dSpecular', **kwargs):
     """Create a Points drawable representing a point cloud.
 
     Arguments:
         positions: `array_like`. Array with (x, y, z) coordinates of the points.
-        colors: `array_like`. Same-length array of (`int`) packed RGB color of the points (0xff0000 is red, 0xff is blue).
+        colors: `array_like`. Same-length array of `int`-packed RGB color of the points (0xff0000 is red, 0xff is blue).
         color: `int`. Packed RGB color of the points (0xff0000 is red, 0xff is blue) when `colors` is empty.
         point_size: `float`. Diameter of the balls representing the points in 3D space.
         shader: `str`. Display style (name of the shader used) of the points.
@@ -106,6 +104,7 @@ def points(positions, colors=[], color=_default_color, model_matrix=np.identity(
     )
 
 
+# noinspection PyShadowingNames
 def stl(stl, color=_default_color, **kwargs):
     """Create an STL drawable for data in STereoLitograpy format.
 
@@ -146,6 +145,7 @@ def surface(heights, color=_default_color, **kwargs):
     )
 
 
+# noinspection PyShadowingNames
 def text(text, position=(0, 0, 0), color=_default_color, reference_point='lb', size=1.0):
     """Create a Text drawable for 3D-positioned text labels.
 
@@ -160,6 +160,7 @@ def text(text, position=(0, 0, 0), color=_default_color, reference_point='lb', s
     return Text(position=position, reference_point=reference_point, text=text, size=size, color=color)
 
 
+# noinspection PyShadowingNames
 def text2d(text, position=(0, 0), color=_default_color, size=1.0, reference_point='lt'):
     """Create a Text2d drawable for 2D-positioned (viewport bound, OSD) labels.
 
@@ -198,6 +199,7 @@ def texture(binary, file_format, **kwargs):
     )
 
 
+# noinspection PyShadowingNames
 def texture_text(text, position=(0, 0, 0), color=_default_color, font_weight=400, font_face='Courier New',
                  font_size=68, size=1.0):
     """Create a TextureText drawable.
@@ -220,8 +222,9 @@ def texture_text(text, position=(0, 0, 0), color=_default_color, font_weight=400
                        font_face=font_face, font_size=font_size, font_weight=font_weight)
 
 
+# noinspection PyShadowingNames
 def vector_field(vectors,
-                 colors=[],
+                 colors=(),
                  origin_color=None, head_color=None, color=_default_color,
                  use_head=True, head_size=1.0, scale=1.0, **kwargs):
     """Create a VectorField drawable for displaying dense 2D or 3D grids of vectors of same dimensionality.
@@ -260,10 +263,11 @@ def vector_field(vectors,
     )
 
 
-def vectors(origins, vectors=None, colors=[],
+# noinspection PyShadowingNames
+def vectors(origins, vectors=None, colors=(),
             origin_color=None, head_color=None, color=_default_color,
             use_head=True, head_size=1.0,
-            labels=[], label_size=1.0,
+            labels=(), label_size=1.0,
             line_width=1, **kwargs):
     """Create a Vectors drawable representing individual 3D vectors.
 
@@ -306,6 +310,7 @@ def vectors(origins, vectors=None, colors=[],
     )
 
 
+# noinspection PyShadowingNames
 def voxels(voxels, color_map, **kwargs):
     """Create a Voxels drawable for 3D volumetric data.
 
