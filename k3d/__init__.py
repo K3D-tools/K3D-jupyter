@@ -1,8 +1,8 @@
 from ._version import version_info
 
-from .colormaps.paraview_color_maps import paraview_color_maps
-from .colormaps.basic_color_maps import basic_color_maps
-from .colormaps.matplotlib_color_maps import matplotlib_color_maps
+from .colormaps import paraview_color_maps
+from .colormaps import basic_color_maps
+from .colormaps import matplotlib_color_maps
 
 from .k3d import (plot,
                   line,

@@ -55,3 +55,23 @@ def download(url):
         output.write(response.read())
 
     return basename
+
+
+def check_attribute_range(attribute, color_range):
+    if attribute.size == 0 or len(color_range) == 2:
+        return color_range
+    color_range = [np.min(attribute), np.max(attribute)]
+    if color_range[0] == color_range[1]:
+        color_range[1] += 1.0
+    return color_range
+
+
+def map_colors(attribute, color_map, color_range=()):
+    a_min, a_max = check_attribute_range(attribute, color_range)
+    map_array = np.asarray(color_map)
+    map_array = map_array.reshape((map_array.size // 4, 4))
+    attribute = (attribute - a_min) / (a_max - a_min)  # normalizing attribute for range lookup
+    red, green, blue = [np.array(255 * np.interp(attribute, xp=map_array[:, 0], fp=map_array[:, i+1]), dtype=np.int32)
+                        for i in range(3)]
+    colors = (red << 16) + (green << 8) + blue
+    return colors

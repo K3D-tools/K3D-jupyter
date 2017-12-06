@@ -1,3 +1,4 @@
+six
 ipywidgets>=7.0.0
 traittypes
 traitlets

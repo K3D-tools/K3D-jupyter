@@ -1,6 +1,8 @@
 # optional dependency
 try:
+    # noinspection PyPackageRequirements
     import vtk
+    # noinspection PyPackageRequirements
     from vtk.util import numpy_support
 except ImportError:
     vtk = None
@@ -8,11 +10,12 @@ except ImportError:
 
 import numpy as np
 import six
-from .colormaps.basic_color_maps import basic_color_maps
+from .colormaps import basic_color_maps
 from .plot import Plot
 from .objects import (Line, MarchingCubes, Mesh, Points, STL, Surface, Text, Text2d, Texture, TextureText, VectorField,
                       Vectors, Voxels)
 from .transform import process_transform_arguments
+from .helpers import check_attribute_range
 
 _default_color = 0x0000FF  # blue
 
@@ -71,12 +74,16 @@ def mesh(vertices, indices, color=_default_color, attribute=(), color_map=(), co
         color_range: `list`. A pair [min_value, max_value], which determines the levels of color attribute mapped
             to 0 and 1 in the color map respectively.
         kwargs: `dict`. Dictionary arguments to configure transform and model_matrix."""
+    color_map = np.array(color_map, np.float32)
+    attribute = np.array(attribute, np.float32)
+    color_range = check_attribute_range(attribute, color_range)
+
     return process_transform_arguments(
         Mesh(vertices=np.array(vertices, np.float32),
              indices=np.array(indices, np.uint32),
              color=color,
-             attribute=np.array(attribute, np.float32),
-             color_map=np.array(color_map, np.float32),
+             attribute=attribute,
+             color_map=color_map,
              color_range=color_range),
         **kwargs
     )
@@ -157,7 +164,7 @@ def text(text, position=(0, 0, 0), color=_default_color, reference_point='lb', s
             First letter: 'l', 'c' or 'r': left, center or right
             Second letter: 't', 'c' or 'b': top, center or bottom.
         size: `float`. Font size in 'em' HTML units."""
-    return Text(position=position, reference_point=reference_point, text=text, size=size, color=color)
+    return Text(position=list(position), reference_point=reference_point, text=text, size=size, color=color)
 
 
 # noinspection PyShadowingNames
@@ -172,7 +179,7 @@ def text2d(text, position=(0, 0), color=_default_color, size=1.0, reference_poin
             First letter: 'l', 'c' or 'r': left, center or right
             Second letter: 't', 'c' or 'b': top, center or bottom.
         size: `float`. Font size in 'em' HTML units."""
-    return Text2d(position=position, reference_point=reference_point, text=text, size=size, color=color)
+    return Text2d(position=list(position), reference_point=reference_point, text=text, size=size, color=color)
 
 
 def texture(binary, file_format, **kwargs):
@@ -218,7 +225,7 @@ def texture_text(text, position=(0, 0, 0), color=_default_color, font_weight=400
             400 is normal and 600 is bold font.
         font_size: `int`. The font size inside the sprite texture in px units. This does not affect the size of the
             text in the scene, only the accuracy and raster size of the texture."""
-    return TextureText(text=text, position=position, color=color, size=size,
+    return TextureText(text=text, position=list(position), color=color, size=size,
                        font_face=font_face, font_size=font_size, font_weight=font_weight)
 
 
