@@ -7,7 +7,7 @@ import ipywidgets as widgets
 from traitlets import Unicode, Bool, Int, List
 
 from ._version import __version__
-from .objects import Drawable
+from .objects import Drawable, ListOrArray
 
 
 class Plot(widgets.DOMWidget):
@@ -26,22 +26,22 @@ class Plot(widgets.DOMWidget):
     # readonly
     antialias = Bool().tag(sync=True)
     height = Int().tag(sync=True)
-    """Height of the Widget in piexels."""
+    """Height of the Widget in pixels."""
     object_ids = List().tag(sync=True)
 
     # read-write
     camera_auto_fit = Bool(True).tag(sync=True)
     grid_auto_fit = Bool(True).tag(sync=True)
-    grid = List().tag(sync=True)
+    grid = ListOrArray((-1, -1, -1, 1, 1, 1), minlen=6, maxlen=6).tag(sync=True)
     background_color = Int().tag(sync=True)
     voxel_paint_color = Int().tag(sync=True)
-    camera = List().tag(sync=True)
+    camera = ListOrArray(minlen=9, maxlen=9, empty_ok=True).tag(sync=True)
     screenshot = Unicode().tag(sync=True)
 
     objects = []
 
     def __init__(self, antialias=True, background_color=0xFFFFFF, camera_auto_fit=True, grid_auto_fit=True, height=512,
-                 voxel_paint_color=0, grid=[-1, -1, -1, 1, 1, 1]):
+                 voxel_paint_color=0, grid=(-1, -1, -1, 1, 1, 1)):
         super(Plot, self).__init__()
 
         self.antialias = antialias

@@ -164,7 +164,7 @@ def text(text, position=(0, 0, 0), color=_default_color, reference_point='lb', s
             First letter: 'l', 'c' or 'r': left, center or right
             Second letter: 't', 'c' or 'b': top, center or bottom.
         size: `float`. Font size in 'em' HTML units."""
-    return Text(position=list(position), reference_point=reference_point, text=text, size=size, color=color)
+    return Text(position=position, reference_point=reference_point, text=text, size=size, color=color)
 
 
 # noinspection PyShadowingNames
@@ -179,7 +179,7 @@ def text2d(text, position=(0, 0), color=_default_color, size=1.0, reference_poin
             First letter: 'l', 'c' or 'r': left, center or right
             Second letter: 't', 'c' or 'b': top, center or bottom.
         size: `float`. Font size in 'em' HTML units."""
-    return Text2d(position=list(position), reference_point=reference_point, text=text, size=size, color=color)
+    return Text2d(position=position, reference_point=reference_point, text=text, size=size, color=color)
 
 
 def texture(binary, file_format, **kwargs):
@@ -225,7 +225,7 @@ def texture_text(text, position=(0, 0, 0), color=_default_color, font_weight=400
             400 is normal and 600 is bold font.
         font_size: `int`. The font size inside the sprite texture in px units. This does not affect the size of the
             text in the scene, only the accuracy and raster size of the texture."""
-    return TextureText(text=text, position=list(position), color=color, size=size,
+    return TextureText(text=text, position=position, color=color, size=size,
                        font_face=font_face, font_size=font_size, font_weight=font_weight)
 
 

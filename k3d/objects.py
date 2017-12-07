@@ -7,6 +7,19 @@ from ._version import __version__
 import numpy as np
 
 
+class ListOrArray(List):
+    _cast_types = (tuple, np.ndarray)
+
+    def __init__(self, *args, empty_ok=False, **kwargs):
+        super(ListOrArray, self).__init__(*args, **kwargs)
+        self._empty_ok = empty_ok
+
+    def validate_elements(self, obj, value):
+        if self._empty_ok and len(value) == 0:
+            return value
+        return super(ListOrArray, self).validate_elements(obj, value)
+
+
 class Drawable(widgets.CoreWidget):
     """
     Base class for drawable objects and groups.
@@ -144,7 +157,7 @@ class Mesh(Drawable):
     color = Int().tag(sync=True)
     attribute = Array().tag(sync=True, **array_serialization)
     color_map = Array().tag(sync=True, **array_serialization)
-    color_range = List().tag(sync=True)
+    color_range = ListOrArray(minlen=2, maxlen=2, empty_ok=True).tag(sync=True)
     model_matrix = Array().tag(sync=True, **array_serialization)
 
 
@@ -239,7 +252,7 @@ class Text(Drawable):
 
     type = Unicode(default_value='Text', read_only=True).tag(sync=True)
     text = Unicode().tag(sync=True)
-    position = List().tag(sync=True)
+    position = ListOrArray(minlen=3, maxlen=3).tag(sync=True)
     color = Int().tag(sync=True)
     reference_point = Unicode().tag(sync=True)
     size = Float().tag(sync=True)
@@ -263,7 +276,7 @@ class Text2d(Drawable):
     color = Int().tag(sync=True)
     size = Float().tag(sync=True)
     reference_point = Unicode().tag(sync=True)
-    position = List().tag(sync=True)
+    position = ListOrArray(minlen=2, maxlen=2).tag(sync=True)
     text = Unicode().tag(sync=True)
 
 
@@ -310,7 +323,7 @@ class TextureText(Drawable):
 
     type = Unicode(default_value='TextureText', read_only=True).tag(sync=True)
     text = Unicode().tag(sync=True)
-    position = List().tag(sync=True)
+    position = ListOrArray(minlen=3, maxlen=3).tag(sync=True)
     color = Int().tag(sync=True)
     size = Float().tag(sync=True)
     font_face = Unicode().tag(sync=True)

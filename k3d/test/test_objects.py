@@ -1,5 +1,7 @@
 import unittest
 from ..objects import Drawable
+from ..k3d import text
+import numpy as np
 
 
 class TestDrawable(unittest.TestCase):
@@ -22,6 +24,12 @@ class TestDrawable(unittest.TestCase):
 
         for obj in self.obj:
             self.assertTrue(isinstance(obj, Drawable))
+
+
+class TestText(unittest.TestCase):
+    def test_position_accepts_numpy(self):
+        text_ = text('test', [0, 0, 0])
+        text_.position = np.arange(3)
 
 
 if __name__ == '__main__':
