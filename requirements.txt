@@ -1,5 +1,5 @@
 six
-ipywidgets>=7.0.0
+ipywidgets>=7.0.1
 traittypes
 traitlets
 numpy>=1.11.0
