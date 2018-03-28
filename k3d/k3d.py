@@ -392,6 +392,27 @@ def vtk_poly_data(poly_data, color=_default_color, color_attribute=None, color_m
     )
 
 
-def plot(*args, **kwargs):
-    """Create a K3D Plot widget."""
-    return Plot(*args, **kwargs)
+def plot(height=512,
+         antialias=True,
+         background_color=0xffffff,
+         camera_auto_fit=True,
+         grid_auto_fit=True,
+         voxel_paint_color=0,
+         grid=(-1, -1, -1, 1, 1, 1)):
+    """Create a K3D Plot widget.
+
+    This creates the main widget for displaying 3D objects.
+
+    Arguments:
+        height: `int`. Height of the widget in pixels.
+        antialias: `bool`. Enable antialiasing in WebGL renderer.
+        background_color: `int`.  Packed RGB color of the plot background (0xff0000 is red, 0xff is blue).
+        camera_auto_fit: `bool`. Enable automatic camera setting after adding, removing or changing a plot object.
+        grid_auto_fit: `bool`. Enable automatic adjustment of the plot grid to contained objects.
+        voxel_paint_color: `int`. The (initial) int value to be inserted when editing voxels.
+        grid: `array_like`. 6-element tuple specifying the bounds of the plot grid (x0, y0, z0, x1, y1, z1)."""
+    return Plot(antialias=antialias,
+                background_color=background_color,
+                camera_auto_fit=camera_auto_fit, grid_auto_fit=grid_auto_fit,
+                height=height,
+                voxel_paint_color=voxel_paint_color, grid=grid)
