@@ -1,7 +1,8 @@
 # optional dependency
-
 try:
+    # noinspection PyPackageRequirements
     import vtk
+    # noinspection PyPackageRequirements
     from vtk.util import numpy_support
 except ImportError:
     vtk = None
@@ -9,11 +10,12 @@ except ImportError:
 
 import numpy as np
 import six
-from .colormaps.basic_color_maps import basic_color_maps
+from .colormaps import basic_color_maps
 from .plot import Plot
 from .objects import (Line, MarchingCubes, Mesh, Points, STL, Surface, Text, Text2d, Texture, TextureText, VectorField,
                       Vectors, Voxels)
 from .transform import process_transform_arguments
+from .helpers import check_attribute_range
 
 _default_color = 0x0000FF  # blue
 
@@ -59,7 +61,7 @@ def marching_cubes(scalar_field, level, color=_default_color, **kwargs):
     )
 
 
-def mesh(vertices, indices, color=_default_color, attribute=[], color_map=[], color_range=[], **kwargs):
+def mesh(vertices, indices, color=_default_color, attribute=(), color_map=(), color_range=(), **kwargs):
     """Create a Mesh drawable representing a 3D triangles mesh.
 
     Arguments:
@@ -72,24 +74,27 @@ def mesh(vertices, indices, color=_default_color, attribute=[], color_map=[], co
         color_range: `list`. A pair [min_value, max_value], which determines the levels of color attribute mapped
             to 0 and 1 in the color map respectively.
         kwargs: `dict`. Dictionary arguments to configure transform and model_matrix."""
+    color_map = np.array(color_map, np.float32)
+    attribute = np.array(attribute, np.float32)
+    color_range = check_attribute_range(attribute, color_range)
+
     return process_transform_arguments(
         Mesh(vertices=np.array(vertices, np.float32),
              indices=np.array(indices, np.uint32),
              color=color,
-             attribute=np.array(attribute, np.float32),
-             color_map=np.array(color_map, np.float32),
+             attribute=attribute,
+             color_map=color_map,
              color_range=color_range),
         **kwargs
     )
 
 
-def points(positions, colors=[], color=_default_color, model_matrix=np.identity(4), point_size=1.0,
-           shader='3dSpecular', **kwargs):
+def points(positions, colors=(), color=_default_color, point_size=1.0, shader='3dSpecular', **kwargs):
     """Create a Points drawable representing a point cloud.
 
     Arguments:
         positions: `array_like`. Array with (x, y, z) coordinates of the points.
-        colors: `array_like`. Same-length array of (`int`) packed RGB color of the points (0xff0000 is red, 0xff is blue).
+        colors: `array_like`. Same-length array of `int`-packed RGB color of the points (0xff0000 is red, 0xff is blue).
         color: `int`. Packed RGB color of the points (0xff0000 is red, 0xff is blue) when `colors` is empty.
         point_size: `float`. Diameter of the balls representing the points in 3D space.
         shader: `str`. Display style (name of the shader used) of the points.
@@ -106,6 +111,7 @@ def points(positions, colors=[], color=_default_color, model_matrix=np.identity(
     )
 
 
+# noinspection PyShadowingNames
 def stl(stl, color=_default_color, **kwargs):
     """Create an STL drawable for data in STereoLitograpy format.
 
@@ -146,6 +152,7 @@ def surface(heights, color=_default_color, **kwargs):
     )
 
 
+# noinspection PyShadowingNames
 def text(text, position=(0, 0, 0), color=_default_color, reference_point='lb', size=1.0):
     """Create a Text drawable for 3D-positioned text labels.
 
@@ -160,6 +167,7 @@ def text(text, position=(0, 0, 0), color=_default_color, reference_point='lb', s
     return Text(position=position, reference_point=reference_point, text=text, size=size, color=color)
 
 
+# noinspection PyShadowingNames
 def text2d(text, position=(0, 0), color=_default_color, size=1.0, reference_point='lt'):
     """Create a Text2d drawable for 2D-positioned (viewport bound, OSD) labels.
 
@@ -198,6 +206,7 @@ def texture(binary, file_format, **kwargs):
     )
 
 
+# noinspection PyShadowingNames
 def texture_text(text, position=(0, 0, 0), color=_default_color, font_weight=400, font_face='Courier New',
                  font_size=68, size=1.0):
     """Create a TextureText drawable.
@@ -220,8 +229,9 @@ def texture_text(text, position=(0, 0, 0), color=_default_color, font_weight=400
                        font_face=font_face, font_size=font_size, font_weight=font_weight)
 
 
+# noinspection PyShadowingNames
 def vector_field(vectors,
-                 colors=[],
+                 colors=(),
                  origin_color=None, head_color=None, color=_default_color,
                  use_head=True, head_size=1.0, scale=1.0, **kwargs):
     """Create a VectorField drawable for displaying dense 2D or 3D grids of vectors of same dimensionality.
@@ -260,10 +270,11 @@ def vector_field(vectors,
     )
 
 
-def vectors(vectors, origins, colors=[],
+# noinspection PyShadowingNames
+def vectors(origins, vectors=None, colors=(),
             origin_color=None, head_color=None, color=_default_color,
             use_head=True, head_size=1.0,
-            labels=[], label_size=1.0,
+            labels=(), label_size=1.0,
             line_width=1, **kwargs):
     """Create a Vectors drawable representing individual 3D vectors.
 
@@ -272,8 +283,10 @@ def vectors(vectors, origins, colors=[],
     For dense (i.e. forming a grid) 3D or 2D vectors, use the `vector_field` function.
 
     Arguments:
-        vectors: `array_like`. The vectors as (dx, dy, dz) float triples.
-        origins: `array_like`. Same-size array of (x, y, z) coordinates of vector origins.
+        origins: `array_like`. Array of (x, y, z) coordinates of vector origins, when `vectors` is None, these
+            are (dx, dy, dz) components of unbound vectors (which are displayed as originating in (0, 0, 0)).
+        vectors: `array_like`. The vectors as (dx, dy, dz) float triples. When not given, the `origins` are taken
+            as vectors. When given, it must be same size as `origins`.
         colors: `array_like`. Twice the length of vectors array of int: packed RGB colors
             (0xff0000 is red, 0xff is blue).
             The array has consecutive pairs (origin_color, head_color) for vectors in row-major order.
@@ -289,8 +302,8 @@ def vectors(vectors, origins, colors=[],
         kwargs: `dict`. Dictionary arguments to configure transform and model_matrix."""
     return process_transform_arguments(
         Vectors(
-            vectors=vectors,
-            origins=origins,
+            vectors=vectors if vectors is not None else origins,
+            origins=origins if vectors is not None else np.zeros_like(vectors),
             colors=np.array(colors, np.uint32),
             origin_color=origin_color if origin_color is not None else color,
             head_color=head_color if head_color is not None else color,
@@ -304,6 +317,7 @@ def vectors(vectors, origins, colors=[],
     )
 
 
+# noinspection PyShadowingNames
 def voxels(voxels, color_map, **kwargs):
     """Create a Voxels drawable for 3D volumetric data.
 
@@ -378,6 +392,27 @@ def vtk_poly_data(poly_data, color=_default_color, color_attribute=None, color_m
     )
 
 
-def plot(*args, **kwargs):
-    """Create a K3D Plot widget."""
-    return Plot(*args, **kwargs)
+def plot(height=512,
+         antialias=True,
+         background_color=0xffffff,
+         camera_auto_fit=True,
+         grid_auto_fit=True,
+         voxel_paint_color=0,
+         grid=(-1, -1, -1, 1, 1, 1)):
+    """Create a K3D Plot widget.
+
+    This creates the main widget for displaying 3D objects.
+
+    Arguments:
+        height: `int`. Height of the widget in pixels.
+        antialias: `bool`. Enable antialiasing in WebGL renderer.
+        background_color: `int`.  Packed RGB color of the plot background (0xff0000 is red, 0xff is blue).
+        camera_auto_fit: `bool`. Enable automatic camera setting after adding, removing or changing a plot object.
+        grid_auto_fit: `bool`. Enable automatic adjustment of the plot grid to contained objects.
+        voxel_paint_color: `int`. The (initial) int value to be inserted when editing voxels.
+        grid: `array_like`. 6-element tuple specifying the bounds of the plot grid (x0, y0, z0, x1, y1, z1)."""
+    return Plot(antialias=antialias,
+                background_color=background_color,
+                camera_auto_fit=camera_auto_fit, grid_auto_fit=grid_auto_fit,
+                height=height,
+                voxel_paint_color=voxel_paint_color, grid=grid)

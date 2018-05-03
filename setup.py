@@ -45,9 +45,7 @@ setup_args = {
     'include_package_data': True,
     'data_files': [
         ('share/jupyter/nbextensions/k3d', [
-            'k3d/static/extension.js',
-            'k3d/static/index.js',
-            'k3d/static/index.js.map'
+            'k3d/static/*'
         ]),
     ],
     'install_requires': [
@@ -76,9 +74,9 @@ setup_args = {
         'Programming Language :: Python :: 2',
         'Programming Language :: Python :: 2.7',
         'Programming Language :: Python :: 3',
-        'Programming Language :: Python :: 3.3',
         'Programming Language :: Python :: 3.4',
         'Programming Language :: Python :: 3.5',
+        'Programming Language :: Python :: 3.6',
     ],
 }
 

@@ -26,10 +26,10 @@ module.exports = function (config) {
         fragmentShaderMap = {
             'flat': require('./shaders/Points.flat.fragment.glsl'),
             '3d': require('./shaders/Points.3d.fragment.glsl'),
-            '3dSpecular': require('./shaders/Points.3d.fragment.glsl')
+            '3dspecular': require('./shaders/Points.3d.fragment.glsl')
         };
 
-    fragmentShader = fragmentShaderMap[shader] || fragmentShaderMap.flat;
+    fragmentShader = fragmentShaderMap[shader.toLowerCase()] || fragmentShaderMap.flat;
 
     material = new THREE.ShaderMaterial({
         uniforms: THREE.UniformsUtils.merge([
