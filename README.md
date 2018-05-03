@@ -7,7 +7,7 @@ Jupyter notebook extension for 3D visualization.
 ![screenshot](screenshot.png)
 
 ## Try it Now!
-[![Binder](http://mybinder.org/badge.svg)](http://mybinder.org/repo/K3D-tools/K3D-jupyter)
+[![Binder](https://mybinder.org/badge.svg)](https://mybinder.org/v2/gh/K3D-tools/K3D-jupyter/master)
 
 ## Installation
 
