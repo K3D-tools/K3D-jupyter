@@ -354,15 +354,22 @@ function K3D(provider, targetDOMNode, parameters) {
         var object = self.Provider.Helpers.getObjectById(world, json.id);
 
         if (!object) {
-            error('Apply Patch Object Error',
-                'K3D apply patches object failed, please consult browser error console!', false);
+            error('Update Object Error',
+                'K3D update object failed, please consult browser error console!', false);
             return;
         }
 
-        world.ObjectsListJson[json.id] = json;
+        loader(self, {objects: [json]}).then(function (objects) {
+            objects.forEach(function (object) {
+                if (world.ObjectsListJson[object.id]) {
+                    self.removeObject(object.id);
+                }
 
-        self.removeObject(json.id);
-        self.load({objects: [json]});
+                world.ObjectsListJson[object.id] = object;
+            });
+
+            dispatch(self.events.OBJECT_LOADED);
+        });
     };
 
     /**
