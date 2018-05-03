@@ -11,6 +11,13 @@ var rules = [
     {
         test: /\.glsl/,
         use: 'raw-loader'
+    },
+    {
+        test: /\.worker\.js$/,
+        use: {
+            loader: 'worker-loader',
+            options: {inline: true, fallback: false}
+        }
     }
 ];
 
@@ -20,6 +27,7 @@ plugins.push(new webpack.optimize.UglifyJsPlugin({
     compress: {warnings: false},
     sourceMap: true
 }));
+
 
 module.exports = [
     {// Notebook extension

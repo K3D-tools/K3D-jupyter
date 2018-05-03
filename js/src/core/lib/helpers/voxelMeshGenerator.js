@@ -32,6 +32,7 @@ function generateGreedyVoxelMesh(voxels, colorMap, chunkSize, voxelSize, offsets
         w, h, l,
         du, dv,
         n, c,
+        idx, off,
         ending = [
             Math.min(offsets.x + chunkSize, width),
             Math.min(offsets.y + chunkSize, height),
@@ -48,16 +49,13 @@ function generateGreedyVoxelMesh(voxels, colorMap, chunkSize, voxelSize, offsets
         ];
     }
 
-    function getVoxel(i, j, k) {
-        return voxels[i + width * (j + height * k)];
-    }
-
     function computerHeight(w, c, j, n, u, v, ending, mask) {
-        var h, k;
+        var h, k, off = n;
 
         for (h = 1; j + h < ending[v]; h++) {
+            off += ending[u] - offsets[u];
             for (k = 0; k < w; k++) {
-                if (c !== mask[n + k + h * (ending[u] - offsets[u])]) {
+                if (c !== mask[k + off]) {
                     return h;
                 }
             }
@@ -69,34 +67,35 @@ function generateGreedyVoxelMesh(voxels, colorMap, chunkSize, voxelSize, offsets
     offsets = [offsets.x, offsets.y, offsets.z];
 
     //Sweep over 3-axes
+    q = [1, width, width * height];
+
     for (d = 0; d < 3; d++) {
         x = [0, 0, 0];
-        q = [0, 0, 0];
         u = (d + 1) % 3;
         v = (d + 2) % 3;
-
-        q[d] = 1;
 
         for (x[d] = -1 + offsets[d]; x[d] < ending[d];) {
 
             //Compute mask
             for (x[v] = offsets[v], n = 0; x[v] < ending[v]; x[v]++) {
-                for (x[u] = offsets[u]; x[u] < ending[u]; x[u]++, n++) {
+                x[u] = offsets[u];
 
-                    a = (0 <= x[d] ? getVoxel(x[0], x[1], x[2]) : null);
-                    b = (x[d] < dims[d] - 1 ? getVoxel(x[0] + q[0], x[1] + q[1], x[2] + q[2]) : null);
+                idx = x[0] + width * (x[1] + height * x[2]);
+
+                for (; x[u] < ending[u]; x[u]++, n++, idx += q[u]) {
+                    a = (0 <= x[d] ? voxels[idx] : -1);
+                    b = (x[d] < dims[d] - 1 ? voxels[idx + q[d]] : -1);
 
                     if (a === b || (a > 0 && b > 0)) {
                         mask[n] = 0;
-                    } else if (!!a) {
+                    } else if (a > 0) {
                         mask[n] = a;
                     } else {
-                        mask[n] = -b;
+                        mask[n] = b > 0 ? -b : 0;
                     }
                 }
             }
 
-            //Increment x[d]
             x[d]++;
 
             //Generate mesh for mask using lexicographic ordering
@@ -107,7 +106,7 @@ function generateGreedyVoxelMesh(voxels, colorMap, chunkSize, voxelSize, offsets
 
                     c = mask[n];
 
-                    if (!!c) {
+                    if (c) {
                         //Compute width
                         w = 1;
                         while (c === mask[n + w] && i + w < ending[u]) {
@@ -142,10 +141,12 @@ function generateGreedyVoxelMesh(voxels, colorMap, chunkSize, voxelSize, offsets
                         );
 
                         //Zero-out mask
+                        off = n;
                         for (l = 0; l < h; l++) {
                             for (k = 0; k < w; k++) {
-                                mask[n + k + l * (ending[u] - offsets[u])] = 0;
+                                mask[off + k] = 0;
                             }
+                            off += ending[u] - offsets[u];
                         }
 
                         i += w;
