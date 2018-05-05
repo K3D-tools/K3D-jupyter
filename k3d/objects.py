@@ -56,11 +56,10 @@ class Drawable(widgets.CoreWidget):
 
     def _ipython_display_(self, **kwargs):
         """Called when `IPython.display.display` is called on the widget."""
-        from IPython.display import display
         import k3d
         plot = k3d.plot()
         plot += self
-        return display(plot, **kwargs)
+        plot.display()
 
 
 class Group(Drawable):
