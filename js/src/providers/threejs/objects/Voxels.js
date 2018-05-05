@@ -23,6 +23,7 @@ module.exports = function (config, K3D) {
             voxels = config.voxels.buffer,
             colorMap = config.color_map.buffer || [16711680, 65280, 255, 16776960, 16711935, 65535],
             object = new THREE.Group(),
+            MaterialConstructor = config.wireframe ? THREE.MeshBasicMaterial : THREE.MeshPhongMaterial,
             generate,
             mesh,
             chunksCount = {
@@ -63,10 +64,11 @@ module.exports = function (config, K3D) {
 
                 mesh = new THREE.Mesh(
                     getGeometry(generate()),
-                    new THREE.MeshPhongMaterial({
+                    new MaterialConstructor({
                         vertexColors: THREE.VertexColors,
                         shading: THREE.FlatShading,
-                        side: THREE.DoubleSide
+                        side: THREE.DoubleSide,
+                        wireframe: config.wireframe || false
                     })
                 );
 
