@@ -458,13 +458,66 @@ require(['K3D'], function (lib) {
             });
         });
 
-        it('should draw a mesh from base64 array', function (done) {
+        it('should draw a mesh', function (done) {
             var self = this;
 
             jsonLoader('http://localhost:9001/samples/mesh.json', function (json) {
 
                 self.K3D.addFrameUpdateListener('after', function () {
                     TestHelpers.compareCanvasWithExpectedImage(self.K3D, 'mesh', RESAMBLEThreshold, done);
+                }, true);
+
+                self.K3D.load(json);
+            });
+        });
+
+        it('should draw a wireframe mesh', function (done) {
+            var self = this;
+
+            jsonLoader('http://localhost:9001/samples/mesh_wireframe.json', function (json) {
+
+                self.K3D.addFrameUpdateListener('after', function () {
+                    TestHelpers.compareCanvasWithExpectedImage(self.K3D, 'mesh_wireframe', RESAMBLEThreshold, done);
+                }, true);
+
+                self.K3D.load(json);
+            });
+        });
+
+        it('should draw a wireframe marching cubes', function (done) {
+            var self = this;
+
+            jsonLoader('http://localhost:9001/samples/marching_cubes_box_wireframe.json', function (json) {
+
+                self.K3D.addFrameUpdateListener('after', function () {
+                    TestHelpers.compareCanvasWithExpectedImage(self.K3D, 'marching_cubes_box_wireframe',
+                        RESAMBLEThreshold, done);
+                }, true);
+
+                self.K3D.load(json);
+            });
+        });
+
+        it('should draw a wireframe stl', function (done) {
+            var self = this;
+
+            jsonLoader('http://localhost:9001/samples/stl_wireframe.json', function (json) {
+
+                self.K3D.addFrameUpdateListener('after', function () {
+                    TestHelpers.compareCanvasWithExpectedImage(self.K3D, 'stl_wireframe', RESAMBLEThreshold, done);
+                }, true);
+
+                self.K3D.load(json);
+            });
+        });
+
+        it('should draw a wireframe voxels', function (done) {
+            var self = this;
+
+            jsonLoader('http://localhost:9001/samples/voxels_wireframe.json', function (json) {
+
+                self.K3D.addFrameUpdateListener('after', function () {
+                    TestHelpers.compareCanvasWithExpectedImage(self.K3D, 'voxels_wireframe', RESAMBLEThreshold, done);
                 }, true);
 
                 self.K3D.load(json);

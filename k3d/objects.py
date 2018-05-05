@@ -125,6 +125,7 @@ class MarchingCubes(Drawable):
         scalar_field: `array_like`. A 3D scalar field of values.
         level: `float`. Value at the computed isosurface.
         color: `int`. Packed RGB color of the isosurface (0xff0000 is red, 0xff is blue).
+        wireframe: `bool`. Whether mesh should display as wireframe.
         model_matrix: `array_like`. 4x4 model transform matrix.
     """
 
@@ -132,6 +133,7 @@ class MarchingCubes(Drawable):
     scalar_field = Array().tag(sync=True, **array_serialization)
     level = Float().tag(sync=True)
     color = Int().tag(sync=True)
+    wireframe = Bool().tag(sync=True)
     model_matrix = Array().tag(sync=True, **array_serialization)
 
 
@@ -148,6 +150,7 @@ class Mesh(Drawable):
             quadruplet should have value 0.0, the last 1.0; R, G, B are RGB color components in the range 0.0 to 1.0.
         color_range: `list`. A pair [min_value, max_value], which determines the levels of color attribute mapped
             to 0 and 1 in the color map respectively.
+        wireframe: `bool`. Whether mesh should display as wireframe.
         model_matrix: `array_like`. 4x4 model transform matrix.
     """
 
@@ -158,6 +161,7 @@ class Mesh(Drawable):
     attribute = Array().tag(sync=True, **array_serialization)
     color_map = Array().tag(sync=True, **array_serialization)
     color_range = ListOrArray(minlen=2, maxlen=2, empty_ok=True).tag(sync=True)
+    wireframe = Bool().tag(sync=True)
     model_matrix = Array().tag(sync=True, **array_serialization)
 
 
@@ -208,6 +212,7 @@ class STL(Drawable):
             The `text` attribute should be set to None when using Binary STL.
         color: `int`. Packed RGB color of the resulting mesh (0xff0000 is red, 0xff is blue).
         model_matrix: `array_like`. 4x4 model transform matrix.
+        wireframe: `bool`. Whether mesh should display as wireframe.
     """
 
     type = Unicode(default_value='STL', read_only=True).tag(sync=True)
@@ -215,6 +220,7 @@ class STL(Drawable):
     binary = Array().tag(sync=True, **array_serialization)
     color = Int().tag(sync=True)
     model_matrix = Array().tag(sync=True, **array_serialization)
+    wireframe = Bool().tag(sync=True)
 
 
 class Surface(Drawable):
@@ -433,9 +439,11 @@ class Voxels(Drawable):
                 2  # red voxel
             ]]]
         model_matrix: `array_like`. 4x4 model transform matrix.
+        wireframe: `bool`. Whether mesh should display as wireframe.
     """
 
     type = Unicode(default_value='Voxels', read_only=True).tag(sync=True)
     voxels = Array().tag(sync=True, **array_serialization)
     color_map = Array().tag(sync=True, **array_serialization)
     model_matrix = Array().tag(sync=True, **array_serialization)
+    wireframe = Bool().tag(sync=True)

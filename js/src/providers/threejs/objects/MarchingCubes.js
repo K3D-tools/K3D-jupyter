@@ -17,13 +17,15 @@ module.exports = function (config) {
             length = config.scalar_field.shape[0],
             level = config.level,
             modelMatrix = new THREE.Matrix4(),
-            material = new THREE.MeshPhongMaterial({
+            MaterialConstructor = config.wireframe ? THREE.MeshBasicMaterial : THREE.MeshPhongMaterial,
+            material = new MaterialConstructor({
                 color: config.color,
                 emissive: 0,
                 shininess: 25,
                 specular: 0x111111,
                 side: THREE.DoubleSide,
-                shading: THREE.FlatShading
+                shading: THREE.FlatShading,
+                wireframe: config.wireframe || false
             }),
             geometry = new THREE.BufferGeometry(),
             positions = [],

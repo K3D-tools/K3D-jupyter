@@ -11,11 +11,13 @@ module.exports = function (config) {
 
     var loader = new THREE.STLLoader(),
         modelMatrix = new THREE.Matrix4(),
-        material = new THREE.MeshPhongMaterial({
+        MaterialConstructor = config.wireframe ? THREE.MeshBasicMaterial : THREE.MeshPhongMaterial,
+        material = new MaterialConstructor({
             color: config.color,
             emissive: 0x072534,
             shading: THREE.FlatShading,
-            side: THREE.DoubleSide
+            side: THREE.DoubleSide,
+            wireframe: config.wireframe || false
         }),
         text = config.text,
         binary = config.binary,
@@ -33,7 +35,11 @@ module.exports = function (config) {
     }
 
     if (geometry.hasColors) {
-        material = new THREE.MeshPhongMaterial({opacity: geometry.alpha, vertexColors: THREE.VertexColors});
+        material = new THREE.MeshPhongMaterial({
+            opacity: geometry.alpha,
+            vertexColors: THREE.VertexColors,
+            wireframe: config.wireframe || false
+        });
     }
 
     object = new THREE.Mesh(geometry, material);
