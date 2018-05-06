@@ -3,7 +3,7 @@ require(['K3D'], function (lib) {
     var ThreeJsProvider = lib.ThreeJsProvider;
     var jsonLoader = TestHelpers.jsonLoader;
 
-    const RESAMBLEThreshold = 0.2;
+    const RESAMBLEThreshold = 0.22;
 
     describe('Objects tests', function () {
         'use strict';
