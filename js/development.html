@@ -35,7 +35,7 @@
                 lib.ThreeJsProvider,
                 document.getElementById('canvasTarget'),
                 {
-                    cameraAutoFit: true,
+                    cameraAutoFit: false,
                     gridAutoFit: true,
                     grid: [
                         -1, -1, -1,
@@ -49,10 +49,18 @@
         if (K3DInstance) {
             K3DInstance.setClearColor(0xffffff, 1);
 
-            jsonLoader('test/samples/vector_label.json', function (json) {
+            jsonLoader('test/samples/voxels.json', function (json) {
                 K3DInstance.load(json);
             });
         }
+
+        if (localStorage.getItem('camera') !== null) {
+            K3DInstance.setCamera(JSON.parse(localStorage.getItem('camera')));
+        }
+
+        K3DInstance.on(K3DInstance.events.CAMERA_CHANGE, function (control) {
+            localStorage.setItem('camera', JSON.stringify(control));
+        });
     });
 </script>
 </body>

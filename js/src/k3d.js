@@ -82,9 +82,18 @@ PlotModel = widgets.DOMWidgetModel.extend({
 PlotView = widgets.DOMWidgetView.extend({
     render: function () {
         var container = $('<div />').css('position', 'relative');
-
         this.container = container.css({'height': this.model.get('height')}).appendTo(this.$el).get(0);
         this.on('displayed', this._init, this);
+    },
+
+    remove: function () {
+        _.pull(plotsList, this);
+        this.K3DInstance.off(this.K3DInstance.events.CAMERA_CHANGE, this.cameraChangeId);
+    },
+
+    _init: function () {
+        var self = this;
+
 
         plotsList.push(this);
 
@@ -108,15 +117,6 @@ PlotView = widgets.DOMWidgetView.extend({
         this.model.on('change:grid', this._setGrid, this);
         this.model.on('change:camera', this._setCamera, this);
         this.model.on('change:object_ids', this._onObjectsListChange, this);
-    },
-
-    remove: function () {
-        _.pull(plotsList, this);
-        this.K3DInstance.off(this.K3DInstance.events.CAMERA_CHANGE, this.cameraChangeId);
-    },
-
-    _init: function () {
-        var self = this;
 
         try {
             this.K3DInstance = new K3D(ThreeJsProvider, this.container, {

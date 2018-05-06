@@ -27,7 +27,19 @@ function getSceneBoundingBox() {
         objectBoundingBox;
 
     this.K3DObjects.traverse(function (object) {
-        if ((object.K3DIdentifier || object.parent.K3DIdentifier) &&
+        var isK3DObject = false;
+        var ref = object;
+
+        while (ref.parent) {
+            if (ref.K3DIdentifier) {
+                isK3DObject = true;
+                break;
+            }
+
+            ref = ref.parent;
+        }
+
+        if (isK3DObject &&
             typeof(object.position.z) !== 'undefined' &&
             (object.geometry || object.boundingBox)) {
 
@@ -447,10 +459,6 @@ module.exports = {
         this.lights[0] = new THREE.PointLight(0xffffff, 0.9, 0);
         this.lights[1] = new THREE.PointLight(0xffffff, 0.7, 0);
         this.lights[2] = new THREE.PointLight(0xffffff, 0.6, 0);
-
-        // this.lights[0].position.set(20, 2.5, 200);
-        // this.lights[1].position.set(-30, -7.5, 200);
-        // this.lights[2].position.set(0.5, 2.0, -400);
 
         this.lights[0].position.set(2000, -1000, 2000);
         this.lights[1].position.set(-2000, 0, 2000);

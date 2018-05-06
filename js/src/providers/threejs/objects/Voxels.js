@@ -14,7 +14,7 @@ var voxelMeshGenerator = require('./../../../core/lib/helpers/voxelMeshGenerator
  */
 module.exports = function (config, K3D) {
     return new Promise(function (resolve) {
-        const chunkSize = 64;
+        const chunkSize = 32;
 
         var modelMatrix = new THREE.Matrix4().fromArray(config.model_matrix.buffer),
             width = config.voxels.shape[2],
@@ -23,9 +23,8 @@ module.exports = function (config, K3D) {
             voxels = config.voxels.buffer,
             colorMap = config.color_map.buffer || [16711680, 65280, 255, 16776960, 16711935, 65535],
             object = new THREE.Group(),
-            MaterialConstructor = config.wireframe ? THREE.MeshBasicMaterial : THREE.MeshPhongMaterial,
             generate,
-            mesh,
+            voxelChunkObject,
             chunksCount = {
                 x: Math.ceil(width / chunkSize),
                 y: Math.ceil(height / chunkSize),
@@ -59,29 +58,23 @@ module.exports = function (config, K3D) {
                     colorMap,
                     chunkSize,
                     object.voxelSize,
-                    offsets
+                    offsets,
+                    config.outlines
                 );
 
-                mesh = new THREE.Mesh(
-                    getGeometry(generate()),
-                    new MaterialConstructor({
-                        vertexColors: THREE.VertexColors,
-                        shading: THREE.FlatShading,
-                        side: THREE.DoubleSide,
-                        wireframe: config.wireframe || false
-                    })
-                );
+                voxelChunkObject = getVoxelChunkObject(config, generate());
 
-                mesh.voxel = {
+                voxelChunkObject.voxel = {
                     generate: generate,
                     offsets: offsets,
-                    getGeometry: getGeometry,
+                    getVoxelChunkObject: getVoxelChunkObject.bind(this, config),
                     chunkSize: chunkSize
                 };
 
-                mesh.interactions = interactionsVoxels(object, mesh, rollOverMesh, K3D);
+                voxelChunkObject.children[0].interactions =
+                    interactionsVoxels(object, voxelChunkObject, rollOverMesh, K3D);
 
-                object.add(mesh);
+                object.add(voxelChunkObject);
             }
         }, function () {
             object.position.set(-0.5, -0.5, -0.5);
@@ -110,8 +103,12 @@ module.exports = function (config, K3D) {
     });
 };
 
-function getGeometry(chunkStructure) {
-    var geometry = new THREE.BufferGeometry();
+function getVoxelChunkObject(config, chunkStructure) {
+    var geometry = new THREE.BufferGeometry(),
+        voxelsChunkObject = new THREE.Object3D(),
+        outlineGeometry,
+        MaterialConstructor = config.wireframe ? THREE.MeshBasicMaterial : THREE.MeshPhongMaterial;
+
 
     geometry.addAttribute('position',
         new THREE.BufferAttribute(new Float32Array(chunkStructure.vertices), 3)
@@ -123,5 +120,33 @@ function getGeometry(chunkStructure) {
     geometry.computeBoundingSphere();
     geometry.computeBoundingBox();
 
-    return geometry;
+    voxelsChunkObject.add(new THREE.Mesh(
+        geometry,
+        new MaterialConstructor({
+            vertexColors: THREE.VertexColors,
+            shading: THREE.FlatShading,
+            side: THREE.DoubleSide,
+            wireframe: config.wireframe || false
+        })
+    ));
+
+    if (config.outlines && !config.wireframe) {
+        outlineGeometry = new THREE.BufferGeometry();
+        outlineGeometry.addAttribute('position',
+            new THREE.BufferAttribute(new Float32Array(chunkStructure.outlines), 3)
+        );
+        outlineGeometry.computeBoundingSphere();
+        outlineGeometry.computeBoundingBox();
+
+        voxelsChunkObject.add(new THREE.LineSegments(
+            outlineGeometry,
+            new THREE.LineBasicMaterial({
+                color: config.outlines_color || 0,
+                transparent: true,
+                opacity: 0.5
+            })
+        ));
+    }
+
+    return voxelsChunkObject;
 }

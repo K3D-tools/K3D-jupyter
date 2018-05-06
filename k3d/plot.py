@@ -5,6 +5,7 @@ import codecs
 
 import ipywidgets as widgets
 from traitlets import Unicode, Bool, Int, List
+from IPython.display import display
 
 from ._version import __version__
 from .objects import Drawable, ListOrArray
@@ -67,6 +68,8 @@ class Plot(widgets.DOMWidget):
         self.object_ids = []
         self.objects = []
 
+        self.output = widgets.Output()
+
         self._screenshot_handler = None
         self.observe(self._screenshot_changed, names=['screenshot'])
 
@@ -80,10 +83,6 @@ class Plot(widgets.DOMWidget):
 
         return self
 
-    def __add__(self, objs):
-        warnings.warn('Using plus operator to add objects to plot is discouraged in favor of +=')
-        return self.__iadd__(objs)
-
     def __isub__(self, objs):
         assert isinstance(objs, Drawable)
 
@@ -94,12 +93,14 @@ class Plot(widgets.DOMWidget):
 
         return self
 
-    def __sub__(self, objs):
-        warnings.warn('Using minus operator to remove objects from plot is discouraged in favor of -=')
-        return self.__isub__(objs)
-
     def display(self, **kwargs):
-        super(Plot, self)._ipython_display_(**kwargs)
+        with self.output:
+            display(self, **kwargs)
+
+        display(self.output)
+
+    def close(self):
+        self.output.clear_output()
 
     def fetch_screenshot(self, handler=None):
         self._screenshot_handler = handler
