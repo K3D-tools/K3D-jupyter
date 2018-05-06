@@ -439,6 +439,8 @@ class Voxels(Drawable):
             ]]]
         model_matrix: `array_like`. 4x4 model transform matrix.
         wireframe: `bool`. Whether mesh should display as wireframe.
+        outlines: `bool`. Whether mesh should display with outlines.
+        outlines_color: `int`. Packed RGB color of the resulting outlines (0xff0000 is red, 0xff is blue)
     """
 
     type = Unicode(default_value='Voxels', read_only=True).tag(sync=True)
@@ -446,3 +448,5 @@ class Voxels(Drawable):
     color_map = Array().tag(sync=True, **array_serialization)
     model_matrix = Array().tag(sync=True, **array_serialization)
     wireframe = Bool().tag(sync=True)
+    outlines = Bool().tag(sync=True)
+    outlines_color = Int().tag(sync=True)

@@ -13,17 +13,20 @@
  * @param {Number} chunkSize
  * @param {Object} voxelSize
  * @param {Object} offsets
+ * @param {Object} calculate_outlines
  * @return {Object} with two properties - vertices and colors
  */
-function generateGreedyVoxelMesh(voxels, colorMap, chunkSize, voxelSize, offsets) {
+function generateGreedyVoxelMesh(voxels, colorMap, chunkSize, voxelSize, offsets, calculate_outlines) {
     var vertices = [],
         colors = [],
+        outlines = [],
         quadIndex = 0,
+        outlineIndex = 0,
         width = voxelSize.width,
         height = voxelSize.height,
         length = voxelSize.length,
         dims = [width, height, length],
-        mask = new Int32Array(Math.max(width, height, length) * Math.max(width, height, length)),
+        mask = new Int32Array(chunkSize * chunkSize),
         d,
         x, q,
         u, v,
@@ -64,6 +67,19 @@ function generateGreedyVoxelMesh(voxels, colorMap, chunkSize, voxelSize, offsets
         return h;
     }
 
+    function makeOutline(outlines, x, v, outlineIndex) {
+        var index = outlineIndex * 6, offset = [0, 0, 0];
+        offset[v] = 1;
+
+        outlines[index] = x[0] / width;
+        outlines[index + 1] = x[1] / height;
+        outlines[index + 2] = x[2] / length;
+
+        outlines[index + 3] = (x[0] + offset[0]) / width;
+        outlines[index + 4] = (x[1] + offset[1]) / height;
+        outlines[index + 5] = (x[2] + offset[2]) / length;
+    }
+
     offsets = [offsets.x, offsets.y, offsets.z];
 
     //Sweep over 3-axes
@@ -75,8 +91,9 @@ function generateGreedyVoxelMesh(voxels, colorMap, chunkSize, voxelSize, offsets
         v = (d + 2) % 3;
 
         for (x[d] = -1 + offsets[d]; x[d] < ending[d];) {
-
             //Compute mask
+            var maskFilled = false;
+
             for (x[v] = offsets[v], n = 0; x[v] < ending[v]; x[v]++) {
                 x[u] = offsets[u];
 
@@ -90,18 +107,53 @@ function generateGreedyVoxelMesh(voxels, colorMap, chunkSize, voxelSize, offsets
                         mask[n] = 0;
                     } else if (a > 0) {
                         mask[n] = a;
+                        maskFilled = true;
                     } else {
                         mask[n] = b > 0 ? -b : 0;
+                        maskFilled |= b > 0;
                     }
                 }
             }
 
             x[d]++;
 
-            //Generate mesh for mask using lexicographic ordering
-            n = 0;
+            if (!maskFilled)
+                continue;
 
-            for (j = offsets[v]; j < ending[v]; j++) {
+            // outlines
+            if (calculate_outlines) {
+                for (j = offsets[v], n = 0; j < ending[v]; j++) {
+                    x[u] = offsets[u];
+                    x[v] = j;
+
+                    idx = x[0] + width * (x[1] + height * x[2]);
+
+                    if (offsets[u] === 0 && mask[n] !== 0) {
+                        makeOutline(outlines, x, v, outlineIndex++);
+                    }
+
+                    for (i = offsets[u]; i < ending[u] - 1; i++, n++) {
+                        x[u] = i + 1;
+                        x[v] = j;
+
+                        if (mask[n] !== mask[n + 1]) {
+                            makeOutline(outlines, x, v, outlineIndex++);
+                        }
+                    }
+
+                    x[u] = ending[u];
+                    idx = x[0] + width * (x[1] + height * x[2]);
+
+                    if (i === dims[u] - 1 && mask[n] !== 0) {
+                        makeOutline(outlines, x, v, outlineIndex++);
+                    }
+
+                    n++;
+                }
+            }
+
+            //Generate mesh for mask using lexicographic ordering
+            for (j = offsets[v], n = 0; j < ending[v]; j++) {
                 for (i = offsets[u]; i < ending[u];) {
 
                     c = mask[n];
@@ -162,7 +214,8 @@ function generateGreedyVoxelMesh(voxels, colorMap, chunkSize, voxelSize, offsets
 
     return {
         vertices: vertices,
-        colors: colors
+        colors: colors,
+        outlines: outlines
     };
 }
 
@@ -303,9 +356,9 @@ function makeQuad(points, vertices, colors, color, quadIndex) {
 }
 
 
-function initializeGreedyVoxelMesh(voxels, colorMap, chunkSize, voxelSize, offsets) {
+function initializeGreedyVoxelMesh(voxels, colorMap, chunkSize, voxelSize, offsets, calculate_outlines) {
     return generateGreedyVoxelMesh.bind(null, voxels, colorMap, chunkSize, voxelSize,
-        offsets);
+        offsets, calculate_outlines);
 }
 
 function initializeCulledVoxelMesh(voxels, colorMap, chunkSize, voxelSize, offsets) {

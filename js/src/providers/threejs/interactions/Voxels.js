@@ -8,6 +8,15 @@ var viewModes = require('./../../../core/lib/viewMode').viewModes;
  */
 module.exports = function (object, mesh, rollOverMesh, K3D) {
 
+    function updateObject(mesh) {
+        var newMesh = mesh.voxel.getVoxelChunkObject(mesh.voxel.generate()),
+            i;
+
+        for (i = 0; i < mesh.children.length; i++) {
+            mesh.children[i].geometry = newMesh.children[i].geometry;
+        }
+    }
+
     function getVoxelCoordinate(intersect, outside) {
         var matrix = new THREE.Matrix4().getInverse(mesh.matrixWorld),
             normalMatrix = new THREE.Matrix3().getNormalMatrix(matrix),
@@ -61,7 +70,7 @@ module.exports = function (object, mesh, rollOverMesh, K3D) {
         });
 
         if (nextMesh) {
-            nextMesh.geometry = nextMesh.voxel.getGeometry(nextMesh.voxel.generate());
+            updateObject(nextMesh);
         }
     }
 
@@ -94,14 +103,13 @@ module.exports = function (object, mesh, rollOverMesh, K3D) {
             voxelCoordinate.z * object.voxelSize.width * object.voxelSize.height;
 
         object.voxels[i] = K3D.parameters.voxelPaintColor;
-
-        mesh.geometry = mesh.voxel.getGeometry(mesh.voxel.generate());
+        updateObject(mesh);
 
         // we should handle case when voxelCoordinate is in another chunk
         nextMesh = findMesh(voxelCoordinate);
 
         if (nextMesh && mesh.uuid !== nextMesh.uuid) {
-            nextMesh.geometry = nextMesh.voxel.getGeometry(nextMesh.voxel.generate());
+            updateObject(nextMesh);
         }
 
         rollOverMesh.visible = false;
@@ -139,7 +147,7 @@ module.exports = function (object, mesh, rollOverMesh, K3D) {
 
         object.voxels[i] = K3D.parameters.voxelPaintColor;
 
-        mesh.geometry = mesh.voxel.getGeometry(mesh.voxel.generate());
+        updateObject(mesh);
 
         if (voxelCoordinate.x === mesh.voxel.offsets.x) {
             rebuildChunk(voxelCoordinate, {x: -1, y: 0, z: 0});

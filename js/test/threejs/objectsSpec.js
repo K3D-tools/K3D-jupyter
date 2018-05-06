@@ -458,6 +458,19 @@ require(['K3D'], function (lib) {
             });
         });
 
+        it('should draw voxels with outlines', function (done) {
+            var self = this;
+
+            jsonLoader('http://localhost:9001/samples/voxels_outlines.json', function (json) {
+
+                self.K3D.addFrameUpdateListener('after', function () {
+                    TestHelpers.compareCanvasWithExpectedImage(self.K3D, 'voxels_outlines', RESAMBLEThreshold, done);
+                }, true);
+
+                self.K3D.load(json);
+            });
+        });
+
         it('should draw a mesh', function (done) {
             var self = this;
 

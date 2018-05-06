@@ -325,7 +325,7 @@ def vectors(origins, vectors=None, colors=(),
 
 
 # noinspection PyShadowingNames
-def voxels(voxels, color_map, wireframe=False, **kwargs):
+def voxels(voxels, color_map, wireframe=False, outlines=True, outlines_color=0, **kwargs):
     """Create a Voxels drawable for 3D volumetric data.
 
     By default, the voxels are a grid inscribed in the -0.5 < x, y, z < 0.5 cube
@@ -347,9 +347,12 @@ def voxels(voxels, color_map, wireframe=False, **kwargs):
                 2  # red voxel
             ]]]
         wireframe: `bool`. Whether mesh should display as wireframe.
+        outlines: `bool`. Whether mesh should display with outlines.
+        outlines_color: `int`. Packed RGB color of the resulting outlines (0xff0000 is red, 0xff is blue)
     kwargs: `dict`. Dictionary arguments to configure transform and model_matrix."""
     return process_transform_arguments(
-        Voxels(voxels=np.array(voxels, np.uint8), color_map=np.array(color_map, np.float32), wireframe=wireframe),
+        Voxels(voxels=np.array(voxels, np.uint8), color_map=np.array(color_map, np.float32), wireframe=wireframe,
+               outlines=outlines, outlines_color=outlines_color),
         **kwargs
     )
 
