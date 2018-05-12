@@ -101,16 +101,34 @@ class Line(Drawable):
 
     Attributes:
         vertices: `array_like`. An array with (x, y, z) coordinates of segment endpoints.
-        color: `int`. Packed RGB color of the lines (0xff0000 is red, 0xff is blue).
+        colors: `array_like`. Same-length array of (`int`) packed RGB color of the points (0xff0000 is red, 0xff is blue).
+        color: `int`. Packed RGB color of the lines (0xff0000 is red, 0xff is blue) when `colors` is empty.
+        attribute: `array_like`. Array of float attribute for the color mapping, coresponding to each vertex.
+        color_map: `list`. A list of float quadruplets (attribute value, R, G, B), sorted by attribute value. The first
+            quadruplet should have value 0.0, the last 1.0; R, G, B are RGB color components in the range 0.0 to 1.0.
+        color_range: `list`. A pair [min_value, max_value], which determines the levels of color attribute mapped
+            to 0 and 1 in the color map respectively.
         width: `float`. The thickness of the lines.
         model_matrix: `array_like`. 4x4 model transform matrix.
     """
 
     type = Unicode(default_value='Line', read_only=True).tag(sync=True)
     vertices = Array().tag(sync=True, **array_serialization)
+    colors = Array().tag(sync=True, **array_serialization)
     color = Int().tag(sync=True)
     width = Float().tag(sync=True)
+    attribute = Array().tag(sync=True, **array_serialization)
+    color_map = Array().tag(sync=True, **array_serialization)
+    color_range = ListOrArray(minlen=2, maxlen=2, empty_ok=True).tag(sync=True)
     model_matrix = Array().tag(sync=True, **array_serialization)
+
+    @validate('colors')
+    def _validate_colors(self, proposal):
+        required = self.vertices.size // 3  # (x, y, z) triplet per 1 color
+        actual = proposal['value'].size
+        if actual != 0 and required != actual:
+            raise TraitError('colors has wrong size: %s (%s required)' % (actual, required))
+        return proposal['value']
 
 
 class MarchingCubes(Drawable):

@@ -242,6 +242,36 @@ require(['K3D'], function (lib) {
             });
         });
 
+        it('should draw lines with colors', function (done) {
+            var self = this;
+
+            jsonLoader('http://localhost:9001/samples/lines_colors.json', function (json) {
+
+                self.K3D.getWorld().camera.position.z = 15;
+
+                self.K3D.addFrameUpdateListener('after', function () {
+                    TestHelpers.compareCanvasWithExpectedImage(self.K3D, 'lines_colors', RESAMBLEThreshold, done);
+                }, true);
+
+                self.K3D.load(json);
+            });
+        });
+
+        it('should draw lines with colormap', function (done) {
+            var self = this;
+
+            jsonLoader('http://localhost:9001/samples/lines_colormap.json', function (json) {
+
+                self.K3D.getWorld().camera.position.z = 15;
+
+                self.K3D.addFrameUpdateListener('after', function () {
+                    TestHelpers.compareCanvasWithExpectedImage(self.K3D, 'lines_colormap', RESAMBLEThreshold, done);
+                }, true);
+
+                self.K3D.load(json);
+            });
+        });
+
         it('should draw simple STL geometry', function (done) {
             var self = this;
 

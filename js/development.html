@@ -35,7 +35,7 @@
                 lib.ThreeJsProvider,
                 document.getElementById('canvasTarget'),
                 {
-                    cameraAutoFit: false,
+                    cameraAutoFit: true,
                     gridAutoFit: true,
                     grid: [
                         -1, -1, -1,
@@ -49,7 +49,7 @@
         if (K3DInstance) {
             K3DInstance.setClearColor(0xffffff, 1);
 
-            jsonLoader('test/samples/voxels.json', function (json) {
+            jsonLoader('test/samples/lines_colormap.json', function (json) {
                 K3DInstance.load(json);
             });
         }

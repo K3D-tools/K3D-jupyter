@@ -1,35 +1,6 @@
 'use strict';
 
-var lut = require('./../../../core/lib/helpers/lut');
-
-function handleColorMap(geometry, colorMap, colorRange, attributes, material) {
-    var canvas, texture, uvs, i;
-
-    canvas = lut(colorMap, 1024);
-
-    texture = new THREE.CanvasTexture(canvas, THREE.UVMapping, THREE.ClampToEdgeWrapping,
-        THREE.ClampToEdgeWrapping, THREE.NearestFilter, THREE.NearestFilter);
-    texture.needsUpdate = true;
-
-    material.setValues({
-        map: texture,
-        color: 0xffffff
-    });
-
-    uvs = new Float32Array(attributes.length);
-
-    for (i = 0; i < attributes.length; i++) {
-        if (attributes[i] < colorRange[0]) {
-            uvs[i] = 0.0;
-        } else if (attributes[i] > colorRange[1]) {
-            uvs[i] = 1.0;
-        } else {
-            uvs[i] = (attributes[i] - colorRange[0]) / (colorRange[1] - colorRange[0]);
-        }
-    }
-
-    geometry.addAttribute('uv', new THREE.BufferAttribute(uvs, 1));
-}
+var handleColorMap = require('./../helpers/Fn').handleColorMap;
 
 /**
  * Loader strategy to handle Mesh object

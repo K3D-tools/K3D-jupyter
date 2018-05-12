@@ -1,7 +1,6 @@
 'use strict';
-var Detector = require('./../../../../node_modules/three/examples/js/Detector');
-
-
+var Detector = require('./../../../../node_modules/three/examples/js/Detector'),
+    lut = require('./../../../core/lib/helpers/lut');
 
 function getSpaceDimensionsFromTargetElement(world) {
     return [world.targetDOMNode.offsetWidth, world.targetDOMNode.offsetHeight];
@@ -165,5 +164,28 @@ module.exports = {
         }
 
         return true;
+    },
+
+    handleColorMap: function (geometry, colorMap, colorRange, attributes, material) {
+        var canvas, texture, uvs, i;
+
+        canvas = lut(colorMap, 1024);
+
+        texture = new THREE.CanvasTexture(canvas, THREE.UVMapping, THREE.ClampToEdgeWrapping,
+            THREE.ClampToEdgeWrapping, THREE.NearestFilter, THREE.NearestFilter);
+        texture.needsUpdate = true;
+
+        material.setValues({
+            map: texture,
+            color: 0xffffff
+        });
+
+        uvs = new Float32Array(attributes.length);
+
+        for (i = 0; i < attributes.length; i++) {
+            uvs[i] = (attributes[i] - colorRange[0]) / (colorRange[1] - colorRange[0]);
+        }
+
+        geometry.addAttribute('uv', new THREE.BufferAttribute(uvs, 1));
     }
 };
