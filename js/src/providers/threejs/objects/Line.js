@@ -1,5 +1,9 @@
 'use strict';
 
+var colorsToFloat32Array = require('./../../../core/lib/helpers/buffer').colorsToFloat32Array,
+    Fn = require('./../helpers/Fn'),
+    getColorsArray = Fn.getColorsArray;
+
 /**
  * Loader strategy to handle Line object
  * @method Line
@@ -11,13 +15,22 @@ module.exports = function (config) {
 
     var geometry = new THREE.BufferGeometry(),
         material = new THREE.LineBasicMaterial({
-            color: config.color || 0,
+            vertexColors: THREE.VertexColors,
             linewidth: config.width || 1
         }),
+        verticesColors = (config.colors && config.colors.buffer) || null,
+        color = typeof(config.color) !== 'number' || config.color < 0 || config.color > 0xffffff ?
+            new THREE.Color(0xff00) : new THREE.Color(config.color),
+        colors,
         object = new THREE.Line(geometry, material),
         modelMatrix = new THREE.Matrix4(),
         position = config.vertices.buffer;
 
+    colors = ( verticesColors && verticesColors.length === position.length / 3 ?
+            colorsToFloat32Array(verticesColors) : getColorsArray(color, position.length / 3)
+    );
+
+    geometry.addAttribute('color', new THREE.BufferAttribute(colors, 3));
     geometry.addAttribute('position', new THREE.BufferAttribute(position, 3));
 
     geometry.computeBoundingSphere();

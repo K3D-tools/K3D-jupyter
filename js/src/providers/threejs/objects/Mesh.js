@@ -19,13 +19,7 @@ function handleColorMap(geometry, colorMap, colorRange, attributes, material) {
     uvs = new Float32Array(attributes.length);
 
     for (i = 0; i < attributes.length; i++) {
-        if (attributes[i] < colorRange[0]) {
-            uvs[i] = 0.0;
-        } else if (attributes[i] > colorRange[1]) {
-            uvs[i] = 1.0;
-        } else {
-            uvs[i] = (attributes[i] - colorRange[0]) / (colorRange[1] - colorRange[0]);
-        }
+        uvs[i] = (attributes[i] - colorRange[0]) / (colorRange[1] - colorRange[0]);
     }
 
     geometry.addAttribute('uv', new THREE.BufferAttribute(uvs, 1));

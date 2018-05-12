@@ -20,16 +20,20 @@ from .helpers import check_attribute_range
 _default_color = 0x0000FF  # blue
 
 
-def line(vertices, color=_default_color, width=1, **kwargs):
+def line(vertices, color=_default_color, colors=(), width=1, **kwargs):
     """Create a Line drawable for plotting segments and polylines.
 
     Arguments:
         vertices: `array_like`. Array with (x, y, z) coordinates of segment endpoints.
-        color: `int`. Packed RGB color of the lines (0xff0000 is red, 0xff is blue).
+        color: `int`. Packed RGB color of the lines (0xff0000 is red, 0xff is blue) when `colors` is empty.
+        colors: `array_like`. Array of int: packed RGB colors (0xff0000 is red, 0xff is blue).
         width: `float`. Thickness of the lines.
         kwargs: `dict`. Dictionary arguments to configure transform and model_matrix."""
     return process_transform_arguments(
-        Line(vertices=np.array(vertices, np.float32), color=color, width=width),
+        Line(vertices=np.array(vertices, np.float32),
+             color=color,
+             width=width,
+             colors=np.array(colors, np.uint32)),
         **kwargs
     )
 
@@ -110,7 +114,7 @@ def points(positions, colors=(), color=_default_color, point_size=1.0, shader='3
             `mesh`: high precision triangle mesh of a ball (high quality and GPU load).
         kwargs: `dict`. Dictionary arguments to configure transform and model_matrix."""
     return process_transform_arguments(
-        Points(positions=np.array(positions, np.float32), colors=np.array(colors, np.float32),
+        Points(positions=np.array(positions, np.float32), colors=np.array(colors, np.uint32),
                color=color, point_size=point_size, shader=shader),
         **kwargs
     )

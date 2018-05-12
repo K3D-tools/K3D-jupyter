@@ -2,12 +2,10 @@
 
 var widgets = require('@jupyter-widgets/controls'),
     _ = require('lodash'),
-    // pako = require('pako'),
     K3D = require('./core/Core'),
     serialize = require('./core/lib/helpers/serialize'),
     ThreeJsProvider = require('./providers/threejs/provider'),
     getScreenshot = require('./core/lib/screenshot').getScreenshot,
-    //buffer = require('./core/lib/helpers/buffer'),
     PlotModel,
     PlotView,
     ObjectModel,
