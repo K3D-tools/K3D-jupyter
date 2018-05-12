@@ -20,20 +20,35 @@ from .helpers import check_attribute_range
 _default_color = 0x0000FF  # blue
 
 
-def line(vertices, color=_default_color, colors=(), width=1, **kwargs):
+def line(vertices, color=_default_color, colors=(), attribute=(), color_map=(), color_range=(), width=1, **kwargs):
     """Create a Line drawable for plotting segments and polylines.
 
     Arguments:
         vertices: `array_like`. Array with (x, y, z) coordinates of segment endpoints.
         color: `int`. Packed RGB color of the lines (0xff0000 is red, 0xff is blue) when `colors` is empty.
-        colors: `array_like`. Array of int: packed RGB colors (0xff0000 is red, 0xff is blue).
+        colors: `array_like`. Array of int: packed RGB colors (0xff0000 is red, 0xff is blue) when attribute,
+            color_map and color_range are empty.
+        attribute: `array_like`. Array of float attribute for the color mapping, coresponding to each vertex.
+        color_map: `list`. A list of float quadruplets (attribute value, R, G, B), sorted by attribute value. The first
+            quadruplet should have value 0.0, the last 1.0; R, G, B are RGB color components in the range 0.0 to 1.0.
+        color_range: `list`. A pair [min_value, max_value], which determines the levels of color attribute mapped
+            to 0 and 1 in the color map respectively.
+
         width: `float`. Thickness of the lines.
         kwargs: `dict`. Dictionary arguments to configure transform and model_matrix."""
+
+    color_map = np.array(color_map, np.float32)
+    attribute = np.array(attribute, np.float32)
+    color_range = check_attribute_range(attribute, color_range)
+
     return process_transform_arguments(
         Line(vertices=np.array(vertices, np.float32),
              color=color,
              width=width,
-             colors=np.array(colors, np.uint32)),
+             colors=np.array(colors, np.uint32),
+             attribute=attribute,
+             color_map=color_map,
+             color_range=color_range),
         **kwargs
     )
 
