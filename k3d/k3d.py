@@ -20,7 +20,8 @@ from .helpers import check_attribute_range
 _default_color = 0x0000FF  # blue
 
 
-def line(vertices, color=_default_color, colors=(), attribute=(), color_map=(), color_range=(), width=1, **kwargs):
+def line(vertices, color=_default_color, colors=(), attribute=(), color_map=(), color_range=(), width=1,
+         shader='simple', radial_segments=8, **kwargs):
     """Create a Line drawable for plotting segments and polylines.
 
     Arguments:
@@ -33,7 +34,11 @@ def line(vertices, color=_default_color, colors=(), attribute=(), color_map=(), 
             quadruplet should have value 0.0, the last 1.0; R, G, B are RGB color components in the range 0.0 to 1.0.
         color_range: `list`. A pair [min_value, max_value], which determines the levels of color attribute mapped
             to 0 and 1 in the color map respectively.
-
+        shader: `str`. Display style (name of the shader used) of the lines.
+            Legal values are:
+            `simple`: simple lines,
+            `mesh`: high precision triangle mesh of segments (high quality and GPU load).
+        radial_segments: 'int': Number of segmented faces around the circumference of the tube
         width: `float`. Thickness of the lines.
         kwargs: `dict`. Dictionary arguments to configure transform and model_matrix."""
 
@@ -45,6 +50,8 @@ def line(vertices, color=_default_color, colors=(), attribute=(), color_map=(), 
         Line(vertices=np.array(vertices, np.float32),
              color=color,
              width=width,
+             shader=shader,
+             radial_segments=radial_segments,
              colors=np.array(colors, np.uint32),
              attribute=attribute,
              color_map=color_map,

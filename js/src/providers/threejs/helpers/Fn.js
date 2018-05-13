@@ -180,12 +180,14 @@ module.exports = {
             color: 0xffffff
         });
 
-        uvs = new Float32Array(attributes.length);
+        if (attributes) {
+            uvs = new Float32Array(attributes.length);
 
-        for (i = 0; i < attributes.length; i++) {
-            uvs[i] = (attributes[i] - colorRange[0]) / (colorRange[1] - colorRange[0]);
+            for (i = 0; i < attributes.length; i++) {
+                uvs[i] = (attributes[i] - colorRange[0]) / (colorRange[1] - colorRange[0]);
+            }
+
+            geometry.addAttribute('uv', new THREE.BufferAttribute(uvs, 1));
         }
-
-        geometry.addAttribute('uv', new THREE.BufferAttribute(uvs, 1));
     }
 };

@@ -109,6 +109,11 @@ class Line(Drawable):
         color_range: `list`. A pair [min_value, max_value], which determines the levels of color attribute mapped
             to 0 and 1 in the color map respectively.
         width: `float`. The thickness of the lines.
+        shader: `str`. Display style (name of the shader used) of the lines.
+            Legal values are:
+            `simple`: simple lines,
+            `mesh`: high precision triangle mesh of segments (high quality and GPU load).
+        radial_segments: 'int': Number of segmented faces around the circumference of the tube
         model_matrix: `array_like`. 4x4 model transform matrix.
     """
 
@@ -120,6 +125,9 @@ class Line(Drawable):
     attribute = Array().tag(sync=True, **array_serialization)
     color_map = Array().tag(sync=True, **array_serialization)
     color_range = ListOrArray(minlen=2, maxlen=2, empty_ok=True).tag(sync=True)
+    shader = Unicode().tag(sync=True)
+    radial_segments = Int().tag(sync=True)
+
     model_matrix = Array().tag(sync=True, **array_serialization)
 
     @validate('colors')

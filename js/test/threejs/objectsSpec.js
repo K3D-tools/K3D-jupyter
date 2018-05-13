@@ -257,6 +257,37 @@ require(['K3D'], function (lib) {
             });
         });
 
+        it('should draw lines with colors and mesh', function (done) {
+            var self = this;
+
+            jsonLoader('http://localhost:9001/samples/lines_colors_mesh.json', function (json) {
+
+                self.K3D.getWorld().camera.position.z = 15;
+
+                self.K3D.addFrameUpdateListener('after', function () {
+                    TestHelpers.compareCanvasWithExpectedImage(self.K3D, 'lines_colors_mesh', RESAMBLEThreshold, done);
+                }, true);
+
+                self.K3D.load(json);
+            });
+        });
+
+        it('should draw lines with colors and mesh with proper joints', function (done) {
+            var self = this;
+
+            jsonLoader('http://localhost:9001/samples/lines_colors_mesh_not_smooth.json', function (json) {
+
+                self.K3D.getWorld().camera.position.z = 15;
+
+                self.K3D.addFrameUpdateListener('after', function () {
+                    TestHelpers.compareCanvasWithExpectedImage(self.K3D, 'lines_colors_mesh_not_smooth',
+                        RESAMBLEThreshold, done);
+                }, true);
+
+                self.K3D.load(json);
+            });
+        });
+
         it('should draw lines with colormap', function (done) {
             var self = this;
 
@@ -266,6 +297,23 @@ require(['K3D'], function (lib) {
 
                 self.K3D.addFrameUpdateListener('after', function () {
                     TestHelpers.compareCanvasWithExpectedImage(self.K3D, 'lines_colormap', RESAMBLEThreshold, done);
+                }, true);
+
+                self.K3D.load(json);
+            });
+        });
+
+
+        it('should draw lines with colormap with mesh', function (done) {
+            var self = this;
+
+            jsonLoader('http://localhost:9001/samples/lines_colormap_mesh.json', function (json) {
+
+                self.K3D.getWorld().camera.position.z = 15;
+
+                self.K3D.addFrameUpdateListener('after', function () {
+                    TestHelpers.compareCanvasWithExpectedImage(
+                        self.K3D, 'lines_colormap_mesh', RESAMBLEThreshold, done);
                 }, true);
 
                 self.K3D.load(json);

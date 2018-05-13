@@ -117,8 +117,9 @@ function generateGreedyVoxelMesh(voxels, colorMap, chunkSize, voxelSize, offsets
 
             x[d]++;
 
-            if (!maskFilled)
+            if (!maskFilled) {
                 continue;
+            }
 
             // outlines
             if (calculate_outlines) {
