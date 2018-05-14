@@ -79,8 +79,20 @@ PlotModel = widgets.DOMWidgetModel.extend({
 // Custom View. Renders the widget model.
 PlotView = widgets.DOMWidgetView.extend({
     render: function () {
-        var container = $('<div />').css('position', 'relative');
-        this.container = container.css({'height': this.model.get('height')}).appendTo(this.$el).get(0);
+        var containerEnvelope = $('<div />').css({
+            'height': this.model.get('height'),
+            'position': 'relative'
+        });
+
+        containerEnvelope.appendTo(this.$el);
+
+        var container = $('<div />').css({
+            'width': '100%',
+            'height': '100%',
+            'position': 'relative'
+        }).appendTo(containerEnvelope);
+
+        this.container = container.get(0);
         this.on('displayed', this._init, this);
     },
 
@@ -91,7 +103,6 @@ PlotView = widgets.DOMWidgetView.extend({
 
     _init: function () {
         var self = this;
-
 
         plotsList.push(this);
 

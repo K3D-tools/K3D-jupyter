@@ -4,12 +4,12 @@
 var viewModes = require('./lib/viewMode').viewModes,
     loader = require('./lib/Loader'),
     _ = require('lodash'),
-    error = require('./lib/Error').error,
-    resetCameraButton = require('./lib/resetCamera'),
     screenshot = require('./lib/screenshot'),
-    detachWindowButton = require('./lib/detachWindow'),
+    dat = require('dat.gui'),
+    resetCameraGUI = require('./lib/resetCamera'),
+    detachWindowGUI = require('./lib/detachWindow'),
     fullscreen = require('./lib/fullscreen'),
-    viewModeButton = require('./lib/viewMode').viewModeButton;
+    viewModeGUI = require('./lib/viewMode').viewModeGUI;
 
 /**
  * @constructor Core
@@ -34,7 +34,6 @@ function K3D(provider, targetDOMNode, parameters) {
         world = {
             ObjectsListJson: {},
             targetDOMNode: targetDOMNode,
-            toolbarDOMNode: null,
             overlayDOMNode: null
         },
         listeners = {},
@@ -49,9 +48,12 @@ function K3D(provider, targetDOMNode, parameters) {
             });
 
             return true;
-        };
+        },
+        controls,
+        objects;
 
     require('style-loader?{attrs:{id: "k3d-katex"}}!css-loader!./../../node_modules/katex/dist/katex.min.css');
+    require('style-loader?{attrs:{id: "k3d-dat.gui"}}!css-loader!./../../node_modules/dat.gui/build/dat.gui.css');
     require('style-loader?{attrs:{id: "k3d-style"}}!css-loader!./../k3d.css');
 
     if (!(this instanceof (K3D))) {
@@ -80,12 +82,6 @@ function K3D(provider, targetDOMNode, parameters) {
         dispatch(self.events.RESIZED);
     };
 
-    world.toolbarDOMNode = currentWindow.document.createElement('div');
-    world.toolbarDOMNode.style.cssText = [
-        'position: absolute',
-        'right: 0'
-    ].join(';');
-
     world.overlayDOMNode = currentWindow.document.createElement('div');
     world.overlayDOMNode.style.cssText = [
         'position: absolute',
@@ -95,7 +91,6 @@ function K3D(provider, targetDOMNode, parameters) {
     ].join(';');
 
     world.targetDOMNode.appendChild(world.overlayDOMNode);
-    world.targetDOMNode.appendChild(world.toolbarDOMNode);
 
     this.parameters = _.assign({
         viewMode: viewModes.view,
@@ -351,18 +346,8 @@ function K3D(provider, targetDOMNode, parameters) {
      * @param {Object} json
      */
     this.reload = function (json) {
-        var object = self.Provider.Helpers.getObjectById(world, json.id);
-
-        if (!object) {
-            error('Update Object Error',
-                'K3D update object failed, please consult browser error console!', false);
-            return;
-        }
-
-        object.visible = json.visible;
-
-        if (object.visible === false) {
-            self.render();
+        if (json.visible === false) {
+            self.removeObject(json.id);
             return;
         }
 
@@ -432,18 +417,33 @@ function K3D(provider, targetDOMNode, parameters) {
     currentWindow.addEventListener('resize', this.resizeHelper, false);
 
     // load toolbars
-    screenshot.screenshotButton(world.toolbarDOMNode, this);
-    resetCameraButton(world.toolbarDOMNode, this);
+    this.gui = new dat.GUI();
+    var guiContainer = currentWindow.document.createElement('div');
+    guiContainer.className = 'dg';
+    guiContainer.style.cssText = [
+        'position: absolute',
+        'top: 0',
+        'right: 0',
+        'color: black'
+    ].join(';');
+    world.targetDOMNode.appendChild(guiContainer);
+    guiContainer.appendChild(this.gui.domElement);
+
+    controls = this.gui.addFolder('Controls');
+    objects = this.gui.addFolder('Objects');
+
+    screenshot.screenshotGUI(controls, this);
+    resetCameraGUI(controls, this);
 
     if (currentWindow === window) {
-        detachWindowButton(world.toolbarDOMNode, this);
+        detachWindowGUI(controls, this);
 
         if (fullscreen.isAvailable()) {
-            fullscreen.initialize(world.targetDOMNode, world.toolbarDOMNode, currentWindow);
+            fullscreen.initialize(world.targetDOMNode, controls, currentWindow);
         }
     }
 
-    viewModeButton(world.toolbarDOMNode, this);
+    viewModeGUI(controls, this);
 
     world.setCameraToFitScene();
     self.rebuildSceneData(true);
