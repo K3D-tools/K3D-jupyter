@@ -359,6 +359,13 @@ function K3D(provider, targetDOMNode, parameters) {
             return;
         }
 
+        object.visible = json.visible;
+
+        if (object.visible === false) {
+            self.render();
+            return;
+        }
+
         loader(self, {objects: [json]}).then(function (objects) {
             objects.forEach(function (object) {
                 if (world.ObjectsListJson[object.id]) {

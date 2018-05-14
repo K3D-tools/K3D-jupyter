@@ -16,7 +16,6 @@ function loader(K3D, json) {
 
     try {
         json.objects.forEach(function (object) {
-
             validateAndPrepareObject(K3D, object);
 
             loader = object && K3D.Provider.Objects[object.type];

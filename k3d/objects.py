@@ -30,6 +30,7 @@ class Drawable(widgets.CoreWidget):
     _model_module_version = Unicode('~' + __version__).tag(sync=True)
 
     id = Integer().tag(sync=True)
+    visible = Bool(True).tag(sync=True)
 
     def __init__(self, **kwargs):
         self.id = id(self)

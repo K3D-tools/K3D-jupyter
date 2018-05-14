@@ -34,14 +34,11 @@ module.exports = function (config) {
             polygonise = marchingCubesPolygonise;
 
         yieldingLoop(length - 1, 5, function (z) {
-            // console.log(z);
-            // for (z = 0; z < length - 1; z++) {
             for (y = 0; y < height - 1; y++) {
                 for (x = 0; x < width - 1; x++) {
                     polygonise(positions, scalarField, width, height, length, level, x, y, z);
                 }
             }
-            // }
         }, function () {
 
             positions = new Float32Array(positions);
