@@ -18,7 +18,7 @@ module.exports = function (config, K3D) {
         vectors = config.vectors.buffer,
         origins = config.origins.buffer,
         colors = (config.colors && config.colors.buffer) || [],
-        useHead = config.use_head || true,
+        useHead = !(config.use_head === false),
         headSize = config.head_size || 1.0,
         object = new THREE.Group(),
         origin,
