@@ -79,19 +79,31 @@ PlotModel = widgets.DOMWidgetModel.extend({
 // Custom View. Renders the widget model.
 PlotView = widgets.DOMWidgetView.extend({
     render: function () {
-        var container = $('<div />').css('position', 'relative');
-        this.container = container.css({'height': this.model.get('height')}).appendTo(this.$el).get(0);
+        var containerEnvelope = $('<div />').css({
+            'height': this.model.get('height'),
+            'position': 'relative'
+        });
+
+        containerEnvelope.appendTo(this.$el);
+
+        var container = $('<div />').css({
+            'width': '100%',
+            'height': '100%',
+            'position': 'relative'
+        }).appendTo(containerEnvelope);
+
+        this.container = container.get(0);
         this.on('displayed', this._init, this);
     },
 
     remove: function () {
         _.pull(plotsList, this);
         this.K3DInstance.off(this.K3DInstance.events.CAMERA_CHANGE, this.cameraChangeId);
+        this.K3DInstance.off(this.K3DInstance.events.OBJECT_CHANGE, this.GUIObjectChanges);
     },
 
     _init: function () {
         var self = this;
-
 
         plotsList.push(this);
 
@@ -144,6 +156,10 @@ PlotView = widgets.DOMWidgetView.extend({
         this.cameraChangeId = this.K3DInstance.on(this.K3DInstance.events.CAMERA_CHANGE, function (control) {
             self.model.set('camera', control);
             self.model.save_changes();
+        });
+
+        this.GUIObjectChanges = this.K3DInstance.on(this.K3DInstance.events.OBJECT_CHANGE, function (change) {
+            objectsList[change.id].save(change.key, change.value);
         });
     },
 

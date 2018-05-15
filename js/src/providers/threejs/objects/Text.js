@@ -11,9 +11,12 @@ var katex = require('katex');
  * @return {Object} 3D object ready to render
  */
 module.exports = function (config, K3D) {
+    config.visible = typeof(config.visible) !== 'undefined' ? config.visible : true;
+    config.color = typeof(config.color) !== 'undefined' ? config.color : 0;
+    config.text = typeof(config.text) !== 'undefined' ? config.text :'\\KaTeX';
 
-    var text = config.text || '\\KaTeX',
-        color = config.color || 0,
+    var text = config.text,
+        color = config.color,
         referencePoint = config.reference_point || 'lb',
         size = config.size || 1,
         position = config.position,

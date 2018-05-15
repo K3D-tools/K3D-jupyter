@@ -4,12 +4,13 @@
 var viewModes = require('./lib/viewMode').viewModes,
     loader = require('./lib/Loader'),
     _ = require('lodash'),
-    error = require('./lib/Error').error,
-    resetCameraButton = require('./lib/resetCamera'),
     screenshot = require('./lib/screenshot'),
-    detachWindowButton = require('./lib/detachWindow'),
+    dat = require('dat.gui'),
+    resetCameraGUI = require('./lib/resetCamera'),
+    detachWindowGUI = require('./lib/detachWindow'),
     fullscreen = require('./lib/fullscreen'),
-    viewModeButton = require('./lib/viewMode').viewModeButton;
+    viewModeGUI = require('./lib/viewMode').viewModeGUI,
+    objectGUIProvider = require('./lib/objectsGUIprovider');
 
 /**
  * @constructor Core
@@ -34,7 +35,6 @@ function K3D(provider, targetDOMNode, parameters) {
         world = {
             ObjectsListJson: {},
             targetDOMNode: targetDOMNode,
-            toolbarDOMNode: null,
             overlayDOMNode: null
         },
         listeners = {},
@@ -49,9 +49,14 @@ function K3D(provider, targetDOMNode, parameters) {
             });
 
             return true;
+        },
+        GUI = {
+            controls: null,
+            objects: null
         };
 
     require('style-loader?{attrs:{id: "k3d-katex"}}!css-loader!./../../node_modules/katex/dist/katex.min.css');
+    require('style-loader?{attrs:{id: "k3d-dat.gui"}}!css-loader!./../../node_modules/dat.gui/build/dat.gui.css');
     require('style-loader?{attrs:{id: "k3d-style"}}!css-loader!./../k3d.css');
 
     if (!(this instanceof (K3D))) {
@@ -80,12 +85,6 @@ function K3D(provider, targetDOMNode, parameters) {
         dispatch(self.events.RESIZED);
     };
 
-    world.toolbarDOMNode = currentWindow.document.createElement('div');
-    world.toolbarDOMNode.style.cssText = [
-        'position: absolute',
-        'right: 0'
-    ].join(';');
-
     world.overlayDOMNode = currentWindow.document.createElement('div');
     world.overlayDOMNode.style.cssText = [
         'position: absolute',
@@ -95,7 +94,6 @@ function K3D(provider, targetDOMNode, parameters) {
     ].join(';');
 
     world.targetDOMNode.appendChild(world.overlayDOMNode);
-    world.targetDOMNode.appendChild(world.toolbarDOMNode);
 
     this.parameters = _.assign({
         viewMode: viewModes.view,
@@ -338,6 +336,7 @@ function K3D(provider, targetDOMNode, parameters) {
     this.load = function (json) {
         loader(self, json).then(function (objects) {
             objects.forEach(function (object) {
+                objectGUIProvider(self, object, GUI.objects);
                 world.ObjectsListJson[object.id] = object;
             });
 
@@ -351,11 +350,13 @@ function K3D(provider, targetDOMNode, parameters) {
      * @param {Object} json
      */
     this.reload = function (json) {
-        var object = self.Provider.Helpers.getObjectById(world, json.id);
+        if (json.visible === false) {
+            try {
+                self.removeObject(json.id);
+            } catch (e) {
 
-        if (!object) {
-            error('Update Object Error',
-                'K3D update object failed, please consult browser error console!', false);
+            }
+
             return;
         }
 
@@ -365,6 +366,7 @@ function K3D(provider, targetDOMNode, parameters) {
                     self.removeObject(object.id);
                 }
 
+                objectGUIProvider(self, object, objects);
                 world.ObjectsListJson[object.id] = object;
             });
 
@@ -425,18 +427,31 @@ function K3D(provider, targetDOMNode, parameters) {
     currentWindow.addEventListener('resize', this.resizeHelper, false);
 
     // load toolbars
-    screenshot.screenshotButton(world.toolbarDOMNode, this);
-    resetCameraButton(world.toolbarDOMNode, this);
+    this.gui = new dat.GUI();
+    var guiContainer = currentWindow.document.createElement('div');
+    guiContainer.className = 'dg ac';
+    guiContainer.style.cssText = [
+        'position: absolute',
+        'color: black'
+    ].join(';');
+    world.targetDOMNode.appendChild(guiContainer);
+    guiContainer.appendChild(this.gui.domElement);
+
+    GUI.controls = this.gui.addFolder('Controls');
+    GUI.objects = this.gui.addFolder('Objects');
+
+    screenshot.screenshotGUI(GUI.controls, this);
+    resetCameraGUI(GUI.controls, this);
 
     if (currentWindow === window) {
-        detachWindowButton(world.toolbarDOMNode, this);
+        detachWindowGUI(GUI.controls, this);
 
         if (fullscreen.isAvailable()) {
-            fullscreen.initialize(world.targetDOMNode, world.toolbarDOMNode, currentWindow);
+            fullscreen.initialize(world.targetDOMNode, GUI.controls, currentWindow);
         }
     }
 
-    viewModeButton(world.toolbarDOMNode, this);
+    viewModeGUI(GUI.controls, this);
 
     world.setCameraToFitScene();
     self.rebuildSceneData(true);
@@ -469,7 +484,8 @@ K3D.prototype.events = {
     RESIZED: 'resized',
     CAMERA_CHANGE: 'cameraChange',
     OBJECT_LOADED: 'objectLoaded',
-    OBJECT_REMOVED: 'objectRemoved'
+    OBJECT_REMOVED: 'objectRemoved',
+    OBJECT_CHANGE: 'objectChange'
 };
 
 /**

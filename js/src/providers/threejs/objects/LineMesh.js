@@ -13,6 +13,8 @@ var Fn = require('./../helpers/Fn'),
  * @return {Object} 3D object ready to render
  */
 module.exports = function (config) {
+    config.radial_segments = typeof(config.radial_segments) !== 'undefined' ? config.radial_segments : 8;
+    config.width = typeof(config.width) !== 'undefined' ? config.width : 0.1;
 
     var geometry,
         material = new THREE.MeshPhongMaterial({
@@ -23,11 +25,10 @@ module.exports = function (config) {
             shading: THREE.SmoothShading,
             wireframe: false
         }),
-        radialSegments = config.radial_segments || 8,
-        width = config.width || 0.1,
+        radialSegments = config.radial_segments,
+        width = config.width,
         verticesColors = (config.colors && config.colors.buffer) || null,
-        color = typeof(config.color) !== 'number' || config.color < 0 || config.color > 0xffffff ?
-            new THREE.Color(0xff00) : new THREE.Color(config.color),
+        color = new THREE.Color(config.color),
         colorRange = config.color_range,
         colorMap = (config.color_map && config.color_map.buffer) || null,
         attribute = (config.attribute && config.attribute.buffer) || null,

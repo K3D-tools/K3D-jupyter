@@ -11,9 +11,11 @@ var LineSimple = require('./LineSimple'),
  * @return {Object} 3D object ready to render
  */
 module.exports = function (config) {
-    var shader = config.shader || 'simple';
+    config.visible = typeof(config.visible) !== 'undefined' ? config.visible : true;
+    config.color = typeof(config.color) !== 'undefined' ? config.color : 0xff00;
+    config.shader = typeof(config.shader) !== 'undefined' ? config.shader : 'simple';
 
-    if (shader === 'mesh') {
+    if (config.shader === 'mesh') {
         return new LineMesh(config);
     } else {
         return new LineSimple(config);

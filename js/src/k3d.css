@@ -1,3 +1,12 @@
 .katex-display {
     margin: 0.25em 0;
 }
+
+.dg input, .dg select {
+    color: black;
+    line-height: normal;
+}
+
+.dg.a {
+    margin-right: 0;
+}

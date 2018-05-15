@@ -30,6 +30,7 @@ class Drawable(widgets.CoreWidget):
     _model_module_version = Unicode('~' + __version__).tag(sync=True)
 
     id = Integer().tag(sync=True)
+    visible = Bool(True).tag(sync=True)
 
     def __init__(self, **kwargs):
         self.id = id(self)
@@ -258,12 +259,14 @@ class Surface(Drawable):
     Attributes:
         heights: `array_like`. 2D scalar field of Z values.
         color: `int`. Packed RGB color of the resulting mesh (0xff0000 is red, 0xff is blue).
+        wireframe: `bool`. Whether mesh should display as wireframe.
         model_matrix: `array_like`. 4x4 model transform matrix.
     """
 
     type = Unicode(default_value='Surface', read_only=True).tag(sync=True)
     heights = Array().tag(sync=True, **array_serialization)
     color = Int().tag(sync=True)
+    wireframe = Bool().tag(sync=True)
     model_matrix = Array().tag(sync=True, **array_serialization)
 
 

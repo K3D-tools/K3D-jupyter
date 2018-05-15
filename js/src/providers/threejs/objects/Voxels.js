@@ -16,6 +16,11 @@ module.exports = function (config, K3D) {
     return new Promise(function (resolve) {
         const chunkSize = 32;
 
+        config.visible = typeof(config.visible) !== 'undefined' ? config.visible : true;
+        config.wireframe = typeof(config.wireframe) !== 'undefined' ? config.wireframe : false;
+        config.outlines = typeof(config.outlines) !== 'undefined' ? config.outlines : true;
+        config.outlines_color = typeof(config.outlines_color) !== 'undefined' ? config.outlines_color : 0;
+
         var modelMatrix = new THREE.Matrix4().fromArray(config.model_matrix.buffer),
             width = config.voxels.shape[2],
             height = config.voxels.shape[1],
@@ -126,7 +131,7 @@ function getVoxelChunkObject(config, chunkStructure) {
             vertexColors: THREE.VertexColors,
             shading: THREE.FlatShading,
             side: THREE.DoubleSide,
-            wireframe: config.wireframe || false
+            wireframe: config.wireframe
         })
     ));
 
@@ -141,7 +146,7 @@ function getVoxelChunkObject(config, chunkStructure) {
         voxelsChunkObject.add(new THREE.LineSegments(
             outlineGeometry,
             new THREE.LineBasicMaterial({
-                color: config.outlines_color || 0,
+                color: config.outlines_color,
                 transparent: true,
                 opacity: 0.5
             })

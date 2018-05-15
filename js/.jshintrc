@@ -19,8 +19,8 @@
   "curly": true,
   "noempty": true,
   "maxlen": 200,
-  "maxcomplexity": 15,
-  "maxstatements": 32,
+  "maxcomplexity": 20,
+  "maxstatements": 40,
   "maxdepth": 4,
   "globals": {
     "$": true,

@@ -17,8 +17,7 @@ module.exports = function (config) {
     var geometry = new THREE.BufferGeometry(),
         material = new THREE.MeshBasicMaterial(),
         verticesColors = (config.colors && config.colors.buffer) || null,
-        color = typeof(config.color) !== 'number' || config.color < 0 || config.color > 0xffffff ?
-            new THREE.Color(0xff00) : new THREE.Color(config.color),
+        color = new THREE.Color(config.color),
         colors,
         colorRange = config.color_range,
         colorMap = (config.color_map && config.color_map.buffer) || null,

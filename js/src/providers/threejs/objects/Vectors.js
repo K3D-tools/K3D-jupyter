@@ -13,13 +13,20 @@ var buffer = require('./../../../core/lib/helpers/buffer'),
  * @param {K3D}
  */
 module.exports = function (config, K3D) {
-    var originColor = new THREE.Color(config.origin_color || 255),
-        headColor = new THREE.Color(config.head_color || 255),
+    config.visible = typeof(config.visible) !== 'undefined' ? config.visible : true;
+    config.origin_color =typeof(config.origin_color) !== 'undefined' ? config.origin_color : 255;
+    config.head_color = typeof(config.head_color) !== 'undefined' ? config.head_color : 255;
+    config.use_head = typeof(config.use_head) !== 'undefined' ? config.use_head : true;
+    config.head_size = config.head_size || 1.0;
+    config.line_width = config.line_width || 1.0;
+
+    var originColor = new THREE.Color(config.origin_color),
+        headColor = new THREE.Color(config.head_color),
         vectors = config.vectors.buffer,
         origins = config.origins.buffer,
         colors = (config.colors && config.colors.buffer) || [],
-        useHead = config.use_head || true,
-        headSize = config.head_size || 1.0,
+        useHead = config.use_head,
+        headSize = config.head_size,
         object = new THREE.Group(),
         origin,
         destination,
@@ -80,7 +87,7 @@ module.exports = function (config, K3D) {
 
     object.add(new THREE.LineSegments(linesGeometry, new THREE.LineBasicMaterial({
         vertexColors: THREE.VertexColors,
-        linewidth: config.line_width || 1.0
+        linewidth: config.line_width
     })));
 
     object.updateMatrixWorld();
