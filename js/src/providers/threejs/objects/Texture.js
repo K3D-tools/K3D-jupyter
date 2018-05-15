@@ -10,6 +10,8 @@ var buffer = require('./../../../core/lib/helpers/buffer');
  * @return {Object} 3D object ready to render
  */
 module.exports = function (config) {
+    config.visible = typeof(config.visible) !== 'undefined' ? config.visible : true;
+
     return new Promise(function (resolve) {
         var geometry = new THREE.PlaneBufferGeometry(1, 1),
             modelMatrix = new THREE.Matrix4(),

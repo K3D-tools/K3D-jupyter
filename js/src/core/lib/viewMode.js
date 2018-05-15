@@ -18,7 +18,6 @@ function viewModeGUI(gui, K3D) {
         Change: viewModes.change
     }).name('Mode').listen().onChange(
         function (mode) {
-            console.log(mode);
             K3D.setViewMode(mode);
         });
 

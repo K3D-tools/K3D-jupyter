@@ -8,18 +8,23 @@
  * @return {Object} 3D object ready to render
  */
 module.exports = function (config) {
+    config.visible = typeof(config.visible) !== 'undefined' ? config.visible : true;
+    config.color = typeof(config.color) !== 'undefined' ? config.color : 255;
+    config.wireframe = typeof(config.wireframe) !== 'undefined' ? config.wireframe : false;
 
     var heights = config.heights.buffer,
         width = config.heights.shape[1],
         height = config.heights.shape[0],
         modelMatrix = new THREE.Matrix4(),
-        material = new THREE.MeshPhongMaterial({
+        MaterialConstructor = config.wireframe ? THREE.MeshBasicMaterial : THREE.MeshPhongMaterial,
+        material = new MaterialConstructor({
             color: config.color,
             emissive: 0,
             shininess: 25,
             specular: 0x111111,
             side: THREE.DoubleSide,
-            shading: THREE.FlatShading
+            shading: THREE.FlatShading,
+            wireframe: config.wireframe
         }),
         geometry = new THREE.BufferGeometry(),
         vertices = new Float32Array((width - 1) * (height - 1) * 3 * 3 * 2),

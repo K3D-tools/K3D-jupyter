@@ -10,6 +10,9 @@ var handleColorMap = require('./../helpers/Fn').handleColorMap;
  * @return {Object} 3D object ready to render
  */
 module.exports = function (config) {
+    config.visible = typeof(config.visible) !== 'undefined' ? config.visible : true;
+    config.color = typeof(config.color) !== 'undefined' ? config.color : 255;
+    config.wireframe = typeof(config.wireframe) !== 'undefined' ? config.wireframe : false;
 
     var modelMatrix = new THREE.Matrix4(),
         MaterialConstructor = config.wireframe ? THREE.MeshBasicMaterial : THREE.MeshPhongMaterial,
@@ -20,7 +23,7 @@ module.exports = function (config) {
             specular: 0x111111,
             side: THREE.DoubleSide,
             shading: THREE.FlatShading,
-            wireframe: config.wireframe || false
+            wireframe: config.wireframe
         }),
         colorRange = config.color_range,
         colorMap = (config.color_map && config.color_map.buffer) || null,

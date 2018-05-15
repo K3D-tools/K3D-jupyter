@@ -163,7 +163,7 @@ def stl(stl, color=_default_color, wireframe=False, **kwargs):
     )
 
 
-def surface(heights, color=_default_color, **kwargs):
+def surface(heights, color=_default_color, wireframe=False, **kwargs):
     """Create a Surface drawable.
 
     Plot a 2d function: z = f(x, y).
@@ -178,9 +178,10 @@ def surface(heights, color=_default_color, **kwargs):
     Arguments:
         heights: `array_like`. A 2d scalar function values grid.
         color: `int`. Packed RGB color of the surface (0xff0000 is red, 0xff is blue).
+        wireframe: `bool`. Whether mesh should display as wireframe.
         kwargs: `dict`. Dictionary arguments to configure transform and model_matrix."""
     return process_transform_arguments(
-        Surface(heights=np.array(heights, np.float32), color=color),
+        Surface(heights=np.array(heights, np.float32), color=color, wireframe=wireframe),
         **kwargs
     )
 

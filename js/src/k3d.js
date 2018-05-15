@@ -99,6 +99,7 @@ PlotView = widgets.DOMWidgetView.extend({
     remove: function () {
         _.pull(plotsList, this);
         this.K3DInstance.off(this.K3DInstance.events.CAMERA_CHANGE, this.cameraChangeId);
+        this.K3DInstance.off(this.K3DInstance.events.OBJECT_CHANGE, this.GUIObjectChanges);
     },
 
     _init: function () {
@@ -155,6 +156,10 @@ PlotView = widgets.DOMWidgetView.extend({
         this.cameraChangeId = this.K3DInstance.on(this.K3DInstance.events.CAMERA_CHANGE, function (control) {
             self.model.set('camera', control);
             self.model.save_changes();
+        });
+
+        this.GUIObjectChanges = this.K3DInstance.on(this.K3DInstance.events.OBJECT_CHANGE, function (change) {
+            objectsList[change.id].save(change.key, change.value);
         });
     },
 

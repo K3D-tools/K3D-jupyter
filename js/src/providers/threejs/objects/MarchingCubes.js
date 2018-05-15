@@ -10,6 +10,10 @@ var marchingCubesPolygonise = require('./../../../core/lib/helpers/marchingCubes
  * @return {Object} 3D object ready to render
  */
 module.exports = function (config) {
+    config.visible = typeof(config.visible) !== 'undefined' ? config.visible : true;
+    config.color = typeof(config.color) !== 'undefined' ? config.color : 255;
+    config.wireframe = typeof(config.wireframe) !== 'undefined' ? config.wireframe : false;
+
     return new Promise(function (resolve) {
         var scalarField = config.scalar_field.buffer,
             width = config.scalar_field.shape[2],
@@ -25,7 +29,7 @@ module.exports = function (config) {
                 specular: 0x111111,
                 side: THREE.DoubleSide,
                 shading: THREE.FlatShading,
-                wireframe: config.wireframe || false
+                wireframe: config.wireframe
             }),
             geometry = new THREE.BufferGeometry(),
             positions = [],

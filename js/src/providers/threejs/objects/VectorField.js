@@ -11,33 +11,34 @@ var buffer = require('./../../../core/lib/helpers/buffer'),
  * @param {Object} config all configurations params from JSON
  */
 module.exports = function (config) {
+    config.visible = typeof(config.visible) !== 'undefined' ? config.visible : true;
+    config.origin_color = typeof(config.origin_color) !== 'undefined' ? config.origin_color : 255;
+    config.head_color = typeof(config.head_color) !== 'undefined' ? config.head_color : 255;
+    config.use_head = typeof(config.use_head) !== 'undefined' ? config.use_head : true;
+    config.head_size = config.head_size || 1.0;
+    config.scale = config.scale || 1.0;
+
     var modelMatrix = new THREE.Matrix4().fromArray(config.model_matrix.buffer),
-        originColor = new THREE.Color(config.origin_color || 255),
-        headColor = new THREE.Color(config.head_color || 255),
+        originColor = new THREE.Color(config.origin_color),
+        headColor = new THREE.Color(config.head_color),
         width = config.vectors.shape[2],
         height = config.vectors.shape[1],
         length = config.vectors.shape[0],
         vectors = config.vectors.buffer,
         colors = (config.colors && config.colors.buffer) || null,
-        useHead = !(config.use_head === false),
-        headSize = config.head_size || 1.0,
-        scale = config.scale || 1.0,
+        useHead = config.use_head,
+        headSize = config.head_size,
+        scale = config.scale,
         object = new THREE.Group(),
-        x,
-        y,
-        z,
-        i,
-        scalar,
-        origin,
-        destination,
+        x, y, z, i,
+        scalar, origin, destination,
         heads = null,
         singleConeGeometry,
         linesGeometry = new THREE.BufferGeometry(),
         lineVertices = [],
         colorsToFloat32Array = buffer.colorsToFloat32Array;
 
-    if (config.vectors.shape.length === 3)
-    {
+    if (config.vectors.shape.length === 3) {
         // 2d vectors fields
         width = height;
         height = length;

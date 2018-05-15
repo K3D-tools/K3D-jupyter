@@ -13,11 +13,10 @@ var buffer = require('./../../../core/lib/helpers/buffer'),
  */
 module.exports = function (config) {
     var modelMatrix = new THREE.Matrix4(),
-        color = typeof(config.color) !== 'number' || config.color < 0 || config.color > 0xffffff ?
-            new THREE.Color(0xff00) : new THREE.Color(config.color),
+        color = new THREE.Color(config.color),
         pointPositions = config.positions.buffer,
         pointColors = (config.colors && config.colors.buffer) || null,
-        shader = config.shader || '3dSpecular',
+        shader = config.shader,
         colors,
         object,
         material,

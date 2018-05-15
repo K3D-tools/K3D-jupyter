@@ -68,7 +68,7 @@ class Plot(widgets.DOMWidget):
         self.object_ids = []
         self.objects = []
 
-        self.output = widgets.Output()
+        self.outputs = []
 
         self._screenshot_handler = None
         self.observe(self._screenshot_changed, names=['screenshot'])
@@ -94,13 +94,20 @@ class Plot(widgets.DOMWidget):
         return self
 
     def display(self, **kwargs):
-        with self.output:
+        output = widgets.Output()
+
+        with output:
             display(self, **kwargs)
 
-        display(self.output)
+        self.outputs.append(output)
+
+        display(output)
 
     def close(self):
-        self.output.clear_output()
+        for output in self.outputs:
+            output.clear_output()
+
+        self.outputs = []
 
     def fetch_screenshot(self, handler=None):
         self._screenshot_handler = handler

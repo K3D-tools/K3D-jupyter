@@ -4,6 +4,7 @@
 
 .dg input, .dg select {
     color: black;
+    line-height: normal;
 }
 
 .dg.a {
