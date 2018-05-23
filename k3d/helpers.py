@@ -4,6 +4,7 @@ Utilities module.
 
 import os
 import numpy as np
+import itertools
 
 
 # pylint: disable=unused-argument
@@ -57,10 +58,23 @@ def download(url):
     return basename
 
 
-def check_attribute_range(attribute, color_range):
+def minmax(iterable):
+    """Return [min(iterable), max(iterable)].
+
+    This should be a built in function in Python, and has even been proposed on Python-ideas newsgroup.
+    This is not to be confused with the algorithm for finding winning strategies in 2-player games."""
+    return [np.min(iterable), np.max(iterable)]
+
+
+def check_attribute_range(attribute, color_range=()):
+    """Provide color range versus provided attribute, compute color range if necessary.
+
+    If the attribute is empty or color_range has 2 elements, returns color_range unchanged.
+    Computes color range as [min(attribute), max(attribute)].
+    When min(attribute) == max(attribute) returns [min(attribute), min(attribute)+1]."""
     if attribute.size == 0 or len(color_range) == 2:
         return color_range
-    color_range = [np.min(attribute), np.max(attribute)]
+    color_range = minmax(attribute)
     if color_range[0] == color_range[1]:
         color_range[1] += 1.0
     return color_range
@@ -75,3 +89,13 @@ def map_colors(attribute, color_map, color_range=()):
                         for i in range(3)]
     colors = (red << 16) + (green << 8) + blue
     return colors
+
+
+def bounding_corners(bounds, z_bounds=(0., 1)):
+    """Return corner point coordinates for bounds array."""
+    return np.array(list(itertools.product(bounds[:2], bounds[2:4], bounds[4:] or z_bounds)))
+
+
+def min_bounding_dimension(bounds):
+    """Return a minimal dimension along axis in a bounds ([min_x, max_x, min_y, max_y(, min_z, max_z)] array."""
+    return min(abs(x1 - x0) for x0, x1 in zip(bounds, bounds[1:]))
