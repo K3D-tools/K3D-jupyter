@@ -28,14 +28,12 @@ module.exports = function (K3D) {
     }
 
     function onDocumentMouseDown(event) {
-        event.preventDefault();
         mouseCoordOnDown = getCoordinate(event);
     }
 
     function onDocumentMouseUp(event) {
         var coordinate;
 
-        event.preventDefault();
         coordinate = getCoordinate(event);
 
         if (mouseCoordOnDown.x === coordinate.x && mouseCoordOnDown.y === coordinate.y) {

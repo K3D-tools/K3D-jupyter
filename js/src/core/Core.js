@@ -12,6 +12,14 @@ var viewModes = require('./lib/viewMode').viewModes,
     viewModeGUI = require('./lib/viewMode').viewModeGUI,
     objectGUIProvider = require('./lib/objectsGUIprovider');
 
+
+function changeParameters(key, value) {
+    this.dispatch(this.events.PARAMETERS_CHANGE, {
+        key: key,
+        value: value
+    });
+}
+
 /**
  * @constructor Core
  * @memberof K3D
@@ -77,7 +85,8 @@ function K3D(provider, targetDOMNode, parameters) {
     };
 
     this.resizeHelper = function () {
-        if (!this.disabling) {
+        if (!self.disabling) {
+            self.gui.domElement.parentNode.style.height = world.targetDOMNode.offsetHeight + "px";
             self.Provider.Helpers.resizeListener(world);
             self.render();
         }
@@ -427,12 +436,16 @@ function K3D(provider, targetDOMNode, parameters) {
     currentWindow.addEventListener('resize', this.resizeHelper, false);
 
     // load toolbars
-    this.gui = new dat.GUI();
+    this.gui = new dat.GUI({width: 220, autoPlace: false, scrollable: true});
+
     var guiContainer = currentWindow.document.createElement('div');
-    guiContainer.className = 'dg ac';
+    guiContainer.className = 'dg';
     guiContainer.style.cssText = [
         'position: absolute',
-        'color: black'
+        'color: black',
+        'top: 0',
+        'right: 0',
+        'height: ' + targetDOMNode.clientHeight + 'px'
     ].join(';');
     world.targetDOMNode.appendChild(guiContainer);
     guiContainer.appendChild(this.gui.domElement);
@@ -451,7 +464,13 @@ function K3D(provider, targetDOMNode, parameters) {
         }
     }
 
+    GUI.controls.add(self.parameters, 'cameraAutoFit').listen().onChange(
+        changeParameters.bind(this, 'camera_auto_fit'));
+    GUI.controls.add(self.parameters, 'gridAutoFit').listen().onChange(
+        changeParameters.bind(this, 'grid_auto_fit'));
     viewModeGUI(GUI.controls, this);
+    GUI.controls.add(self.parameters, 'voxelPaintColor').step(1).name('voxelColor').listen().onChange(
+        changeParameters.bind(this, 'voxel_paint_color'));
 
     world.setCameraToFitScene();
     self.rebuildSceneData(true);
@@ -485,7 +504,8 @@ K3D.prototype.events = {
     CAMERA_CHANGE: 'cameraChange',
     OBJECT_LOADED: 'objectLoaded',
     OBJECT_REMOVED: 'objectRemoved',
-    OBJECT_CHANGE: 'objectChange'
+    OBJECT_CHANGE: 'objectChange',
+    PARAMETERS_CHANGE: 'parametersChange'
 };
 
 /**

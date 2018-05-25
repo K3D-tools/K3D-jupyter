@@ -10,3 +10,20 @@
 .dg.a {
     margin-right: 0;
 }
+
+.dg.main {
+    height: inherit;
+}
+
+.dg.main .close-button.close-bottom {
+    position: relative;
+}
+
+.dg.main.taller-than-window .close-button.close-bottom {
+    position: absolute;
+    bottom: 0;
+}
+
+.dg.main.taller-than-window > ul > li:last-child {
+    margin-bottom: 20px;
+}
