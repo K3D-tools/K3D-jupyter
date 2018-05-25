@@ -1,6 +1,6 @@
 {
   "name": "K3D",
-  "version": "2.4.6",
+  "version": "2.4.7",
   "description": "3D visualization library",
   "author": "k3d team",
   "main": "src/index.js",
@@ -66,7 +66,7 @@
     "@jupyter-widgets/base": "^0.6.11",
     "@jupyter-widgets/controls": "^0.6.17",
     "chai": "^4.1.1",
-    "dat.gui": "^0.7.2",
+    "dat.gui": "git+https://github.com/K3D-tools/dat.gui.git",
     "es6-promise": "^4.1.0",
     "fast-json-patch": "^1.1.9",
     "findup-sync": "^2.0.0",

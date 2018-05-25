@@ -100,6 +100,7 @@ PlotView = widgets.DOMWidgetView.extend({
         _.pull(plotsList, this);
         this.K3DInstance.off(this.K3DInstance.events.CAMERA_CHANGE, this.cameraChangeId);
         this.K3DInstance.off(this.K3DInstance.events.OBJECT_CHANGE, this.GUIObjectChanges);
+        this.K3DInstance.off(this.K3DInstance.events.PARAMETERS_CHANGE, this.GUIParametersChanges);
     },
 
     _init: function () {
@@ -160,6 +161,11 @@ PlotView = widgets.DOMWidgetView.extend({
 
         this.GUIObjectChanges = this.K3DInstance.on(this.K3DInstance.events.OBJECT_CHANGE, function (change) {
             objectsList[change.id].save(change.key, change.value);
+        });
+
+        this.GUIParametersChanges = this.K3DInstance.on(this.K3DInstance.events.PARAMETERS_CHANGE, function (change) {
+            self.model.set(change.key, change.value);
+            self.model.save_changes();
         });
     },
 
