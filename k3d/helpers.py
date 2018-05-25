@@ -63,7 +63,7 @@ def minmax(iterable):
 
     This should be a built in function in Python, and has even been proposed on Python-ideas newsgroup.
     This is not to be confused with the algorithm for finding winning strategies in 2-player games."""
-    return [np.min(iterable), np.max(iterable)]
+    return [np.nanmin(iterable), np.nanmax(iterable)]
 
 
 def check_attribute_range(attribute, color_range=()):
