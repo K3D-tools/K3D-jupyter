@@ -12,7 +12,6 @@ var viewModes = require('./lib/viewMode').viewModes,
     viewModeGUI = require('./lib/viewMode').viewModeGUI,
     objectGUIProvider = require('./lib/objectsGUIprovider');
 
-
 function changeParameters(key, value) {
     this.dispatch(this.events.PARAMETERS_CHANGE, {
         key: key,
@@ -105,17 +104,20 @@ function K3D(provider, targetDOMNode, parameters) {
     world.targetDOMNode.appendChild(world.overlayDOMNode);
 
     this.parameters = _.assign({
-        viewMode: viewModes.view,
-        voxelPaintColor: 0,
-        cameraAutoFit: true,
-        gridAutoFit: true,
-        grid: [-1, -1, -1, 1, 1, 1],
-        antialias: true,
-        clearColor: {
-            color: 0xffffff,
-            alpha: 1.0
-        }
-    }, parameters || {});
+            viewMode: viewModes.view,
+            voxelPaintColor: 0,
+            cameraAutoFit: true,
+            gridAutoFit: true,
+            grid: [-1, -1, -1, 1, 1, 1],
+            antialias: true,
+            clearColor: {
+                color: 0xffffff,
+                alpha: 1.0
+            },
+            guiVersion: require('./../../package.json').version
+        },
+        parameters || {}
+    );
 
     this.autoRendering = false;
 
@@ -452,6 +454,7 @@ function K3D(provider, targetDOMNode, parameters) {
 
     GUI.controls = this.gui.addFolder('Controls');
     GUI.objects = this.gui.addFolder('Objects');
+    GUI.info = this.gui.addFolder('Info');
 
     screenshot.screenshotGUI(GUI.controls, this);
     resetCameraGUI(GUI.controls, this);
@@ -464,13 +467,22 @@ function K3D(provider, targetDOMNode, parameters) {
         }
     }
 
-    GUI.controls.add(self.parameters, 'cameraAutoFit').listen().onChange(
-        changeParameters.bind(this, 'camera_auto_fit'));
-    GUI.controls.add(self.parameters, 'gridAutoFit').listen().onChange(
-        changeParameters.bind(this, 'grid_auto_fit'));
+    GUI.controls.add(self.parameters, 'cameraAutoFit').listen().onChange(changeParameters.bind(this, 'camera_auto_fit'));
+    GUI.controls.add(self.parameters, 'gridAutoFit').listen().onChange(changeParameters.bind(this, 'grid_auto_fit'));
     viewModeGUI(GUI.controls, this);
-    GUI.controls.add(self.parameters, 'voxelPaintColor').step(1).name('voxelColor').listen().onChange(
+    GUI.controls.add(self.parameters, 'voxelPaintColor').step(1).min(0).max(255).name('voxelColor').listen().onChange(
         changeParameters.bind(this, 'voxel_paint_color'));
+
+    //Info box
+    GUI.info.add(self.parameters, 'guiVersion').name('Js version:');
+    GUI.info.__controllers[0].__input.readOnly = true;
+
+    if (self.parameters.backendVersion) {
+        GUI.info.add({
+            version: self.parameters.backendVersion.substr(1)
+        }, 'version').name('Python version:');
+        GUI.info.__controllers[1].__input.readOnly = true;
+    }
 
     world.setCameraToFitScene();
     self.rebuildSceneData(true);

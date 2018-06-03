@@ -131,7 +131,8 @@ PlotView = widgets.DOMWidgetView.extend({
 
         try {
             this.K3DInstance = new K3D(ThreeJsProvider, this.container, {
-                antialias: this.model.get('antialias')
+                antialias: this.model.get('antialias'),
+                backendVersion: this.model.get('_view_module_version')
             });
         } catch (e) {
             return;
