@@ -1,14 +1,15 @@
 'use strict';
 
 var _ = require('lodash'),
-    Text = require('./../objects/Text');
+    Text = require('./../objects/Text'),
+    viewModes = require('./../../../core/lib/viewMode').viewModes;
 
 function pow10ceil(x) {
     return Math.pow(10, Math.ceil(Math.log10(x)));
 }
 
 function ensureTwoTicksOnGrids(sceneBoundingBox, majorScale) {
-    var size = sceneBoundingBox.getSize();
+    var size = sceneBoundingBox.getSize(new THREE.Vector3());
 
     ['x', 'y', 'z'].forEach(function (axis) {
         var dist = size[axis] / majorScale;
@@ -157,7 +158,7 @@ function rebuildSceneData(K3D, grids, force) {
         // cleanup previous data
         Object.keys(grids.planes).forEach(function (axis) {
             grids.planes[axis].forEach(function (plane) {
-                this.scene.remove(plane.obj);
+                this.gridScene.remove(plane.obj);
                 delete plane.obj;
             }, this);
         }, this);
@@ -169,7 +170,7 @@ function rebuildSceneData(K3D, grids, force) {
         }, this);
 
         // generate new one
-        size = sceneBoundingBox.getSize();
+        size = sceneBoundingBox.getSize(new THREE.Vector3());
         majorScale = pow10ceil(Math.max(size.x, size.y, size.z)) / 10.0;
         minorScale = majorScale / 10.0;
 
@@ -185,7 +186,7 @@ function rebuildSceneData(K3D, grids, force) {
             Math.ceil(sceneBoundingBox.max.y / majorScale) * majorScale,
             Math.ceil(sceneBoundingBox.max.z / majorScale) * majorScale);
 
-        size = sceneBoundingBox.getSize();
+        size = sceneBoundingBox.getSize(new THREE.Vector3());
 
         grids.planes = {
             'x': [
@@ -334,7 +335,7 @@ function rebuildSceneData(K3D, grids, force) {
                 geometry.computeBoundingBox();
                 plane.obj = new THREE.LineSegments(geometry, material);
 
-                this.scene.add(plane.obj);
+                this.gridScene.add(plane.obj);
             }, this);
         }, this);
     }
@@ -348,7 +349,7 @@ function rebuildSceneData(K3D, grids, force) {
         }, this);
     }, this);
 
-    fullSceneDiameter = fullSceneBoundingBox.getSize().length();
+    fullSceneDiameter = fullSceneBoundingBox.getSize(new THREE.Vector3()).length();
 
     this.camera.far = fullSceneDiameter * 10;
     this.camera.near = fullSceneDiameter * 0.01;
@@ -394,6 +395,13 @@ function refreshGrid(grids) {
             }
         });
     });
+}
+
+function turnOffGrid(grids) {
+    Object.keys(grids.planes).forEach(function (axis) {
+        grids.planes[axis][0].obj.visible = false;
+        grids.planes[axis][1].obj.visible = false;
+    }, this);
 }
 
 function raycast(x, y, camera, click, viewMode) {
@@ -451,7 +459,8 @@ module.exports = {
             grids = {
                 planes: {},
                 labelsOnEdges: {}
-            };
+            },
+            self = this;
 
         this.lights = [];
         this.raycaster = new THREE.Raycaster();
@@ -465,6 +474,7 @@ module.exports = {
         this.lights[2].position.set(50, 200, 500);
 
         this.scene = new THREE.Scene();
+        this.gridScene = new THREE.Scene();
 
         this.K3DObjects = new THREE.Group();
 
@@ -476,11 +486,29 @@ module.exports = {
         this.scene.add(this.camera);
         this.scene.add(this.K3DObjects);
 
-        K3D.raycast = raycast.bind(this);
         K3D.rebuildSceneData = rebuildSceneData.bind(this, K3D, grids);
         K3D.getSceneBoundingBox = getSceneBoundingBox.bind(this);
         K3D.refreshGrid = refreshGrid.bind(this, grids);
+        K3D.turnOffGrid = turnOffGrid.bind(this, grids);
 
         Promise.all(K3D.rebuildSceneData()).then(K3D.refreshGrid);
+
+        K3D.on(K3D.events.MOUSE_MOVE, function (coord) {
+            if (K3D.parameters.viewMode !== viewModes.view) {
+                if (raycast.call(self, coord.x, coord.y, self.camera, false, K3D.parameters.viewMode) &&
+                    !K3D.autoRendering) {
+                    K3D.render();
+                }
+            }
+        });
+
+        K3D.on(K3D.events.MOUSE_CLICK, function (coord) {
+            if (K3D.parameters.viewMode !== viewModes.view) {
+                if (raycast.call(self, coord.x, coord.y, self.camera, true, K3D.parameters.viewMode) &&
+                    !K3D.autoRendering) {
+                    K3D.render();
+                }
+            }
+        });
     }
 };

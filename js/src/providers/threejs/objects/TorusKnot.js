@@ -40,7 +40,7 @@ module.exports = function (config) {
             color: config.color,
             emissive: 0x072534,
             side: THREE.DoubleSide,
-            shading: THREE.FlatShading
+            flatShading: true
         })
     ));
 

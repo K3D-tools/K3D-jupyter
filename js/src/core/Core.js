@@ -10,7 +10,8 @@ var viewModes = require('./lib/viewMode').viewModes,
     detachWindowGUI = require('./lib/detachWindow'),
     fullscreen = require('./lib/fullscreen'),
     viewModeGUI = require('./lib/viewMode').viewModeGUI,
-    objectGUIProvider = require('./lib/objectsGUIprovider');
+    objectGUIProvider = require('./lib/objectsGUIprovider'),
+    clippingPlanesGUIProvider = require('./lib/clippingPlanesGUIProvider');
 
 function changeParameters(key, value) {
     this.dispatch(this.events.PARAMETERS_CHANGE, {
@@ -85,7 +86,7 @@ function K3D(provider, targetDOMNode, parameters) {
 
     this.resizeHelper = function () {
         if (!self.disabling) {
-            self.gui.domElement.parentNode.style.height = world.targetDOMNode.offsetHeight + "px";
+            self.gui.domElement.parentNode.style.height = world.targetDOMNode.offsetHeight + 'px';
             self.Provider.Helpers.resizeListener(world);
             self.render();
         }
@@ -114,6 +115,7 @@ function K3D(provider, targetDOMNode, parameters) {
                 color: 0xffffff,
                 alpha: 1.0
             },
+            clippingPlanes: [],
             guiVersion: require('./../../package.json').version
         },
         parameters || {}
@@ -160,6 +162,13 @@ function K3D(provider, targetDOMNode, parameters) {
         }
     };
 
+    this.setClippingPlanes = function (planes) {
+        self.parameters.clippingPlanes = _.cloneDeep(planes);
+
+        clippingPlanesGUIProvider(self, GUI.clippingPlanes);
+        self.render();
+    };
+
     /**
      * Set camera auto fit mode of K3D
      * @memberof K3D.Core
@@ -167,6 +176,11 @@ function K3D(provider, targetDOMNode, parameters) {
      */
     this.setCameraAutoFit = function (state) {
         self.parameters.cameraAutoFit = state;
+        GUI.controls.__controllers.forEach(function (controller) {
+            if (controller.property === 'cameraAutoFit') {
+                controller.updateDisplay();
+            }
+        });
     };
 
     /**
@@ -176,6 +190,11 @@ function K3D(provider, targetDOMNode, parameters) {
      */
     this.setGridAutoFit = function (state) {
         self.parameters.gridAutoFit = state;
+        GUI.controls.__controllers.forEach(function (controller) {
+            if (controller.property === 'gridAutoFit') {
+                controller.updateDisplay();
+            }
+        });
     };
 
     /**
@@ -209,6 +228,11 @@ function K3D(provider, targetDOMNode, parameters) {
      */
     this.setVoxelPaint = function (color) {
         self.parameters.voxelPaintColor = color;
+        GUI.controls.__controllers.forEach(function (controller) {
+            if (controller.property === 'voxelPaintColor') {
+                controller.updateDisplay();
+            }
+        });
     };
 
     /**
@@ -223,34 +247,6 @@ function K3D(provider, targetDOMNode, parameters) {
 
         world.renderer.setClearColor(color, alpha);
         self.render();
-    };
-
-    /**
-     * Update mouse position
-     * @memberof K3D.Core
-     * @param {Number} x
-     * @param {Number} y
-     */
-    this.updateMousePosition = function (x, y) {
-        if (self.parameters.viewMode !== viewModes.view) {
-            if (self.raycast(x, y, world.camera, false, self.parameters.viewMode) && !self.autoRendering) {
-                self.render();
-            }
-        }
-    };
-
-    /**
-     * Mouse click
-     * @memberof K3D.Core
-     * @param {Number} x
-     * @param {Number} y
-     */
-    this.mouseClick = function (x, y) {
-        if (self.parameters.viewMode !== viewModes.view) {
-            if (self.raycast(x, y, world.camera, true, self.parameters.viewMode) && !self.autoRendering) {
-                self.render();
-            }
-        }
     };
 
     this.on = function (eventName, listener) {
@@ -286,12 +282,7 @@ function K3D(provider, targetDOMNode, parameters) {
         return objectIndex++;
     };
 
-    /**
-     * Remove object from current world
-     * @memberof K3D.Core
-     * @param {String} id
-     */
-    this.removeObject = function (id) {
+    function removeObjectFromScene(id) {
         var object = self.Provider.Helpers.getObjectById(world, id);
 
         if (object) {
@@ -327,13 +318,22 @@ function K3D(provider, targetDOMNode, parameters) {
         }
 
         delete world.ObjectsListJson[id];
+    }
+
+    /**
+     * Remove object from current world
+     * @memberof K3D.Core
+     * @param {String} id
+     */
+    this.removeObject = function (id) {
+        removeObjectFromScene(id);
 
         Promise.all(self.rebuild()).then(function () {
             world.setCameraToFitScene();
             self.render();
         });
 
-        dispatch(self.events.OBJECT_REMOVED);
+        dispatch(self.events.OBJECT_REMOVED, id);
     };
 
 
@@ -363,7 +363,8 @@ function K3D(provider, targetDOMNode, parameters) {
     this.reload = function (json) {
         if (json.visible === false) {
             try {
-                self.removeObject(json.id);
+                removeObjectFromScene(json.id);
+                this.render();
             } catch (e) {
 
             }
@@ -374,7 +375,7 @@ function K3D(provider, targetDOMNode, parameters) {
         loader(self, {objects: [json]}).then(function (objects) {
             objects.forEach(function (object) {
                 if (world.ObjectsListJson[object.id]) {
-                    self.removeObject(object.id);
+                    removeObjectFromScene(object.id);
                 }
 
                 objectGUIProvider(self, object, objects);
@@ -467,11 +468,13 @@ function K3D(provider, targetDOMNode, parameters) {
         }
     }
 
-    GUI.controls.add(self.parameters, 'cameraAutoFit').listen().onChange(changeParameters.bind(this, 'camera_auto_fit'));
-    GUI.controls.add(self.parameters, 'gridAutoFit').listen().onChange(changeParameters.bind(this, 'grid_auto_fit'));
+    GUI.controls.add(self.parameters, 'cameraAutoFit').onChange(changeParameters.bind(this, 'camera_auto_fit'));
+    GUI.controls.add(self.parameters, 'gridAutoFit').onChange(changeParameters.bind(this, 'grid_auto_fit'));
     viewModeGUI(GUI.controls, this);
-    GUI.controls.add(self.parameters, 'voxelPaintColor').step(1).min(0).max(255).name('voxelColor').listen().onChange(
+    GUI.controls.add(self.parameters, 'voxelPaintColor').step(1).min(0).max(255).name('voxelColor').onChange(
         changeParameters.bind(this, 'voxel_paint_color'));
+
+    GUI.clippingPlanes = GUI.controls.addFolder('Clipping planes');
 
     //Info box
     GUI.info.add(self.parameters, 'guiVersion').name('Js version:');
@@ -484,6 +487,7 @@ function K3D(provider, targetDOMNode, parameters) {
         GUI.info.__controllers[1].__input.readOnly = true;
     }
 
+    self.setClippingPlanes([]);
     world.setCameraToFitScene();
     self.rebuildSceneData(true);
     self.render();
@@ -517,7 +521,10 @@ K3D.prototype.events = {
     OBJECT_LOADED: 'objectLoaded',
     OBJECT_REMOVED: 'objectRemoved',
     OBJECT_CHANGE: 'objectChange',
-    PARAMETERS_CHANGE: 'parametersChange'
+    PARAMETERS_CHANGE: 'parametersChange',
+    VOXELS_CALLBACK: 'voxelsCallback',
+    MOUSE_MOVE: 'mouseMove',
+    MOUSE_CLICK: 'mouseClick'
 };
 
 /**

@@ -178,12 +178,23 @@ module.exports = function (object, mesh, rollOverMesh, K3D) {
         return true;
     }
 
+    function onClickCallback(intersect) {
+        var voxelCoordinate = getVoxelCoordinate(intersect, false);
+
+        if (voxelCoordinate) {
+            K3D.dispatch(K3D.events.VOXELS_CALLBACK, {coord: voxelCoordinate, object: object});
+        }
+
+        return false;
+    }
+
     return {
         onHover: function (intersect, viewMode) {
             switch (viewMode) {
                 case viewModes.add:
                     return onHoverAdd(intersect);
                 case viewModes.change:
+                case viewModes.callback:
                     return onHoverChange(intersect);
                 default:
                     return false;
@@ -195,6 +206,8 @@ module.exports = function (object, mesh, rollOverMesh, K3D) {
                     return onClickAdd(intersect);
                 case viewModes.change:
                     return onClickChange(intersect);
+                case viewModes.callback:
+                    return onClickCallback(intersect);
                 default:
                     return false;
             }

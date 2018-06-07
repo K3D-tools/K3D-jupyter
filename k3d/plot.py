@@ -49,6 +49,7 @@ class Plot(widgets.DOMWidget):
     background_color = Int().tag(sync=True)
     voxel_paint_color = Int().tag(sync=True)
     camera = ListOrArray(minlen=9, maxlen=9, empty_ok=True).tag(sync=True)
+    clipping_planes = ListOrArray(empty_ok=True).tag(sync=True)
     screenshot = Unicode().tag(sync=True)
 
     objects = []

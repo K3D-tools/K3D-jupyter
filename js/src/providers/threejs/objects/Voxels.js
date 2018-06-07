@@ -129,7 +129,7 @@ function getVoxelChunkObject(config, chunkStructure) {
         geometry,
         new MaterialConstructor({
             vertexColors: THREE.VertexColors,
-            shading: THREE.FlatShading,
+            flatShading: true,
             side: THREE.DoubleSide,
             wireframe: config.wireframe
         })

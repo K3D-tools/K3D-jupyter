@@ -37,17 +37,14 @@ module.exports = function (K3D) {
         coordinate = getCoordinate(event);
 
         if (mouseCoordOnDown.x === coordinate.x && mouseCoordOnDown.y === coordinate.y) {
-            K3D.mouseClick(coordinate.x, coordinate.y);
+            K3D.dispatch(K3D.events.MOUSE_CLICK, coordinate);
         }
     }
 
     function onDocumentMouseMove(event) {
-        var coordinate;
-
         event.preventDefault();
-        coordinate = getCoordinate(event);
 
-        K3D.updateMousePosition(coordinate.x, coordinate.y);
+        K3D.dispatch(K3D.events.MOUSE_MOVE, getCoordinate(event));
     }
 
     this.renderer.setSize(this.width, this.height);

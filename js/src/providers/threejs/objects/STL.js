@@ -18,7 +18,7 @@ module.exports = function (config) {
         material = new MaterialConstructor({
             color: config.color,
             emissive: 0x072534,
-            shading: THREE.FlatShading,
+            flatShading: true,
             side: THREE.DoubleSide,
             wireframe: config.wireframe
         }),
@@ -29,12 +29,12 @@ module.exports = function (config) {
 
     if (text === null || typeof(text) === 'undefined') {
         if (typeof(binary.buffer.buffer) !== 'undefined') {
-            geometry = loader.parseBinary(binary.buffer.buffer);
+            geometry = loader.parse(binary.buffer.buffer);
         } else {
-            geometry = loader.parseBinary(binary.buffer);
+            geometry = loader.parse(binary.buffer);
         }
     } else {
-        geometry = loader.parseASCII(text);
+        geometry = loader.parse(text);
     }
 
     if (geometry.hasColors) {

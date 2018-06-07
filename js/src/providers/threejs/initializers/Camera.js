@@ -83,13 +83,13 @@ module.exports = function (K3D) {
          camDistance = sceneBoundingSphere.radius / sin(fov/2);
          */
 
-        sceneBoundingSphere = sceneBoundingBox.getBoundingSphere();
+        sceneBoundingSphere = sceneBoundingBox.getBoundingSphere(new THREE.Sphere());
 
         camDistance = sceneBoundingSphere.radius * 1.5 / Math.sin(THREE.Math.degToRad(fov / 2.0));
 
         this.camera.position.subVectors(
             sceneBoundingSphere.center,
-            this.camera.getWorldDirection().setLength(camDistance)
+            this.camera.getWorldDirection(new THREE.Vector3()).setLength(camDistance)
         );
         this.controls.target = sceneBoundingSphere.center;
     };

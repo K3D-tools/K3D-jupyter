@@ -7,7 +7,7 @@ function fullscreenGUI(container, gui, currentWindow) {
         fullscreen: false
     };
 
-    gui.add(obj, 'fullscreen').name('Full screen').listen().onChange(function (value) {
+    gui.add(obj, 'fullscreen').name('Full screen').onChange(function (value) {
         if (value) {
             screenfull.request(container);
         } else {
