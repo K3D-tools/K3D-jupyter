@@ -101,6 +101,7 @@ PlotView = widgets.DOMWidgetView.extend({
         this.K3DInstance.off(this.K3DInstance.events.CAMERA_CHANGE, this.cameraChangeId);
         this.K3DInstance.off(this.K3DInstance.events.OBJECT_CHANGE, this.GUIObjectChanges);
         this.K3DInstance.off(this.K3DInstance.events.PARAMETERS_CHANGE, this.GUIParametersChanges);
+        this.K3DInstance.off(this.K3DInstance.events.VOXELS_CALLBACK, this.voxelsCallback);
     },
 
     _init: function () {
@@ -127,11 +128,13 @@ PlotView = widgets.DOMWidgetView.extend({
         this.model.on('change:background_color', this._setBackgroundColor, this);
         this.model.on('change:grid', this._setGrid, this);
         this.model.on('change:camera', this._setCamera, this);
+        this.model.on('change:clipping_planes', this._setClippingPlanes, this);
         this.model.on('change:object_ids', this._onObjectsListChange, this);
 
         try {
             this.K3DInstance = new K3D(ThreeJsProvider, this.container, {
-                antialias: this.model.get('antialias')
+                antialias: this.model.get('antialias'),
+                backendVersion: this.model.get('_view_module_version')
             });
         } catch (e) {
             return;
@@ -167,6 +170,12 @@ PlotView = widgets.DOMWidgetView.extend({
             self.model.set(change.key, change.value);
             self.model.save_changes();
         });
+
+        this.voxelsCallback = this.K3DInstance.on(this.K3DInstance.events.VOXELS_CALLBACK, function (param) {
+            if (objectsList[param.object.K3DIdentifier]) {
+                objectsList[param.object.K3DIdentifier].send({msg_type: 'click_callback', coord: param.coord});
+            }
+        });
     },
 
     _setCameraAutoFit: function () {
@@ -178,7 +187,7 @@ PlotView = widgets.DOMWidgetView.extend({
     },
 
     _setVoxelPaintColor: function () {
-        this.K3DInstance.parameters.voxelPaintColor = this.model.get('voxel_paint_color');
+        this.K3DInstance.setVoxelPaint(this.model.get('voxel_paint_color'));
     },
 
     _setBackgroundColor: function () {
@@ -191,6 +200,10 @@ PlotView = widgets.DOMWidgetView.extend({
 
     _setCamera: function () {
         this.K3DInstance.setCamera(this.model.get('camera'));
+    },
+
+    _setClippingPlanes: function () {
+        this.K3DInstance.setClippingPlanes(this.model.get('clipping_planes'));
     },
 
     _processObjectsChangesQueue: function (self) {

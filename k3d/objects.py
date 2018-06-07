@@ -55,6 +55,18 @@ class Drawable(widgets.CoreWidget):
             field: `str`. the field name."""
         self.send({'msg_type': 'fetch', 'field': field})
 
+    def push_data(self, field):
+        """Request updating the value of a field modified in backend.
+
+        For data modified in the backend side, this triggers an asynchronous
+        update of the value in the browser widget.
+
+        Only specific features require this mechanism, e.g. the in-browser editing of voxels.
+
+        Arguments:
+            field: `str`. the field name."""
+        self.notify_change({'name': field, 'type': 'change'})
+
     def _ipython_display_(self, **kwargs):
         """Called when `IPython.display.display` is called on the widget."""
         import k3d
@@ -479,3 +491,15 @@ class Voxels(Drawable):
     wireframe = Bool().tag(sync=True)
     outlines = Bool().tag(sync=True)
     outlines_color = Int().tag(sync=True)
+    click_callback = None
+
+    def __init__(self, **kwargs):
+        super(Voxels, self).__init__(**kwargs)
+
+        self.on_msg(self._handle_custom_msg)
+        pass
+
+    def _handle_custom_msg(self, content, buffers):
+        if content.get('msg_type', '') == 'click_callback':
+            if self.click_callback is not None:
+                self.click_callback(content['coord']['x'], content['coord']['y'], content['coord']['z'])

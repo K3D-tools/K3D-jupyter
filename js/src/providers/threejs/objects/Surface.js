@@ -23,7 +23,7 @@ module.exports = function (config) {
             shininess: 25,
             specular: 0x111111,
             side: THREE.DoubleSide,
-            shading: THREE.FlatShading,
+            flatShading: true,
             wireframe: config.wireframe
         }),
         geometry = new THREE.BufferGeometry(),

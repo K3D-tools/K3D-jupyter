@@ -38,6 +38,20 @@ function objectGUIProvider(K3D, json, objects) {
     if (typeof(K3D.gui_map[json.id]) === 'undefined') {
         K3D.gui_counts[json.type] = K3D.gui_counts[json.type] + 1 || 1;
         K3D.gui_map[json.id] = objects.addFolder(json.type + ' #' + K3D.gui_counts[json.type]);
+
+        var listenersId = K3D.on(K3D.events.OBJECT_REMOVED, function (id) {
+            if (id === json.id) {
+                var folder = K3D.gui_map[json.id];
+                folder.close();
+                objects.__ul.removeChild(folder.domElement.parentNode);
+                delete objects.__folders[folder.name];
+                objects.onResize();
+
+                delete K3D.gui_map[json.id];
+            }
+
+            K3D.off(K3D.events.OBJECT_REMOVED, listenersId);
+        });
     }
 
     var defaultParams = ['visible', 'outlines', 'wireframe', 'use_head', 'head_size', 'line_width', 'scale',

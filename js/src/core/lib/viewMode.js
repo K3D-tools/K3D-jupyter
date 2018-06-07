@@ -3,7 +3,8 @@
 var viewModes = {
     view: 'view',
     add: 'add',
-    change: 'change'
+    change: 'change',
+    callback: 'callback'
 };
 
 function viewModeGUI(gui, K3D) {
@@ -15,8 +16,9 @@ function viewModeGUI(gui, K3D) {
     gui.add(obj, 'mode', {
         View: viewModes.view,
         Add: viewModes.add,
-        Change: viewModes.change
-    }).name('Mode').listen().onChange(
+        Change: viewModes.change,
+        Callback: viewModes.callback
+    }).name('Mode').onChange(
         function (mode) {
             K3D.setViewMode(mode);
         });

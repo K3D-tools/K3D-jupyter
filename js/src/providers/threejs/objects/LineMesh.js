@@ -22,7 +22,6 @@ module.exports = function (config) {
             shininess: 25,
             specular: 0x111111,
             side: THREE.DoubleSide,
-            shading: THREE.SmoothShading,
             wireframe: false
         }),
         radialSegments = config.radial_segments,

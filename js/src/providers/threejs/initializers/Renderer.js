@@ -41,6 +41,16 @@ module.exports = function (K3D) {
         K3D.frameUpdateHandlers.before.forEach(handleListeners.bind(null, K3D, 'before'));
 
         K3D.refreshGrid();
+
+        self.renderer.clear();
+        self.renderer.clippingPlanes = [];
+
+        self.renderer.render(self.gridScene, self.camera);
+
+        K3D.parameters.clippingPlanes.forEach(function (plane) {
+            self.renderer.clippingPlanes.push(new THREE.Plane(new THREE.Vector3().fromArray(plane), plane[3]));
+        });
+
         self.renderer.render(self.scene, self.camera);
 
         K3D.frameUpdateHandlers.after.forEach(handleListeners.bind(null, K3D, 'after'));
@@ -53,6 +63,7 @@ module.exports = function (K3D) {
     }
 
     this.renderer.setClearColor(0xffffff, 1);
+    this.renderer.autoClear = false;
 
     this.render = function () {
         if (!loop) {
