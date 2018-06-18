@@ -13,7 +13,7 @@ varying vec3 vNormal;
 #include <skinning_pars_vertex>
 #include <shadowmap_pars_vertex>
 #include <logdepthbuf_pars_vertex>
-#include <clipping_planes_pars_vertex>
+//#include <clipping_planes_pars_vertex>
 
 void main() {
         #include <uv_vertex>

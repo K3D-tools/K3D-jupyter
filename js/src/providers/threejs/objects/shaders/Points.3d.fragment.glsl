@@ -17,8 +17,12 @@ struct PointLight {
 
 uniform PointLight pointLights[NUM_POINT_LIGHTS];
 
+#include <clipping_planes_pars_fragment>
+
 void main (void)
 {
+    #include <clipping_planes_fragment>
+
     vec2 impostorSpaceCoordinate = (gl_PointCoord.xy - vec2(0.5, 0.5)) * 2.0;
     float distanceFromCenter = length(impostorSpaceCoordinate);
 
@@ -49,6 +53,7 @@ void main (void)
         vec3 lightDirection = normalize(vec3(mvPosition) - pointLights[l].position);
         float lightingIntensity = clamp(dot(-lightDirection, normal), 0.0, 1.0);
         addedLights.rgb += pointLights[l].color * (0.05 + 0.95 * lightingIntensity);
+
         #if (USE_SPECULAR == 1)
         finalSphereColor.rgb += pointLights[l].color * pow(lightingIntensity, 80.0);
         #endif

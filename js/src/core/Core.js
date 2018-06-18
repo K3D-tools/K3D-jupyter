@@ -81,7 +81,6 @@ function K3D(provider, targetDOMNode, parameters) {
 
     this.render = function () {
         world.render();
-        dispatch(self.events.RENDERED);
     };
 
     this.resizeHelper = function () {

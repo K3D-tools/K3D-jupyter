@@ -25,6 +25,7 @@ module.exports = function (config) {
             vertexShader: require('./shaders/PointsMesh.vertex.glsl'),
             fragmentShader: phongShader.fragmentShader,
             lights: true,
+            clipping: true,
             vertexColors: THREE.VertexColors
         }),
         sphereGeometry = new THREE.IcosahedronBufferGeometry(config.point_size * 0.5, 2),

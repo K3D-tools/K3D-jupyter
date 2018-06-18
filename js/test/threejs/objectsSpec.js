@@ -568,6 +568,24 @@ require(['K3D'], function (lib) {
             });
         });
 
+        it('should draw points with clipping planes', function (done) {
+            var self = this;
+
+            jsonLoader('http://localhost:9001/samples/horse_with_colors_3d.json', function (json) {
+
+                self.K3D.addFrameUpdateListener('after', function () {
+                    TestHelpers.compareCanvasWithExpectedImage(self.K3D, 'horse_with_colors_3d_clipped',
+                        RESAMBLEThreshold, done);
+                }, true);
+
+                self.K3D.setClippingPlanes([
+                    [-1, 0, 0, 0]
+                ]);
+
+                self.K3D.load(json);
+            });
+        });
+
         it('should draw a mesh', function (done) {
             var self = this;
 

@@ -30,8 +30,15 @@ module.exports = function (K3D) {
     self.renderer = new THREE.WebGLRenderer({
         antialias: K3D.parameters.antialias,
         preserveDrawingBuffer: false,
-        alpha: true
+        alpha: true,
+        powerPreference: 'high-performance'
     });
+
+    var gl = self.renderer.context;
+
+    var debugInfo = gl.getExtension('WEBGL_debug_renderer_info');
+    console.log("K3D: (UNMASKED_VENDOR_WEBGL)", gl.getParameter(debugInfo.UNMASKED_VENDOR_WEBGL));
+    console.log("K3D: (UNMASKED_RENDERER_WEBGL)", gl.getParameter(debugInfo.UNMASKED_RENDERER_WEBGL));
 
     function render() {
         if (K3D.disabling) {
@@ -54,6 +61,8 @@ module.exports = function (K3D) {
         self.renderer.render(self.scene, self.camera);
 
         K3D.frameUpdateHandlers.after.forEach(handleListeners.bind(null, K3D, 'after'));
+
+        K3D.dispatch(K3D.events.RENDERED);
 
         if (K3D.autoRendering) {
             requestAnimationFrame(render);

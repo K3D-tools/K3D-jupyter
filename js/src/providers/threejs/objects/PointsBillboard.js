@@ -41,6 +41,7 @@ module.exports = function (config) {
         vertexShader: require('./shaders/Points.vertex.glsl'),
         fragmentShader: fragmentShader,
         lights: true,
+        clipping: true,
         extensions: {
             fragDepth: true
         }
