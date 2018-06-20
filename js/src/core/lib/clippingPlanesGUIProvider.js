@@ -129,6 +129,11 @@ function clippingPlanesGUIProvider(K3D, clippingPlanesGUI) {
                             delete clippingPlanesGUI.__folders[folder.name];
                             clippingPlanesGUI.onResize();
 
+                            if (current.eventId) {
+                                K3D.off(K3D.events.CAMERA_CHANGE, current.eventId);
+                                current.eventId = null;
+                            }
+
                             delete K3D.clippingPlanes_map[key];
                         }
                     });
@@ -136,7 +141,6 @@ function clippingPlanesGUIProvider(K3D, clippingPlanesGUI) {
                     if (!withoutFireChange) {
                         change();
                     }
-
                 }
             }, 'delete').name('Delete');
         } else {

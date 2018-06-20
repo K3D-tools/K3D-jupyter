@@ -1,6 +1,6 @@
 {
   "name": "K3D",
-  "version": "2.4.8",
+  "version": "2.4.9",
   "description": "3D visualization library",
   "author": "k3d team",
   "main": "src/index.js",
