@@ -79,6 +79,11 @@ function K3D(provider, targetDOMNode, parameters) {
         throw new Error('Provider should be an object (a key-value map following convention)');
     }
 
+    function refreshAfterObjectsChange() {
+        self.getWorld().setCameraToFitScene();
+        Promise.all(self.rebuildSceneData()).then(self.render);
+    }
+
     this.render = function () {
         world.render();
     };
@@ -98,7 +103,8 @@ function K3D(provider, targetDOMNode, parameters) {
         'position: absolute',
         'width: 100%',
         'height: 100%',
-        'pointer-events: none'
+        'pointer-events: none',
+        'overflow: hidden'
     ].join(';');
 
     world.targetDOMNode.appendChild(world.overlayDOMNode);
@@ -326,13 +332,8 @@ function K3D(provider, targetDOMNode, parameters) {
      */
     this.removeObject = function (id) {
         removeObjectFromScene(id);
-
-        Promise.all(self.rebuild()).then(function () {
-            world.setCameraToFitScene();
-            self.render();
-        });
-
         dispatch(self.events.OBJECT_REMOVED, id);
+        refreshAfterObjectsChange();
     };
 
 
@@ -351,6 +352,7 @@ function K3D(provider, targetDOMNode, parameters) {
             });
 
             dispatch(self.events.OBJECT_LOADED);
+            refreshAfterObjectsChange();
         });
     };
 
@@ -363,7 +365,7 @@ function K3D(provider, targetDOMNode, parameters) {
         if (json.visible === false) {
             try {
                 removeObjectFromScene(json.id);
-                this.render();
+                refreshAfterObjectsChange();
             } catch (e) {
 
             }
@@ -382,15 +384,8 @@ function K3D(provider, targetDOMNode, parameters) {
             });
 
             dispatch(self.events.OBJECT_LOADED);
+            refreshAfterObjectsChange();
         });
-    };
-
-    /**
-     * Rebuild scene (call after added all objects to scene)
-     * @memberof K3D.Core
-     */
-    this.rebuild = function () {
-        return self.rebuildSceneData();
     };
 
     /**
@@ -410,6 +405,7 @@ function K3D(provider, targetDOMNode, parameters) {
     this.getScreenshot = function () {
         return screenshot.getScreenshot(this);
     };
+
     /**
      * Destroy logic for current instance. Will remove listeners (browser and owned)
      * @memberof K3D.Core
@@ -486,8 +482,8 @@ function K3D(provider, targetDOMNode, parameters) {
         GUI.info.__controllers[1].__input.readOnly = true;
     }
 
-    self.setClippingPlanes([]);
-    world.setCameraToFitScene();
+    self.setClippingPlanes(self.parameters.clippingPlanes);
+    world.setCameraToFitScene(true);
     self.rebuildSceneData(true);
     self.render();
 }
