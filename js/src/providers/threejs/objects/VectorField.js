@@ -49,7 +49,7 @@ module.exports = function (config) {
     scalar = scale / Math.max(width, height, length);
     colors = colors ? colorsToFloat32Array(colors) :
         getTwoColorsArray(originColor, headColor, width * height * length * 2);
-    singleConeGeometry = new THREE.CylinderGeometry(0, 0.025 * headSize * scalar, 0.2 * headSize * scalar, 5, 1)
+    singleConeGeometry = new THREE.CylinderBufferGeometry(0, 0.025 * headSize * scalar, 0.2 * headSize * scalar, 5, 1)
         .translate(0, -0.1 * headSize * scalar, 0);
 
     for (z = 0, i = 0; z < length; z++) {
@@ -64,7 +64,7 @@ module.exports = function (config) {
                 ).add(origin);
 
                 heads = generateArrow(
-                    useHead ? new THREE.Geometry().copy(singleConeGeometry) : null,
+                    useHead ? new THREE.Geometry().fromBufferGeometry(singleConeGeometry) : null,
                     lineVertices,
                     heads,
                     origin,

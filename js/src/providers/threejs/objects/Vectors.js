@@ -50,7 +50,7 @@ module.exports = function (config, K3D) {
         throw new Error('there should be 2 colors for each vector');
     }
 
-    singleConeGeometry = new THREE.CylinderGeometry(0, 0.025 * headSize, 0.2 * headSize, 5, 1)
+    singleConeGeometry = new THREE.CylinderBufferGeometry(0, 0.025 * headSize, 0.2 * headSize, 5, 1)
         .translate(0, -0.1 * headSize, 0);
 
     for (i = 0; i < vectors.length; i += 3) {
@@ -58,7 +58,7 @@ module.exports = function (config, K3D) {
         destination = new THREE.Vector3(vectors[i], vectors[i + 1], vectors[i + 2]).add(origin);
 
         heads = generateArrow(
-            useHead ? new THREE.Geometry().copy(singleConeGeometry) : null,
+            useHead ? new THREE.Geometry().fromBufferGeometry(singleConeGeometry) : null,
             lineVertices,
             heads,
             origin,
