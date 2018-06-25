@@ -48,14 +48,7 @@ function loader(K3D, json) {
             objectsPromieses.push(K3DObjectPromise);
         });
 
-        return Promise.all(objectsPromieses).then(function (objects) {
-            K3D.getWorld().setCameraToFitScene();
-
-            // rebuild scene + re-render
-            Promise.all(K3D.rebuild()).then(K3D.render);
-
-            return objects;
-        });
+        return Promise.all(objectsPromieses);
     } catch (e) {
         error('Loader Error', 'K3D Loader failed, please consult browser error console!', true);
         throw e;
