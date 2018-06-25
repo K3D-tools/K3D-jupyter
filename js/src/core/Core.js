@@ -98,7 +98,8 @@ function K3D(provider, targetDOMNode, parameters) {
         'position: absolute',
         'width: 100%',
         'height: 100%',
-        'pointer-events: none'
+        'pointer-events: none',
+        'overflow: hidden'
     ].join(';');
 
     world.targetDOMNode.appendChild(world.overlayDOMNode);
@@ -486,7 +487,7 @@ function K3D(provider, targetDOMNode, parameters) {
         GUI.info.__controllers[1].__input.readOnly = true;
     }
 
-    self.setClippingPlanes([]);
+    self.setClippingPlanes(self.parameters.clippingPlanes);
     world.setCameraToFitScene();
     self.rebuildSceneData(true);
     self.render();

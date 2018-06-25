@@ -16,7 +16,7 @@
 }
 
 .dg.main .close-button.close-bottom {
-    position: relative;
+    position: relative !important;
 }
 
 .dg.main.taller-than-window .close-button.close-bottom {
