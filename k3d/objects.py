@@ -339,12 +339,20 @@ class Texture(Drawable):
         binary: `bytes`. Image data in a specific format.
         file_format: `str`. Format of the data, it should be the second part of MIME format of type 'image/',
             for example 'jpeg', 'png', 'gif', 'tiff'.
+        attribute: `array_like`. Array of float attribute for the color mapping, coresponding to each pixels.
+        color_map: `list`. A list of float quadruplets (attribute value, R, G, B), sorted by attribute value. The first
+            quadruplet should have value 0.0, the last 1.0; R, G, B are RGB color components in the range 0.0 to 1.0.
+        color_range: `list`. A pair [min_value, max_value], which determines the levels of color attribute mapped
+            to 0 and 1 in the color map respectively.
         model_matrix: `array_like`. 4x4 model transform matrix.
     """
 
     type = Unicode(default_value='Texture', read_only=True).tag(sync=True)
-    binary = Bytes().tag(sync=True)
-    file_format = Unicode().tag(sync=True)
+    binary = Bytes(allow_none=True).tag(sync=True)
+    file_format = Unicode(allow_none=True).tag(sync=True)
+    attribute = Array().tag(sync=True, **array_serialization)
+    color_map = Array().tag(sync=True, **array_serialization)
+    color_range = ListOrArray(minlen=2, maxlen=2, empty_ok=True).tag(sync=True)
     model_matrix = Array().tag(sync=True, **array_serialization)
 
 

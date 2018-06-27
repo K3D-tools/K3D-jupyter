@@ -217,7 +217,7 @@ def text2d(text, position=(0, 0), color=_default_color, size=1.0, reference_poin
     return Text2d(position=position, reference_point=reference_point, text=text, size=size, color=color)
 
 
-def texture(binary, file_format, **kwargs):
+def texture(binary=None, file_format=None, color_map=basic_color_maps.Rainbow, color_range=(), attribute=(), **kwargs):
     """Create a Texture drawable for displaying 2D raster images in common formats.
 
     By default, the texture image is mapped into the square: -0.5 < x, y < 0.5, z = 1.
@@ -233,10 +233,23 @@ def texture(binary, file_format, **kwargs):
         binary: `bytes`. Image data in a specific format.
         file_format: `str`. Format of the data, it should be the second part of MIME format of type 'image/',
             for example 'jpeg', 'png', 'gif', 'tiff'.
+        attribute: `array_like`. Array of float attribute for the color mapping, coresponding to each pixels.
+        color_map: `list`. A list of float quadruplets (attribute value, R, G, B), sorted by attribute value. The first
+            quadruplet should have value 0.0, the last 1.0; R, G, B are RGB color components in the range 0.0 to 1.0.
+        color_range: `list`. A pair [min_value, max_value], which determines the levels of color attribute mapped
+            to 0 and 1 in the color map respectively.
         kwargs: `dict`. Dictionary arguments to configure transform and model_matrix."""
+
+    color_map = np.array(color_map, np.float32)
+    attribute = np.array(attribute, np.float32)
+    color_range = check_attribute_range(attribute, color_range)
+
     return process_transform_arguments(
         Texture(binary=binary,
-                file_format=file_format),
+                file_format=file_format,
+                color_map=color_map,
+                color_range=color_range,
+                attribute=attribute),
         **kwargs
     )
 

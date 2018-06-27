@@ -20,10 +20,6 @@ require(['K3D'], function (lib) {
         beforeEach(function () {
             this.canvas = TestHelpers.createTestCanvas();
             window.K3DInstance = this.K3D = K3D(ThreeJsProvider, this.canvas, {antialias: false});
-
-            this.K3D.getWorld().renderer.context.getShaderInfoLog = function () {
-                return '';
-            };
         });
 
         afterEach(function () {
@@ -547,6 +543,18 @@ require(['K3D'], function (lib) {
             });
         });
 
+        it('should draw a texture with data', function (done) {
+            var self = this;
+
+            jsonLoader('http://localhost:9001/samples/texture_data.json', function (json) {
+
+                self.K3D.addFrameUpdateListener('after', function () {
+                    TestHelpers.compareCanvasWithExpectedImage(self.K3D, 'texture_data', RESAMBLEThreshold, done);
+                }, true);
+
+                self.K3D.load(json);
+            });
+        });
         it('should draw voxels', function (done) {
             var self = this;
 

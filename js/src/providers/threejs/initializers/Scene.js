@@ -408,13 +408,6 @@ function refreshGrid(grids) {
     });
 }
 
-function turnOffGrid(grids) {
-    Object.keys(grids.planes).forEach(function (axis) {
-        grids.planes[axis][0].obj.visible = false;
-        grids.planes[axis][1].obj.visible = false;
-    }, this);
-}
-
 function raycast(x, y, camera, click, viewMode) {
     /*jshint validthis:true */
     var intersections,
@@ -500,9 +493,11 @@ module.exports = {
         K3D.rebuildSceneData = rebuildSceneData.bind(this, K3D, grids);
         K3D.getSceneBoundingBox = getSceneBoundingBox.bind(this);
         K3D.refreshGrid = refreshGrid.bind(this, grids);
-        K3D.turnOffGrid = turnOffGrid.bind(this, grids);
 
-        Promise.all(K3D.rebuildSceneData()).then(K3D.refreshGrid);
+        Promise.all(K3D.rebuildSceneData()).then(function () {
+            K3D.refreshGrid();
+            K3D.render();
+        });
 
         K3D.on(K3D.events.MOUSE_MOVE, function (coord) {
             if (K3D.parameters.viewMode !== viewModes.view) {

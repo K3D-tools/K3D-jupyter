@@ -501,7 +501,6 @@ function K3D(provider, targetDOMNode, parameters) {
 
     self.setClippingPlanes(self.parameters.clippingPlanes);
     world.setCameraToFitScene(true);
-    self.rebuildSceneData(true);
     self.render();
 }
 
