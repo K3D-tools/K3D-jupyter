@@ -2,6 +2,7 @@
 
 var _ = require('lodash'),
     Text = require('./../objects/Text'),
+    MeshLine = require('./../helpers/THREE.MeshLine'),
     viewModes = require('./../../../core/lib/viewMode').viewModes;
 
 function pow10ceil(x) {
@@ -301,9 +302,7 @@ function rebuildSceneData(K3D, grids, force) {
         // create grids
         Object.keys(grids.planes).forEach(function (axis) {
             grids.planes[axis].forEach(function (plane) {
-                var vertices = [], colors = [],
-                    geometry = new THREE.BufferGeometry(),
-                    material = new THREE.LineBasicMaterial({vertexColors: THREE.VertexColors}),
+                var vertices = [], widths = [], colors = [],
                     iterableAxes = ['x', 'y', 'z'].filter(function (val) {
                         return val !== axis;
                     });
@@ -320,20 +319,33 @@ function rebuildSceneData(K3D, grids, force) {
                         vertices = vertices.concat(p2.toArray());
 
                         if (j % 10 === 0) {
+                            widths.push(1.5, 1.5);
                             colors.push(0.65, 0.65, 0.65);
                             colors.push(0.65, 0.65, 0.65);
                         } else {
-                            colors.push(0.85, 0.85, 0.85);
-                            colors.push(0.85, 0.85, 0.85);
+                            widths.push(1.0, 1.0);
+                            colors.push(0.9, 0.9, 0.9);
+                            colors.push(0.9, 0.9, 0.9);
                         }
                     }
                 }, this);
 
-                geometry.addAttribute('position', new THREE.Float32BufferAttribute(vertices, 3));
-                geometry.addAttribute('color', new THREE.Float32BufferAttribute(colors, 3));
-                geometry.computeBoundingSphere();
-                geometry.computeBoundingBox();
-                plane.obj = new THREE.LineSegments(geometry, material);
+                var line = new MeshLine.MeshLine();
+                var material = new MeshLine.MeshLineMaterial({
+                    color: new THREE.Color(1.0, 1.0, 1.0),
+                    opacity: 0.75,
+                    sizeAttenuation: true,
+                    transparent: true,
+                    lineWidth: minorScale * 0.05,
+                    resolution: new THREE.Vector2(K3D.getWorld().width, K3D.getWorld().height),
+                    side: THREE.DoubleSide
+                });
+
+                line.setGeometry(new Float32Array(vertices), true, widths, colors);
+                line.geometry.computeBoundingSphere();
+                line.geometry.computeBoundingBox();
+
+                plane.obj = new THREE.Mesh(line.geometry, material);
 
                 this.gridScene.add(plane.obj);
             }, this);
@@ -341,7 +353,6 @@ function rebuildSceneData(K3D, grids, force) {
     }
 
     // Dynamic setting far clipping plane
-
     fullSceneBoundingBox = sceneBoundingBox.clone();
     Object.keys(grids.planes).forEach(function (axis) {
         grids.planes[axis].forEach(function (plane) {

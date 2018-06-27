@@ -116,20 +116,29 @@ module.exports = {
      * @param  {THREE.Vector3d} origin
      * @param  {THREE.Vector3d} destination
      * @param  {THREE.Color} headColor
+     * @param  {Number} headHeight
      */
     generateArrow: function (coneGeometry, lineVertices, heads, origin,
-                             destination, headColor) {
+                             destination, headColor, headHeight) {
 
         var axis = new THREE.Vector3(),
-            direction = new THREE.Vector3().subVectors(destination, origin).normalize(),
+            direction = new THREE.Vector3().subVectors(destination, origin),
+            length = direction.length(),
             quaternion = new THREE.Quaternion();
+
+        direction.normalize();
 
         // line
         lineVertices.push(origin.x, origin.y, origin.z);
-        lineVertices.push(destination.x, destination.y, destination.z);
 
         // head
         if (coneGeometry !== null) {
+            var lineDestination = new THREE.Vector3().copy(origin).add(
+                direction.clone().multiplyScalar(length - headHeight)
+            );
+
+            lineVertices.push(lineDestination.x, lineDestination.y, lineDestination.z);
+
             coneGeometry.faces.forEach(function (face) {
                 face.vertexColors.push(headColor, headColor, headColor);
             });
@@ -152,6 +161,8 @@ module.exports = {
             } else {
                 heads.merge(coneGeometry);
             }
+        } else {
+            lineVertices.push(destination.x, destination.y, destination.z);
         }
 
         return heads;

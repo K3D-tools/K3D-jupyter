@@ -1,6 +1,7 @@
 'use strict';
 
 var buffer = require('./../../../core/lib/helpers/buffer'),
+    MeshLine = require('./../helpers/THREE.MeshLine'),
     getTwoColorsArray = require('./../helpers/Fn').getTwoColorsArray,
     generateArrow = require('./../helpers/Fn').generateArrow,
     Text = require('./Text');
@@ -14,11 +15,11 @@ var buffer = require('./../../../core/lib/helpers/buffer'),
  */
 module.exports = function (config, K3D) {
     config.visible = typeof(config.visible) !== 'undefined' ? config.visible : true;
-    config.origin_color =typeof(config.origin_color) !== 'undefined' ? config.origin_color : 255;
+    config.origin_color = typeof(config.origin_color) !== 'undefined' ? config.origin_color : 255;
     config.head_color = typeof(config.head_color) !== 'undefined' ? config.head_color : 255;
     config.use_head = typeof(config.use_head) !== 'undefined' ? config.use_head : true;
     config.head_size = config.head_size || 1.0;
-    config.line_width = config.line_width || 1.0;
+    config.line_width = config.line_width || 0.01;
 
     var originColor = new THREE.Color(config.origin_color),
         headColor = new THREE.Color(config.head_color),
@@ -31,12 +32,12 @@ module.exports = function (config, K3D) {
         origin,
         destination,
         i,
+        resizelistenerId,
         labelSize = config.label_size,
         labels = config.labels,
         labelsObjects = [],
         heads = null,
         singleConeGeometry,
-        linesGeometry = new THREE.BufferGeometry(),
         lineVertices = [];
 
     colors = colors.length > 0 ? buffer.colorsToFloat32Array(colors) :
@@ -63,7 +64,8 @@ module.exports = function (config, K3D) {
             heads,
             origin,
             destination,
-            new THREE.Color(colors[i * 2 + 3], colors[i * 2 + 4], colors[i * 2 + 5])
+            new THREE.Color(colors[i * 2 + 3], colors[i * 2 + 4], colors[i * 2 + 5]),
+            0.2 * headSize
         );
 
         if (labels) {
@@ -79,18 +81,29 @@ module.exports = function (config, K3D) {
         addHeads(heads, object);
     }
 
-    linesGeometry.addAttribute('position', new THREE.BufferAttribute(new Float32Array(lineVertices), 3));
-    linesGeometry.addAttribute('color', new THREE.BufferAttribute(colors, 3));
+    var line = new MeshLine.MeshLine();
+    var material = new MeshLine.MeshLineMaterial({
+        color: new THREE.Color(1, 1, 1),
+        opacity: 1.0,
+        sizeAttenuation: true,
+        transparent: true,
+        lineWidth: config.line_width,
+        resolution: new THREE.Vector2(K3D.getWorld().width, K3D.getWorld().height),
+        side: THREE.DoubleSide
+    });
 
-    linesGeometry.computeBoundingSphere();
-    linesGeometry.computeBoundingBox();
+    line.setGeometry(new Float32Array(lineVertices), true, null, colors);
+    line.geometry.computeBoundingSphere();
+    line.geometry.computeBoundingBox();
 
-    object.add(new THREE.LineSegments(linesGeometry, new THREE.LineBasicMaterial({
-        vertexColors: THREE.VertexColors,
-        linewidth: config.line_width
-    })));
-
+    line = new THREE.Mesh(line.geometry, material);
+    object.add(line);
     object.updateMatrixWorld();
+
+    resizelistenerId = K3D.on(K3D.events.RESIZED, function () {
+        line.material.uniforms.resolution.value.x = K3D.getWorld().width;
+        line.material.uniforms.resolution.value.y = K3D.getWorld().height;
+    });
 
     return Promise.all(labelsObjects).then(function (texts) {
         texts.forEach(function (text) {
@@ -101,6 +114,8 @@ module.exports = function (config, K3D) {
             texts.forEach(function (text) {
                 text.onRemove();
             });
+
+            K3D.off(K3D.events.RESIZED, resizelistenerId);
         };
 
         return object;

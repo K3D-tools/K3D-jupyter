@@ -125,6 +125,7 @@ class Line(Drawable):
         shader: `str`. Display style (name of the shader used) of the lines.
             Legal values are:
             `simple`: simple lines,
+            `thick`: thick lines,
             `mesh`: high precision triangle mesh of segments (high quality and GPU load).
         radial_segments: 'int': Number of segmented faces around the circumference of the tube
         model_matrix: `array_like`. 4x4 model transform matrix.
@@ -399,6 +400,7 @@ class VectorField(Drawable):
         use_head: `bool`. Whether vectors should display an arrow head.
         head_size: `float`. The size of the arrow heads.
         scale: `float`. Scale factor for the vector lengths, for artificially scaling the vectors in place.
+        line_width: `float`. Width of the vector segments.
         model_matrix: `array_like`. 4x4 model transform matrix.
     """
 
@@ -410,6 +412,7 @@ class VectorField(Drawable):
     use_head = Bool().tag(sync=True)
     head_size = Float().tag(sync=True)
     scale = Float().tag(sync=True)
+    line_width = Float().tag(sync=True)
     model_matrix = Array().tag(sync=True, **array_serialization)
 
     @validate('vectors')

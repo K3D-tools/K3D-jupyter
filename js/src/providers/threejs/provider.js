@@ -4,6 +4,9 @@ window.THREE = require('three');
 require('./../../../node_modules/three/examples/js/Detector');
 require('./../../../node_modules/three/examples/js/Octree');
 require('./../../../node_modules/three/examples/js/loaders/STLLoader');
+require('./../../../node_modules/three/examples/js/shaders/CopyShader');
+require('./../../../node_modules/three/examples/js/postprocessing/EffectComposer');
+require('./../../../node_modules/three/examples/js/postprocessing/SSAARenderPass');
 
 require('./helpers/TrackballControls');
 

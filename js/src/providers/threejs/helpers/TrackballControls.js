@@ -606,7 +606,6 @@ THREE.TrackballControls = function (object, domElement) {
     }
 
     this.dispose = function () {
-
         this.domElement.removeEventListener('contextmenu', contextmenu, false);
         this.domElement.removeEventListener('mousedown', mousedown, false);
         this.domElement.removeEventListener('mousewheel', mousewheel, false);
@@ -621,7 +620,6 @@ THREE.TrackballControls = function (object, domElement) {
 
         currentWindow.removeEventListener('keydown', keydown, false);
         currentWindow.removeEventListener('keyup', keyup, false);
-
     };
 
     this.domElement.addEventListener('contextmenu', contextmenu, false);

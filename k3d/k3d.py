@@ -20,8 +20,8 @@ from .helpers import check_attribute_range
 _default_color = 0x0000FF  # blue
 
 
-def line(vertices, color=_default_color, colors=(), attribute=(), color_map=(), color_range=(), width=1,
-         shader='simple', radial_segments=8, **kwargs):
+def line(vertices, color=_default_color, colors=(), attribute=(), color_map=(), color_range=(), width=0.01,
+         shader='thick', radial_segments=8, **kwargs):
     """Create a Line drawable for plotting segments and polylines.
 
     Arguments:
@@ -37,6 +37,7 @@ def line(vertices, color=_default_color, colors=(), attribute=(), color_map=(), 
         shader: `str`. Display style (name of the shader used) of the lines.
             Legal values are:
             `simple`: simple lines,
+            `thick`: thick lines,
             `mesh`: high precision triangle mesh of segments (high quality and GPU load).
         radial_segments: 'int': Number of segmented faces around the circumference of the tube
         width: `float`. Thickness of the lines.
@@ -267,7 +268,7 @@ def texture_text(text, position=(0, 0, 0), color=_default_color, font_weight=400
 def vector_field(vectors,
                  colors=(),
                  origin_color=None, head_color=None, color=_default_color,
-                 use_head=True, head_size=1.0, scale=1.0, **kwargs):
+                 use_head=True, head_size=1.0, scale=1.0, line_width=0.01, **kwargs):
     """Create a VectorField drawable for displaying dense 2D or 3D grids of vectors of same dimensionality.
 
     By default, the origins of the vectors are assumed to be a grid inscribed in the -0.5 < x, y, z < 0.5 cube
@@ -291,12 +292,14 @@ def vector_field(vectors,
         use_head: `bool`. Whether vectors should display an arrow head.
         head_size: `float`. The size of the arrow heads.
         scale: `float`. Scale factor for the vector lengths, for artificially scaling the vectors in place.
+        line_width: `float`. Width of the vector segments.
         kwargs: `dict`. Dictionary arguments to configure transform and model_matrix."""
     return process_transform_arguments(
         VectorField(vectors=vectors,
                     colors=np.array(colors, np.uint32),
                     use_head=use_head,
                     head_size=head_size,
+                    line_width=line_width,
                     head_color=head_color if head_color is not None else color,
                     origin_color=origin_color if origin_color is not None else color,
                     scale=scale),
@@ -309,7 +312,7 @@ def vectors(origins, vectors=None, colors=(),
             origin_color=None, head_color=None, color=_default_color,
             use_head=True, head_size=1.0,
             labels=(), label_size=1.0,
-            line_width=1, **kwargs):
+            line_width=0.01, **kwargs):
     """Create a Vectors drawable representing individual 3D vectors.
 
     The color of the vectors is a gradient from origin_color to head_color. Heads, when used, have uniform head_color.

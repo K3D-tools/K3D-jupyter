@@ -4,7 +4,7 @@ import types
 import codecs
 
 import ipywidgets as widgets
-from traitlets import Unicode, Bool, Int, List
+from traitlets import Unicode, Bool, Int, List, Float
 from IPython.display import display
 
 from ._version import __version__
@@ -21,6 +21,7 @@ class Plot(widgets.DOMWidget):
         background_color: `int`.  Packed RGB color of the plot background (0xff0000 is red, 0xff is blue).
         camera_auto_fit: `bool`. Enable automatic camera setting after adding, removing or changing a plot object.
         grid_auto_fit: `bool`. Enable automatic adjustment of the plot grid to contained objects.
+        screenshot_scale: `Float`. Multipiler to screenshot resolution.
         voxel_paint_color: `int`. The (initial) int value to be inserted when editing voxels.
         grid: `array_like`. 6-element tuple specifying the bounds of the plot grid (x0, y0, z0, x1, y1, z1).
         camera: `array_like`. 9-element list or array specifying camera position.
@@ -45,6 +46,7 @@ class Plot(widgets.DOMWidget):
     # read-write
     camera_auto_fit = Bool(True).tag(sync=True)
     grid_auto_fit = Bool(True).tag(sync=True)
+    screenshot_scale = Float(True).tag(sync=True)
     grid = ListOrArray((-1, -1, -1, 1, 1, 1), minlen=6, maxlen=6).tag(sync=True)
     background_color = Int().tag(sync=True)
     voxel_paint_color = Int().tag(sync=True)
@@ -55,7 +57,7 @@ class Plot(widgets.DOMWidget):
     objects = []
 
     def __init__(self, antialias=True, background_color=0xFFFFFF, camera_auto_fit=True, grid_auto_fit=True, height=512,
-                 voxel_paint_color=0, grid=(-1, -1, -1, 1, 1, 1), *args, **kwargs):
+                 voxel_paint_color=0, grid=(-1, -1, -1, 1, 1, 1), screenshot_scale=2.0, *args, **kwargs):
         super(Plot, self).__init__()
 
         self.antialias = antialias
@@ -64,6 +66,7 @@ class Plot(widgets.DOMWidget):
         self.grid = grid
         self.background_color = background_color
         self.voxel_paint_color = voxel_paint_color
+        self.screenshot_scale = screenshot_scale
         self.height = height
 
         self.object_ids = []

@@ -81,7 +81,7 @@ function K3D(provider, targetDOMNode, parameters) {
 
     function refreshAfterObjectsChange() {
         self.getWorld().setCameraToFitScene();
-        Promise.all(self.rebuildSceneData()).then(self.render);
+        Promise.all(self.rebuildSceneData()).then(self.render.bind(this, null));
     }
 
     this.render = function () {
@@ -116,6 +116,7 @@ function K3D(provider, targetDOMNode, parameters) {
             gridAutoFit: true,
             grid: [-1, -1, -1, 1, 1, 1],
             antialias: true,
+            screenshotScale: 1.0,
             clearColor: {
                 color: 0xffffff,
                 alpha: 1.0
@@ -200,6 +201,15 @@ function K3D(provider, targetDOMNode, parameters) {
                 controller.updateDisplay();
             }
         });
+    };
+
+    /**
+     * Set screenshot scale for K3D
+     * @memberof K3D.Core
+     * @param {Number} scale
+     */
+    this.setScreenshotScale = function (scale) {
+        self.parameters.screenshotScale = scale;
     };
 
     /**
@@ -400,10 +410,11 @@ function K3D(provider, targetDOMNode, parameters) {
     /**
      * Get Screenshot
      * @memberof K3D.Core
+     * @param {Object} scale
      * @returns {Canvas|undefined}
      */
-    this.getScreenshot = function () {
-        return screenshot.getScreenshot(this);
+    this.getScreenshot = function (scale) {
+        return screenshot.getScreenshot(this, scale);
     };
 
     /**
@@ -414,7 +425,13 @@ function K3D(provider, targetDOMNode, parameters) {
         this.disabling = true;
         this.frameUpdateHandlers.before = [];
         this.frameUpdateHandlers.after = [];
+        this.gui.destroy();
         this.autoRendering = false;
+
+        world.K3DObjects.children.forEach(function (obj) {
+            removeObjectFromScene(obj.K3DIdentifier);
+        });
+
         listeners = {};
         currentWindow.removeEventListener('resize', this.resizeHelper);
     };

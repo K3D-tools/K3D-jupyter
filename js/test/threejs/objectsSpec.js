@@ -3,7 +3,7 @@ require(['K3D'], function (lib) {
     var ThreeJsProvider = lib.ThreeJsProvider;
     var jsonLoader = TestHelpers.jsonLoader;
 
-    const RESAMBLEThreshold = 0.22;
+    const RESAMBLEThreshold = 0.15;
 
     describe('Objects tests', function () {
         'use strict';
@@ -24,6 +24,7 @@ require(['K3D'], function (lib) {
 
         afterEach(function () {
             this.K3D.disable();
+            this.K3D = null;
             TestHelpers.removeTestCanvas(this.canvas);
         });
 
@@ -272,6 +273,21 @@ require(['K3D'], function (lib) {
             });
         });
 
+        it('should draw lines with colors and thick', function (done) {
+            var self = this;
+
+            jsonLoader('http://localhost:9001/samples/lines_colors_thick.json', function (json) {
+
+                self.K3D.getWorld().camera.position.z = 15;
+
+                self.K3D.addFrameUpdateListener('after', function () {
+                    TestHelpers.compareCanvasWithExpectedImage(self.K3D, 'lines_colors_thick', RESAMBLEThreshold, done);
+                }, true);
+
+                self.K3D.load(json);
+            });
+        });
+
         it('should draw lines with colors and mesh with proper joints', function (done) {
             var self = this;
 
@@ -314,6 +330,22 @@ require(['K3D'], function (lib) {
                 self.K3D.addFrameUpdateListener('after', function () {
                     TestHelpers.compareCanvasWithExpectedImage(
                         self.K3D, 'lines_colormap_mesh', RESAMBLEThreshold, done);
+                }, true);
+
+                self.K3D.load(json);
+            });
+        });
+
+        it('should draw lines with colormap with thick', function (done) {
+            var self = this;
+
+            jsonLoader('http://localhost:9001/samples/lines_colormap_thick.json', function (json) {
+
+                self.K3D.getWorld().camera.position.z = 15;
+
+                self.K3D.addFrameUpdateListener('after', function () {
+                    TestHelpers.compareCanvasWithExpectedImage(
+                        self.K3D, 'lines_colormap_thick', RESAMBLEThreshold, done);
                 }, true);
 
                 self.K3D.load(json);
@@ -422,7 +454,8 @@ require(['K3D'], function (lib) {
             jsonLoader('http://localhost:9001/samples/vector_field_2d_single_color.json', function (json) {
 
                 self.K3D.addFrameUpdateListener('after', function () {
-                    TestHelpers.compareCanvasWithExpectedImage(self.K3D, 'vector_field_2d', RESAMBLEThreshold, done);
+                    TestHelpers.compareCanvasWithExpectedImage(self.K3D, 'vector_field_2d_single_color',
+                        RESAMBLEThreshold, done);
                 }, true);
 
                 self.K3D.load(json);

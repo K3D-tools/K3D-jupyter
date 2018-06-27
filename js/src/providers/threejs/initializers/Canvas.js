@@ -13,6 +13,9 @@ module.exports = function (K3D) {
         if (K3D.disabling) {
             self.renderer.domElement.removeEventListener('mousemove', onDocumentMouseMove);
             self.renderer.domElement.removeEventListener('mousedown', onDocumentMouseDown);
+            self.renderer.domElement.removeEventListener('mouseup', onDocumentMouseUp);
+            self.controls.dispose();
+
             return;
         }
 

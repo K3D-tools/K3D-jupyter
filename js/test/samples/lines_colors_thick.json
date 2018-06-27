@@ -4,7 +4,7 @@
     {
       "type": "Line",
       "width": 1.0,
-      "shader": "simple",
+      "shader": "thick",
       "model_matrix": [
         1, 0, 0, 0,
         0, 0, -1, 0,
@@ -1219,7 +1219,7 @@
     {
       "type": "Line",
       "width": 1.0,
-      "shader": "simple",
+      "shader": "thick",
       "model_matrix": [
         1, 0, 0, 0,
         0, 0, -1, 0,
@@ -2302,7 +2302,7 @@
     {
       "type": "Line",
       "width": 1.0,
-      "shader": "simple",
+      "shader": "thick",
       "model_matrix": [
         1, 0, 0, 0,
         0, 0, -1, 0,
@@ -3653,7 +3653,7 @@
     {
       "type": "Line",
       "width": 1.0,
-      "shader": "simple",
+      "shader": "thick",
       "model_matrix": [
         1, 0, 0, 0,
         0, 0, -1, 0,
@@ -5700,7 +5700,7 @@
     {
       "type": "Line",
       "width": 1.0,
-      "shader": "simple",
+      "shader": "thick",
       "model_matrix": [
         1, 0, 0, 0,
         0, 0, -1, 0,
@@ -6971,7 +6971,7 @@
     {
       "type": "Line",
       "width": 1.0,
-      "shader": "simple",
+      "shader": "thick",
       "model_matrix": [
         1, 0, 0, 0,
         0, 0, -1, 0,
@@ -8022,7 +8022,7 @@
     {
       "type": "Line",
       "width": 1.0,
-      "shader": "simple",
+      "shader": "thick",
       "model_matrix": [
         1, 0, 0, 0,
         0, 0, -1, 0,
@@ -9037,7 +9037,7 @@
     {
       "type": "Line",
       "width": 1.0,
-      "shader": "simple",
+      "shader": "thick",
       "model_matrix": [
         1, 0, 0, 0,
         0, 0, -1, 0,
@@ -9736,7 +9736,7 @@
     {
       "type": "Line",
       "width": 1.0,
-      "shader": "simple",
+      "shader": "thick",
       "model_matrix": [
         1, 0, 0, 0,
         0, 0, -1, 0,
@@ -11227,7 +11227,7 @@
     {
       "type": "Line",
       "width": 1.0,
-      "shader": "simple",
+      "shader": "thick",
       "model_matrix": [
         1, 0, 0, 0,
         0, 0, -1, 0,
@@ -12718,7 +12718,7 @@
     {
       "type": "Line",
       "width": 1.0,
-      "shader": "simple",
+      "shader": "thick",
       "model_matrix": [
         1, 0, 0, 0,
         0, 0, -1, 0,
@@ -13469,7 +13469,7 @@
     {
       "type": "Line",
       "width": 1.0,
-      "shader": "simple",
+      "shader": "thick",
       "model_matrix": [
         1, 0, 0, 0,
         0, 0, -1, 0,
@@ -14352,7 +14352,7 @@
     {
       "type": "Line",
       "width": 1.0,
-      "shader": "simple",
+      "shader": "thick",
       "model_matrix": [
         1, 0, 0, 0,
         0, 0, -1, 0,
@@ -15527,7 +15527,7 @@
     {
       "type": "Line",
       "width": 1.0,
-      "shader": "simple",
+      "shader": "thick",
       "model_matrix": [
         1, 0, 0, 0,
         0, 0, -1, 0,
@@ -15974,7 +15974,7 @@
     {
       "type": "Line",
       "width": 1.0,
-      "shader": "simple",
+      "shader": "thick",
       "model_matrix": [
         1, 0, 0, 0,
         0, 0, -1, 0,
@@ -16005,7 +16005,7 @@
     {
       "type": "Line",
       "width": 1.0,
-      "shader": "simple",
+      "shader": "thick",
       "model_matrix": [
         1, 0, 0, 0,
         0, 0, -1, 0,
@@ -17412,7 +17412,7 @@
     {
       "type": "Line",
       "width": 1.0,
-      "shader": "simple",
+      "shader": "thick",
       "model_matrix": [
         1, 0, 0, 0,
         0, 0, -1, 0,
@@ -18399,7 +18399,7 @@
     {
       "type": "Line",
       "width": 1.0,
-      "shader": "simple",
+      "shader": "thick",
       "model_matrix": [
         1, 0, 0, 0,
         0, 0, -1, 0,
@@ -19622,7 +19622,7 @@
     {
       "type": "Line",
       "width": 1.0,
-      "shader": "simple",
+      "shader": "thick",
       "model_matrix": [
         1, 0, 0, 0,
         0, 0, -1, 0,
@@ -20657,7 +20657,7 @@
     {
       "type": "Line",
       "width": 1.0,
-      "shader": "simple",
+      "shader": "thick",
       "model_matrix": [
         1, 0, 0, 0,
         0, 0, -1, 0,
@@ -20856,7 +20856,7 @@
     {
       "type": "Line",
       "width": 1.0,
-      "shader": "simple",
+      "shader": "thick",
       "model_matrix": [
         1, 0, 0, 0,
         0, 0, -1, 0,
@@ -22327,7 +22327,7 @@
     {
       "type": "Line",
       "width": 1.0,
-      "shader": "simple",
+      "shader": "thick",
       "model_matrix": [
         1, 0, 0, 0,
         0, 0, -1, 0,
@@ -23678,7 +23678,7 @@
     {
       "type": "Line",
       "width": 1.0,
-      "shader": "simple",
+      "shader": "thick",
       "model_matrix": [
         1, 0, 0, 0,
         0, 0, -1, 0,
@@ -24213,7 +24213,7 @@
     {
       "type": "Line",
       "width": 1.0,
-      "shader": "simple",
+      "shader": "thick",
       "model_matrix": [
         1, 0, 0, 0,
         0, 0, -1, 0,
@@ -25104,7 +25104,7 @@
     {
       "type": "Line",
       "width": 1.0,
-      "shader": "simple",
+      "shader": "thick",
       "model_matrix": [
         1, 0, 0, 0,
         0, 0, -1, 0,
@@ -25139,7 +25139,7 @@
     {
       "type": "Line",
       "width": 1.0,
-      "shader": "simple",
+      "shader": "thick",
       "model_matrix": [
         1, 0, 0, 0,
         0, 0, -1, 0,

@@ -37,8 +37,8 @@ module.exports = function (K3D) {
     var gl = self.renderer.context;
 
     var debugInfo = gl.getExtension('WEBGL_debug_renderer_info');
-    console.log("K3D: (UNMASKED_VENDOR_WEBGL)", gl.getParameter(debugInfo.UNMASKED_VENDOR_WEBGL));
-    console.log("K3D: (UNMASKED_RENDERER_WEBGL)", gl.getParameter(debugInfo.UNMASKED_RENDERER_WEBGL));
+    console.log('K3D: (UNMASKED_VENDOR_WEBGL)', gl.getParameter(debugInfo.UNMASKED_VENDOR_WEBGL));
+    console.log('K3D: (UNMASKED_RENDERER_WEBGL)', gl.getParameter(debugInfo.UNMASKED_RENDERER_WEBGL));
 
     function render() {
         if (K3D.disabling) {
@@ -48,8 +48,8 @@ module.exports = function (K3D) {
         K3D.frameUpdateHandlers.before.forEach(handleListeners.bind(null, K3D, 'before'));
 
         K3D.refreshGrid();
-
         self.renderer.clear();
+
         self.renderer.clippingPlanes = [];
 
         self.renderer.render(self.gridScene, self.camera);
@@ -79,5 +79,35 @@ module.exports = function (K3D) {
             loop = true;
             render();
         }
+    };
+
+    this.renderOffScreen = function (width, height) {
+        function getArrayFromRenderTarget(rt) {
+            var array = new Uint8Array(width * height * 4);
+
+            self.renderer.readRenderTargetPixels(rt, 0, 0, width, height, array);
+            return new Uint8ClampedArray(array, width, height);
+        }
+
+        var ssaaRenderPass;
+        var rt = new THREE.WebGLRenderTarget(width, height);
+
+        self.renderer.clearTarget(rt, true, true, true);
+
+        ssaaRenderPass = new THREE.SSAARenderPass(self.gridScene, self.camera);
+        ssaaRenderPass.sampleLevel = 5;
+        ssaaRenderPass.setSize(width, height);
+        ssaaRenderPass.render(self.renderer, rt, rt);
+        var grid = getArrayFromRenderTarget(rt);
+
+        ssaaRenderPass = new THREE.SSAARenderPass(self.scene, self.camera);
+        ssaaRenderPass.sampleLevel = 5;
+        ssaaRenderPass.setSize(width, height);
+        ssaaRenderPass.render(self.renderer, rt, rt);
+        var scene = getArrayFromRenderTarget(rt);
+
+        rt.dispose();
+
+        return [grid, scene];
     };
 };

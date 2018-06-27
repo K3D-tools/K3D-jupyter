@@ -113,7 +113,7 @@ PlotView = widgets.DOMWidgetView.extend({
             var model = this.model;
 
             if (obj.msg_type === 'fetch_screenshot') {
-                getScreenshot(this.K3DInstance).then(function (canvas) {
+                getScreenshot(this.K3DInstance, this.K3DInstance.parameters.screenshotScale).then(function (canvas) {
                     var data = canvas.toDataURL().split(',')[1];
 
                     // todo
@@ -124,6 +124,7 @@ PlotView = widgets.DOMWidgetView.extend({
         }, this);
         this.model.on('change:camera_auto_fit', this._setCameraAutoFit, this);
         this.model.on('change:grid_auto_fit', this._setGridAutoFit, this);
+        this.model.on('change:screenshot_scale', this._setScreenshotScale, this);
         this.model.on('change:voxel_paint_color', this._setVoxelPaintColor, this);
         this.model.on('change:background_color', this._setBackgroundColor, this);
         this.model.on('change:grid', this._setGrid, this);
@@ -134,7 +135,8 @@ PlotView = widgets.DOMWidgetView.extend({
         try {
             this.K3DInstance = new K3D(ThreeJsProvider, this.container, {
                 antialias: this.model.get('antialias'),
-                backendVersion: this.model.get('_view_module_version')
+                backendVersion: this.model.get('_view_module_version'),
+                screenshotScale: this.model.get('screenshot_scale')
             });
         } catch (e) {
             return;
@@ -184,6 +186,10 @@ PlotView = widgets.DOMWidgetView.extend({
 
     _setGridAutoFit: function () {
         this.K3DInstance.setGridAutoFit(this.model.get('grid_auto_fit'));
+    },
+
+    _setScreenshotScale: function () {
+        this.K3DInstance.setScreenshotScale(this.model.get('screenshot_scale'));
     },
 
     _setVoxelPaintColor: function () {

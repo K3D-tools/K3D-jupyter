@@ -84,7 +84,7 @@ window.TestHelpers.compareCanvasWithExpectedImage =
 
         xhrLoad.onreadystatechange = function () {
             if (xhrLoad.readyState === 4) {
-                K3D.getScreenshot().then(function (canvas) {
+                K3D.getScreenshot(1.0).then(function (canvas) {
 
                     var saveRender = function () {
                             var xhrSave = new XMLHttpRequest();
@@ -162,5 +162,6 @@ window.TestHelpers.compareCanvasWithExpectedImage =
 
         xhrLoad.open('GET', 'http://localhost:9001/screenshots/' + expectedImagePath + '.png', true);
         xhrLoad.withCredentials = true;
+        xhrLoad.overrideMimeType("text/plain");
         xhrLoad.send(null);
     };
