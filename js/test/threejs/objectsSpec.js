@@ -20,6 +20,10 @@ require(['K3D'], function (lib) {
         beforeEach(function () {
             this.canvas = TestHelpers.createTestCanvas();
             window.K3DInstance = this.K3D = K3D(ThreeJsProvider, this.canvas, {antialias: false});
+
+            this.K3D.getWorld().renderer.context.getShaderInfoLog = function () {
+                return ''
+            };
         });
 
         afterEach(function () {
