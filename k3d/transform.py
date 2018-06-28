@@ -53,8 +53,8 @@ class Transform(object):
             value = np.array(value).reshape(3, 1)
         elif key == 'rotation':
             value = np.array(value).reshape(4)
-            if not -1 <= value[0] <= 1:
-                raise ValueError('Cosine of Theta/2 oustide of [-1; 1] range')
+            value[0] = np.cos(value[0] / 2)
+
             norm = np.linalg.norm(value[1:4])
             needed_norm = np.sqrt(1 - value[0] * value[0])
             if abs(norm - needed_norm) > _epsilon:
@@ -117,9 +117,12 @@ class Transform(object):
         else:
             scaling_matrix = np.identity(4)
 
-        self.model_matrix = reduce(np.dot, [
-            fit_matrix, translation_matrix, rotation_matrix, scaling_matrix, self.custom_matrix, self.parent_matrix
-        ])
+        new_matrix = np.identity(4)
+        for matrix in [translation_matrix, rotation_matrix, scaling_matrix, fit_matrix, self.custom_matrix,
+                       self.parent_matrix]:
+            new_matrix = np.dot(new_matrix, matrix)
+
+        self.model_matrix = new_matrix
 
     def _add_child(self, transform):
         self.children.append(weakref.ref(transform))
