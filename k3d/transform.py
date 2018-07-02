@@ -118,9 +118,9 @@ class Transform(object):
             scaling_matrix = np.identity(4)
 
         new_matrix = np.identity(4)
-        for matrix in [translation_matrix, rotation_matrix, scaling_matrix, fit_matrix, self.custom_matrix,
-                       self.parent_matrix]:
-            new_matrix = np.dot(new_matrix, matrix)
+        self.model_matrix = reduce(np.dot, [
+            translation_matrix, rotation_matrix, scaling_matrix, fit_matrix, self.custom_matrix, self.parent_matrix
+        ])
 
         self.model_matrix = new_matrix
 

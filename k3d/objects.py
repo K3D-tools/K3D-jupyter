@@ -31,6 +31,7 @@ class Drawable(widgets.CoreWidget):
 
     id = Integer().tag(sync=True)
     visible = Bool(True).tag(sync=True)
+    compression_level = Integer().tag(sync=True)
 
     def __init__(self, **kwargs):
         self.id = id(self)

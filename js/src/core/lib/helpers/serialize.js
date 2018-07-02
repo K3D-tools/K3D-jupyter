@@ -1,6 +1,7 @@
 'use strict';
 
 var _ = require('lodash'),
+    pako = require('pako'),
     typesToArray = {
         int8: Int8Array,
         int16: Int16Array,
@@ -11,7 +12,6 @@ var _ = require('lodash'),
         float32: Float32Array,
         float64: Float64Array
     };
-
 
 // Inpspiration from https://github.com/maartenbreddels/ipyvolume/blob/master/js/src/serialize.js
 // and https://github.com/jupyter-widgets/ipywidgets/blob/master/jupyter-widgets-base/test/src/dummy-manager.ts
@@ -27,6 +27,11 @@ function deserialize_array_or_json(obj) {
         if (typeof (obj.buffer) !== 'undefined') {
             return {
                 buffer: new typesToArray[obj.dtype](obj.buffer.buffer),
+                shape: obj.shape
+            };
+        } else if (typeof (obj.compressed_buffer) !== 'undefined') {
+            return {
+                buffer: new typesToArray[obj.dtype](pako.inflate(obj.compressed_buffer.buffer).buffer),
                 shape: obj.shape
             };
         } else {

@@ -5,6 +5,7 @@ Utilities module.
 import os
 import numpy as np
 import itertools
+import zlib
 
 
 # pylint: disable=unused-argument
@@ -22,7 +23,11 @@ def array_to_binary(ar, obj=None, force_contiguous=True):
     if force_contiguous and not ar.flags["C_CONTIGUOUS"]:  # make sure it's contiguous
         ar = np.ascontiguousarray(ar)
 
-    return {'buffer': memoryview(ar), 'dtype': str(ar.dtype), 'shape': ar.shape}
+    if obj.compression_level > 0:
+        return {'compressed_buffer': zlib.compress(memoryview(ar), obj.compression_level), 'dtype': str(ar.dtype),
+                'shape': ar.shape}
+    else:
+        return {'buffer': memoryview(ar), 'dtype': str(ar.dtype), 'shape': ar.shape}
 
 
 # noinspection PyUnusedLocal
@@ -85,7 +90,7 @@ def map_colors(attribute, color_map, color_range=()):
     map_array = np.asarray(color_map)
     map_array = map_array.reshape((map_array.size // 4, 4))
     attribute = (attribute - a_min) / (a_max - a_min)  # normalizing attribute for range lookup
-    red, green, blue = [np.array(255 * np.interp(attribute, xp=map_array[:, 0], fp=map_array[:, i+1]), dtype=np.int32)
+    red, green, blue = [np.array(255 * np.interp(attribute, xp=map_array[:, 0], fp=map_array[:, i + 1]), dtype=np.int32)
                         for i in range(3)]
     colors = (red << 16) + (green << 8) + blue
     return colors
