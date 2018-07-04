@@ -61,6 +61,7 @@ class Transform(object):
                 if norm < _epsilon:
                     raise ValueError('Norm of (x, y, z) part of quaternion too close to zero')
                 value[1:4] = value[1:4] / norm * needed_norm
+            # assert abs(np.linalg.norm(value) - 1.0) < _epsilon
         elif key == 'scaling':
             value = np.array(value).reshape(3)
         elif key in ['parent_matrix', 'custom_matrix', 'model_matrix']:
@@ -106,7 +107,7 @@ class Transform(object):
             rotation_matrix = np.array([
                 [a * a + b * b - c * c - d * d, 2 * (b * c - a * d), 2 * (b * d + a * c), 0.],
                 [2 * (b * c + a * d), a * a - b * b + c * c - d * d, 2 * (c * d - a * b), 0.],
-                [2 * (b * d - a * c), 2 * (c * d - a * b), a * a - b * b - c * c + d * d, 0.],
+                [2 * (b * d - a * c), 2 * (c * d + a * b), a * a - b * b - c * c + d * d, 0.],
                 [0., 0., 0., 1.]
             ])
         else:
