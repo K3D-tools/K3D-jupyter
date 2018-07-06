@@ -73,6 +73,11 @@ class Transform(object):
             self._recompute_matrix()
             self._notify_dependants()
 
+    def __repr__(self):
+        return 'Transform(bounds={!r}, translation={!r}, rotation={!r}, scaling={!r})'.format(
+            self.bounds, self.translation, self.rotation, self.scaling
+        )
+
     def _recompute_matrix(self):
         # this method shouldn't modify any fields except self.model_matrix
 
