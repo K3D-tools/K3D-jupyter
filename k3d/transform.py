@@ -123,12 +123,9 @@ class Transform(object):
         else:
             scaling_matrix = np.identity(4)
 
-        new_matrix = np.identity(4)
         self.model_matrix = reduce(np.dot, [
             translation_matrix, rotation_matrix, scaling_matrix, fit_matrix, self.custom_matrix, self.parent_matrix
         ])
-
-        self.model_matrix = new_matrix
 
     def _add_child(self, transform):
         self.children.append(weakref.ref(transform))
