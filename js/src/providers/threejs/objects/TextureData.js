@@ -9,7 +9,7 @@ var lut = require('./../../../core/lib/helpers/lut');
  * @param {Object} config all configurations params from JSON
  * @return {Object} 3D object ready to render
  */
-module.exports = function (config) {
+module.exports = function (config, K3D) {
     return new Promise(function (resolve) {
         var geometry = new THREE.PlaneBufferGeometry(1, 1),
             modelMatrix = new THREE.Matrix4(),
@@ -21,9 +21,10 @@ module.exports = function (config) {
         texture = new THREE.DataTexture(new Float32Array(config.attribute.buffer),
             config.attribute.shape[1], config.attribute.shape[0], THREE.LuminanceFormat, THREE.FloatType);
 
-        texture.minFilter = THREE.LinearFilter;
+        texture.minFilter = THREE.NearestFilter; //LinearMipMapLinearFilter
         texture.magFilter = THREE.LinearFilter;
         texture.generateMipmaps = false;
+        texture.anisotropy =  K3D.getWorld().renderer.capabilities.getMaxAnisotropy();
         texture.needsUpdate = true;
 
         var canvas = lut(colorMap, 1024);

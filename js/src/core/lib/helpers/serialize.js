@@ -17,6 +17,8 @@ var _ = require('lodash'),
 // and https://github.com/jupyter-widgets/ipywidgets/blob/master/jupyter-widgets-base/test/src/dummy-manager.ts
 
 function deserialize_array_or_json(obj) {
+    var buffer;
+
     if (obj == null) {
         return null;
     }
@@ -25,13 +27,19 @@ function deserialize_array_or_json(obj) {
         return obj;
     } else { // should be an array of buffer+dtype+shape
         if (typeof (obj.buffer) !== 'undefined') {
+            console.log('K3D: Receive: ' + obj.buffer.byteLength + ' bytes');
             return {
                 buffer: new typesToArray[obj.dtype](obj.buffer.buffer),
                 shape: obj.shape
             };
         } else if (typeof (obj.compressed_buffer) !== 'undefined') {
+            buffer = new typesToArray[obj.dtype](pako.inflate(obj.compressed_buffer.buffer).buffer);
+
+            console.log('K3D: Receive: ' + buffer.byteLength + ' bytes compressed to ' +
+                obj.compressed_buffer.byteLength + ' bytes');
+
             return {
-                buffer: new typesToArray[obj.dtype](pako.inflate(obj.compressed_buffer.buffer).buffer),
+                buffer: buffer,
                 shape: obj.shape
             };
         } else {
