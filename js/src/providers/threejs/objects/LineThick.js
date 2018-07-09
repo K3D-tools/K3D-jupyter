@@ -52,7 +52,7 @@ module.exports = function (config, K3D) {
             uvs[i] = (attribute[i] - colorRange[0]) / (colorRange[1] - colorRange[0]);
         }
     } else {
-        colors = ( verticesColors && verticesColors.length === position.length / 3 ?
+        colors = (verticesColors && verticesColors.length === position.length / 3 ?
                 colorsToFloat32Array(verticesColors) : getColorsArray(color, position.length / 3)
         );
     }
@@ -77,6 +77,10 @@ module.exports = function (config, K3D) {
 
     object.onRemove = function () {
         K3D.off(K3D.events.RESIZED, resizelistenerId);
+        if (object.material.uniforms.map.value) {
+            object.material.uniforms.map.value.dispose();
+            object.material.uniforms.map.value = undefined;
+        }
     };
 
     return Promise.resolve(object);

@@ -10,7 +10,7 @@ function getScreenshot(K3D, scale) {
     return new Promise(function (resolve, reject) {
         var finalCanvas = document.createElement('canvas'),
             finalCanvasCtx = finalCanvas.getContext('2d'),
-            clearColor = K3D.parameters.clearColor.color,
+            clearColor = K3D.parameters.clearColor,
             world = K3D.getWorld(),
             canvas3d = world.renderer.domElement,
             renderPromise;

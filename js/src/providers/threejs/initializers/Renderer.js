@@ -71,7 +71,7 @@ module.exports = function (K3D) {
         }
     }
 
-    this.renderer.setClearColor(0xffffff, 1);
+    this.renderer.setClearColor(0, 0);
     this.renderer.autoClear = false;
 
     this.render = function () {

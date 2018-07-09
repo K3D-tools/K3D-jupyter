@@ -16,7 +16,7 @@ function objectGUIProvider(K3D, json, objects) {
         for (var i = 0; i < K3D.gui_map[json.id].__controllers.length; i++) {
             var controller = K3D.gui_map[json.id].__controllers[i];
 
-            if (controller.property === param) {
+            if (controller.property === param || controller.property.indexOf('_' + param) !== -1) {
                 controller.object = json;
                 controller.updateDisplay();
 
@@ -58,6 +58,10 @@ function objectGUIProvider(K3D, json, objects) {
         'font_size', 'font_weight', 'size', 'point_size', 'level'];
 
     _.keys(json).forEach(function (param) {
+            if (param[0] === '_') {
+                return;
+            }
+
             if (tryUpdate(json, param)) {
                 return;
             }
@@ -119,6 +123,20 @@ function objectGUIProvider(K3D, json, objects) {
                             change.bind(this, json, param));
                     }
                     break;
+                case 'color_range':
+                    json['_' + param + '_low'] = json[param][0];
+                    json['_' + param + '_high'] = json[param][1];
+
+                    K3D.gui_map[json.id].add(json, '_' + param + '_low').name('vmin').onChange(
+                        function (value) {
+                            json.color_range[0] = value;
+                            change(json, 'color_range', json.color_range)
+                        });
+                    K3D.gui_map[json.id].add(json, '_' + param + '_high').name('vmax').onChange(
+                        function (value) {
+                            json.color_range[1] = value;
+                            change(json, 'color_range', json.color_range)
+                        });
             }
         }
     );

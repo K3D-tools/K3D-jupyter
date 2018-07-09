@@ -104,7 +104,8 @@ function K3D(provider, targetDOMNode, parameters) {
         'width: 100%',
         'height: 100%',
         'pointer-events: none',
-        'overflow: hidden'
+        'overflow: hidden',
+        'z-index: 1'
     ].join(';');
 
     world.targetDOMNode.appendChild(world.overlayDOMNode);
@@ -117,10 +118,7 @@ function K3D(provider, targetDOMNode, parameters) {
             grid: [-1, -1, -1, 1, 1, 1],
             antialias: true,
             screenshotScale: 1.0,
-            clearColor: {
-                color: 0xffffff,
-                alpha: 1.0
-            },
+            clearColor: 0xffffff,
             clippingPlanes: [],
             guiVersion: require('./../../package.json').version
         },
@@ -254,14 +252,11 @@ function K3D(provider, targetDOMNode, parameters) {
      * Set clear color in renderer
      * @memberof K3D.Core
      * @param color {Number}
-     * @param alpha {Number}
      */
-    this.setClearColor = function (color, alpha) {
-        self.parameters.clearColor.color = color;
-        self.parameters.clearColor.alpha = alpha;
-
-        world.renderer.setClearColor(color, alpha);
-        self.render();
+    this.setClearColor = function (color) {
+        self.parameters.clearColor = color;
+        color = parseInt(color, 10) + 0x1000000;
+        world.targetDOMNode.style.backgroundColor = '#' + color.toString(16).substr(1);
     };
 
     this.on = function (eventName, listener) {
@@ -312,6 +307,11 @@ function K3D(provider, targetDOMNode, parameters) {
                 object.geometry = undefined;
             }
 
+            if (object.material && object.material.map) {
+                object.material.map.dispose();
+                object.material.map = undefined;
+            }
+
             if (object.material) {
                 object.material.dispose();
                 object.material = undefined;
@@ -320,11 +320,6 @@ function K3D(provider, targetDOMNode, parameters) {
             if (object.mesh) {
                 object.mesh.dispose();
                 object.mesh = undefined;
-            }
-
-            if (object.texture) {
-                object.texture.dispose();
-                object.texture = undefined;
             }
 
             object = undefined;
@@ -460,6 +455,7 @@ function K3D(provider, targetDOMNode, parameters) {
         'color: black',
         'top: 0',
         'right: 0',
+        'z-index: 20',
         'height: ' + targetDOMNode.clientHeight + 'px'
     ].join(';');
     world.targetDOMNode.appendChild(guiContainer);
@@ -502,6 +498,8 @@ function K3D(provider, targetDOMNode, parameters) {
     self.setClippingPlanes(self.parameters.clippingPlanes);
     world.setCameraToFitScene(true);
     self.render();
+
+    world.targetDOMNode.className += " k3d-target"
 }
 
 function isSupportedUpdateListener(when) {

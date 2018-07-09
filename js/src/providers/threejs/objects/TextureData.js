@@ -55,6 +55,13 @@ module.exports = function (config, K3D) {
         object.applyMatrix(modelMatrix);
         object.updateMatrixWorld();
 
+        object.onRemove = function () {
+            object.material.uniforms.texture.value.dispose();
+            object.material.uniforms.texture.value = undefined;
+            object.material.uniforms.colormap.value.dispose();
+            object.material.uniforms.colormap.value = undefined;
+        };
+
         resolve(object);
     });
 };
