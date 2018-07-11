@@ -5,7 +5,6 @@ var widgets = require('@jupyter-widgets/controls'),
     K3D = require('./core/Core'),
     serialize = require('./core/lib/helpers/serialize'),
     ThreeJsProvider = require('./providers/threejs/provider'),
-    getScreenshot = require('./core/lib/screenshot').getScreenshot,
     PlotModel,
     PlotView,
     ObjectModel,
@@ -113,7 +112,7 @@ PlotView = widgets.DOMWidgetView.extend({
             var model = this.model;
 
             if (obj.msg_type === 'fetch_screenshot') {
-                getScreenshot(this.K3DInstance, this.K3DInstance.parameters.screenshotScale).then(function (canvas) {
+                this.K3DInstance.getScreenshot(K3DInstance.parameters.screenshotScale).then(function (canvas) {
                     var data = canvas.toDataURL().split(',')[1];
 
                     // todo

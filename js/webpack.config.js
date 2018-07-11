@@ -83,9 +83,9 @@ module.exports = [
         output: {
             filename: 'index.js',
             path: __dirname + '/dist/',
-            library: "K3D",
+            library: "k3d",
             libraryTarget: 'amd',
-            publicPath: 'https://unpkg.com/K3D@' + version + '/dist/'
+            publicPath: 'https://unpkg.com/k3d@' + version + '/dist/'
         },
         devtool: 'source-map',
         module: {
@@ -93,5 +93,20 @@ module.exports = [
         },
         plugins: plugins,
         externals: ['@jupyter-widgets/controls']
+    },
+    {
+        entry: './src/standalone.js',
+        output: {
+            filename: 'standalone.js',
+            path: __dirname + '/dist/',
+            library: "k3d",
+            libraryTarget: 'amd',
+            publicPath: 'https://unpkg.com/k3d@' + version + '/dist/'
+        },
+        devtool: 'source-map',
+        module: {
+            rules: rules
+        },
+        plugins: plugins
     }
 ];

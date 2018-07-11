@@ -3,8 +3,11 @@
 'use strict';
 var viewModes = require('./lib/viewMode').viewModes,
     loader = require('./lib/Loader'),
+    msgpack = require('msgpack-lite'),
+    pako = require('pako'),
     _ = require('lodash'),
     screenshot = require('./lib/screenshot'),
+    snapshot = require('./lib/snapshot'),
     dat = require('dat.gui'),
     resetCameraGUI = require('./lib/resetCamera'),
     detachWindowGUI = require('./lib/detachWindow'),
@@ -117,7 +120,7 @@ function K3D(provider, targetDOMNode, parameters) {
             gridAutoFit: true,
             grid: [-1, -1, -1, 1, 1, 1],
             antialias: true,
-            screenshotScale: 1.0,
+            screenshotScale: 5.0,
             clearColor: 0xffffff,
             clippingPlanes: [],
             guiVersion: require('./../../package.json').version
@@ -126,10 +129,6 @@ function K3D(provider, targetDOMNode, parameters) {
     );
 
     this.autoRendering = false;
-
-    if (typeof (this.parameters.ObjectsListJson) !== 'undefined') {
-        world.ObjectsListJson = this.parameters.ObjectsListJson;
-    }
 
     /**
      * Set autoRendering state
@@ -326,8 +325,6 @@ function K3D(provider, targetDOMNode, parameters) {
         } else {
             throw new Error('Object with id ' + id + ' dosen\'t exists');
         }
-
-        delete world.ObjectsListJson[id];
     }
 
     /**
@@ -337,6 +334,7 @@ function K3D(provider, targetDOMNode, parameters) {
      */
     this.removeObject = function (id) {
         removeObjectFromScene(id);
+        delete world.ObjectsListJson[id];
         dispatch(self.events.OBJECT_REMOVED, id);
         refreshAfterObjectsChange();
     };
@@ -413,6 +411,29 @@ function K3D(provider, targetDOMNode, parameters) {
     };
 
     /**
+     * Get snapshot
+     * @memberof K3D.Core
+     * @returns {String|undefined}
+     */
+    this.getSnapshot = function () {
+        return pako.deflate(msgpack.encode(_.values(world.ObjectsListJson)), {to: 'string'});
+    };
+
+    /**
+     * Set snapshot
+     * @memberof K3D.Core
+     * @param {String} data
+     * @returns {Object|undefined}
+     */
+    this.setSnapshot = function (data) {
+        var objects = msgpack.decode(pako.inflate(data));
+
+        self.load({objects: objects});
+
+        return data;
+    };
+
+    /**
      * Destroy logic for current instance. Will remove listeners (browser and owned)
      * @memberof K3D.Core
      */
@@ -425,6 +446,7 @@ function K3D(provider, targetDOMNode, parameters) {
 
         world.K3DObjects.children.forEach(function (obj) {
             removeObjectFromScene(obj.K3DIdentifier);
+            delete world.ObjectsListJson[obj.K3DIdentifier];
         });
 
         listeners = {};
@@ -466,6 +488,7 @@ function K3D(provider, targetDOMNode, parameters) {
     GUI.info = this.gui.addFolder('Info');
 
     screenshot.screenshotGUI(GUI.controls, this);
+    snapshot.snapshotGUI(GUI.controls, this);
     resetCameraGUI(GUI.controls, this);
 
     if (currentWindow === window) {
