@@ -363,7 +363,7 @@ function rebuildSceneData(K3D, grids, force) {
     fullSceneDiameter = fullSceneBoundingBox.getSize(new THREE.Vector3()).length();
 
     this.camera.far = fullSceneDiameter * 10;
-    this.camera.near = fullSceneDiameter * 0.01;
+    this.camera.near = fullSceneDiameter * 0.001;
     this.camera.updateProjectionMatrix();
 
     // Dynamic setting lights

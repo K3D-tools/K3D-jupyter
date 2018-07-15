@@ -378,10 +378,6 @@ function K3D(provider, targetDOMNode, parameters) {
 
         loader(self, {objects: [json]}).then(function (objects) {
             objects.forEach(function (object) {
-                if (world.ObjectsListJson[object.id]) {
-                    removeObjectFromScene(object.id);
-                }
-
                 objectGUIProvider(self, object, objects);
                 world.ObjectsListJson[object.id] = object;
             });
