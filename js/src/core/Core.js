@@ -281,12 +281,19 @@ function K3D(provider, targetDOMNode, parameters) {
     };
 
     /**
-     * Add object to K3D objects in current world
+     * Add or update object to K3D objects in current world
      * @memberof K3D.Core
      * @param {Object} object
+     * @param {Object} K3DObject
      */
-    this.addObject = function (object) {
-        world.K3DObjects.add(object);
+    this.addOrUpdateObject = function (object, K3DObject) {
+        try {
+            removeObjectFromScene(object.id);
+        } catch (e) {
+
+        }
+
+        world.K3DObjects.add(K3DObject);
 
         return objectIndex++;
     };
