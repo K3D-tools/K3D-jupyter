@@ -29,11 +29,24 @@ class Transform(object):
     """
 
     def __init__(self, bounds=None, translation=None, rotation=None, scaling=None, custom_matrix=None, parent=None):
+        """
+        Transform constructor.
+
+        :param bounds: List[float] (xmin, xmax, ymin, ymax, zmin, zmax)
+        :param translation: List[float] (dx, dy, dz) - translation vector
+        :param rotation: List[float] (gamma, axis_x, axis_y, axis_z) - angle in radians, then rotation axis vector
+        :param scaling: List[float] (s_x, s_y, s_z) - 3 scaling coefficients
+        :param custom_matrix: np.array - 4x4 arbitrary transform matrix
+        :param parent: `Transform` optional parent transform, which is applied before this transform
+        """
+
         self.bounds = bounds
         self.translation = translation
         self.rotation = rotation
         self.scaling = scaling
         self.parent = parent
+        if parent is not None:
+            parent._add_child(self)
         self.drawables = []
         self.children = []
         self.parent_matrix = parent.model_matrix if parent else np.identity(4)
