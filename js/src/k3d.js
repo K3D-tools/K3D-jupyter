@@ -2,7 +2,6 @@
 
 var widgets = require('@jupyter-widgets/base'),
     _ = require('lodash'),
-    $ = require('jquery'),
     K3D = require('./core/Core'),
     serialize = require('./core/lib/helpers/serialize'),
     ThreeJsProvider = require('./providers/threejs/provider'),
@@ -79,20 +78,23 @@ PlotModel = widgets.DOMWidgetModel.extend({
 // Custom View. Renders the widget model.
 PlotView = widgets.DOMWidgetView.extend({
     render: function () {
-        var containerEnvelope = $('<div />').css({
-            'height': this.model.get('height'),
-            'position': 'relative'
-        });
+        var containerEnvelope = window.document.createElement('div');
+        containerEnvelope.style.cssText = [
+            'height:' + this.model.get('height') + 'px',
+            'position: relative'
+        ].join(';');
 
-        containerEnvelope.appendTo(this.$el);
+        var container = window.document.createElement('div');
+        container.style.cssText = [
+            'width: 100%',
+            'height: 100%',
+            'position: relative'
+        ].join(';');
 
-        var container = $('<div />').css({
-            'width': '100%',
-            'height': '100%',
-            'position': 'relative'
-        }).appendTo(containerEnvelope);
+        containerEnvelope.appendChild(container)
+        this.el.appendChild(containerEnvelope);
 
-        this.container = container.get(0);
+        this.container = container;
         this.on('displayed', this._init, this);
     },
 
