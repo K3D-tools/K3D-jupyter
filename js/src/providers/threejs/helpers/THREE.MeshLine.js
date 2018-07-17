@@ -231,6 +231,8 @@
             'varying vec4 vColor;',
             'varying float vCounters;',
             '',
+            '#include <clipping_planes_pars_vertex>',
+            '',
             'vec2 fix( vec4 i, float aspect ) {',
             '',
             '    vec2 res = i.xy / i.w;',
@@ -247,6 +249,10 @@
             '',
             '    vColor = vec4( color * colors, opacity );',
             '    vUV = uv;',
+            '',
+            '    #if NUM_CLIPPING_PLANES > 0 && ! defined( PHYSICAL ) && ! defined( PHONG )',
+            '    vViewPosition = -(modelViewMatrix * vec4(position, 1.0)).xyz;',
+            '    #endif',
             '',
             '    mat4 m = projectionMatrix * modelViewMatrix;',
             '    vec4 finalPosition = m * vec4( position, 1.0 );',
@@ -302,7 +308,11 @@
             'varying vec4 vColor;',
             'varying float vCounters;',
             '',
+            '#include <clipping_planes_pars_fragment>',
+            '',
             'void main() {',
+            '',
+            ' #include <clipping_planes_fragment>',
             '',
             '    vec4 c = vColor;',
             '    if( useMap == 1. ) c *= texture2D( map, vUV);',
@@ -347,7 +357,8 @@
                 visibility: {type: 'f', value: this.visibility}
             },
             vertexShader: vertexShaderSource.join('\r\n'),
-            fragmentShader: fragmentShaderSource.join('\r\n')
+            fragmentShader: fragmentShaderSource.join('\r\n'),
+            clipping: true
         });
 
         delete parameters.lineWidth;

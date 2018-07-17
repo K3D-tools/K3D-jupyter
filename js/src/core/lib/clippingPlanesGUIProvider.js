@@ -90,7 +90,7 @@ function clippingPlanesGUIProvider(K3D, clippingPlanesGUI) {
                                 new THREE.Vector3(1, -1, -1).unproject(camera)
                             );
 
-                        plane.constant -= camera.near * 20.0;
+                        plane.constant -= camera.near * 200.0;
 
                         current.obj.x = plane.normal.x;
                         current.obj.y = plane.normal.y;
