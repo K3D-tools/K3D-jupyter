@@ -9,7 +9,7 @@ var widgets = require('@jupyter-widgets/base'),
     PlotView,
     ObjectModel,
     ObjectView,
-    semverRange = '~' + require('../package.json').version,
+    semverRange = require('./version').EXTENSION_SPEC_VERSION,
     objectsList = {},
     plotsList = [];
 

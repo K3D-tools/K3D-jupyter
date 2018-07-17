@@ -11,4 +11,4 @@ window.__webpack_public_path__ = document.querySelector('body').getAttribute('da
 
 // Export widget models and views, and the npm package version number.
 module.exports = _.extend({}, require('./k3d.js'));
-module.exports.version = require('../package.json').version;
+module.exports.version = require('./version').version;

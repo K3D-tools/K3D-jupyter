@@ -8,4 +8,4 @@
 var _ = require('lodash');
 
 module.exports = _.extend({}, require('./k3d.js'));
-module.exports.version = require('../package.json').version;
+module.exports.version = require('./version').version;
