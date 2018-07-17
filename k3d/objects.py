@@ -365,7 +365,7 @@ class Text2d(Drawable):
     def __init__(self, **kwargs):
         super(Text2d, self).__init__(**kwargs)
 
-    self.set_trait('type', 'Text2d')
+        self.set_trait('type', 'Text2d')
 
 
 class Texture(Drawable):

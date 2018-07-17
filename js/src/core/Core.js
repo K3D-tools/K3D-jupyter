@@ -41,6 +41,7 @@ function K3D(provider, targetDOMNode, parameters) {
      * @property {Object} di an key-value hash of any external dependencies required
      */
     var self = this,
+        fpsMeter = null,
         objectIndex = 1,
         currentWindow = targetDOMNode.ownerDocument.defaultView || targetDOMNode.ownerDocument.parentWindow,
         world = {
@@ -123,12 +124,34 @@ function K3D(provider, targetDOMNode, parameters) {
             screenshotScale: 5.0,
             clearColor: 0xffffff,
             clippingPlanes: [],
+            fpsMeter: false,
             guiVersion: require('./../../package.json').version
         },
         parameters || {}
     );
 
     this.autoRendering = false;
+
+    this.setFpsMeter = function (state) {
+        if (self.parameters.fpsMeter === false) {
+            var Stats = require('stats.js');
+            fpsMeter = new Stats();
+
+            fpsMeter.dom.style.position = 'absolute';
+            world.targetDOMNode.appendChild(fpsMeter.dom);
+            requestAnimationFrame(function loop() {
+                if (fpsMeter) {
+                    fpsMeter.update();
+                    requestAnimationFrame(loop);
+                }
+            });
+        } else {
+            fpsMeter.domElement.remove();
+            fpsMeter = null;
+        }
+
+        self.parameters.fpsMeter = state;
+    };
 
     /**
      * Set autoRendering state

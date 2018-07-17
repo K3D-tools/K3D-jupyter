@@ -124,6 +124,7 @@ PlotView = widgets.DOMWidgetView.extend({
         }, this);
         this.model.on('change:camera_auto_fit', this._setCameraAutoFit, this);
         this.model.on('change:grid_auto_fit', this._setGridAutoFit, this);
+        this.model.on('change:fps_meter', this._setFpsMeter, this);
         this.model.on('change:screenshot_scale', this._setScreenshotScale, this);
         this.model.on('change:voxel_paint_color', this._setVoxelPaintColor, this);
         this.model.on('change:background_color', this._setBackgroundColor, this);
@@ -186,6 +187,10 @@ PlotView = widgets.DOMWidgetView.extend({
 
     _setGridAutoFit: function () {
         this.K3DInstance.setGridAutoFit(this.model.get('grid_auto_fit'));
+    },
+
+    _setFpsMeter: function () {
+        this.K3DInstance.setFpsMeter(this.model.get('fps_meter'));
     },
 
     _setScreenshotScale: function () {

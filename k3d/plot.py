@@ -46,6 +46,7 @@ class Plot(widgets.DOMWidget):
     # read-write
     camera_auto_fit = Bool(True).tag(sync=True)
     grid_auto_fit = Bool(True).tag(sync=True)
+    fps_meter = Bool(True).tag(sync=True)
     screenshot_scale = Float(True).tag(sync=True)
     grid = ListOrArray((-1, -1, -1, 1, 1, 1), minlen=6, maxlen=6).tag(sync=True)
     background_color = Int().tag(sync=True)
@@ -57,12 +58,14 @@ class Plot(widgets.DOMWidget):
     objects = []
 
     def __init__(self, antialias=True, background_color=0xFFFFFF, camera_auto_fit=True, grid_auto_fit=True, height=512,
-                 voxel_paint_color=0, grid=(-1, -1, -1, 1, 1, 1), screenshot_scale=2.0, *args, **kwargs):
+                 voxel_paint_color=0, grid=(-1, -1, -1, 1, 1, 1), screenshot_scale=2.0, fps_meter=False, *args,
+                 **kwargs):
         super(Plot, self).__init__()
 
         self.antialias = antialias
         self.camera_auto_fit = camera_auto_fit
         self.grid_auto_fit = grid_auto_fit
+        self.fps_meter = fps_meter
         self.grid = grid
         self.background_color = background_color
         self.voxel_paint_color = voxel_paint_color
