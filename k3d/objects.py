@@ -3,7 +3,7 @@ from traitlets import Unicode, Int, Float, List, Bool, Bytes, Integer
 from traitlets import validate, TraitError
 from traittypes import Array
 from .helpers import array_serialization
-from ._version import __version__
+from ._frontend import EXTENSION_SPEC_VERSION
 import numpy as np
 
 
@@ -27,7 +27,7 @@ class Drawable(widgets.Widget):
 
     _model_name = Unicode('ObjectModel').tag(sync=True)
     _model_module = Unicode('k3d').tag(sync=True)
-    _model_module_version = Unicode('~' + __version__).tag(sync=True)
+    _model_module_version = Unicode(EXTENSION_SPEC_VERSION).tag(sync=True)
 
     id = Integer().tag(sync=True)
     visible = Bool(True).tag(sync=True)

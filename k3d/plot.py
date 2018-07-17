@@ -7,7 +7,7 @@ import ipywidgets as widgets
 from traitlets import Unicode, Bool, Int, List, Float
 from IPython.display import display
 
-from ._version import __version__
+from ._frontend import EXTENSION_SPEC_VERSION
 from .objects import Drawable, ListOrArray
 
 
@@ -33,8 +33,8 @@ class Plot(widgets.DOMWidget):
     _view_module = Unicode('k3d').tag(sync=True)
     _model_module = Unicode('k3d').tag(sync=True)
 
-    _view_module_version = Unicode('~' + __version__).tag(sync=True)
-    _model_module_version = Unicode('~' + __version__).tag(sync=True)
+    _view_module_version = Unicode(EXTENSION_SPEC_VERSION).tag(sync=True)
+    _model_module_version = Unicode(EXTENSION_SPEC_VERSION).tag(sync=True)
 
     # readonly (specified at creation)
     antialias = Bool().tag(sync=True)
