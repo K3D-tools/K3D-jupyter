@@ -1,7 +1,8 @@
 'use strict';
 
-var widgets = require('@jupyter-widgets/controls'),
+var widgets = require('@jupyter-widgets/base'),
     _ = require('lodash'),
+    $ = require('jquery'),
     K3D = require('./core/Core'),
     serialize = require('./core/lib/helpers/serialize'),
     ThreeJsProvider = require('./providers/threejs/provider'),
