@@ -67,8 +67,6 @@ function K3D(provider, targetDOMNode, parameters) {
             objects: null
         };
 
-    require('style-loader?{attrs:{id: "k3d-katex"}}!css-loader!./../../node_modules/katex/dist/katex.min.css');
-    require('style-loader?{attrs:{id: "k3d-dat.gui"}}!css-loader!./../../node_modules/dat.gui/build/dat.gui.css');
     require('style-loader?{attrs:{id: "k3d-style"}}!css-loader!./../k3d.css');
 
     if (!(this instanceof (K3D))) {
