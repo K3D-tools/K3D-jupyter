@@ -275,7 +275,45 @@ PlotView = widgets.DOMWidgetView.extend({
             this.objectsChangesQueueRun = true;
             setTimeout(this._processObjectsChangesQueue, 0, this);
         }
-    }
+    },
+
+    processPhosphorMessage: function(msg) {
+        widgets.DOMWidgetView.prototype.processPhosphorMessage.call(this, msg);
+        switch (msg.type) {
+        case 'after-attach':
+            this.el.addEventListener('contextmenu', this, true);
+            break;
+        case 'before-detach':
+            this.el.removeEventListener('contextmenu', this, true);
+            break;
+        case 'resize':
+            this.handleResize(msg);
+            break;
+        }
+    },
+
+    handleEvent: function(event) {
+        switch (event.type) {
+        case 'contextmenu':
+            this.handleContextMenu(event);
+            break;
+        default:
+            widgets.DOMWidgetView.prototype.handleEvent.call(this, event);
+            break;
+        }
+    },
+
+    handleContextMenu: function(event) {
+        // Cancel context menu if on renderer:
+        if (this.container.contains(event.target)) {
+            event.preventDefault();
+            event.stopPropagation();
+        }
+    },
+
+    handleResize: function(msg) {
+        this.K3DInstance.resizeHelper();
+    },
 });
 
 module.exports = {
