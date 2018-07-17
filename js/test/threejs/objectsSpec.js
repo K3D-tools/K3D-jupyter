@@ -605,8 +605,8 @@ require(['K3D'], function (lib) {
                 }, true);
 
                 self.K3D.setClippingPlanes([
-                    [-1, -1, 0, 0],
-                    [0, 0, -1, 0]
+                    [-1, -1.5, 0, 0],
+                    [0, 0, -1, 0.01]
                 ]);
 
                 self.K3D.load(json);

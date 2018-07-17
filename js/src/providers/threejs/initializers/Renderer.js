@@ -93,12 +93,17 @@ module.exports = function (K3D) {
         var rt = new THREE.WebGLRenderTarget(width, height);
 
         self.renderer.clearTarget(rt, true, true, true);
+        self.renderer.clippingPlanes = [];
 
         ssaaRenderPass = new THREE.SSAARenderPass(self.gridScene, self.camera);
         ssaaRenderPass.sampleLevel = 5;
         ssaaRenderPass.setSize(width, height);
         ssaaRenderPass.render(self.renderer, rt, rt);
         var grid = getArrayFromRenderTarget(rt);
+
+        K3D.parameters.clippingPlanes.forEach(function (plane) {
+            self.renderer.clippingPlanes.push(new THREE.Plane(new THREE.Vector3().fromArray(plane), plane[3]));
+        });
 
         ssaaRenderPass = new THREE.SSAARenderPass(self.scene, self.camera);
         ssaaRenderPass.sampleLevel = 5;

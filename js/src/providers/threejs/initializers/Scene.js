@@ -366,11 +366,6 @@ function rebuildSceneData(K3D, grids, force) {
     this.camera.near = fullSceneDiameter * 0.001;
     this.camera.updateProjectionMatrix();
 
-    // Dynamic setting lights
-    this.lights.forEach(function (light) {
-        light.scale.set(fullSceneDiameter, fullSceneDiameter, fullSceneDiameter);
-    });
-
     return promises;
 }
 
@@ -459,7 +454,7 @@ function raycast(x, y, camera, click, viewMode) {
  */
 module.exports = {
     Init: function (K3D) {
-        var ambientLight = new THREE.AmbientLight(0x111111, 1.0),
+        var ambientLight = new THREE.AmbientLight(0xffffff, 0.25),
             grids = {
                 planes: {},
                 labelsOnEdges: {}
@@ -469,9 +464,9 @@ module.exports = {
         this.lights = [];
         this.raycaster = new THREE.Raycaster();
 
-        this.lights[0] = new THREE.PointLight(0xffffff, 0.9, 0);
-        this.lights[1] = new THREE.PointLight(0xffffff, 0.7, 0);
-        this.lights[2] = new THREE.PointLight(0xffffff, 0.6, 0);
+        this.lights[0] = new THREE.DirectionalLight(0xffffff, 0.3, 1);
+        this.lights[1] = new THREE.DirectionalLight(0xffffff, 0.5, 1);
+        this.lights[2] = new THREE.DirectionalLight(0xffffff, 0.4, 1);
 
         this.lights[0].position.set(2000, -1000, 2000);
         this.lights[1].position.set(-2000, 0, 2000);

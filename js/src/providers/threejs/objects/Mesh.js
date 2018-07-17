@@ -19,7 +19,7 @@ module.exports = function (config) {
         material = new MaterialConstructor({
             color: config.color,
             emissive: 0,
-            shininess: 25,
+            shininess: 50,
             specular: 0x111111,
             side: THREE.DoubleSide,
             flatShading: true,
@@ -39,6 +39,7 @@ module.exports = function (config) {
 
     geometry.addAttribute('position', new THREE.BufferAttribute(vertices, 3));
     geometry.setIndex(new THREE.BufferAttribute(indices, 1));
+    geometry.computeVertexNormals();
     geometry.computeBoundingSphere();
     geometry.computeBoundingBox();
 
