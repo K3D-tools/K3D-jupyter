@@ -22,7 +22,7 @@ module.exports = function (config) {
             shininess: 50,
             specular: 0x111111,
             side: THREE.DoubleSide,
-            wireframe: false,
+            wireframe: false
         }),
         radialSegments = config.radial_segments,
         width = config.width,
