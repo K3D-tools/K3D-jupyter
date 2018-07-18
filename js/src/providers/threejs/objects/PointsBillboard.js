@@ -52,7 +52,7 @@ module.exports = function (config) {
     material.map = null;
     material.isPointsMaterial = true;
 
-    colors = ( pointColors && pointColors.length === pointPositions.length / 3 ?
+    colors = (pointColors && pointColors.length === pointPositions.length / 3 ?
             colorsToFloat32Array(pointColors) : getColorsArray(color, pointPositions.length / 3)
     );
 
@@ -79,7 +79,7 @@ module.exports = function (config) {
 function getGeometry(positions, colors) {
     var geometry = new THREE.BufferGeometry();
 
-    geometry.addAttribute('position', new THREE.BufferAttribute(positions, 3));
+    geometry.addAttribute('position', new THREE.BufferAttribute(new Float32Array(positions), 3));
     geometry.addAttribute('color', new THREE.BufferAttribute(colors, 3));
     geometry.computeBoundingSphere();
     geometry.computeBoundingBox();
