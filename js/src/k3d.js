@@ -171,7 +171,9 @@ PlotView = widgets.DOMWidgetView.extend({
         });
 
         this.GUIObjectChanges = this.K3DInstance.on(this.K3DInstance.events.OBJECT_CHANGE, function (change) {
-            objectsList[change.id].save(change.key, change.value);
+            if (self.model._comm_live) {
+                objectsList[change.id].save(change.key, change.value);
+            }
         });
 
         this.GUIParametersChanges = this.K3DInstance.on(this.K3DInstance.events.PARAMETERS_CHANGE, function (change) {
