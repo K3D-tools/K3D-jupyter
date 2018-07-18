@@ -14,18 +14,7 @@ module.exports = function (K3D, object) {
     var isObject = typeof (object) === 'object',
         hasType = isObject && object.hasOwnProperty('type'),
         hasValidType = hasType && K3D.Provider.hasOwnProperty('Objects') &&
-            K3D.Provider.Objects.hasOwnProperty(object.type),
-
-        isValid = isObject && hasType && hasValidType,
-
-        defaultOptions = {
-            model_matrix: [
-                1.0, 0.0, 0.0, 0.0,
-                0.0, 1.0, 0.0, 0.0,
-                0.0, 0.0, 1.0, 0.0,
-                0.0, 0.0, 0.0, 1.0
-            ]
-        };
+            K3D.Provider.Objects.hasOwnProperty(object.type);
 
     if (!isObject) {
         throw new Error('Object definition should be a valid javascript object!');
@@ -33,10 +22,6 @@ module.exports = function (K3D, object) {
         throw new Error('Object definition should have a `type` attribute set!');
     } else if (isObject && hasType && !hasValidType) {
         throw new Error('Unknown object type (' + object.type + ') passed, no loader supporting it found!');
-    }
-
-    if (isValid && !object.hasOwnProperty('model_matrix')) {
-        object.model_matrix = defaultOptions.model_matrix;
     }
 
     return object;
