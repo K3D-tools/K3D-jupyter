@@ -140,7 +140,8 @@ PlotView = widgets.DOMWidgetView.extend({
             this.K3DInstance = new K3D(ThreeJsProvider, this.container, {
                 antialias: this.model.get('antialias'),
                 backendVersion: this.model.get('_view_module_version'),
-                screenshotScale: this.model.get('screenshot_scale')
+                screenshotScale: this.model.get('screenshot_scale'),
+                grid: this.model.get('grid')
             });
         } catch (e) {
             return;

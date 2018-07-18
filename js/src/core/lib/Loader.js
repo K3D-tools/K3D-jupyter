@@ -39,7 +39,7 @@ function loader(K3D, json) {
                     console.log('K3D: Object type "' + object.type + '" loaded in: ',
                         (new Date().getTime() - startTime) / 1000, 's');
 
-                    return object;
+                    return {json: object, obj: K3DObject};
                 })
                 .catch(function () {
                     error('Loader Error', 'Object of type "' + object.type + '" was not loaded.');

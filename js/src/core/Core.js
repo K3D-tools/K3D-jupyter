@@ -389,14 +389,16 @@ function K3D(provider, targetDOMNode, parameters) {
      * @throws {Error} If Loader fails
      */
     this.load = function (json) {
-        loader(self, json).then(function (objects) {
+        return loader(self, json).then(function (objects) {
             objects.forEach(function (object) {
-                objectGUIProvider(self, object, GUI.objects);
-                world.ObjectsListJson[object.id] = object;
+                objectGUIProvider(self, object.json, GUI.objects);
+                world.ObjectsListJson[object.json.id] = object.json;
             });
 
             dispatch(self.events.OBJECT_LOADED);
             refreshAfterObjectsChange();
+
+            return objects;
         });
     };
 
@@ -417,14 +419,16 @@ function K3D(provider, targetDOMNode, parameters) {
             return;
         }
 
-        loader(self, {objects: [json]}).then(function (objects) {
+        return loader(self, {objects: [json]}).then(function (objects) {
             objects.forEach(function (object) {
-                objectGUIProvider(self, object, objects);
-                world.ObjectsListJson[object.id] = object;
+                objectGUIProvider(self, object.json, objects);
+                world.ObjectsListJson[object.json.id] = object.json;
             });
 
             dispatch(self.events.OBJECT_LOADED);
             refreshAfterObjectsChange();
+
+            return objects;
         });
     };
 
