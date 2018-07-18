@@ -23,12 +23,12 @@ module.exports = function (config, K3D) {
         config.outlines = typeof(config.outlines) !== 'undefined' ? config.outlines : true;
         config.outlines_color = typeof(config.outlines_color) !== 'undefined' ? config.outlines_color : 0;
 
-        var modelMatrix = new THREE.Matrix4().fromArray(config.model_matrix.buffer),
+        var modelMatrix = new THREE.Matrix4().fromArray(config.model_matrix.data),
             width = config.voxels.shape[2],
             height = config.voxels.shape[1],
             length = config.voxels.shape[0],
-            voxels = config.voxels.buffer,
-            colorMap = config.color_map.buffer || [16711680, 65280, 255, 16776960, 16711935, 65535],
+            voxels = config.voxels.data,
+            colorMap = config.color_map.data || [16711680, 65280, 255, 16776960, 16711935, 65535],
             object = new THREE.Group(),
             generate,
             voxelChunkObject,
@@ -88,7 +88,7 @@ module.exports = function (config, K3D) {
             object.position.set(-0.5, -0.5, -0.5);
             object.updateMatrix();
 
-            modelMatrix.set.apply(modelMatrix, config.model_matrix.buffer);
+            modelMatrix.set.apply(modelMatrix, config.model_matrix.data);
             object.applyMatrix(modelMatrix);
 
             rollOverMesh.visible = false;
@@ -149,7 +149,7 @@ function getVoxelChunkObject(K3D, config, chunkStructure) {
     ));
 
     if (config.outlines && !config.wireframe) {
-        var lineWidth = new THREE.Matrix4().fromArray(config.model_matrix.buffer).getMaxScaleOnAxis() /
+        var lineWidth = new THREE.Matrix4().fromArray(config.model_matrix.data).getMaxScaleOnAxis() /
             (Math.max(config.voxels.shape[0], config.voxels.shape[1], config.voxels.shape[2]) * 10);
         var line = new MeshLine.MeshLine();
         var material = new MeshLine.MeshLineMaterial({

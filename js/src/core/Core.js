@@ -123,6 +123,7 @@ function K3D(provider, targetDOMNode, parameters) {
             clearColor: 0xffffff,
             clippingPlanes: [],
             fpsMeter: false,
+            lighting: 1.5,
             guiVersion: require('./../../package.json').version
         },
         parameters || {}
@@ -172,6 +173,18 @@ function K3D(provider, targetDOMNode, parameters) {
      * @type {Object}
      */
     this.Provider = provider;
+
+    this.setDirectionalLightingIntensity = function (value) {
+        self.parameters.lighting = Math.min(Math.max(value, 0.0), 3.0);
+        self.getWorld().recalculateLights(self.parameters.lighting);
+        self.render();
+
+        GUI.controls.__controllers.forEach(function (controller) {
+            if (controller.property === 'lighting') {
+                controller.updateDisplay();
+            }
+        });
+    };
 
     /**
      * Set view mode of K3D
@@ -528,6 +541,11 @@ function K3D(provider, targetDOMNode, parameters) {
     viewModeGUI(GUI.controls, this);
     GUI.controls.add(self.parameters, 'voxelPaintColor').step(1).min(0).max(255).name('voxelColor').onChange(
         changeParameters.bind(this, 'voxel_paint_color'));
+    GUI.controls.add(self.parameters, 'lighting').step(0.01).min(0).max(3).name('lighting')
+        .onChange(function (value) {
+            self.setDirectionalLightingIntensity(value);
+            changeParameters.call(self, 'lighting', value);
+        });
 
     GUI.clippingPlanes = GUI.controls.addFolder('Clipping planes');
 
@@ -543,6 +561,7 @@ function K3D(provider, targetDOMNode, parameters) {
     }
 
     self.setClippingPlanes(self.parameters.clippingPlanes);
+    self.setDirectionalLightingIntensity(self.parameters.lighting);
     world.setCameraToFitScene(true);
     self.render();
 

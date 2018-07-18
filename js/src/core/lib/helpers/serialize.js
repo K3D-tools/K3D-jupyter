@@ -2,6 +2,7 @@
 
 var _ = require('lodash'),
     pako = require('pako'),
+    ipyDataWidgets = require('jupyter-dataserializers').data_union_array_serialization,
     typesToArray = {
         int8: Int8Array,
         int16: Int16Array,
@@ -16,11 +17,15 @@ var _ = require('lodash'),
 // Inpspiration from https://github.com/maartenbreddels/ipyvolume/blob/master/js/src/serialize.js
 // and https://github.com/jupyter-widgets/ipywidgets/blob/master/jupyter-widgets-base/test/src/dummy-manager.ts
 
-function deserialize_array_or_json(obj) {
+function deserialize_array_or_json(obj, manager) {
     var buffer;
 
     if (obj == null) {
         return null;
+    }
+
+    if (typeof(obj) === 'string') {
+        return ipyDataWidgets.deserialize(obj, manager);
     }
 
     if (_.isNumber(obj)) { // plain number
@@ -29,7 +34,7 @@ function deserialize_array_or_json(obj) {
         if (typeof (obj.buffer) !== 'undefined') {
             console.log('K3D: Receive: ' + obj.buffer.byteLength + ' bytes');
             return {
-                buffer: new typesToArray[obj.dtype](obj.buffer.buffer),
+                data: new typesToArray[obj.dtype](obj.buffer.buffer),
                 shape: obj.shape
             };
         } else if (typeof (obj.compressed_buffer) !== 'undefined') {
@@ -39,7 +44,7 @@ function deserialize_array_or_json(obj) {
                 obj.compressed_buffer.byteLength + ' bytes');
 
             return {
-                buffer: buffer,
+                data: buffer,
                 shape: obj.shape
             };
         } else {

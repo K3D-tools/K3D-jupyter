@@ -38,7 +38,7 @@ module.exports = function (config) {
         new THREE.Geometry(),
         new THREE.MeshPhongMaterial({
             color: config.color,
-            emissive: 0x072534,
+            emissive: 0,
             side: THREE.DoubleSide,
             flatShading: true
         })
@@ -53,7 +53,7 @@ module.exports = function (config) {
             2, 3)
     );
 
-    modelMatrix.set.apply(modelMatrix, config.model_matrix.buffer);
+    modelMatrix.set.apply(modelMatrix, config.model_matrix.data);
     object.applyMatrix(modelMatrix);
 
     object.updateMatrixWorld();

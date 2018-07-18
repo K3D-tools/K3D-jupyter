@@ -18,7 +18,8 @@ from .k3d import (plot,
                   vector_field,
                   vectors,
                   voxels,
-                  vtk_poly_data)
+                  vtk_poly_data,
+                  voxels_ipydw)
 
 
 def _jupyter_nbextension_paths():

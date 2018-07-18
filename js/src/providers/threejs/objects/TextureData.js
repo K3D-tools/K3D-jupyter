@@ -13,12 +13,12 @@ module.exports = function (config, K3D) {
     return new Promise(function (resolve) {
         var geometry = new THREE.PlaneBufferGeometry(1, 1),
             modelMatrix = new THREE.Matrix4(),
-            colorMap = (config.color_map && config.color_map.buffer) || null,
+            colorMap = (config.color_map && config.color_map.data) || null,
             colorRange = config.color_range,
             object,
             texture;
 
-        texture = new THREE.DataTexture(new Float32Array(config.attribute.buffer),
+        texture = new THREE.DataTexture(new Float32Array(config.attribute.data),
             config.attribute.shape[1], config.attribute.shape[0], THREE.LuminanceFormat, THREE.FloatType);
 
         texture.minFilter = THREE.NearestFilter; //LinearMipMapLinearFilter
@@ -51,7 +51,7 @@ module.exports = function (config, K3D) {
         geometry.computeBoundingBox();
 
         object = new THREE.Mesh(geometry, material);
-        modelMatrix.set.apply(modelMatrix, config.model_matrix.buffer);
+        modelMatrix.set.apply(modelMatrix, config.model_matrix.data);
         object.applyMatrix(modelMatrix);
         object.updateMatrixWorld();
 

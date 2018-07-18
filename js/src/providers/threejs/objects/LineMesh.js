@@ -19,21 +19,21 @@ module.exports = function (config) {
     var geometry,
         material = new THREE.MeshPhongMaterial({
             emissive: 0,
-            shininess: 25,
+            shininess: 50,
             specular: 0x111111,
             side: THREE.DoubleSide,
-            wireframe: false
+            wireframe: false,
         }),
         radialSegments = config.radial_segments,
         width = config.width,
-        verticesColors = (config.colors && config.colors.buffer) || null,
+        verticesColors = (config.colors && config.colors.data) || null,
         color = new THREE.Color(config.color),
         colorRange = config.color_range,
-        colorMap = (config.color_map && config.color_map.buffer) || null,
-        attribute = (config.attribute && config.attribute.buffer) || null,
+        colorMap = (config.color_map && config.color_map.data) || null,
+        attribute = (config.attribute && config.attribute.data) || null,
         object,
         modelMatrix = new THREE.Matrix4(),
-        position = config.vertices.buffer;
+        position = config.vertices.data;
 
     if (verticesColors && verticesColors.length === position.length / 3) {
         verticesColors = colorsToFloat32Array(verticesColors);
@@ -50,7 +50,7 @@ module.exports = function (config) {
     geometry.computeBoundingSphere();
     geometry.computeBoundingBox();
 
-    modelMatrix.set.apply(modelMatrix, config.model_matrix.buffer);
+    modelMatrix.set.apply(modelMatrix, config.model_matrix.data);
 
     object = new THREE.Mesh(geometry, material);
     object.applyMatrix(modelMatrix);

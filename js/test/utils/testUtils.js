@@ -29,7 +29,7 @@ function arrayToTypedArray(typedArray, array, obj) {
     }
 
     return {
-        buffer: typedArray.from(array),
+        data: typedArray.from(array),
         shape: shape
     };
 }

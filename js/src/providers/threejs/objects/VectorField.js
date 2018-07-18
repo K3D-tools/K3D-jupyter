@@ -20,14 +20,14 @@ module.exports = function (config, K3D) {
     config.scale = config.scale || 1.0;
     config.line_width = config.line_width || 0.01;
 
-    var modelMatrix = new THREE.Matrix4().fromArray(config.model_matrix.buffer),
+    var modelMatrix = new THREE.Matrix4().fromArray(config.model_matrix.data),
         originColor = new THREE.Color(config.origin_color),
         headColor = new THREE.Color(config.head_color),
         width = config.vectors.shape[2],
         height = config.vectors.shape[1],
         length = config.vectors.shape[0],
-        vectors = config.vectors.buffer,
-        colors = (config.colors && config.colors.buffer) || null,
+        vectors = config.vectors.data,
+        colors = (config.colors && config.colors.data) || null,
         useHead = config.use_head,
         headSize = config.head_size,
         scale = config.scale,

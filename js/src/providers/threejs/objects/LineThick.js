@@ -25,17 +25,17 @@ module.exports = function (config, K3D) {
             resolution: new THREE.Vector2(K3D.getWorld().width, K3D.getWorld().height),
             side: THREE.DoubleSide
         }),
-        verticesColors = (config.colors && config.colors.buffer) || null,
+        verticesColors = (config.colors && config.colors.data) || null,
         color = new THREE.Color(config.color),
         colors = null,
         uvs = null,
         colorRange = config.color_range,
-        colorMap = (config.color_map && config.color_map.buffer) || null,
-        attribute = (config.attribute && config.attribute.buffer) || null,
+        colorMap = (config.color_map && config.color_map.data) || null,
+        attribute = (config.attribute && config.attribute.data) || null,
         object,
         resizelistenerId,
         modelMatrix = new THREE.Matrix4(),
-        position = config.vertices.buffer;
+        position = config.vertices.data;
 
     if (attribute && colorRange && colorMap && attribute.length > 0 && colorRange.length > 0 && colorMap.length > 0) {
         var canvas = lut(colorMap, 1024);
@@ -64,7 +64,7 @@ module.exports = function (config, K3D) {
     line.geometry.computeBoundingBox();
 
     object = new THREE.Mesh(line.geometry, material);
-    modelMatrix.set.apply(modelMatrix, config.model_matrix.buffer);
+    modelMatrix.set.apply(modelMatrix, config.model_matrix.data);
     object.applyMatrix(modelMatrix);
 
     object.updateMatrixWorld();

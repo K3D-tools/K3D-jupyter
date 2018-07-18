@@ -171,6 +171,21 @@ require(['K3D'], function (lib) {
             });
         });
 
+        it('Marching cube smoothed from normal array', function (done) {
+
+            var self = this;
+
+            jsonLoader('http://localhost:9001/samples/marching_cubes_smooth.json', function (json) {
+
+                self.K3D.addFrameUpdateListener('after', function () {
+                    TestHelpers.compareCanvasWithExpectedImage(self.K3D, 'marching_cubes_smooth', RESAMBLEThreshold,
+                        done);
+                }, true);
+
+                self.K3D.load(json);
+            });
+        });
+
         it('Marching cube (not cube) from normal array', function (done) {
 
             var self = this;
@@ -193,6 +208,20 @@ require(['K3D'], function (lib) {
 
                 self.K3D.addFrameUpdateListener('after', function () {
                     TestHelpers.compareCanvasWithExpectedImage(self.K3D, 'surface', RESAMBLEThreshold, done);
+                }, true);
+
+                self.K3D.load(json);
+            });
+        });
+
+        it('Surface smoothed from normal array', function (done) {
+
+            var self = this;
+
+            jsonLoader('http://localhost:9001/samples/surface_smooth.json', function (json) {
+
+                self.K3D.addFrameUpdateListener('after', function () {
+                    TestHelpers.compareCanvasWithExpectedImage(self.K3D, 'surface_smooth', RESAMBLEThreshold, done);
                 }, true);
 
                 self.K3D.load(json);
@@ -365,6 +394,18 @@ require(['K3D'], function (lib) {
             });
         });
 
+        it('should draw simple smoothed STL geometry', function (done) {
+            var self = this;
+
+            jsonLoader('http://localhost:9001/samples/stl_smooth.json', function (json) {
+
+                self.K3D.addFrameUpdateListener('after', function () {
+                    TestHelpers.compareCanvasWithExpectedImage(self.K3D, 'stl_smooth', RESAMBLEThreshold, done);
+                }, true);
+
+                self.K3D.load(json);
+            });
+        });
         it('should draw advanced STL geometry', function (done) {
             var self = this;
 

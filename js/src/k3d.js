@@ -125,6 +125,7 @@ PlotView = widgets.DOMWidgetView.extend({
             }
         }, this);
         this.model.on('change:camera_auto_fit', this._setCameraAutoFit, this);
+        this.model.on('change:lighting', this._setDirectionalLightingIntensity, this);
         this.model.on('change:grid_auto_fit', this._setGridAutoFit, this);
         this.model.on('change:fps_meter', this._setFpsMeter, this);
         this.model.on('change:screenshot_scale', this._setScreenshotScale, this);
@@ -181,6 +182,10 @@ PlotView = widgets.DOMWidgetView.extend({
                 objectsList[param.object.K3DIdentifier].send({msg_type: 'click_callback', coord: param.coord});
             }
         });
+    },
+
+    _setDirectionalLightingIntensity: function () {
+        this.K3DInstance.setDirectionalLightingIntensity(this.model.get('lighting'));
     },
 
     _setCameraAutoFit: function () {
@@ -277,33 +282,33 @@ PlotView = widgets.DOMWidgetView.extend({
         }
     },
 
-    processPhosphorMessage: function(msg) {
+    processPhosphorMessage: function (msg) {
         widgets.DOMWidgetView.prototype.processPhosphorMessage.call(this, msg);
         switch (msg.type) {
-        case 'after-attach':
-            this.el.addEventListener('contextmenu', this, true);
-            break;
-        case 'before-detach':
-            this.el.removeEventListener('contextmenu', this, true);
-            break;
-        case 'resize':
-            this.handleResize(msg);
-            break;
+            case 'after-attach':
+                this.el.addEventListener('contextmenu', this, true);
+                break;
+            case 'before-detach':
+                this.el.removeEventListener('contextmenu', this, true);
+                break;
+            case 'resize':
+                this.handleResize(msg);
+                break;
         }
     },
 
-    handleEvent: function(event) {
+    handleEvent: function (event) {
         switch (event.type) {
-        case 'contextmenu':
-            this.handleContextMenu(event);
-            break;
-        default:
-            widgets.DOMWidgetView.prototype.handleEvent.call(this, event);
-            break;
+            case 'contextmenu':
+                this.handleContextMenu(event);
+                break;
+            default:
+                widgets.DOMWidgetView.prototype.handleEvent.call(this, event);
+                break;
         }
     },
 
-    handleContextMenu: function(event) {
+    handleContextMenu: function (event) {
         // Cancel context menu if on renderer:
         if (this.container.contains(event.target)) {
             event.preventDefault();
@@ -311,7 +316,7 @@ PlotView = widgets.DOMWidgetView.extend({
         }
     },
 
-    handleResize: function(msg) {
+    handleResize: function (msg) {
         this.K3DInstance.resizeHelper();
     },
 });

@@ -13,7 +13,7 @@ import six
 from .colormaps import basic_color_maps
 from .plot import Plot
 from .objects import (Line, MarchingCubes, Mesh, Points, STL, Surface, Text, Text2d, Texture, TextureText, VectorField,
-                      Vectors, Voxels)
+                      Vectors, Voxels, VoxelsIpyDW)
 from .transform import process_transform_arguments
 from .helpers import check_attribute_range
 
@@ -62,7 +62,8 @@ def line(vertices, color=_default_color, colors=(), attribute=(), color_map=(), 
     )
 
 
-def marching_cubes(scalar_field, level, color=_default_color, wireframe=False, compression_level=0, **kwargs):
+def marching_cubes(scalar_field, level, color=_default_color, wireframe=False, flat_shading=True, compression_level=0,
+                   **kwargs):
     """Create a MarchingCubes drawable.
 
     Plot an isosurface of a scalar field obtained through a Marching Cubes algorithm.
@@ -81,19 +82,21 @@ def marching_cubes(scalar_field, level, color=_default_color, wireframe=False, c
         level: `float`. Value at the computed isosurface.
         color: `int`. Packed RGB color of the isosurface (0xff0000 is red, 0xff is blue).
         wireframe: `bool`. Whether mesh should display as wireframe.
+        flat_shading: `bool`. Whether mesh should display with flat shading.
         kwargs: `dict`. Dictionary arguments to configure transform and model_matrix."""
     return process_transform_arguments(
         MarchingCubes(scalar_field=np.array(scalar_field, np.float32),
                       color=color,
                       level=level,
                       wireframe=wireframe,
+                      flat_shading=flat_shading,
                       compression_level=compression_level),
         **kwargs
     )
 
 
 def mesh(vertices, indices, color=_default_color, attribute=(), color_map=(), color_range=(), wireframe=False,
-         compression_level=0, **kwargs):
+         flat_shading=True, compression_level=0, **kwargs):
     """Create a Mesh drawable representing a 3D triangles mesh.
 
     Arguments:
@@ -106,6 +109,7 @@ def mesh(vertices, indices, color=_default_color, attribute=(), color_map=(), co
         color_range: `list`. A pair [min_value, max_value], which determines the levels of color attribute mapped
             to 0 and 1 in the color map respectively.
         wireframe: `bool`. Whether mesh should display as wireframe.
+        flat_shading: `bool`. Whether mesh should display with flat shading.
         kwargs: `dict`. Dictionary arguments to configure transform and model_matrix."""
     color_map = np.array(color_map, np.float32)
     attribute = np.array(attribute, np.float32)
@@ -119,6 +123,7 @@ def mesh(vertices, indices, color=_default_color, attribute=(), color_map=(), co
              color_map=color_map,
              color_range=color_range,
              wireframe=wireframe,
+             flat_shading=flat_shading,
              compression_level=compression_level),
         **kwargs
     )
@@ -149,28 +154,28 @@ def points(positions, colors=(), color=_default_color, point_size=1.0, shader='3
 
 
 # noinspection PyShadowingNames
-def stl(stl, color=_default_color, wireframe=False, compression_level=0, **kwargs):
+def stl(stl, color=_default_color, wireframe=False, flat_shading=True, compression_level=0, **kwargs):
     """Create an STL drawable for data in STereoLitograpy format.
 
     Arguments:
         stl: `str` or `bytes`. STL data in either ASCII STL (string) or Binary STL (bytes).
         color: `int`. Packed RGB color of the resulting mesh (0xff0000 is red, 0xff is blue).
         wireframe: `bool`. Whether mesh should display as wireframe.
+        flat_shading: `bool`. Whether mesh should display with flat shading.
         kwargs: `dict`. Dictionary arguments to configure transform and model_matrix."""
     plain = isinstance(stl, six.string_types)
     return process_transform_arguments(
         STL(text=stl if plain else None,
-            binary=([]  # allow_null doesn't really work for Array...
-                    if plain
-                    else np.frombuffer(stl, dtype=np.uint8)),
+            binary=stl if not plain else None,
             color=color,
             wireframe=wireframe,
+            flat_shading=flat_shading,
             compression_level=compression_level),
         **kwargs
     )
 
 
-def surface(heights, color=_default_color, wireframe=False, compression_level=0, **kwargs):
+def surface(heights, color=_default_color, wireframe=False, flat_shading=True, compression_level=0, **kwargs):
     """Create a Surface drawable.
 
     Plot a 2d function: z = f(x, y).
@@ -186,9 +191,10 @@ def surface(heights, color=_default_color, wireframe=False, compression_level=0,
         heights: `array_like`. A 2d scalar function values grid.
         color: `int`. Packed RGB color of the surface (0xff0000 is red, 0xff is blue).
         wireframe: `bool`. Whether mesh should display as wireframe.
+        flat_shading: `bool`. Whether mesh should display with flat shading.
         kwargs: `dict`. Dictionary arguments to configure transform and model_matrix."""
     return process_transform_arguments(
-        Surface(heights=np.array(heights, np.float32), color=color, wireframe=wireframe,
+        Surface(heights=np.array(heights, np.float32), color=color, wireframe=wireframe, flat_shading=flat_shading,
                 compression_level=compression_level),
         **kwargs
     )
@@ -489,3 +495,37 @@ def plot(height=512,
                 camera_auto_fit=camera_auto_fit, grid_auto_fit=grid_auto_fit,
                 height=height,
                 voxel_paint_color=voxel_paint_color, grid=grid)
+
+
+# noinspection PyShadowingNames
+def voxels_ipydw(voxels, color_map, wireframe=False, outlines=True, outlines_color=0, compression_level=0, **kwargs):
+    """Create a Voxels drawable for 3D volumetric data.
+
+    By default, the voxels are a grid inscribed in the -0.5 < x, y, z < 0.5 cube
+    regardless of the passed voxel array shape (aspect ratio etc.).
+    Different grid size, shape and rotation can be obtained using  kwargs:
+        voxels(..., bounds=[0, 300, 0, 400, 0, 500])
+    or:
+        voxels(..., scaling=[scale_x, scale_y, scale_z]).
+
+    Arguments:
+        voxels: `array_like`. 3D array of `int` in range (0, 255).
+            0 means empty voxel, 1 and above refer to consecutive color_map entries.
+        color_map: `array_like`. Flat array of `int` packed RGB colors (0xff0000 is red, 0xff is blue).
+            The color defined at index i is for voxel value (i+1), e.g.:
+            color_map = [0xff, 0x00ff]
+            voxels = [[[
+                0, # empty voxel
+                1, # blue voxel
+                2  # red voxel
+            ]]]
+        wireframe: `bool`. Whether mesh should display as wireframe.
+        outlines: `bool`. Whether mesh should display with outlines.
+        outlines_color: `int`. Packed RGB color of the resulting outlines (0xff0000 is red, 0xff is blue)
+    kwargs: `dict`. Dictionary arguments to configure transform and model_matrix."""
+    return process_transform_arguments(
+        VoxelsIpyDW(voxels=voxels, color_map=np.array(color_map, np.float32), wireframe=wireframe,
+                    outlines=outlines, outlines_color=outlines_color,
+                    compression_level=compression_level),
+        **kwargs
+    )

@@ -23,9 +23,9 @@ module.exports = function (config, K3D) {
 
     var originColor = new THREE.Color(config.origin_color),
         headColor = new THREE.Color(config.head_color),
-        vectors = config.vectors.buffer,
-        origins = config.origins.buffer,
-        colors = (config.colors && config.colors.buffer) || [],
+        vectors = config.vectors.data,
+        origins = config.origins.data,
+        colors = (config.colors && config.colors.data) || [],
         useHead = config.use_head,
         headSize = config.head_size,
         object = new THREE.Group(),

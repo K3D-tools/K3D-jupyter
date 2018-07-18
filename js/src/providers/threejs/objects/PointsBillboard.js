@@ -14,8 +14,8 @@ var buffer = require('./../../../core/lib/helpers/buffer'),
 module.exports = function (config) {
     var modelMatrix = new THREE.Matrix4(),
         color = new THREE.Color(config.color),
-        pointPositions = config.positions.buffer,
-        pointColors = (config.colors && config.colors.buffer) || null,
+        pointPositions = config.positions.data,
+        pointColors = (config.colors && config.colors.data) || null,
         shader = config.shader,
         colors,
         object,
@@ -60,7 +60,7 @@ module.exports = function (config) {
 
     Fn.expandBoundingBox(object.geometry.boundingBox, config.point_size * 0.5);
 
-    modelMatrix.set.apply(modelMatrix, config.model_matrix.buffer);
+    modelMatrix.set.apply(modelMatrix, config.model_matrix.data);
     object.applyMatrix(modelMatrix);
 
     object.updateMatrixWorld();
