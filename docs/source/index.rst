@@ -10,8 +10,15 @@ Welcome to K3D-jupyter's documentation!
    :maxdepth: 2
    :caption: Contents:
 
-   modules.rst
+   contents.rst
+   examples/index
 
+
+.. toctree::
+   :maxdepth: 2
+   :caption: API Docs:
+
+   modules.rst
 
 
 Indices and tables

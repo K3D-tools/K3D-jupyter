@@ -61,7 +61,7 @@ function serialize_array_or_json(obj) {
     if (obj !== null) {
         return {
             dtype: _.invert(typesToArray)[obj.data.constructor],
-            buffer: obj.buffer,
+            buffer: obj.data,
             shape: obj.shape
         };
     } else {
