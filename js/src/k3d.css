@@ -11,6 +11,10 @@
     margin-right: 0;
 }
 
+.dg li {
+    margin: 0;
+}
+
 .dg.main {
     height: inherit;
 }
