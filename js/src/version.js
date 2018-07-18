@@ -15,4 +15,4 @@ var EXTENSION_SPEC_VERSION = '3.0.0';
 module.exports = {
     version: pkg.version,
     EXTENSION_SPEC_VERSION: EXTENSION_SPEC_VERSION
-}
+};

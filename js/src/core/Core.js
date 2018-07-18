@@ -559,8 +559,15 @@ function K3D(provider, targetDOMNode, parameters) {
 
     if (self.parameters.backendVersion) {
         GUI.info.add({
-            version: self.parameters.backendVersion.substr(1)
+            version: self.parameters.backendVersion
         }, 'version').name('Python version:');
+        GUI.info.__controllers[1].__input.readOnly = true;
+    }
+
+    if (self.parameters.specVersion) {
+        GUI.info.add({
+            version: self.parameters.specVersion.substr(1)
+        }, 'version').name('Spec version:');
         GUI.info.__controllers[1].__input.readOnly = true;
     }
 

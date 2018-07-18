@@ -9,6 +9,7 @@ from IPython.display import display
 
 from ._frontend import EXTENSION_SPEC_VERSION
 from .objects import Drawable, ListOrArray
+from ._version import __version__ as BACKEND_VERSION
 
 
 class Plot(widgets.DOMWidget):
@@ -35,6 +36,8 @@ class Plot(widgets.DOMWidget):
 
     _view_module_version = Unicode(EXTENSION_SPEC_VERSION).tag(sync=True)
     _model_module_version = Unicode(EXTENSION_SPEC_VERSION).tag(sync=True)
+
+    _backend_version = Unicode(BACKEND_VERSION).tag(sync=True)
 
     # readonly (specified at creation)
     antialias = Bool().tag(sync=True)
