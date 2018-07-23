@@ -77,6 +77,6 @@
     "rasterizehtml": "^1.3.0",
     "screenfull": "^3.2.0",
     "stats.js": "^0.17.0",
-    "three": "https://github.com/K3D-tools/three.js.git#a838060faee44e158a8984bbd7193266b5f0545f"
+    "three": "https://github.com/K3D-tools/three.js.git#a08eeb0639fa892d15a1888b9a0f3dcd31bcc531"
   }
 }
