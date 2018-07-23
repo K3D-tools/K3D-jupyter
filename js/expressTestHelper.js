@@ -34,6 +34,8 @@ app.use(function (req, res, next) {
 });
 
 app.post('/screenshots/:filename', function (req, res) {
+    console.log(req.rawBody);
+
     fs.writeFile('test/results/' + req.params.filename, req.rawBody, 'base64', function () {
         res.writeHead(200);
         res.end();
