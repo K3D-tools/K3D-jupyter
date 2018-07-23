@@ -49,6 +49,7 @@ window.TestHelpers.jsonLoader = function (url, callback) {
             origins: arrayToTypedArray.bind(null, Float32Array),
             vectors: arrayToTypedArray.bind(null, Float32Array),
             heights: arrayToTypedArray.bind(null, Float32Array),
+            volume: arrayToTypedArray.bind(null, Uint16Array),
             voxels: arrayToTypedArray.bind(null, Uint8Array),
             binary: base64ToArrayBuffer
         };

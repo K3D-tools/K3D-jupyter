@@ -48,12 +48,12 @@ def line(vertices, color=_default_color, colors=(), attribute=(), color_map=(), 
     color_range = check_attribute_range(attribute, color_range)
 
     return process_transform_arguments(
-        Line(vertices=np.array(vertices, np.float32),
+        Line(vertices=vertices,
              color=color,
              width=width,
              shader=shader,
              radial_segments=radial_segments,
-             colors=np.array(colors, np.uint32),
+             colors=colors,
              attribute=attribute,
              color_map=color_map,
              color_range=color_range,
@@ -85,7 +85,7 @@ def marching_cubes(scalar_field, level, color=_default_color, wireframe=False, f
         flat_shading: `bool`. Whether mesh should display with flat shading.
         kwargs: `dict`. Dictionary arguments to configure transform and model_matrix."""
     return process_transform_arguments(
-        MarchingCubes(scalar_field=np.array(scalar_field, np.float32),
+        MarchingCubes(scalar_field=scalar_field,
                       color=color,
                       level=level,
                       wireframe=wireframe,
@@ -116,8 +116,8 @@ def mesh(vertices, indices, color=_default_color, attribute=(), color_map=(), co
     color_range = check_attribute_range(attribute, color_range)
 
     return process_transform_arguments(
-        Mesh(vertices=np.array(vertices, np.float32),
-             indices=np.array(indices, np.uint32),
+        Mesh(vertices=vertices,
+             indices=indices,
              color=color,
              attribute=attribute,
              color_map=color_map,
@@ -146,7 +146,7 @@ def points(positions, colors=(), color=_default_color, point_size=1.0, shader='3
             `mesh`: high precision triangle mesh of a ball (high quality and GPU load).
         kwargs: `dict`. Dictionary arguments to configure transform and model_matrix."""
     return process_transform_arguments(
-        Points(positions=np.array(positions, np.float32), colors=np.array(colors, np.uint32),
+        Points(positions=positions, colors=colors,
                color=color, point_size=point_size, shader=shader,
                compression_level=compression_level),
         **kwargs
@@ -194,7 +194,7 @@ def surface(heights, color=_default_color, wireframe=False, flat_shading=True, c
         flat_shading: `bool`. Whether mesh should display with flat shading.
         kwargs: `dict`. Dictionary arguments to configure transform and model_matrix."""
     return process_transform_arguments(
-        Surface(heights=np.array(heights, np.float32), color=color, wireframe=wireframe, flat_shading=flat_shading,
+        Surface(heights=heights, color=color, wireframe=wireframe, flat_shading=flat_shading,
                 compression_level=compression_level),
         **kwargs
     )
@@ -327,7 +327,7 @@ def vector_field(vectors,
         kwargs: `dict`. Dictionary arguments to configure transform and model_matrix."""
     return process_transform_arguments(
         VectorField(vectors=vectors,
-                    colors=np.array(colors, np.uint32),
+                    colors=colors,
                     use_head=use_head,
                     head_size=head_size,
                     line_width=line_width,
@@ -373,7 +373,7 @@ def vectors(origins, vectors=None, colors=(),
         Vectors(
             vectors=vectors if vectors is not None else origins,
             origins=origins if vectors is not None else np.zeros_like(vectors),
-            colors=np.array(colors, np.uint32),
+            colors=colors,
             origin_color=origin_color if origin_color is not None else color,
             head_color=head_color if head_color is not None else color,
             use_head=use_head,
@@ -414,7 +414,7 @@ def voxels(voxels, color_map, wireframe=False, outlines=True, outlines_color=0, 
         outlines_color: `int`. Packed RGB color of the resulting outlines (0xff0000 is red, 0xff is blue)
     kwargs: `dict`. Dictionary arguments to configure transform and model_matrix."""
     return process_transform_arguments(
-        Voxels(voxels=np.array(voxels, np.uint8), color_map=np.array(color_map, np.float32), wireframe=wireframe,
+        Voxels(voxels=voxels, color_map=color_map, wireframe=wireframe,
                outlines=outlines, outlines_color=outlines_color,
                compression_level=compression_level),
         **kwargs
@@ -524,7 +524,7 @@ def voxels_ipydw(voxels, color_map, wireframe=False, outlines=True, outlines_col
         outlines_color: `int`. Packed RGB color of the resulting outlines (0xff0000 is red, 0xff is blue)
     kwargs: `dict`. Dictionary arguments to configure transform and model_matrix."""
     return process_transform_arguments(
-        VoxelsIpyDW(voxels=voxels, color_map=np.array(color_map, np.float32), wireframe=wireframe,
+        VoxelsIpyDW(voxels=voxels, color_map=color_map, wireframe=wireframe,
                     outlines=outlines, outlines_color=outlines_color,
                     compression_level=compression_level),
         **kwargs

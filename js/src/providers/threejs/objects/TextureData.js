@@ -19,7 +19,7 @@ module.exports = function (config, K3D) {
             texture;
 
         texture = new THREE.DataTexture(new Float32Array(config.attribute.data),
-            config.attribute.shape[1], config.attribute.shape[0], THREE.LuminanceFormat, THREE.FloatType);
+            config.attribute.shape[1], config.attribute.shape[0], THREE.RedFormat, THREE.FloatType);
 
         texture.minFilter = THREE.NearestFilter; //LinearMipMapLinearFilter
         texture.magFilter = THREE.LinearFilter;
@@ -35,7 +35,7 @@ module.exports = function (config, K3D) {
         var uniforms = {
             low: {value: colorRange[0]},
             high: {value: colorRange[1]},
-            texture: {type: 't', value: texture},
+            map: {type: 't', value: texture},
             colormap: {type: 't', value: colormap}
         };
 
@@ -56,8 +56,8 @@ module.exports = function (config, K3D) {
         object.updateMatrixWorld();
 
         object.onRemove = function () {
-            object.material.uniforms.texture.value.dispose();
-            object.material.uniforms.texture.value = undefined;
+            object.material.uniforms.map.value.dispose();
+            object.material.uniforms.map.value = undefined;
             object.material.uniforms.colormap.value.dispose();
             object.material.uniforms.colormap.value = undefined;
         };

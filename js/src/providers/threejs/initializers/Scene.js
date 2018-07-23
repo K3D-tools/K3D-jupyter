@@ -45,7 +45,7 @@ function getSceneBoundingBox() {
             typeof(object.position.z) !== 'undefined' &&
             (object.geometry || object.boundingBox)) {
 
-            if (object.geometry) {
+            if (object.geometry && object.geometry.boundingBox) {
                 objectBoundingBox = object.geometry.boundingBox.clone();
             } else {
                 objectBoundingBox = object.boundingBox.clone();
@@ -123,7 +123,7 @@ function rebuildSceneData(K3D, grids, force) {
         majorScale,
         minorScale,
         sceneBoundingBox = new THREE.Box3().setFromArray(K3D.parameters.grid),
-        extendedSceneBoundingBox = new THREE.Box3(),
+        extendedSceneBoundingBox,
         unitVectors = {
             'x': new THREE.Vector3(1.0, 0.0, 0.0),
             'y': new THREE.Vector3(0.0, 1.0, 0.0),

@@ -59,7 +59,8 @@ module.exports = {
         TorusKnot: require('./objects/TorusKnot'),
         VectorField: require('./objects/VectorField'),
         Vectors: require('./objects/Vectors'),
-        Voxels: require('./objects/Voxels')
+        Voxels: require('./objects/Voxels'),
+        Volume: require('./objects/Volume')
     },
     /**
      * @namespace Interactions

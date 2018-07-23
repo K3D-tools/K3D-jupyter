@@ -18,9 +18,9 @@ module.exports = function (K3D, object) {
 
     if (!isObject) {
         throw new Error('Object definition should be a valid javascript object!');
-    } else if (isObject && !hasType) {
+    } else if (!hasType) {
         throw new Error('Object definition should have a `type` attribute set!');
-    } else if (isObject && hasType && !hasValidType) {
+    } else if (!hasValidType) {
         throw new Error('Unknown object type (' + object.type + ') passed, no loader supporting it found!');
     }
 

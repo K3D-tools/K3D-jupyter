@@ -134,17 +134,17 @@ class Line(Drawable):
     """
 
     type = Unicode(read_only=True).tag(sync=True)
-    vertices = Array().tag(sync=True, **array_serialization)
-    colors = Array().tag(sync=True, **array_serialization)
+    vertices = Array(dtype=np.float32).tag(sync=True, **array_serialization)
+    colors = Array(dtype=np.uint32).tag(sync=True, **array_serialization)
     color = Int().tag(sync=True)
     width = Float().tag(sync=True)
-    attribute = Array().tag(sync=True, **array_serialization)
-    color_map = Array().tag(sync=True, **array_serialization)
+    attribute = Array(dtype=np.float32).tag(sync=True, **array_serialization)
+    color_map = Array(dtype=np.float32).tag(sync=True, **array_serialization)
     color_range = ListOrArray(minlen=2, maxlen=2, empty_ok=True).tag(sync=True)
     shader = Unicode().tag(sync=True)
     radial_segments = Int().tag(sync=True)
 
-    model_matrix = Array().tag(sync=True, **array_serialization)
+    model_matrix = Array(dtype=np.float32).tag(sync=True, **array_serialization)
 
     def __init__(self, **kwargs):
         super(Line, self).__init__(**kwargs)
@@ -177,12 +177,12 @@ class MarchingCubes(Drawable):
     """
 
     type = Unicode(read_only=True).tag(sync=True)
-    scalar_field = Array().tag(sync=True, **array_serialization)
+    scalar_field = Array(dtype=np.float32).tag(sync=True, **array_serialization)
     level = Float().tag(sync=True)
     color = Int().tag(sync=True)
     wireframe = Bool().tag(sync=True)
     flat_shading = Bool().tag(sync=True)
-    model_matrix = Array().tag(sync=True, **array_serialization)
+    model_matrix = Array(dtype=np.float32).tag(sync=True, **array_serialization)
 
     def __init__(self, **kwargs):
         super(MarchingCubes, self).__init__(**kwargs)
@@ -209,15 +209,15 @@ class Mesh(Drawable):
     """
 
     type = Unicode(read_only=True).tag(sync=True)
-    vertices = Array().tag(sync=True, **array_serialization)
-    indices = Array().tag(sync=True, **array_serialization)
+    vertices = Array(dtype=np.float32).tag(sync=True, **array_serialization)
+    indices = Array(dtype=np.float32).tag(sync=True, **array_serialization)
     color = Int().tag(sync=True)
-    attribute = Array().tag(sync=True, **array_serialization)
-    color_map = Array().tag(sync=True, **array_serialization)
+    attribute = Array(dtype=np.float32).tag(sync=True, **array_serialization)
+    color_map = Array(dtype=np.float32).tag(sync=True, **array_serialization)
     color_range = ListOrArray(minlen=2, maxlen=2, empty_ok=True).tag(sync=True)
     wireframe = Bool().tag(sync=True)
     flat_shading = Bool().tag(sync=True)
-    model_matrix = Array().tag(sync=True, **array_serialization)
+    model_matrix = Array(dtype=np.float32).tag(sync=True, **array_serialization)
 
     def __init__(self, **kwargs):
         super(Mesh, self).__init__(**kwargs)
@@ -244,12 +244,12 @@ class Points(Drawable):
     """
 
     type = Unicode(read_only=True).tag(sync=True)
-    positions = Array().tag(sync=True, **array_serialization)
-    colors = Array().tag(sync=True, **array_serialization)
+    positions = Array(dtype=np.float32).tag(sync=True, **array_serialization)
+    colors = Array(dtype=np.uint32).tag(sync=True, **array_serialization)
     color = Int().tag(sync=True)
     point_size = Float().tag(sync=True)
     shader = Unicode().tag(sync=True)
-    model_matrix = Array().tag(sync=True, **array_serialization)
+    model_matrix = Array(dtype=np.float32).tag(sync=True, **array_serialization)
 
     def __init__(self, **kwargs):
         super(Points, self).__init__(**kwargs)
@@ -285,7 +285,7 @@ class STL(Drawable):
     text = Unicode(allow_none=True).tag(sync=True)
     binary = Bytes(allow_none=True).tag(sync=True)
     color = Int().tag(sync=True)
-    model_matrix = Array().tag(sync=True, **array_serialization)
+    model_matrix = Array(dtype=np.float32).tag(sync=True, **array_serialization)
     wireframe = Bool().tag(sync=True)
     flat_shading = Bool().tag(sync=True)
 
@@ -311,11 +311,11 @@ class Surface(Drawable):
     """
 
     type = Unicode(read_only=True).tag(sync=True)
-    heights = Array().tag(sync=True, **array_serialization)
+    heights = Array(dtype=np.float32).tag(sync=True, **array_serialization)
     color = Int().tag(sync=True)
     wireframe = Bool().tag(sync=True)
     flat_shading = Bool().tag(sync=True)
-    model_matrix = Array().tag(sync=True, **array_serialization)
+    model_matrix = Array(dtype=np.float32).tag(sync=True, **array_serialization)
 
     def __init__(self, **kwargs):
         super(Surface, self).__init__(**kwargs)
@@ -400,10 +400,10 @@ class Texture(Drawable):
     type = Unicode(read_only=True).tag(sync=True)
     binary = Bytes(allow_none=True).tag(sync=True)
     file_format = Unicode(allow_none=True).tag(sync=True)
-    attribute = Array().tag(sync=True, **array_serialization)
-    color_map = Array().tag(sync=True, **array_serialization)
+    attribute = Array(dtype=np.float32).tag(sync=True, **array_serialization)
+    color_map = Array(dtype=np.float32).tag(sync=True, **array_serialization)
     color_range = ListOrArray(minlen=2, maxlen=2, empty_ok=True).tag(sync=True)
-    model_matrix = Array().tag(sync=True, **array_serialization)
+    model_matrix = Array(dtype=np.float32).tag(sync=True, **array_serialization)
 
     def __init__(self, **kwargs):
         super(Texture, self).__init__(**kwargs)
@@ -473,15 +473,15 @@ class VectorField(Drawable):
     """
 
     type = Unicode(read_only=True).tag(sync=True)
-    vectors = Array().tag(sync=True, **array_serialization)
-    colors = Array().tag(sync=True, **array_serialization)
+    vectors = Array(dtype=np.float32).tag(sync=True, **array_serialization)
+    colors = Array(dtype=np.uint32).tag(sync=True, **array_serialization)
     origin_color = Int().tag(sync=True)
     head_color = Int().tag(sync=True)
     use_head = Bool().tag(sync=True)
     head_size = Float().tag(sync=True)
     scale = Float().tag(sync=True)
     line_width = Float().tag(sync=True)
-    model_matrix = Array().tag(sync=True, **array_serialization)
+    model_matrix = Array(dtype=np.float32).tag(sync=True, **array_serialization)
 
     def __init__(self, **kwargs):
         super(VectorField, self).__init__(**kwargs)
@@ -522,9 +522,9 @@ class Vectors(Drawable):
     """
 
     type = Unicode(read_only=True).tag(sync=True)
-    origins = Array().tag(sync=True, **array_serialization)
-    vectors = Array().tag(sync=True, **array_serialization)
-    colors = Array().tag(sync=True, **array_serialization)
+    origins = Array(dtype=np.float32).tag(sync=True, **array_serialization)
+    vectors = Array(dtype=np.float32).tag(sync=True, **array_serialization)
+    colors = Array(dtype=np.uint32).tag(sync=True, **array_serialization)
     origin_color = Int().tag(sync=True)
     head_color = Int().tag(sync=True)
     use_head = Bool().tag(sync=True)
@@ -532,7 +532,7 @@ class Vectors(Drawable):
     labels = List().tag(sync=True)
     label_size = Float().tag(sync=True)
     line_width = Float().tag(sync=True)
-    model_matrix = Array().tag(sync=True, **array_serialization)
+    model_matrix = Array(dtype=np.float32).tag(sync=True, **array_serialization)
 
     def __init__(self, **kwargs):
         super(Vectors, self).__init__(**kwargs)
@@ -566,9 +566,9 @@ class Voxels(Drawable):
     """
 
     type = Unicode(read_only=True).tag(sync=True)
-    voxels = Array().tag(sync=True, **array_serialization)
-    color_map = Array().tag(sync=True, **array_serialization)
-    model_matrix = Array().tag(sync=True, **array_serialization)
+    voxels = Array(dtype=np.uint8).tag(sync=True, **array_serialization)
+    color_map = Array(dtype=np.float32).tag(sync=True, **array_serialization)
+    model_matrix = Array(dtype=np.float32).tag(sync=True, **array_serialization)
     wireframe = Bool().tag(sync=True)
     outlines = Bool().tag(sync=True)
     outlines_color = Int().tag(sync=True)
@@ -614,8 +614,8 @@ class VoxelsIpyDW(Drawable):
 
     type = Unicode(read_only=True).tag(sync=True)
     voxels = DataUnion(default_value=[], dtype=np.uint8).tag(sync=True, **data_union_serialization)
-    color_map = Array().tag(sync=True, **array_serialization)
-    model_matrix = Array().tag(sync=True, **array_serialization)
+    color_map = Array(dtype=np.float32).tag(sync=True, **array_serialization)
+    model_matrix = Array(dtype=np.float32).tag(sync=True, **array_serialization)
     wireframe = Bool().tag(sync=True)
     outlines = Bool().tag(sync=True)
     outlines_color = Int().tag(sync=True)

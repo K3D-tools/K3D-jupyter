@@ -26,12 +26,16 @@ function handleListeners(K3D, on, listener) {
 module.exports = function (K3D) {
 
     var self = this, loop = false;
+    var canvas = document.createElement('canvas');
+    var context = canvas.getContext('webgl2');
 
     self.renderer = new THREE.WebGLRenderer({
         antialias: K3D.parameters.antialias,
         preserveDrawingBuffer: false,
         alpha: true,
-        powerPreference: 'high-performance'
+        powerPreference: 'high-performance',
+        canvas: canvas,
+        context: context
     });
 
     var gl = self.renderer.context;
