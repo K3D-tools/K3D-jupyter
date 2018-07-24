@@ -29,7 +29,7 @@ function arrayToTypedArray(typedArray, array, obj) {
     }
 
     return {
-        buffer: typedArray.from(array),
+        data: typedArray.from(array),
         shape: shape
     };
 }
@@ -49,6 +49,7 @@ window.TestHelpers.jsonLoader = function (url, callback) {
             origins: arrayToTypedArray.bind(null, Float32Array),
             vectors: arrayToTypedArray.bind(null, Float32Array),
             heights: arrayToTypedArray.bind(null, Float32Array),
+            volume: arrayToTypedArray.bind(null, Uint16Array),
             voxels: arrayToTypedArray.bind(null, Uint8Array),
             binary: base64ToArrayBuffer
         };
@@ -75,7 +76,7 @@ window.TestHelpers.jsonLoader = function (url, callback) {
 };
 
 window.TestHelpers.compareCanvasWithExpectedImage =
-    function (K3D, expectedImagePath, misMatchPercentage, callback) {
+    function (K3D, expectedImagePath, misMatchPercentage, onlyCanvas, callback) {
 
         var header = 'data:image/png;base64,',
             xhrLoad = new XMLHttpRequest(),
@@ -84,7 +85,7 @@ window.TestHelpers.compareCanvasWithExpectedImage =
 
         xhrLoad.onreadystatechange = function () {
             if (xhrLoad.readyState === 4) {
-                K3D.getScreenshot().then(function (canvas) {
+                K3D.getScreenshot(1.0, onlyCanvas).then(function (canvas) {
 
                     var saveRender = function () {
                             var xhrSave = new XMLHttpRequest();
@@ -162,5 +163,6 @@ window.TestHelpers.compareCanvasWithExpectedImage =
 
         xhrLoad.open('GET', 'http://localhost:9001/screenshots/' + expectedImagePath + '.png', true);
         xhrLoad.withCredentials = true;
+        xhrLoad.overrideMimeType("text/plain");
         xhrLoad.send(null);
     };

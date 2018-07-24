@@ -1,21 +1,22 @@
 uniform float size;
 uniform float specular;
+uniform mat4 projectionMatrix;
+uniform vec3 ambientLightColor;
 
 varying vec3 vColor;
 varying vec4 mvPosition;
-uniform mat4 projectionMatrix;
 
-struct PointLight {
-  vec3 color;
-  vec3 position;  // light position, in camera coordinates
-  float distance; // used for attenuation purposes. Since
-                  // we're writing our own shader, it can
-                  // really be anything we want (as long as
-                  // we assign it to our light in its
-                  // "distance" field
+struct DirectionalLight {
+    vec3 direction;
+    vec3 color;
+
+    int shadow;
+    float shadowBias;
+    float shadowRadius;
+    vec2 shadowMapSize;
 };
 
-uniform PointLight pointLights[NUM_POINT_LIGHTS];
+uniform DirectionalLight directionalLights[NUM_DIR_LIGHTS];
 
 #include <clipping_planes_pars_fragment>
 
@@ -46,16 +47,16 @@ void main (void)
 
     vec3 normal = vec3(impostorSpaceCoordinate, normalizedDepth);
 
-    vec4 addedLights = vec4(0.0, 0.0, 0.0, 1.0);
+    vec4 addedLights = vec4(ambientLightColor, 1.0);
     vec4 finalSphereColor = vec4(vColor, 1.0);
 
-    for(int l = 0; l <NUM_POINT_LIGHTS; l++) {
-        vec3 lightDirection = normalize(vec3(mvPosition) - pointLights[l].position);
+    for(int l = 0; l <NUM_DIR_LIGHTS; l++) {
+        vec3 lightDirection = -directionalLights[l].direction;
         float lightingIntensity = clamp(dot(-lightDirection, normal), 0.0, 1.0);
-        addedLights.rgb += pointLights[l].color * (0.05 + 0.95 * lightingIntensity);
+        addedLights.rgb += directionalLights[l].color * (0.05 + 0.95 * lightingIntensity);
 
         #if (USE_SPECULAR == 1)
-        finalSphereColor.rgb += pointLights[l].color * pow(lightingIntensity, 80.0);
+        finalSphereColor.rgb += directionalLights[l].color * pow(lightingIntensity, 80.0);
         #endif
     }
 

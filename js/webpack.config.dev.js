@@ -1,5 +1,3 @@
-var webpack = require('webpack');
-
 // Custom webpack loaders are generally the same for all webpack bundles, hence
 // stored in a separate local variable.
 var rules = [

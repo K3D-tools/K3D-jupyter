@@ -14,8 +14,8 @@ var buffer = require('./../../../core/lib/helpers/buffer'),
 module.exports = function (config) {
     var modelMatrix = new THREE.Matrix4(),
         color = new THREE.Color(config.color),
-        pointPositions = config.positions.buffer,
-        pointColors = (config.colors && config.colors.buffer) || null,
+        pointPositions = config.positions.data,
+        pointColors = (config.colors && config.colors.data) || null,
         shader = config.shader,
         colors,
         object,
@@ -52,7 +52,7 @@ module.exports = function (config) {
     material.map = null;
     material.isPointsMaterial = true;
 
-    colors = ( pointColors && pointColors.length === pointPositions.length / 3 ?
+    colors = (pointColors && pointColors.length === pointPositions.length / 3 ?
             colorsToFloat32Array(pointColors) : getColorsArray(color, pointPositions.length / 3)
     );
 
@@ -60,7 +60,7 @@ module.exports = function (config) {
 
     Fn.expandBoundingBox(object.geometry.boundingBox, config.point_size * 0.5);
 
-    modelMatrix.set.apply(modelMatrix, config.model_matrix.buffer);
+    modelMatrix.set.apply(modelMatrix, config.model_matrix.data);
     object.applyMatrix(modelMatrix);
 
     object.updateMatrixWorld();
@@ -79,7 +79,7 @@ module.exports = function (config) {
 function getGeometry(positions, colors) {
     var geometry = new THREE.BufferGeometry();
 
-    geometry.addAttribute('position', new THREE.BufferAttribute(positions, 3));
+    geometry.addAttribute('position', new THREE.BufferAttribute(new Float32Array(positions), 3));
     geometry.addAttribute('color', new THREE.BufferAttribute(colors, 3));
     geometry.computeBoundingSphere();
     geometry.computeBoundingBox();

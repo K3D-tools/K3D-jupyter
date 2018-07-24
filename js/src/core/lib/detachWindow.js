@@ -20,8 +20,6 @@ function detachWindowGUI(gui, K3D) {
 
     function reinitializeK3D(DOM) {
         var newK3D, objects, world = K3D.getWorld();
-
-        K3D.disable();
         newK3D = new K3D.constructor(K3D.Provider, DOM, K3D.parameters);
 
         objects = world.K3DObjects.children.reduce(function (prev, object) {
@@ -30,7 +28,10 @@ function detachWindowGUI(gui, K3D) {
             return prev;
         }, []);
 
+        K3D.disable();
         newK3D.load({objects: objects});
+        newK3D.setCamera(K3D.getWorld().controls.getCameraArray());
+
         _.assign(K3D, newK3D);
     }
 

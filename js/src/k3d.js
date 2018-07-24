@@ -1,16 +1,15 @@
 'use strict';
 
-var widgets = require('@jupyter-widgets/controls'),
+var widgets = require('@jupyter-widgets/base'),
     _ = require('lodash'),
     K3D = require('./core/Core'),
     serialize = require('./core/lib/helpers/serialize'),
     ThreeJsProvider = require('./providers/threejs/provider'),
-    getScreenshot = require('./core/lib/screenshot').getScreenshot,
     PlotModel,
     PlotView,
     ObjectModel,
     ObjectView,
-    semverRange = '~' + require('../package.json').version,
+    semverRange = require('./version').EXTENSION_SPEC_VERSION,
     objectsList = {},
     plotsList = [];
 
@@ -79,20 +78,23 @@ PlotModel = widgets.DOMWidgetModel.extend({
 // Custom View. Renders the widget model.
 PlotView = widgets.DOMWidgetView.extend({
     render: function () {
-        var containerEnvelope = $('<div />').css({
-            'height': this.model.get('height'),
-            'position': 'relative'
-        });
+        var containerEnvelope = window.document.createElement('div');
+        containerEnvelope.style.cssText = [
+            'height:' + this.model.get('height') + 'px',
+            'position: relative'
+        ].join(';');
 
-        containerEnvelope.appendTo(this.$el);
+        var container = window.document.createElement('div');
+        container.style.cssText = [
+            'width: 100%',
+            'height: 100%',
+            'position: relative'
+        ].join(';');
 
-        var container = $('<div />').css({
-            'width': '100%',
-            'height': '100%',
-            'position': 'relative'
-        }).appendTo(containerEnvelope);
+        containerEnvelope.appendChild(container);
+        this.el.appendChild(containerEnvelope);
 
-        this.container = container.get(0);
+        this.container = container;
         this.on('displayed', this._init, this);
     },
 
@@ -113,7 +115,7 @@ PlotView = widgets.DOMWidgetView.extend({
             var model = this.model;
 
             if (obj.msg_type === 'fetch_screenshot') {
-                getScreenshot(this.K3DInstance).then(function (canvas) {
+                this.K3DInstance.getScreenshot(this.K3DInstance.parameters.screenshotScale).then(function (canvas) {
                     var data = canvas.toDataURL().split(',')[1];
 
                     // todo
@@ -123,7 +125,10 @@ PlotView = widgets.DOMWidgetView.extend({
             }
         }, this);
         this.model.on('change:camera_auto_fit', this._setCameraAutoFit, this);
+        this.model.on('change:lighting', this._setDirectionalLightingIntensity, this);
         this.model.on('change:grid_auto_fit', this._setGridAutoFit, this);
+        this.model.on('change:fps_meter', this._setFpsMeter, this);
+        this.model.on('change:screenshot_scale', this._setScreenshotScale, this);
         this.model.on('change:voxel_paint_color', this._setVoxelPaintColor, this);
         this.model.on('change:background_color', this._setBackgroundColor, this);
         this.model.on('change:grid', this._setGrid, this);
@@ -134,7 +139,10 @@ PlotView = widgets.DOMWidgetView.extend({
         try {
             this.K3DInstance = new K3D(ThreeJsProvider, this.container, {
                 antialias: this.model.get('antialias'),
-                backendVersion: this.model.get('_view_module_version')
+                specVersion: this.model.get('_view_module_version'),
+                backendVersion: this.model.get('_backend_version'),
+                screenshotScale: this.model.get('screenshot_scale'),
+                grid: this.model.get('grid')
             });
         } catch (e) {
             return;
@@ -163,7 +171,9 @@ PlotView = widgets.DOMWidgetView.extend({
         });
 
         this.GUIObjectChanges = this.K3DInstance.on(this.K3DInstance.events.OBJECT_CHANGE, function (change) {
-            objectsList[change.id].save(change.key, change.value);
+            if (self.model._comm_live) {
+                objectsList[change.id].save(change.key, change.value);
+            }
         });
 
         this.GUIParametersChanges = this.K3DInstance.on(this.K3DInstance.events.PARAMETERS_CHANGE, function (change) {
@@ -178,12 +188,24 @@ PlotView = widgets.DOMWidgetView.extend({
         });
     },
 
+    _setDirectionalLightingIntensity: function () {
+        this.K3DInstance.setDirectionalLightingIntensity(this.model.get('lighting'));
+    },
+
     _setCameraAutoFit: function () {
         this.K3DInstance.setCameraAutoFit(this.model.get('camera_auto_fit'));
     },
 
     _setGridAutoFit: function () {
         this.K3DInstance.setGridAutoFit(this.model.get('grid_auto_fit'));
+    },
+
+    _setFpsMeter: function () {
+        this.K3DInstance.setFpsMeter(this.model.get('fps_meter'));
+    },
+
+    _setScreenshotScale: function () {
+        this.K3DInstance.setScreenshotScale(this.model.get('screenshot_scale'));
     },
 
     _setVoxelPaintColor: function () {
@@ -262,6 +284,44 @@ PlotView = widgets.DOMWidgetView.extend({
             this.objectsChangesQueueRun = true;
             setTimeout(this._processObjectsChangesQueue, 0, this);
         }
+    },
+
+    processPhosphorMessage: function (msg) {
+        widgets.DOMWidgetView.prototype.processPhosphorMessage.call(this, msg);
+        switch (msg.type) {
+            case 'after-attach':
+                this.el.addEventListener('contextmenu', this, true);
+                break;
+            case 'before-detach':
+                this.el.removeEventListener('contextmenu', this, true);
+                break;
+            case 'resize':
+                this.handleResize(msg);
+                break;
+        }
+    },
+
+    handleEvent: function (event) {
+        switch (event.type) {
+            case 'contextmenu':
+                this.handleContextMenu(event);
+                break;
+            default:
+                widgets.DOMWidgetView.prototype.handleEvent.call(this, event);
+                break;
+        }
+    },
+
+    handleContextMenu: function (event) {
+        // Cancel context menu if on renderer:
+        if (this.container.contains(event.target)) {
+            event.preventDefault();
+            event.stopPropagation();
+        }
+    },
+
+    handleResize: function () {
+        this.K3DInstance.resizeHelper();
     }
 });
 

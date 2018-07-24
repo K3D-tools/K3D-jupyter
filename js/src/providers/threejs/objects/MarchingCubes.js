@@ -13,9 +13,10 @@ module.exports = function (config) {
     config.visible = typeof(config.visible) !== 'undefined' ? config.visible : true;
     config.color = typeof(config.color) !== 'undefined' ? config.color : 255;
     config.wireframe = typeof(config.wireframe) !== 'undefined' ? config.wireframe : false;
+    config.flat_shading = typeof(config.flat_shading) !== 'undefined' ? config.flat_shading : true;
 
     return new Promise(function (resolve) {
-        var scalarField = config.scalar_field.buffer,
+        var scalarField = config.scalar_field.data,
             width = config.scalar_field.shape[2],
             height = config.scalar_field.shape[1],
             length = config.scalar_field.shape[0],
@@ -25,10 +26,10 @@ module.exports = function (config) {
             material = new MaterialConstructor({
                 color: config.color,
                 emissive: 0,
-                shininess: 25,
+                shininess: 50,
                 specular: 0x111111,
                 side: THREE.DoubleSide,
-                flatShading: true,
+                flatShading: config.flat_shading,
                 wireframe: config.wireframe
             }),
             geometry = new THREE.BufferGeometry(),
@@ -58,9 +59,16 @@ module.exports = function (config) {
                 new THREE.Vector3(1.0, 1.0, 1.0)
             );
 
+            if (config.flat_shading === false) {
+                var geo = new THREE.Geometry().fromBufferGeometry(geometry);
+                geo.mergeVertices();
+                geo.computeVertexNormals();
+                geometry.fromGeometry(geo);
+            }
+
             object = new THREE.Mesh(geometry, material);
 
-            modelMatrix.set.apply(modelMatrix, config.model_matrix.buffer);
+            modelMatrix.set.apply(modelMatrix, config.model_matrix.data);
 
             object.position.set(-0.5, -0.5, -0.5);
             object.updateMatrix();

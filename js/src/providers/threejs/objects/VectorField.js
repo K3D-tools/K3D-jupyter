@@ -1,6 +1,7 @@
 'use strict';
 
 var buffer = require('./../../../core/lib/helpers/buffer'),
+    MeshLine = require('./../helpers/THREE.MeshLine'),
     getTwoColorsArray = require('./../helpers/Fn').getTwoColorsArray,
     generateArrow = require('./../helpers/Fn').generateArrow;
 
@@ -10,22 +11,23 @@ var buffer = require('./../../../core/lib/helpers/buffer'),
  * @memberof K3D.Providers.ThreeJS.Objects
  * @param {Object} config all configurations params from JSON
  */
-module.exports = function (config) {
+module.exports = function (config, K3D) {
     config.visible = typeof(config.visible) !== 'undefined' ? config.visible : true;
     config.origin_color = typeof(config.origin_color) !== 'undefined' ? config.origin_color : 255;
     config.head_color = typeof(config.head_color) !== 'undefined' ? config.head_color : 255;
     config.use_head = typeof(config.use_head) !== 'undefined' ? config.use_head : true;
     config.head_size = config.head_size || 1.0;
     config.scale = config.scale || 1.0;
+    config.line_width = config.line_width || 0.01;
 
-    var modelMatrix = new THREE.Matrix4().fromArray(config.model_matrix.buffer),
+    var modelMatrix = new THREE.Matrix4().fromArray(config.model_matrix.data),
         originColor = new THREE.Color(config.origin_color),
         headColor = new THREE.Color(config.head_color),
         width = config.vectors.shape[2],
         height = config.vectors.shape[1],
         length = config.vectors.shape[0],
-        vectors = config.vectors.buffer,
-        colors = (config.colors && config.colors.buffer) || null,
+        vectors = config.vectors.data,
+        colors = (config.colors && config.colors.data) || null,
         useHead = config.use_head,
         headSize = config.head_size,
         scale = config.scale,
@@ -33,8 +35,8 @@ module.exports = function (config) {
         x, y, z, i,
         scalar, origin, destination,
         heads = null,
+        resizelistenerId,
         singleConeGeometry,
-        linesGeometry = new THREE.BufferGeometry(),
         lineVertices = [],
         colorsToFloat32Array = buffer.colorsToFloat32Array;
 
@@ -69,7 +71,8 @@ module.exports = function (config) {
                     heads,
                     origin,
                     destination,
-                    new THREE.Color(colors[i * 6 + 3], colors[i * 6 + 4], colors[i * 6 + 5])
+                    new THREE.Color(colors[i * 6 + 3], colors[i * 6 + 4], colors[i * 6 + 5]),
+                    0.2 * headSize * scalar
                 );
             }
         }
@@ -79,24 +82,38 @@ module.exports = function (config) {
         addHeads(heads, object);
     }
 
-    linesGeometry.addAttribute('position', new THREE.BufferAttribute(new Float32Array(lineVertices), 3));
-    linesGeometry.addAttribute('color', new THREE.BufferAttribute(colors, 3));
+    var line = new MeshLine.MeshLine();
+    var material = new MeshLine.MeshLineMaterial({
+        color: new THREE.Color(1, 1, 1),
+        opacity: 1.0,
+        sizeAttenuation: true,
+        transparent: true,
+        lineWidth: config.line_width,
+        resolution: new THREE.Vector2(K3D.getWorld().width, K3D.getWorld().height),
+        side: THREE.DoubleSide
+    });
 
-    linesGeometry.computeBoundingSphere();
-    linesGeometry.computeBoundingBox();
+    line.setGeometry(new Float32Array(lineVertices), true, null, colors);
+    line.geometry.computeBoundingSphere();
+    line.geometry.computeBoundingBox();
 
-    object.add(new THREE.LineSegments(linesGeometry, new THREE.LineBasicMaterial({
-        vertexColors: THREE.VertexColors,
-        linewidth: config.lineWidth || 1
-    })));
+    line = new THREE.Mesh(line.geometry, material);
+    object.add(line);
 
     object.position.set(-0.5, -0.5, length === 1 ? 0 : -0.5);
     object.updateMatrix();
     object.applyMatrix(modelMatrix);
-
-    object.boundingBox = linesGeometry.boundingBox;
-
+    object.boundingBox = line.geometry.boundingBox;
     object.updateMatrixWorld();
+
+    resizelistenerId = K3D.on(K3D.events.RESIZED, function () {
+        line.material.uniforms.resolution.value.x = K3D.getWorld().width;
+        line.material.uniforms.resolution.value.y = K3D.getWorld().height;
+    });
+
+    object.onRemove = function () {
+        K3D.off(K3D.events.RESIZED, resizelistenerId);
+    };
 
     return Promise.resolve(object);
 };

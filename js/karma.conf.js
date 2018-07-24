@@ -24,6 +24,7 @@ module.exports = function (config) {
             {pattern: 'test/utils/*.js', included: true},
             {pattern: 'node_modules/components-webfontloader/webfont.js', included: true},
             {pattern: 'test/assets/lato.css', included: true},
+            {pattern: 'test/assets/style.css', included: true},
             {pattern: 'test/assets/Lato-Regular.ttf', included: false},
             {pattern: 'test/test-main.js', included: true},
             {pattern: 'test/**/*Spec.js', included: false}

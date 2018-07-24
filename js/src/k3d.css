@@ -11,6 +11,10 @@
     margin-right: 0;
 }
 
+.dg li {
+    margin: 0;
+}
+
 .dg.main {
     height: inherit;
 }
@@ -26,4 +30,9 @@
 
 .dg.main.taller-than-window > ul > li:last-child {
     margin-bottom: 20px;
+}
+
+.k3d-target canvas {
+    position: relative;
+    z-index: 10;
 }

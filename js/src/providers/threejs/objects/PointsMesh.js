@@ -14,14 +14,14 @@ var buffer = require('./../../../core/lib/helpers/buffer'),
 module.exports = function (config) {
     var modelMatrix = new THREE.Matrix4(),
         color = new THREE.Color(config.color),
-        positions = config.positions.buffer,
-        pointColors = (config.colors && config.colors.buffer) || null,
+        positions = config.positions.data,
+        pointColors = (config.colors && config.colors.data) || null,
         colors,
         object,
         colorsToFloat32Array = buffer.colorsToFloat32Array,
         phongShader = THREE.ShaderLib.phong,
         material = new THREE.ShaderMaterial({
-            uniforms: THREE.UniformsUtils.merge([phongShader.uniforms, {shininess: {value: 80}}]),
+            uniforms: THREE.UniformsUtils.merge([phongShader.uniforms, {shininess: {value: 50}}]),
             vertexShader: require('./shaders/PointsMesh.vertex.glsl'),
             fragmentShader: phongShader.fragmentShader,
             lights: true,
@@ -49,7 +49,7 @@ module.exports = function (config) {
 
     object = new THREE.Mesh(instancedGeometry, material);
 
-    modelMatrix.set.apply(modelMatrix, config.model_matrix.buffer);
+    modelMatrix.set.apply(modelMatrix, config.model_matrix.data);
     object.applyMatrix(modelMatrix);
 
     object.updateMatrixWorld();

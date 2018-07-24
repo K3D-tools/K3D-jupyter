@@ -3,8 +3,9 @@ from traitlets import Unicode, Int, Float, List, Bool, Bytes, Integer
 from traitlets import validate, TraitError
 from traittypes import Array
 from .helpers import array_serialization
-from ._version import __version__
+from ._frontend import EXTENSION_SPEC_VERSION
 import numpy as np
+from ipydatawidgets import DataUnion, data_union_serialization
 
 
 class ListOrArray(List):
@@ -20,17 +21,18 @@ class ListOrArray(List):
         return super(ListOrArray, self).validate_elements(obj, value)
 
 
-class Drawable(widgets.CoreWidget):
+class Drawable(widgets.Widget):
     """
     Base class for drawable objects and groups.
     """
 
     _model_name = Unicode('ObjectModel').tag(sync=True)
     _model_module = Unicode('k3d').tag(sync=True)
-    _model_module_version = Unicode('~' + __version__).tag(sync=True)
+    _model_module_version = Unicode(EXTENSION_SPEC_VERSION).tag(sync=True)
 
     id = Integer().tag(sync=True)
     visible = Bool(True).tag(sync=True)
+    compression_level = Integer().tag(sync=True)
 
     def __init__(self, **kwargs):
         self.id = id(self)
@@ -125,23 +127,29 @@ class Line(Drawable):
         shader: `str`. Display style (name of the shader used) of the lines.
             Legal values are:
             `simple`: simple lines,
+            `thick`: thick lines,
             `mesh`: high precision triangle mesh of segments (high quality and GPU load).
         radial_segments: 'int': Number of segmented faces around the circumference of the tube
         model_matrix: `array_like`. 4x4 model transform matrix.
     """
 
-    type = Unicode(default_value='Line', read_only=True).tag(sync=True)
-    vertices = Array().tag(sync=True, **array_serialization)
-    colors = Array().tag(sync=True, **array_serialization)
+    type = Unicode(read_only=True).tag(sync=True)
+    vertices = Array(dtype=np.float32).tag(sync=True, **array_serialization)
+    colors = Array(dtype=np.uint32).tag(sync=True, **array_serialization)
     color = Int().tag(sync=True)
     width = Float().tag(sync=True)
-    attribute = Array().tag(sync=True, **array_serialization)
-    color_map = Array().tag(sync=True, **array_serialization)
+    attribute = Array(dtype=np.float32).tag(sync=True, **array_serialization)
+    color_map = Array(dtype=np.float32).tag(sync=True, **array_serialization)
     color_range = ListOrArray(minlen=2, maxlen=2, empty_ok=True).tag(sync=True)
     shader = Unicode().tag(sync=True)
     radial_segments = Int().tag(sync=True)
 
-    model_matrix = Array().tag(sync=True, **array_serialization)
+    model_matrix = Array(dtype=np.float32).tag(sync=True, **array_serialization)
+
+    def __init__(self, **kwargs):
+        super(Line, self).__init__(**kwargs)
+
+        self.set_trait('type', 'Line')
 
     @validate('colors')
     def _validate_colors(self, proposal):
@@ -164,15 +172,22 @@ class MarchingCubes(Drawable):
         level: `float`. Value at the computed isosurface.
         color: `int`. Packed RGB color of the isosurface (0xff0000 is red, 0xff is blue).
         wireframe: `bool`. Whether mesh should display as wireframe.
+        flat_shading: `bool`. Whether mesh should display with flat shading.
         model_matrix: `array_like`. 4x4 model transform matrix.
     """
 
-    type = Unicode(default_value='MarchingCubes', read_only=True).tag(sync=True)
-    scalar_field = Array().tag(sync=True, **array_serialization)
+    type = Unicode(read_only=True).tag(sync=True)
+    scalar_field = Array(dtype=np.float32).tag(sync=True, **array_serialization)
     level = Float().tag(sync=True)
     color = Int().tag(sync=True)
     wireframe = Bool().tag(sync=True)
-    model_matrix = Array().tag(sync=True, **array_serialization)
+    flat_shading = Bool().tag(sync=True)
+    model_matrix = Array(dtype=np.float32).tag(sync=True, **array_serialization)
+
+    def __init__(self, **kwargs):
+        super(MarchingCubes, self).__init__(**kwargs)
+
+        self.set_trait('type', 'MarchingCubes')
 
 
 class Mesh(Drawable):
@@ -189,18 +204,25 @@ class Mesh(Drawable):
         color_range: `list`. A pair [min_value, max_value], which determines the levels of color attribute mapped
             to 0 and 1 in the color map respectively.
         wireframe: `bool`. Whether mesh should display as wireframe.
+        flat_shading: `bool`. Whether mesh should display with flat shading.
         model_matrix: `array_like`. 4x4 model transform matrix.
     """
 
-    type = Unicode(default_value='Mesh', read_only=True).tag(sync=True)
-    vertices = Array().tag(sync=True, **array_serialization)
-    indices = Array().tag(sync=True, **array_serialization)
+    type = Unicode(read_only=True).tag(sync=True)
+    vertices = Array(dtype=np.float32).tag(sync=True, **array_serialization)
+    indices = Array(dtype=np.float32).tag(sync=True, **array_serialization)
     color = Int().tag(sync=True)
-    attribute = Array().tag(sync=True, **array_serialization)
-    color_map = Array().tag(sync=True, **array_serialization)
+    attribute = Array(dtype=np.float32).tag(sync=True, **array_serialization)
+    color_map = Array(dtype=np.float32).tag(sync=True, **array_serialization)
     color_range = ListOrArray(minlen=2, maxlen=2, empty_ok=True).tag(sync=True)
     wireframe = Bool().tag(sync=True)
-    model_matrix = Array().tag(sync=True, **array_serialization)
+    flat_shading = Bool().tag(sync=True)
+    model_matrix = Array(dtype=np.float32).tag(sync=True, **array_serialization)
+
+    def __init__(self, **kwargs):
+        super(Mesh, self).__init__(**kwargs)
+
+        self.set_trait('type', 'Mesh')
 
 
 class Points(Drawable):
@@ -221,13 +243,18 @@ class Points(Drawable):
         model_matrix: `array_like`. 4x4 model transform matrix.
     """
 
-    type = Unicode(default_value='Points', read_only=True).tag(sync=True)
-    positions = Array().tag(sync=True, **array_serialization)
-    colors = Array().tag(sync=True, **array_serialization)
+    type = Unicode(read_only=True).tag(sync=True)
+    positions = Array(dtype=np.float32).tag(sync=True, **array_serialization)
+    colors = Array(dtype=np.uint32).tag(sync=True, **array_serialization)
     color = Int().tag(sync=True)
     point_size = Float().tag(sync=True)
     shader = Unicode().tag(sync=True)
-    model_matrix = Array().tag(sync=True, **array_serialization)
+    model_matrix = Array(dtype=np.float32).tag(sync=True, **array_serialization)
+
+    def __init__(self, **kwargs):
+        super(Points, self).__init__(**kwargs)
+
+        self.set_trait('type', 'Points')
 
     @validate('colors')
     def _validate_colors(self, proposal):
@@ -251,14 +278,21 @@ class STL(Drawable):
         color: `int`. Packed RGB color of the resulting mesh (0xff0000 is red, 0xff is blue).
         model_matrix: `array_like`. 4x4 model transform matrix.
         wireframe: `bool`. Whether mesh should display as wireframe.
+        flat_shading: `bool`. Whether mesh should display with flat shading.
     """
 
-    type = Unicode(default_value='STL', read_only=True).tag(sync=True)
+    type = Unicode(read_only=True).tag(sync=True)
     text = Unicode(allow_none=True).tag(sync=True)
-    binary = Array().tag(sync=True, **array_serialization)
+    binary = Bytes(allow_none=True).tag(sync=True)
     color = Int().tag(sync=True)
-    model_matrix = Array().tag(sync=True, **array_serialization)
+    model_matrix = Array(dtype=np.float32).tag(sync=True, **array_serialization)
     wireframe = Bool().tag(sync=True)
+    flat_shading = Bool().tag(sync=True)
+
+    def __init__(self, **kwargs):
+        super(STL, self).__init__(**kwargs)
+
+        self.set_trait('type', 'STL')
 
 
 class Surface(Drawable):
@@ -272,14 +306,21 @@ class Surface(Drawable):
         heights: `array_like`. 2D scalar field of Z values.
         color: `int`. Packed RGB color of the resulting mesh (0xff0000 is red, 0xff is blue).
         wireframe: `bool`. Whether mesh should display as wireframe.
+        flat_shading: `bool`. Whether mesh should display with flat shading.
         model_matrix: `array_like`. 4x4 model transform matrix.
     """
 
-    type = Unicode(default_value='Surface', read_only=True).tag(sync=True)
-    heights = Array().tag(sync=True, **array_serialization)
+    type = Unicode(read_only=True).tag(sync=True)
+    heights = Array(dtype=np.float32).tag(sync=True, **array_serialization)
     color = Int().tag(sync=True)
     wireframe = Bool().tag(sync=True)
-    model_matrix = Array().tag(sync=True, **array_serialization)
+    flat_shading = Bool().tag(sync=True)
+    model_matrix = Array(dtype=np.float32).tag(sync=True, **array_serialization)
+
+    def __init__(self, **kwargs):
+        super(Surface, self).__init__(**kwargs)
+
+        self.set_trait('type', 'Surface')
 
 
 class Text(Drawable):
@@ -296,12 +337,17 @@ class Text(Drawable):
         size: `float`. Font size in 'em' HTML units.
     """
 
-    type = Unicode(default_value='Text', read_only=True).tag(sync=True)
+    type = Unicode(read_only=True).tag(sync=True)
     text = Unicode().tag(sync=True)
     position = ListOrArray(minlen=3, maxlen=3).tag(sync=True)
     color = Int().tag(sync=True)
     reference_point = Unicode().tag(sync=True)
     size = Float().tag(sync=True)
+
+    def __init__(self, **kwargs):
+        super(Text, self).__init__(**kwargs)
+
+        self.set_trait('type', 'Text')
 
 
 class Text2d(Drawable):
@@ -318,12 +364,17 @@ class Text2d(Drawable):
         size: `float`. Font size in 'em' HTML units.
     """
 
-    type = Unicode(default_value='Text2d', read_only=True).tag(sync=True)
+    type = Unicode(read_only=True).tag(sync=True)
     color = Int().tag(sync=True)
     size = Float().tag(sync=True)
     reference_point = Unicode().tag(sync=True)
     position = ListOrArray(minlen=2, maxlen=2).tag(sync=True)
     text = Unicode().tag(sync=True)
+
+    def __init__(self, **kwargs):
+        super(Text2d, self).__init__(**kwargs)
+
+        self.set_trait('type', 'Text2d')
 
 
 class Texture(Drawable):
@@ -338,13 +389,26 @@ class Texture(Drawable):
         binary: `bytes`. Image data in a specific format.
         file_format: `str`. Format of the data, it should be the second part of MIME format of type 'image/',
             for example 'jpeg', 'png', 'gif', 'tiff'.
+        attribute: `array_like`. Array of float attribute for the color mapping, coresponding to each pixels.
+        color_map: `list`. A list of float quadruplets (attribute value, R, G, B), sorted by attribute value. The first
+            quadruplet should have value 0.0, the last 1.0; R, G, B are RGB color components in the range 0.0 to 1.0.
+        color_range: `list`. A pair [min_value, max_value], which determines the levels of color attribute mapped
+            to 0 and 1 in the color map respectively.
         model_matrix: `array_like`. 4x4 model transform matrix.
     """
 
-    type = Unicode(default_value='Texture', read_only=True).tag(sync=True)
-    binary = Bytes().tag(sync=True)
-    file_format = Unicode().tag(sync=True)
-    model_matrix = Array().tag(sync=True, **array_serialization)
+    type = Unicode(read_only=True).tag(sync=True)
+    binary = Bytes(allow_none=True).tag(sync=True)
+    file_format = Unicode(allow_none=True).tag(sync=True)
+    attribute = Array(dtype=np.float32).tag(sync=True, **array_serialization)
+    color_map = Array(dtype=np.float32).tag(sync=True, **array_serialization)
+    color_range = ListOrArray(minlen=2, maxlen=2, empty_ok=True).tag(sync=True)
+    model_matrix = Array(dtype=np.float32).tag(sync=True, **array_serialization)
+
+    def __init__(self, **kwargs):
+        super(Texture, self).__init__(**kwargs)
+
+        self.set_trait('type', 'Texture')
 
 
 class TextureText(Drawable):
@@ -367,7 +431,7 @@ class TextureText(Drawable):
             text in the scene, only the accuracy and raster size of the texture.
     """
 
-    type = Unicode(default_value='TextureText', read_only=True).tag(sync=True)
+    type = Unicode(read_only=True).tag(sync=True)
     text = Unicode().tag(sync=True)
     position = ListOrArray(minlen=3, maxlen=3).tag(sync=True)
     color = Int().tag(sync=True)
@@ -375,6 +439,11 @@ class TextureText(Drawable):
     font_face = Unicode().tag(sync=True)
     font_weight = Int().tag(sync=True)
     font_size = Int().tag(sync=True)
+
+    def __init__(self, **kwargs):
+        super(TextureText, self).__init__(**kwargs)
+
+        self.set_trait('type', 'TextureText')
 
 
 class VectorField(Drawable):
@@ -399,18 +468,25 @@ class VectorField(Drawable):
         use_head: `bool`. Whether vectors should display an arrow head.
         head_size: `float`. The size of the arrow heads.
         scale: `float`. Scale factor for the vector lengths, for artificially scaling the vectors in place.
+        line_width: `float`. Width of the vector segments.
         model_matrix: `array_like`. 4x4 model transform matrix.
     """
 
-    type = Unicode(default_value='VectorField', read_only=True).tag(sync=True)
-    vectors = Array().tag(sync=True, **array_serialization)
-    colors = Array().tag(sync=True, **array_serialization)
+    type = Unicode(read_only=True).tag(sync=True)
+    vectors = Array(dtype=np.float32).tag(sync=True, **array_serialization)
+    colors = Array(dtype=np.uint32).tag(sync=True, **array_serialization)
     origin_color = Int().tag(sync=True)
     head_color = Int().tag(sync=True)
     use_head = Bool().tag(sync=True)
     head_size = Float().tag(sync=True)
     scale = Float().tag(sync=True)
-    model_matrix = Array().tag(sync=True, **array_serialization)
+    line_width = Float().tag(sync=True)
+    model_matrix = Array(dtype=np.float32).tag(sync=True, **array_serialization)
+
+    def __init__(self, **kwargs):
+        super(VectorField, self).__init__(**kwargs)
+
+        self.set_trait('type', 'VectorField')
 
     @validate('vectors')
     def _validate_vectors(self, proposal):
@@ -445,10 +521,10 @@ class Vectors(Drawable):
         model_matrix: `array_like`. 4x4 model transform matrix.
     """
 
-    type = Unicode(default_value='Vectors', read_only=True).tag(sync=True)
-    origins = Array().tag(sync=True, **array_serialization)
-    vectors = Array().tag(sync=True, **array_serialization)
-    colors = Array().tag(sync=True, **array_serialization)
+    type = Unicode(read_only=True).tag(sync=True)
+    origins = Array(dtype=np.float32).tag(sync=True, **array_serialization)
+    vectors = Array(dtype=np.float32).tag(sync=True, **array_serialization)
+    colors = Array(dtype=np.uint32).tag(sync=True, **array_serialization)
     origin_color = Int().tag(sync=True)
     head_color = Int().tag(sync=True)
     use_head = Bool().tag(sync=True)
@@ -456,7 +532,12 @@ class Vectors(Drawable):
     labels = List().tag(sync=True)
     label_size = Float().tag(sync=True)
     line_width = Float().tag(sync=True)
-    model_matrix = Array().tag(sync=True, **array_serialization)
+    model_matrix = Array(dtype=np.float32).tag(sync=True, **array_serialization)
+
+    def __init__(self, **kwargs):
+        super(Vectors, self).__init__(**kwargs)
+
+        self.set_trait('type', 'Vectors')
 
 
 class Voxels(Drawable):
@@ -484,10 +565,10 @@ class Voxels(Drawable):
         outlines_color: `int`. Packed RGB color of the resulting outlines (0xff0000 is red, 0xff is blue)
     """
 
-    type = Unicode(default_value='Voxels', read_only=True).tag(sync=True)
-    voxels = Array().tag(sync=True, **array_serialization)
-    color_map = Array().tag(sync=True, **array_serialization)
-    model_matrix = Array().tag(sync=True, **array_serialization)
+    type = Unicode(read_only=True).tag(sync=True)
+    voxels = Array(dtype=np.uint8).tag(sync=True, **array_serialization)
+    color_map = Array(dtype=np.float32).tag(sync=True, **array_serialization)
+    model_matrix = Array(dtype=np.float32).tag(sync=True, **array_serialization)
     wireframe = Bool().tag(sync=True)
     outlines = Bool().tag(sync=True)
     outlines_color = Int().tag(sync=True)
@@ -496,8 +577,54 @@ class Voxels(Drawable):
     def __init__(self, **kwargs):
         super(Voxels, self).__init__(**kwargs)
 
+        self.set_trait('type', 'Voxels')
         self.on_msg(self._handle_custom_msg)
-        pass
+
+    def _handle_custom_msg(self, content, buffers):
+        if content.get('msg_type', '') == 'click_callback':
+            if self.click_callback is not None:
+                self.click_callback(content['coord']['x'], content['coord']['y'], content['coord']['z'])
+
+
+class VoxelsIpyDW(Drawable):
+    """
+    3D volumetric data.
+
+    By default, the voxels are a grid inscribed in the -0.5 < x, y, z < 0.5 cube
+    regardless of the passed voxel array shape (aspect ratio etc.).
+    Different grid size, shape and rotation can be obtained using the model_matrix.
+
+    Attributes:
+        voxels: `array_like`. 3D array of `int` in range (0, 255).
+            0 means empty voxel, 1 and above refer to consecutive color_map entries.
+        color_map: `array_like`. Flat array of `int` packed RGB colors (0xff0000 is red, 0xff is blue).
+            The color defined at index i is for voxel value (i+1), e.g.:
+            color_map = [0xff, 0x00ff]
+            voxels = [[[
+                0, # empty voxel
+                1, # blue voxel
+                2  # red voxel
+            ]]]
+        model_matrix: `array_like`. 4x4 model transform matrix.
+        wireframe: `bool`. Whether mesh should display as wireframe.
+        outlines: `bool`. Whether mesh should display with outlines.
+        outlines_color: `int`. Packed RGB color of the resulting outlines (0xff0000 is red, 0xff is blue)
+    """
+
+    type = Unicode(read_only=True).tag(sync=True)
+    voxels = DataUnion(default_value=[], dtype=np.uint8).tag(sync=True, **data_union_serialization)
+    color_map = Array(dtype=np.float32).tag(sync=True, **array_serialization)
+    model_matrix = Array(dtype=np.float32).tag(sync=True, **array_serialization)
+    wireframe = Bool().tag(sync=True)
+    outlines = Bool().tag(sync=True)
+    outlines_color = Int().tag(sync=True)
+    click_callback = None
+
+    def __init__(self, **kwargs):
+        super(VoxelsIpyDW, self).__init__(**kwargs)
+
+        self.set_trait('type', 'Voxels')
+        self.on_msg(self._handle_custom_msg)
 
     def _handle_custom_msg(self, content, buffers):
         if content.get('msg_type', '') == 'click_callback':

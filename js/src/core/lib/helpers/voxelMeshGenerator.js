@@ -127,8 +127,6 @@ function generateGreedyVoxelMesh(voxels, colorMap, chunkSize, voxelSize, offsets
                     x[u] = offsets[u];
                     x[v] = j;
 
-                    idx = x[0] + width * (x[1] + height * x[2]);
-
                     if (offsets[u] === 0 && mask[n] !== 0) {
                         makeOutline(outlines, x, v, outlineIndex++);
                     }
@@ -143,7 +141,6 @@ function generateGreedyVoxelMesh(voxels, colorMap, chunkSize, voxelSize, offsets
                     }
 
                     x[u] = ending[u];
-                    idx = x[0] + width * (x[1] + height * x[2]);
 
                     if (i === dims[u] - 1 && mask[n] !== 0) {
                         makeOutline(outlines, x, v, outlineIndex++);

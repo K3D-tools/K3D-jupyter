@@ -3,6 +3,8 @@
   "objects": [
     {
       "type": "Line",
+      "width": 1.0,
+      "shader": "simple",
       "model_matrix": [
         1, 0, 0, 0,
         0, 0, -1, 0,
@@ -1216,6 +1218,8 @@
     },
     {
       "type": "Line",
+      "width": 1.0,
+      "shader": "simple",
       "model_matrix": [
         1, 0, 0, 0,
         0, 0, -1, 0,
@@ -2297,6 +2301,8 @@
     },
     {
       "type": "Line",
+      "width": 1.0,
+      "shader": "simple",
       "model_matrix": [
         1, 0, 0, 0,
         0, 0, -1, 0,
@@ -3646,6 +3652,8 @@
     },
     {
       "type": "Line",
+      "width": 1.0,
+      "shader": "simple",
       "model_matrix": [
         1, 0, 0, 0,
         0, 0, -1, 0,
@@ -5691,6 +5699,8 @@
     },
     {
       "type": "Line",
+      "width": 1.0,
+      "shader": "simple",
       "model_matrix": [
         1, 0, 0, 0,
         0, 0, -1, 0,
@@ -6960,6 +6970,8 @@
     },
     {
       "type": "Line",
+      "width": 1.0,
+      "shader": "simple",
       "model_matrix": [
         1, 0, 0, 0,
         0, 0, -1, 0,
@@ -8009,6 +8021,8 @@
     },
     {
       "type": "Line",
+      "width": 1.0,
+      "shader": "simple",
       "model_matrix": [
         1, 0, 0, 0,
         0, 0, -1, 0,
@@ -9022,6 +9036,8 @@
     },
     {
       "type": "Line",
+      "width": 1.0,
+      "shader": "simple",
       "model_matrix": [
         1, 0, 0, 0,
         0, 0, -1, 0,
@@ -9719,6 +9735,8 @@
     },
     {
       "type": "Line",
+      "width": 1.0,
+      "shader": "simple",
       "model_matrix": [
         1, 0, 0, 0,
         0, 0, -1, 0,
@@ -11208,6 +11226,8 @@
     },
     {
       "type": "Line",
+      "width": 1.0,
+      "shader": "simple",
       "model_matrix": [
         1, 0, 0, 0,
         0, 0, -1, 0,
@@ -12697,6 +12717,8 @@
     },
     {
       "type": "Line",
+      "width": 1.0,
+      "shader": "simple",
       "model_matrix": [
         1, 0, 0, 0,
         0, 0, -1, 0,
@@ -13446,6 +13468,8 @@
     },
     {
       "type": "Line",
+      "width": 1.0,
+      "shader": "simple",
       "model_matrix": [
         1, 0, 0, 0,
         0, 0, -1, 0,
@@ -14327,6 +14351,8 @@
     },
     {
       "type": "Line",
+      "width": 1.0,
+      "shader": "simple",
       "model_matrix": [
         1, 0, 0, 0,
         0, 0, -1, 0,
@@ -15500,6 +15526,8 @@
     },
     {
       "type": "Line",
+      "width": 1.0,
+      "shader": "simple",
       "model_matrix": [
         1, 0, 0, 0,
         0, 0, -1, 0,
@@ -15945,6 +15973,8 @@
     },
     {
       "type": "Line",
+      "width": 1.0,
+      "shader": "simple",
       "model_matrix": [
         1, 0, 0, 0,
         0, 0, -1, 0,
@@ -15974,6 +16004,8 @@
     },
     {
       "type": "Line",
+      "width": 1.0,
+      "shader": "simple",
       "model_matrix": [
         1, 0, 0, 0,
         0, 0, -1, 0,
@@ -17379,6 +17411,8 @@
     },
     {
       "type": "Line",
+      "width": 1.0,
+      "shader": "simple",
       "model_matrix": [
         1, 0, 0, 0,
         0, 0, -1, 0,
@@ -18364,6 +18398,8 @@
     },
     {
       "type": "Line",
+      "width": 1.0,
+      "shader": "simple",
       "model_matrix": [
         1, 0, 0, 0,
         0, 0, -1, 0,
@@ -19585,6 +19621,8 @@
     },
     {
       "type": "Line",
+      "width": 1.0,
+      "shader": "simple",
       "model_matrix": [
         1, 0, 0, 0,
         0, 0, -1, 0,
@@ -20618,6 +20656,8 @@
     },
     {
       "type": "Line",
+      "width": 1.0,
+      "shader": "simple",
       "model_matrix": [
         1, 0, 0, 0,
         0, 0, -1, 0,
@@ -20815,6 +20855,8 @@
     },
     {
       "type": "Line",
+      "width": 1.0,
+      "shader": "simple",
       "model_matrix": [
         1, 0, 0, 0,
         0, 0, -1, 0,
@@ -22284,6 +22326,8 @@
     },
     {
       "type": "Line",
+      "width": 1.0,
+      "shader": "simple",
       "model_matrix": [
         1, 0, 0, 0,
         0, 0, -1, 0,
@@ -23633,6 +23677,8 @@
     },
     {
       "type": "Line",
+      "width": 1.0,
+      "shader": "simple",
       "model_matrix": [
         1, 0, 0, 0,
         0, 0, -1, 0,
@@ -24166,6 +24212,8 @@
     },
     {
       "type": "Line",
+      "width": 1.0,
+      "shader": "simple",
       "model_matrix": [
         1, 0, 0, 0,
         0, 0, -1, 0,
@@ -25055,6 +25103,8 @@
     },
     {
       "type": "Line",
+      "width": 1.0,
+      "shader": "simple",
       "model_matrix": [
         1, 0, 0, 0,
         0, 0, -1, 0,
@@ -25088,6 +25138,8 @@
     },
     {
       "type": "Line",
+      "width": 1.0,
+      "shader": "simple",
       "model_matrix": [
         1, 0, 0, 0,
         0, 0, -1, 0,
@@ -26657,6 +26709,7 @@
     },
     {
       "type": "Line",
+      "width": 1.0,
       "model_matrix": [
         1, 0, 0, 0,
         0, 0, -1, 0,

@@ -29,11 +29,24 @@ class Transform(object):
     """
 
     def __init__(self, bounds=None, translation=None, rotation=None, scaling=None, custom_matrix=None, parent=None):
+        """
+        Transform constructor.
+
+        :param bounds: List[float] (xmin, xmax, ymin, ymax, zmin, zmax)
+        :param translation: List[float] (dx, dy, dz) - translation vector
+        :param rotation: List[float] (gamma, axis_x, axis_y, axis_z) - angle in radians, then rotation axis vector
+        :param scaling: List[float] (s_x, s_y, s_z) - 3 scaling coefficients
+        :param custom_matrix: np.array - 4x4 arbitrary transform matrix
+        :param parent: `Transform` optional parent transform, which is applied before this transform
+        """
+
         self.bounds = bounds
         self.translation = translation
         self.rotation = rotation
         self.scaling = scaling
         self.parent = parent
+        if parent is not None:
+            parent._add_child(self)
         self.drawables = []
         self.children = []
         self.parent_matrix = parent.model_matrix if parent else np.identity(4)
@@ -53,14 +66,15 @@ class Transform(object):
             value = np.array(value).reshape(3, 1)
         elif key == 'rotation':
             value = np.array(value).reshape(4)
-            if not -1 <= value[0] <= 1:
-                raise ValueError('Cosine of Theta/2 oustide of [-1; 1] range')
+            value[0] = np.cos(value[0] / 2)
+
             norm = np.linalg.norm(value[1:4])
             needed_norm = np.sqrt(1 - value[0] * value[0])
             if abs(norm - needed_norm) > _epsilon:
                 if norm < _epsilon:
                     raise ValueError('Norm of (x, y, z) part of quaternion too close to zero')
                 value[1:4] = value[1:4] / norm * needed_norm
+            # assert abs(np.linalg.norm(value) - 1.0) < _epsilon
         elif key == 'scaling':
             value = np.array(value).reshape(3)
         elif key in ['parent_matrix', 'custom_matrix', 'model_matrix']:
@@ -71,6 +85,11 @@ class Transform(object):
         if is_set and key != 'model_matrix':
             self._recompute_matrix()
             self._notify_dependants()
+
+    def __repr__(self):
+        return 'Transform(bounds={!r}, translation={!r}, rotation={!r}, scaling={!r})'.format(
+            self.bounds, self.translation, self.rotation, self.scaling
+        )
 
     def _recompute_matrix(self):
         # this method shouldn't modify any fields except self.model_matrix
@@ -106,7 +125,7 @@ class Transform(object):
             rotation_matrix = np.array([
                 [a * a + b * b - c * c - d * d, 2 * (b * c - a * d), 2 * (b * d + a * c), 0.],
                 [2 * (b * c + a * d), a * a - b * b + c * c - d * d, 2 * (c * d - a * b), 0.],
-                [2 * (b * d - a * c), 2 * (c * d - a * b), a * a - b * b - c * c + d * d, 0.],
+                [2 * (b * d - a * c), 2 * (c * d + a * b), a * a - b * b - c * c + d * d, 0.],
                 [0., 0., 0., 1.]
             ])
         else:
@@ -118,7 +137,7 @@ class Transform(object):
             scaling_matrix = np.identity(4)
 
         self.model_matrix = reduce(np.dot, [
-            fit_matrix, translation_matrix, rotation_matrix, scaling_matrix, self.custom_matrix, self.parent_matrix
+            translation_matrix, rotation_matrix, scaling_matrix, fit_matrix, self.custom_matrix, self.parent_matrix
         ])
 
     def _add_child(self, transform):

@@ -1,5 +1,6 @@
 var version = require('./package.json').version;
 var webpack = require('webpack');
+var nodeExternals = require('webpack-node-externals');
 
 // Custom webpack loaders are generally the same for all webpack bundles, hence
 // stored in a separate local variable.
@@ -11,13 +12,6 @@ var rules = [
     {
         test: /\.glsl/,
         use: 'raw-loader'
-    },
-    {
-        test: /\.worker\.js$/,
-        use: {
-            loader: 'worker-loader',
-            options: {inline: true, fallback: false}
-        }
     }
 ];
 
@@ -44,6 +38,9 @@ module.exports = [
             path: __dirname + '/../k3d/static',
             libraryTarget: 'amd'
         },
+        module: {
+            rules: rules
+        },
         plugins: plugins
     },
     {// Bundle for the notebook containing the custom widget views and models
@@ -63,7 +60,7 @@ module.exports = [
         module: {
             rules: rules
         },
-        externals: ['@jupyter-widgets/controls']
+        externals: ['@jupyter-widgets/base']
     },
     {// Embeddable K3D-jupyter bundle
         //
@@ -83,15 +80,49 @@ module.exports = [
         output: {
             filename: 'index.js',
             path: __dirname + '/dist/',
-            library: "K3D",
+            library: "k3d",
             libraryTarget: 'amd',
-            publicPath: 'https://unpkg.com/K3D@' + version + '/dist/'
+            publicPath: 'https://unpkg.com/k3d@' + version + '/dist/'
         },
         devtool: 'source-map',
         module: {
             rules: rules
         },
         plugins: plugins,
-        externals: ['@jupyter-widgets/controls']
+        externals: ['@jupyter-widgets/base']
+    },
+    {
+        entry: './src/standalone.js',
+        output: {
+            filename: 'standalone.js',
+            path: __dirname + '/dist/',
+            library: "k3d",
+            libraryTarget: 'amd',
+            publicPath: 'https://unpkg.com/k3d@' + version + '/dist/'
+        },
+        devtool: 'source-map',
+        module: {
+            rules: rules
+        },
+        plugins: plugins
+    },
+    {  // Lab extension is just our JS source + shaders
+        entry: './src/labplugin.js',
+        output: {
+            filename: 'labplugin.js',
+            path: __dirname + '/dist/',
+            library: "k3d",
+            libraryTarget: 'amd'
+        },
+        devtool: 'source-map',
+        module: {
+            rules: [
+                {
+                    test: /\.glsl/,
+                    use: 'raw-loader'
+                }
+            ]
+        },
+        externals: [nodeExternals()]
     }
 ];

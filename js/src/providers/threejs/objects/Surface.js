@@ -11,8 +11,9 @@ module.exports = function (config) {
     config.visible = typeof(config.visible) !== 'undefined' ? config.visible : true;
     config.color = typeof(config.color) !== 'undefined' ? config.color : 255;
     config.wireframe = typeof(config.wireframe) !== 'undefined' ? config.wireframe : false;
+    config.flat_shading = typeof(config.flat_shading) !== 'undefined' ? config.flat_shading : true;
 
-    var heights = config.heights.buffer,
+    var heights = config.heights.data,
         width = config.heights.shape[1],
         height = config.heights.shape[0],
         modelMatrix = new THREE.Matrix4(),
@@ -20,48 +21,47 @@ module.exports = function (config) {
         material = new MaterialConstructor({
             color: config.color,
             emissive: 0,
-            shininess: 25,
+            shininess: 50,
             specular: 0x111111,
             side: THREE.DoubleSide,
-            flatShading: true,
+            flatShading: config.flat_shading,
             wireframe: config.wireframe
         }),
         geometry = new THREE.BufferGeometry(),
-        vertices = new Float32Array((width - 1) * (height - 1) * 3 * 3 * 2),
+        vertices = new Float32Array(width * height * 3),
+        indices = [],
         object,
         x, y, i, p;
 
-    for (y = 0, i = 0, p = 0; y < height - 1; y++) {
-        for (x = 0; x < width - 1; x++, p++, i += 18) {
-            // Performance over readability
-            vertices[i] = vertices[i + 9] = x / (width - 1);
-            vertices[i + 1] = vertices[i + 10] = y / (height - 1);
-            vertices[i + 2] = vertices[i + 11] = heights[p];
-
-            vertices[i + 3] = vertices[i + 15] = (x + 1) / (width - 1);
-            vertices[i + 4] = vertices[i + 16] = (y + 1) / (height - 1);
-            vertices[i + 5] = vertices[i + 17] = heights[p + 1 + width];
-
-            vertices[i + 6] = (x + 1) / (width - 1);
-            vertices[i + 7] = y / (height - 1);
-            vertices[i + 8] = heights[p + 1];
-
-            vertices[i + 12] = x / (width - 1);
-            vertices[i + 13] = (y + 1) / (height - 1);
-            vertices[i + 14] = heights[p + width];
+    for (y = 0, i = 0, p = 0; y < height; y++) {
+        for (x = 0; x < width; x++, p++, i += 3) {
+            vertices[i] = x / (width - 1);
+            vertices[i + 1] = y / (height - 1);
+            vertices[i + 2] = heights[p];
         }
+    }
 
-        //skip last column
-        p++;
+    for (y = 0, i = 0; y < height - 1; y++) {
+        for (x = 0; x < width - 1; x++, i += 6) {
+            indices[i] = x + y * width;
+            indices[i + 1] = indices[i + 3] = x + 1 + y * width;
+            indices[i + 2] = indices[i + 5] = x + (y + 1) * width;
+            indices[i + 4] = x + 1 + (y + 1) * width;
+        }
     }
 
     geometry.addAttribute('position', new THREE.BufferAttribute(vertices, 3));
+    geometry.setIndex(indices);
+
+    if (config.flat_shading === false) {
+        geometry.computeVertexNormals();
+    }
 
     geometry.computeBoundingSphere();
     geometry.computeBoundingBox();
 
     object = new THREE.Mesh(geometry, material);
-    modelMatrix.set.apply(modelMatrix, config.model_matrix.buffer);
+    modelMatrix.set.apply(modelMatrix, config.model_matrix.data);
 
     object.position.set(-0.5, -0.5, 0);
     object.updateMatrix();
