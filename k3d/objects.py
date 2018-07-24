@@ -539,6 +539,44 @@ class Vectors(Drawable):
 
         self.set_trait('type', 'Vectors')
 
+class Volume(Drawable):
+    """
+    3D volumetric data.
+
+    By default, the volume are a grid inscribed in the -0.5 < x, y, z < 0.5 cube
+    regardless of the passed voxel array shape (aspect ratio etc.).
+
+    Attributes:
+        volume: `array_like`. 3D array of `float`.
+        color_map: `array_like`. Flat array of `int` packed RGB colors (0xff0000 is red, 0xff is blue).
+            The color defined at index i is for voxel value (i+1), e.g.:
+            color_map = [0xff, 0x00ff]
+            voxels = [[[
+                0, # empty voxel
+                1, # blue voxel
+                2  # red voxel
+            ]]]
+        color_range: `list`. A pair [min_value, max_value], which determines the levels of color attribute mapped
+            to 0 and 1 in the color map respectively.
+        model_matrix: `array_like`. 4x4 model transform matrix.
+    """
+
+    type = Unicode(read_only=True).tag(sync=True)
+    volume = Array(dtype=np.float32).tag(sync=True, **array_serialization)
+    color_map = Array(dtype=np.float32).tag(sync=True, **array_serialization)
+    color_range = ListOrArray(minlen=2, maxlen=2, empty_ok=True).tag(sync=True)
+    model_matrix = Array(dtype=np.float32).tag(sync=True, **array_serialization)
+
+    def __init__(self, **kwargs):
+        super(Volume, self).__init__(**kwargs)
+
+        self.set_trait('type', 'Volume')
+
+    def _handle_custom_msg(self, content, buffers):
+        if content.get('msg_type', '') == 'click_callback':
+            if self.click_callback is not None:
+                self.click_callback(content['coord']['x'], content['coord']['y'], content['coord']['z'])
+
 
 class Voxels(Drawable):
     """
