@@ -1,3 +1,5 @@
+//jshint maxstatements:false, maxcomplexity:false, maxdepth:false
+
 ;(function () {
     'use strict';
 

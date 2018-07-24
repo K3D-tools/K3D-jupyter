@@ -19,7 +19,7 @@ function snapshotGUI(gui, K3D) {
         snapshot: function () {
             var data = getSnapshot(K3D);
 
-            data = new Blob([data], {type: "text/plain;charset=utf-8"});
+            data = new Blob([data], {type: 'text/plain;charset=utf-8'});
             FileSaver.saveAs(data, 'K3D-snapshot-' + Date.now() + '.html');
         }
     };

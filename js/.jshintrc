@@ -27,6 +27,7 @@
     "K3D": true,
     "THREE": true,
     "_": true,
+    "ImageData": true,
     "jsonpatch": true,
     "requestAnimationFrame": true,
     "TestHelpers": true,

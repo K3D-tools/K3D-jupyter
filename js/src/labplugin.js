@@ -1,3 +1,5 @@
+'use strict';
+
 var k3d = require('./index');
 var EXTENSION_SPEC_VERSION = require('./version').EXTENSION_SPEC_VERSION;
 var base = require('@jupyter-widgets/base');

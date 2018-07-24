@@ -1,3 +1,5 @@
+//jshint maxstatements:false, maxcomplexity:false, maxdepth:false
+
 'use strict';
 
 function objectGUIProvider(K3D, json, objects) {
@@ -64,7 +66,7 @@ function objectGUIProvider(K3D, json, objects) {
                 return;
             }
 
-            if (param === 'color_range' && json[param].length == 2) {
+            if (param === 'color_range' && json[param].length === 2) {
                 json['_' + param + '_low'] = json[param][0];
                 json['_' + param + '_high'] = json[param][1];
             }
@@ -131,16 +133,16 @@ function objectGUIProvider(K3D, json, objects) {
                     }
                     break;
                 case 'color_range':
-                    if (json[param].length == 2) {
+                    if (json[param].length === 2) {
                         K3D.gui_map[json.id].add(json, '_' + param + '_low').name('vmin').onChange(
                             function (value) {
                                 json.color_range[0] = value;
-                                change(json, 'color_range', json.color_range)
+                                change(json, 'color_range', json.color_range);
                             });
                         K3D.gui_map[json.id].add(json, '_' + param + '_high').name('vmax').onChange(
                             function (value) {
                                 json.color_range[1] = value;
-                                change(json, 'color_range', json.color_range)
+                                change(json, 'color_range', json.color_range);
                             });
                     }
             }

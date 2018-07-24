@@ -91,7 +91,7 @@ PlotView = widgets.DOMWidgetView.extend({
             'position: relative'
         ].join(';');
 
-        containerEnvelope.appendChild(container)
+        containerEnvelope.appendChild(container);
         this.el.appendChild(containerEnvelope);
 
         this.container = container;
@@ -115,7 +115,7 @@ PlotView = widgets.DOMWidgetView.extend({
             var model = this.model;
 
             if (obj.msg_type === 'fetch_screenshot') {
-                this.K3DInstance.getScreenshot(K3DInstance.parameters.screenshotScale).then(function (canvas) {
+                this.K3DInstance.getScreenshot(this.K3DInstance.parameters.screenshotScale).then(function (canvas) {
                     var data = canvas.toDataURL().split(',')[1];
 
                     // todo
@@ -320,9 +320,9 @@ PlotView = widgets.DOMWidgetView.extend({
         }
     },
 
-    handleResize: function (msg) {
+    handleResize: function () {
         this.K3DInstance.resizeHelper();
-    },
+    }
 });
 
 module.exports = {

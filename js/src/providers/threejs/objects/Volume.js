@@ -10,7 +10,7 @@ var _ = require('lodash');
  * @param {Object} config all configurations params from JSON
  * @return {Object} 3D object ready to render
  */
-module.exports = function (config, K3D) {
+module.exports = function (config) {
     var geometry = new THREE.BoxBufferGeometry(1, 1, 1),
         modelMatrix = new THREE.Matrix4(),
         colorMap = (config.color_map && config.color_map.data) || null,

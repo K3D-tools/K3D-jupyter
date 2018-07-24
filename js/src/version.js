@@ -1,6 +1,5 @@
 // Import package data to define it only one place
-var pkg = require("../package.json");
-var module_name = pkg.name;
+var pkg = require('../package.json');
 
 /**
  * The version of the attribute spec that this package

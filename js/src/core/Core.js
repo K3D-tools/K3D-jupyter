@@ -577,7 +577,7 @@ function K3D(provider, targetDOMNode, parameters) {
     world.setCameraToFitScene(true);
     self.render();
 
-    world.targetDOMNode.className += " k3d-target"
+    world.targetDOMNode.className += ' k3d-target';
 }
 
 function isSupportedUpdateListener(when) {
