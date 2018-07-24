@@ -5,7 +5,6 @@
     <title>K3D</title>
     <script src="node_modules/requirejs/require.js"></script>
     <script src="dev/index.js"></script>
-    <script src="node_modules/fast-json-patch/dist/json-patch-duplex.min.js"></script>
     <script src="test/utils/globals.js"></script>
     <script src="test/utils/testUtils.js"></script>
     <style>
@@ -49,7 +48,7 @@
         if (K3DInstance) {
             K3DInstance.setClearColor(0xffffff, 1);
 
-            jsonLoader('test/samples/lines_colors_mesh_not_smooth.json', function (json) {
+            jsonLoader('test/samples/volume_rendering.json', function (json) {
                 K3DInstance.load(json);
             });
         }
