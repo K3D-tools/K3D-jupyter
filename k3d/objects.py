@@ -579,7 +579,6 @@ class Voxels(Drawable):
 
         self.set_trait('type', 'Voxels')
         self.on_msg(self._handle_custom_msg)
-        pass
 
     def _handle_custom_msg(self, content, buffers):
         if content.get('msg_type', '') == 'click_callback':
@@ -626,7 +625,6 @@ class VoxelsIpyDW(Drawable):
 
         self.set_trait('type', 'Voxels')
         self.on_msg(self._handle_custom_msg)
-        pass
 
     def _handle_custom_msg(self, content, buffers):
         if content.get('msg_type', '') == 'click_callback':
