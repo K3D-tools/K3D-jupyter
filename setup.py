@@ -7,7 +7,7 @@ from setuptools import setup, find_packages
 from distutils import log
 
 from setupbase import (
-    create_cmdclass, install_npm, combine_commands, BaseCommand,
+    create_cmdclass, install_npm, combine_commands,
     ensure_targets
 )
 
@@ -34,7 +34,7 @@ cmdclass['jsdeps'] = combine_commands(
 
 version_ns = {}
 with open(os.path.join(here, 'k3d', '_version.py')) as f:
-    exec(f.read(), {}, version_ns)
+    exec (f.read(), {}, version_ns)
 
 setup_args = {
     'name': 'K3D',
