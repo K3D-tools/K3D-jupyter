@@ -445,10 +445,11 @@ function K3D(provider, targetDOMNode, parameters) {
      * Get Screenshot
      * @memberof K3D.Core
      * @param {Object} scale
+     * @param {Object} onlyCanvas
      * @returns {Canvas|undefined}
      */
-    this.getScreenshot = function (scale) {
-        return screenshot.getScreenshot(this, scale);
+    this.getScreenshot = function (scale, onlyCanvas) {
+        return screenshot.getScreenshot(this, scale, onlyCanvas);
     };
 
     /**

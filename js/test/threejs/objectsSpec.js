@@ -3,7 +3,7 @@ require(['K3D'], function (lib) {
     var ThreeJsProvider = lib.ThreeJsProvider;
     var jsonLoader = TestHelpers.jsonLoader;
 
-    const RESAMBLEThreshold = 0.15;
+    const RESAMBLEThreshold = 0.1;
 
     describe('Objects tests', function () {
         'use strict';
@@ -35,7 +35,8 @@ require(['K3D'], function (lib) {
             jsonLoader('http://localhost:9001/samples/torus-knots.json', function (json) {
 
                 self.K3D.addFrameUpdateListener('after', function () {
-                    TestHelpers.compareCanvasWithExpectedImage(self.K3D, 'torus-knots', RESAMBLEThreshold, done);
+                    TestHelpers.compareCanvasWithExpectedImage(self.K3D, 'torus-knots', RESAMBLEThreshold,
+                        true, done);
                 }, true);
 
                 self.K3D.load(json);
@@ -49,8 +50,8 @@ require(['K3D'], function (lib) {
             jsonLoader('http://localhost:9001/samples/horse_without_colors.json', function (json) {
 
                 self.K3D.addFrameUpdateListener('after', function () {
-                    TestHelpers.compareCanvasWithExpectedImage(self.K3D, 'horse_without_colors',
-                        RESAMBLEThreshold, done);
+                    TestHelpers.compareCanvasWithExpectedImage(self.K3D, 'horse_without_colors', RESAMBLEThreshold,
+                        true, done);
                 }, true);
 
                 self.K3D.load(json);
@@ -64,7 +65,8 @@ require(['K3D'], function (lib) {
             jsonLoader('http://localhost:9001/samples/horse_with_colors.json', function (json) {
 
                 self.K3D.addFrameUpdateListener('after', function () {
-                    TestHelpers.compareCanvasWithExpectedImage(self.K3D, 'horse_with_colors', RESAMBLEThreshold, done);
+                    TestHelpers.compareCanvasWithExpectedImage(self.K3D, 'horse_with_colors', RESAMBLEThreshold,
+                        true, done);
                 }, true);
 
                 self.K3D.load(json);
@@ -79,7 +81,7 @@ require(['K3D'], function (lib) {
 
                 self.K3D.addFrameUpdateListener('after', function () {
                     TestHelpers.compareCanvasWithExpectedImage(self.K3D, 'horse_with_colors_3d',
-                        RESAMBLEThreshold, done);
+                        RESAMBLEThreshold, true, done);
                 }, true);
 
                 self.K3D.load(json);
@@ -94,7 +96,7 @@ require(['K3D'], function (lib) {
 
                 self.K3D.addFrameUpdateListener('after', function () {
                     TestHelpers.compareCanvasWithExpectedImage(self.K3D, 'horse_with_colors_flat',
-                        RESAMBLEThreshold, done);
+                        RESAMBLEThreshold, true, done);
                 }, true);
 
                 self.K3D.load(json);
@@ -109,7 +111,7 @@ require(['K3D'], function (lib) {
 
                 self.K3D.addFrameUpdateListener('after', function () {
                     TestHelpers.compareCanvasWithExpectedImage(self.K3D, 'horse_with_colors_mesh',
-                        RESAMBLEThreshold, done);
+                        RESAMBLEThreshold, true, done);
                 }, true);
 
                 self.K3D.load(json);
@@ -123,7 +125,8 @@ require(['K3D'], function (lib) {
             jsonLoader('http://localhost:9001/samples/simple_text_label.json', function (json) {
 
                 self.K3D.addFrameUpdateListener('after', function () {
-                    TestHelpers.compareCanvasWithExpectedImage(self.K3D, 'simple_text_label', RESAMBLEThreshold, done);
+                    TestHelpers.compareCanvasWithExpectedImage(self.K3D, 'simple_text_label', RESAMBLEThreshold,
+                        true, done);
                 }, true);
 
                 self.K3D.load(json);
@@ -137,7 +140,7 @@ require(['K3D'], function (lib) {
             jsonLoader('http://localhost:9001/samples/simple_multiline_text_label.json', function (json) {
                 self.K3D.addFrameUpdateListener('after', function () {
                     TestHelpers.compareCanvasWithExpectedImage(self.K3D, 'simple_multiline_text_label',
-                        RESAMBLEThreshold, done);
+                        RESAMBLEThreshold, true, done);
                 }, true);
 
                 self.K3D.load(json);
@@ -150,7 +153,8 @@ require(['K3D'], function (lib) {
             jsonLoader('http://localhost:9001/samples/text_with_colors.json', function (json) {
 
                 self.K3D.addFrameUpdateListener('after', function () {
-                    TestHelpers.compareCanvasWithExpectedImage(self.K3D, 'text_with_colors', RESAMBLEThreshold, done);
+                    TestHelpers.compareCanvasWithExpectedImage(self.K3D, 'text_with_colors', RESAMBLEThreshold,
+                        true, done);
                 }, true);
 
                 self.K3D.load(json);
@@ -164,7 +168,8 @@ require(['K3D'], function (lib) {
             jsonLoader('http://localhost:9001/samples/marching_cubes_test.json', function (json) {
 
                 self.K3D.addFrameUpdateListener('after', function () {
-                    TestHelpers.compareCanvasWithExpectedImage(self.K3D, 'marching_cubes', RESAMBLEThreshold, done);
+                    TestHelpers.compareCanvasWithExpectedImage(self.K3D, 'marching_cubes', RESAMBLEThreshold,
+                        true, done);
                 }, true);
 
                 self.K3D.load(json);
@@ -179,6 +184,7 @@ require(['K3D'], function (lib) {
 
                 self.K3D.addFrameUpdateListener('after', function () {
                     TestHelpers.compareCanvasWithExpectedImage(self.K3D, 'marching_cubes_smooth', RESAMBLEThreshold,
+                        true,
                         done);
                 }, true);
 
@@ -193,7 +199,8 @@ require(['K3D'], function (lib) {
             jsonLoader('http://localhost:9001/samples/marching_cubes_box.json', function (json) {
 
                 self.K3D.addFrameUpdateListener('after', function () {
-                    TestHelpers.compareCanvasWithExpectedImage(self.K3D, 'marching_cubes_box', RESAMBLEThreshold, done);
+                    TestHelpers.compareCanvasWithExpectedImage(self.K3D, 'marching_cubes_box', RESAMBLEThreshold,
+                        true, done);
                 }, true);
 
                 self.K3D.load(json);
@@ -207,7 +214,7 @@ require(['K3D'], function (lib) {
             jsonLoader('http://localhost:9001/samples/surface.json', function (json) {
 
                 self.K3D.addFrameUpdateListener('after', function () {
-                    TestHelpers.compareCanvasWithExpectedImage(self.K3D, 'surface', RESAMBLEThreshold, done);
+                    TestHelpers.compareCanvasWithExpectedImage(self.K3D, 'surface', RESAMBLEThreshold, true, done);
                 }, true);
 
                 self.K3D.load(json);
@@ -221,7 +228,8 @@ require(['K3D'], function (lib) {
             jsonLoader('http://localhost:9001/samples/surface_smooth.json', function (json) {
 
                 self.K3D.addFrameUpdateListener('after', function () {
-                    TestHelpers.compareCanvasWithExpectedImage(self.K3D, 'surface_smooth', RESAMBLEThreshold, done);
+                    TestHelpers.compareCanvasWithExpectedImage(self.K3D, 'surface_smooth', RESAMBLEThreshold,
+                        true, done);
                 }, true);
 
                 self.K3D.load(json);
@@ -235,7 +243,7 @@ require(['K3D'], function (lib) {
             jsonLoader('http://localhost:9001/samples/surface_box.json', function (json) {
 
                 self.K3D.addFrameUpdateListener('after', function () {
-                    TestHelpers.compareCanvasWithExpectedImage(self.K3D, 'surface_box', RESAMBLEThreshold, done);
+                    TestHelpers.compareCanvasWithExpectedImage(self.K3D, 'surface_box', RESAMBLEThreshold, true, done);
                 }, true);
 
                 self.K3D.load(json);
@@ -249,7 +257,8 @@ require(['K3D'], function (lib) {
             jsonLoader('http://localhost:9001/samples/cube_with_labels.json', function (json) {
 
                 self.K3D.addFrameUpdateListener('after', function () {
-                    TestHelpers.compareCanvasWithExpectedImage(self.K3D, 'cube_with_labels', RESAMBLEThreshold, done);
+                    TestHelpers.compareCanvasWithExpectedImage(self.K3D, 'cube_with_labels', RESAMBLEThreshold,
+                        true, done);
                 }, true);
 
 
@@ -265,7 +274,7 @@ require(['K3D'], function (lib) {
                 self.K3D.getWorld().camera.position.z = 15;
 
                 self.K3D.addFrameUpdateListener('after', function () {
-                    TestHelpers.compareCanvasWithExpectedImage(self.K3D, 'lines', RESAMBLEThreshold, done);
+                    TestHelpers.compareCanvasWithExpectedImage(self.K3D, 'lines', RESAMBLEThreshold, true, done);
                 }, true);
 
                 self.K3D.load(json);
@@ -280,7 +289,7 @@ require(['K3D'], function (lib) {
                 self.K3D.getWorld().camera.position.z = 15;
 
                 self.K3D.addFrameUpdateListener('after', function () {
-                    TestHelpers.compareCanvasWithExpectedImage(self.K3D, 'lines_colors', RESAMBLEThreshold, done);
+                    TestHelpers.compareCanvasWithExpectedImage(self.K3D, 'lines_colors', RESAMBLEThreshold, true, done);
                 }, true);
 
                 self.K3D.load(json);
@@ -295,7 +304,8 @@ require(['K3D'], function (lib) {
                 self.K3D.getWorld().camera.position.z = 15;
 
                 self.K3D.addFrameUpdateListener('after', function () {
-                    TestHelpers.compareCanvasWithExpectedImage(self.K3D, 'lines_colors_mesh', RESAMBLEThreshold, done);
+                    TestHelpers.compareCanvasWithExpectedImage(self.K3D, 'lines_colors_mesh', RESAMBLEThreshold,
+                        true, done);
                 }, true);
 
                 self.K3D.load(json);
@@ -310,7 +320,8 @@ require(['K3D'], function (lib) {
                 self.K3D.getWorld().camera.position.z = 15;
 
                 self.K3D.addFrameUpdateListener('after', function () {
-                    TestHelpers.compareCanvasWithExpectedImage(self.K3D, 'lines_colors_thick', RESAMBLEThreshold, done);
+                    TestHelpers.compareCanvasWithExpectedImage(self.K3D, 'lines_colors_thick', RESAMBLEThreshold,
+                        true, done);
                 }, true);
 
                 self.K3D.load(json);
@@ -326,7 +337,7 @@ require(['K3D'], function (lib) {
 
                 self.K3D.addFrameUpdateListener('after', function () {
                     TestHelpers.compareCanvasWithExpectedImage(self.K3D, 'lines_colors_mesh_not_smooth',
-                        RESAMBLEThreshold, done);
+                        RESAMBLEThreshold, true, done);
                 }, true);
 
                 self.K3D.load(json);
@@ -341,7 +352,8 @@ require(['K3D'], function (lib) {
                 self.K3D.getWorld().camera.position.z = 15;
 
                 self.K3D.addFrameUpdateListener('after', function () {
-                    TestHelpers.compareCanvasWithExpectedImage(self.K3D, 'lines_colormap', RESAMBLEThreshold, done);
+                    TestHelpers.compareCanvasWithExpectedImage(self.K3D, 'lines_colormap', RESAMBLEThreshold,
+                        true, done);
                 }, true);
 
                 self.K3D.load(json);
@@ -358,7 +370,7 @@ require(['K3D'], function (lib) {
 
                 self.K3D.addFrameUpdateListener('after', function () {
                     TestHelpers.compareCanvasWithExpectedImage(
-                        self.K3D, 'lines_colormap_mesh', RESAMBLEThreshold, done);
+                        self.K3D, 'lines_colormap_mesh', RESAMBLEThreshold, true, done);
                 }, true);
 
                 self.K3D.load(json);
@@ -374,7 +386,7 @@ require(['K3D'], function (lib) {
 
                 self.K3D.addFrameUpdateListener('after', function () {
                     TestHelpers.compareCanvasWithExpectedImage(
-                        self.K3D, 'lines_colormap_thick', RESAMBLEThreshold, done);
+                        self.K3D, 'lines_colormap_thick', RESAMBLEThreshold, true, done);
                 }, true);
 
                 self.K3D.load(json);
@@ -387,7 +399,7 @@ require(['K3D'], function (lib) {
             jsonLoader('http://localhost:9001/samples/stl.json', function (json) {
 
                 self.K3D.addFrameUpdateListener('after', function () {
-                    TestHelpers.compareCanvasWithExpectedImage(self.K3D, 'stl', RESAMBLEThreshold, done);
+                    TestHelpers.compareCanvasWithExpectedImage(self.K3D, 'stl', RESAMBLEThreshold, true, done);
                 }, true);
 
                 self.K3D.load(json);
@@ -400,7 +412,7 @@ require(['K3D'], function (lib) {
             jsonLoader('http://localhost:9001/samples/stl_smooth.json', function (json) {
 
                 self.K3D.addFrameUpdateListener('after', function () {
-                    TestHelpers.compareCanvasWithExpectedImage(self.K3D, 'stl_smooth', RESAMBLEThreshold, done);
+                    TestHelpers.compareCanvasWithExpectedImage(self.K3D, 'stl_smooth', RESAMBLEThreshold, true, done);
                 }, true);
 
                 self.K3D.load(json);
@@ -412,7 +424,7 @@ require(['K3D'], function (lib) {
             jsonLoader('http://localhost:9001/samples/stl_big.json', function (json) {
 
                 self.K3D.addFrameUpdateListener('after', function () {
-                    TestHelpers.compareCanvasWithExpectedImage(self.K3D, 'stl_big', RESAMBLEThreshold, done);
+                    TestHelpers.compareCanvasWithExpectedImage(self.K3D, 'stl_big', RESAMBLEThreshold, true, done);
                 }, true);
 
                 self.K3D.setClearColor(0x000000, 1);
@@ -426,7 +438,7 @@ require(['K3D'], function (lib) {
             jsonLoader('http://localhost:9001/samples/vector.json', function (json) {
 
                 self.K3D.addFrameUpdateListener('after', function () {
-                    TestHelpers.compareCanvasWithExpectedImage(self.K3D, 'vector', RESAMBLEThreshold, done);
+                    TestHelpers.compareCanvasWithExpectedImage(self.K3D, 'vector', RESAMBLEThreshold, true, done);
                 }, true);
 
                 self.K3D.getWorld().camera.position.z = 0.5;
@@ -441,7 +453,7 @@ require(['K3D'], function (lib) {
             jsonLoader('http://localhost:9001/samples/latex.json', function (json) {
 
                 self.K3D.addFrameUpdateListener('after', function () {
-                    TestHelpers.compareCanvasWithExpectedImage(self.K3D, 'latex', RESAMBLEThreshold, done);
+                    TestHelpers.compareCanvasWithExpectedImage(self.K3D, 'latex', RESAMBLEThreshold, false, done);
                 }, true);
 
                 self.K3D.getWorld().camera.position.z = 1.5;
@@ -455,7 +467,7 @@ require(['K3D'], function (lib) {
             jsonLoader('http://localhost:9001/samples/text2d.json', function (json) {
 
                 self.K3D.addFrameUpdateListener('after', function () {
-                    TestHelpers.compareCanvasWithExpectedImage(self.K3D, 'text2d', RESAMBLEThreshold, done);
+                    TestHelpers.compareCanvasWithExpectedImage(self.K3D, 'text2d', RESAMBLEThreshold, false, done);
                 }, true);
 
                 self.K3D.load(json);
@@ -468,7 +480,8 @@ require(['K3D'], function (lib) {
             jsonLoader('http://localhost:9001/samples/vector_label.json', function (json) {
 
                 self.K3D.addFrameUpdateListener('after', function () {
-                    TestHelpers.compareCanvasWithExpectedImage(self.K3D, 'vector_label', RESAMBLEThreshold, done);
+                    TestHelpers.compareCanvasWithExpectedImage(self.K3D, 'vector_label', RESAMBLEThreshold,
+                        false, done);
                 }, true);
 
                 self.K3D.getWorld().camera.position.z = 1.5;
@@ -482,7 +495,8 @@ require(['K3D'], function (lib) {
             jsonLoader('http://localhost:9001/samples/vector_field_2d.json', function (json) {
 
                 self.K3D.addFrameUpdateListener('after', function () {
-                    TestHelpers.compareCanvasWithExpectedImage(self.K3D, 'vector_field_2d', RESAMBLEThreshold, done);
+                    TestHelpers.compareCanvasWithExpectedImage(self.K3D, 'vector_field_2d', RESAMBLEThreshold,
+                        true, done);
                 }, true);
 
                 self.K3D.load(json);
@@ -496,7 +510,7 @@ require(['K3D'], function (lib) {
 
                 self.K3D.addFrameUpdateListener('after', function () {
                     TestHelpers.compareCanvasWithExpectedImage(self.K3D, 'vector_field_2d_single_color',
-                        RESAMBLEThreshold, done);
+                        RESAMBLEThreshold, true, done);
                 }, true);
 
                 self.K3D.load(json);
@@ -511,7 +525,7 @@ require(['K3D'], function (lib) {
 
                 self.K3D.addFrameUpdateListener('after', function () {
                     TestHelpers.compareCanvasWithExpectedImage(self.K3D, 'vector_field_2d_no_head', RESAMBLEThreshold,
-                        done);
+                        true, done);
                 }, true);
 
                 self.K3D.load(json);
@@ -524,7 +538,8 @@ require(['K3D'], function (lib) {
             jsonLoader('http://localhost:9001/samples/vector_field_3d.json', function (json) {
 
                 self.K3D.addFrameUpdateListener('after', function () {
-                    TestHelpers.compareCanvasWithExpectedImage(self.K3D, 'vector_field_3d', RESAMBLEThreshold, done);
+                    TestHelpers.compareCanvasWithExpectedImage(self.K3D, 'vector_field_3d', RESAMBLEThreshold,
+                        true, done);
                 }, true);
 
                 self.K3D.load(json);
@@ -537,7 +552,8 @@ require(['K3D'], function (lib) {
             jsonLoader('http://localhost:9001/samples/vector_field_3d_box.json', function (json) {
 
                 self.K3D.addFrameUpdateListener('after', function () {
-                    TestHelpers.compareCanvasWithExpectedImage(self.K3D, 'vector_field_3d_box', RESAMBLEThreshold, done);
+                    TestHelpers.compareCanvasWithExpectedImage(self.K3D, 'vector_field_3d_box', RESAMBLEThreshold,
+                        true, done);
                 }, true);
 
                 self.K3D.load(json);
@@ -550,7 +566,8 @@ require(['K3D'], function (lib) {
             jsonLoader('http://localhost:9001/samples/vector_field_3d_single_color.json', function (json) {
 
                 self.K3D.addFrameUpdateListener('after', function () {
-                    TestHelpers.compareCanvasWithExpectedImage(self.K3D, 'vector_field_3d', RESAMBLEThreshold, done);
+                    TestHelpers.compareCanvasWithExpectedImage(self.K3D, 'vector_field_3d', RESAMBLEThreshold,
+                        true, done);
                 }, true);
 
                 self.K3D.load(json);
@@ -564,7 +581,7 @@ require(['K3D'], function (lib) {
 
                 self.K3D.addFrameUpdateListener('after', function () {
                     TestHelpers.compareCanvasWithExpectedImage(self.K3D, 'vector_field_3d_no_head', RESAMBLEThreshold,
-                        done);
+                        true, done);
                 }, true);
 
                 self.K3D.load(json);
@@ -577,25 +594,25 @@ require(['K3D'], function (lib) {
             jsonLoader('http://localhost:9001/samples/texture.json', function (json) {
 
                 self.K3D.addFrameUpdateListener('after', function () {
-                    TestHelpers.compareCanvasWithExpectedImage(self.K3D, 'texture', RESAMBLEThreshold, done);
+                    TestHelpers.compareCanvasWithExpectedImage(self.K3D, 'texture', RESAMBLEThreshold, true, done);
                 }, true);
 
                 self.K3D.load(json);
             });
         });
 
-        // it('should draw a texture with data', function (done) {
-        //     var self = this;
-        //
-        //     jsonLoader('http://localhost:9001/samples/texture_data.json', function (json) {
-        //
-        //         self.K3D.addFrameUpdateListener('after', function () {
-        //             TestHelpers.compareCanvasWithExpectedImage(self.K3D, 'texture_data', RESAMBLEThreshold, done);
-        //         }, true);
-        //
-        //         self.K3D.load(json);
-        //     });
-        // });
+        it('should draw a texture with data', function (done) {
+            var self = this;
+
+            jsonLoader('http://localhost:9001/samples/texture_data.json', function (json) {
+
+                self.K3D.addFrameUpdateListener('after', function () {
+                    TestHelpers.compareCanvasWithExpectedImage(self.K3D, 'texture_data', RESAMBLEThreshold, true, done);
+                }, true);
+
+                self.K3D.load(json);
+            });
+        });
 
         it('should draw voxels', function (done) {
             var self = this;
@@ -603,7 +620,7 @@ require(['K3D'], function (lib) {
             jsonLoader('http://localhost:9001/samples/voxels.json', function (json) {
 
                 self.K3D.addFrameUpdateListener('after', function () {
-                    TestHelpers.compareCanvasWithExpectedImage(self.K3D, 'voxels', RESAMBLEThreshold, done);
+                    TestHelpers.compareCanvasWithExpectedImage(self.K3D, 'voxels', RESAMBLEThreshold, true, done);
                 }, true);
 
                 self.K3D.load(json);
@@ -616,7 +633,7 @@ require(['K3D'], function (lib) {
             jsonLoader('http://localhost:9001/samples/voxels_box.json', function (json) {
 
                 self.K3D.addFrameUpdateListener('after', function () {
-                    TestHelpers.compareCanvasWithExpectedImage(self.K3D, 'voxels_box', RESAMBLEThreshold, done);
+                    TestHelpers.compareCanvasWithExpectedImage(self.K3D, 'voxels_box', RESAMBLEThreshold, true, done);
                 }, true);
 
                 self.K3D.load(json);
@@ -629,7 +646,8 @@ require(['K3D'], function (lib) {
             jsonLoader('http://localhost:9001/samples/voxels_outlines.json', function (json) {
 
                 self.K3D.addFrameUpdateListener('after', function () {
-                    TestHelpers.compareCanvasWithExpectedImage(self.K3D, 'voxels_outlines', RESAMBLEThreshold, done);
+                    TestHelpers.compareCanvasWithExpectedImage(self.K3D, 'voxels_outlines', RESAMBLEThreshold,
+                        true, done);
                 }, true);
 
                 self.K3D.load(json);
@@ -643,7 +661,7 @@ require(['K3D'], function (lib) {
 
                 self.K3D.addFrameUpdateListener('after', function () {
                     TestHelpers.compareCanvasWithExpectedImage(self.K3D, 'voxels_clipping_planes',
-                        RESAMBLEThreshold, done);
+                        RESAMBLEThreshold, true, done);
                 }, true);
 
                 self.K3D.setClippingPlanes([
@@ -662,7 +680,7 @@ require(['K3D'], function (lib) {
 
                 self.K3D.addFrameUpdateListener('after', function () {
                     TestHelpers.compareCanvasWithExpectedImage(self.K3D, 'horse_with_colors_3d_clipped',
-                        RESAMBLEThreshold, done);
+                        RESAMBLEThreshold, true, done);
                 }, true);
 
                 self.K3D.setClippingPlanes([
@@ -679,7 +697,7 @@ require(['K3D'], function (lib) {
             jsonLoader('http://localhost:9001/samples/mesh.json', function (json) {
 
                 self.K3D.addFrameUpdateListener('after', function () {
-                    TestHelpers.compareCanvasWithExpectedImage(self.K3D, 'mesh', RESAMBLEThreshold, done);
+                    TestHelpers.compareCanvasWithExpectedImage(self.K3D, 'mesh', RESAMBLEThreshold, true, done);
                 }, true);
 
                 self.K3D.load(json);
@@ -692,7 +710,7 @@ require(['K3D'], function (lib) {
             jsonLoader('http://localhost:9001/samples/mesh_smooth.json', function (json) {
 
                 self.K3D.addFrameUpdateListener('after', function () {
-                    TestHelpers.compareCanvasWithExpectedImage(self.K3D, 'mesh_smooth', RESAMBLEThreshold, done);
+                    TestHelpers.compareCanvasWithExpectedImage(self.K3D, 'mesh_smooth', RESAMBLEThreshold, true, done);
                 }, true);
 
                 self.K3D.load(json);
@@ -705,7 +723,8 @@ require(['K3D'], function (lib) {
             jsonLoader('http://localhost:9001/samples/mesh_wireframe.json', function (json) {
 
                 self.K3D.addFrameUpdateListener('after', function () {
-                    TestHelpers.compareCanvasWithExpectedImage(self.K3D, 'mesh_wireframe', RESAMBLEThreshold, done);
+                    TestHelpers.compareCanvasWithExpectedImage(self.K3D, 'mesh_wireframe', RESAMBLEThreshold,
+                        true, done);
                 }, true);
 
                 self.K3D.load(json);
@@ -719,7 +738,7 @@ require(['K3D'], function (lib) {
 
                 self.K3D.addFrameUpdateListener('after', function () {
                     TestHelpers.compareCanvasWithExpectedImage(self.K3D, 'marching_cubes_box_wireframe',
-                        RESAMBLEThreshold, done);
+                        RESAMBLEThreshold, true, done);
                 }, true);
 
                 self.K3D.load(json);
@@ -732,7 +751,8 @@ require(['K3D'], function (lib) {
             jsonLoader('http://localhost:9001/samples/stl_wireframe.json', function (json) {
 
                 self.K3D.addFrameUpdateListener('after', function () {
-                    TestHelpers.compareCanvasWithExpectedImage(self.K3D, 'stl_wireframe', RESAMBLEThreshold, done);
+                    TestHelpers.compareCanvasWithExpectedImage(self.K3D, 'stl_wireframe', RESAMBLEThreshold,
+                        true, done);
                 }, true);
 
                 self.K3D.load(json);
@@ -745,7 +765,8 @@ require(['K3D'], function (lib) {
             jsonLoader('http://localhost:9001/samples/voxels_wireframe.json', function (json) {
 
                 self.K3D.addFrameUpdateListener('after', function () {
-                    TestHelpers.compareCanvasWithExpectedImage(self.K3D, 'voxels_wireframe', RESAMBLEThreshold, done);
+                    TestHelpers.compareCanvasWithExpectedImage(self.K3D, 'voxels_wireframe', RESAMBLEThreshold,
+                        true, done);
                 }, true);
 
                 self.K3D.load(json);

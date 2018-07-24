@@ -2,10 +2,7 @@
 var FileSaver = require('file-saver');
 var rasterizeHTML = require('rasterizehtml');
 
-function getScreenshot(K3D, scale) {
-
-    // var screenshot = K3D.getWorld().renderer.domElement.toDataURL();
-    // return screenshot;
+function getScreenshot(K3D, scale, onlyCanvas) {
 
     return new Promise(function (resolve, reject) {
         var finalCanvas = document.createElement('canvas'),
@@ -24,10 +21,14 @@ function getScreenshot(K3D, scale) {
             (clearColor & 0x0000ff) + ')';
         finalCanvasCtx.fillRect(0, 0, finalCanvas.width, finalCanvas.height);
 
-        renderPromise = rasterizeHTML.drawHTML('<style>body{margin:0;}</style>' +
-            document.getElementById('k3d-katex').outerHTML +
-            document.getElementById('k3d-style').outerHTML +
-            world.overlayDOMNode.outerHTML, finalCanvas, {zoom: scale});
+        if (onlyCanvas) {
+            renderPromise = Promise.resolve();
+        } else {
+            renderPromise = rasterizeHTML.drawHTML('<style>body{margin:0;}</style>' +
+                document.getElementById('k3d-katex').outerHTML +
+                document.getElementById('k3d-style').outerHTML +
+                world.overlayDOMNode.outerHTML, finalCanvas, {zoom: scale});
+        }
 
         renderPromise.then(function (result) {
             var arrays = world.renderOffScreen(finalCanvas.width, finalCanvas.height);
@@ -45,8 +46,10 @@ function getScreenshot(K3D, scale) {
                 finalCanvasCtx.drawImage(canvas, 0, 0, finalCanvas.width, -finalCanvas.height);
             });
 
-            finalCanvasCtx.scale(1, 1);
-            finalCanvasCtx.drawImage(result.image, 0, 0);
+            if (result) {
+                finalCanvasCtx.scale(1, 1);
+                finalCanvasCtx.drawImage(result.image, 0, 0);
+            }
 
             resolve(finalCanvas);
         }, function (e) {

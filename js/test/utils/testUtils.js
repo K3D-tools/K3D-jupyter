@@ -76,7 +76,7 @@ window.TestHelpers.jsonLoader = function (url, callback) {
 };
 
 window.TestHelpers.compareCanvasWithExpectedImage =
-    function (K3D, expectedImagePath, misMatchPercentage, callback) {
+    function (K3D, expectedImagePath, misMatchPercentage, onlyCanvas, callback) {
 
         var header = 'data:image/png;base64,',
             xhrLoad = new XMLHttpRequest(),
@@ -85,7 +85,7 @@ window.TestHelpers.compareCanvasWithExpectedImage =
 
         xhrLoad.onreadystatechange = function () {
             if (xhrLoad.readyState === 4) {
-                K3D.getScreenshot(1.0).then(function (canvas) {
+                K3D.getScreenshot(1.0, onlyCanvas).then(function (canvas) {
 
                     var saveRender = function () {
                             var xhrSave = new XMLHttpRequest();
