@@ -58,7 +58,8 @@ ObjectModel = widgets.WidgetModel.extend({
         origins: serialize.array_or_json,
         vectors: serialize.array_or_json,
         heights: serialize.array_or_json,
-        voxels: serialize.array_or_json
+        voxels: serialize.array_or_json,
+        volume: serialize.array_or_json
     }, widgets.WidgetModel.serializers)
 });
 

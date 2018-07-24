@@ -18,6 +18,7 @@ from .k3d import (plot,
                   vector_field,
                   vectors,
                   voxels,
+                  volume,
                   vtk_poly_data,
                   voxels_ipydw)
 

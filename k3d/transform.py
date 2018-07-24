@@ -49,9 +49,9 @@ class Transform(object):
             parent._add_child(self)
         self.drawables = []
         self.children = []
-        self.parent_matrix = parent.model_matrix if parent else np.identity(4)
-        self.custom_matrix = custom_matrix if custom_matrix is not None else np.identity(4)
-        self.model_matrix = np.identity(4)
+        self.parent_matrix = parent.model_matrix if parent else np.identity(4, dtype=np.float32)
+        self.custom_matrix = custom_matrix if custom_matrix is not None else np.identity(4, dtype=np.float32)
+        self.model_matrix = np.identity(4, dtype=np.float32)
         self._recompute_matrix()
 
     def __setattr__(self, key, value):
@@ -63,9 +63,9 @@ class Transform(object):
             # TODO: maybe forbid for some fields
             pass
         elif key == 'translation':
-            value = np.array(value).reshape(3, 1)
+            value = np.array(value, dtype=np.float32).reshape(3, 1)
         elif key == 'rotation':
-            value = np.array(value).reshape(4)
+            value = np.array(value, dtype=np.float32).reshape(4)
             value[0] = np.cos(value[0] / 2)
 
             norm = np.linalg.norm(value[1:4])
@@ -76,9 +76,9 @@ class Transform(object):
                 value[1:4] = value[1:4] / norm * needed_norm
             # assert abs(np.linalg.norm(value) - 1.0) < _epsilon
         elif key == 'scaling':
-            value = np.array(value).reshape(3)
+            value = np.array(value, dtype=np.float32).reshape(3)
         elif key in ['parent_matrix', 'custom_matrix', 'model_matrix']:
-            value = np.array(value).reshape((4, 4))
+            value = np.array(value, dtype=np.float32).reshape((4, 4))
 
         super(Transform, self).__setattr__(key, value)
 
