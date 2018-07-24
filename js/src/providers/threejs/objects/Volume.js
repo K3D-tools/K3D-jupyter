@@ -71,8 +71,8 @@ module.exports = function (config) {
     object.updateMatrixWorld();
 
     object.onRemove = function () {
-        object.material.uniforms.texture.value.dispose();
-        object.material.uniforms.texture.value = undefined;
+        object.material.uniforms.volumeTexture.value.dispose();
+        object.material.uniforms.volumeTexture.value = undefined;
         object.material.uniforms.colormap.value.dispose();
         object.material.uniforms.colormap.value = undefined;
     };
