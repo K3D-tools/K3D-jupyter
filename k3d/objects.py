@@ -12,8 +12,8 @@ class ListOrArray(List):
     _cast_types = (tuple, np.ndarray)
 
     def __init__(self, *args, **kwargs):
-        self._empty_ok = kwargs.pop('empty_ok', False)
         super(ListOrArray, self).__init__(*args, **kwargs)
+        self._empty_ok = kwargs.get('empty_ok', False)
 
     def validate_elements(self, obj, value):
         if self._empty_ok and len(value) == 0:
