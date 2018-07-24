@@ -15,6 +15,7 @@ module.exports = function (config) {
         modelMatrix = new THREE.Matrix4(),
         colorMap = (config.color_map && config.color_map.data) || null,
         colorRange = config.color_range,
+        samples = config.samples || 512.0,
         object,
         texture;
 
@@ -40,6 +41,7 @@ module.exports = function (config) {
     var uniforms = {
         low: {value: colorRange[0]},
         high: {value: colorRange[1]},
+        samples_per_unit: {value: samples},
         volumeTexture: {type: 't', value: texture},
         colormap: {type: 't', value: colormap}
     };

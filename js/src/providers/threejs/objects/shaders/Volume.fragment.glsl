@@ -9,6 +9,7 @@ uniform float low;
 uniform float high;
 uniform mat4 modelViewMatrix;
 uniform vec3 ambientLightColor;
+uniform float samples_per_unit;
 
 varying vec4 worldPosition;
 varying vec3 localPosition;
@@ -83,7 +84,7 @@ void main() {
 	vec3 end = textcoord;
 
     float len = distance(end, start);
-    int sampleCount = int(len * 1024.0);
+    int sampleCount = int(len * samples_per_unit);
     vec3 texCo = vec3(0.0, 0.0, 0.0);
     vec4 pxColor = vec4(0.0, 0.0, 0.0, 0.0);
     vec4 value = vec4(0.0, 0.0, 0.0, 0.0);
