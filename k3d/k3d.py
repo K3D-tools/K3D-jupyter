@@ -18,7 +18,12 @@ from .transform import process_transform_arguments
 from .helpers import check_attribute_range
 
 _default_color = 0x0000FF  # blue
-
+_nice_colors = (0xe6194b,0x3cb44b,0xffe119,0x0082c8,
+          0xf58231,0x911eb4,0x46f0f0,0xf032e6,
+          0xd2f53c,0xfabebe,0x008080, 0xe6beff,
+          0xaa6e28,0xfffac8,0x800000,0xaaffc3,
+          0x808000,0xffd8b1,0x000080,0x808080,
+          0xFFFFFF,0x000000)
 
 def line(vertices, color=_default_color, colors=(), attribute=(), color_map=(), color_range=(), width=0.01,
          shader='thick', radial_segments=8, compression_level=0, **kwargs):
@@ -388,7 +393,7 @@ def vectors(origins, vectors=None, colors=(),
 
 
 # noinspection PyShadowingNames
-def voxels(voxels, color_map, wireframe=False, outlines=True, outlines_color=0, compression_level=0, **kwargs):
+def voxels(voxels, color_map=_nice_colors, wireframe=False, outlines=True, outlines_color=0, compression_level=0, **kwargs):
     """Create a Voxels drawable for 3D volumetric data.
 
     By default, the voxels are a grid inscribed in the -0.5 < x, y, z < 0.5 cube
