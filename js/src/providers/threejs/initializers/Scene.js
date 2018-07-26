@@ -533,6 +533,9 @@ module.exports = {
             self.headLight.intensity = initialLightIntensity.head * value;
             self.fillLight.intensity = initialLightIntensity.fill * value;
             self.backLight.intensity = initialLightIntensity.back * value;
+
+            self.backLight.visible = self.headLight.visible = self.fillLight.visible = self.backLight.visible =
+                value > 0.0;
         };
 
         K3D.on(K3D.events.MOUSE_MOVE, function (coord) {

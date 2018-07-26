@@ -5,6 +5,7 @@ precision highp sampler3D;
 uniform mat4 transform;
 uniform sampler3D volumeTexture;
 uniform sampler2D colormap;
+uniform sampler2D jitterTexture;
 uniform float low;
 uniform float high;
 uniform mat4 modelViewMatrix;
@@ -72,6 +73,8 @@ void intersect(
 }
 
 void main() {
+    float jitter = texture2D(jitterTexture, gl_FragCoord.xy/32.0).r;
+
     vec3 direction = normalize(worldPosition.xyz-cameraPosition);
 	float tmin = 0.0;
 	float tmax = 0.0;
@@ -82,13 +85,19 @@ void main() {
 
 	vec3 start = textcoord - (tmax - tmin) * direction.xyz;
 	vec3 end = textcoord;
+	vec3 delta = end - start;
 
-    float len = distance(end, start);
-    int sampleCount = int(len * samples_per_unit);
-    vec3 texCo = vec3(0.0, 0.0, 0.0);
+    int sampleCount = int(length(delta) * samples_per_unit);
+
     vec4 pxColor = vec4(0.0, 0.0, 0.0, 0.0);
     vec4 value = vec4(0.0, 0.0, 0.0, 0.0);
     float px = 0.0;
+    float inv_range = 1.0 / (high - low);
+
+    delta = delta / float(sampleCount);
+    start = start - delta * (0.01 + 0.98 * jitter);
+
+    vec3 texCo = start;
 
 	for(int count = 0; count < sampleCount; count++){
         #if NUM_CLIPPING_PLANES > 0
@@ -117,10 +126,9 @@ void main() {
             #endif
         #endif
 
-		texCo = mix(start, end, float(count)/float(sampleCount));
 		px = texture(volumeTexture, texCo).x;
 
-		float scaled_px = (px - low) / (high - low);
+		float scaled_px = (px - low) * inv_range;
 
 		if(scaled_px > 0.0 && scaled_px < 1.0) {
             pxColor = texture(colormap, vec2(scaled_px, 0.5));
@@ -139,13 +147,17 @@ void main() {
                 px -  texture(volumeTexture, texCo + vec3(0,0,gradientStep)).x
             ));
 
-            for(int l = 0; l <NUM_DIR_LIGHTS; l++) {
-                vec3 lightDirection = -directionalLights[l].direction;
-                float lightingIntensity = clamp(dot(-lightDirection, normal), 0.0, 1.0);
-                addedLights.rgb += directionalLights[l].color * (0.05 + 0.95 * lightingIntensity);
+            vec3 lightDirection;
+            float lightingIntensity;
+
+            #pragma unroll_loop
+            for ( int i = 0; i < NUM_DIR_LIGHTS; i ++ ) {
+                lightDirection = -directionalLights[ i ].direction;
+                lightingIntensity = clamp(dot(-lightDirection, normal), 0.0, 1.0);
+                addedLights.rgb += directionalLights[ i ].color * (0.05 + 0.95 * lightingIntensity);
 
                 #if (USE_SPECULAR == 1)
-                pxColor.rgb += directionalLights[l].color * pow(lightingIntensity, 10.0) * pxColor.a;
+                pxColor.rgb += directionalLights[ i ].color * pow(lightingIntensity, 10.0) * pxColor.a;
                 #endif
             }
 
@@ -158,6 +170,8 @@ void main() {
                 break;
             }
 		}
+
+		texCo += delta;
 	}
 
     gl_FragColor = value;

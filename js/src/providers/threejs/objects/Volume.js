@@ -11,13 +11,16 @@ var _ = require('lodash');
  * @return {Object} 3D object ready to render
  */
 module.exports = function (config) {
+    config.samples = config.samples || 512.0;
+
     var geometry = new THREE.BoxBufferGeometry(1, 1, 1),
         modelMatrix = new THREE.Matrix4(),
         colorMap = (config.color_map && config.color_map.data) || null,
         colorRange = config.color_range,
-        samples = config.samples || 512.0,
+        samples = config.samples,
         object,
-        texture;
+        texture,
+        jitterTexture;
 
     texture = new THREE.Texture3D(
         new Float32Array(config.volume.data),
@@ -33,6 +36,17 @@ module.exports = function (config) {
     texture.wrapS = texture.wrapT = THREE.ClampToEdgeWrapping;
     texture.needsUpdate = true;
 
+    jitterTexture = new THREE.DataTexture(
+        new Uint8Array(_.range(32*32).map(function() {
+            return 255.0 * Math.random();
+        })),
+        32, 32, THREE.RedFormat, THREE.UnsignedByteType);
+    jitterTexture.minFilter = THREE.LinearFilter;
+    jitterTexture.magFilter = THREE.LinearFilter;
+    jitterTexture.wrapS = jitterTexture.wrapT = THREE.RepeatWrapping;
+    jitterTexture.generateMipmaps = false;
+    jitterTexture.needsUpdate = true;
+
     var canvas = lut(colorMap, 1024);
     var colormap = new THREE.CanvasTexture(canvas, THREE.UVMapping, THREE.ClampToEdgeWrapping,
         THREE.ClampToEdgeWrapping, THREE.NearestFilter, THREE.NearestFilter);
@@ -43,7 +57,8 @@ module.exports = function (config) {
         high: {value: colorRange[1]},
         samples_per_unit: {value: samples},
         volumeTexture: {type: 't', value: texture},
-        colormap: {type: 't', value: colormap}
+        colormap: {type: 't', value: colormap},
+        jitterTexture: {type: 't', value: jitterTexture}
     };
 
     var material = new THREE.ShaderMaterial({
