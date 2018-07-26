@@ -210,7 +210,7 @@ class Mesh(Drawable):
 
     type = Unicode(read_only=True).tag(sync=True)
     vertices = Array(dtype=np.float32).tag(sync=True, **array_serialization)
-    indices = Array(dtype=np.float32).tag(sync=True, **array_serialization)
+    indices = Array(dtype=np.uint32).tag(sync=True, **array_serialization)
     color = Int().tag(sync=True)
     attribute = Array(dtype=np.float32).tag(sync=True, **array_serialization)
     color_map = Array(dtype=np.float32).tag(sync=True, **array_serialization)

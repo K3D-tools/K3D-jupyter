@@ -139,29 +139,31 @@ void main() {
             pxColor.rgb = pxColor.rgb * pxColor.rgb * pxColor.a;
 
             // LIGHT
-            float gradientStep = 0.005;
-            vec4 addedLights = vec4(ambientLightColor, 1.0);
-            vec3 normal = normalize(vec3(
-                px -  texture(volumeTexture, texCo + vec3(gradientStep,0,0)).x,
-                px -  texture(volumeTexture, texCo + vec3(0,gradientStep,0)).x,
-                px -  texture(volumeTexture, texCo + vec3(0,0,gradientStep)).x
-            ));
+            #if NUM_DIR_LIGHTS > 0
+                float gradientStep = 0.005;
+                vec4 addedLights = vec4(ambientLightColor, 1.0);
+                vec3 normal = normalize(vec3(
+                    px -  texture(volumeTexture, texCo + vec3(gradientStep,0,0)).x,
+                    px -  texture(volumeTexture, texCo + vec3(0,gradientStep,0)).x,
+                    px -  texture(volumeTexture, texCo + vec3(0,0,gradientStep)).x
+                ));
 
-            vec3 lightDirection;
-            float lightingIntensity;
+                vec3 lightDirection;
+                float lightingIntensity;
 
-            #pragma unroll_loop
-            for ( int i = 0; i < NUM_DIR_LIGHTS; i ++ ) {
-                lightDirection = -directionalLights[ i ].direction;
-                lightingIntensity = clamp(dot(-lightDirection, normal), 0.0, 1.0);
-                addedLights.rgb += directionalLights[ i ].color * (0.05 + 0.95 * lightingIntensity);
+                #pragma unroll_loop
+                for ( int i = 0; i < NUM_DIR_LIGHTS; i ++ ) {
+                    lightDirection = -directionalLights[ i ].direction;
+                    lightingIntensity = clamp(dot(-lightDirection, normal), 0.0, 1.0);
+                    addedLights.rgb += directionalLights[ i ].color * (0.05 + 0.95 * lightingIntensity);
 
-                #if (USE_SPECULAR == 1)
-                pxColor.rgb += directionalLights[ i ].color * pow(lightingIntensity, 10.0) * pxColor.a;
-                #endif
-            }
+                    #if (USE_SPECULAR == 1)
+                    pxColor.rgb += directionalLights[ i ].color * pow(lightingIntensity, 10.0) * pxColor.a;
+                    #endif
+                }
 
-            pxColor.rgb *= addedLights.xyz;
+                pxColor.rgb *= addedLights.xyz;
+            #endif
 
             value = value + pxColor - pxColor * value.a;
 
