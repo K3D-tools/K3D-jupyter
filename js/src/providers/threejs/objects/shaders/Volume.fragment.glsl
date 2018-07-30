@@ -10,10 +10,14 @@ uniform float low;
 uniform float high;
 uniform mat4 modelViewMatrix;
 uniform vec3 ambientLightColor;
-uniform float samples_per_unit;
+uniform float samples;
 
-varying vec4 worldPosition;
+uniform vec4 scale;
+uniform vec4 translation;
+
 varying vec3 localPosition;
+varying vec3 transformedCameraPosition;
+varying vec3 transformedWorldPosition;
 
 struct DirectionalLight {
     vec3 direction;
@@ -74,38 +78,36 @@ void intersect(
 
 void main() {
     float jitter = texture2D(jitterTexture, gl_FragCoord.xy/32.0).r;
-
-    vec3 direction = normalize(worldPosition.xyz-cameraPosition);
 	float tmin = 0.0;
 	float tmax = 0.0;
-
-	intersect(makeRay(cameraPosition, direction), aabb, tmin, tmax);
-
-    vec3 textcoord = localPosition + vec3(0.5);
-
-	vec3 start = textcoord - (tmax - tmin) * direction.xyz;
-	vec3 end = textcoord;
-	vec3 delta = end - start;
-
-    int sampleCount = int(length(delta) * samples_per_unit);
-
-    vec4 pxColor = vec4(0.0, 0.0, 0.0, 0.0);
-    vec4 value = vec4(0.0, 0.0, 0.0, 0.0);
     float px = 0.0;
     float inv_range = 1.0 / (high - low);
+    vec4 pxColor = vec4(0.0, 0.0, 0.0, 0.0);
+    vec4 value = vec4(0.0, 0.0, 0.0, 0.0);
 
-    delta = delta / float(sampleCount);
-    start = start - delta * (0.01 + 0.98 * jitter);
+    aabb[0] = aabb[0] * scale.xyz + translation.xyz;
+    aabb[1] = aabb[1] * scale.xyz + translation.xyz;
 
-    vec3 texCo = start;
+    vec3 direction = normalize(transformedWorldPosition - transformedCameraPosition);
+	intersect(makeRay(transformedCameraPosition, direction), aabb, tmin, tmax);
+
+    vec3 textcoord_end = localPosition + vec3(0.5);
+	vec3 textcoord_start = textcoord_end - (tmax - max(0.0, tmin)) * direction.xyz / scale.xyz;
+	vec3 textcoord_delta = textcoord_end - textcoord_start;
+
+    int sampleCount = int(length(textcoord_delta) * samples);
+
+    textcoord_delta = textcoord_delta / float(sampleCount);
+    textcoord_start = textcoord_start - textcoord_delta * (0.01 + 0.98 * jitter);
+
+    vec3 textcoord = textcoord_start - textcoord_delta;
 
 	for(int count = 0; count < sampleCount; count++){
+	    textcoord += textcoord_delta;
+
         #if NUM_CLIPPING_PLANES > 0
             vec4 plane;
-            vec3 pos = mix(cameraPosition + tmin * direction.xyz, cameraPosition + tmax * direction.xyz,
-                           float(count)/float(sampleCount));
-
-            pos = -vec3(modelViewMatrix * vec4(pos, 1.0));
+            vec3 pos = -vec3(modelViewMatrix * vec4(textcoord, 1.0));
 
             #pragma unroll_loop
             for ( int i = 0; i < UNION_CLIPPING_PLANES; i ++ ) {
@@ -126,7 +128,7 @@ void main() {
             #endif
         #endif
 
-		px = texture(volumeTexture, texCo).x;
+		px = texture(volumeTexture, textcoord).x;
 
 		float scaled_px = (px - low) * inv_range;
 
@@ -143,9 +145,9 @@ void main() {
                 float gradientStep = 0.005;
                 vec4 addedLights = vec4(ambientLightColor, 1.0);
                 vec3 normal = normalize(vec3(
-                    px -  texture(volumeTexture, texCo + vec3(gradientStep,0,0)).x,
-                    px -  texture(volumeTexture, texCo + vec3(0,gradientStep,0)).x,
-                    px -  texture(volumeTexture, texCo + vec3(0,0,gradientStep)).x
+                    px -  texture(volumeTexture, textcoord + vec3(gradientStep,0,0)).x,
+                    px -  texture(volumeTexture, textcoord + vec3(0,gradientStep,0)).x,
+                    px -  texture(volumeTexture, textcoord + vec3(0,0,gradientStep)).x
                 ));
 
                 vec3 lightDirection;
@@ -172,8 +174,6 @@ void main() {
                 break;
             }
 		}
-
-		texCo += delta;
 	}
 
     gl_FragColor = value;
