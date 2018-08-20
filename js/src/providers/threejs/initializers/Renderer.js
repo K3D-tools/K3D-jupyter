@@ -56,6 +56,7 @@ module.exports = function (K3D) {
 
         self.renderer.clippingPlanes = [];
 
+        self.camera.updateMatrixWorld();
         self.renderer.render(self.gridScene, self.camera);
 
         K3D.parameters.clippingPlanes.forEach(function (plane) {

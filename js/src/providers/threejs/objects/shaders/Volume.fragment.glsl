@@ -128,15 +128,13 @@ void main() {
             #endif
         #endif
 
-		px = texture(volumeTexture, textcoord).x;
+		px = texture(volumeTexture, clamp(textcoord, 0.0, 0.99)).x;
 
 		float scaled_px = (px - low) * inv_range;
 
 		if(scaled_px > 0.0 && scaled_px < 1.0) {
             pxColor = texture(colormap, vec2(scaled_px, 0.5));
-
-            float alpha = (scaled_px - 0.5) * 2.0;
-            pxColor.a = clamp(alpha, 0.0, 1.0);
+            pxColor.a = scaled_px;
 
             pxColor.rgb = pxColor.rgb * pxColor.rgb * pxColor.a;
 
