@@ -8,6 +8,9 @@ import numpy as np
 from ipydatawidgets import DataUnion, data_union_serialization
 
 
+EPSILON = np.finfo(np.float32).eps
+
+
 class ListOrArray(List):
     _cast_types = (tuple, np.ndarray)
 
@@ -136,8 +139,8 @@ class Line(Drawable):
     type = Unicode(read_only=True).tag(sync=True)
     vertices = Array(dtype=np.float32).tag(sync=True, **array_serialization)
     colors = Array(dtype=np.uint32).tag(sync=True, **array_serialization)
-    color = Int().tag(sync=True)
-    width = Float().tag(sync=True)
+    color = Int(min=0, max=0xffffff).tag(sync=True)
+    width = Float(min=EPSILON, default_value=0.01).tag(sync=True)
     attribute = Array(dtype=np.float32).tag(sync=True, **array_serialization)
     color_map = Array(dtype=np.float32).tag(sync=True, **array_serialization)
     color_range = ListOrArray(minlen=2, maxlen=2, empty_ok=True).tag(sync=True)
@@ -179,7 +182,7 @@ class MarchingCubes(Drawable):
     type = Unicode(read_only=True).tag(sync=True)
     scalar_field = Array(dtype=np.float32).tag(sync=True, **array_serialization)
     level = Float().tag(sync=True)
-    color = Int().tag(sync=True)
+    color = Int(min=0, max=0xffffff).tag(sync=True)
     wireframe = Bool().tag(sync=True)
     flat_shading = Bool().tag(sync=True)
     model_matrix = Array(dtype=np.float32).tag(sync=True, **array_serialization)
@@ -211,7 +214,7 @@ class Mesh(Drawable):
     type = Unicode(read_only=True).tag(sync=True)
     vertices = Array(dtype=np.float32).tag(sync=True, **array_serialization)
     indices = Array(dtype=np.uint32).tag(sync=True, **array_serialization)
-    color = Int().tag(sync=True)
+    color = Int(min=0, max=0xffffff).tag(sync=True)
     attribute = Array(dtype=np.float32).tag(sync=True, **array_serialization)
     color_map = Array(dtype=np.float32).tag(sync=True, **array_serialization)
     color_range = ListOrArray(minlen=2, maxlen=2, empty_ok=True).tag(sync=True)
@@ -246,8 +249,8 @@ class Points(Drawable):
     type = Unicode(read_only=True).tag(sync=True)
     positions = Array(dtype=np.float32).tag(sync=True, **array_serialization)
     colors = Array(dtype=np.uint32).tag(sync=True, **array_serialization)
-    color = Int().tag(sync=True)
-    point_size = Float().tag(sync=True)
+    color = Int(min=0, max=0xffffff).tag(sync=True)
+    point_size = Float(min=EPSILON, default_value=1.0).tag(sync=True)
     shader = Unicode().tag(sync=True)
     model_matrix = Array(dtype=np.float32).tag(sync=True, **array_serialization)
 
@@ -284,7 +287,7 @@ class STL(Drawable):
     type = Unicode(read_only=True).tag(sync=True)
     text = Unicode(allow_none=True).tag(sync=True)
     binary = Bytes(allow_none=True).tag(sync=True)
-    color = Int().tag(sync=True)
+    color = Int(min=0, max=0xffffff).tag(sync=True)
     model_matrix = Array(dtype=np.float32).tag(sync=True, **array_serialization)
     wireframe = Bool().tag(sync=True)
     flat_shading = Bool().tag(sync=True)
@@ -312,7 +315,7 @@ class Surface(Drawable):
 
     type = Unicode(read_only=True).tag(sync=True)
     heights = Array(dtype=np.float32).tag(sync=True, **array_serialization)
-    color = Int().tag(sync=True)
+    color = Int(min=0, max=0xffffff).tag(sync=True)
     wireframe = Bool().tag(sync=True)
     flat_shading = Bool().tag(sync=True)
     model_matrix = Array(dtype=np.float32).tag(sync=True, **array_serialization)
@@ -340,9 +343,9 @@ class Text(Drawable):
     type = Unicode(read_only=True).tag(sync=True)
     text = Unicode().tag(sync=True)
     position = ListOrArray(minlen=3, maxlen=3).tag(sync=True)
-    color = Int().tag(sync=True)
+    color = Int(min=0, max=0xffffff).tag(sync=True)
     reference_point = Unicode().tag(sync=True)
-    size = Float().tag(sync=True)
+    size = Float(min=EPSILON, default_value=1.0).tag(sync=True)
 
     def __init__(self, **kwargs):
         super(Text, self).__init__(**kwargs)
@@ -365,8 +368,8 @@ class Text2d(Drawable):
     """
 
     type = Unicode(read_only=True).tag(sync=True)
-    color = Int().tag(sync=True)
-    size = Float().tag(sync=True)
+    color = Int(min=0, max=0xffffff).tag(sync=True)
+    size = Float(min=EPSILON, default_value=1.0).tag(sync=True)
     reference_point = Unicode().tag(sync=True)
     position = ListOrArray(minlen=2, maxlen=2).tag(sync=True)
     text = Unicode().tag(sync=True)
@@ -434,8 +437,8 @@ class TextureText(Drawable):
     type = Unicode(read_only=True).tag(sync=True)
     text = Unicode().tag(sync=True)
     position = ListOrArray(minlen=3, maxlen=3).tag(sync=True)
-    color = Int().tag(sync=True)
-    size = Float().tag(sync=True)
+    color = Int(min=0, max=0xffffff).tag(sync=True)
+    size = Float(min=EPSILON, default_value=1.0).tag(sync=True)
     font_face = Unicode().tag(sync=True)
     font_weight = Int().tag(sync=True)
     font_size = Int().tag(sync=True)
@@ -475,12 +478,12 @@ class VectorField(Drawable):
     type = Unicode(read_only=True).tag(sync=True)
     vectors = Array(dtype=np.float32).tag(sync=True, **array_serialization)
     colors = Array(dtype=np.uint32).tag(sync=True, **array_serialization)
-    origin_color = Int().tag(sync=True)
-    head_color = Int().tag(sync=True)
+    origin_color = Int(min=0, max=0xffffff).tag(sync=True)
+    head_color = Int(min=0, max=0xffffff).tag(sync=True)
     use_head = Bool().tag(sync=True)
-    head_size = Float().tag(sync=True)
+    head_size = Float(min=EPSILON, default_value=1.0).tag(sync=True)
     scale = Float().tag(sync=True)
-    line_width = Float().tag(sync=True)
+    line_width = Float(min=EPSILON, default_value=0.01).tag(sync=True)
     model_matrix = Array(dtype=np.float32).tag(sync=True, **array_serialization)
 
     def __init__(self, **kwargs):
@@ -525,19 +528,20 @@ class Vectors(Drawable):
     origins = Array(dtype=np.float32).tag(sync=True, **array_serialization)
     vectors = Array(dtype=np.float32).tag(sync=True, **array_serialization)
     colors = Array(dtype=np.uint32).tag(sync=True, **array_serialization)
-    origin_color = Int().tag(sync=True)
-    head_color = Int().tag(sync=True)
+    origin_color = Int(min=0, max=0xffffff).tag(sync=True)
+    head_color = Int(min=0, max=0xffffff).tag(sync=True)
     use_head = Bool().tag(sync=True)
-    head_size = Float().tag(sync=True)
+    head_size = Float(min=EPSILON, default_value=1.0).tag(sync=True)
     labels = List().tag(sync=True)
-    label_size = Float().tag(sync=True)
-    line_width = Float().tag(sync=True)
+    label_size = Float(min=EPSILON, default_value=1.0).tag(sync=True)
+    line_width = Float(min=EPSILON, default_value=0.01).tag(sync=True)
     model_matrix = Array(dtype=np.float32).tag(sync=True, **array_serialization)
 
     def __init__(self, **kwargs):
         super(Vectors, self).__init__(**kwargs)
 
         self.set_trait('type', 'Vectors')
+
 
 class Volume(Drawable):
     """
@@ -608,10 +612,10 @@ class Voxels(Drawable):
     type = Unicode(read_only=True).tag(sync=True)
     voxels = Array(dtype=np.uint8).tag(sync=True, **array_serialization)
     color_map = Array(dtype=np.float32).tag(sync=True, **array_serialization)
-    model_matrix = Array(dtype=np.float32).tag(sync=True, **array_serialization)
     wireframe = Bool().tag(sync=True)
     outlines = Bool().tag(sync=True)
-    outlines_color = Int().tag(sync=True)
+    outlines_color = Int(min=0, max=0xffffff).tag(sync=True)
+    model_matrix = Array(dtype=np.float32).tag(sync=True, **array_serialization)
     click_callback = None
 
     def __init__(self, **kwargs):
@@ -654,11 +658,11 @@ class VoxelsIpyDW(Drawable):
     type = Unicode(read_only=True).tag(sync=True)
     voxels = DataUnion(default_value=[], dtype=np.uint8).tag(sync=True, **data_union_serialization)
     color_map = Array(dtype=np.float32).tag(sync=True, **array_serialization)
-    model_matrix = Array(dtype=np.float32).tag(sync=True, **array_serialization)
     wireframe = Bool().tag(sync=True)
     outlines = Bool().tag(sync=True)
-    outlines_color = Int().tag(sync=True)
+    outlines_color = Int(min=0, max=0xffffff).tag(sync=True)
     click_callback = None
+    model_matrix = Array(dtype=np.float32).tag(sync=True, **array_serialization)
 
     def __init__(self, **kwargs):
         super(VoxelsIpyDW, self).__init__(**kwargs)
