@@ -50,6 +50,7 @@ setup_args = {
     ],
     'install_requires': [
         'ipywidgets>=7.0.1',
+        'ipydatawidgets',
         'traittypes',
         'traitlets',
         'numpy>=1.11.0'

@@ -658,16 +658,15 @@ require(['K3D'], function (lib) {
             var self = this;
 
             jsonLoader('http://localhost:9001/samples/voxels.json', function (json) {
+                self.K3D.setClippingPlanes([
+                    [-1, -1.5, 0, 0],
+                    [0, 0, -1, 0.01]
+                ]);
 
                 self.K3D.addFrameUpdateListener('after', function () {
                     TestHelpers.compareCanvasWithExpectedImage(self.K3D, 'voxels_clipping_planes',
                         RESAMBLEThreshold, true, done);
                 }, true);
-
-                self.K3D.setClippingPlanes([
-                    [-1, -1.5, 0, 0],
-                    [0, 0, -1, 0.01]
-                ]);
 
                 self.K3D.load(json);
             });
@@ -677,15 +676,14 @@ require(['K3D'], function (lib) {
             var self = this;
 
             jsonLoader('http://localhost:9001/samples/horse_with_colors_3d.json', function (json) {
+                self.K3D.setClippingPlanes([
+                    [-1, 0, 0, 0]
+                ]);
 
                 self.K3D.addFrameUpdateListener('after', function () {
                     TestHelpers.compareCanvasWithExpectedImage(self.K3D, 'horse_with_colors_3d_clipped',
                         RESAMBLEThreshold, true, done);
                 }, true);
-
-                self.K3D.setClippingPlanes([
-                    [-1, 0, 0, 0]
-                ]);
 
                 self.K3D.load(json);
             });

@@ -5,14 +5,19 @@ precision highp sampler3D;
 uniform mat4 transform;
 uniform sampler3D volumeTexture;
 uniform sampler2D colormap;
+uniform sampler2D jitterTexture;
 uniform float low;
 uniform float high;
 uniform mat4 modelViewMatrix;
 uniform vec3 ambientLightColor;
-uniform float samples_per_unit;
+uniform float samples;
 
-varying vec4 worldPosition;
+uniform vec4 scale;
+uniform vec4 translation;
+
 varying vec3 localPosition;
+varying vec3 transformedCameraPosition;
+varying vec3 transformedWorldPosition;
 
 struct DirectionalLight {
     vec3 direction;
@@ -72,31 +77,37 @@ void intersect(
 }
 
 void main() {
-    vec3 direction = normalize(worldPosition.xyz-cameraPosition);
+    float jitter = texture2D(jitterTexture, gl_FragCoord.xy/32.0).r;
 	float tmin = 0.0;
 	float tmax = 0.0;
-
-	intersect(makeRay(cameraPosition, direction), aabb, tmin, tmax);
-
-    vec3 textcoord = localPosition + vec3(0.5);
-
-	vec3 start = textcoord - (tmax - tmin) * direction.xyz;
-	vec3 end = textcoord;
-
-    float len = distance(end, start);
-    int sampleCount = int(len * samples_per_unit);
-    vec3 texCo = vec3(0.0, 0.0, 0.0);
+    float px = 0.0;
+    float inv_range = 1.0 / (high - low);
     vec4 pxColor = vec4(0.0, 0.0, 0.0, 0.0);
     vec4 value = vec4(0.0, 0.0, 0.0, 0.0);
-    float px = 0.0;
+
+    aabb[0] = aabb[0] * scale.xyz + translation.xyz;
+    aabb[1] = aabb[1] * scale.xyz + translation.xyz;
+
+    vec3 direction = normalize(transformedWorldPosition - transformedCameraPosition);
+	intersect(makeRay(transformedCameraPosition, direction), aabb, tmin, tmax);
+
+    vec3 textcoord_end = localPosition + vec3(0.5);
+	vec3 textcoord_start = textcoord_end - (tmax - max(0.0, tmin)) * direction.xyz / scale.xyz;
+	vec3 textcoord_delta = textcoord_end - textcoord_start;
+
+    int sampleCount = int(length(textcoord_delta) * samples);
+
+    textcoord_delta = textcoord_delta / float(sampleCount);
+    textcoord_start = textcoord_start - textcoord_delta * (0.01 + 0.98 * jitter);
+
+    vec3 textcoord = textcoord_start - textcoord_delta;
 
 	for(int count = 0; count < sampleCount; count++){
+	    textcoord += textcoord_delta;
+
         #if NUM_CLIPPING_PLANES > 0
             vec4 plane;
-            vec3 pos = mix(cameraPosition + tmin * direction.xyz, cameraPosition + tmax * direction.xyz,
-                           float(count)/float(sampleCount));
-
-            pos = -vec3(modelViewMatrix * vec4(pos, 1.0));
+            vec3 pos = -vec3(modelViewMatrix * vec4(textcoord, 1.0));
 
             #pragma unroll_loop
             for ( int i = 0; i < UNION_CLIPPING_PLANES; i ++ ) {
@@ -117,39 +128,42 @@ void main() {
             #endif
         #endif
 
-		texCo = mix(start, end, float(count)/float(sampleCount));
-		px = texture(volumeTexture, texCo).x;
+		px = texture(volumeTexture, clamp(textcoord, 0.0, 0.99)).x;
 
-		float scaled_px = (px - low) / (high - low);
+		float scaled_px = (px - low) * inv_range;
 
 		if(scaled_px > 0.0 && scaled_px < 1.0) {
             pxColor = texture(colormap, vec2(scaled_px, 0.5));
-
-            float alpha = (scaled_px - 0.5) * 2.0;
-            pxColor.a = clamp(alpha, 0.0, 1.0);
+            pxColor.a = scaled_px;
 
             pxColor.rgb = pxColor.rgb * pxColor.rgb * pxColor.a;
 
             // LIGHT
-            float gradientStep = 0.005;
-            vec4 addedLights = vec4(ambientLightColor, 1.0);
-            vec3 normal = normalize(vec3(
-                px -  texture(volumeTexture, texCo + vec3(gradientStep,0,0)).x,
-                px -  texture(volumeTexture, texCo + vec3(0,gradientStep,0)).x,
-                px -  texture(volumeTexture, texCo + vec3(0,0,gradientStep)).x
-            ));
+            #if NUM_DIR_LIGHTS > 0
+                float gradientStep = 0.005;
+                vec4 addedLights = vec4(ambientLightColor, 1.0);
+                vec3 normal = normalize(vec3(
+                    px -  texture(volumeTexture, textcoord + vec3(gradientStep,0,0)).x,
+                    px -  texture(volumeTexture, textcoord + vec3(0,gradientStep,0)).x,
+                    px -  texture(volumeTexture, textcoord + vec3(0,0,gradientStep)).x
+                ));
 
-            for(int l = 0; l <NUM_DIR_LIGHTS; l++) {
-                vec3 lightDirection = -directionalLights[l].direction;
-                float lightingIntensity = clamp(dot(-lightDirection, normal), 0.0, 1.0);
-                addedLights.rgb += directionalLights[l].color * (0.05 + 0.95 * lightingIntensity);
+                vec3 lightDirection;
+                float lightingIntensity;
 
-                #if (USE_SPECULAR == 1)
-                pxColor.rgb += directionalLights[l].color * pow(lightingIntensity, 10.0) * pxColor.a;
-                #endif
-            }
+                #pragma unroll_loop
+                for ( int i = 0; i < NUM_DIR_LIGHTS; i ++ ) {
+                    lightDirection = -directionalLights[ i ].direction;
+                    lightingIntensity = clamp(dot(-lightDirection, normal), 0.0, 1.0);
+                    addedLights.rgb += directionalLights[ i ].color * (0.05 + 0.95 * lightingIntensity);
 
-            pxColor.rgb *= addedLights.xyz;
+                    #if (USE_SPECULAR == 1)
+                    pxColor.rgb += directionalLights[ i ].color * pow(lightingIntensity, 10.0) * pxColor.a;
+                    #endif
+                }
+
+                pxColor.rgb *= addedLights.xyz;
+            #endif
 
             value = value + pxColor - pxColor * value.a;
 
