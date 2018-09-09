@@ -104,6 +104,7 @@ module.exports = function (K3D) {
         ssaaRenderPass.sampleLevel = 5;
         ssaaRenderPass.setSize(width, height);
         ssaaRenderPass.render(self.renderer, rt, rt);
+        ssaaRenderPass.dispose();
         var grid = getArrayFromRenderTarget(rt);
 
         K3D.parameters.clippingPlanes.forEach(function (plane) {
@@ -114,7 +115,9 @@ module.exports = function (K3D) {
         ssaaRenderPass.sampleLevel = 5;
         ssaaRenderPass.setSize(width, height);
         ssaaRenderPass.render(self.renderer, rt, rt);
+        ssaaRenderPass.dispose();
         var scene = getArrayFromRenderTarget(rt);
+
 
         rt.dispose();
 

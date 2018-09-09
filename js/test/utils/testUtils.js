@@ -34,6 +34,20 @@ function arrayToTypedArray(typedArray, array, obj) {
     };
 }
 
+window.TestHelpers.fileLoader = function (url, callback) {
+    var xhrLoad = new XMLHttpRequest();
+
+    xhrLoad.open('GET', url, true);
+
+    xhrLoad.onreadystatechange = function () {
+        if (xhrLoad.readyState === 4) {
+            callback(xhrLoad.response);
+        }
+    };
+
+    xhrLoad.send(null);
+};
+
 window.TestHelpers.jsonLoader = function (url, callback) {
     var xhrLoad = new XMLHttpRequest(),
         json,

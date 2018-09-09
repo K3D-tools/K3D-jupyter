@@ -563,6 +563,7 @@ class Volume(Drawable):
         color_range: `list`. A pair [min_value, max_value], which determines the levels of color attribute mapped
             to 0 and 1 in the color map respectively.
         samples: `float` number of iteration per 1 unit of space
+        alpha_correction: `float` alpha multiplier
         model_matrix: `array_like`. 4x4 model transform matrix.
     """
 
@@ -571,6 +572,7 @@ class Volume(Drawable):
     color_map = Array(dtype=np.float32).tag(sync=True, **array_serialization)
     color_range = ListOrArray(minlen=2, maxlen=2, empty_ok=True).tag(sync=True)
     samples = Float().tag(sync=True)
+    alpha_correction = Float().tag(sync=True)
     model_matrix = Array(dtype=np.float32).tag(sync=True, **array_serialization)
 
     def __init__(self, **kwargs):

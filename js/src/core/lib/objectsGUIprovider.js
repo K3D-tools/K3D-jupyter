@@ -59,7 +59,7 @@ function objectGUIProvider(K3D, json, objects) {
     }
 
     var defaultParams = ['visible', 'outlines', 'wireframe', 'flat_shading', 'use_head', 'head_size', 'line_width',
-        'scale', 'font_size', 'font_weight', 'size', 'point_size', 'level', 'samples'];
+        'scale', 'font_size', 'font_weight', 'size', 'point_size', 'level', 'samples', 'alpha_correction'];
 
     _.keys(json).forEach(function (param) {
             if (param[0] === '_') {

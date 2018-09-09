@@ -11,6 +11,7 @@ uniform float high;
 uniform mat4 modelViewMatrix;
 uniform vec3 ambientLightColor;
 uniform float samples;
+uniform float alphaCorrection;
 
 uniform vec4 scale;
 uniform vec4 translation;
@@ -95,12 +96,16 @@ void main() {
 	vec3 textcoord_start = textcoord_end - (tmax - max(0.0, tmin)) * direction.xyz / scale.xyz;
 	vec3 textcoord_delta = textcoord_end - textcoord_start;
 
-    int sampleCount = int(length(textcoord_delta) * samples);
+    // @TODO: protection. Sometimes strange situation happen and sampleCount is out the limit
+    int sampleCount = min(int(length(textcoord_delta) * samples), int(samples * 1.8));
+//    int sampleCount = int(length(textcoord_delta) * samples);
 
     textcoord_delta = textcoord_delta / float(sampleCount);
     textcoord_start = textcoord_start - textcoord_delta * (0.01 + 0.98 * jitter);
 
     vec3 textcoord = textcoord_start - textcoord_delta;
+
+    float step = length(textcoord_delta);
 
 	for(int count = 0; count < sampleCount; count++){
 	    textcoord += textcoord_delta;
@@ -132,11 +137,16 @@ void main() {
 
 		float scaled_px = (px - low) * inv_range;
 
-		if(scaled_px > 0.0 && scaled_px < 1.0) {
+		if(scaled_px > 0.0) {
+		    scaled_px = min(scaled_px, 0.99);
+
             pxColor = texture(colormap, vec2(scaled_px, 0.5));
             pxColor.a = scaled_px;
 
-            pxColor.rgb = pxColor.rgb * pxColor.rgb * pxColor.a;
+            pxColor.a = 1.0 - pow(1.0 - pxColor.a, step * alphaCorrection);
+            pxColor.a *= (1.0 - value.a);
+
+            pxColor.rgb *= pxColor.a;
 
             // LIGHT
             #if NUM_DIR_LIGHTS > 0
@@ -165,7 +175,7 @@ void main() {
                 pxColor.rgb *= addedLights.xyz;
             #endif
 
-            value = value + pxColor - pxColor * value.a;
+            value += pxColor;
 
             if(value.a >= 0.95){
                 value.a = 1.0;

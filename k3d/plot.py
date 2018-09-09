@@ -1,6 +1,4 @@
 from __future__ import print_function
-import types
-import codecs
 
 import ipywidgets as widgets
 from traitlets import Unicode, Bool, Int, List, Float
@@ -81,9 +79,6 @@ class Plot(widgets.DOMWidget):
 
         self.outputs = []
 
-        self._screenshot_handler = None
-        self.observe(self._screenshot_changed, names=['screenshot'])
-
     def __iadd__(self, objs):
         assert isinstance(objs, Drawable)
 
@@ -120,24 +115,5 @@ class Plot(widgets.DOMWidget):
 
         self.outputs = []
 
-    def fetch_screenshot(self, handler=None):
-        self._screenshot_handler = handler
-        if isinstance(self._screenshot_handler, types.GeneratorType):
-            if handler is not self._screenshot_handler:
-                # start (only new) generator
-                next(self._screenshot_handler)
-        self.send({'msg_type': 'fetch_screenshot'})
-
-    def _screenshot_changed(self, change):
-        if self._screenshot_handler is not None:
-            data = codecs.decode(change['new'].encode('ascii'), 'base64')
-            if isinstance(self._screenshot_handler, types.GeneratorType):
-                try:
-                    self._screenshot_handler.send(data)
-                except StopIteration:
-                    # unregister used up generator
-                    self._screenshot_handler = None
-            elif callable(self._screenshot_handler):
-                self._screenshot_handler(data)
-            else:
-                raise TypeError('Screenshot handler of wrong type')
+    def fetch_screenshot(self, only_canvas=False):
+        self.send({'msg_type': 'fetch_screenshot', 'only_canvas': only_canvas})

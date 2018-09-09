@@ -431,7 +431,7 @@ def voxels(voxels, color_map=_nice_colors, wireframe=False, outlines=True, outli
 
 
 # noinspection PyShadowingNames
-def volume(volume, color_map, color_range=(), samples=512.0, compression_level=0, **kwargs):
+def volume(volume, color_map, color_range=(), samples=512.0, alpha_correction=50.0, compression_level=0, **kwargs):
     """Create a Volume drawable for 3D volumetric data.
 
     By default, the volume are a grid inscribed in the -0.5 < x, y, z < 0.5 cube
@@ -454,13 +454,14 @@ def volume(volume, color_map, color_range=(), samples=512.0, compression_level=0
         color_range: `list`. A pair [min_value, max_value], which determines the levels of volume attribute mapped
             to 0 and 1 in the color map respectively.
         samples: `float` number of iteration per 1 unit of space
+        alpha_correction: `float` alpha multiplier
     kwargs: `dict`. Dictionary arguments to configure transform and model_matrix."""
 
     color_range = check_attribute_range(volume, color_range)
 
     return process_transform_arguments(
         Volume(volume=volume, color_map=color_map, color_range=color_range, compression_level=compression_level,
-               samples=samples),
+               samples=samples, alpha_correction=alpha_correction),
         **kwargs)
 
 
