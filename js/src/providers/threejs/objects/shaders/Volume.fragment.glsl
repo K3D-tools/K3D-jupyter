@@ -11,7 +11,7 @@ uniform float high;
 uniform mat4 modelViewMatrix;
 uniform vec3 ambientLightColor;
 uniform float samples;
-uniform float alphaCorrection;
+uniform float alpha_coef;
 
 uniform vec4 scale;
 uniform vec4 translation;
@@ -143,7 +143,7 @@ void main() {
             pxColor = texture(colormap, vec2(scaled_px, 0.5));
             pxColor.a = scaled_px;
 
-            pxColor.a = 1.0 - pow(1.0 - pxColor.a, step * alphaCorrection);
+            pxColor.a = 1.0 - pow(1.0 - pxColor.a, step * alpha_coef);
             pxColor.a *= (1.0 - value.a);
 
             pxColor.rgb *= pxColor.a;
