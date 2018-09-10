@@ -82,13 +82,16 @@ function clippingPlanesGUIProvider(K3D, clippingPlanesGUI) {
             current.folder.add(current.obj, 'constant').step(0.001).onChange(change.bind(this, true));
             current.folder.add({
                 fromCamera: function () {
-                    function refresh() {
+                    function refresh(render) {
                         var camera = K3D.getWorld().camera,
-                            plane = new THREE.Plane().setFromCoplanarPoints(
-                                new THREE.Vector3(-1, -1, -1).unproject(camera),
-                                new THREE.Vector3(1, 1, -1).unproject(camera),
-                                new THREE.Vector3(1, -1, -1).unproject(camera)
-                            );
+                            plane;
+
+                        camera.updateMatrixWorld();
+                        plane = new THREE.Plane().setFromCoplanarPoints(
+                            new THREE.Vector3(-1, -1, -1).unproject(camera),
+                            new THREE.Vector3(1, 1, -1).unproject(camera),
+                            new THREE.Vector3(1, -1, -1).unproject(camera)
+                        );
 
                         plane.constant -= camera.near * 200.0;
 
@@ -101,7 +104,7 @@ function clippingPlanesGUIProvider(K3D, clippingPlanesGUI) {
                             controller.updateDisplay();
                         });
 
-                        change();
+                        change(render);
                     }
 
                     if (current.eventId) {
@@ -111,7 +114,7 @@ function clippingPlanesGUIProvider(K3D, clippingPlanesGUI) {
                     } else {
                         current.folder.__controllers[4].name('From camera [stop]');
                         current.eventId = K3D.on(K3D.events.CAMERA_CHANGE, refresh);
-                        refresh();
+                        refresh(true);
                     }
                 }
             }, 'fromCamera').name('From camera [start]');

@@ -12,6 +12,7 @@ var _ = require('lodash');
  */
 module.exports = function (config) {
     config.samples = config.samples || 512.0;
+    config.alpha_coef = config.alpha_coef || 50.0;
 
     var geometry = new THREE.BoxBufferGeometry(1, 1, 1),
         modelMatrix = new THREE.Matrix4(),
@@ -62,6 +63,7 @@ module.exports = function (config) {
         low: {value: colorRange[0]},
         high: {value: colorRange[1]},
         samples: {value: samples},
+        alpha_coef: {value: config.alpha_coef},
         translation: {value: translation},
         rotation: {value: rotation},
         scale: {value: scale},

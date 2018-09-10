@@ -27,6 +27,7 @@
 <script>
     var K3DInstance;
     var jsonLoader = TestHelpers.jsonLoader;
+    var fileLoader = TestHelpers.fileLoader;
 
     require(['K3D'], function (lib) {
         try {
@@ -34,7 +35,7 @@
                 lib.ThreeJsProvider,
                 document.getElementById('canvasTarget'),
                 {
-                    cameraAutoFit: true,
+                    cameraAutoFit: false,
                     gridAutoFit: true,
                     grid: [
                         -1, -1, -1,
@@ -47,9 +48,16 @@
 
         if (K3DInstance) {
             K3DInstance.setClearColor(0xffffff, 1);
+            K3DInstance.setScreenshotScale(2.0);
 
-            jsonLoader('test/samples/volume_rendering.json', function (json) {
-                K3DInstance.load(json);
+            // jsonLoader('test/samples/volume_rendering.json', function (json) {
+            //     K3DInstance.load(json);
+            // });
+
+            fileLoader('K3D-snapshot-1536442140821.html', function (data) {
+                var snapshot = K3DInstance.extractSnapshot(data);
+
+                K3DInstance.setSnapshot(atob(snapshot[1]));
             });
         }
 
@@ -60,6 +68,11 @@
         K3DInstance.on(K3DInstance.events.CAMERA_CHANGE, function (control) {
             localStorage.setItem('camera', JSON.stringify(control));
         });
+        //
+        // K3DInstance.setClippingPlanes([
+        //     [-1, -1.5, 0, 0],
+        //     [0, 0, -1, 0.01]
+        // ]);
     });
 </script>
 </body>

@@ -476,6 +476,16 @@ function K3D(provider, targetDOMNode, parameters) {
     };
 
     /**
+     * Extract snapshot
+     * @memberof K3D.Core
+     * @param {String} data
+     * @returns {Object|undefined}
+     */
+    this.extractSnapshot = function (data) {
+        return data.match(/var data = '(.+)';/mi);
+    };
+
+    /**
      * Destroy logic for current instance. Will remove listeners (browser and owned)
      * @memberof K3D.Core
      */
