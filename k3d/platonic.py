@@ -29,7 +29,7 @@ class Dodecahedron:
     
     @property
     def points(self):
-        return k3d.points(self.vertices, point_size=np.sqrt(np.sum((self.vertices[0] - self.vertices[4])**2))/20)
+        return k3d.points(self.vertices, point_size=np.sqrt(np.sum((self.vertices[0] - self.vertices[1])**2))/20)
 
 class Cube:
     
@@ -52,7 +52,7 @@ class Cube:
     
     @property
     def points(self):
-        return k3d.points(self.vertices, point_size=np.sqrt(np.sum((self.vertices[0] - self.vertices[4])**2))/20)
+        return k3d.points(self.vertices, point_size=np.sqrt(np.sum((self.vertices[0] - self.vertices[1])**2))/20)
 
 class Icosahedron:
     
@@ -79,7 +79,7 @@ class Icosahedron:
     
     @property
     def points(self):
-        return k3d.points(self.vertices, point_size=np.sqrt(np.sum((self.vertices[0] - self.vertices[4])**2))/20)
+        return k3d.points(self.vertices, point_size=np.sqrt(np.sum((self.vertices[0] - self.vertices[1])**2))/20)
 
 
 class Octahedron:
@@ -103,7 +103,7 @@ class Octahedron:
     
     @property
     def points(self):
-        return k3d.points(self.vertices, point_size=np.sqrt(np.sum((self.vertices[0] - self.vertices[4])**2))/20)
+        return k3d.points(self.vertices, point_size=np.sqrt(np.sum((self.vertices[0] - self.vertices[1])**2))/20)
     
     
 class Tetrahedron:
@@ -127,4 +127,4 @@ class Tetrahedron:
     
     @property
     def points(self):
-        return k3d.points(self.vertices, point_size=np.sqrt(np.sum((self.vertices[0] - self.vertices[4])**2))/20)
+        return k3d.points(self.vertices, point_size=np.sqrt(np.sum((self.vertices[0] - self.vertices[1])**2))/20)
