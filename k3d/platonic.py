@@ -5,7 +5,7 @@ import k3d
 
 class Dodecahedron:
     
-    def __init__(self, origin, size=1):
+    def __init__(self, origin=[0,0,0], size=1):
         origin = np.array(origin, dtype=np.float32)
         
         if origin.shape == (3,):
@@ -23,13 +23,17 @@ class Dodecahedron:
         else:
             raise TypeError('Origin should have 3 coordinates.')
     
+    @property
     def mesh(self):
         return k3d.mesh(self.vertices, self.indices)
-
+    
+    @property
+    def points(self):
+        return k3d.points(self.vertices, point_size=np.sqrt(np.sum((self.vertices[0] - self.vertices[4])**2))/20)
 
 class Cube:
     
-    def __init__(self, origin, size=1):
+    def __init__(self, origin=[0,0,0], size=1):
         origin = np.array(origin, dtype=np.float32)
         
         if origin.shape == (3,):
@@ -40,15 +44,19 @@ class Cube:
             self.indices = [0,1,2, 1,2,3, 0,1,4, 1,4,5, 1,3,5, 3,5,7, 0,2,4, 2,4,6, 2,3,7, 2,6,7, 4,5,6, 5,6,7]
         
         else:
-            raise TypeError('Origin should have 3 coordinates.')
+            raise TypeError('Origin attribute should have 3 coordinates.')
     
+    @property
     def mesh(self):
         return k3d.mesh(self.vertices, self.indices)
-
+    
+    @property
+    def points(self):
+        return k3d.points(self.vertices, point_size=np.sqrt(np.sum((self.vertices[0] - self.vertices[4])**2))/20)
 
 class Icosahedron:
     
-    def __init__(self, origin, size=1):
+    def __init__(self, origin=[0,0,0], size=1):
         origin = np.array(origin, dtype=np.float32)
         
         if origin.shape == (3,):
@@ -63,15 +71,20 @@ class Icosahedron:
                             7,9,11, 3,7,11, 3,6,7, 3,6,10, 4,8,10,6,8,10, 1,4,10, 1,3,11, 1,3,10, 5,9,11]
         
         else:
-            raise TypeError('Origin should have 3 coordinates.')
+            raise TypeError('Origin attribute should have 3 coordinates.')
     
+    @property
     def mesh(self):
         return k3d.mesh(self.vertices, self.indices)
+    
+    @property
+    def points(self):
+        return k3d.points(self.vertices, point_size=np.sqrt(np.sum((self.vertices[0] - self.vertices[4])**2))/20)
 
 
 class Octahedron:
     
-    def __init__(self, origin, size=1):
+    def __init__(self, origin=[0,0,0], size=1):
         origin = np.array(origin, dtype=np.float32)
         
         if origin.shape == (3,):
@@ -82,15 +95,20 @@ class Octahedron:
             self.indices = [0,1,2, 0,1,5, 1,2,3, 1,3,5,0,4,5, 0,2,4, 2,3,4, 3,4,5]
         
         else:
-            raise TypeError('Origin should have 3 coordinates.')
+            raise TypeError('Origin attribute should have 3 coordinates.')
     
+    @property
     def mesh(self):
         return k3d.mesh(self.vertices, self.indices)
+    
+    @property
+    def points(self):
+        return k3d.points(self.vertices, point_size=np.sqrt(np.sum((self.vertices[0] - self.vertices[4])**2))/20)
     
     
 class Tetrahedron:
     
-    def __init__(self, origin, size=1):
+    def __init__(self, origin=[0,0,0], size=1):
         origin = np.array(origin, dtype=np.float32)
         
         if origin.shape == (3,):
@@ -101,7 +119,12 @@ class Tetrahedron:
             self.indices = [0,1,2, 0,1,3, 1,2,3, 0,2,3]
         
         else:
-            raise TypeError('Origin should have 3 coordinates.')
-    
+            raise TypeError('Origin attribute should have 3 coordinates.')
+   
+    @property
     def mesh(self):
         return k3d.mesh(self.vertices, self.indices)
+    
+    @property
+    def points(self):
+        return k3d.points(self.vertices, point_size=np.sqrt(np.sum((self.vertices[0] - self.vertices[4])**2))/20)
