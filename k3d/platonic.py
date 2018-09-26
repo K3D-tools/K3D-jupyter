@@ -40,7 +40,7 @@ class Cube:
             self.indices = [0,1,2, 1,2,3, 0,1,4, 1,4,5, 1,3,5, 3,5,7, 0,2,4, 2,4,6, 2,3,7, 2,6,7, 4,5,6, 5,6,7]
         
         else:
-            raise TypeError('Origin attribute should have 3 coordinates.')
+            raise TypeError('Origin should have 3 coordinates.')
     
     def mesh(self):
         return k3d.mesh(self.vertices, self.indices)
@@ -63,7 +63,7 @@ class Icosahedron:
                             7,9,11, 3,7,11, 3,6,7, 3,6,10, 4,8,10,6,8,10, 1,4,10, 1,3,11, 1,3,10, 5,9,11]
         
         else:
-            raise TypeError('Origin attribute should have 3 coordinates.')
+            raise TypeError('Origin should have 3 coordinates.')
     
     def mesh(self):
         return k3d.mesh(self.vertices, self.indices)
@@ -82,7 +82,7 @@ class Octahedron:
             self.indices = [0,1,2, 0,1,5, 1,2,3, 1,3,5,0,4,5, 0,2,4, 2,3,4, 3,4,5]
         
         else:
-            raise TypeError('Origin attribute should have 3 coordinates.')
+            raise TypeError('Origin should have 3 coordinates.')
     
     def mesh(self):
         return k3d.mesh(self.vertices, self.indices)
@@ -101,7 +101,7 @@ class Tetrahedron:
             self.indices = [0,1,2, 0,1,3, 1,2,3, 0,2,3]
         
         else:
-            raise TypeError('Origin attribute should have 3 coordinates.')
+            raise TypeError('Origin should have 3 coordinates.')
     
     def mesh(self):
         return k3d.mesh(self.vertices, self.indices)
