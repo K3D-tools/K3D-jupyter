@@ -1,4 +1,6 @@
+#include <common>
 #include <clipping_planes_pars_fragment>
+#include <lights_pars_begin>
 
 precision highp sampler3D;
 
@@ -9,9 +11,9 @@ uniform sampler2D jitterTexture;
 uniform float low;
 uniform float high;
 uniform mat4 modelViewMatrix;
-uniform vec3 ambientLightColor;
 uniform float samples;
 uniform float alpha_coef;
+uniform float gradient_step;
 
 uniform vec4 scale;
 uniform vec4 translation;
@@ -20,17 +22,7 @@ varying vec3 localPosition;
 varying vec3 transformedCameraPosition;
 varying vec3 transformedWorldPosition;
 
-struct DirectionalLight {
-    vec3 direction;
-    vec3 color;
-
-    int shadow;
-    float shadowBias;
-    float shadowRadius;
-    vec2 shadowMapSize;
-};
-
-uniform DirectionalLight directionalLights[NUM_DIR_LIGHTS];
+float inv_range;
 
 struct Ray {
     vec3 origin;
@@ -82,10 +74,10 @@ void main() {
 	float tmin = 0.0;
 	float tmax = 0.0;
     float px = 0.0;
-    float inv_range = 1.0 / (high - low);
     vec4 pxColor = vec4(0.0, 0.0, 0.0, 0.0);
     vec4 value = vec4(0.0, 0.0, 0.0, 0.0);
 
+    inv_range = 1.0 / (high - low);
     aabb[0] = aabb[0] * scale.xyz + translation.xyz;
     aabb[1] = aabb[1] * scale.xyz + translation.xyz;
 
@@ -150,12 +142,11 @@ void main() {
 
             // LIGHT
             #if NUM_DIR_LIGHTS > 0
-                float gradientStep = 0.005;
                 vec4 addedLights = vec4(ambientLightColor, 1.0);
                 vec3 normal = normalize(vec3(
-                    px -  texture(volumeTexture, textcoord + vec3(gradientStep,0,0)).x,
-                    px -  texture(volumeTexture, textcoord + vec3(0,gradientStep,0)).x,
-                    px -  texture(volumeTexture, textcoord + vec3(0,0,gradientStep)).x
+                    px -  texture(volumeTexture, textcoord + vec3(gradient_step, 0, 0)).x,
+                    px -  texture(volumeTexture, textcoord + vec3(0, gradient_step, 0)).x,
+                    px -  texture(volumeTexture, textcoord + vec3(0, 0, gradient_step)).x
                 ));
 
                 vec3 lightDirection;
