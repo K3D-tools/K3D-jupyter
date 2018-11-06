@@ -431,7 +431,8 @@ def voxels(voxels, color_map=_nice_colors, wireframe=False, outlines=True, outli
 
 
 # noinspection PyShadowingNames
-def volume(volume, color_map, color_range=(), samples=512.0, alpha_correction=50.0, compression_level=0, **kwargs):
+def volume(volume, color_map, color_range=(), samples=512.0, alpha_coef=50.0, gradient_step=0.005, shadow='off',
+           shadow_delay=500, shadow_res=128, compression_level=0, **kwargs):
     """Create a Volume drawable for 3D volumetric data.
 
     By default, the volume are a grid inscribed in the -0.5 < x, y, z < 0.5 cube
@@ -454,14 +455,23 @@ def volume(volume, color_map, color_range=(), samples=512.0, alpha_correction=50
         color_range: `list`. A pair [min_value, max_value], which determines the levels of volume attribute mapped
             to 0 and 1 in the color map respectively.
         samples: `float` number of iteration per 1 unit of space
-        alpha_correction: `float` alpha multiplier
+        alpha_coef: `float` alpha multiplier
+        gradient_step: `float` gradient light step
+        shadow: `str`. Type of shadow on volume
+            Legal values are:
+            `off`: shadow disabled,
+            `on_demand`: update shadow map on demand,
+            `dynamic`: update shadow map automaticaly every shadow_delay.
+        shadow_delay: `float` minimum number of miliseconds between shadow map updates
+        shadow_res: `int` resolution of shadow map
     kwargs: `dict`. Dictionary arguments to configure transform and model_matrix."""
 
     color_range = check_attribute_range(volume, color_range)
 
     return process_transform_arguments(
         Volume(volume=volume, color_map=color_map, color_range=color_range, compression_level=compression_level,
-               samples=samples, alpha_correction=alpha_correction),
+               samples=samples, alpha_coef=alpha_coef, gradient_step=gradient_step, shadow=shadow,
+               shadow_delay=shadow_delay, shadow_res=shadow_res),
         **kwargs)
 
 

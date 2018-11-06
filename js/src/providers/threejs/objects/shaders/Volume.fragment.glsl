@@ -4,8 +4,13 @@
 
 precision highp sampler3D;
 
+uniform vec3 lightMapSize;
+uniform vec2 lightMapRenderTargetSize;
+uniform sampler2D shadowTexture;
+
 uniform mat4 transform;
 uniform sampler3D volumeTexture;
+
 uniform sampler2D colormap;
 uniform sampler2D jitterTexture;
 uniform float low;
@@ -74,6 +79,7 @@ void main() {
 	float tmin = 0.0;
 	float tmax = 0.0;
     float px = 0.0;
+    float shadow = 0.0;
     vec4 pxColor = vec4(0.0, 0.0, 0.0, 0.0);
     vec4 value = vec4(0.0, 0.0, 0.0, 0.0);
 
@@ -90,7 +96,6 @@ void main() {
 
     // @TODO: protection. Sometimes strange situation happen and sampleCount is out the limit
     int sampleCount = min(int(length(textcoord_delta) * samples), int(samples * 1.8));
-//    int sampleCount = int(length(textcoord_delta) * samples);
 
     textcoord_delta = textcoord_delta / float(sampleCount);
     textcoord_start = textcoord_start - textcoord_delta * (0.01 + 0.98 * jitter);
@@ -99,37 +104,54 @@ void main() {
 
     float step = length(textcoord_delta);
 
+    #if (USE_SHADOW == 1)
+        float sliceSize = lightMapSize.x * lightMapSize.y;
+        vec2 sliceCount =  lightMapRenderTargetSize / lightMapSize.xy;
+    #endif
+
 	for(int count = 0; count < sampleCount; count++){
 	    textcoord += textcoord_delta;
 
         #if NUM_CLIPPING_PLANES > 0
             vec4 plane;
-            vec3 pos = -vec3(modelViewMatrix * vec4(textcoord, 1.0));
+            vec3 pos = -vec3(modelViewMatrix * vec4(textcoord - vec3(0.5), 1.0));
 
             #pragma unroll_loop
             for ( int i = 0; i < UNION_CLIPPING_PLANES; i ++ ) {
                 plane = clippingPlanes[ i ];
                 if ( dot( pos, plane.xyz ) > plane.w ) continue;
             }
-
-            #if UNION_CLIPPING_PLANES < NUM_CLIPPING_PLANES
-                bool clipped = true;
-
-                #pragma unroll_loop
-                for ( int i = UNION_CLIPPING_PLANES; i < NUM_CLIPPING_PLANES; i ++ ) {
-                    plane = clippingPlanes[ i ];
-                    clipped = ( dot( pos, plane.xyz ) > plane.w ) && clipped;
-                }
-
-                if ( clipped ) continue;
-            #endif
         #endif
 
-		px = texture(volumeTexture, clamp(textcoord, 0.0, 0.99)).x;
-
+		px = texture(volumeTexture, textcoord).x;
 		float scaled_px = (px - low) * inv_range;
 
 		if(scaled_px > 0.0) {
+            #if (USE_SHADOW == 1)
+                float zidx1 = floor(textcoord.z * lightMapSize.z);
+                float zidx2 = ceil(textcoord.z * lightMapSize.z);
+
+                float shadow1 = texture2D(shadowTexture,
+                    vec2(
+                        floor(mod(zidx1, sliceCount.x)) * lightMapSize.x / lightMapRenderTargetSize.x,
+                        floor(zidx1 / sliceCount.x)* lightMapSize.y / lightMapRenderTargetSize.y
+                    )
+                    + vec2(textcoord.x / sliceCount.x, textcoord.y / sliceCount.y)
+                ).r;
+
+                float shadow2 = texture2D(shadowTexture,
+                    vec2(
+                        floor(mod(zidx2, sliceCount.x)) * lightMapSize.x / lightMapRenderTargetSize.x,
+                        floor(zidx2 / sliceCount.x)* lightMapSize.y / lightMapRenderTargetSize.y
+                    )
+                    + vec2(textcoord.x / sliceCount.x, textcoord.y / sliceCount.y)
+                ).r;
+
+                shadow = mix(shadow1, shadow2, textcoord.z * lightMapSize.z - zidx1);
+            #else
+                shadow = 0.0;
+            #endif
+
 		    scaled_px = min(scaled_px, 0.99);
 
             pxColor = texture(colormap, vec2(scaled_px, 0.5));
@@ -156,10 +178,10 @@ void main() {
                 for ( int i = 0; i < NUM_DIR_LIGHTS; i ++ ) {
                     lightDirection = -directionalLights[ i ].direction;
                     lightingIntensity = clamp(dot(-lightDirection, normal), 0.0, 1.0);
-                    addedLights.rgb += directionalLights[ i ].color * (0.05 + 0.95 * lightingIntensity);
+                    addedLights.rgb += directionalLights[ i ].color * (0.05 + 0.95 * lightingIntensity) * (1.0 - shadow);
 
                     #if (USE_SPECULAR == 1)
-                    pxColor.rgb += directionalLights[ i ].color * pow(lightingIntensity, 10.0) * pxColor.a;
+                    pxColor.rgb += directionalLights[ i ].color * pow(lightingIntensity, 50.0) * pxColor.a * (1.0 - shadow);
                     #endif
                 }
 

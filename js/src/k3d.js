@@ -25,15 +25,30 @@ ObjectModel = widgets.WidgetModel.extend({
         _view_module_version: semverRange
     }),
 
+    runOnEveryPlot: function (cb) {
+        plotsList.forEach(function (plot) {
+            if (plot.model.get('object_ids').indexOf(this.get('id')) !== -1) {
+                cb(plot, plot.K3DInstance.getObjectById(this.get('id')));
+            }
+        }, this)
+    },
+
     initialize: function () {
         var obj = arguments[0];
 
         widgets.WidgetModel.prototype.initialize.apply(this, arguments);
 
         this.on('change', this._change, this);
-        this.on('msg:custom', function (obj) {
-            if (obj.msg_type === 'fetch') {
-                this.save(obj.field, this.get(obj.field));
+        this.on('msg:custom', function (msg) {
+            if (msg.msg_type === 'fetch') {
+                this.save(msg.field, this.get(msg.field));
+            }
+
+            if (msg.msg_type === 'shadow_map_update' && this.get('type') === 'Volume') {
+                this.runOnEveryPlot(function (plot, objInstance) {
+                    objInstance.refreshLightMap(msg.direction);
+                    plot.K3DInstance.render();
+                });
             }
         }, this);
 
@@ -116,13 +131,14 @@ PlotView = widgets.DOMWidgetView.extend({
             var model = this.model;
 
             if (obj.msg_type === 'fetch_screenshot') {
-                this.K3DInstance.getScreenshot(this.K3DInstance.parameters.screenshotScale).then(function (canvas) {
-                    var data = canvas.toDataURL().split(',')[1];
+                this.K3DInstance.getScreenshot(this.K3DInstance.parameters.screenshotScale, obj.only_canvas)
+                    .then(function (canvas) {
+                        var data = canvas.toDataURL().split(',')[1];
 
-                    // todo
-                    //model.save('screenshot', buffer.base64ToArrayBuffer(data));
-                    model.save('screenshot', data);
-                });
+                        // todo
+                        //model.save('screenshot', buffer.base64ToArrayBuffer(data));
+                        model.save('screenshot', data);
+                    });
             }
         }, this);
         this.model.on('change:camera_auto_fit', this._setCameraAutoFit, this);

@@ -4,7 +4,6 @@
 var webpackConfig = require('./webpack.config'),
     webpackConfigDev = require('./webpack.config.dev'),
     LIVERELOAD_PORT = 35729,
-    compression = require('compression'),
     lrSnippet = require('connect-livereload')({
         port: LIVERELOAD_PORT
     }),
@@ -72,7 +71,6 @@ module.exports = function (grunt) {
                 options: {
                     middleware: function (connect) {
                         return [
-                            compression(),
                             lrSnippet,
                             mountFolder(connect, './')
                         ];

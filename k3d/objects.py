@@ -7,7 +7,6 @@ from ._frontend import EXTENSION_SPEC_VERSION
 import numpy as np
 from ipydatawidgets import DataUnion, data_union_serialization
 
-
 EPSILON = np.finfo(np.float32).eps
 
 
@@ -563,7 +562,14 @@ class Volume(Drawable):
         color_range: `list`. A pair [min_value, max_value], which determines the levels of color attribute mapped
             to 0 and 1 in the color map respectively.
         samples: `float` number of iteration per 1 unit of space
-        alpha_correction: `float` alpha multiplier
+        alpha_coef: `float` alpha multiplier
+        shadow: `str`. Type of shadow on volume
+            Legal values are:
+            `off`: shadow disabled,
+            `on_demand`: update shadow map on demand ( self.shadow_map_update() ),
+            `dynamic`: update shadow map automaticaly every shadow_delay.
+        shadow_delay: `float` minimum number of miliseconds between shadow map updates
+        shadow_res: `int` resolution of shadow map
         model_matrix: `array_like`. 4x4 model transform matrix.
     """
 
@@ -572,7 +578,11 @@ class Volume(Drawable):
     color_map = Array(dtype=np.float32).tag(sync=True, **array_serialization)
     color_range = ListOrArray(minlen=2, maxlen=2, empty_ok=True).tag(sync=True)
     samples = Float().tag(sync=True)
-    alpha_correction = Float().tag(sync=True)
+    alpha_coef = Float().tag(sync=True)
+    gradient_step = Float().tag(sync=True)
+    shadow = Unicode().tag(sync=True)
+    shadow_res = Int(min=31, max=513, default_value=128).tag(sync=True)
+    shadow_delay = Float().tag(sync=True)
     model_matrix = Array(dtype=np.float32).tag(sync=True, **array_serialization)
 
     def __init__(self, **kwargs):
@@ -580,10 +590,10 @@ class Volume(Drawable):
 
         self.set_trait('type', 'Volume')
 
-    def _handle_custom_msg(self, content, buffers):
-        if content.get('msg_type', '') == 'click_callback':
-            if self.click_callback is not None:
-                self.click_callback(content['coord']['x'], content['coord']['y'], content['coord']['z'])
+    def shadow_map_update(self, direction=None):
+        """Request updating the shadow map in browser."""
+
+        self.send({'msg_type': 'shadow_map_update', 'direction': direction})
 
 
 class Voxels(Drawable):

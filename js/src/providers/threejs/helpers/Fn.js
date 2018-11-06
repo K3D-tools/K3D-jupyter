@@ -8,6 +8,17 @@ function getSpaceDimensionsFromTargetElement(world) {
 
 module.exports = {
     /**
+     * Finds the nearest (greater than x) power of two of given x
+     * @inner
+     * @memberof K3D.Providers.ThreeJS.Objects.Text
+     * @param {Number} x
+     * @returns {Number}
+     */
+    closestPowOfTwo: function (x) {
+        return Math.pow(2, Math.ceil(Math.log(x) / Math.log(2)));
+    },
+
+    /**
      * Get object By id
      * @param {K3D.Core} world
      * @param {String} id

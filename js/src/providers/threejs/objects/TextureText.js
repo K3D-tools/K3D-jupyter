@@ -1,5 +1,7 @@
 'use strict';
 
+var closestPowOfTwo = require('./../helpers/Fn').closestPowOfTwo;
+
 /**
  * Loader strategy to handle Text object
  * @method Text
@@ -57,16 +59,6 @@ module.exports = function (config) {
     return Promise.resolve(object);
 };
 
-/**
- * Finds the nearest (greater than x) power of two of given x
- * @inner
- * @memberof K3D.Providers.ThreeJS.Objects.Text
- * @param {Number} x
- * @returns {Number}
- */
-function closestPowOfTwo(x) {
-    return Math.pow(2, Math.ceil(Math.log(x) / Math.log(2)));
-}
 
 /**
  * Gets the longest line
