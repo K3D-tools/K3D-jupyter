@@ -14,21 +14,29 @@ function objectGUIProvider(K3D, json, objects) {
         });
     }
 
-    function tryUpdate(json, param) {
-        var updated = false;
+    function findControllers(json, param) {
+        var controllers = [];
 
         for (var i = 0; i < K3D.gui_map[json.id].__controllers.length; i++) {
             var controller = K3D.gui_map[json.id].__controllers[i];
 
             if (controller.property === param || controller.property.indexOf('_' + param) !== -1) {
-                controller.object = json;
-                controller.updateDisplay();
-
-                updated = true;
+                controllers.push(controller);
             }
         }
 
-        return updated;
+        return controllers;
+    }
+
+    function tryUpdate(json, param) {
+        var controllers = findControllers(json, param);
+
+        controllers.forEach(function (controller) {
+            controller.object = json;
+            controller.updateDisplay();
+        });
+
+        return controllers.length > 0;
     }
 
     if (typeof(K3D.gui_map) === 'undefined') {
@@ -59,7 +67,8 @@ function objectGUIProvider(K3D, json, objects) {
     }
 
     var defaultParams = ['visible', 'outlines', 'wireframe', 'flat_shading', 'use_head', 'head_size', 'line_width',
-        'scale', 'font_size', 'font_weight', 'size', 'point_size', 'level', 'samples', 'alpha_coef'];
+        'scale', 'font_size', 'font_weight', 'size', 'point_size', 'level', 'samples', 'alpha_coef', 'gradient_step',
+        'shadow_delay'];
 
     _.keys(json).forEach(function (param) {
             if (param[0] === '_') {
@@ -121,6 +130,18 @@ function objectGUIProvider(K3D, json, objects) {
                             change.bind(this, json, param));
                     }
                     break;
+                case 'shadow_res':
+                    if (json.type === 'Volume') {
+                        K3D.gui_map[json.id].add(json, param, [32, 64, 128, 256, 512]).onChange(
+                            change.bind(this, json, param));
+                    }
+                    break;
+                case 'shadow':
+                    if (json.type === 'Volume') {
+                        K3D.gui_map[json.id].add(json, param, ['off', 'on_demand', 'dynamic']).onChange(
+                            change.bind(this, json, param));
+                    }
+                    break;
                 case 'width':
                     if (json.type === 'Line' && json.shader === 'mesh') {
                         K3D.gui_map[json.id].add(json, param).onChange(change.bind(this, json, param));
@@ -148,6 +169,19 @@ function objectGUIProvider(K3D, json, objects) {
             }
         }
     );
+
+    if (json.type === 'Volume') {
+        if (findControllers(json, 'refreshLightMap').length === 0) {
+            var obj = {
+                refreshLightMap: function () {
+                    K3D.getObjectById(json.id).refreshLightMap();
+                    K3D.render();
+                }
+            };
+
+            K3D.gui_map[json.id].add(obj, 'refreshLightMap').name('Refresh light map');
+        }
+    }
 }
 
 module.exports = objectGUIProvider;

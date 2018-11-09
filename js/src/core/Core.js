@@ -175,7 +175,7 @@ function K3D(provider, targetDOMNode, parameters) {
     this.Provider = provider;
 
     this.setDirectionalLightingIntensity = function (value) {
-        self.parameters.lighting = Math.min(Math.max(value, 0.0), 3.0);
+        self.parameters.lighting = Math.min(Math.max(value, 0.0), 4.0);
         self.getWorld().recalculateLights(self.parameters.lighting);
         self.render();
 
@@ -332,6 +332,15 @@ function K3D(provider, targetDOMNode, parameters) {
         return objectIndex++;
     };
 
+    /**
+     * Get Object instance by id
+     * @memberof K3D.Core
+     * @param {Number} id
+     */
+    this.getObjectById = function (id) {
+        return self.Provider.Helpers.getObjectById(world, id);
+    };
+
     function removeObjectFromScene(id) {
         var object = self.Provider.Helpers.getObjectById(world, id);
 
@@ -464,15 +473,11 @@ function K3D(provider, targetDOMNode, parameters) {
     /**
      * Set snapshot
      * @memberof K3D.Core
-     * @param {String} data
-     * @returns {Object|undefined}
      */
     this.setSnapshot = function (data) {
         var objects = msgpack.decode(pako.inflate(data));
 
-        self.load({objects: objects});
-
-        return data;
+        return self.load({objects: objects});
     };
 
     /**
@@ -556,7 +561,7 @@ function K3D(provider, targetDOMNode, parameters) {
     viewModeGUI(GUI.controls, this);
     GUI.controls.add(self.parameters, 'voxelPaintColor').step(1).min(0).max(255).name('voxelColor').onChange(
         changeParameters.bind(this, 'voxel_paint_color'));
-    GUI.controls.add(self.parameters, 'lighting').step(0.01).min(0).max(3).name('lighting')
+    GUI.controls.add(self.parameters, 'lighting').step(0.01).min(0).max(4).name('lighting')
         .onChange(function (value) {
             self.setDirectionalLightingIntensity(value);
             changeParameters.call(self, 'lighting', value);
@@ -613,6 +618,7 @@ K3D.prototype.frameUpdateHandlers = {
 K3D.prototype.events = {
     VIEW_MODE_CHANGE: 'viewModeChange',
     RENDERED: 'rendered',
+    BEFORE_RENDER: 'before_render',
     RESIZED: 'resized',
     CAMERA_CHANGE: 'cameraChange',
     OBJECT_LOADED: 'objectLoaded',
