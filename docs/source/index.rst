@@ -1,16 +1,18 @@
-.. K3D-jupyter documentation master file, created by
-   sphinx-quickstart on Tue Jun 20 22:28:29 2017.
-   You can adapt this file completely to your liking, but it should at least
-   contain the root `toctree` directive.
 
-Welcome to K3D-jupyter's documentation!
-=======================================
+K3D-jupyter
+==========================================
+Jupyter notebook extension for 3D visualization documentation.
 
 .. toctree::
    :maxdepth: 2
-   :caption: Contents:
+   :caption: Tutorial:
 
-   contents.rst
+   basic_functionality/index
+
+.. toctree::
+   :maxdepth: 2
+   :caption: Examples:
+
    examples/index
 
 

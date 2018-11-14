@@ -51,6 +51,13 @@ k3d\.transform module
     :undoc-members:
     :show-inheritance:
 
+k3d\.platonic
+-------------
+
+.. automodule:: k3d.platonic
+    :members:
+    :undoc-members:
+    :show-inheritance:
 
 Module contents
 ---------------
