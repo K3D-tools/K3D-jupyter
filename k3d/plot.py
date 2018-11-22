@@ -14,16 +14,26 @@ class Plot(widgets.DOMWidget):
     Main K3D widget.
 
     Attributes:
-        antialias: `bool`: Enable antialiasing in WebGL renderer, changes have no effect after displaying.
-        height: `int`: Height of the Widget in pixels, changes have no effect after displaying.
-        background_color: `int`.  Packed RGB color of the plot background (0xff0000 is red, 0xff is blue).
-        camera_auto_fit: `bool`. Enable automatic camera setting after adding, removing or changing a plot object.
-        grid_auto_fit: `bool`. Enable automatic adjustment of the plot grid to contained objects.
-        screenshot_scale: `Float`. Multipiler to screenshot resolution.
-        voxel_paint_color: `int`. The (initial) int value to be inserted when editing voxels.
-        grid: `array_like`. 6-element tuple specifying the bounds of the plot grid (x0, y0, z0, x1, y1, z1).
-        camera: `array_like`. 9-element list or array specifying camera position.
-        objects: `list`. List of `k3d.objects.Drawable` currently included in the plot, not to be changed directly.
+        antialias: `bool`: 
+            Enable antialiasing in WebGL renderer, changes have no effect after displaying.
+        height: `int`: 
+            Height of the Widget in pixels, changes have no effect after displaying.
+        background_color: `int`.  
+            Packed RGB color of the plot background (0xff0000 is red, 0xff is blue).
+        camera_auto_fit: `bool`. 
+            Enable automatic camera setting after adding, removing or changing a plot object.
+        grid_auto_fit: `bool`. 
+            Enable automatic adjustment of the plot grid to contained objects.
+        screenshot_scale: `Float`. 
+            Multipiler to screenshot resolution.
+        voxel_paint_color: `int`. 
+            The (initial) int value to be inserted when editing voxels.
+        grid: `array_like`. 
+            6-element tuple specifying the bounds of the plot grid (x0, y0, z0, x1, y1, z1).
+        camera: `array_like`. 
+            9-element list or array specifying camera position.
+        objects: `list`. 
+            List of `k3d.objects.Drawable` currently included in the plot, not to be changed directly.
     """
 
     _view_name = Unicode('PlotView').tag(sync=True)

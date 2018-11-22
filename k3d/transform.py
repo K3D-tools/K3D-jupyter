@@ -179,15 +179,23 @@ def process_transform_arguments(drawable, **kwargs):
     """Process keyword arguments dictionary for a drawable to create a Transform for it.
 
     Keyword arguments:
-        transform: `Transform`. An existing transform object to be (re-)used for the drawable.
+        transform: `Transform`. 
+            An existing transform object to be (re-)used for the drawable.
             This is useful if the transform should have a parent.
-        xmin: `float`. Lower bound in the X dimension for array fields of scalars or vectors.
-        xmax: `float`. Upper bound in the X dimension for array fields of scalars or vectors.
-        ymin: `float`. Lower bound in the Y dimension for array fields of scalars or vectors.
-        ymax: `float`. Upper bound in the Y dimension for array fields of scalars or vectors.
-        zmin: `float`. Lower bound in the Z dimension for array fields of scalars or vectors.
-        zmax: `float`. Upper bound in the Z dimension for array fields of scalars or vectors.
-        bounds: `array_like`. Array of bounds (bounding box or rectangle) for array fields of scalars or vectors.
+        xmin: `float`. 
+            Lower bound in the X dimension for array fields of scalars or vectors.
+        xmax: `float`. 
+            Upper bound in the X dimension for array fields of scalars or vectors.
+        ymin: `float`. 
+            Lower bound in the Y dimension for array fields of scalars or vectors.
+        ymax: `float`. 
+            Upper bound in the Y dimension for array fields of scalars or vectors.
+        zmin: `float`. 
+            Lower bound in the Z dimension for array fields of scalars or vectors.
+        zmax: `float`. 
+            Upper bound in the Z dimension for array fields of scalars or vectors.
+        bounds: `array_like`. 
+            Array of bounds (bounding box or rectangle) for array fields of scalars or vectors.
             This array can be of size 6 (xmin, xmax, ymin, ymax, zmin, zmax) for 3D fields,
             or of size 4 (xmin, xmax, ymin, ymax) for 2D fields.
             Takes precedence over separate xmin, xmax, ... etc. arguments.

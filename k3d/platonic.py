@@ -3,8 +3,32 @@ from itertools import product
 import k3d
 
 
-class Dodecahedron(object):
+class PlatonicSolid(object):
+    """Base class for platonic solids."""
+    
+    def __init__(self):
+        self.vertices = []
+        self.indices = []
+    
+    @property
+    def mesh(self):
+        """Return k3d.mesh object of the solid."""
+        return k3d.mesh(self.vertices, self.indices)
 
+    @property
+    def points(self):
+        """Return k3d.points object of solid vertices."""
+        return k3d.points(self.vertices, point_size=np.sqrt(np.sum((self.vertices[0] - self.vertices[1]) ** 2)) / 20)
+
+class Dodecahedron(PlatonicSolid):
+    """Create a dodecahedron solid.
+        
+    Arguments:
+        origin: `array_like`. 
+            The position of centroid of the solid.
+        size: `float`.
+            The size*sqrt(3) is the distance of each vertex of the solid.
+    """
     def __init__(self, origin=[0, 0, 0], size=1):
         origin = np.array(origin, dtype=np.float32)
 
@@ -26,17 +50,18 @@ class Dodecahedron(object):
         else:
             raise TypeError('Origin should have 3 coordinates.')
 
-    @property
-    def mesh(self):
-        return k3d.mesh(self.vertices, self.indices)
 
-    @property
-    def points(self):
-        return k3d.points(self.vertices, point_size=np.sqrt(np.sum((self.vertices[0] - self.vertices[1]) ** 2)) / 20)
-
-
-class Cube(object):
-
+class Cube(PlatonicSolid):
+    """Create a cube.
+        
+    Arguments:
+        origin: `array_like`. 
+            The position of centroid of the solid.
+        size: `float`.
+            The size*sqrt(3) is the distance of each vertex from centroid of the solid.
+            
+            The edge of cube is 2*size.
+    """
     def __init__(self, origin=[0, 0, 0], size=1):
         origin = np.array(origin, dtype=np.float32)
 
@@ -51,17 +76,16 @@ class Cube(object):
         else:
             raise TypeError('Origin attribute should have 3 coordinates.')
 
-    @property
-    def mesh(self):
-        return k3d.mesh(self.vertices, self.indices)
 
-    @property
-    def points(self):
-        return k3d.points(self.vertices, point_size=np.sqrt(np.sum((self.vertices[0] - self.vertices[1]) ** 2)) / 20)
-
-
-class Icosahedron(object):
-
+class Icosahedron(PlatonicSolid):
+    """Create a icosahedron solid.
+        
+    Arguments:
+        origin: `array_like`. 
+            The position of centroid of the solid.
+        size: `float`.
+            The size of the solid.
+    """
     def __init__(self, origin=[0, 0, 0], size=1):
         origin = np.array(origin, dtype=np.float32)
 
@@ -80,17 +104,16 @@ class Icosahedron(object):
         else:
             raise TypeError('Origin attribute should have 3 coordinates.')
 
-    @property
-    def mesh(self):
-        return k3d.mesh(self.vertices, self.indices)
 
-    @property
-    def points(self):
-        return k3d.points(self.vertices, point_size=np.sqrt(np.sum((self.vertices[0] - self.vertices[1]) ** 2)) / 20)
-
-
-class Octahedron(object):
-
+class Octahedron(PlatonicSolid):
+    """Create a octahedron solid.
+        
+    Arguments:
+        origin: `array_like`. 
+            The position of centroid of the solid.
+        size: `float`.
+            The distance of each vertex from centroid of the solid.
+    """
     def __init__(self, origin=[0, 0, 0], size=1):
         origin = np.array(origin, dtype=np.float32)
 
@@ -104,17 +127,16 @@ class Octahedron(object):
         else:
             raise TypeError('Origin attribute should have 3 coordinates.')
 
-    @property
-    def mesh(self):
-        return k3d.mesh(self.vertices, self.indices)
 
-    @property
-    def points(self):
-        return k3d.points(self.vertices, point_size=np.sqrt(np.sum((self.vertices[0] - self.vertices[1]) ** 2)) / 20)
-
-
-class Tetrahedron(object):
-
+class Tetrahedron(PlatonicSolid):
+    """Create a tetrahedron solid.
+        
+    Arguments:
+        origin: `array_like`. 
+            The position of centroid of the solid.
+        size: `float`.
+            The size*sqrt(3) is distance of each vertex of the solid.
+    """
     def __init__(self, origin=[0, 0, 0], size=1):
         origin = np.array(origin, dtype=np.float32)
 
@@ -128,10 +150,3 @@ class Tetrahedron(object):
         else:
             raise TypeError('Origin attribute should have 3 coordinates.')
 
-    @property
-    def mesh(self):
-        return k3d.mesh(self.vertices, self.indices)
-
-    @property
-    def points(self):
-        return k3d.points(self.vertices, point_size=np.sqrt(np.sum((self.vertices[0] - self.vertices[1]) ** 2)) / 20)
