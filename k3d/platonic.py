@@ -6,10 +6,6 @@ import k3d
 class PlatonicSolid(object):
     """Base class for platonic solids."""
     
-    def __init__(self):
-        self.vertices = []
-        self.indices = []
-    
     @property
     def mesh(self):
         """Return k3d.mesh object of the solid."""
