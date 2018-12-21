@@ -1,16 +1,30 @@
-.. K3D-jupyter documentation master file, created by
-   sphinx-quickstart on Tue Jun 20 22:28:29 2017.
-   You can adapt this file completely to your liking, but it should at least
-   contain the root `toctree` directive.
 
-Welcome to K3D-jupyter's documentation!
-=======================================
+K3D-jupyter - documentation
+===========================
+
+
+
+K3D-jupyter is a Jupyter notebook 3d visualization package.
+
+The primary aim of K3D is to be an easy tool for 3d visualization. We
+designed it with native interoperation with existing powerful
+libraries such as VTK however, it is not strictly depending on
+them. K3D plots are ipywidgets, thus it assures a perfect interaction
+of a browser side widget with Python kernel by a proven and
+standardized protocol.
+
+
 
 .. toctree::
    :maxdepth: 2
-   :caption: Contents:
+   :caption: K3D in nutshell:
 
-   contents.rst
+   basic_functionality/index
+
+.. toctree::
+   :maxdepth: 2
+   :caption: Examples:
+
    examples/index
 
 

@@ -4,4 +4,5 @@ Examples
 .. toctree::
    :glob:
 
-   example1
+   lines3d_demo
+   lorenz_attractor

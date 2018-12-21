@@ -8,6 +8,7 @@ WORKDIR K3D-jupyter
 
 RUN pip install jupyter-pip ipywidgets
 RUN pip install k3d
+RUN pip install nibabel
 
 RUN jupyter nbextension install --py --user widgetsnbextension
 RUN jupyter nbextension install --py --user k3d

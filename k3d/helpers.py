@@ -102,5 +102,5 @@ def bounding_corners(bounds, z_bounds=(0., 1)):
 
 
 def min_bounding_dimension(bounds):
-    """Return a minimal dimension along axis in a bounds ([min_x, max_x, min_y, max_y(, min_z, max_z)] array."""
+    """Return a minimal dimension along axis in a bounds ([min_x, max_x, min_y, max_y, min_z, max_z]) array."""
     return min(abs(x1 - x0) for x0, x1 in zip(bounds, bounds[1:]))
