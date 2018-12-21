@@ -43,6 +43,7 @@
                 }
             );
         } catch (e) {
+            console.log(e);
             return;
         }
 
@@ -50,23 +51,15 @@
             K3DInstance.setClearColor(0xffffff, 1);
             K3DInstance.setScreenshotScale(1.0);
 
-            // jsonLoader('test/samples/volume_rendering.json', function (json) {
-            //     K3DInstance.load(json);
-            // });
-
-            fileLoader('K3D-snapshot-1537053571135.html', function (data) {
-                var snapshot = K3DInstance.extractSnapshot(data);
-
-                K3DInstance.setSnapshot(atob(snapshot[1])).then(function (objs) {
-                    var json = objs[0].json;
-
-                    json.shadow = 'dynamic';
-                    json.shadow_res = 256;
-                    json.samples = 1024;
-
-                    K3DInstance.reload(json);
-                });
+            jsonLoader('test/samples/voxels_outlines.json', function (json) {
+                K3DInstance.load(json);
             });
+
+            // fileLoader('K3D-snapshot-1542560814806.html', function (data) {
+            //     var snapshot = K3DInstance.extractSnapshot(data);
+            //
+            //     K3DInstance.setSnapshot(atob(snapshot[1]));
+            // });
         }
 
         if (localStorage.getItem('camera') !== null) {
@@ -84,7 +77,7 @@
 
         K3DInstance.setClippingPlanes([
             // [-1, -1.5, 0, 0],
-            [-0.001, 0.958, 0.286, 52.142]
+            // [-0.001, 0.958, 0.286, 52.142]
         ]);
     });
 </script>

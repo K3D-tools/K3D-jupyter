@@ -51,8 +51,9 @@ function objectGUIProvider(K3D, json, objects) {
         K3D.gui_counts[json.type] = K3D.gui_counts[json.type] + 1 || 1;
         K3D.gui_map[json.id] = objects.addFolder(json.type + ' #' + K3D.gui_counts[json.type]);
 
-        var listenersId = K3D.on(K3D.events.OBJECT_REMOVED, function (id) {
+        K3D.gui_map[json.id].listenersId = K3D.on(K3D.events.OBJECT_REMOVED, function (id) {
             if (id === json.id) {
+                var listenersId = K3D.gui_map[json.id].listenersId;
                 var folder = K3D.gui_map[json.id];
                 folder.close();
                 objects.__ul.removeChild(folder.domElement.parentNode);
@@ -60,9 +61,9 @@ function objectGUIProvider(K3D, json, objects) {
                 objects.onResize();
 
                 delete K3D.gui_map[json.id];
-            }
 
-            K3D.off(K3D.events.OBJECT_REMOVED, listenersId);
+                K3D.off(K3D.events.OBJECT_REMOVED, listenersId);
+            }
         });
     }
 
@@ -152,6 +153,10 @@ function objectGUIProvider(K3D, json, objects) {
                         K3D.gui_map[json.id].add(json, param, 0, 64, 1).name('radialSeg').onChange(
                             change.bind(this, json, param));
                     }
+                    break;
+                case 'opacity':
+                    K3D.gui_map[json.id].add(json, param, 0, 1.0).name('opacity').onChange(
+                        change.bind(this, json, param));
                     break;
                 case 'color_range':
                     if (json[param].length === 2) {

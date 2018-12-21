@@ -9,54 +9,56 @@ var closestPowOfTwo = require('./../helpers/Fn').closestPowOfTwo;
  * @param {Object} config all configurations params from JSON
  * @return {Object} 3D object ready to render
  */
-module.exports = function (config) {
-    config.visible = typeof(config.visible) !== 'undefined' ? config.visible : true;
-    config.color = typeof(config.color) !== 'undefined' ? config.color : 0xFFFFFF;
-    config.font_size = typeof(config.font_size) !== 'undefined' ? config.font_size : 68;
-    config.font_weight = typeof(config.font_weight) !== 'undefined' ? config.font_weight : 700;
+module.exports = {
+    create: function (config) {
+        config.visible = typeof(config.visible) !== 'undefined' ? config.visible : true;
+        config.color = typeof(config.color) !== 'undefined' ? config.color : 0xFFFFFF;
+        config.font_size = typeof(config.font_size) !== 'undefined' ? config.font_size : 68;
+        config.font_weight = typeof(config.font_weight) !== 'undefined' ? config.font_weight : 700;
 
-    var text = config.text.split('\n'),
-        color = config.color,
-        position = config.position,
-        size = config.size || 1.0,
+        var text = config.text.split('\n'),
+            color = config.color,
+            position = config.position,
+            size = config.size || 1.0,
 
-        // Setup font
-        fontFace = config.font_face || 'Courier New',
-        fontSize = config.font_size ,
-        fontWeight = config.font_weight,
-        fontSpec = fontWeight + ' ' + fontSize + 'px ' + fontFace,
+            // Setup font
+            fontFace = config.font_face || 'Courier New',
+            fontSize = config.font_size ,
+            fontWeight = config.font_weight,
+            fontSpec = fontWeight + ' ' + fontSize + 'px ' + fontFace,
 
-        // Helper canvas
-        canvas = document.createElement('canvas'),
-        context = canvas.getContext('2d'),
-        // Helpers
-        isMultiline = text.length > 1,
-        longestLineWidth,
-        object;
+            // Helper canvas
+            canvas = document.createElement('canvas'),
+            context = canvas.getContext('2d'),
+            // Helpers
+            isMultiline = text.length > 1,
+            longestLineWidth,
+            object;
 
-    context.font = fontSpec;
+        context.font = fontSpec;
 
-    longestLineWidth = getLongestLineWidth(text, context);
+        longestLineWidth = getLongestLineWidth(text, context);
 
-    canvas.width = closestPowOfTwo(longestLineWidth);
-    canvas.height = ~~canvas.width;
+        canvas.width = closestPowOfTwo(longestLineWidth);
+        canvas.height = ~~canvas.width;
 
-    context.font = fontSpec;
-    context.textBaseline = 'top';
-    context.fillStyle = colorToHex(color);
-    context.lineWidth = 5;
+        context.font = fontSpec;
+        context.textBaseline = 'top';
+        context.fillStyle = colorToHex(color);
+        context.lineWidth = 5;
 
-    text.forEach(function (line, index) {
-        var x = (canvas.width - longestLineWidth) / 2,
-            y = canvas.height / 2 - (isMultiline ? fontSize : fontSize / 2) + (fontSize * index);
+        text.forEach(function (line, index) {
+            var x = (canvas.width - longestLineWidth) / 2,
+                y = canvas.height / 2 - (isMultiline ? fontSize : fontSize / 2) + (fontSize * index);
 
-        context.strokeText(line, x, y);
-        context.fillText(line, x, y);
-    });
+            context.strokeText(line, x, y);
+            context.fillText(line, x, y);
+        });
 
-    object = getSprite(canvas, position, size);
+        object = getSprite(canvas, position, size);
 
-    return Promise.resolve(object);
+        return Promise.resolve(object);
+    }
 };
 
 

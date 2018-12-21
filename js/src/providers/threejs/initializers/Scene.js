@@ -3,11 +3,8 @@
 var _ = require('lodash'),
     Text = require('./../objects/Text'),
     MeshLine = require('./../helpers/THREE.MeshLine'),
-    viewModes = require('./../../../core/lib/viewMode').viewModes;
-
-function pow10ceil(x) {
-    return Math.pow(10, Math.ceil(Math.log10(x)));
-}
+    viewModes = require('./../../../core/lib/viewMode').viewModes,
+    pow10ceil = require('./../../../core/lib/helpers/math').pow10ceil;
 
 function ensureTwoTicksOnGrids(sceneBoundingBox, majorScale) {
     var size = sceneBoundingBox.getSize(new THREE.Vector3());
@@ -256,7 +253,7 @@ function rebuildSceneData(K3D, grids, force) {
                 p = grids.labelsOnEdges[key].p[0].clone().add(deltaPosition.clone().multiplyScalar(j));
 
 
-                label = new Text({
+                label = new Text.create({
                     'position': p.toArray(),
                     'reference_point': 'cc',
                     'color': 0x444444,
@@ -286,7 +283,7 @@ function rebuildSceneData(K3D, grids, force) {
                 (new THREE.Vector3()).subVectors(middlePosition, middleValue).multiplyScalar(2.0)
             );
 
-            axisLabel = new Text({
+            axisLabel = new Text.create({
                 'position': middle.toArray(),
                 'reference_point': 'cc',
                 'color': 0x444444,
@@ -363,7 +360,7 @@ function rebuildSceneData(K3D, grids, force) {
     fullSceneDiameter = fullSceneBoundingBox.getSize(new THREE.Vector3()).length();
 
     this.camera.far = fullSceneDiameter * 10;
-    this.camera.near = fullSceneDiameter * 0.001;
+    this.camera.near = fullSceneDiameter * 0.0001;
     this.camera.updateProjectionMatrix();
 
     return promises;

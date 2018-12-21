@@ -65,7 +65,7 @@
   },
   "dependencies": {
     "@jupyter-widgets/base": "^1.1.10",
-    "dat.gui": "git+https://github.com/K3D-tools/dat.gui.git#ec95651b32f01dec44ac5084aa03919acec82ad3",
+    "dat.gui": "git+https://github.com/K3D-tools/dat.gui.git#4237bc3ee1f3da60c291a337d836b57cbfd40afa",
     "dom-to-image": "^2.6.0",
     "es6-promise": "^4.1.0",
     "file-saver": "^1.3.8",

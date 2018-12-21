@@ -26,7 +26,7 @@ function generateGreedyVoxelMesh(voxels, colorMap, chunkSize, voxelSize, offsets
         height = voxelSize.height,
         length = voxelSize.length,
         dims = [width, height, length],
-        mask = new Int32Array(chunkSize * chunkSize),
+        mask = new Int32Array((chunkSize + 1) * (chunkSize + 1)),
         d,
         x, q,
         u, v,
@@ -40,6 +40,11 @@ function generateGreedyVoxelMesh(voxels, colorMap, chunkSize, voxelSize, offsets
             Math.min(offsets.x + chunkSize, width),
             Math.min(offsets.y + chunkSize, height),
             Math.min(offsets.z + chunkSize, length)
+        ],
+        mask_ending = [
+            Math.min(offsets.x + chunkSize + 1, width),
+            Math.min(offsets.y + chunkSize + 1, height),
+            Math.min(offsets.z + chunkSize + 1, length)
         ];
 
     function prepareVertices(x, du, dv) {
@@ -52,11 +57,11 @@ function generateGreedyVoxelMesh(voxels, colorMap, chunkSize, voxelSize, offsets
         ];
     }
 
-    function computerHeight(w, c, j, n, u, v, ending, mask) {
+    function computerHeight(w, c, j, n, u, v, ending, mask_ending, mask) {
         var h, k, off = n;
 
         for (h = 1; j + h < ending[v]; h++) {
-            off += ending[u] - offsets[u];
+            off += mask_ending[u] - offsets[u];
             for (k = 0; k < w; k++) {
                 if (c !== mask[k + off]) {
                     return h;
@@ -94,12 +99,12 @@ function generateGreedyVoxelMesh(voxels, colorMap, chunkSize, voxelSize, offsets
             //Compute mask
             var maskFilled = false;
 
-            for (x[v] = offsets[v], n = 0; x[v] < ending[v]; x[v]++) {
+            for (x[v] = offsets[v], n = 0; x[v] < mask_ending[v]; x[v]++) {
                 x[u] = offsets[u];
 
                 idx = x[0] + width * (x[1] + height * x[2]);
 
-                for (; x[u] < ending[u]; x[u]++, n++, idx += q[u]) {
+                for (; x[u] < mask_ending[u]; x[u]++, n++, idx += q[u]) {
                     a = (0 <= x[d] ? voxels[idx] : -1);
                     b = (x[d] < dims[d] - 1 ? voxels[idx + q[d]] : -1);
 
@@ -131,7 +136,7 @@ function generateGreedyVoxelMesh(voxels, colorMap, chunkSize, voxelSize, offsets
                         makeOutline(outlines, x, v, outlineIndex++);
                     }
 
-                    for (i = offsets[u]; i < ending[u] - 1; i++, n++) {
+                    for (i = offsets[u]; i < mask_ending[u] - 1; i++, n++) {
                         x[u] = i + 1;
                         x[v] = j;
 
@@ -164,7 +169,7 @@ function generateGreedyVoxelMesh(voxels, colorMap, chunkSize, voxelSize, offsets
                         }
 
                         //Compute height
-                        h = computerHeight(w, c, j, n, u, v, ending, mask);
+                        h = computerHeight(w, c, j, n, u, v, ending, mask_ending, mask);
 
                         //Add quad
                         x[u] = i;
@@ -196,7 +201,7 @@ function generateGreedyVoxelMesh(voxels, colorMap, chunkSize, voxelSize, offsets
                             for (k = 0; k < w; k++) {
                                 mask[off + k] = 0;
                             }
-                            off += ending[u] - offsets[u];
+                            off += mask_ending[u] - offsets[u];
                         }
 
                         i += w;
@@ -205,6 +210,10 @@ function generateGreedyVoxelMesh(voxels, colorMap, chunkSize, voxelSize, offsets
                         i++;
                         n++;
                     }
+                }
+
+                if (ending[u] != mask_ending[u]) {
+                    n++;
                 }
             }
         }

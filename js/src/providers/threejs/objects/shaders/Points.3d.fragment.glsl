@@ -1,5 +1,6 @@
 uniform float size;
 uniform float specular;
+uniform float opacity;
 uniform mat4 projectionMatrix;
 uniform vec3 ambientLightColor;
 
@@ -48,7 +49,7 @@ void main (void)
     vec3 normal = vec3(impostorSpaceCoordinate, normalizedDepth);
 
     vec4 addedLights = vec4(ambientLightColor, 1.0);
-    vec4 finalSphereColor = vec4(vColor, 1.0);
+    vec4 finalSphereColor = vec4(vColor, opacity);
 
     for(int l = 0; l <NUM_DIR_LIGHTS; l++) {
         vec3 lightDirection = -directionalLights[l].direction;

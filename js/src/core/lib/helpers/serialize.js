@@ -14,12 +14,37 @@ var _ = require('lodash'),
         float64: Float64Array
     };
 
-// Inpspiration from https://github.com/maartenbreddels/ipyvolume/blob/master/js/src/serialize.js
-// and https://github.com/jupyter-widgets/ipywidgets/blob/master/jupyter-widgets-base/test/src/dummy-manager.ts
-
-function deserialize_array_or_json(obj, manager) {
+function deserializeArray(obj) {
     var buffer;
 
+    if (typeof (obj.buffer) !== 'undefined') {
+        console.log('K3D: Receive: ' + obj.buffer.byteLength + ' bytes');
+        return {
+            data: new typesToArray[obj.dtype](obj.buffer.buffer),
+            shape: obj.shape
+        };
+    } else if (typeof (obj.compressed_buffer) !== 'undefined') {
+        buffer = new typesToArray[obj.dtype](pako.inflate(obj.compressed_buffer.buffer).buffer);
+
+        console.log('K3D: Receive: ' + buffer.byteLength + ' bytes compressed to ' +
+            obj.compressed_buffer.byteLength + ' bytes');
+
+        return {
+            data: buffer,
+            shape: obj.shape
+        };
+    }
+}
+
+function serializeArray(obj) {
+    return {
+        dtype: _.invert(typesToArray)[obj.data.constructor],
+        buffer: obj.data,
+        shape: obj.shape
+    }
+}
+
+function deserialize_array_or_json(obj, manager) {
     if (obj == null) {
         return null;
     }
@@ -30,25 +55,17 @@ function deserialize_array_or_json(obj, manager) {
 
     if (_.isNumber(obj)) { // plain number
         return obj;
-    } else { // should be an array of buffer+dtype+shape
-        if (typeof (obj.buffer) !== 'undefined') {
-            console.log('K3D: Receive: ' + obj.buffer.byteLength + ' bytes');
-            return {
-                data: new typesToArray[obj.dtype](obj.buffer.buffer),
-                shape: obj.shape
-            };
-        } else if (typeof (obj.compressed_buffer) !== 'undefined') {
-            buffer = new typesToArray[obj.dtype](pako.inflate(obj.compressed_buffer.buffer).buffer);
-
-            console.log('K3D: Receive: ' + buffer.byteLength + ' bytes compressed to ' +
-                obj.compressed_buffer.byteLength + ' bytes');
-
-            return {
-                data: buffer,
-                shape: obj.shape
-            };
+    } else {
+        if (typeof(obj.shape) !== 'undefined') {
+            // plain data
+            return deserializeArray(obj);
         } else {
-            return null;
+            // time series
+            return Object.keys(obj).reduce(function (p, k) {
+                p[k] = deserializeArray(obj[k]);
+
+                return p;
+            }, {timeSeries: true});
         }
     }
 }
@@ -59,11 +76,17 @@ function serialize_array_or_json(obj) {
     }
 
     if (obj !== null) {
-        return {
-            dtype: _.invert(typesToArray)[obj.data.constructor],
-            buffer: obj.data,
-            shape: obj.shape
-        };
+        if (typeof(obj.data) !== 'undefined' && typeof(obj.shape) !== 'undefined' && typeof(obj.data) !== 'undefined') {
+            // plain data
+            return serializeArray(obj);
+        } else {
+            // time series
+            return Object.keys(obj).reduce(function (p, k) {
+                p[k] = serializeArray(obj[k]);
+
+                return p;
+            }, {});
+        }
     } else {
         return null;
     }

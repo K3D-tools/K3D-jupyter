@@ -10,12 +10,14 @@ var TextureImage = require('./TextureImage'),
  * @param {Object} config all configurations params from JSON
  * @return {Object} 3D object ready to render
  */
-module.exports = function (config, K3D) {
-    config.visible = typeof(config.visible) !== 'undefined' ? config.visible : true;
+module.exports = {
+    create: function (config, K3D) {
+        config.visible = typeof(config.visible) !== 'undefined' ? config.visible : true;
 
-    if (config.file_format && config.binary) {
-        return new TextureImage(config, K3D);
-    } else {
-        return new TextureData(config, K3D);
+        if (config.file_format && config.binary) {
+            return new TextureImage.create(config, K3D);
+        } else {
+            return new TextureData.create(config, K3D);
+        }
     }
 };

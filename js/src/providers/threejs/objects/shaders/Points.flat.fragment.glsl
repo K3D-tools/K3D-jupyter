@@ -1,4 +1,5 @@
 varying vec3 vColor;
+uniform float opacity;
 
 #include <clipping_planes_pars_fragment>
 
@@ -11,5 +12,5 @@ void main (void)
 
     if (distanceFromCenter > 0.5) discard;
 
-    gl_FragColor = vec4(vColor, 1.0);
+    gl_FragColor = vec4(vColor, opacity);
 }

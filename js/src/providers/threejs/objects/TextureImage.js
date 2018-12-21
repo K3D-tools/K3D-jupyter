@@ -9,36 +9,38 @@ var buffer = require('./../../../core/lib/helpers/buffer');
  * @param {Object} config all configurations params from JSON
  * @return {Object} 3D object ready to render
  */
-module.exports = function (config) {
-    return new Promise(function (resolve) {
-        var geometry = new THREE.PlaneBufferGeometry(1, 1),
-            modelMatrix = new THREE.Matrix4(),
-            texture = new THREE.Texture(),
-            image,
-            material,
-            object;
+module.exports = {
+    create: function (config) {
+        return new Promise(function (resolve) {
+            var geometry = new THREE.PlaneBufferGeometry(1, 1),
+                modelMatrix = new THREE.Matrix4(),
+                texture = new THREE.Texture(),
+                image,
+                material,
+                object;
 
-        image = document.createElement('img');
-        image.src = 'data:image/' + config.file_format + ';base64,' +
-            buffer.bufferToBase64(config.binary.buffer);
+            image = document.createElement('img');
+            image.src = 'data:image/' + config.file_format + ';base64,' +
+                buffer.bufferToBase64(config.binary.buffer);
 
-        geometry.computeBoundingSphere();
-        geometry.computeBoundingBox();
+            geometry.computeBoundingSphere();
+            geometry.computeBoundingBox();
 
-        image.onload = function () {
-            material = new THREE.MeshBasicMaterial({color: 0xffffff, side: THREE.DoubleSide, map: texture});
-            object = new THREE.Mesh(geometry, material);
+            image.onload = function () {
+                material = new THREE.MeshBasicMaterial({color: 0xffffff, side: THREE.DoubleSide, map: texture});
+                object = new THREE.Mesh(geometry, material);
 
-            modelMatrix.set.apply(modelMatrix, config.model_matrix.data);
-            object.applyMatrix(modelMatrix);
+                modelMatrix.set.apply(modelMatrix, config.model_matrix.data);
+                object.applyMatrix(modelMatrix);
 
-            object.updateMatrixWorld();
+                object.updateMatrixWorld();
 
-            texture.image = image;
-            texture.minFilter = THREE.LinearFilter;
-            texture.needsUpdate = true;
+                texture.image = image;
+                texture.minFilter = THREE.LinearFilter;
+                texture.needsUpdate = true;
 
-            resolve(object);
-        };
-    });
+                resolve(object);
+            };
+        });
+    }
 };

@@ -143,6 +143,7 @@ PlotView = widgets.DOMWidgetView.extend({
         }, this);
         this.model.on('change:camera_auto_fit', this._setCameraAutoFit, this);
         this.model.on('change:lighting', this._setDirectionalLightingIntensity, this);
+        this.model.on('change:time', this._setTime, this);
         this.model.on('change:grid_auto_fit', this._setGridAutoFit, this);
         this.model.on('change:fps_meter', this._setFpsMeter, this);
         this.model.on('change:screenshot_scale', this._setScreenshotScale, this);
@@ -162,6 +163,7 @@ PlotView = widgets.DOMWidgetView.extend({
                 grid: this.model.get('grid')
             });
         } catch (e) {
+            console.log(e);
             return;
         }
 
@@ -207,6 +209,10 @@ PlotView = widgets.DOMWidgetView.extend({
 
     _setDirectionalLightingIntensity: function () {
         this.K3DInstance.setDirectionalLightingIntensity(this.model.get('lighting'));
+    },
+
+    _setTime: function () {
+        this.K3DInstance.setTime(this.model.get('time'));
     },
 
     _setCameraAutoFit: function () {
