@@ -1,5 +1,5 @@
 import ipywidgets as widgets
-from traitlets import Unicode, Int, Float, List, Bool, Bytes, Integer
+from traitlets import Unicode, Int, Float, List, Bool, Bytes, Integer, Dict, Union
 from traitlets import validate, TraitError
 from traittypes import Array
 from .helpers import array_serialization
@@ -8,6 +8,11 @@ import numpy as np
 from ipydatawidgets import DataUnion, data_union_serialization
 
 EPSILON = np.finfo(np.float32).eps
+
+
+class TimeSeries(Union):
+    def __init__(self, trait):
+        Union.__init__(self, [trait, Dict(trait)])
 
 
 class ListOrArray(List):
@@ -151,6 +156,18 @@ class Line(Drawable):
     """
 
     type = Unicode(read_only=True).tag(sync=True)
+
+    # vertices = TimeSeries(Array(dtype=np.float32)).tag(sync=True, **array_serialization)
+    # colors = TimeSeries(Array(dtype=np.uint32)).tag(sync=True, **array_serialization)
+    # color = TimeSeries(Int(min=0, max=0xffffff)).tag(sync=True)
+    # width = TimeSeries(Float(min=EPSILON, default_value=0.01)).tag(sync=True)
+    # attribute = TimeSeries(Array(dtype=np.float32)).tag(sync=True, **array_serialization)
+    # color_map = TimeSeries(Array(dtype=np.float32)).tag(sync=True, **array_serialization)
+    # color_range = TimeSeries(ListOrArray(minlen=2, maxlen=2, empty_ok=True)).tag(sync=True)
+    # shader = TimeSeries(Unicode()).tag(sync=True)
+    # radial_segments = TimeSeries(Int()).tag(sync=True)
+    # model_matrix = TimeSeries(Array(dtype=np.float32)).tag(sync=True, **array_serialization)
+
     vertices = Array(dtype=np.float32).tag(sync=True, **array_serialization)
     colors = Array(dtype=np.uint32).tag(sync=True, **array_serialization)
     color = Int(min=0, max=0xffffff).tag(sync=True)
@@ -160,7 +177,6 @@ class Line(Drawable):
     color_range = ListOrArray(minlen=2, maxlen=2, empty_ok=True).tag(sync=True)
     shader = Unicode().tag(sync=True)
     radial_segments = Int().tag(sync=True)
-
     model_matrix = Array(dtype=np.float32).tag(sync=True, **array_serialization)
 
     def __init__(self, **kwargs):
@@ -241,15 +257,15 @@ class Mesh(Drawable):
     """
 
     type = Unicode(read_only=True).tag(sync=True)
-    vertices = Array(dtype=np.float32).tag(sync=True, **array_serialization)
-    indices = Array(dtype=np.uint32).tag(sync=True, **array_serialization)
-    color = Int(min=0, max=0xffffff).tag(sync=True)
-    attribute = Array(dtype=np.float32).tag(sync=True, **array_serialization)
-    color_map = Array(dtype=np.float32).tag(sync=True, **array_serialization)
-    color_range = ListOrArray(minlen=2, maxlen=2, empty_ok=True).tag(sync=True)
-    wireframe = Bool().tag(sync=True)
-    flat_shading = Bool().tag(sync=True)
-    model_matrix = Array(dtype=np.float32).tag(sync=True, **array_serialization)
+    vertices = TimeSeries(Array(dtype=np.float32)).tag(sync=True, **array_serialization)
+    indices = TimeSeries(Array(dtype=np.uint32)).tag(sync=True, **array_serialization)
+    color = TimeSeries(Int(min=0, max=0xffffff)).tag(sync=True)
+    attribute = TimeSeries(Array(dtype=np.float32)).tag(sync=True, **array_serialization)
+    color_map = TimeSeries(Array(dtype=np.float32)).tag(sync=True, **array_serialization)
+    color_range = TimeSeries(ListOrArray(minlen=2, maxlen=2, empty_ok=True)).tag(sync=True)
+    wireframe = TimeSeries(Bool()).tag(sync=True)
+    flat_shading = TimeSeries(Bool()).tag(sync=True)
+    model_matrix = TimeSeries(Array(dtype=np.float32)).tag(sync=True, **array_serialization)
 
     def __init__(self, **kwargs):
         super(Mesh, self).__init__(**kwargs)
@@ -287,12 +303,13 @@ class Points(Drawable):
     """
 
     type = Unicode(read_only=True).tag(sync=True)
-    positions = Array(dtype=np.float32).tag(sync=True, **array_serialization)
-    colors = Array(dtype=np.uint32).tag(sync=True, **array_serialization)
-    color = Int(min=0, max=0xffffff).tag(sync=True)
-    point_size = Float(min=EPSILON, default_value=1.0).tag(sync=True)
-    shader = Unicode().tag(sync=True)
-    model_matrix = Array(dtype=np.float32).tag(sync=True, **array_serialization)
+    positions = TimeSeries(Array(dtype=np.float32)).tag(sync=True, **array_serialization)
+    colors = TimeSeries(Array(dtype=np.uint32)).tag(sync=True, **array_serialization)
+    color = TimeSeries(Int(min=0, max=0xffffff)).tag(sync=True)
+    point_size = TimeSeries(Float(min=EPSILON, default_value=1.0)).tag(sync=True)
+    opacity = TimeSeries(Float(min=EPSILON, default_value=1.0)).tag(sync=True)
+    shader = TimeSeries(Unicode()).tag(sync=True)
+    model_matrix = TimeSeries(Array(dtype=np.float32)).tag(sync=True, **array_serialization)
 
     def __init__(self, **kwargs):
         super(Points, self).__init__(**kwargs)

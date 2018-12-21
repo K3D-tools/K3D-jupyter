@@ -38,7 +38,29 @@ def from_json_to_array(value, obj=None):
     return None
 
 
-array_serialization = dict(to_json=array_to_binary, from_json=from_json_to_array)
+def array_or_dict_to_binary(input, obj=None, force_contiguous=True):
+    if isinstance(input, dict):
+        ret = {}
+        for key, value in input.items():
+            ret[key] = array_to_binary(value, obj, force_contiguous)
+
+        return ret
+    else:
+        return array_to_binary(input, obj, force_contiguous)
+
+
+def from_json_to_array_or_dict(input, obj=None):
+    if 'dtype' in input and 'buffer' in input and 'shape' in input:
+        return from_json_to_array(input, obj)
+    else:
+        ret = {}
+        for key, value in input.items():
+            ret[key] = from_json_to_array(input, obj)
+
+        return ret
+
+
+array_serialization = dict(to_json=array_or_dict_to_binary, from_json=from_json_to_array_or_dict)
 
 
 def download(url):
