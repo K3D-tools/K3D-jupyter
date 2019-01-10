@@ -9,10 +9,8 @@ WORKDIR K3D-jupyter
 RUN pip install jupyter-pip ipywidgets
 RUN pip install k3d
 
-RUN jupyter nbextension install --py --user widgetsnbextension
 RUN jupyter nbextension install --py --user k3d
 
-RUN jupyter nbextension enable --py --user widgetsnbextension
 RUN jupyter nbextension enable --py --user k3d
 
 RUN mkdir -p $HOME/.jupyter
