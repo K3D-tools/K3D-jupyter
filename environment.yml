@@ -7,6 +7,8 @@ dependencies:
   - notebook>5.2
   - ipywidgets
   - pandas
+  - scipy
+  - scikit-image
   - vtk
   - pip:
      - k3d
