@@ -1,0 +1,7 @@
+#!/bin/bash
+
+jupyter labextension install @jupyter-widgets/jupyterlab-manager
+jupyter serverextension enable --py jupyterlab_git
+jupyter nbextension enable --py --sys-prefix k3d
+jupyter labextension install k3d
+jupyter nbextension install --py --sys-prefix k3d

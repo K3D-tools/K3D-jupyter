@@ -1,0 +1,13 @@
+name: k3d
+channels:
+  - conda-forge
+  - defaults
+dependencies:
+  - python>=3.6
+  - notebook>5.2
+  - ipywidgets
+  - pandas
+  - vtk
+  - pip:
+     - k3d
+     - nibabel
