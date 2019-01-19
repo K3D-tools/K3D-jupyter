@@ -8,6 +8,7 @@ dependencies:
   - ipywidgets
   - pandas
   - scipy
+  - numba
   - scikit-image
   - vtk
   - pip:
