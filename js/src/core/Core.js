@@ -93,7 +93,7 @@ function K3D(provider, targetDOMNode, parameters) {
 
     this.resizeHelper = function () {
         if (!self.disabling) {
-            self.gui.domElement.parentNode.style.height = world.targetDOMNode.offsetHeight + 'px';
+            self.gui.domElement.parentNode.style['max-height'] = world.targetDOMNode.offsetHeight + 'px';
             self.Provider.Helpers.resizeListener(world);
             self.render();
         }
@@ -561,7 +561,7 @@ function K3D(provider, targetDOMNode, parameters) {
     currentWindow.addEventListener('resize', this.resizeHelper, false);
 
     // load toolbars
-    this.gui = new dat.GUI({width: 220, autoPlace: false, scrollable: true});
+    this.gui = new dat.GUI({width: 220, autoPlace: false, scrollable: true, closeOnTop : true});
 
     var guiContainer = currentWindow.document.createElement('div');
     guiContainer.className = 'dg';
@@ -571,7 +571,7 @@ function K3D(provider, targetDOMNode, parameters) {
         'top: 0',
         'right: 0',
         'z-index: 20',
-        'height: ' + targetDOMNode.clientHeight + 'px'
+        'max-height: ' + targetDOMNode.clientHeight + 'px'
     ].join(';');
     world.targetDOMNode.appendChild(guiContainer);
     guiContainer.appendChild(this.gui.domElement);
