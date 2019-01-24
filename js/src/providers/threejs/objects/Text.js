@@ -12,9 +12,9 @@ var katex = require('katex');
  */
 module.exports = {
     create: function (config, K3D) {
-        config.visible = typeof(config.visible) !== 'undefined' ? config.visible : true;
-        config.color = typeof(config.color) !== 'undefined' ? config.color : 0;
-        config.text = typeof(config.text) !== 'undefined' ? config.text :'\\KaTeX';
+        config.visible = typeof (config.visible) !== 'undefined' ? config.visible : true;
+        config.color = typeof (config.color) !== 'undefined' ? config.color : 0;
+        config.text = typeof (config.text) !== 'undefined' ? config.text : '\\KaTeX';
 
         var text = config.text,
             color = config.color,

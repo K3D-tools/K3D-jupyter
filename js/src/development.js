@@ -1,3 +1,4 @@
+require('./deps');
 require('es6-promise');
 
 require('style-loader?{attrs:{id: "k3d-katex"}}!css-loader!../node_modules/katex/dist/katex.min.css');

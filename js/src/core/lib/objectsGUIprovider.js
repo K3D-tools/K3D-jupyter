@@ -39,15 +39,15 @@ function objectGUIProvider(K3D, json, objects) {
         return controllers.length > 0;
     }
 
-    if (typeof(K3D.gui_map) === 'undefined') {
+    if (typeof (K3D.gui_map) === 'undefined') {
         K3D.gui_map = {};
     }
 
-    if (typeof(K3D.gui_counts) === 'undefined') {
+    if (typeof (K3D.gui_counts) === 'undefined') {
         K3D.gui_counts = {};
     }
 
-    if (typeof(K3D.gui_map[json.id]) === 'undefined') {
+    if (typeof (K3D.gui_map[json.id]) === 'undefined') {
         K3D.gui_counts[json.type] = K3D.gui_counts[json.type] + 1 || 1;
         K3D.gui_map[json.id] = objects.addFolder(json.type + ' #' + K3D.gui_counts[json.type]);
 
@@ -95,14 +95,14 @@ function objectGUIProvider(K3D, json, objects) {
                     K3D.gui_map[json.id].addColor(json, param).onChange(change.bind(this, json, param));
                 } else {
                     if (['Points', 'VectorField', 'Vectors'].indexOf(json.type) !== -1) {
-                        if (typeof(json.colors) === 'undefined' || json.colors.length === 0) {
+                        if (typeof (json.colors) === 'undefined' || json.colors.length === 0) {
                             K3D.gui_map[json.id].addColor(json, param).onChange(change.bind(this, json, param));
                         }
                     } else if (json.type === 'Line') {
-                        if ((typeof(json.colors) === 'undefined' || json.colors.length === 0) &&
-                            (typeof(json.attribute) === 'undefined' || json.attribute.length === 0) &&
-                            (typeof(json.color_range) === 'undefined' || json.colors.color_range === 0) &&
-                            (typeof(json.color_map) === 'undefined' || json.colors.color_map === 0)) {
+                        if ((typeof (json.colors) === 'undefined' || json.colors.length === 0) &&
+                            (typeof (json.attribute) === 'undefined' || json.attribute.length === 0) &&
+                            (typeof (json.color_range) === 'undefined' || json.colors.color_range === 0) &&
+                            (typeof (json.color_map) === 'undefined' || json.colors.color_map === 0)) {
 
                             K3D.gui_map[json.id].addColor(json, param).onChange(change.bind(this, json, param));
                         }
@@ -113,7 +113,7 @@ function objectGUIProvider(K3D, json, objects) {
             switch (param) {
                 case 'origin_color':
                 case 'head_color':
-                    if (typeof(json.colors) === 'undefined') {
+                    if (typeof (json.colors) === 'undefined') {
                         K3D.gui_map[json.id].addColor(json, param).onChange(change.bind(this, json, param));
                     }
                     break;

@@ -13,12 +13,12 @@ import six
 from .colormaps import basic_color_maps
 from .plot import Plot
 from .objects import (Line, MarchingCubes, Mesh, Points, STL, Surface, Text, Text2d, Texture, TextureText, VectorField,
-                      Vectors, Volume, Voxels, VoxelsIpyDW)
+                      Vectors, Volume, Voxels, SparseVoxels, VoxelsGroup, VoxelsIpyDW)
 from .transform import process_transform_arguments
 from .helpers import check_attribute_range
 
 _default_color = 0x0000FF  # blue
-_nice_colors = (
+nice_colors = (
     0xe6194b, 0x3cb44b, 0xffe119, 0x0082c8,
     0xf58231, 0x911eb4, 0x46f0f0, 0xf032e6,
     0xd2f53c, 0xfabebe, 0x008080, 0xe6beff,
@@ -497,7 +497,8 @@ def vectors(origins, vectors=None, colors=[],
 
 
 # noinspection PyShadowingNames
-def voxels(voxels, color_map=_nice_colors, wireframe=False, outlines=True, outlines_color=0, compression_level=0,
+def voxels(voxels, color_map=nice_colors, wireframe=False, outlines=True, outlines_color=0, opacity=1.0,
+           compression_level=0,
            **kwargs):
     """Create a Voxels drawable for 3D volumetric data.
 
@@ -529,6 +530,8 @@ def voxels(voxels, color_map=_nice_colors, wireframe=False, outlines=True, outli
             ]]]
         wireframe: `bool`.
             Whether mesh should display as wireframe.
+        opacity: `float`.
+            Opacity of voxels.
         outlines: `bool`.
             Whether mesh should display with outlines.
         outlines_color: `int`.
@@ -537,8 +540,84 @@ def voxels(voxels, color_map=_nice_colors, wireframe=False, outlines=True, outli
             Dictionary arguments to configure transform and model_matrix."""
     return process_transform_arguments(
         Voxels(voxels=voxels, color_map=color_map, wireframe=wireframe,
-               outlines=outlines, outlines_color=outlines_color,
+               outlines=outlines, outlines_color=outlines_color, opacity=opacity,
                compression_level=compression_level),
+        **kwargs
+    )
+
+
+# noinspection PyShadowingNames
+def sparse_voxels(sparse_voxels, space_size, color_map=nice_colors, wireframe=False, outlines=True, outlines_color=0,
+                  opacity=1.0, compression_level=0,
+                  **kwargs):
+    """Create a Voxels drawable for 3D volumetric data.
+
+    By default, the voxels are a grid inscribed in the -0.5 < x, y, z < 0.5 cube
+    regardless of the passed voxel array shape (aspect ratio etc.).
+    Different grid size, shape and rotation can be obtained using  kwargs:
+        voxels(..., bounds=[0, 300, 0, 400, 0, 500])
+    or:
+        voxels(..., scaling=[scale_x, scale_y, scale_z]).
+
+    Arguments:
+        sparse_voxels: `array_like`.
+            2D array of `coords` in format [[x,y,z,v],[x,y,z,v]].
+            v = 0 means empty voxel, 1 and above refer to consecutive color_map entries.
+        space_size: `array_like`.
+            Width, Height, Length of space
+        color_map: `array_like`.
+            Flat array of `int` packed RGB colors (0xff0000 is red, 0xff is blue).
+        wireframe: `bool`.
+            Whether mesh should display as wireframe.
+        opacity: `float`.
+            Opacity of voxels.
+        outlines: `bool`.
+            Whether mesh should display with outlines.
+        outlines_color: `int`.
+            Packed RGB color of the resulting outlines (0xff0000 is red, 0xff is blue)
+        kwargs: `dict`.
+            Dictionary arguments to configure transform and model_matrix."""
+    return process_transform_arguments(
+        SparseVoxels(sparse_voxels=sparse_voxels, space_size=space_size, color_map=color_map, wireframe=wireframe,
+                     outlines=outlines, outlines_color=outlines_color, opacity=opacity,
+                     compression_level=compression_level),
+        **kwargs
+    )
+
+
+# noinspection PyShadowingNames
+def voxels_group(voxels_group, space_size, color_map=nice_colors, wireframe=False, outlines=True, outlines_color=0,
+                 opacity=1.0, compression_level=0, **kwargs):
+    """Create a Voxels drawable for 3D volumetric data.
+
+    By default, the voxels are a grid inscribed in the -0.5 < x, y, z < 0.5 cube
+    regardless of the passed voxel array shape (aspect ratio etc.).
+    Different grid size, shape and rotation can be obtained using  kwargs:
+        voxels(..., bounds=[0, 300, 0, 400, 0, 500])
+    or:
+        voxels(..., scaling=[scale_x, scale_y, scale_z]).
+
+    Arguments:
+        voxels_group: `array_like`.
+            List of `chunks` in format {voxels: np.array, coord: [x,y,z], multiple: number}.
+        space_size: `array_like`.
+            Width, Height, Length of space
+        color_map: `array_like`.
+            Flat array of `int` packed RGB colors (0xff0000 is red, 0xff is blue).
+        wireframe: `bool`.
+            Whether mesh should display as wireframe.
+        opacity: `float`.
+            Opacity of voxels.
+        outlines: `bool`.
+            Whether mesh should display with outlines.
+        outlines_color: `int`.
+            Packed RGB color of the resulting outlines (0xff0000 is red, 0xff is blue)
+        kwargs: `dict`.
+            Dictionary arguments to configure transform and model_matrix."""
+    return process_transform_arguments(
+        VoxelsGroup(voxels_group=voxels_group, space_size=space_size, color_map=color_map, wireframe=wireframe,
+                    outlines=outlines, outlines_color=outlines_color, opacity=opacity,
+                    compression_level=compression_level),
         **kwargs
     )
 

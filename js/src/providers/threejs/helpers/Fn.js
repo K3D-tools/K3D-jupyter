@@ -135,7 +135,8 @@ module.exports = {
         var axis = new THREE.Vector3(),
             direction = new THREE.Vector3().subVectors(destination, origin),
             length = direction.length(),
-            quaternion = new THREE.Quaternion();
+            quaternion = new THREE.Quaternion(),
+            lineDestination;
 
         direction.normalize();
 
@@ -144,7 +145,7 @@ module.exports = {
 
         // head
         if (coneGeometry !== null) {
-            var lineDestination = new THREE.Vector3().copy(origin).add(
+            lineDestination = new THREE.Vector3().copy(origin).add(
                 direction.clone().multiplyScalar(length - headHeight)
             );
 

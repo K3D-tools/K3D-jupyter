@@ -1,7 +1,8 @@
+//jshint maxstatements:false
+
 'use strict';
 
 var lut = require('./../../../core/lib/helpers/lut');
-var _ = require('lodash');
 var closestPowOfTwo = require('./../helpers/Fn').closestPowOfTwo;
 
 /**
@@ -20,10 +21,6 @@ module.exports = {
         config.shadow = config.shadow || 'off';
         config.shadow_delay = config.shadow_delay || 500;
         config.shadow_res = closestPowOfTwo(config.shadow_res || 128);
-
-        // config.shadow_res = 256;
-        // config.shadow = 'dynamic';
-        // config.samples = 512;
 
         var gl = K3D.getWorld().renderer.context,
             geometry = new THREE.BoxBufferGeometry(1, 1, 1),
@@ -196,12 +193,6 @@ module.exports = {
 
                     K3D.getWorld().camera.updateMatrixWorld();
 
-                    // quadRTT.material.uniforms.customModelViewMatrix.value.multiplyMatrices(
-                    //     K3D.getWorld().camera.matrixWorldInverse, quadRTT.matrixWorld
-                    // );
-                    //
-                    // console.log(quadRTT.material.uniforms.customModelViewMatrix.value, object.modelViewMatrix);
-
                     quadRTT.material.uniformsNeedUpdate = true;
 
                     renderer.clippingPlanes = [];
@@ -263,34 +254,6 @@ module.exports = {
                 K3D.off(K3D.events.BEFORE_RENDER, listenersId);
             }
         };
-
-        // PREVIEW
-        // var objectGroup = new THREE.Group();
-        // var quad = new THREE.Mesh(
-        //     new THREE.PlaneBufferGeometry(150, 150),
-        //     new THREE.MeshBasicMaterial({
-        //         color: 0xffffff,
-        //         map: textureRTT.texture
-        //     })
-        // );
-        //
-        // quad.position.x = -200;
-        // quad.geometry.computeBoundingSphere();
-        // quad.geometry.computeBoundingBox();
-        //
-        // objectGroup.add(object);
-        // objectGroup.add(quad);
-        //
-        // var listenersId = K3D.on(K3D.events.RENDERED, function () {
-        //     object.refreshLightMap();
-        // });
-        // object.refreshLightMap();
-        //
-        // objectGroup.onRemove = function () {
-        //     K3D.off(K3D.events.RENDERED, listenersId);
-        // };
-        //
-        // return Promise.resolve(objectGroup);
 
         return Promise.resolve(object);
     }

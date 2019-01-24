@@ -5,7 +5,6 @@ var viewModes = require('./lib/viewMode').viewModes,
     loader = require('./lib/Loader'),
     msgpack = require('msgpack-lite'),
     pako = require('pako'),
-    _ = require('lodash'),
     screenshot = require('./lib/screenshot'),
     snapshot = require('./lib/snapshot'),
     dat = require('dat.gui'),
@@ -16,13 +15,6 @@ var viewModes = require('./lib/viewMode').viewModes,
     objectGUIProvider = require('./lib/objectsGUIprovider'),
     clippingPlanesGUIProvider = require('./lib/clippingPlanesGUIProvider'),
     timeSeries = require('./lib/timeSeries');
-
-function changeParameters(key, value) {
-    this.dispatch(this.events.PARAMETERS_CHANGE, {
-        key: key,
-        value: value
-    });
-}
 
 /**
  * @constructor Core
@@ -68,6 +60,13 @@ function K3D(provider, targetDOMNode, parameters) {
             objects: null
         };
 
+    function changeParameters(key, value) {
+        dispatch(self.events.PARAMETERS_CHANGE, {
+            key: key,
+            value: value
+        });
+    }
+
     require('style-loader?{attrs:{id: "k3d-style"}}!css-loader!./../k3d.css');
 
     if (!(this instanceof (K3D))) {
@@ -85,7 +84,7 @@ function K3D(provider, targetDOMNode, parameters) {
     function refreshAfterObjectsChange() {
         self.getWorld().setCameraToFitScene();
         timeSeries.refreshTimeScale(self, GUI);
-        Promise.all(self.rebuildSceneData()).then(self.render.bind(this, null));
+        Promise.all(self.rebuildSceneData()).then(self.render);
     }
 
     this.render = function () {
@@ -136,8 +135,10 @@ function K3D(provider, targetDOMNode, parameters) {
     this.autoRendering = false;
 
     this.setFpsMeter = function (state) {
+        var Stats;
+
         if (self.parameters.fpsMeter === false) {
-            var Stats = require('stats.js');
+            Stats = require('stats.js');
             fpsMeter = new Stats();
 
             fpsMeter.dom.style.position = 'absolute';
@@ -502,7 +503,7 @@ function K3D(provider, targetDOMNode, parameters) {
      * @returns {String|undefined}
      */
     this.getSnapshot = function () {
-        return pako.deflate(msgpack.encode(_.values(world.ObjectsListJson)), {to: 'string'});
+        return pako.deflate(msgpack.encode(_.values(world.ObjectsListJson)), {to: 'string', level: 9});
     };
 
     /**

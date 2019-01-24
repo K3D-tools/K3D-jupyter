@@ -1,7 +1,11 @@
 {
-    "preset": "crockford",
-    "disallowDanglingUnderscores": null,
-    "validateIndentation": null,
-    "requireLineFeedAtFileEnd": true,
-    "excludeFiles": ["app/**/_dependencies.js"]
+  "preset": "crockford",
+  "disallowDanglingUnderscores": null,
+  "validateIndentation": null,
+  "requireLineFeedAtFileEnd": true,
+  "requireVarDeclFirst": false,
+  "requireMultipleVarDecl": false,
+  "disallowKeywords": [
+    "with"
+  ]
 }

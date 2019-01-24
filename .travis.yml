@@ -5,6 +5,8 @@ node_js:
   - "6.3"
 addons:
   firefox: "latest"
+services:
+  - xvfb
 before_script:
   - cd js
   - npm install grunt-cli -g

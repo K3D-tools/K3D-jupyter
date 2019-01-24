@@ -12,19 +12,25 @@ module.exports = function (points, attributes, radius, radialSegments, color, ve
         indices = [],
         last_tangent = null,
         N = null,
-        vertex = new THREE.Vector3();
+        vertex = new THREE.Vector3(),
+        P1, P2, tangent, mat,
+        vec2, r, theta,
+        offset, originalP1, originalP2,
+        a, b, c, d;
 
     function makeSegment(P1, P2, i, mat) {
-        var normal = new THREE.Vector3();
-        var vec = new THREE.Vector3();
-        var B = new THREE.Vector3();
-        var tangent = P2.clone().sub(P1).normalize();
+        var normal = new THREE.Vector3(),
+            vec = new THREE.Vector3(),
+            B = new THREE.Vector3(),
+            tangent = P2.clone().sub(P1).normalize(),
+            min, tx, ty, tz,
+            v, sin, cos;
 
         if (N === null) {
-            var min = Number.MAX_VALUE;
-            var tx = Math.abs(tangent.x);
-            var ty = Math.abs(tangent.y);
-            var tz = Math.abs(tangent.z);
+            min = Number.MAX_VALUE;
+            tx = Math.abs(tangent.x);
+            ty = Math.abs(tangent.y);
+            tz = Math.abs(tangent.z);
 
             if (tx <= min) {
                 min = tx;
@@ -52,14 +58,14 @@ module.exports = function (points, attributes, radius, radialSegments, color, ve
 
         // generate normals and vertices for the current segment
         for (j = 0; j < radialSegments; j++) {
-            var v = j / radialSegments * Math.PI * 2;
-            var sin = Math.sin(v);
-            var cos = -Math.cos(v);
+            v = j / radialSegments * Math.PI * 2;
+            sin = Math.sin(v);
+            cos = -Math.cos(v);
 
             // normal
-            normal.x = ( cos * N.x + sin * B.x );
-            normal.y = ( cos * N.y + sin * B.y );
-            normal.z = ( cos * N.z + sin * B.z );
+            normal.x = (cos * N.x + sin * B.x);
+            normal.y = (cos * N.y + sin * B.y);
+            normal.z = (cos * N.z + sin * B.z);
             normal.normalize();
             normals.push(normal.x, normal.y, normal.z);
 
@@ -80,7 +86,7 @@ module.exports = function (points, attributes, radius, radialSegments, color, ve
     }
 
     for (i = 0; i < points.length / 3; i++) {
-        var P1, P2, tangent, mat = null;
+        mat = null;
 
         if (i !== points.length / 3 - 1) {
             P1 = new THREE.Vector3().fromArray(points, i * 3);
@@ -93,14 +99,14 @@ module.exports = function (points, attributes, radius, radialSegments, color, ve
         }
 
         if (last_tangent && tangent) {
-            var vec2 = new THREE.Vector3().crossVectors(last_tangent, tangent);
-            var r = vec2.length();
+            vec2 = new THREE.Vector3().crossVectors(last_tangent, tangent);
+            r = vec2.length();
 
             if (r > Number.EPSILON) {
                 if (r > 0.3) {
-                    var offset = Math.min(radius, P2.clone().sub(P1).length() / 5.0);
-                    var originalP1 = P1.clone();
-                    var originalP2 = P2.clone();
+                    offset = Math.min(radius, P2.clone().sub(P1).length() / 5.0);
+                    originalP1 = P1.clone();
+                    originalP2 = P2.clone();
 
                     P1.sub(last_tangent.clone().multiplyScalar(offset));
                     P2.copy(originalP1).add(last_tangent.clone().multiplyScalar(offset));
@@ -112,7 +118,7 @@ module.exports = function (points, attributes, radius, radialSegments, color, ve
 
                 vec2 = vec2.divideScalar(r);
 
-                var theta = Math.acos(THREE.Math.clamp(last_tangent.clone().dot(tangent), -1, 1));
+                theta = Math.acos(THREE.Math.clamp(last_tangent.clone().dot(tangent), -1, 1));
                 mat = new THREE.Matrix4().makeRotationAxis(vec2, theta);
             }
         }
@@ -124,10 +130,10 @@ module.exports = function (points, attributes, radius, radialSegments, color, ve
 
     for (j = 0; j < (vertices.length / 3 / radialSegments) - 1; j++) {
         for (i = 0; i < radialSegments; i++) {
-            var a = radialSegments * j + i;
-            var b = radialSegments * (j + 1) + i;
-            var c = radialSegments * (j + 1) + ((i + 1) % radialSegments);
-            var d = radialSegments * j + ((i + 1) % radialSegments);
+            a = radialSegments * j + i;
+            b = radialSegments * (j + 1) + i;
+            c = radialSegments * (j + 1) + ((i + 1) % radialSegments);
+            d = radialSegments * j + ((i + 1) % radialSegments);
 
             // faces
             indices.push(a, b, d);

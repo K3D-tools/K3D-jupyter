@@ -1,8 +1,12 @@
-var pow10ceil = require('./helpers/math').pow10ceil;
-var autoPlayed = false;
-var autoPlayedHandler;
-var autoPlayController;
-var timeController;
+// jshint maxdepth:5
+
+'use strict';
+
+var pow10ceil = require('./helpers/math').pow10ceil,
+    autoPlayed = false,
+    autoPlayedHandler,
+    autoPlayController,
+    timeController;
 
 function getObjectsWithTimeSeriesAndMinMax(K3D) {
     var min = 0.0, max = 0.0,
@@ -14,7 +18,7 @@ function getObjectsWithTimeSeriesAndMinMax(K3D) {
             hasTimeSeries = false;
 
         Object.keys(obj).forEach(function (property) {
-            if (obj[property] && typeof(obj[property].timeSeries) !== 'undefined') {
+            if (obj[property] && typeof (obj[property].timeSeries) !== 'undefined') {
                 hasTimeSeries = true;
 
                 Object.keys(obj[property]).forEach(function (t) {
@@ -35,13 +39,13 @@ function getObjectsWithTimeSeriesAndMinMax(K3D) {
         min: min,
         max: max,
         objects: objects
-    }
+    };
 }
 
 function interpolate(a, b, f) {
-    var i;
+    var i, interpolated;
 
-    if (typeof(a) === 'string') {
+    if (typeof (a) === 'string') {
         return (f > 0.5) ? a : b;
     }
 
@@ -49,7 +53,7 @@ function interpolate(a, b, f) {
         return a + f * (b - a);
     }
 
-    var interpolated = new a.data.constructor(b.data.length);
+    interpolated = new a.data.constructor(b.data.length);
 
     for (i = 0; i < interpolated.length; i++) {
         if (a.data[i] && b.data[i]) {
@@ -89,10 +93,11 @@ module.exports = {
         var interpolated_json = {};
 
         Object.keys(json).forEach(function (property) {
-            if (json[property] && typeof(json[property].timeSeries) !== 'undefined') {
-                var a, b, i, f;
+            var keypoints,
+                a, b, i, f;
 
-                var keypoints = Object.keys(json[property]).reduce(function (p, k) {
+            if (json[property] && typeof (json[property].timeSeries) !== 'undefined') {
+                keypoints = Object.keys(json[property]).reduce(function (p, k) {
                     if (!isNaN(parseFloat(k))) {
                         p.push({v: parseFloat(k), k: k});
                     }
@@ -163,12 +168,12 @@ module.exports = {
         timeController = gui.add(K3D.parameters, 'time').min(0).max(1).name('time')
             .onChange(function (value) {
                 K3D.setTime(value);
-                changeParameters.call(K3D, 'time', value);
+                changeParameters('time', value);
             });
 
         gui.add(K3D.parameters, 'fps').min(0).max(50).name('fps')
             .onChange(function (value) {
-                changeParameters.call(K3D, 'fps', value);
+                changeParameters('fps', value);
 
                 if (autoPlayed) {
                     obj.togglePlay();

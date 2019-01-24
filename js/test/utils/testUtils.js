@@ -65,6 +65,7 @@ window.TestHelpers.jsonLoader = function (url, callback) {
             heights: arrayToTypedArray.bind(null, Float32Array),
             volume: arrayToTypedArray.bind(null, Uint16Array),
             voxels: arrayToTypedArray.bind(null, Uint8Array),
+            sparse_voxels: arrayToTypedArray.bind(null, Uint16Array),
             binary: base64ToArrayBuffer
         };
 

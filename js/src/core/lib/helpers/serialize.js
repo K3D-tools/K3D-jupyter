@@ -1,7 +1,6 @@
 'use strict';
 
-var _ = require('lodash'),
-    pako = require('pako'),
+var pako = require('pako'),
     ipyDataWidgets = require('jupyter-dataserializers').data_union_array_serialization,
     typesToArray = {
         int8: Int8Array,
@@ -27,7 +26,7 @@ function deserializeArray(obj) {
         buffer = new typesToArray[obj.dtype](pako.inflate(obj.compressed_buffer.buffer).buffer);
 
         console.log('K3D: Receive: ' + buffer.byteLength + ' bytes compressed to ' +
-            obj.compressed_buffer.byteLength + ' bytes');
+                    obj.compressed_buffer.byteLength + ' bytes');
 
         return {
             data: buffer,
@@ -41,48 +40,65 @@ function serializeArray(obj) {
         dtype: _.invert(typesToArray)[obj.data.constructor],
         buffer: obj.data,
         shape: obj.shape
-    }
+    };
 }
 
-function deserialize_array_or_json(obj, manager) {
+function deserialize(obj, manager) {
     if (obj == null) {
         return null;
-    }
-
-    if (typeof(obj) === 'string') {
+    } else if (typeof (obj) === 'string') {
         return ipyDataWidgets.deserialize(obj, manager);
-    }
-
-    if (_.isNumber(obj)) { // plain number
+    } else if (_.isNumber(obj)) { // plain number
         return obj;
-    } else {
-        if (typeof(obj.shape) !== 'undefined') {
-            // plain data
-            return deserializeArray(obj);
-        } else {
-            // time series
-            return Object.keys(obj).reduce(function (p, k) {
-                p[k] = deserializeArray(obj[k]);
+    } else if (typeof (obj.shape) !== 'undefined') {
+        // plain data
+        return deserializeArray(obj);
+    } else if (Array.isArray(obj)) {
+        return obj.reduce(function (p, v) {
+            p.push(deserialize(v, manager));
 
-                return p;
-            }, {timeSeries: true});
+            return p;
+        }, []);
+    } else {
+        // time series or dict
+        var timeSeries = true;
+        var deserializedObj = Object.keys(obj).reduce(function (p, k) {
+            if (!_.isNumber(k)) {
+                timeSeries = false;
+            }
+
+            p[k] = deserialize(obj[k], manager);
+
+            return p;
+        }, {});
+
+        if (timeSeries) {
+            deserializedObj.timeSeries = true;
         }
+
+        return deserializedObj;
     }
 }
 
-function serialize_array_or_json(obj) {
+function serialize(obj) {
     if (_.isNumber(obj)) {
         return obj;
     }
 
     if (obj !== null) {
-        if (typeof(obj.data) !== 'undefined' && typeof(obj.shape) !== 'undefined' && typeof(obj.data) !== 'undefined') {
+        if (typeof (obj.data) !== 'undefined' && typeof (obj.shape) !== 'undefined' && typeof (obj.data) !== 'undefined') {
             // plain data
             return serializeArray(obj);
+        } else if (Array.isArray(obj)) {
+            return obj.reduce(function (p, v) {
+                p.push(serialize(v));
+
+                return p;
+            }, []);
         } else {
-            // time series
+            // time series or dict
             return Object.keys(obj).reduce(function (p, k) {
-                p[k] = serializeArray(obj[k]);
+                p[k] = serialize(obj[k]);
 
                 return p;
             }, {});
@@ -93,5 +109,6 @@ function serialize_array_or_json(obj) {
 }
 
 module.exports = {
-    array_or_json: {deserialize: deserialize_array_or_json, serialize: serialize_array_or_json}
+    deserialize: deserialize,
+    serialize: serialize
 };

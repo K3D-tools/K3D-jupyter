@@ -4,7 +4,7 @@
     <meta charset="utf-8">
     <title>K3D</title>
     <script src="node_modules/requirejs/require.js"></script>
-    <script src="dev/index.js"></script>
+    <script src="dev/index.js?k3d"></script>
     <script src="test/utils/globals.js"></script>
     <script src="test/utils/testUtils.js"></script>
     <style>
@@ -29,7 +29,7 @@
     var jsonLoader = TestHelpers.jsonLoader;
     var fileLoader = TestHelpers.fileLoader;
 
-    require(['K3D'], function (lib) {
+    require(['k3d'], function (lib) {
         try {
             K3DInstance = new lib.K3D(
                 lib.ThreeJsProvider,
@@ -51,11 +51,24 @@
             K3DInstance.setClearColor(0xffffff, 1);
             K3DInstance.setScreenshotScale(1.0);
 
-            jsonLoader('test/samples/voxels_outlines.json', function (json) {
+            // jsonLoader('test/samples/voxels_dense.json', function (json) {
+            // jsonLoader('test/samples/data.json', function (json) {
+            jsonLoader('test/samples/voxels_group.json', function (json) {
                 K3DInstance.load(json);
             });
 
-            // fileLoader('K3D-snapshot-1542560814806.html', function (data) {
+            // fileLoader('K3D-snapshot-1548166524274.html', function (data) {
+            //     var snapshot = K3DInstance.extractSnapshot(data);
+            //     K3DInstance.setSnapshot(atob(snapshot[1]));
+            // });
+
+            // fileLoader('K3D-snapshot-1546614659588.html', function (data) {
+            // var snapshot = K3DInstance.extractSnapshot(data);
+            //
+            //     K3DInstance.setSnapshot(atob(snapshot[1]));
+            // });
+            //
+            // fileLoader('K3D-snapshot-1546685854522.html', function (data) {
             //     var snapshot = K3DInstance.extractSnapshot(data);
             //
             //     K3DInstance.setSnapshot(atob(snapshot[1]));

@@ -1,7 +1,7 @@
 'use strict';
 
 var colorsToFloat32Array = require('./../../../core/lib/helpers/buffer').colorsToFloat32Array,
-    diff = require('./../../../core/lib/helpers/diff').diff,
+//    diff = require('./../../../core/lib/helpers/diff').diff,
     MeshLine = require('./../helpers/THREE.MeshLine'),
     Fn = require('./../helpers/Fn'),
     lut = require('./../../../core/lib/helpers/lut'),
@@ -15,7 +15,7 @@ var colorsToFloat32Array = require('./../../../core/lib/helpers/buffer').colorsT
  * @return {Object} 3D object ready to render
  */
 function create(config, K3D) {
-    config.width = typeof(config.width) !== 'undefined' ? config.width : 0.1;
+    config.width = typeof (config.width) !== 'undefined' ? config.width : 0.1;
 
     var material = new MeshLine.MeshLineMaterial({
             color: new THREE.Color(1, 1, 1),
@@ -87,20 +87,20 @@ function create(config, K3D) {
     return Promise.resolve(object);
 }
 
-function update(config, prevConfig, obj, K3D) {
-    // var toUpdated = diff(config, prevConfig);
-    //
-    // if (toUpdated['vertices'] && toUpdated['attribute']) {
-    //     var newLine = create(config, K3D);
-    //
-    //     // obj.geometry.dispose();
-    //     obj.geometry = newLine.geometry;
-    //
-    //     return Promise.resolve(obj);
-    // }
-
-    return false;
-}
+// function update(config, prevConfig, obj, K3D) {
+//     var toUpdated = diff(config, prevConfig);
+//
+//     if (toUpdated['vertices'] && toUpdated['attribute']) {
+//         var newLine = create(config, K3D);
+//
+//         // obj.geometry.dispose();
+//         obj.geometry = newLine.geometry;
+//
+//         return Promise.resolve(obj);
+//     }
+//
+//     return false;
+// }
 
 module.exports = {
     create: create

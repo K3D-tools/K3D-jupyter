@@ -12,7 +12,7 @@ var TextureImage = require('./TextureImage'),
  */
 module.exports = {
     create: function (config, K3D) {
-        config.visible = typeof(config.visible) !== 'undefined' ? config.visible : true;
+        config.visible = typeof (config.visible) !== 'undefined' ? config.visible : true;
 
         if (config.file_format && config.binary) {
             return new TextureImage.create(config, K3D);

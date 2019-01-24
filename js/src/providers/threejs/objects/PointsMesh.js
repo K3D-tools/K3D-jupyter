@@ -35,7 +35,7 @@ module.exports = {
             instancedGeometry = new THREE.InstancedBufferGeometry().copy(sphereGeometry),
             geometry = new THREE.BufferGeometry();
 
-        colors = ( pointColors && pointColors.length === positions.length / 3 ?
+        colors = (pointColors && pointColors.length === positions.length / 3 ?
                 colorsToFloat32Array(pointColors) : getColorsArray(color, positions.length / 3)
         );
 

@@ -15,10 +15,10 @@ var buffer = require('./../../../core/lib/helpers/buffer'),
  */
 module.exports = {
     create: function (config, K3D) {
-        config.visible = typeof(config.visible) !== 'undefined' ? config.visible : true;
-        config.origin_color = typeof(config.origin_color) !== 'undefined' ? config.origin_color : 255;
-        config.head_color = typeof(config.head_color) !== 'undefined' ? config.head_color : 255;
-        config.use_head = typeof(config.use_head) !== 'undefined' ? config.use_head : true;
+        config.visible = typeof (config.visible) !== 'undefined' ? config.visible : true;
+        config.origin_color = typeof (config.origin_color) !== 'undefined' ? config.origin_color : 255;
+        config.head_color = typeof (config.head_color) !== 'undefined' ? config.head_color : 255;
+        config.use_head = typeof (config.use_head) !== 'undefined' ? config.use_head : true;
         config.head_size = config.head_size || 1.0;
         config.line_width = config.line_width || 0.01;
 

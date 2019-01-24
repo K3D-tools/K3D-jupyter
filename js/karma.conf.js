@@ -7,7 +7,7 @@ module.exports = function (config) {
     config.set({
 
         // base path that will be used to resolve all patterns (eg. files, exclude)
-        basePath: '',
+        basePath: './',
 
 
         // frameworks to use
@@ -19,7 +19,7 @@ module.exports = function (config) {
         files: [
             'node_modules/requirejs/require.js',
             'node_modules/karma-requirejs/lib/adapter.js',
-            {pattern: 'dev/index.js', included: false},
+            {pattern: 'dev/index.js', included: true},
             {pattern: 'node_modules/resemblejs/resemble.js', included: true},
             {pattern: 'test/utils/*.js', included: true},
             {pattern: 'node_modules/components-webfontloader/webfont.js', included: true},

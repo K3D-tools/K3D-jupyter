@@ -14,8 +14,8 @@ var Fn = require('./../helpers/Fn'),
  */
 module.exports = {
     create: function (config) {
-        config.radial_segments = typeof(config.radial_segments) !== 'undefined' ? config.radial_segments : 8;
-        config.width = typeof(config.width) !== 'undefined' ? config.width : 0.1;
+        config.radial_segments = typeof (config.radial_segments) !== 'undefined' ? config.radial_segments : 8;
+        config.width = typeof (config.width) !== 'undefined' ? config.width : 0.1;
 
         var geometry,
             material = new THREE.MeshPhongMaterial({

@@ -12,11 +12,11 @@ var katex = require('katex');
  */
 module.exports = {
     create: function (config, K3D) {
-        config.visible = typeof(config.visible) !== 'undefined' ? config.visible : true;
-        config.color = typeof(config.color) !== 'undefined' ? config.color : 0;
+        config.visible = typeof (config.visible) !== 'undefined' ? config.visible : true;
+        config.color = typeof (config.color) !== 'undefined' ? config.color : 0;
 
         var text = config.text || '\\KaTeX',
-            color = config.color ,
+            color = config.color,
             referencePoint = config.reference_point || 'lb',
             position = config.position,
             size = config.size || 1,

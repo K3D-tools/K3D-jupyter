@@ -11,10 +11,10 @@ var closestPowOfTwo = require('./../helpers/Fn').closestPowOfTwo;
  */
 module.exports = {
     create: function (config) {
-        config.visible = typeof(config.visible) !== 'undefined' ? config.visible : true;
-        config.color = typeof(config.color) !== 'undefined' ? config.color : 0xFFFFFF;
-        config.font_size = typeof(config.font_size) !== 'undefined' ? config.font_size : 68;
-        config.font_weight = typeof(config.font_weight) !== 'undefined' ? config.font_weight : 700;
+        config.visible = typeof (config.visible) !== 'undefined' ? config.visible : true;
+        config.color = typeof (config.color) !== 'undefined' ? config.color : 0xFFFFFF;
+        config.font_size = typeof (config.font_size) !== 'undefined' ? config.font_size : 68;
+        config.font_weight = typeof (config.font_weight) !== 'undefined' ? config.font_weight : 700;
 
         var text = config.text.split('\n'),
             color = config.color,
@@ -23,7 +23,7 @@ module.exports = {
 
             // Setup font
             fontFace = config.font_face || 'Courier New',
-            fontSize = config.font_size ,
+            fontSize = config.font_size,
             fontWeight = config.font_weight,
             fontSpec = fontWeight + ' ' + fontSize + 'px ' + fontFace,
 

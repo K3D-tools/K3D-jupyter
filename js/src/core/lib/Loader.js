@@ -35,7 +35,7 @@ function loader(K3D, json) {
             if (objectProvider.update) {
                 var obj = K3D.getObjectById(interpolated_object.id), prevConfig;
 
-                if (typeof(obj) !== 'undefined') {
+                if (typeof (obj) !== 'undefined') {
                     prevConfig = K3D.getWorld().ObjectsListJson[interpolated_object.id];
                     K3DObjectPromise = objectProvider.update(interpolated_object, prevConfig, obj, K3D);
 
@@ -61,7 +61,8 @@ function loader(K3D, json) {
 
                         return {json: json, obj: K3DObject};
                     })
-                    .catch(function () {
+                    .catch(function (err) {
+                        console.error(err);
                         error('Loader Error', 'Object of type "' + json.type + '" was not loaded.');
                     });
             }

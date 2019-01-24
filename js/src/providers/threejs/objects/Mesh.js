@@ -11,10 +11,10 @@ var handleColorMap = require('./../helpers/Fn').handleColorMap;
  */
 module.exports = {
     create: function (config) {
-        config.visible = typeof(config.visible) !== 'undefined' ? config.visible : true;
-        config.color = typeof(config.color) !== 'undefined' ? config.color : 255;
-        config.wireframe = typeof(config.wireframe) !== 'undefined' ? config.wireframe : false;
-        config.flat_shading = typeof(config.flat_shading) !== 'undefined' ? config.flat_shading : true;
+        config.visible = typeof (config.visible) !== 'undefined' ? config.visible : true;
+        config.color = typeof (config.color) !== 'undefined' ? config.color : 255;
+        config.wireframe = typeof (config.wireframe) !== 'undefined' ? config.wireframe : false;
+        config.flat_shading = typeof (config.flat_shading) !== 'undefined' ? config.flat_shading : true;
 
         var modelMatrix = new THREE.Matrix4(),
             MaterialConstructor = config.wireframe ? THREE.MeshBasicMaterial : THREE.MeshPhongMaterial,

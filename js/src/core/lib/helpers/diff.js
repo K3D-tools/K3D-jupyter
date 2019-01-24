@@ -1,3 +1,5 @@
+'use strict';
+
 module.exports = {
     diff: function (config, prevConfig) {
         var diff = {};

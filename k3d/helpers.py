@@ -7,6 +7,15 @@ import numpy as np
 import itertools
 import zlib
 
+# import logging
+#
+# from pprint import pprint, pformat
+#
+# logger = logging.getLogger("k3d")
+# fh = logging.FileHandler('k3d.log')
+# logger.addHandler(fh)
+# logger.setLevel(logging.DEBUG)
+
 
 # pylint: disable=unused-argument
 # noinspection PyUnusedLocal
@@ -38,29 +47,39 @@ def from_json_to_array(value, obj=None):
     return None
 
 
-def array_or_dict_to_binary(input, obj=None, force_contiguous=True):
+def to_json(input, obj=None, force_contiguous=True):
     if isinstance(input, dict):
         ret = {}
         for key, value in input.items():
-            ret[key] = array_to_binary(value, obj, force_contiguous)
+            ret[key] = to_json(value, obj, force_contiguous)
 
         return ret
-    else:
+    elif isinstance(input, list):
+        return [to_json(i, obj) for i in input]
+    elif isinstance(input, np.ndarray):
         return array_to_binary(input, obj, force_contiguous)
-
-
-def from_json_to_array_or_dict(input, obj=None):
-    if 'dtype' in input and 'buffer' in input and 'shape' in input:
-        return from_json_to_array(input, obj)
     else:
+        return input
+
+
+def from_json(input, obj=None):
+    # logger.info('from_json:' + pformat(input))
+
+    if isinstance(input, dict) and 'dtype' in input and 'buffer' in input and 'shape' in input:
+        return from_json_to_array(input, obj)
+    elif isinstance(input, list):
+        return [from_json(i, obj) for i in input]
+    elif isinstance(input, dict):
         ret = {}
         for key, value in input.items():
-            ret[key] = from_json_to_array(input, obj)
+            ret[key] = from_json(value, obj)
 
         return ret
+    else:
+        return input
 
 
-array_serialization = dict(to_json=array_or_dict_to_binary, from_json=from_json_to_array_or_dict)
+array_serialization = dict(to_json=to_json, from_json=from_json)
 
 
 def download(url):

@@ -9,10 +9,10 @@
  */
 module.exports = {
     create: function (config) {
-        config.visible = typeof(config.visible) !== 'undefined' ? config.visible : true;
-        config.color = typeof(config.color) !== 'undefined' ? config.color : 255;
-        config.wireframe = typeof(config.wireframe) !== 'undefined' ? config.wireframe : false;
-        config.flat_shading = typeof(config.flat_shading) !== 'undefined' ? config.flat_shading : true;
+        config.visible = typeof (config.visible) !== 'undefined' ? config.visible : true;
+        config.color = typeof (config.color) !== 'undefined' ? config.color : 255;
+        config.wireframe = typeof (config.wireframe) !== 'undefined' ? config.wireframe : false;
+        config.flat_shading = typeof (config.flat_shading) !== 'undefined' ? config.flat_shading : true;
 
         var loader = new THREE.STLLoader(),
             modelMatrix = new THREE.Matrix4(),
@@ -31,8 +31,8 @@ module.exports = {
             geometry,
             object;
 
-        if (text === null || typeof(text) === 'undefined') {
-            if (typeof(binary.buffer) !== 'undefined') {
+        if (text === null || typeof (text) === 'undefined') {
+            if (typeof (binary.buffer) !== 'undefined') {
                 geometry = loader.parse(binary.buffer);
             } else {
                 geometry = loader.parse(binary);

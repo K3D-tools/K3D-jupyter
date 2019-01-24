@@ -5,6 +5,7 @@ from .colormaps import basic_color_maps
 from .colormaps import matplotlib_color_maps
 
 from .k3d import (plot,
+                  nice_colors,
                   line,
                   marching_cubes,
                   mesh,
@@ -18,6 +19,8 @@ from .k3d import (plot,
                   vector_field,
                   vectors,
                   voxels,
+                  voxels_group,
+                  sparse_voxels,
                   volume,
                   vtk_poly_data,
                   voxels_ipydw)
