@@ -2,7 +2,7 @@
 <html>
 <head>
     <meta charset="utf-8">
-    <title>K3D snapshot viewer - {TIMESTAMP}</title>
+    <title>K3D snapshot viewer - [TIMESTAMP]</title>
     <style>
         body, html {
             background-color: #F5F5F5;
@@ -17,13 +17,13 @@
             position: absolute;
         }
     </style>
-    <script>{PAKO_JS}</script>
+    <script>[PAKO_JS]</script>
     <script>
-        window.k3dCompressed = '{K3D_SOURCE}';
+        window.k3dCompressed = '[K3D_SOURCE]';
 
         var k3dSource = pako.inflate(atob(window.k3dCompressed), {'to': 'string'});
     </script>
-    <script>{REQUIRE_JS}</script>
+    <script>[REQUIRE_JS]</script>
 </head>
 <body>
 <div id="canvasTarget"></div>
@@ -53,7 +53,7 @@
         }
 
         if (K3DInstance) {
-            var data = '{DATA}';
+            var data = '[DATA]';
 
             K3DInstance.setSnapshot(atob(data));
         }

@@ -21,7 +21,7 @@ if (typeof (sourceCode) === 'undefined') {
         }
     }
 
-    if (typeof(path) !== 'undefined') {
+    if (typeof (path) !== 'undefined') {
         fileLoader(path.replace('index.js', 'standalone.js'), function (data) {
             sourceCode = btoa(pako.deflate(data, {to: 'string', level: 9}));
         });
@@ -33,11 +33,11 @@ function getSnapshot(K3D) {
         filecontent = template,
         timestamp = new Date().toUTCString();
 
-    filecontent = filecontent.replace('{DATA}', btoa(data));
-    filecontent = filecontent.replace('{TIMESTAMP}', timestamp);
-    filecontent = filecontent.replace('{REQUIRE_JS}', requireJsSource);
-    filecontent = filecontent.replace('{PAKO_JS}', pakoJsSource);
-    filecontent = filecontent.replace('{K3D_SOURCE}', sourceCode);
+    filecontent = filecontent.replace('[DATA]', btoa(data));
+    filecontent = filecontent.replace('[TIMESTAMP]', timestamp);
+    filecontent = filecontent.replace('[REQUIRE_JS]', requireJsSource);
+    filecontent = filecontent.replace('[PAKO_JS]', pakoJsSource);
+    filecontent = filecontent.replace('[K3D_SOURCE]', sourceCode);
 
     return filecontent;
 }
