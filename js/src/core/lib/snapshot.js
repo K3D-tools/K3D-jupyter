@@ -3,7 +3,7 @@
 var FileSaver = require('file-saver');
 var pako = require('pako');
 var fileLoader = require('./helpers/fileLoader');
-var template = require('raw-loader!./snapshot.html');
+var template = require('raw-loader!./snapshot.txt');
 var requireJsSource = require('raw-loader!./../../../node_modules/requirejs/require.js');
 var pakoJsSource = require('raw-loader!./../../../node_modules/pako/dist/pako_inflate.min.js');
 
