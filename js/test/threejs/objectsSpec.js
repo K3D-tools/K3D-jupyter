@@ -655,6 +655,21 @@ require(['k3d'], function (lib) {
             });
         });
 
+        it('should draw voxels with opacity and without grid', function (done) {
+            var self = this;
+
+            jsonLoader('http://localhost:9001/samples/voxels_opacity.json', function (json) {
+
+                self.K3D.setGridVisible(false);
+
+                self.K3D.addFrameUpdateListener('after', function () {
+                    TestHelpers.compareCanvasWithExpectedImage(self.K3D, 'voxels_opacity_without_grid', RESAMBLEThreshold, true, done);
+                }, true);
+
+                self.K3D.load(json);
+            });
+        });
+
         it('should draw voxels (not cube)', function (done) {
             var self = this;
 
