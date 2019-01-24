@@ -149,36 +149,34 @@ function generateGreedyVoxelMesh(chunk, colorMap, voxelSize, calculate_outlines)
             var maskFilled = false;
 
             // compute last layer only if we are on edge of whole data
-            if (!(x[d] === ending[d] - 1 && ending[d] !== dims[d])) {
-                for (x[v] = chunk.offset[v], n = 0; x[v] < extended_ending[v]; x[v]++) {
-                    x[u] = chunk.offset[u];
+            for (x[v] = chunk.offset[v], n = 0; x[v] < extended_ending[v]; x[v]++) {
+                x[u] = chunk.offset[u];
 
-                    idx = x[0] + width * (x[1] + height * x[2]);
+                idx = x[0] + width * (x[1] + height * x[2]);
 
-                    for (; x[u] < extended_ending[u]; x[u]++, n++, idx += q[u]) {
-                        if (voxelsIsArray) {
-                            a = (0 <= x[d] ? chunk.voxels[idx] : -1);
-                            b = (x[d] < dims[d] - 1 ? chunk.voxels[idx + q[d]] : -1);
-                        } else {
-                            a = (0 <= x[d] ? chunk.voxels.get(x[0], x[1], x[2]) : -1);
-                            b = (x[d] < dims[d] - 1 ?
-                                chunk.voxels.get(x[0] + qxyz[d][0], x[1] + qxyz[d][1], x[2] + qxyz[d][2])
-                                : -1);
+                for (; x[u] < extended_ending[u]; x[u]++, n++, idx += q[u]) {
+                    if (voxelsIsArray) {
+                        a = (0 <= x[d] ? chunk.voxels[idx] : -1);
+                        b = (x[d] < dims[d] - 1 ? chunk.voxels[idx + q[d]] : -1);
+                    } else {
+                        a = (0 <= x[d] ? chunk.voxels.get(x[0], x[1], x[2]) : -1);
+                        b = (x[d] < dims[d] - 1 ?
+                            chunk.voxels.get(x[0] + qxyz[d][0], x[1] + qxyz[d][1], x[2] + qxyz[d][2])
+                            : -1);
+                    }
 
-                            if (x[d] === ending[d] - 1 && b >= 0) {
-                                continue;
-                            }
-                        }
+                    if (x[d] === ending[d] - 1 && b >= 0) {
+                        continue;
+                    }
 
-                        if (a === b || (a > 0 && b > 0)) {
-                            mask[n] = 0;
-                        } else if (a > 0) {
-                            mask[n] = a;
-                            maskFilled = true;
-                        } else {
-                            mask[n] = b > 0 ? -b : 0;
-                            maskFilled |= b > 0;
-                        }
+                    if (a === b || (a > 0 && b > 0)) {
+                        mask[n] = 0;
+                    } else if (a > 0) {
+                        mask[n] = a;
+                        maskFilled = true;
+                    } else {
+                        mask[n] = b > 0 ? -b : 0;
+                        maskFilled |= b > 0;
                     }
                 }
             }
