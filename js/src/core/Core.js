@@ -118,6 +118,7 @@ function K3D(provider, targetDOMNode, parameters) {
             voxelPaintColor: 0,
             cameraAutoFit: true,
             gridAutoFit: true,
+            gridVisible: true,
             grid: [-1, -1, -1, 1, 1, 1],
             antialias: true,
             screenshotScale: 5.0,
@@ -237,6 +238,23 @@ function K3D(provider, targetDOMNode, parameters) {
                 controller.updateDisplay();
             }
         });
+    };
+
+    /**
+     * Set grid auto fit mode of K3D
+     * @memberof K3D.Core
+     * @param {String} mode
+     */
+    this.setGridVisible = function (state) {
+        self.parameters.gridVisible = state;
+        GUI.controls.__controllers.forEach(function (controller) {
+            if (controller.property === 'gridVisible') {
+                controller.updateDisplay();
+            }
+        });
+
+        self.refreshGrid();
+        self.render();
     };
 
     /**
@@ -561,7 +579,7 @@ function K3D(provider, targetDOMNode, parameters) {
     currentWindow.addEventListener('resize', this.resizeHelper, false);
 
     // load toolbars
-    this.gui = new dat.GUI({width: 220, autoPlace: false, scrollable: true, closeOnTop : true});
+    this.gui = new dat.GUI({width: 220, autoPlace: false, scrollable: true, closeOnTop: true});
 
     var guiContainer = currentWindow.document.createElement('div');
     guiContainer.className = 'dg';
@@ -593,7 +611,11 @@ function K3D(provider, targetDOMNode, parameters) {
     }
 
     GUI.controls.add(self.parameters, 'cameraAutoFit').onChange(changeParameters.bind(this, 'camera_auto_fit'));
-    GUI.controls.add(self.parameters, 'gridAutoFit').onChange(changeParameters.bind(this, 'grid_auto_fit'));
+    GUI.controls.add(self.parameters, 'gridAutoFit').onChange(function (value) {
+        self.setGridVisible(value);
+        changeParameters.call(self, 'grid_auto_fit', value);
+    });
+    GUI.controls.add(self.parameters, 'gridVisible').onChange(changeParameters.bind(this, 'grid_visible'));
     viewModeGUI(GUI.controls, this);
     GUI.controls.add(self.parameters, 'voxelPaintColor').step(1).min(0).max(255).name('voxelColor').onChange(
         changeParameters.bind(this, 'voxel_paint_color'));
@@ -626,6 +648,9 @@ function K3D(provider, targetDOMNode, parameters) {
     }
 
     self.setTime(self.parameters.time);
+    self.setGridAutoFit(self.parameters.gridAutoFit);
+    self.setGridVisible(self.parameters.gridVisible);
+    self.setCameraAutoFit(self.parameters.cameraAutoFit);
     self.setClippingPlanes(self.parameters.clippingPlanes);
     self.setDirectionalLightingIntensity(self.parameters.lighting);
     world.setCameraToFitScene(true);

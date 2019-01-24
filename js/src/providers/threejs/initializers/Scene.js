@@ -364,7 +364,7 @@ function rebuildSceneData(K3D, grids, force) {
     return promises;
 }
 
-function refreshGrid(grids) {
+function refreshGrid(K3D, grids) {
     /*jshint validthis:true */
     var visiblePlanes = [],
         cameraDirection = new THREE.Vector3();
@@ -375,8 +375,8 @@ function refreshGrid(grids) {
         var dot1 = grids.planes[axis][0].normal.dot(cameraDirection),
             dot2 = grids.planes[axis][1].normal.dot(cameraDirection);
 
-        grids.planes[axis][0].obj.visible = dot1 <= dot2;
-        grids.planes[axis][1].obj.visible = dot1 > dot2;
+        grids.planes[axis][0].obj.visible = dot1 <= dot2 && K3D.parameters.gridVisible;
+        grids.planes[axis][1].obj.visible = dot1 > dot2 && K3D.parameters.gridVisible;
 
         if (grids.planes[axis][0].obj.visible) {
             visiblePlanes.push('+' + axis);
@@ -392,7 +392,7 @@ function refreshGrid(grids) {
             shouldBeVisible = _.intersection(axes, visiblePlanes).length === 1;
 
         grids.labelsOnEdges[key].labels.forEach(function (label) {
-            if (shouldBeVisible) {
+            if (shouldBeVisible && K3D.parameters.gridVisible) {
                 label.show();
             } else {
                 label.hide();
@@ -513,7 +513,7 @@ module.exports = {
 
         K3D.rebuildSceneData = rebuildSceneData.bind(this, K3D, grids);
         K3D.getSceneBoundingBox = getSceneBoundingBox.bind(this);
-        K3D.refreshGrid = refreshGrid.bind(this, grids);
+        K3D.refreshGrid = refreshGrid.bind(this, K3D, grids);
 
         Promise.all(K3D.rebuildSceneData()).then(function () {
             K3D.refreshGrid();
