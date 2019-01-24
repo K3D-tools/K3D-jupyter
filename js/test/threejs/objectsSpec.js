@@ -1,4 +1,4 @@
-require(['K3D'], function (lib) {
+require(['k3d'], function (lib) {
     var K3D = lib.K3D;
     var ThreeJsProvider = lib.ThreeJsProvider;
     var jsonLoader = TestHelpers.jsonLoader;
@@ -66,6 +66,21 @@ require(['K3D'], function (lib) {
 
                 self.K3D.addFrameUpdateListener('after', function () {
                     TestHelpers.compareCanvasWithExpectedImage(self.K3D, 'horse_with_colors', RESAMBLEThreshold,
+                        true, done);
+                }, true);
+
+                self.K3D.load(json);
+            });
+        });
+
+        it('Points-based horse model with colors and opacity should be drawn', function (done) {
+
+            var self = this;
+
+            jsonLoader('http://localhost:9001/samples/horse_with_colors_opacity.json', function (json) {
+
+                self.K3D.addFrameUpdateListener('after', function () {
+                    TestHelpers.compareCanvasWithExpectedImage(self.K3D, 'horse_with_colors_opacity', RESAMBLEThreshold,
                         true, done);
                 }, true);
 
@@ -627,6 +642,34 @@ require(['K3D'], function (lib) {
             });
         });
 
+        it('should draw voxels with opacity', function (done) {
+            var self = this;
+
+            jsonLoader('http://localhost:9001/samples/voxels_opacity.json', function (json) {
+
+                self.K3D.addFrameUpdateListener('after', function () {
+                    TestHelpers.compareCanvasWithExpectedImage(self.K3D, 'voxels_opacity', RESAMBLEThreshold, true, done);
+                }, true);
+
+                self.K3D.load(json);
+            });
+        });
+
+        it('should draw voxels with opacity and without grid', function (done) {
+            var self = this;
+
+            jsonLoader('http://localhost:9001/samples/voxels_opacity.json', function (json) {
+
+                self.K3D.setGridVisible(false);
+
+                self.K3D.addFrameUpdateListener('after', function () {
+                    TestHelpers.compareCanvasWithExpectedImage(self.K3D, 'voxels_opacity_without_grid', RESAMBLEThreshold, true, done);
+                }, true);
+
+                self.K3D.load(json);
+            });
+        });
+
         it('should draw voxels (not cube)', function (done) {
             var self = this;
 
@@ -665,6 +708,32 @@ require(['K3D'], function (lib) {
 
                 self.K3D.addFrameUpdateListener('after', function () {
                     TestHelpers.compareCanvasWithExpectedImage(self.K3D, 'voxels_clipping_planes',
+                        RESAMBLEThreshold, true, done);
+                }, true);
+
+                self.K3D.load(json);
+            });
+        });
+
+        it('should draw sparse voxels', function (done) {
+            var self = this;
+
+            jsonLoader('http://localhost:9001/samples/voxels_sparse.json', function (json) {
+                self.K3D.addFrameUpdateListener('after', function () {
+                    TestHelpers.compareCanvasWithExpectedImage(self.K3D, 'voxels_sparse',
+                        RESAMBLEThreshold, true, done);
+                }, true);
+
+                self.K3D.load(json);
+            });
+        });
+
+        it('should draw voxels_group', function (done) {
+            var self = this;
+
+            jsonLoader('http://localhost:9001/samples/voxels_group.json', function (json) {
+                self.K3D.addFrameUpdateListener('after', function () {
+                    TestHelpers.compareCanvasWithExpectedImage(self.K3D, 'voxels_group',
                         RESAMBLEThreshold, true, done);
                 }, true);
 

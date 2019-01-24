@@ -1,7 +1,6 @@
 'use strict';
 
 var widgets = require('@jupyter-widgets/base'),
-    _ = require('lodash'),
     K3D = require('./core/Core'),
     serialize = require('./core/lib/helpers/serialize'),
     ThreeJsProvider = require('./providers/threejs/provider'),
@@ -30,7 +29,7 @@ ObjectModel = widgets.WidgetModel.extend({
             if (plot.model.get('object_ids').indexOf(this.get('id')) !== -1) {
                 cb(plot, plot.K3DInstance.getObjectById(this.get('id')));
             }
-        }, this)
+        }, this);
     },
 
     initialize: function () {
@@ -40,8 +39,17 @@ ObjectModel = widgets.WidgetModel.extend({
 
         this.on('change', this._change, this);
         this.on('msg:custom', function (msg) {
+            var obj;
+
             if (msg.msg_type === 'fetch') {
-                this.save(msg.field, this.get(msg.field));
+                obj = this.get(msg.field);
+
+                // hack because of https://github.com/jashkenas/underscore/issues/2692
+                if (_.isObject(obj)) {
+                    obj.t = Math.random();
+                }
+
+                this.save(msg.field, obj);
             }
 
             if (msg.msg_type === 'shadow_map_update' && this.get('type') === 'Volume') {
@@ -62,19 +70,22 @@ ObjectModel = widgets.WidgetModel.extend({
     }
 }, {
     serializers: _.extend({
-        model_matrix: serialize.array_or_json,
-        positions: serialize.array_or_json,
-        scalar_field: serialize.array_or_json,
-        color_map: serialize.array_or_json,
-        attribute: serialize.array_or_json,
-        vertices: serialize.array_or_json,
-        indices: serialize.array_or_json,
-        colors: serialize.array_or_json,
-        origins: serialize.array_or_json,
-        vectors: serialize.array_or_json,
-        heights: serialize.array_or_json,
-        voxels: serialize.array_or_json,
-        volume: serialize.array_or_json
+        model_matrix: serialize,
+        positions: serialize,
+        scalar_field: serialize,
+        color_map: serialize,
+        attribute: serialize,
+        vertices: serialize,
+        indices: serialize,
+        colors: serialize,
+        origins: serialize,
+        vectors: serialize,
+        heights: serialize,
+        voxels: serialize,
+        voxels_group: serialize,
+        sparse_voxels: serialize,
+        space_size: serialize,
+        volume: serialize
     }, widgets.WidgetModel.serializers)
 });
 
@@ -94,13 +105,14 @@ PlotModel = widgets.DOMWidgetModel.extend({
 // Custom View. Renders the widget model.
 PlotView = widgets.DOMWidgetView.extend({
     render: function () {
-        var containerEnvelope = window.document.createElement('div');
+        var containerEnvelope = window.document.createElement('div'),
+            container = window.document.createElement('div');
+
         containerEnvelope.style.cssText = [
             'height:' + this.model.get('height') + 'px',
             'position: relative'
         ].join(';');
 
-        var container = window.document.createElement('div');
         container.style.cssText = [
             'width: 100%',
             'height: 100%',
@@ -135,15 +147,15 @@ PlotView = widgets.DOMWidgetView.extend({
                     .then(function (canvas) {
                         var data = canvas.toDataURL().split(',')[1];
 
-                        // todo
-                        //model.save('screenshot', buffer.base64ToArrayBuffer(data));
                         model.save('screenshot', data);
                     });
             }
         }, this);
         this.model.on('change:camera_auto_fit', this._setCameraAutoFit, this);
         this.model.on('change:lighting', this._setDirectionalLightingIntensity, this);
+        this.model.on('change:time', this._setTime, this);
         this.model.on('change:grid_auto_fit', this._setGridAutoFit, this);
+        this.model.on('change:grid_visible', this._setGridVisible, this);
         this.model.on('change:fps_meter', this._setFpsMeter, this);
         this.model.on('change:screenshot_scale', this._setScreenshotScale, this);
         this.model.on('change:voxel_paint_color', this._setVoxelPaintColor, this);
@@ -162,6 +174,7 @@ PlotView = widgets.DOMWidgetView.extend({
                 grid: this.model.get('grid')
             });
         } catch (e) {
+            console.log(e);
             return;
         }
 
@@ -209,12 +222,20 @@ PlotView = widgets.DOMWidgetView.extend({
         this.K3DInstance.setDirectionalLightingIntensity(this.model.get('lighting'));
     },
 
+    _setTime: function () {
+        this.K3DInstance.setTime(this.model.get('time'));
+    },
+
     _setCameraAutoFit: function () {
         this.K3DInstance.setCameraAutoFit(this.model.get('camera_auto_fit'));
     },
 
     _setGridAutoFit: function () {
         this.K3DInstance.setGridAutoFit(this.model.get('grid_auto_fit'));
+    },
+
+    _setGridVisible: function () {
+        this.K3DInstance.setGridVisible(this.model.get('grid_visible'));
     },
 
     _setFpsMeter: function () {
@@ -346,5 +367,7 @@ module.exports = {
     PlotModel: PlotModel,
     PlotView: PlotView,
     ObjectModel: ObjectModel,
-    ObjectView: ObjectView
+    ObjectView: ObjectView,
+    K3D: K3D,
+    ThreeJsProvider: ThreeJsProvider
 };

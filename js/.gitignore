@@ -3,3 +3,4 @@
 /dev
 /doc
 /node_modules
+dist/webpack-statistics.html

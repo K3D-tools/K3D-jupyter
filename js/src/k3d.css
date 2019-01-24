@@ -16,7 +16,7 @@
 }
 
 .dg.main {
-    height: inherit;
+    max-height: inherit;
 }
 
 .dg.main .close-button.close-bottom {

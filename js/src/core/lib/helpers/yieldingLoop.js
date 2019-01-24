@@ -10,7 +10,7 @@ module.exports = function (count, chunksize, callback, finished) {
         if (i < count) {
             setTimeout(chunk, 0);
         } else {
-            if (typeof(finished) !== 'undefined') {
+            if (typeof (finished) !== 'undefined') {
                 finished.call(null);
             }
         }

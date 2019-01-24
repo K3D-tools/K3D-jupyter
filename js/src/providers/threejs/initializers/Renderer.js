@@ -25,9 +25,10 @@ function handleListeners(K3D, on, listener) {
  */
 module.exports = function (K3D) {
 
-    var self = this, loop = false;
-    var canvas = document.createElement('canvas');
-    var context = canvas.getContext('webgl2');
+    var self = this, loop = false,
+        canvas = document.createElement('canvas'),
+        context = canvas.getContext('webgl2'),
+        gl, debugInfo;
 
     self.renderer = new THREE.WebGLRenderer({
         antialias: K3D.parameters.antialias,
@@ -38,9 +39,9 @@ module.exports = function (K3D) {
         context: context
     });
 
-    var gl = self.renderer.context;
+    gl = self.renderer.context;
 
-    var debugInfo = gl.getExtension('WEBGL_debug_renderer_info');
+    debugInfo = gl.getExtension('WEBGL_debug_renderer_info');
     console.log('K3D: (UNMASKED_VENDOR_WEBGL)', gl.getParameter(debugInfo.UNMASKED_VENDOR_WEBGL));
     console.log('K3D: (UNMASKED_RENDERER_WEBGL)', gl.getParameter(debugInfo.UNMASKED_RENDERER_WEBGL));
 
@@ -89,15 +90,16 @@ module.exports = function (K3D) {
     };
 
     this.renderOffScreen = function (width, height) {
+        var ssaaRenderPass,
+            rt = new THREE.WebGLRenderTarget(width, height),
+            grid, scene;
+
         function getArrayFromRenderTarget(rt) {
             var array = new Uint8Array(width * height * 4);
 
             self.renderer.readRenderTargetPixels(rt, 0, 0, width, height, array);
             return new Uint8ClampedArray(array, width, height);
         }
-
-        var ssaaRenderPass;
-        var rt = new THREE.WebGLRenderTarget(width, height);
 
         self.renderer.clearTarget(rt, true, true, true);
         self.renderer.clippingPlanes = [];
@@ -107,7 +109,7 @@ module.exports = function (K3D) {
         ssaaRenderPass.setSize(width, height);
         ssaaRenderPass.render(self.renderer, rt, rt);
         ssaaRenderPass.dispose();
-        var grid = getArrayFromRenderTarget(rt);
+        grid = getArrayFromRenderTarget(rt);
 
         K3D.parameters.clippingPlanes.forEach(function (plane) {
             self.renderer.clippingPlanes.push(new THREE.Plane(new THREE.Vector3().fromArray(plane), plane[3]));
@@ -118,7 +120,7 @@ module.exports = function (K3D) {
         ssaaRenderPass.setSize(width, height);
         ssaaRenderPass.render(self.renderer, rt, rt);
         ssaaRenderPass.dispose();
-        var scene = getArrayFromRenderTarget(rt);
+        scene = getArrayFromRenderTarget(rt);
 
 
         rt.dispose();

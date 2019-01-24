@@ -8,7 +8,7 @@ from distutils import log
 
 from setupbase import (
     create_cmdclass, install_npm, combine_commands,
-    ensure_targets
+    ensure_targets, skip_npm
 )
 
 here = os.path.dirname(os.path.abspath(__file__))
@@ -22,11 +22,15 @@ LONG_DESCRIPTION = 'Jupyter notebook extension for 3D visualization.'
 
 # Representative files that should exist after a successful build
 targets = [
+    os.path.join(here, 'k3d', 'static', 'standalone.js'),
     os.path.join(here, 'k3d', 'static', 'extension.js'),
     os.path.join(here, 'k3d', 'static', 'index.js')
 ]
 
-cmdclass = create_cmdclass(('jsdeps',))
+cmdclass = create_cmdclass(
+    wrappers=[] if skip_npm else ['jsdeps'],
+    data_dirs=[]
+)
 cmdclass['jsdeps'] = combine_commands(
     install_npm(node_root),
     ensure_targets(targets)
@@ -44,9 +48,21 @@ setup_args = {
     'long_description': LONG_DESCRIPTION,
     'include_package_data': True,
     'data_files': [
-        ('share/jupyter/nbextensions/k3d', [
-            'k3d/static/*'
-        ]),
+        (
+            'share/jupyter/nbextensions/k3d',
+            [
+                'k3d/static/extension.js',
+                'k3d/static/standalone.js',
+                'k3d/static/index.js',
+                'k3d/static/index.js.map',
+            ]
+        ),
+        (
+            'etc/jupyter/nbconfig/notebook.d',
+            [
+                'k3d/k3d_extension.json',
+            ]
+        ),
     ],
     'install_requires': [
         'ipywidgets>=7.0.1',
@@ -81,4 +97,5 @@ setup_args = {
     ],
 }
 
-setup(**setup_args)
+if __name__ == '__main__':
+    setup(**setup_args)

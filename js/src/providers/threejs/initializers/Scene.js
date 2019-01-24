@@ -1,13 +1,9 @@
 'use strict';
 
-var _ = require('lodash'),
-    Text = require('./../objects/Text'),
+var Text = require('./../objects/Text'),
     MeshLine = require('./../helpers/THREE.MeshLine'),
-    viewModes = require('./../../../core/lib/viewMode').viewModes;
-
-function pow10ceil(x) {
-    return Math.pow(10, Math.ceil(Math.log10(x)));
-}
+    viewModes = require('./../../../core/lib/viewMode').viewModes,
+    pow10ceil = require('./../../../core/lib/helpers/math').pow10ceil;
 
 function ensureTwoTicksOnGrids(sceneBoundingBox, majorScale) {
     var size = sceneBoundingBox.getSize(new THREE.Vector3());
@@ -29,8 +25,8 @@ function getSceneBoundingBox() {
         objectBoundingBox;
 
     this.K3DObjects.traverse(function (object) {
-        var isK3DObject = false;
-        var ref = object;
+        var isK3DObject = false,
+            ref = object;
 
         while (ref.parent) {
             if (ref.K3DIdentifier) {
@@ -42,7 +38,7 @@ function getSceneBoundingBox() {
         }
 
         if (isK3DObject &&
-            typeof(object.position.z) !== 'undefined' &&
+            typeof (object.position.z) !== 'undefined' &&
             (object.geometry || object.boundingBox)) {
 
             if (object.geometry && object.geometry.boundingBox) {
@@ -256,7 +252,7 @@ function rebuildSceneData(K3D, grids, force) {
                 p = grids.labelsOnEdges[key].p[0].clone().add(deltaPosition.clone().multiplyScalar(j));
 
 
-                label = new Text({
+                label = new Text.create({
                     'position': p.toArray(),
                     'reference_point': 'cc',
                     'color': 0x444444,
@@ -286,7 +282,7 @@ function rebuildSceneData(K3D, grids, force) {
                 (new THREE.Vector3()).subVectors(middlePosition, middleValue).multiplyScalar(2.0)
             );
 
-            axisLabel = new Text({
+            axisLabel = new Text.create({
                 'position': middle.toArray(),
                 'reference_point': 'cc',
                 'color': 0x444444,
@@ -305,6 +301,16 @@ function rebuildSceneData(K3D, grids, force) {
                 var vertices = [], widths = [], colors = [],
                     iterableAxes = ['x', 'y', 'z'].filter(function (val) {
                         return val !== axis;
+                    }),
+                    line = new MeshLine.MeshLine(),
+                    material = new MeshLine.MeshLineMaterial({
+                        color: new THREE.Color(1.0, 1.0, 1.0),
+                        opacity: 0.75,
+                        sizeAttenuation: true,
+                        transparent: true,
+                        lineWidth: minorScale * 0.05,
+                        resolution: new THREE.Vector2(K3D.getWorld().width, K3D.getWorld().height),
+                        side: THREE.DoubleSide
                     });
 
                 iterableAxes.forEach(function (iterateAxis) {
@@ -330,17 +336,6 @@ function rebuildSceneData(K3D, grids, force) {
                     }
                 }, this);
 
-                var line = new MeshLine.MeshLine();
-                var material = new MeshLine.MeshLineMaterial({
-                    color: new THREE.Color(1.0, 1.0, 1.0),
-                    opacity: 0.75,
-                    sizeAttenuation: true,
-                    transparent: true,
-                    lineWidth: minorScale * 0.05,
-                    resolution: new THREE.Vector2(K3D.getWorld().width, K3D.getWorld().height),
-                    side: THREE.DoubleSide
-                });
-
                 line.setGeometry(new Float32Array(vertices), true, widths, colors);
                 line.geometry.computeBoundingSphere();
                 line.geometry.computeBoundingBox();
@@ -363,22 +358,25 @@ function rebuildSceneData(K3D, grids, force) {
     fullSceneDiameter = fullSceneBoundingBox.getSize(new THREE.Vector3()).length();
 
     this.camera.far = fullSceneDiameter * 10;
-    this.camera.near = fullSceneDiameter * 0.001;
+    this.camera.near = fullSceneDiameter * 0.0001;
     this.camera.updateProjectionMatrix();
 
     return promises;
 }
 
-function refreshGrid(grids) {
+function refreshGrid(K3D, grids) {
     /*jshint validthis:true */
-    var visiblePlanes = [];
+    var visiblePlanes = [],
+        cameraDirection = new THREE.Vector3();
+
+    this.camera.getWorldDirection(cameraDirection);
 
     Object.keys(grids.planes).forEach(function (axis) {
-        var dot1 = grids.planes[axis][0].normal.dot(this.camera.position.clone().sub(grids.planes[axis][0].p1)),
-            dot2 = grids.planes[axis][1].normal.dot(this.camera.position.clone().sub(grids.planes[axis][1].p1));
+        var dot1 = grids.planes[axis][0].normal.dot(cameraDirection),
+            dot2 = grids.planes[axis][1].normal.dot(cameraDirection);
 
-        grids.planes[axis][0].obj.visible = dot1 >= dot2;
-        grids.planes[axis][1].obj.visible = dot1 < dot2;
+        grids.planes[axis][0].obj.visible = dot1 <= dot2 && K3D.parameters.gridVisible;
+        grids.planes[axis][1].obj.visible = dot1 > dot2 && K3D.parameters.gridVisible;
 
         if (grids.planes[axis][0].obj.visible) {
             visiblePlanes.push('+' + axis);
@@ -394,7 +392,7 @@ function refreshGrid(grids) {
             shouldBeVisible = _.intersection(axes, visiblePlanes).length === 1;
 
         grids.labelsOnEdges[key].labels.forEach(function (label) {
-            if (shouldBeVisible) {
+            if (shouldBeVisible && K3D.parameters.gridVisible) {
                 label.show();
             } else {
                 label.hide();
@@ -515,7 +513,7 @@ module.exports = {
 
         K3D.rebuildSceneData = rebuildSceneData.bind(this, K3D, grids);
         K3D.getSceneBoundingBox = getSceneBoundingBox.bind(this);
-        K3D.refreshGrid = refreshGrid.bind(this, grids);
+        K3D.refreshGrid = refreshGrid.bind(this, K3D, grids);
 
         Promise.all(K3D.rebuildSceneData()).then(function () {
             K3D.refreshGrid();

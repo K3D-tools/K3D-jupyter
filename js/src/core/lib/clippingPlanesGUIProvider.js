@@ -29,11 +29,11 @@ function clippingPlanesGUIProvider(K3D, clippingPlanesGUI) {
         dispatch();
     }
 
-    if (typeof(K3D.clippingPlanes_count) === 'undefined') {
+    if (typeof (K3D.clippingPlanes_count) === 'undefined') {
         K3D.clippingPlanes_count = 1;
     }
 
-    if (typeof(K3D.clippingPlanes_map) === 'undefined') {
+    if (typeof (K3D.clippingPlanes_map) === 'undefined') {
         K3D.clippingPlanes_map = {};
 
         K3D.clippingPlanes_map.addNew = clippingPlanesGUI.add({
@@ -65,7 +65,7 @@ function clippingPlanesGUIProvider(K3D, clippingPlanesGUI) {
     });
 
     K3D.parameters.clippingPlanes.forEach(function (plane, i) {
-        if (typeof(K3D.clippingPlanes_map[i]) === 'undefined') {
+        if (typeof (K3D.clippingPlanes_map[i]) === 'undefined') {
             var current = K3D.clippingPlanes_map[i] = {
                 folder: clippingPlanesGUI.addFolder('Clipping Plane #' + (K3D.clippingPlanes_count++)),
                 obj: {
@@ -93,7 +93,7 @@ function clippingPlanesGUIProvider(K3D, clippingPlanesGUI) {
                             new THREE.Vector3(1, -1, -1).unproject(camera)
                         );
 
-                        plane.constant -= camera.near * 200.0;
+                        plane.constant -= camera.near * 2000.0;
 
                         current.obj.x = plane.normal.x;
                         current.obj.y = plane.normal.y;

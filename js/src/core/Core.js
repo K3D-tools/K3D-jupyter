@@ -5,7 +5,6 @@ var viewModes = require('./lib/viewMode').viewModes,
     loader = require('./lib/Loader'),
     msgpack = require('msgpack-lite'),
     pako = require('pako'),
-    _ = require('lodash'),
     screenshot = require('./lib/screenshot'),
     snapshot = require('./lib/snapshot'),
     dat = require('dat.gui'),
@@ -14,14 +13,8 @@ var viewModes = require('./lib/viewMode').viewModes,
     fullscreen = require('./lib/fullscreen'),
     viewModeGUI = require('./lib/viewMode').viewModeGUI,
     objectGUIProvider = require('./lib/objectsGUIprovider'),
-    clippingPlanesGUIProvider = require('./lib/clippingPlanesGUIProvider');
-
-function changeParameters(key, value) {
-    this.dispatch(this.events.PARAMETERS_CHANGE, {
-        key: key,
-        value: value
-    });
-}
+    clippingPlanesGUIProvider = require('./lib/clippingPlanesGUIProvider'),
+    timeSeries = require('./lib/timeSeries');
 
 /**
  * @constructor Core
@@ -67,6 +60,13 @@ function K3D(provider, targetDOMNode, parameters) {
             objects: null
         };
 
+    function changeParameters(key, value) {
+        dispatch(self.events.PARAMETERS_CHANGE, {
+            key: key,
+            value: value
+        });
+    }
+
     require('style-loader?{attrs:{id: "k3d-style"}}!css-loader!./../k3d.css');
 
     if (!(this instanceof (K3D))) {
@@ -83,7 +83,8 @@ function K3D(provider, targetDOMNode, parameters) {
 
     function refreshAfterObjectsChange() {
         self.getWorld().setCameraToFitScene();
-        Promise.all(self.rebuildSceneData()).then(self.render.bind(this, null));
+        timeSeries.refreshTimeScale(self, GUI);
+        Promise.all(self.rebuildSceneData()).then(self.render);
     }
 
     this.render = function () {
@@ -92,7 +93,7 @@ function K3D(provider, targetDOMNode, parameters) {
 
     this.resizeHelper = function () {
         if (!self.disabling) {
-            self.gui.domElement.parentNode.style.height = world.targetDOMNode.offsetHeight + 'px';
+            self.gui.domElement.parentNode.style['max-height'] = world.targetDOMNode.offsetHeight + 'px';
             self.Provider.Helpers.resizeListener(world);
             self.render();
         }
@@ -117,6 +118,7 @@ function K3D(provider, targetDOMNode, parameters) {
             voxelPaintColor: 0,
             cameraAutoFit: true,
             gridAutoFit: true,
+            gridVisible: true,
             grid: [-1, -1, -1, 1, 1, 1],
             antialias: true,
             screenshotScale: 5.0,
@@ -124,6 +126,8 @@ function K3D(provider, targetDOMNode, parameters) {
             clippingPlanes: [],
             fpsMeter: false,
             lighting: 1.5,
+            time: 0.0,
+            fps: 25.0,
             guiVersion: require('./../../package.json').version
         },
         parameters || {}
@@ -132,8 +136,10 @@ function K3D(provider, targetDOMNode, parameters) {
     this.autoRendering = false;
 
     this.setFpsMeter = function (state) {
+        var Stats;
+
         if (self.parameters.fpsMeter === false) {
-            var Stats = require('stats.js');
+            Stats = require('stats.js');
             fpsMeter = new Stats();
 
             fpsMeter.dom.style.position = 'absolute';
@@ -232,6 +238,23 @@ function K3D(provider, targetDOMNode, parameters) {
                 controller.updateDisplay();
             }
         });
+    };
+
+    /**
+     * Set grid auto fit mode of K3D
+     * @memberof K3D.Core
+     * @param {String} mode
+     */
+    this.setGridVisible = function (state) {
+        self.parameters.gridVisible = state;
+        GUI.controls.__controllers.forEach(function (controller) {
+            if (controller.property === 'gridVisible') {
+                controller.updateDisplay();
+            }
+        });
+
+        self.refreshGrid();
+        self.render();
     };
 
     /**
@@ -389,6 +412,33 @@ function K3D(provider, targetDOMNode, parameters) {
         refreshAfterObjectsChange();
     };
 
+    /**
+     * Set time of the scene. Used by TimeSeries properties
+     * @memberof K3D.Core
+     * @public
+     * @param {Number} time time in seconds
+     */
+    this.setTime = function (time) {
+        var timeSeriesInfo = timeSeries.getObjectsWithTimeSeriesAndMinMax(self);
+
+        self.parameters.time = Math.min(Math.max(time, timeSeriesInfo.min), timeSeriesInfo.max);
+
+        var promises = timeSeriesInfo.objects.reduce(function (previousValue, obj) {
+            previousValue.push(self.reload(obj, true));
+
+            return previousValue;
+        }, []);
+
+        Promise.all(promises).then(function () {
+            refreshAfterObjectsChange();
+        });
+
+        GUI.controls.__controllers.forEach(function (controller) {
+            if (controller.property === 'time') {
+                controller.updateDisplay();
+            }
+        });
+    };
 
     /**
      * A convenient shortcut for doing K3D.Loader(K3DInstance, json);
@@ -415,14 +465,15 @@ function K3D(provider, targetDOMNode, parameters) {
      * Reload object in current world
      * @memberof K3D.Core
      * @param {Object} json
+     * @param {Bool} suppressRefreshAfterObjects
      */
-    this.reload = function (json) {
+    this.reload = function (json, suppressRefreshAfterObjects) {
         if (json.visible === false) {
             try {
                 removeObjectFromScene(json.id);
                 refreshAfterObjectsChange();
             } catch (e) {
-
+                console.log(e);
             }
 
             return;
@@ -435,7 +486,10 @@ function K3D(provider, targetDOMNode, parameters) {
             });
 
             dispatch(self.events.OBJECT_LOADED);
-            refreshAfterObjectsChange();
+
+            if (suppressRefreshAfterObjects !== true) {
+                refreshAfterObjectsChange();
+            }
 
             return objects;
         });
@@ -467,7 +521,7 @@ function K3D(provider, targetDOMNode, parameters) {
      * @returns {String|undefined}
      */
     this.getSnapshot = function () {
-        return pako.deflate(msgpack.encode(_.values(world.ObjectsListJson)), {to: 'string'});
+        return pako.deflate(msgpack.encode(_.values(world.ObjectsListJson)), {to: 'string', level: 9});
     };
 
     /**
@@ -525,7 +579,7 @@ function K3D(provider, targetDOMNode, parameters) {
     currentWindow.addEventListener('resize', this.resizeHelper, false);
 
     // load toolbars
-    this.gui = new dat.GUI({width: 220, autoPlace: false, scrollable: true});
+    this.gui = new dat.GUI({width: 220, autoPlace: false, scrollable: true, closeOnTop: true});
 
     var guiContainer = currentWindow.document.createElement('div');
     guiContainer.className = 'dg';
@@ -535,7 +589,7 @@ function K3D(provider, targetDOMNode, parameters) {
         'top: 0',
         'right: 0',
         'z-index: 20',
-        'height: ' + targetDOMNode.clientHeight + 'px'
+        'max-height: ' + targetDOMNode.clientHeight + 'px'
     ].join(';');
     world.targetDOMNode.appendChild(guiContainer);
     guiContainer.appendChild(this.gui.domElement);
@@ -557,7 +611,11 @@ function K3D(provider, targetDOMNode, parameters) {
     }
 
     GUI.controls.add(self.parameters, 'cameraAutoFit').onChange(changeParameters.bind(this, 'camera_auto_fit'));
-    GUI.controls.add(self.parameters, 'gridAutoFit').onChange(changeParameters.bind(this, 'grid_auto_fit'));
+    GUI.controls.add(self.parameters, 'gridAutoFit').onChange(function (value) {
+        self.setGridVisible(value);
+        changeParameters.call(self, 'grid_auto_fit', value);
+    });
+    GUI.controls.add(self.parameters, 'gridVisible').onChange(changeParameters.bind(this, 'grid_visible'));
     viewModeGUI(GUI.controls, this);
     GUI.controls.add(self.parameters, 'voxelPaintColor').step(1).min(0).max(255).name('voxelColor').onChange(
         changeParameters.bind(this, 'voxel_paint_color'));
@@ -566,6 +624,8 @@ function K3D(provider, targetDOMNode, parameters) {
             self.setDirectionalLightingIntensity(value);
             changeParameters.call(self, 'lighting', value);
         });
+
+    timeSeries.timeSeriesGUI(GUI.controls, this, changeParameters);
 
     GUI.clippingPlanes = GUI.controls.addFolder('Clipping planes');
 
@@ -587,6 +647,10 @@ function K3D(provider, targetDOMNode, parameters) {
         GUI.info.__controllers[1].__input.readOnly = true;
     }
 
+    self.setTime(self.parameters.time);
+    self.setGridAutoFit(self.parameters.gridAutoFit);
+    self.setGridVisible(self.parameters.gridVisible);
+    self.setCameraAutoFit(self.parameters.cameraAutoFit);
     self.setClippingPlanes(self.parameters.clippingPlanes);
     self.setDirectionalLightingIntensity(self.parameters.lighting);
     world.setCameraToFitScene(true);

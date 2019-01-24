@@ -3,19 +3,16 @@
 ;(function () {
     'use strict';
 
-    var root = this;
+    var root = this,
+        has_require = typeof require !== 'undefined',
+        THREE = root.THREE || has_require && require('three');
 
-    var has_require = typeof require !== 'undefined';
-
-    var THREE = root.THREE || has_require && require('three');
     if (!THREE) {
         throw new Error('MeshLine requires three.js');
     }
 
     function MeshLine() {
-
         this.positions = [];
-
         this.previous = [];
         this.next = [];
         this.side = [];
@@ -24,11 +21,10 @@
         this.uvs = [];
         this.counters = [];
         this.geometry = new THREE.BufferGeometry();
-
     }
 
     MeshLine.prototype.setGeometry = function (g, segments, widths, colors, uvs) {
-        var j;
+        var j, c, l;
 
         this.positions = [];
         this.counters = [];
@@ -38,7 +34,7 @@
 
         if (g instanceof Float32Array || g instanceof Array) {
             for (j = 0; j < g.length; j += 3) {
-                var c = j / g.length;
+                c = j / g.length;
                 this.positions.push(g[j], g[j + 1], g[j + 2]);
                 this.positions.push(g[j], g[j + 1], g[j + 2]);
                 this.counters.push(c);
@@ -46,7 +42,7 @@
             }
         }
 
-        var l = this.positions.length / 6;
+        l = this.positions.length / 6;
 
         for (j = 0; j < this.positions.length / 6; j++) {
             if (widths) {
@@ -67,8 +63,8 @@
                 this.uvs.push(uvs[j], 0);
                 this.uvs.push(uvs[j], 1);
             } else {
-                this.uvs.push(j / ( l - 1 ), 0);
-                this.uvs.push(j / ( l - 1 ), 1);
+                this.uvs.push(j / (l - 1), 0);
+                this.uvs.push(j / (l - 1), 1);
             }
         }
 
@@ -76,10 +72,10 @@
     };
 
     MeshLine.prototype.compareV3 = function (a, b) {
+        var aa = a * 6,
+            ab = b * 6;
 
-        var aa = a * 6;
-        var ab = b * 6;
-        return ( this.positions[aa] === this.positions[ab] ) && ( this.positions[aa + 1] === this.positions[ab + 1] ) && ( this.positions[aa + 2] === this.positions[ab + 2] );
+        return (this.positions[aa] === this.positions[ab]) && (this.positions[aa + 1] === this.positions[ab + 1]) && (this.positions[aa + 2] === this.positions[ab + 2]);
 
     };
 
@@ -91,7 +87,7 @@
     };
 
     MeshLine.prototype.process = function (segments) {
-        var l = this.positions.length / 6, j, n;
+        var l = this.positions.length / 6, j, n, k, v;
 
         this.previous = [];
         this.next = [];
@@ -112,7 +108,7 @@
             }
 
             for (j = 0; j < l; j += 2) {
-                var k = j + 1;
+                k = j + 1;
 
                 this.next.push(this.positions[k * 6], this.positions[k * 6 + 1], this.positions[k * 6 + 2]);
                 this.next.push(this.positions[k * 6], this.positions[k * 6 + 1], this.positions[k * 6 + 2]);
@@ -126,8 +122,6 @@
                 this.indices_array.push(n + 2, n + 1, n + 3);
             }
         } else {
-            var v;
-
             if (this.compareV3(0, l - 1)) {
                 v = this.copyV3(l - 2);
             } else {
@@ -170,7 +164,7 @@
                 side: new THREE.BufferAttribute(new Float32Array(this.side), 1),
                 width: new THREE.BufferAttribute(new Float32Array(this.width), 1),
                 uv: new THREE.BufferAttribute(new Float32Array(this.uvs), 2),
-                index: new THREE.BufferAttribute(new Uint16Array(this.indices_array), 1),
+                index: new THREE.BufferAttribute(new Uint32Array(this.indices_array), 1),
                 counters: new THREE.BufferAttribute(new Float32Array(this.counters), 1),
                 colors: new THREE.BufferAttribute(new Float32Array(this.colors), 3)
             };
@@ -187,7 +181,7 @@
             this.attributes.width.needsUpdate = true;
             this.attributes.uv.copyArray(new Float32Array(this.uvs));
             this.attributes.uv.needsUpdate = true;
-            this.attributes.index.copyArray(new Uint16Array(this.indices_array));
+            this.attributes.index.copyArray(new Uint32Array(this.indices_array));
             this.attributes.index.needsUpdate = true;
             this.attributes.colors.copyArray(new Float32Array(this.colors));
             this.attributes.colors.needsUpdate = true;
@@ -208,118 +202,118 @@
     function MeshLineMaterial(parameters) {
 
         var vertexShaderSource = [
-            'precision highp float;',
-            '',
-            'attribute vec3 position;',
-            'attribute vec3 previous;',
-            'attribute vec3 next;',
-            'attribute vec3 colors;',
-            'attribute float side;',
-            'attribute float width;',
-            'attribute vec2 uv;',
-            'attribute float counters;',
-            '',
-            'uniform mat4 projectionMatrix;',
-            'uniform mat4 modelViewMatrix;',
-            'uniform vec2 resolution;',
-            'uniform float lineWidth;',
-            'uniform vec3 color;',
-            'uniform float opacity;',
-            'uniform float near;',
-            'uniform float far;',
-            'uniform float sizeAttenuation;',
-            '',
-            'varying vec2 vUV;',
-            'varying vec4 vColor;',
-            'varying float vCounters;',
-            '',
-            '#include <clipping_planes_pars_vertex>',
-            '',
-            'vec2 fix( vec4 i, float aspect ) {',
-            '',
-            '    vec2 res = i.xy / i.w;',
-            '    res.x *= aspect;',
-            '	 vCounters = counters;',
-            '    return res;',
-            '',
-            '}',
-            '',
-            'void main() {',
-            '',
-            '    float aspect = resolution.x / resolution.y;',
-            '	 float pixelWidthRatio = 1. / (resolution.x * projectionMatrix[0][0]);',
-            '',
-            '    vColor = vec4( color * colors, opacity );',
-            '    vUV = uv;',
-            '',
-            '    #if NUM_CLIPPING_PLANES > 0 && ! defined( PHYSICAL ) && ! defined( PHONG )',
-            '    vViewPosition = -(modelViewMatrix * vec4(position, 1.0)).xyz;',
-            '    #endif',
-            '',
-            '    mat4 m = projectionMatrix * modelViewMatrix;',
-            '    vec4 finalPosition = m * vec4( position, 1.0 );',
-            '    vec4 prevPos = m * vec4( previous, 1.0 );',
-            '    vec4 nextPos = m * vec4( next, 1.0 );',
-            '',
-            '    vec2 currentP = fix( finalPosition, aspect );',
-            '    vec2 prevP = fix( prevPos, aspect );',
-            '    vec2 nextP = fix( nextPos, aspect );',
-            '',
-            '	 float pixelWidth = finalPosition.w * pixelWidthRatio;',
-            '    float w = 1.8 * pixelWidth * lineWidth * width;',
-            '',
-            '    if( sizeAttenuation == 1. ) {',
-            '        w = max(1.8 * pixelWidth * 2.0, 1.8 * lineWidth * width);',
-            '    }',
-            '',
-            '    vec2 dir;',
-            '    if( nextP == currentP ) dir = normalize( currentP - prevP );',
-            '    else if( prevP == currentP ) dir = normalize( nextP - currentP );',
-            '    else {',
-            '        vec2 dir1 = normalize( currentP - prevP );',
-            '        vec2 dir2 = normalize( nextP - currentP );',
-            '        dir = normalize( dir1 + dir2 );',
-            '',
-            '        vec2 perp = vec2( -dir1.y, dir1.x );',
-            '        vec2 miter = vec2( -dir.y, dir.x );',
-            '        //w = clamp( w / dot( miter, perp ), 0., 4. * lineWidth * width );',
-            '',
-            '    }',
-            '',
-            '    //vec2 normal = ( cross( vec3( dir, 0. ), vec3( 0., 0., 1. ) ) ).xy;',
-            '    vec2 normal = vec2( -dir.y, dir.x );',
-            '    normal.x /= aspect;',
-            '    normal *= .5 * w;',
-            '',
-            '    vec4 offset = vec4( normal * side, 0.0, 1.0 );',
-            '    finalPosition.xy += offset.xy;',
-            '',
-            '    gl_Position = finalPosition;',
-            '',
-            '}'];
-
-        var fragmentShaderSource = [
-            'precision mediump float;',
-            '',
-            'uniform sampler2D map;',
-            'uniform float useMap;',
-            'uniform float visibility;',
-            '',
-            'varying vec2 vUV;',
-            'varying vec4 vColor;',
-            'varying float vCounters;',
-            '',
-            '#include <clipping_planes_pars_fragment>',
-            '',
-            'void main() {',
-            '',
-            ' #include <clipping_planes_fragment>',
-            '',
-            '    vec4 c = vColor;',
-            '    if( useMap == 1. ) c *= texture2D( map, vUV);',
-            '    gl_FragColor = c;',
-            '    gl_FragColor.a *= step(vCounters, visibility);',
-            '}'];
+                'precision highp float;',
+                '',
+                'attribute vec3 position;',
+                'attribute vec3 previous;',
+                'attribute vec3 next;',
+                'attribute vec3 colors;',
+                'attribute float side;',
+                'attribute float width;',
+                'attribute vec2 uv;',
+                'attribute float counters;',
+                '',
+                'uniform mat4 projectionMatrix;',
+                'uniform mat4 modelViewMatrix;',
+                'uniform vec2 resolution;',
+                'uniform float lineWidth;',
+                'uniform vec3 color;',
+                'uniform float opacity;',
+                'uniform float near;',
+                'uniform float far;',
+                'uniform float sizeAttenuation;',
+                '',
+                'varying vec2 vUV;',
+                'varying vec4 vColor;',
+                'varying float vCounters;',
+                '',
+                '#include <clipping_planes_pars_vertex>',
+                '',
+                'vec2 fix( vec4 i, float aspect ) {',
+                '',
+                '    vec2 res = i.xy / i.w;',
+                '    res.x *= aspect;',
+                '    vCounters = counters;',
+                '    return res;',
+                '',
+                '}',
+                '',
+                'void main() {',
+                '',
+                '    float aspect = resolution.x / resolution.y;',
+                '    float pixelWidthRatio = 1. / (resolution.x * projectionMatrix[0][0]);',
+                '',
+                '    vColor = vec4( color * colors, opacity );',
+                '    vUV = uv;',
+                '',
+                '    #if NUM_CLIPPING_PLANES > 0 && ! defined( PHYSICAL ) && ! defined( PHONG )',
+                '    vViewPosition = -(modelViewMatrix * vec4(position, 1.0)).xyz;',
+                '    #endif',
+                '',
+                '    mat4 m = projectionMatrix * modelViewMatrix;',
+                '    vec4 finalPosition = m * vec4( position, 1.0 );',
+                '    vec4 prevPos = m * vec4( previous, 1.0 );',
+                '    vec4 nextPos = m * vec4( next, 1.0 );',
+                '',
+                '    vec2 currentP = fix( finalPosition, aspect );',
+                '    vec2 prevP = fix( prevPos, aspect );',
+                '    vec2 nextP = fix( nextPos, aspect );',
+                '',
+                '    float pixelWidth = finalPosition.w * pixelWidthRatio;',
+                '    float w = 1.8 * pixelWidth * lineWidth * width;',
+                '',
+                '    if( sizeAttenuation == 1. ) {',
+                '        w = max(1.8 * pixelWidth * 2.0, 1.8 * lineWidth * width);',
+                '    }',
+                '',
+                '    vec2 dir;',
+                '    if( nextP == currentP ) dir = normalize( currentP - prevP );',
+                '    else if( prevP == currentP ) dir = normalize( nextP - currentP );',
+                '    else {',
+                '        vec2 dir1 = normalize( currentP - prevP );',
+                '        vec2 dir2 = normalize( nextP - currentP );',
+                '        dir = normalize( dir1 + dir2 );',
+                '',
+                '        vec2 perp = vec2( -dir1.y, dir1.x );',
+                '        vec2 miter = vec2( -dir.y, dir.x );',
+                '        //w = clamp( w / dot( miter, perp ), 0., 4. * lineWidth * width );',
+                '',
+                '    }',
+                '',
+                '    //vec2 normal = ( cross( vec3( dir, 0. ), vec3( 0., 0., 1. ) ) ).xy;',
+                '    vec2 normal = vec2( -dir.y, dir.x );',
+                '    normal.x /= aspect;',
+                '    normal *= .5 * w;',
+                '',
+                '    vec4 offset = vec4( normal * side, 0.0, 1.0 );',
+                '    finalPosition.xy += offset.xy;',
+                '',
+                '    gl_Position = finalPosition;',
+                '',
+                '}'],
+            fragmentShaderSource = [
+                'precision mediump float;',
+                '',
+                'uniform sampler2D map;',
+                'uniform float useMap;',
+                'uniform float visibility;',
+                '',
+                'varying vec2 vUV;',
+                'varying vec4 vColor;',
+                'varying float vCounters;',
+                '',
+                '#include <clipping_planes_pars_fragment>',
+                '',
+                'void main() {',
+                '',
+                ' #include <clipping_planes_fragment>',
+                '',
+                '    vec4 c = vColor;',
+                '    if( useMap == 1. ) c *= texture2D( map, vUV);',
+                '    gl_FragColor = c;',
+                '    gl_FragColor.a *= step(vCounters, visibility);',
+                '}'],
+            material;
 
         function check(v, d) {
             if (v === undefined) {
@@ -344,7 +338,7 @@
         this.far = check(parameters.far, 1);
         this.visibility = check(parameters.visibility, 1);
 
-        var material = new THREE.RawShaderMaterial({
+        material = new THREE.RawShaderMaterial({
             uniforms: {
                 lineWidth: {type: 'f', value: this.lineWidth},
                 map: {type: 't', value: this.map},
@@ -405,10 +399,8 @@
         }
         exports.MeshLine = MeshLine;
         exports.MeshLineMaterial = MeshLineMaterial;
-    }
-    else {
+    } else {
         root.MeshLine = MeshLine;
         root.MeshLineMaterial = MeshLineMaterial;
     }
-
 }).call(this);

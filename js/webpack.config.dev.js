@@ -22,12 +22,29 @@ var plugins = [];
 
 module.exports = [
     {
+        mode: 'development',
         entry: './src/development.js',
         output: {
             filename: 'index.js',
             path: __dirname + '/dev/',
             publicPath: "/dev/",
-            library: "K3D",
+            library: "k3d",
+            libraryTarget: 'amd'
+        },
+        devtool: 'source-map',
+        module: {
+            rules: rules
+        },
+        plugins: plugins
+    },
+    {
+        mode: 'development',
+        entry: './src/development.js',
+        output: {
+            filename: 'standalone.js',
+            path: __dirname + '/dev/',
+            publicPath: "/dev/",
+            library: "k3d",
             libraryTarget: 'amd'
         },
         devtool: 'source-map',

@@ -10,86 +10,88 @@ var katex = require('katex');
  * @param {K3D}
  * @return {Object} 3D object ready to render
  */
-module.exports = function (config, K3D) {
-    config.visible = typeof(config.visible) !== 'undefined' ? config.visible : true;
-    config.color = typeof(config.color) !== 'undefined' ? config.color : 0;
-    config.text = typeof(config.text) !== 'undefined' ? config.text :'\\KaTeX';
+module.exports = {
+    create: function (config, K3D) {
+        config.visible = typeof (config.visible) !== 'undefined' ? config.visible : true;
+        config.color = typeof (config.color) !== 'undefined' ? config.color : 0;
+        config.text = typeof (config.text) !== 'undefined' ? config.text : '\\KaTeX';
 
-    var text = config.text,
-        color = config.color,
-        referencePoint = config.reference_point || 'lb',
-        size = config.size || 1,
-        position = config.position,
-        object = new THREE.Object3D(),
-        domElement = document.createElement('div'),
-        overlayDOMNode = K3D.getWorld().overlayDOMNode,
-        listenersId;
+        var text = config.text,
+            color = config.color,
+            referencePoint = config.reference_point || 'lb',
+            size = config.size || 1,
+            position = config.position,
+            object = new THREE.Object3D(),
+            domElement = document.createElement('div'),
+            overlayDOMNode = K3D.getWorld().overlayDOMNode,
+            listenersId;
 
-    domElement.innerHTML = katex.renderToString(text, {displayMode: true});
-    domElement.style.position = 'absolute';
-    domElement.style.color = colorToHex(color);
-    domElement.style.fontSize = size + 'em';
+        domElement.innerHTML = katex.renderToString(text, {displayMode: true});
+        domElement.style.position = 'absolute';
+        domElement.style.color = colorToHex(color);
+        domElement.style.fontSize = size + 'em';
 
-    overlayDOMNode.appendChild(domElement);
+        overlayDOMNode.appendChild(domElement);
 
-    object.position.set(position[0], position[1], position[2]);
-    object.updateMatrixWorld();
+        object.position.set(position[0], position[1], position[2]);
+        object.updateMatrixWorld();
 
-    function render() {
-        var coord, x, y;
+        function render() {
+            var coord, x, y;
 
-        if (domElement.style.display === 'hidden') {
-            return;
+            if (domElement.style.display === 'hidden') {
+                return;
+            }
+
+            coord = toScreenPosition(object, K3D.getWorld());
+
+            switch (referencePoint[0]) {
+                case 'l':
+                    x = coord.x + 'px';
+                    break;
+                case 'c':
+                    x = 'calc(' + coord.x + 'px - 50%)';
+                    break;
+                case 'r':
+                    x = 'calc(' + coord.x + 'px - 100%)';
+                    break;
+            }
+
+            switch (referencePoint[1]) {
+                case 't':
+                    y = coord.y + 'px';
+                    break;
+                case 'c':
+                    y = 'calc(' + coord.y + 'px - 50%)';
+                    break;
+                case 'b':
+                    y = 'calc(' + coord.y + 'px - 100%)';
+                    break;
+            }
+
+            domElement.style.transform = 'translate(' + x + ',' + y + ')';
+            domElement.style.zIndex = 16777271 - Math.round(coord.z * 1e6);
         }
 
-        coord = toScreenPosition(object, K3D.getWorld());
+        listenersId = K3D.on(K3D.events.RENDERED, render);
 
-        switch (referencePoint[0]) {
-            case 'l':
-                x = coord.x + 'px';
-                break;
-            case 'c':
-                x = 'calc(' + coord.x + 'px - 50%)';
-                break;
-            case 'r':
-                x = 'calc(' + coord.x + 'px - 100%)';
-                break;
-        }
+        object.onRemove = function () {
+            overlayDOMNode.removeChild(domElement);
+            K3D.off(K3D.events.RENDERED, listenersId);
+        };
 
-        switch (referencePoint[1]) {
-            case 't':
-                y = coord.y + 'px';
-                break;
-            case 'c':
-                y = 'calc(' + coord.y + 'px - 50%)';
-                break;
-            case 'b':
-                y = 'calc(' + coord.y + 'px - 100%)';
-                break;
-        }
+        object.hide = function () {
+            domElement.style.display = 'none';
+        };
 
-        domElement.style.transform = 'translate(' + x + ',' + y + ')';
-        domElement.style.zIndex = 16777271 - Math.round(coord.z * 1e6);
+        object.show = function () {
+            domElement.style.display = 'inline-block';
+        };
+
+        object.show();
+
+        return Promise.resolve(object);
     }
-
-    listenersId = K3D.on(K3D.events.RENDERED, render);
-
-    object.onRemove = function () {
-        overlayDOMNode.removeChild(domElement);
-        K3D.off(K3D.events.RENDERED, listenersId);
-    };
-
-    object.hide = function () {
-        domElement.style.display = 'none';
-    };
-
-    object.show = function () {
-        domElement.style.display = 'inline-block';
-    };
-
-    object.show();
-
-    return Promise.resolve(object);
 };
 
 function toScreenPosition(obj, world) {

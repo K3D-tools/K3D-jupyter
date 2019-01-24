@@ -1,6 +1,7 @@
 var version = require('./package.json').version;
 var webpack = require('webpack');
 var nodeExternals = require('webpack-node-externals');
+// var Visualizer = require('webpack-visualizer-plugin');
 
 // Custom webpack loaders are generally the same for all webpack bundles, hence
 // stored in a separate local variable.
@@ -15,13 +16,15 @@ var rules = [
     }
 ];
 
+var mode = 'production';
+
 var plugins = [];
 
-plugins.push(new webpack.optimize.UglifyJsPlugin({
-    compress: {warnings: false},
-    sourceMap: true
-}));
+plugins.push(new webpack.optimize.AggressiveMergingPlugin());
 
+// plugins.push(new Visualizer({
+//     filename: './webpack-statistics.html'
+// }));
 
 module.exports = [
     {// Notebook extension
@@ -41,6 +44,7 @@ module.exports = [
         module: {
             rules: rules
         },
+        mode: mode,
         plugins: plugins
     },
     {// Bundle for the notebook containing the custom widget views and models
@@ -55,6 +59,7 @@ module.exports = [
             path: __dirname + '/../k3d/static',
             libraryTarget: 'amd'
         },
+        mode: mode,
         plugins: plugins,
         devtool: 'source-map',
         module: {
@@ -80,10 +85,10 @@ module.exports = [
         output: {
             filename: 'index.js',
             path: __dirname + '/dist/',
-            library: "k3d",
             libraryTarget: 'amd',
             publicPath: 'https://unpkg.com/k3d@' + version + '/dist/'
         },
+        mode: mode,
         devtool: 'source-map',
         module: {
             rules: rules
@@ -95,11 +100,12 @@ module.exports = [
         entry: './src/standalone.js',
         output: {
             filename: 'standalone.js',
-            path: __dirname + '/dist/',
+            path: __dirname + '/../k3d/static',
             library: "k3d",
             libraryTarget: 'amd',
             publicPath: 'https://unpkg.com/k3d@' + version + '/dist/'
         },
+        mode: mode,
         devtool: 'source-map',
         module: {
             rules: rules
@@ -111,9 +117,9 @@ module.exports = [
         output: {
             filename: 'labplugin.js',
             path: __dirname + '/dist/',
-            library: "k3d",
             libraryTarget: 'amd'
         },
+        mode: mode,
         devtool: 'source-map',
         module: {
             rules: [

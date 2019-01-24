@@ -11,61 +11,66 @@ var buffer = require('./../../../core/lib/helpers/buffer'),
  * @param {Object} config all configurations params from JSON
  * @return {Object} 3D object ready to render
  */
-module.exports = function (config) {
-    var modelMatrix = new THREE.Matrix4(),
-        color = new THREE.Color(config.color),
-        pointPositions = config.positions.data,
-        pointColors = (config.colors && config.colors.data) || null,
-        shader = config.shader,
-        colors,
-        object,
-        material,
-        colorsToFloat32Array = buffer.colorsToFloat32Array,
-        fragmentShader,
-        fragmentShaderMap = {
-            'flat': require('./shaders/Points.flat.fragment.glsl'),
-            '3d': require('./shaders/Points.3d.fragment.glsl'),
-            '3dspecular': require('./shaders/Points.3d.fragment.glsl')
-        };
+module.exports = {
+    create: function (config) {
+        var modelMatrix = new THREE.Matrix4(),
+            color = new THREE.Color(config.color),
+            pointPositions = config.positions.data,
+            pointColors = (config.colors && config.colors.data) || null,
+            shader = config.shader,
+            colors,
+            object,
+            material,
+            colorsToFloat32Array = buffer.colorsToFloat32Array,
+            fragmentShader,
+            fragmentShaderMap = {
+                'flat': require('./shaders/Points.flat.fragment.glsl'),
+                '3d': require('./shaders/Points.3d.fragment.glsl'),
+                '3dspecular': require('./shaders/Points.3d.fragment.glsl')
+            };
 
-    fragmentShader = fragmentShaderMap[shader.toLowerCase()] || fragmentShaderMap.flat;
+        fragmentShader = fragmentShaderMap[shader.toLowerCase()] || fragmentShaderMap.flat;
 
-    material = new THREE.ShaderMaterial({
-        uniforms: THREE.UniformsUtils.merge([
-            THREE.UniformsLib.lights,
-            THREE.UniformsLib.points
-        ]),
-        defines: {
-            USE_SPECULAR: (shader === '3dSpecular' ? 1 : 0)
-        },
-        vertexShader: require('./shaders/Points.vertex.glsl'),
-        fragmentShader: fragmentShader,
-        lights: true,
-        clipping: true,
-        extensions: {
-            fragDepth: true
-        }
-    });
+        material = new THREE.ShaderMaterial({
+            uniforms: THREE.UniformsUtils.merge([
+                THREE.UniformsLib.lights,
+                THREE.UniformsLib.points
+            ]),
+            defines: {
+                USE_SPECULAR: (shader === '3dSpecular' ? 1 : 0)
+            },
+            vertexShader: require('./shaders/Points.vertex.glsl'),
+            fragmentShader: fragmentShader,
+            opacity: config.opacity,
+            depthTest: config.opacity === 1.0,
+            transparent: config.opacity !== 1.0,
+            lights: true,
+            clipping: true,
+            extensions: {
+                fragDepth: true
+            }
+        });
 
-    // monkey-patching for imitate THREE.PointsMaterial
-    material.size = config.point_size;
-    material.map = null;
-    material.isPointsMaterial = true;
+        // monkey-patching for imitate THREE.PointsMaterial
+        material.size = config.point_size;
+        material.map = null;
+        material.isPointsMaterial = true;
 
-    colors = (pointColors && pointColors.length === pointPositions.length / 3 ?
-            colorsToFloat32Array(pointColors) : getColorsArray(color, pointPositions.length / 3)
-    );
+        colors = (pointColors && pointColors.length === pointPositions.length / 3 ?
+                colorsToFloat32Array(pointColors) : getColorsArray(color, pointPositions.length / 3)
+        );
 
-    object = new THREE.Points(getGeometry(pointPositions, colors), material);
+        object = new THREE.Points(getGeometry(pointPositions, colors), material);
 
-    Fn.expandBoundingBox(object.geometry.boundingBox, config.point_size * 0.5);
+        Fn.expandBoundingBox(object.geometry.boundingBox, config.point_size * 0.5);
 
-    modelMatrix.set.apply(modelMatrix, config.model_matrix.data);
-    object.applyMatrix(modelMatrix);
+        modelMatrix.set.apply(modelMatrix, config.model_matrix.data);
+        object.applyMatrix(modelMatrix);
 
-    object.updateMatrixWorld();
+        object.updateMatrixWorld();
 
-    return Promise.resolve(object);
+        return Promise.resolve(object);
+    }
 };
 
 /**

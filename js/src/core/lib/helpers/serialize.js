@@ -1,7 +1,6 @@
 'use strict';
 
-var _ = require('lodash'),
-    pako = require('pako'),
+var pako = require('pako'),
     ipyDataWidgets = require('jupyter-dataserializers').data_union_array_serialization,
     typesToArray = {
         int8: Int8Array,
@@ -14,61 +13,102 @@ var _ = require('lodash'),
         float64: Float64Array
     };
 
-// Inpspiration from https://github.com/maartenbreddels/ipyvolume/blob/master/js/src/serialize.js
-// and https://github.com/jupyter-widgets/ipywidgets/blob/master/jupyter-widgets-base/test/src/dummy-manager.ts
-
-function deserialize_array_or_json(obj, manager) {
+function deserializeArray(obj) {
     var buffer;
 
-    if (obj == null) {
-        return null;
-    }
+    if (typeof (obj.buffer) !== 'undefined') {
+        console.log('K3D: Receive: ' + obj.buffer.byteLength + ' bytes');
+        return {
+            data: new typesToArray[obj.dtype](obj.buffer.buffer),
+            shape: obj.shape
+        };
+    } else if (typeof (obj.compressed_buffer) !== 'undefined') {
+        buffer = new typesToArray[obj.dtype](pako.inflate(obj.compressed_buffer.buffer).buffer);
 
-    if (typeof(obj) === 'string') {
-        return ipyDataWidgets.deserialize(obj, manager);
-    }
+        console.log('K3D: Receive: ' + buffer.byteLength + ' bytes compressed to ' +
+                    obj.compressed_buffer.byteLength + ' bytes');
 
-    if (_.isNumber(obj)) { // plain number
-        return obj;
-    } else { // should be an array of buffer+dtype+shape
-        if (typeof (obj.buffer) !== 'undefined') {
-            console.log('K3D: Receive: ' + obj.buffer.byteLength + ' bytes');
-            return {
-                data: new typesToArray[obj.dtype](obj.buffer.buffer),
-                shape: obj.shape
-            };
-        } else if (typeof (obj.compressed_buffer) !== 'undefined') {
-            buffer = new typesToArray[obj.dtype](pako.inflate(obj.compressed_buffer.buffer).buffer);
-
-            console.log('K3D: Receive: ' + buffer.byteLength + ' bytes compressed to ' +
-                obj.compressed_buffer.byteLength + ' bytes');
-
-            return {
-                data: buffer,
-                shape: obj.shape
-            };
-        } else {
-            return null;
-        }
+        return {
+            data: buffer,
+            shape: obj.shape
+        };
     }
 }
 
-function serialize_array_or_json(obj) {
+function serializeArray(obj) {
+    return {
+        dtype: _.invert(typesToArray)[obj.data.constructor],
+        buffer: obj.data,
+        shape: obj.shape
+    };
+}
+
+function deserialize(obj, manager) {
+    if (obj == null) {
+        return null;
+    } else if (typeof (obj) === 'string') {
+        return ipyDataWidgets.deserialize(obj, manager);
+    } else if (_.isNumber(obj)) { // plain number
+        return obj;
+    } else if (typeof (obj.shape) !== 'undefined') {
+        // plain data
+        return deserializeArray(obj);
+    } else if (Array.isArray(obj)) {
+        return obj.reduce(function (p, v) {
+            p.push(deserialize(v, manager));
+
+            return p;
+        }, []);
+    } else {
+        // time series or dict
+        var timeSeries = true;
+        var deserializedObj = Object.keys(obj).reduce(function (p, k) {
+            if (!_.isNumber(k)) {
+                timeSeries = false;
+            }
+
+            p[k] = deserialize(obj[k], manager);
+
+            return p;
+        }, {});
+
+        if (timeSeries) {
+            deserializedObj.timeSeries = true;
+        }
+
+        return deserializedObj;
+    }
+}
+
+function serialize(obj) {
     if (_.isNumber(obj)) {
         return obj;
     }
 
     if (obj !== null) {
-        return {
-            dtype: _.invert(typesToArray)[obj.data.constructor],
-            buffer: obj.data,
-            shape: obj.shape
-        };
+        if (typeof (obj.data) !== 'undefined' && typeof (obj.shape) !== 'undefined' && typeof (obj.data) !== 'undefined') {
+            // plain data
+            return serializeArray(obj);
+        } else if (Array.isArray(obj)) {
+            return obj.reduce(function (p, v) {
+                p.push(serialize(v));
+
+                return p;
+            }, []);
+        } else {
+            // time series or dict
+            return Object.keys(obj).reduce(function (p, k) {
+                p[k] = serialize(obj[k]);
+
+                return p;
+            }, {});
+        }
     } else {
         return null;
     }
 }
 
 module.exports = {
-    array_or_json: {deserialize: deserialize_array_or_json, serialize: serialize_array_or_json}
+    deserialize: deserialize,
+    serialize: serialize
 };

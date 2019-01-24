@@ -17,14 +17,21 @@
             position: absolute;
         }
     </style>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
-    <script src="https://unpkg.com/k3d@~[JS_VERSION]/dist/standalone.js"></script>
+    <script>[PAKO_JS]</script>
+    <script>
+        window.k3dCompressed = '[K3D_SOURCE]';
+
+        var k3dSource = pako.inflate(atob(window.k3dCompressed), {'to': 'string'});
+    </script>
+    <script>[REQUIRE_JS]</script>
 </head>
 <body>
 <div id="canvasTarget"></div>
 
 <script>
     var K3DInstance;
+
+    eval(k3dSource);
 
     require(['k3d'], function (lib) {
         try {
@@ -41,6 +48,7 @@
                 }
             );
         } catch (e) {
+            console.log(e);
             return;
         }
 

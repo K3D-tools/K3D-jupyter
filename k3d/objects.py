@@ -1,5 +1,5 @@
 import ipywidgets as widgets
-from traitlets import Unicode, Int, Float, List, Bool, Bytes, Integer
+from traitlets import Unicode, Int, Float, List, Bool, Bytes, Integer, Dict, Union
 from traitlets import validate, TraitError
 from traittypes import Array
 from .helpers import array_serialization
@@ -8,6 +8,11 @@ import numpy as np
 from ipydatawidgets import DataUnion, data_union_serialization
 
 EPSILON = np.finfo(np.float32).eps
+
+
+class TimeSeries(Union):
+    def __init__(self, trait):
+        Union.__init__(self, [trait, Dict(trait)])
 
 
 class ListOrArray(List):
@@ -151,6 +156,18 @@ class Line(Drawable):
     """
 
     type = Unicode(read_only=True).tag(sync=True)
+
+    # vertices = TimeSeries(Array(dtype=np.float32)).tag(sync=True, **array_serialization)
+    # colors = TimeSeries(Array(dtype=np.uint32)).tag(sync=True, **array_serialization)
+    # color = TimeSeries(Int(min=0, max=0xffffff)).tag(sync=True)
+    # width = TimeSeries(Float(min=EPSILON, default_value=0.01)).tag(sync=True)
+    # attribute = TimeSeries(Array(dtype=np.float32)).tag(sync=True, **array_serialization)
+    # color_map = TimeSeries(Array(dtype=np.float32)).tag(sync=True, **array_serialization)
+    # color_range = TimeSeries(ListOrArray(minlen=2, maxlen=2, empty_ok=True)).tag(sync=True)
+    # shader = TimeSeries(Unicode()).tag(sync=True)
+    # radial_segments = TimeSeries(Int()).tag(sync=True)
+    # model_matrix = TimeSeries(Array(dtype=np.float32)).tag(sync=True, **array_serialization)
+
     vertices = Array(dtype=np.float32).tag(sync=True, **array_serialization)
     colors = Array(dtype=np.uint32).tag(sync=True, **array_serialization)
     color = Int(min=0, max=0xffffff).tag(sync=True)
@@ -160,7 +177,6 @@ class Line(Drawable):
     color_range = ListOrArray(minlen=2, maxlen=2, empty_ok=True).tag(sync=True)
     shader = Unicode().tag(sync=True)
     radial_segments = Int().tag(sync=True)
-
     model_matrix = Array(dtype=np.float32).tag(sync=True, **array_serialization)
 
     def __init__(self, **kwargs):
@@ -241,15 +257,15 @@ class Mesh(Drawable):
     """
 
     type = Unicode(read_only=True).tag(sync=True)
-    vertices = Array(dtype=np.float32).tag(sync=True, **array_serialization)
-    indices = Array(dtype=np.uint32).tag(sync=True, **array_serialization)
-    color = Int(min=0, max=0xffffff).tag(sync=True)
-    attribute = Array(dtype=np.float32).tag(sync=True, **array_serialization)
-    color_map = Array(dtype=np.float32).tag(sync=True, **array_serialization)
-    color_range = ListOrArray(minlen=2, maxlen=2, empty_ok=True).tag(sync=True)
-    wireframe = Bool().tag(sync=True)
-    flat_shading = Bool().tag(sync=True)
-    model_matrix = Array(dtype=np.float32).tag(sync=True, **array_serialization)
+    vertices = TimeSeries(Array(dtype=np.float32)).tag(sync=True, **array_serialization)
+    indices = TimeSeries(Array(dtype=np.uint32)).tag(sync=True, **array_serialization)
+    color = TimeSeries(Int(min=0, max=0xffffff)).tag(sync=True)
+    attribute = TimeSeries(Array(dtype=np.float32)).tag(sync=True, **array_serialization)
+    color_map = TimeSeries(Array(dtype=np.float32)).tag(sync=True, **array_serialization)
+    color_range = TimeSeries(ListOrArray(minlen=2, maxlen=2, empty_ok=True)).tag(sync=True)
+    wireframe = TimeSeries(Bool()).tag(sync=True)
+    flat_shading = TimeSeries(Bool()).tag(sync=True)
+    model_matrix = TimeSeries(Array(dtype=np.float32)).tag(sync=True, **array_serialization)
 
     def __init__(self, **kwargs):
         super(Mesh, self).__init__(**kwargs)
@@ -287,12 +303,13 @@ class Points(Drawable):
     """
 
     type = Unicode(read_only=True).tag(sync=True)
-    positions = Array(dtype=np.float32).tag(sync=True, **array_serialization)
-    colors = Array(dtype=np.uint32).tag(sync=True, **array_serialization)
-    color = Int(min=0, max=0xffffff).tag(sync=True)
-    point_size = Float(min=EPSILON, default_value=1.0).tag(sync=True)
-    shader = Unicode().tag(sync=True)
-    model_matrix = Array(dtype=np.float32).tag(sync=True, **array_serialization)
+    positions = TimeSeries(Array(dtype=np.float32)).tag(sync=True, **array_serialization)
+    colors = TimeSeries(Array(dtype=np.uint32)).tag(sync=True, **array_serialization)
+    color = TimeSeries(Int(min=0, max=0xffffff)).tag(sync=True)
+    point_size = TimeSeries(Float(min=EPSILON, default_value=1.0)).tag(sync=True)
+    opacity = TimeSeries(Float(min=EPSILON, max=1.0, default_value=1.0)).tag(sync=True)
+    shader = TimeSeries(Unicode()).tag(sync=True)
+    model_matrix = TimeSeries(Array(dtype=np.float32)).tag(sync=True, **array_serialization)
 
     def __init__(self, **kwargs):
         super(Points, self).__init__(**kwargs)
@@ -652,20 +669,8 @@ class Volume(Drawable):
         volume: `array_like`. 
             3D array of `float`.
         color_map: `array_like`. 
-            Flat array of `int` packed RGB colors (0xff0000 is red, 0xff is blue).
-
-            The color defined at index i is for voxel value (i+1), e.g.:
-
-            color_map = [0xff, 0x00ff]
-
-            voxels = 
-            [[[
-                0, # empty voxel
- 
-                1, # blue voxel
-
-                2  # red voxel
-            ]]]
+            A list of float quadruplets (attribute value, R, G, B), sorted by attribute value. The first
+            quadruplet should have value 0.0, the last 1.0; R, G, B are RGB color components in the range 0.0 to 1.0.
         color_range: `list`. 
             A pair [min_value, max_value], which determines the levels of color attribute mapped
             to 0 and 1 in the color map respectively.
@@ -745,6 +750,8 @@ class Voxels(Drawable):
             4x4 model transform matrix.
         wireframe: `bool`. 
             Whether mesh should display as wireframe.
+        opacity: `float`.
+            Opacity of voxels.
         outlines: `bool`. 
             Whether mesh should display with outlines.
         outlines_color: `int`. 
@@ -753,10 +760,11 @@ class Voxels(Drawable):
 
     type = Unicode(read_only=True).tag(sync=True)
     voxels = Array(dtype=np.uint8).tag(sync=True, **array_serialization)
-    color_map = Array(dtype=np.float32).tag(sync=True, **array_serialization)
+    color_map = Array(dtype=np.uint32).tag(sync=True, **array_serialization)
     wireframe = Bool().tag(sync=True)
     outlines = Bool().tag(sync=True)
     outlines_color = Int(min=0, max=0xffffff).tag(sync=True)
+    opacity = Float(min=EPSILON, max=1.0, default_value=1.0).tag(sync=True)
     model_matrix = Array(dtype=np.float32).tag(sync=True, **array_serialization)
     click_callback = None
 
@@ -764,6 +772,105 @@ class Voxels(Drawable):
         super(Voxels, self).__init__(**kwargs)
 
         self.set_trait('type', 'Voxels')
+        self.on_msg(self._handle_custom_msg)
+
+    def _handle_custom_msg(self, content, buffers):
+        if content.get('msg_type', '') == 'click_callback':
+            if self.click_callback is not None:
+                self.click_callback(content['coord']['x'], content['coord']['y'], content['coord']['z'])
+
+class SparseVoxels(Drawable):
+    """
+    3D volumetric data.
+
+    By default, the voxels are a grid inscribed in the -0.5 < x, y, z < 0.5 cube
+    regardless of the passed voxel array shape (aspect ratio etc.).
+    Different grid size, shape and rotation can be obtained using the model_matrix.
+
+    Attributes:
+        sparse_voxels: `array_like`.
+            2D array of `coords` in format [[x,y,z,v],[x,y,z,v]].
+            v = 0 means empty voxel, 1 and above refer to consecutive color_map entries.
+        space_size: `array_like`.
+            Width, Height, Length of space
+        color_map: `array_like`.
+            Flat array of `int` packed RGB colors (0xff0000 is red, 0xff is blue).
+        model_matrix: `array_like`.
+            4x4 model transform matrix.
+        wireframe: `bool`.
+            Whether mesh should display as wireframe.
+        opacity: `float`.
+            Opacity of voxels.
+        outlines: `bool`.
+            Whether mesh should display with outlines.
+        outlines_color: `int`.
+            Packed RGB color of the resulting outlines (0xff0000 is red, 0xff is blue)
+    """
+
+    type = Unicode(read_only=True).tag(sync=True)
+    sparse_voxels = Array(dtype=np.uint16).tag(sync=True, **array_serialization)
+    space_size = Array(dtype=np.uint32).tag(sync=True, **array_serialization)
+    color_map = Array(dtype=np.uint32).tag(sync=True, **array_serialization)
+    wireframe = Bool().tag(sync=True)
+    outlines = Bool().tag(sync=True)
+    outlines_color = Int(min=0, max=0xffffff).tag(sync=True)
+    opacity = Float(min=EPSILON, max=1.0, default_value=1.0).tag(sync=True)
+    model_matrix = Array(dtype=np.float32).tag(sync=True, **array_serialization)
+    click_callback = None
+
+    def __init__(self, **kwargs):
+        super(SparseVoxels, self).__init__(**kwargs)
+
+        self.set_trait('type', 'SparseVoxels')
+        self.on_msg(self._handle_custom_msg)
+
+    def _handle_custom_msg(self, content, buffers):
+        if content.get('msg_type', '') == 'click_callback':
+            if self.click_callback is not None:
+                self.click_callback(content['coord']['x'], content['coord']['y'], content['coord']['z'])
+
+class VoxelsGroup(Drawable):
+    """
+    3D volumetric data.
+
+    By default, the voxels are a grid inscribed in the -0.5 < x, y, z < 0.5 cube
+    regardless of the passed voxel array shape (aspect ratio etc.).
+    Different grid size, shape and rotation can be obtained using the model_matrix.
+
+    Attributes:
+        voxels_group: `array_like`.
+            List of `chunks` in format {voxels: np.array, coord: [x,y,z], multiple: number}.
+        space_size: `array_like`.
+            Width, Height, Length of space
+        color_map: `array_like`.
+            Flat array of `int` packed RGB colors (0xff0000 is red, 0xff is blue).
+        model_matrix: `array_like`.
+            4x4 model transform matrix.
+        wireframe: `bool`.
+            Whether mesh should display as wireframe.
+        opacity: `float`.
+            Opacity of voxels.
+        outlines: `bool`.
+            Whether mesh should display with outlines.
+        outlines_color: `int`.
+            Packed RGB color of the resulting outlines (0xff0000 is red, 0xff is blue)
+    """
+
+    type = Unicode(read_only=True).tag(sync=True)
+    voxels_group = List().tag(sync=True, **array_serialization)
+    space_size = Array(dtype=np.uint32).tag(sync=True, **array_serialization)
+    color_map = Array(dtype=np.uint32).tag(sync=True, **array_serialization)
+    wireframe = Bool().tag(sync=True)
+    outlines = Bool().tag(sync=True)
+    outlines_color = Int(min=0, max=0xffffff).tag(sync=True)
+    opacity = Float(min=EPSILON, max=1.0, default_value=1.0).tag(sync=True)
+    model_matrix = Array(dtype=np.float32).tag(sync=True, **array_serialization)
+    click_callback = None
+
+    def __init__(self, **kwargs):
+        super(VoxelsGroup, self).__init__(**kwargs)
+
+        self.set_trait('type', 'VoxelsGroup')
         self.on_msg(self._handle_custom_msg)
 
     def _handle_custom_msg(self, content, buffers):
@@ -803,6 +910,8 @@ class VoxelsIpyDW(Drawable):
             4x4 model transform matrix.
         wireframe: `bool`. 
             Whether mesh should display as wireframe.
+        opacity: `float`.
+            Opacity of voxels.
         outlines: `bool`. 
             Whether mesh should display with outlines.
         outlines_color: `int`. 
@@ -811,11 +920,12 @@ class VoxelsIpyDW(Drawable):
 
     type = Unicode(read_only=True).tag(sync=True)
     voxels = DataUnion(default_value=[], dtype=np.uint8).tag(sync=True, **data_union_serialization)
-    color_map = Array(dtype=np.float32).tag(sync=True, **array_serialization)
+    color_map = Array(dtype=np.uint32).tag(sync=True, **array_serialization)
     wireframe = Bool().tag(sync=True)
     outlines = Bool().tag(sync=True)
     outlines_color = Int(min=0, max=0xffffff).tag(sync=True)
     click_callback = None
+    opacity = Float(min=EPSILON, max=1.0, default_value=1.0).tag(sync=True)
     model_matrix = Array(dtype=np.float32).tag(sync=True, **array_serialization)
 
     def __init__(self, **kwargs):
