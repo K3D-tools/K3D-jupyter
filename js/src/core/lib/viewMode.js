@@ -8,12 +8,7 @@ var viewModes = {
 };
 
 function viewModeGUI(gui, K3D) {
-
-    var obj = {
-        mode: K3D.parameters.viewMode
-    };
-
-    gui.add(obj, 'mode', {
+    gui.add(K3D.parameters, 'viewMode', {
         View: viewModes.view,
         Add: viewModes.add,
         Change: viewModes.change,
@@ -22,8 +17,6 @@ function viewModeGUI(gui, K3D) {
         function (mode) {
             K3D.setViewMode(mode);
         });
-
-    K3D.setViewMode(obj.mode);
 }
 
 module.exports = {

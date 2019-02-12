@@ -31,9 +31,9 @@ module.exports = function (object, mesh, rollOverMesh, K3D) {
             )
         );
 
-        x = Math.floor(point.x * object.voxelSize.width);
-        y = Math.floor(point.y * object.voxelSize.height);
-        z = Math.floor(point.z * object.voxelSize.length);
+        x = Math.floor(point.x * object.voxelSize.width) + mesh.voxel.chunk.offset[0];
+        y = Math.floor(point.y * object.voxelSize.height) + mesh.voxel.chunk.offset[1];
+        z = Math.floor(point.z * object.voxelSize.length) + mesh.voxel.chunk.offset[2];
 
         if (x < 0 || y < 0 || z < 0 ||
             x >= object.voxelSize.width || y >= object.voxelSize.height || z >= object.voxelSize.length) {
@@ -50,12 +50,12 @@ module.exports = function (object, mesh, rollOverMesh, K3D) {
     function findMesh(coordinate) {
         return object.children.find(function (mesh) {
             if (mesh.voxel &&
-                coordinate.x >= mesh.voxel.offsets.x &&
-                coordinate.x <= mesh.voxel.offsets.x + mesh.voxel.chunkSize &&
-                coordinate.y >= mesh.voxel.offsets.y &&
-                coordinate.y <= mesh.voxel.offsets.y + mesh.voxel.chunkSize &&
-                coordinate.z >= mesh.voxel.offsets.z &&
-                coordinate.z <= mesh.voxel.offsets.z + mesh.voxel.chunkSize) {
+                coordinate.x >= mesh.voxel.chunk.offset[0] &&
+                coordinate.x <= mesh.voxel.chunk.offset[0] + mesh.voxel.chunk.size[0] &&
+                coordinate.y >= mesh.voxel.chunk.offset[1] &&
+                coordinate.y <= mesh.voxel.chunk.offset[1] + mesh.voxel.chunk.size[1] &&
+                coordinate.z >= mesh.voxel.chunk.offset[2] &&
+                coordinate.z <= mesh.voxel.chunk.offset[2] + mesh.voxel.chunk.size[2]) {
 
                 return mesh;
             }

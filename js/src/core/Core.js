@@ -203,6 +203,12 @@ function K3D(provider, targetDOMNode, parameters) {
         if (dispatch(self.events.VIEW_MODE_CHANGE, mode)) {
             self.render();
         }
+
+        GUI.controls.__controllers.forEach(function (controller) {
+            if (controller.property === 'viewMode') {
+                controller.updateDisplay();
+            }
+        });
     };
 
     this.setClippingPlanes = function (planes) {
