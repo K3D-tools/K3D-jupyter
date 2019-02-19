@@ -614,6 +614,14 @@ def voxels_group(voxels_group, space_size, color_map=nice_colors, wireframe=Fals
             Packed RGB color of the resulting outlines (0xff0000 is red, 0xff is blue)
         kwargs: `dict`.
             Dictionary arguments to configure transform and model_matrix."""
+
+    for group in voxels_group:
+        group['coord'] = np.array(group['coord'])
+        group['voxels'] = np.array(group['voxels'])
+
+        if 'multiple' not in group:
+            group['multiple'] = 1
+
     return process_transform_arguments(
         VoxelsGroup(voxels_group=voxels_group, space_size=space_size, color_map=color_map, wireframe=wireframe,
                     outlines=outlines, outlines_color=outlines_color, opacity=opacity,
