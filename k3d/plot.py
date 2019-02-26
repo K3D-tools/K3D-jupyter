@@ -61,6 +61,7 @@ class Plot(widgets.DOMWidget):
     grid_auto_fit = Bool(True).tag(sync=True)
     grid_visible = Bool(True).tag(sync=True)
     fps_meter = Bool(True).tag(sync=True)
+    menu_visibility = Bool(True).tag(sync=True)
     screenshot_scale = Float().tag(sync=True)
     time = Float().tag(sync=True)
     grid = ListOrArray((-1, -1, -1, 1, 1, 1), minlen=6, maxlen=6).tag(sync=True)
@@ -74,7 +75,7 @@ class Plot(widgets.DOMWidget):
 
     def __init__(self, antialias=True, background_color=0xFFFFFF, camera_auto_fit=True, grid_auto_fit=True,
                  grid_visible=True, height=512, voxel_paint_color=0, grid=(-1, -1, -1, 1, 1, 1), screenshot_scale=2.0,
-                 lighting=1.0, time=0.0, fps_meter=False, *args, **kwargs):
+                 lighting=1.0, time=0.0, fps_meter=False, menu_visibility=True, *args, **kwargs):
         super(Plot, self).__init__()
 
         self.antialias = antialias
@@ -89,6 +90,7 @@ class Plot(widgets.DOMWidget):
         self.height = height
         self.lighting = lighting
         self.time = time
+        self.menu_visibility = menu_visibility
 
         self.object_ids = []
         self.objects = []

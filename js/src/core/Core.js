@@ -116,6 +116,7 @@ function K3D(provider, targetDOMNode, parameters) {
     this.parameters = _.assign({
             viewMode: viewModes.view,
             voxelPaintColor: 0,
+            menuVisibility: true,
             cameraAutoFit: true,
             gridAutoFit: true,
             gridVisible: true,
@@ -209,6 +210,16 @@ function K3D(provider, targetDOMNode, parameters) {
                 controller.updateDisplay();
             }
         });
+    };
+
+    /**
+     * Set menu visibility of K3D
+     * @memberof K3D.Core
+     * @param {String} mode
+     */
+    this.setMenuVisibility = function (mode) {
+        self.parameters.menuVisibility = mode;
+        this.gui.domElement.hidden = !mode;
     };
 
     this.setClippingPlanes = function (planes) {
@@ -653,6 +664,7 @@ function K3D(provider, targetDOMNode, parameters) {
         GUI.info.__controllers[1].__input.readOnly = true;
     }
 
+    self.setMenuVisibility(self.parameters.menuVisibility);
     self.setTime(self.parameters.time);
     self.setGridAutoFit(self.parameters.gridAutoFit);
     self.setGridVisible(self.parameters.gridVisible);

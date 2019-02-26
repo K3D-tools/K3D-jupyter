@@ -754,6 +754,7 @@ def plot(height=512,
          background_color=0xffffff,
          camera_auto_fit=True,
          grid_auto_fit=True,
+         menu_visibility=True,
          voxel_paint_color=0,
          grid=(-1, -1, -1, 1, 1, 1)):
     """Create a K3D Plot widget.
@@ -771,6 +772,8 @@ def plot(height=512,
             Enable automatic camera setting after adding, removing or changing a plot object.
         grid_auto_fit: `bool`.
             Enable automatic adjustment of the plot grid to contained objects.
+        menu_visibility: `bool`.
+            Enable menu on GUI.
         voxel_paint_color: `int`.
             The (initial) int value to be inserted when editing voxels.
         grid: `array_like`.
@@ -778,7 +781,7 @@ def plot(height=512,
     return Plot(antialias=antialias,
                 background_color=background_color,
                 camera_auto_fit=camera_auto_fit, grid_auto_fit=grid_auto_fit,
-                height=height,
+                height=height, menu_visibility=menu_visibility,
                 voxel_paint_color=voxel_paint_color, grid=grid)
 
 
