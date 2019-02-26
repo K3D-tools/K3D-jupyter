@@ -17,13 +17,13 @@
             position: absolute;
         }
     </style>
-    <script>[PAKO_JS]</script>
+    <script id='pakojs'>[PAKO_JS]</script>
     <script>
         window.k3dCompressed = '[K3D_SOURCE]';
 
         var k3dSource = pako.inflate(atob(window.k3dCompressed), {'to': 'string'});
     </script>
-    <script>[REQUIRE_JS]</script>
+    <script id='requirejs'>[REQUIRE_JS]</script>
 </head>
 <body>
 <div id="canvasTarget"></div>
