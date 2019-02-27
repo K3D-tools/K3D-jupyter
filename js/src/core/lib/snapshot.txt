@@ -28,7 +28,9 @@
 <div id="canvasTarget"></div>
 
 <script>
-    var K3DInstance;
+    var K3DInstance,
+        k3dParams = [PARAMS],
+        k3dCamera = [CAMERA];
 
     eval(k3dSource);
 
@@ -37,7 +39,7 @@
             K3DInstance = new lib.K3D(
                 lib.ThreeJsProvider,
                 document.getElementById('canvasTarget'),
-                [PARAMS]
+                k3dParams
             );
         } catch (e) {
             console.log(e);
@@ -48,7 +50,7 @@
             var data = '[DATA]';
 
             K3DInstance.setSnapshot(atob(data));
-            K3DInstance.setCamera([CAMERA]);
+            K3DInstance.setCamera(k3dCamera);
         }
     });
 </script>
