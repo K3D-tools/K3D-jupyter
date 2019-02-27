@@ -20,7 +20,6 @@
     <script id='pakojs'>[PAKO_JS]</script>
     <script>
         window.k3dCompressed = '[K3D_SOURCE]';
-
         var k3dSource = pako.inflate(atob(window.k3dCompressed), {'to': 'string'});
     </script>
     <script id='requirejs'>[REQUIRE_JS]</script>
@@ -38,14 +37,7 @@
             K3DInstance = new lib.K3D(
                 lib.ThreeJsProvider,
                 document.getElementById('canvasTarget'),
-                {
-                    antialias: true,
-                    cameraAutoFit: true,
-                    gridAutoFit: true,
-                    grid: [
-                        -1, -1, -1,
-                        1, 1, 1]
-                }
+                [PARAMS]
             );
         } catch (e) {
             console.log(e);
@@ -56,6 +48,7 @@
             var data = '[DATA]';
 
             K3DInstance.setSnapshot(atob(data));
+            K3DInstance.setCamera([CAMERA]);
         }
     });
 </script>
