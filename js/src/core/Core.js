@@ -367,7 +367,7 @@ function K3D(provider, targetDOMNode, parameters) {
 
         }
 
-        if (object.visible) {
+        if (object.visible !== false) {
             world.K3DObjects.add(K3DObject);
         }
 
