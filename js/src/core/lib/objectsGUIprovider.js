@@ -72,6 +72,8 @@ function objectGUIProvider(K3D, json, objects) {
         'shadow_delay'];
 
     _.keys(json).forEach(function (param) {
+            var colorMapLegendControllers, controller;
+
             if (param[0] === '_') {
                 return;
             }
@@ -79,6 +81,44 @@ function objectGUIProvider(K3D, json, objects) {
             if (param === 'color_range' && json[param].length === 2) {
                 json['_' + param + '_low'] = json[param][0];
                 json['_' + param + '_high'] = json[param][1];
+
+                // handle colorLegend
+                if (K3D.parameters.colorbarObjectId === -1) { //auto
+                    K3D.parameters.colorbarObjectId = json.id;
+                }
+
+                json.colorLegend = (K3D.parameters.colorbarObjectId === json.id);
+
+                if (json.colorLegend) {
+                    K3D.setColorMapLegend(json);
+                }
+
+                colorMapLegendControllers = findControllers(json, 'colorLegend');
+
+                if (colorMapLegendControllers.length === 0) {
+                    K3D.gui_map[json.id].add(json, 'colorLegend').onChange(function (value) {
+                        var objects = K3D.getWorld().ObjectsListJson;
+
+                        Object.keys(objects).forEach(function (id) {
+                            findControllers(objects[id], 'colorLegend').forEach(function (controller) {
+                                objects[id].colorLegend = false;
+                                controller.updateDisplay();
+                            });
+                        });
+
+                        json.colorLegend = value;
+
+                        if (value) {
+                            K3D.setColorMapLegend(json);
+                        } else {
+                            K3D.setColorMapLegend(0);
+                        }
+                    });
+                } else {
+                    if (json.colorLegend) {
+                        K3D.setColorMapLegend(json);
+                    }
+                }
             }
 
             if (tryUpdate(json, param)) {
@@ -160,16 +200,27 @@ function objectGUIProvider(K3D, json, objects) {
                     break;
                 case 'color_range':
                     if (json[param].length === 2) {
-                        K3D.gui_map[json.id].add(json, '_' + param + '_low').name('vmin').onChange(
+                        controller = K3D.gui_map[json.id].add(json, '_' + param + '_low').name('vmin').onChange(
                             function (value) {
                                 json.color_range[0] = value;
                                 change(json, 'color_range', json.color_range);
                             });
-                        K3D.gui_map[json.id].add(json, '_' + param + '_high').name('vmax').onChange(
+
+                        if (controller.__precision === 0 && controller.initialValue < 20) {
+                            controller.__precision = 2;
+                            controller.__impliedStep = 0.1;
+                        }
+
+                        controller = K3D.gui_map[json.id].add(json, '_' + param + '_high').name('vmax').onChange(
                             function (value) {
                                 json.color_range[1] = value;
                                 change(json, 'color_range', json.color_range);
                             });
+
+                        if (controller.__precision === 0 && controller.initialValue < 20) {
+                            controller.__precision = 2;
+                            controller.__impliedStep = 0.1;
+                        }
                     }
             }
         }

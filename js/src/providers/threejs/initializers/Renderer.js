@@ -53,12 +53,12 @@ module.exports = function (K3D) {
         K3D.frameUpdateHandlers.before.forEach(handleListeners.bind(null, K3D, 'before'));
 
         K3D.refreshGrid();
-        // self.renderer.clear();
 
         self.renderer.clippingPlanes = [];
 
         self.camera.updateMatrixWorld();
-        self.renderer.render(self.gridScene, self.camera, null, true);
+        self.renderer.clear();
+        self.renderer.render(self.gridScene, self.camera);
 
         K3D.parameters.clippingPlanes.forEach(function (plane) {
             self.renderer.clippingPlanes.push(new THREE.Plane(new THREE.Vector3().fromArray(plane), plane[3]));
@@ -105,7 +105,7 @@ module.exports = function (K3D) {
         self.renderer.clippingPlanes = [];
 
         ssaaRenderPass = new THREE.SSAARenderPass(self.gridScene, self.camera);
-        ssaaRenderPass.sampleLevel = 4;
+        ssaaRenderPass.sampleLevel = 3;
         ssaaRenderPass.setSize(width, height);
         ssaaRenderPass.render(self.renderer, rt, rt);
         ssaaRenderPass.dispose();
@@ -116,7 +116,7 @@ module.exports = function (K3D) {
         });
 
         ssaaRenderPass = new THREE.SSAARenderPass(self.scene, self.camera);
-        ssaaRenderPass.sampleLevel = 4;
+        ssaaRenderPass.sampleLevel = 3;
         ssaaRenderPass.setSize(width, height);
         ssaaRenderPass.render(self.renderer, rt, rt);
         ssaaRenderPass.dispose();

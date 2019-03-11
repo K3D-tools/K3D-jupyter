@@ -491,7 +491,7 @@ class Texture(Drawable):
     type = Unicode(read_only=True).tag(sync=True)
     binary = Bytes(allow_none=True).tag(sync=True)
     file_format = Unicode(allow_none=True).tag(sync=True)
-    attribute = Array(dtype=np.float32).tag(sync=True, **array_serialization)
+    attribute = Array().tag(sync=True, **array_serialization)
     color_map = Array(dtype=np.float32).tag(sync=True, **array_serialization)
     color_range = ListOrArray(minlen=2, maxlen=2, empty_ok=True).tag(sync=True)
     model_matrix = Array(dtype=np.float32).tag(sync=True, **array_serialization)
@@ -697,7 +697,7 @@ class Volume(Drawable):
     """
 
     type = Unicode(read_only=True).tag(sync=True)
-    volume = Array(dtype=np.float32).tag(sync=True, **array_serialization)
+    volume = Array().tag(sync=True, **array_serialization)
     color_map = Array(dtype=np.float32).tag(sync=True, **array_serialization)
     color_range = ListOrArray(minlen=2, maxlen=2, empty_ok=True).tag(sync=True)
     samples = Float().tag(sync=True)

@@ -2,8 +2,9 @@
 
 'use strict';
 
-var lut = require('./../../../core/lib/helpers/lut');
-var closestPowOfTwo = require('./../helpers/Fn').closestPowOfTwo;
+var lut = require('./../../../core/lib/helpers/lut'),
+    closestPowOfTwo = require('./../helpers/Fn').closestPowOfTwo,
+    TypedArrayToThree = require('./../helpers/Fn').TypedArrayToThree;
 
 /**
  * Loader strategy to handle Volume object
@@ -55,13 +56,14 @@ module.exports = {
         modelMatrix.set.apply(modelMatrix, config.model_matrix.data);
         modelMatrix.decompose(translation, rotation, scale);
 
-        texture = new THREE.Texture3D(
-            new Float32Array(config.volume.data),
+        texture = new THREE.DataTexture3D(
+            config.volume.data,
             config.volume.shape[2],
             config.volume.shape[1],
-            config.volume.shape[0],
-            THREE.RedFormat,
-            THREE.FloatType);
+            config.volume.shape[0]);
+
+        texture.format = THREE.RedFormat;
+        texture.type = TypedArrayToThree[config.volume.data.constructor.name];
 
         texture.generateMipmaps = false;
         texture.minFilter = THREE.LinearFilter;
@@ -110,15 +112,17 @@ module.exports = {
             rotation: {value: rotation},
             scale: {value: scale},
             volumeTexture: {type: 't', value: texture},
-            shadowTexture: {type: 't', value: (textureRTT ? textureRTT.texture : null)},
             colormap: {type: 't', value: colormap},
             jitterTexture: {type: 't', value: jitterTexture}
         };
 
         var material = new THREE.ShaderMaterial({
             uniforms: _.merge(
-                uniforms,
-                THREE.UniformsLib.lights
+                _.clone(uniforms),
+                THREE.UniformsLib.lights,
+                {
+                    shadowTexture: {type: 't', value: (textureRTT ? textureRTT.texture : null)}
+                }
             ),
             defines: {
                 USE_SPECULAR: 1,
@@ -149,7 +153,7 @@ module.exports = {
                 new THREE.PlaneBufferGeometry(lightMapRenderTargetSize, lightMapRenderTargetSize),
                 new THREE.ShaderMaterial({
                     uniforms: _.merge(
-                        uniforms,
+                        _.clone(uniforms),
                         THREE.UniformsLib.lights,
                         {
                             lightDirection: {type: 'v3', value: new THREE.Vector3()}
@@ -200,8 +204,10 @@ module.exports = {
                         renderer.clippingPlanes.push(new THREE.Plane(new THREE.Vector3().fromArray(plane), plane[3]));
                     });
 
-                    renderer.clearTarget(textureRTT, true, true, true);
-                    renderer.render(sceneRTT, cameraRTT, textureRTT);
+                    renderer.setRenderTarget(textureRTT);
+                    renderer.clear(true, true, true);
+                    renderer.render(sceneRTT, cameraRTT);
+                    renderer.setRenderTarget(null);
                 }
             };
 

@@ -1,6 +1,5 @@
 'use strict';
-var Detector = require('./../../../../node_modules/three/examples/js/Detector'),
-    lut = require('./../../../core/lib/helpers/lut');
+var lut = require('./../../../core/lib/helpers/lut');
 
 function getSpaceDimensionsFromTargetElement(world) {
     return [world.targetDOMNode.offsetWidth, world.targetDOMNode.offsetHeight];
@@ -180,15 +179,6 @@ module.exports = {
         return heads;
     },
 
-    validateWebGL: function (targetDOMNode) {
-        if (!Detector.webgl) {
-            Detector.addGetWebGLMessage({parent: targetDOMNode});
-            return false;
-        }
-
-        return true;
-    },
-
     handleColorMap: function (geometry, colorMap, colorRange, attributes, material) {
         var canvas, texture, uvs, i;
 
@@ -212,5 +202,12 @@ module.exports = {
 
             geometry.addAttribute('uv', new THREE.BufferAttribute(uvs, 1));
         }
+    },
+
+    TypedArrayToThree: {
+        'Int16Array': THREE.ShortType,
+        'Int32Array': THREE.IntType,
+        'Float16Array': THREE.HalfFloatType,
+        'Float32Array': THREE.FloatType
     }
 };

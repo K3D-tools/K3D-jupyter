@@ -5,6 +5,7 @@ window._ = {
     difference: require('lodash/difference'),
     assign: require('lodash/assign'),
     cloneDeep: require('lodash/cloneDeep'),
+    clone: require('lodash/clone'),
     values: require('lodash/values'),
     keys: require('lodash/keys'),
     invert: require('lodash/invert'),

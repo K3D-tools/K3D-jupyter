@@ -4,6 +4,7 @@
 var viewModes = require('./lib/viewMode').viewModes,
     loader = require('./lib/Loader'),
     msgpack = require('msgpack-lite'),
+    MsgpackCodec = msgpack.createCodec({preset: true}),
     pako = require('pako'),
     screenshot = require('./lib/screenshot'),
     snapshot = require('./lib/snapshot'),
@@ -12,9 +13,12 @@ var viewModes = require('./lib/viewMode').viewModes,
     detachWindowGUI = require('./lib/detachWindow'),
     fullscreen = require('./lib/fullscreen'),
     viewModeGUI = require('./lib/viewMode').viewModeGUI,
+    colorMapLegend = require('./lib/colorMapLegend'),
     objectGUIProvider = require('./lib/objectsGUIprovider'),
     clippingPlanesGUIProvider = require('./lib/clippingPlanesGUIProvider'),
     timeSeries = require('./lib/timeSeries');
+
+MsgpackCodec.extPackers.Float16Array = MsgpackCodec.extPackers.Uint16Array;
 
 /**
  * @constructor Core
@@ -73,10 +77,6 @@ function K3D(provider, targetDOMNode, parameters) {
         return new K3D(provider, targetDOMNode, parameters);
     }
 
-    if (!provider.Helpers.validateWebGL(world.targetDOMNode)) {
-        throw new Error('No WebGL');
-    }
-
     if (typeof (provider) !== 'object') {
         throw new Error('Provider should be an object (a key-value map following convention)');
     }
@@ -128,6 +128,7 @@ function K3D(provider, targetDOMNode, parameters) {
             fpsMeter: false,
             lighting: 1.5,
             time: 0.0,
+            colorbarObjectId: -1,
             fps: 25.0,
             guiVersion: require('./../../package.json').version
         },
@@ -227,6 +228,35 @@ function K3D(provider, targetDOMNode, parameters) {
 
         clippingPlanesGUIProvider(self, GUI.clippingPlanes);
         self.render();
+    };
+
+    this.setColorMapLegend = function (v) {
+        var newValue = v.id || v;
+
+        if (self.parameters.colorbarObjectId !== newValue) {
+            self.parameters.colorbarObjectId = newValue;
+            changeParameters('colorbar_object_id', self.parameters.colorbarObjectId);
+
+            Object.keys(world.ObjectsListJson).forEach(function (id) {
+                if (world.ObjectsListJson[id].colorLegend) {
+                    world.ObjectsListJson[id].colorLegend = false;
+                }
+            });
+
+            if (newValue > 0 && typeof (world.ObjectsListJson[newValue]) !== 'undefined') {
+                world.ObjectsListJson[newValue].colorLegend = true;
+            }
+
+            Object.keys(GUI.objects.__folders).forEach(function (k) {
+                GUI.objects.__folders[k].__controllers.forEach(function (controller) {
+                    if (controller.property === 'colorLegend') {
+                        controller.updateDisplay();
+                    }
+                });
+            });
+        }
+
+        colorMapLegend(self, world.ObjectsListJson[self.parameters.colorbarObjectId] || v);
     };
 
     /**
@@ -540,7 +570,13 @@ function K3D(provider, targetDOMNode, parameters) {
      * @returns {String|undefined}
      */
     this.getSnapshot = function () {
-        return pako.deflate(msgpack.encode(_.values(world.ObjectsListJson)), {to: 'string', level: 9});
+        return pako.deflate(
+            msgpack.encode(_.values(world.ObjectsListJson), {codec: MsgpackCodec}),
+            {
+                to: 'string',
+                level: 9
+            }
+        );
     };
 
     /**
@@ -676,6 +712,8 @@ function K3D(provider, targetDOMNode, parameters) {
     self.setCameraAutoFit(self.parameters.cameraAutoFit);
     self.setClippingPlanes(self.parameters.clippingPlanes);
     self.setDirectionalLightingIntensity(self.parameters.lighting);
+    self.setColorMapLegend(self.parameters.colorbarObjectId);
+
     world.setCameraToFitScene(true);
     self.render();
 
@@ -751,6 +789,5 @@ K3D.prototype.removeFrameUpdateListener = function (when, listener) {
 
     this.refreshAutoRenderingState();
 };
-
 
 module.exports = K3D;

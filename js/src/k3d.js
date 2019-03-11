@@ -165,6 +165,7 @@ PlotView = widgets.DOMWidgetView.extend({
         this.model.on('change:clipping_planes', this._setClippingPlanes, this);
         this.model.on('change:object_ids', this._onObjectsListChange, this);
         this.model.on('change:menu_visibility', this._setMenuVisibility, this);
+        this.model.on('change:colorbar_object_id', this._setColorMapLegend, this);
 
         try {
             this.K3DInstance = new K3D(ThreeJsProvider, this.container, {
@@ -263,6 +264,10 @@ PlotView = widgets.DOMWidgetView.extend({
 
     _setMenuVisibility: function () {
         this.K3DInstance.setMenuVisibility(this.model.get('menu_visibility'));
+    },
+
+    _setColorMapLegend: function () {
+        this.K3DInstance.setColorMapLegend(this.model.get('colorbar_object_id'));
     },
 
     _setCamera: function () {
