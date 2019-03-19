@@ -18,6 +18,7 @@ var viewModes = require('./lib/viewMode').viewModes,
     clippingPlanesGUIProvider = require('./lib/clippingPlanesGUIProvider'),
     timeSeries = require('./lib/timeSeries');
 
+window.Float16Array = require('./lib/helpers/float16Array');
 MsgpackCodec.extPackers.Float16Array = MsgpackCodec.extPackers.Uint16Array;
 
 /**
@@ -584,7 +585,7 @@ function K3D(provider, targetDOMNode, parameters) {
      * @memberof K3D.Core
      */
     this.setSnapshot = function (data) {
-        var objects = msgpack.decode(pako.inflate(data));
+        var objects = msgpack.decode(pako.inflate(data), {codec: MsgpackCodec});
 
         return self.load({objects: objects});
     };

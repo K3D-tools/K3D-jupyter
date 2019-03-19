@@ -104,7 +104,8 @@ module.exports = {
                     chunk,
                     colorMap,
                     object.voxelSize,
-                    config.outlines
+                    config.outlines,
+                    config.opacity < 1.0
                 );
 
                 voxelChunkObject = getVoxelChunkObject(K3D, config, object.voxelSize, generate());

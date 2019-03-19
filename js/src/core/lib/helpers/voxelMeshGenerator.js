@@ -4,9 +4,19 @@
 'use strict';
 
 function prepareColor(colorMap, voxel) {
-    var colorIndex = (voxel - 1) * 3;
+    if (Array.isArray(voxel)) {
+        var ci1 = (Math.abs(voxel[0]) - 1) * 3;
+        var ci2 = (Math.abs(voxel[1]) - 1) * 3;
 
-    return [colorMap[colorIndex], colorMap[colorIndex + 1], colorMap[colorIndex + 2]];
+        return [
+            (colorMap[ci1] + colorMap[ci2]) / 2,
+            (colorMap[ci1 + 1] + colorMap[ci2 + 1]) / 2,
+            (colorMap[ci1 + 2] + colorMap[ci2 + 2]) / 2
+        ];
+    } else {
+        var colorIndex = (Math.abs(voxel) - 1) * 3;
+        return [colorMap[colorIndex], colorMap[colorIndex + 1], colorMap[colorIndex + 2]];
+    }
 }
 
 function makeQuad(points, vertices, colors, color, quadIndex) {
@@ -47,9 +57,10 @@ function makeQuad(points, vertices, colors, color, quadIndex) {
  * @param {Array} colorMap
  * @param {Object} voxelSize
  * @param {Object} calculate_outlines
+ * @param {Bool} transparent
  * @return {Object} with two properties - vertices and colors
  */
-function generateGreedyVoxelMesh(chunk, colorMap, voxelSize, calculate_outlines) {
+function generateGreedyVoxelMesh(chunk, colorMap, voxelSize, calculate_outlines, transparent) {
     var vertices = [],
         colors = [],
         outlines = [],
@@ -61,7 +72,7 @@ function generateGreedyVoxelMesh(chunk, colorMap, voxelSize, calculate_outlines)
         dims = [width, height, length],
         voxelsIsArray = chunk.voxels instanceof Uint8Array,
         maxSize = Math.max.apply(null, chunk.size),
-        mask = new Int32Array((maxSize + 1) * (maxSize + 1)),
+        mask = new Array((maxSize + 1) * (maxSize + 1)).fill(0),// new Int32Array((maxSize + 1) * (maxSize + 1)),
         d,
         x, q, qxyz,
         u, v,
@@ -169,10 +180,10 @@ function generateGreedyVoxelMesh(chunk, colorMap, voxelSize, calculate_outlines)
                         continue;
                     }
 
-                    if (a === b || (a > 0 && b > 0)) {
+                    if (a === b || (a > 0 && b > 0 && !transparent)) {
                         mask[n] = 0;
                     } else if (a > 0) {
-                        mask[n] = a;
+                        mask[n] = transparent && b > 0 ? [a, b] : a;
                         maskFilled = true;
                     } else {
                         mask[n] = b > 0 ? -b : 0;
@@ -252,7 +263,7 @@ function generateGreedyVoxelMesh(chunk, colorMap, voxelSize, calculate_outlines)
                             dv[v] = h;
                             du[u] = w;
                         } else {
-                            c = -c;
+                            // c = -c;
                             du[v] = h;
                             dv[u] = w;
                         }
@@ -261,7 +272,7 @@ function generateGreedyVoxelMesh(chunk, colorMap, voxelSize, calculate_outlines)
                             prepareVertices(x, du, dv),
                             vertices,
                             colors,
-                            prepareColor(colorMap, c),
+                            prepareColor(colorMap, mask[n]),
                             quadIndex++
                         );
 
@@ -297,8 +308,8 @@ function generateGreedyVoxelMesh(chunk, colorMap, voxelSize, calculate_outlines)
     };
 }
 
-function initializeGreedyVoxelMesh(chunk, colorMap, voxelSize, calculate_outlines) {
-    return generateGreedyVoxelMesh.bind(null, chunk, colorMap, voxelSize, calculate_outlines);
+function initializeGreedyVoxelMesh(chunk, colorMap, voxelSize, calculate_outlines, transparent) {
+    return generateGreedyVoxelMesh.bind(null, chunk, colorMap, voxelSize, calculate_outlines, transparent);
 }
 
 module.exports = {

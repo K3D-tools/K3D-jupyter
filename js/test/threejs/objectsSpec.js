@@ -616,13 +616,13 @@ require(['k3d'], function (lib) {
             });
         });
 
-        it('should draw a texture with data', function (done) {
+        it('should draw a texture with data and colorLabel', function (done) {
             var self = this;
 
             jsonLoader('http://localhost:9001/samples/texture_data.json', function (json) {
 
                 self.K3D.addFrameUpdateListener('after', function () {
-                    TestHelpers.compareCanvasWithExpectedImage(self.K3D, 'texture_data', RESAMBLEThreshold, true, done);
+                    TestHelpers.compareCanvasWithExpectedImage(self.K3D, 'texture_data', RESAMBLEThreshold, false, done);
                 }, true);
 
                 self.K3D.load(json);
@@ -649,6 +649,19 @@ require(['k3d'], function (lib) {
 
                 self.K3D.addFrameUpdateListener('after', function () {
                     TestHelpers.compareCanvasWithExpectedImage(self.K3D, 'voxels_opacity', RESAMBLEThreshold, true, done);
+                }, true);
+
+                self.K3D.load(json);
+            });
+        });
+
+        it('should draw voxels with opacity interior', function (done) {
+            var self = this;
+
+            jsonLoader('http://localhost:9001/samples/voxels_opacity_interior.json', function (json) {
+
+                self.K3D.addFrameUpdateListener('after', function () {
+                    TestHelpers.compareCanvasWithExpectedImage(self.K3D, 'voxels_opacity_interior', RESAMBLEThreshold, true, done);
                 }, true);
 
                 self.K3D.load(json);
