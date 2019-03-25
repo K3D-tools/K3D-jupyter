@@ -1,20 +1,20 @@
-import urllib.request
-import xml.etree.ElementTree as ET
+import numpy as np
+from matplotlib import pyplot, cm
 
-response = urllib.request.urlopen('http://www.paraview.org/Wiki/images/d/d4/All_mpl_cmaps.xml')
-root = ET.fromstring(response.read().decode('utf8'))
 
-file = open('matplotlib_color_maps.py', 'w')
+min_samples = 256
+with open('matplotlib_color_maps.py', 'w') as file:
+    for name in sorted(pyplot.colormaps()):
+        cmap = cm.get_cmap(name)
+        name_c = name.capitalize()
+        if name_c == name:
+            file.write('{} = [ \n'.format(name))
+        else:
+            # compability with older matplotlib_color_maps.py where all names were capitalized
+            file.write('{} = {} = [ \n'.format(name, name_c))
 
-for colorMap in root:
-    name = colorMap.attrib['name']
-    name = name[:1].upper() + name[1:]
-    file.write(name + ' = [\n')
-
-    for p in colorMap:
-        file.write('    ' + p.attrib['x'] + ', ' + p.attrib['r'] + ', ' + p.attrib['g'] + ', '
-                   + p.attrib['b'] + ',\n')
-
-    file.write(']\n\n')
-
-file.close()
+        # cmap.N is the actual number of datapoints the map is constructed with
+        for x in np.linspace(0, 1, max(cmap.N, min_samples)):
+            r, g, b = cmap(x)[:3]
+            file.write('    {x}, {r}, {g}, {b},\n'.format(**locals()))
+        file.write(']\n\n')
