@@ -498,7 +498,7 @@ def vectors(origins, vectors=None, colors=[],
 
 # noinspection PyShadowingNames
 def voxels(voxels, color_map=nice_colors, wireframe=False, outlines=True, outlines_color=0, opacity=1.0,
-           compression_level=0,
+           compression_level=0, bounds=None,
            **kwargs):
     """Create a Voxels drawable for 3D volumetric data.
 
@@ -538,6 +538,12 @@ def voxels(voxels, color_map=nice_colors, wireframe=False, outlines=True, outlin
             Packed RGB color of the resulting outlines (0xff0000 is red, 0xff is blue)
         kwargs: `dict`.
             Dictionary arguments to configure transform and model_matrix."""
+
+    if bounds is not None:
+        kwargs['bounds'] = bounds
+    else:
+        kwargs['bounds'] = np.vstack([np.zeros(3), np.shape(voxels)]).flatten(order='F')
+
     return process_transform_arguments(
         Voxels(voxels=voxels, color_map=color_map, wireframe=wireframe,
                outlines=outlines, outlines_color=outlines_color, opacity=opacity,
