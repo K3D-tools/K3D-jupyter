@@ -1,5 +1,8 @@
 from __future__ import print_function
 
+from functools import wraps
+import base64
+
 import ipywidgets as widgets
 from traitlets import Unicode, Bool, Int, List, Float
 from IPython.display import display
@@ -14,27 +17,27 @@ class Plot(widgets.DOMWidget):
     Main K3D widget.
 
     Attributes:
-        antialias: `bool`: 
+        antialias: `bool`:
             Enable antialiasing in WebGL renderer, changes have no effect after displaying.
-        height: `int`: 
+        height: `int`:
             Height of the Widget in pixels, changes have no effect after displaying.
-        background_color: `int`.  
+        background_color: `int`.
             Packed RGB color of the plot background (0xff0000 is red, 0xff is blue).
-        camera_auto_fit: `bool`. 
+        camera_auto_fit: `bool`.
             Enable automatic camera setting after adding, removing or changing a plot object.
-        grid_auto_fit: `bool`. 
+        grid_auto_fit: `bool`.
             Enable automatic adjustment of the plot grid to contained objects.
         grid_visible: `bool`.
             Enable or disable grid.
-        screenshot_scale: `Float`. 
+        screenshot_scale: `Float`.
             Multipiler to screenshot resolution.
-        voxel_paint_color: `int`. 
+        voxel_paint_color: `int`.
             The (initial) int value to be inserted when editing voxels.
-        grid: `array_like`. 
+        grid: `array_like`.
             6-element tuple specifying the bounds of the plot grid (x0, y0, z0, x1, y1, z1).
-        camera: `array_like`. 
+        camera: `array_like`.
             9-element list or array specifying camera position.
-        objects: `list`. 
+        objects: `list`.
             List of `k3d.objects.Drawable` currently included in the plot, not to be changed directly.
     """
 
@@ -135,3 +138,19 @@ class Plot(widgets.DOMWidget):
 
     def fetch_screenshot(self, only_canvas=False):
         self.send({'msg_type': 'fetch_screenshot', 'only_canvas': only_canvas})
+
+    def yield_screenshots(self, generator_function):
+        """Decorator for a generator function receiving screenshots via yield."""
+        @wraps(generator_function)
+        def inner():
+            generator = generator_function()
+
+            def send_new_value(change):
+                try:
+                    generator.send(base64.b64decode(change.new))
+                except StopIteration:
+                    self.unobserve(send_new_value, 'screenshot')
+            self.observe(send_new_value, 'screenshot')
+            # start the decorated generator
+            generator.send(None)
+        return inner
