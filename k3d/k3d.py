@@ -542,7 +542,7 @@ def voxels(voxels, color_map=nice_colors, wireframe=False, outlines=True, outlin
     if bounds is not None:
         kwargs['bounds'] = bounds
     else:
-        kwargs['bounds'] = np.vstack([np.zeros(3), np.shape(voxels)]).flatten(order='F')
+        kwargs['bounds'] = np.stack([np.zeros(3), np.shape(voxels)], axis=1).flatten()
 
     return process_transform_arguments(
         Voxels(voxels=voxels, color_map=color_map, wireframe=wireframe,
