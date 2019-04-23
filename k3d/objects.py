@@ -61,7 +61,7 @@ class Drawable(widgets.Widget):
         Only specific features require this mechanism, e.g. the in-browser editing of voxels.
 
         Arguments:
-            field: `str`. 
+            field: `str`.
                 The field name."""
         self.send({'msg_type': 'fetch', 'field': field})
 
@@ -74,7 +74,7 @@ class Drawable(widgets.Widget):
         Only specific features require this mechanism, e.g. the in-browser editing of voxels.
 
         Arguments:
-            field: `str`. 
+            field: `str`.
                 The field name."""
         self.notify_change({'name': field, 'type': 'change'})
 
@@ -124,34 +124,34 @@ class Line(Drawable):
     A path (polyline) made up of line segments.
 
     Attributes:
-        vertices: `array_like`. 
+        vertices: `array_like`.
             An array with (x, y, z) coordinates of segment endpoints.
-        colors: `array_like`. 
+        colors: `array_like`.
             Same-length array of (`int`) packed RGB color of the points (0xff0000 is red, 0xff is blue).
-        color: `int`. 
+        color: `int`.
             Packed RGB color of the lines (0xff0000 is red, 0xff is blue) when `colors` is empty.
-        attribute: `array_like`. 
+        attribute: `array_like`.
             Array of float attribute for the color mapping, coresponding to each vertex.
-        color_map: `list`. 
+        color_map: `list`.
             A list of float quadruplets (attribute value, R, G, B), sorted by attribute value. The first
             quadruplet should have value 0.0, the last 1.0; R, G, B are RGB color components in the range 0.0 to 1.0.
-        color_range: `list`. 
+        color_range: `list`.
             A pair [min_value, max_value], which determines the levels of color attribute mapped
             to 0 and 1 in the color map respectively.
-        width: `float`. 
+        width: `float`.
             The thickness of the lines.
-        shader: `str`. 
+        shader: `str`.
             Display style (name of the shader used) of the lines.
             Legal values are:
 
             :`simple`: simple lines,
-            
+
             :`thick`: thick lines,
-            
+
             :`mesh`: high precision triangle mesh of segments (high quality and GPU load).
-        radial_segments: 'int': 
+        radial_segments: 'int':
             Number of segmented faces around the circumference of the tube.
-        model_matrix: `array_like`. 
+        model_matrix: `array_like`.
             4x4 model transform matrix.
     """
 
@@ -201,17 +201,17 @@ class MarchingCubes(Drawable):
     If the domain should be different, the bounding box needs to be transformed using the model_matrix.
 
     Attributes:
-        scalar_field: `array_like`. 
+        scalar_field: `array_like`.
             A 3D scalar field of values.
-        level: `float`. 
+        level: `float`.
             Value at the computed isosurface.
-        color: `int`. 
+        color: `int`.
             Packed RGB color of the isosurface (0xff0000 is red, 0xff is blue).
-        wireframe: `bool`. 
+        wireframe: `bool`.
             Whether mesh should display as wireframe.
-        flat_shading: `bool`. 
+        flat_shading: `bool`.
             Whether mesh should display with flat shading.
-        model_matrix: `array_like`. 
+        model_matrix: `array_like`.
             4x4 model transform matrix.
     """
 
@@ -234,25 +234,25 @@ class Mesh(Drawable):
     A 3D triangles mesh.
 
     Attributes:
-        vertices: `array_like`. 
+        vertices: `array_like`.
             Array of triangle vertices: float (x, y, z) coordinate triplets.
-        indices: `array_like`.  
+        indices: `array_like`.
             Array of vertex indices: int triplets of indices from vertices array.
-        color: `int`. 
+        color: `int`.
             Packed RGB color of the mesh (0xff0000 is red, 0xff is blue) when not using color maps.
-        attribute: `array_like`. 
+        attribute: `array_like`.
             Array of float attribute for the color mapping, coresponding to each vertex.
-        color_map: `list`. 
+        color_map: `list`.
             A list of float quadruplets (attribute value, R, G, B), sorted by attribute value. The first
             quadruplet should have value 0.0, the last 1.0; R, G, B are RGB color components in the range 0.0 to 1.0.
-        color_range: `list`. 
+        color_range: `list`.
             A pair [min_value, max_value], which determines the levels of color attribute mapped
             to 0 and 1 in the color map respectively.
-        wireframe: `bool`. 
+        wireframe: `bool`.
             Whether mesh should display as wireframe.
-        flat_shading: `bool`. 
+        flat_shading: `bool`.
             Whether mesh should display with flat shading.
-        model_matrix: `array_like`. 
+        model_matrix: `array_like`.
             4x4 model transform matrix.
     """
 
@@ -278,27 +278,27 @@ class Points(Drawable):
     A point cloud.
 
     Attributes:
-        positions: `array_like`. 
+        positions: `array_like`.
             Array with (x, y, z) coordinates of the points.
-        colors: `array_like`. 
+        colors: `array_like`.
             Same-length array of (`int`) packed RGB color of the points (0xff0000 is red, 0xff is blue).
-        color: `int`. 
+        color: `int`.
             Packed RGB color of the points (0xff0000 is red, 0xff is blue) when `colors` is empty.
-        point_size: `float`. 
+        point_size: `float`.
             Diameter of the balls representing the points in 3D space.
-        shader: `str`. 
+        shader: `str`.
             Display style (name of the shader used) of the points.
             Legal values are:
 
             :`flat`: simple circles with uniform color,
-            
+
             :`3d`: little 3D balls,
-            
+
             :`3dSpecular`: little 3D balls with specular lightning,
-            
+
             :`mesh`: high precision triangle mesh of a ball (high quality and GPU load).
-        
-        model_matrix: `array_like`. 
+
+        model_matrix: `array_like`.
             4x4 model transform matrix.
     """
 
@@ -332,18 +332,18 @@ class STL(Drawable):
     STL is a popular format introduced for 3D printing. There are two sub-formats - ASCII and binary.
 
     Attributes:
-        text: `str`. 
+        text: `str`.
             STL data in text format (ASCII STL).
-        binary: `bytes`. 
+        binary: `bytes`.
             STL data in binary format (Binary STL).
             The `text` attribute should be set to None when using Binary STL.
-        color: `int`. 
+        color: `int`.
             Packed RGB color of the resulting mesh (0xff0000 is red, 0xff is blue).
-        model_matrix: `array_like`. 
+        model_matrix: `array_like`.
             4x4 model transform matrix.
-        wireframe: `bool`. 
+        wireframe: `bool`.
             Whether mesh should display as wireframe.
-        flat_shading: `bool`. 
+        flat_shading: `bool`.
             Whether mesh should display with flat shading.
     """
 
@@ -369,15 +369,15 @@ class Surface(Drawable):
     If the domain should be different, the bounding box needs to be transformed using the model_matrix.
 
     Attributes:
-        heights: `array_like`. 
+        heights: `array_like`.
             2D scalar field of Z values.
-        color: `int`. 
+        color: `int`.
             Packed RGB color of the resulting mesh (0xff0000 is red, 0xff is blue).
-        wireframe: `bool`. 
+        wireframe: `bool`.
             Whether mesh should display as wireframe.
-        flat_shading: `bool`. 
+        flat_shading: `bool`.
             Whether mesh should display with flat shading.
-        model_matrix: `array_like`. 
+        model_matrix: `array_like`.
             4x4 model transform matrix.
     """
 
@@ -399,19 +399,19 @@ class Text(Drawable):
     Text rendered using KaTeX with a 3D position.
 
     Attributes:
-        text: `str`. 
+        text: `str`.
             Content of the text.
-        position: `list`. 
+        position: `list`.
             Coordinates (x, y, z) of the text's position.
-        color: `int`. 
+        color: `int`.
             Packed RGB color of the text (0xff0000 is red, 0xff is blue).
-        reference_point: `str`. 
+        reference_point: `str`.
             Two-letter string representing the text's alignment.
 
             First letter: 'l', 'c' or 'r': left, center or right
 
             Second letter: 't', 'c' or 'b': top, center or bottom.
-        size: `float`. 
+        size: `float`.
             Font size in 'em' HTML units.
     """
 
@@ -433,19 +433,19 @@ class Text2d(Drawable):
     Text rendered using KaTeX with a fixed 2D position, independent of camera settings.
 
     Attributes:
-        text: `str`. 
+        text: `str`.
             Content of the text.
-        position: `list`. 
+        position: `list`.
             Ratios (r_x, r_y) of the text's position in range (0, 1) - relative to canvas size.
-        color: `int`. 
+        color: `int`.
             Packed RGB color of the text (0xff0000 is red, 0xff is blue).
-        reference_point: `str`. 
+        reference_point: `str`.
             Two-letter string representing the text's alignment.
-            
+
             First letter: 'l', 'c' or 'r': left, center or right
 
             Second letter: 't', 'c' or 'b': top, center or bottom.
-        size: `float`. 
+        size: `float`.
             Font size in 'em' HTML units.
     """
 
@@ -471,20 +471,20 @@ class Texture(Drawable):
     using the model_matrix.
 
     Attributes:
-        binary: `bytes`. 
+        binary: `bytes`.
             Image data in a specific format.
-        file_format: `str`. 
+        file_format: `str`.
             Format of the data, it should be the second part of MIME format of type 'image/',
             for example 'jpeg', 'png', 'gif', 'tiff'.
-        attribute: `array_like`. 
+        attribute: `array_like`.
             Array of float attribute for the color mapping, coresponding to each pixels.
-        color_map: `list`. 
+        color_map: `list`.
             A list of float quadruplets (attribute value, R, G, B), sorted by attribute value. The first
             quadruplet should have value 0.0, the last 1.0; R, G, B are RGB color components in the range 0.0 to 1.0.
-        color_range: `list`. 
+        color_range: `list`.
             A pair [min_value, max_value], which determines the levels of color attribute mapped
             to 0 and 1 in the color map respectively.
-        model_matrix: `array_like`. 
+        model_matrix: `array_like`.
             4x4 model transform matrix.
     """
 
@@ -511,20 +511,20 @@ class TextureText(Drawable):
     many simple labels need to be displayed.
 
     Attributes:
-        text: `str`. 
+        text: `str`.
             Content of the text.
-        position: `list`. 
+        position: `list`.
             Coordinates (x, y, z) of the text's position.
-        color: `int`. 
+        color: `int`.
             Packed RGB color of the text (0xff0000 is red, 0xff is blue).
-        size: `float`. 
+        size: `float`.
             Size of the texture sprite containing the text.
-        font_face: `str`. 
+        font_face: `str`.
             Name of the font to use for rendering the text.
-        font_weight: `int`. 
+        font_weight: `int`.
             Thickness of the characters in HTML-like units from the range (100, 900), where
             400 is normal and 600 is bold font.
-        font_size: `int`. 
+        font_size: `int`.
             The font size inside the sprite texture in px units. This does not affect the size of the
             text in the scene, only the accuracy and raster size of the texture.
     """
@@ -557,25 +557,25 @@ class VectorField(Drawable):
     For sparse (i.e. not forming a grid) 3D vectors, use the `Vectors` drawable.
 
     Attributes:
-        vectors: `array_like`. 
+        vectors: `array_like`.
             Vector field of shape (L, H, W, 3) for 3D fields or (H, W, 2) for 2D fields.
-        colors: `array_like`. 
+        colors: `array_like`.
             Twice the length of vectors array of int: packed RGB colors
             (0xff0000 is red, 0xff is blue).
             The array has consecutive pairs (origin_color, head_color) for vectors in row-major order.
-        origin_color: `int`. 
+        origin_color: `int`.
             Packed RGB color of the origins (0xff0000 is red, 0xff is blue) when `colors` is empty.
-        head_color: `int`. 
+        head_color: `int`.
             Packed RGB color of the vector heads (0xff0000 is red, 0xff is blue) when `colors` is empty.
-        use_head: `bool`. 
+        use_head: `bool`.
             Whether vectors should display an arrow head.
-        head_size: `float`. 
+        head_size: `float`.
             The size of the arrow heads.
-        scale: `float`. 
+        scale: `float`.
             Scale factor for the vector lengths, for artificially scaling the vectors in place.
-        line_width: `float`. 
+        line_width: `float`.
             Width of the vector segments.
-        model_matrix: `array_like`. 
+        model_matrix: `array_like`.
             4x4 model transform matrix.
     """
 
@@ -613,29 +613,29 @@ class Vectors(Drawable):
     For dense (i.e. forming a grid) 3D or 2D vectors, use the `VectorField` drawable.
 
     Attributes:
-        vectors: `array_like`. 
+        vectors: `array_like`.
             The vectors as (dx, dy, dz) float triples.
-        origins: `array_like`. 
+        origins: `array_like`.
             Same-size array of (x, y, z) coordinates of vector origins.
-        colors: `array_like`. 
+        colors: `array_like`.
             Twice the length of vectors array of int: packed RGB colors
             (0xff0000 is red, 0xff is blue).
             The array has consecutive pairs (origin_color, head_color) for vectors in row-major order.
-        origin_color: `int`. 
+        origin_color: `int`.
             Packed RGB color of the origins (0xff0000 is red, 0xff is blue), default: same as color.
-        head_color: `int`. 
+        head_color: `int`.
             Packed RGB color of the vector heads (0xff0000 is red, 0xff is blue), default: same as color.
-        use_head: `bool`. 
+        use_head: `bool`.
             Whether vectors should display an arrow head.
-        head_size: `float`. 
+        head_size: `float`.
             The size of the arrow heads.
-        labels: `list` of `str`. 
+        labels: `list` of `str`.
             Captions to display next to the vectors.
-        label_size: `float`. 
+        label_size: `float`.
             Label font size in 'em' HTML units.
-        line_width: `float`. 
+        line_width: `float`.
             Width of the vector segments.
-        model_matrix: `array_like`. 
+        model_matrix: `array_like`.
             4x4 model transform matrix.
     """
 
@@ -666,19 +666,19 @@ class Volume(Drawable):
     regardless of the passed voxel array shape (aspect ratio etc.).
 
     Attributes:
-        volume: `array_like`. 
+        volume: `array_like`.
             3D array of `float`.
-        color_map: `array_like`. 
+        color_map: `array_like`.
             A list of float quadruplets (attribute value, R, G, B), sorted by attribute value. The first
             quadruplet should have value 0.0, the last 1.0; R, G, B are RGB color components in the range 0.0 to 1.0.
-        color_range: `list`. 
+        color_range: `list`.
             A pair [min_value, max_value], which determines the levels of color attribute mapped
             to 0 and 1 in the color map respectively.
-        samples: `float`. 
+        samples: `float`.
             Number of iteration per 1 unit of space.
-        alpha_coef: `float`. 
+        alpha_coef: `float`.
             Alpha multiplier.
-        shadow: `str`. 
+        shadow: `str`.
             Type of shadow on volume.
 
             Legal values are:
@@ -688,11 +688,11 @@ class Volume(Drawable):
             :`on_demand`: update shadow map on demand ( self.shadow_map_update() ),
 
             :`dynamic`: update shadow map automaticaly every shadow_delay.
-        shadow_delay: `float`. 
+        shadow_delay: `float`.
             Minimum number of miliseconds between shadow map updates.
-        shadow_res: `int`. 
+        shadow_res: `int`.
             Resolution of shadow map.
-        model_matrix: `array_like`. 
+        model_matrix: `array_like`.
             4x4 model transform matrix.
     """
 
@@ -728,17 +728,17 @@ class Voxels(Drawable):
     Different grid size, shape and rotation can be obtained using the model_matrix.
 
     Attributes:
-        voxels: `array_like`. 
+        voxels: `array_like`.
             3D array of `int` in range (0, 255).
             0 means empty voxel, 1 and above refer to consecutive color_map entries.
-        color_map: `array_like`. 
+        color_map: `array_like`.
             Flat array of `int` packed RGB colors (0xff0000 is red, 0xff is blue).
 
             The color defined at index i is for voxel value (i+1), e.g.:
 
             color_map = [0xff, 0x00ff]
 
-            voxels = 
+            voxels =
             [[[
                 0, # empty voxel
 
@@ -746,15 +746,15 @@ class Voxels(Drawable):
 
                 2  # red voxel
             ]]]
-        model_matrix: `array_like`. 
+        model_matrix: `array_like`.
             4x4 model transform matrix.
-        wireframe: `bool`. 
+        wireframe: `bool`.
             Whether mesh should display as wireframe.
         opacity: `float`.
             Opacity of voxels.
-        outlines: `bool`. 
+        outlines: `bool`.
             Whether mesh should display with outlines.
-        outlines_color: `int`. 
+        outlines_color: `int`.
             Packed RGB color of the resulting outlines (0xff0000 is red, 0xff is blue)
     """
 
@@ -888,17 +888,17 @@ class VoxelsIpyDW(Drawable):
     Different grid size, shape and rotation can be obtained using the model_matrix.
 
     Attributes:
-        voxels: `array_like`. 
+        voxels: `array_like`.
             3D array of `int` in range (0, 255).
             0 means empty voxel, 1 and above refer to consecutive color_map entries.
-        color_map: `array_like`. 
+        color_map: `array_like`.
             Flat array of `int` packed RGB colors (0xff0000 is red, 0xff is blue).
 
             The color defined at index i is for voxel value (i+1), e.g.:
 
             color_map = [0xff, 0x00ff]
 
-            voxels = 
+            voxels =
             [[[
                 0, # empty voxel
 
@@ -906,15 +906,15 @@ class VoxelsIpyDW(Drawable):
 
                 2  # red voxel
             ]]]
-        model_matrix: `array_like`. 
+        model_matrix: `array_like`.
             4x4 model transform matrix.
-        wireframe: `bool`. 
+        wireframe: `bool`.
             Whether mesh should display as wireframe.
         opacity: `float`.
             Opacity of voxels.
-        outlines: `bool`. 
+        outlines: `bool`.
             Whether mesh should display with outlines.
-        outlines_color: `int`. 
+        outlines_color: `int`.
             Packed RGB color of the resulting outlines (0xff0000 is red, 0xff is blue)
     """
 

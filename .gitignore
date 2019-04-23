@@ -1,4 +1,6 @@
 .idea/
+.vscode/
+.gitattributes
 *.egg-info/
 js/dist/
 js/build/
