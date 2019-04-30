@@ -74,6 +74,7 @@ function detachWindowGUI(gui, K3D) {
 
                 removeByTagName(originalDom, 'canvas');
                 removeByTagName(originalDom, 'div');
+                removeByTagName(originalDom, 'svg');
 
                 originalDom.appendChild(detachedDom);
             }, 100);

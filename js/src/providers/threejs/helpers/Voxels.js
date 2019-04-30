@@ -59,6 +59,8 @@ function getVoxelChunkObject(K3D, config, voxelSize, chunkStructure) {
             side: THREE.DoubleSide
         });
 
+        material.userData = {outline: true};
+
         line.setGeometry(new Float32Array(chunkStructure.outlines), true);
         line.geometry.computeBoundingSphere();
         line.geometry.computeBoundingBox();
@@ -69,12 +71,36 @@ function getVoxelChunkObject(K3D, config, voxelSize, chunkStructure) {
     return voxelsChunkObject;
 }
 
+function rebuildChunk(object, forRebuild) {
+    var idsMap = {};
+
+    console.log('K3D.Voxels rebuildChunk Count:' + forRebuild.size);
+    object.children.forEach(function (g) {
+        if (g.voxel) {
+            idsMap[g.voxel.chunk.id] = g;
+        }
+    });
+
+    for (var id of forRebuild.values()) {
+        var mesh = idsMap[id];
+        var newMesh = mesh.voxel.getVoxelChunkObject(mesh.voxel.generate());
+
+        for (var j = 0; j < mesh.children.length; j++) {
+            mesh.children[j].geometry.dispose();
+            mesh.children[j].geometry = newMesh.children[j].geometry;
+        }
+    }
+
+    forRebuild.clear();
+}
+
 module.exports = {
     create: function (config, voxelsChunks, size, K3D) {
+        var forRebuild = new Set();
+
         return new Promise(function (resolve) {
             var modelMatrix, colorMap,
                 object = new THREE.Group(),
-                generate,
                 voxelChunkObject,
                 rollOverMesh = new THREE.Mesh(
                     new THREE.BoxGeometry(1.2 / size[0], 1.2 / size[1], 1.2 / size[2])
@@ -95,19 +121,61 @@ module.exports = {
             colorMap = config.color_map.data || [16711680, 65280, 255, 16776960, 16711935, 65535];
             colorMap = colorsToFloat32Array(colorMap);
 
+            object.holdRemeshing = config._hold_remeshing || false;
             object.voxelSize = {width: size[0], height: size[1], length: size[2]};
 
-            yieldingLoop(voxelsChunks.length, 20, function (index) {
-                var chunk = voxelsChunks[index];
+            object.rebuildChunk = function () {
+                rebuildChunk(object, forRebuild);
+                K3D.render();
+            };
 
-                generate = voxelMeshGenerator.initializeGreedyVoxelMesh(
+            object.updateChunk = function (chunk, skipNeighbours) {
+                object.children.some(function (voxelChunkObject) {
+                    if (voxelChunkObject.voxel && voxelChunkObject.voxel.chunk.id === chunk.id) {
+                        voxelChunkObject.voxel.chunk.voxels.data = chunk.voxels.data;
+
+                        forRebuild.add(chunk.id);
+
+                        if (!skipNeighbours) {
+                            voxelChunkObject.voxel.chunk.voxels.neighbours.forEach(function (n) {
+                                forRebuild.add(n.id);
+                            });
+                        }
+
+                        if (!object.holdRemeshing) {
+                            object.rebuildChunk();
+                        }
+
+                        return true;
+                    }
+
+                    return false;
+                });
+            };
+
+            object.voxelsChunks = voxelsChunks;
+            object.addChunk = function (chunk) {
+                var generate = voxelMeshGenerator.initializeGreedyVoxelMesh(
                     chunk,
                     colorMap,
                     object.voxelSize,
-                    config.outlines
-                );
+                    config.outlines,
+                    config.opacity < 1.0
+                ), chunkData;
 
-                voxelChunkObject = getVoxelChunkObject(K3D, config, object.voxelSize, generate());
+
+                if (object.holdRemeshing) {
+                    chunkData = {
+                        offset: chunk.offset,
+                        vertices: [],
+                        colors: [],
+                        outlines: []
+                    };
+                } else {
+                    chunkData = generate();
+                }
+
+                voxelChunkObject = getVoxelChunkObject(K3D, config, object.voxelSize, chunkData);
 
                 voxelChunkObject.voxel = {
                     generate: generate,
@@ -119,6 +187,12 @@ module.exports = {
                     interactionsVoxels(object, voxelChunkObject, rollOverMesh, K3D);
 
                 object.add(voxelChunkObject);
+
+                return voxelChunkObject;
+            };
+
+            yieldingLoop(voxelsChunks.length, 20, function (index) {
+                object.addChunk(voxelsChunks[index]);
             }, function () {
                 object.position.set(-0.5, -0.5, -0.5);
                 object.updateMatrix();
@@ -162,12 +236,12 @@ module.exports = {
             sizeX = Math.ceil(shape[2] / chunkSize),
             sizeY = Math.ceil(shape[1] / chunkSize),
             sizeZ = Math.ceil(shape[0] / chunkSize),
-            x, y, z;
+            x, y, z, i;
 
 
-        for (x = 0; x < sizeX; x++) {
+        for (x = 0, i = 0; x < sizeX; x++) {
             for (y = 0; y < sizeY; y++) {
-                for (z = 0; z < sizeZ; z++) {
+                for (z = 0; z < sizeZ; z++, i++) {
                     chunkList.push({
                         voxels: voxels,
                         size: [
@@ -176,7 +250,8 @@ module.exports = {
                             shape[0] - (z + 1) * chunkSize > 0 ? chunkSize : shape[0] - z * chunkSize
                         ],
                         offset: [x * chunkSize, y * chunkSize, z * chunkSize],
-                        multiple: 1
+                        multiple: 1,
+                        idx: i
                     });
                 }
             }

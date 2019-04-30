@@ -90,7 +90,7 @@ module.exports = {
     },
 
     interpolateTimeSeries: function (json, time) {
-        var interpolated_json = {};
+        var interpolated_json = {}, changes = {};
 
         Object.keys(json).forEach(function (property) {
             var keypoints,
@@ -131,12 +131,14 @@ module.exports = {
                         }
                     }
                 }
+
+                changes[property] = interpolated_json[property];
             } else {
                 interpolated_json[property] = json[property];
             }
         });
 
-        return interpolated_json;
+        return {json: interpolated_json, changes: changes};
     },
 
     getObjectsWithTimeSeriesAndMinMax: getObjectsWithTimeSeriesAndMinMax,

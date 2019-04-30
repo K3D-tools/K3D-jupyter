@@ -17,12 +17,12 @@ class Plot(widgets.DOMWidget):
     Main K3D widget.
 
     Attributes:
-        antialias: `bool`:
+        antialias: `int`:
             Enable antialiasing in WebGL renderer, changes have no effect after displaying.
         height: `int`:
             Height of the Widget in pixels, changes have no effect after displaying.
         background_color: `int`.
-            Packed RGB color of the plot background (0xff0000 is red, 0xff is blue).
+            Packed RGB color of the plot background (0xff0000 is red, 0xff is blue), -1 is for transparent.
         camera_auto_fit: `bool`.
             Enable automatic camera setting after adding, removing or changing a plot object.
         grid_auto_fit: `bool`.
@@ -52,7 +52,7 @@ class Plot(widgets.DOMWidget):
     _backend_version = Unicode(BACKEND_VERSION).tag(sync=True)
 
     # readonly (specified at creation)
-    antialias = Bool().tag(sync=True)
+    antialias = Int(min=0, max=5).tag(sync=True)
     height = Int().tag(sync=True)
 
     # readonly (not to be modified directly)
@@ -72,13 +72,16 @@ class Plot(widgets.DOMWidget):
     voxel_paint_color = Int().tag(sync=True)
     camera = ListOrArray(minlen=9, maxlen=9, empty_ok=True).tag(sync=True)
     clipping_planes = ListOrArray(empty_ok=True).tag(sync=True)
+    colorbar_object_id = Int(-1).tag(sync=True)
+    rendering_steps = Int(1).tag(sync=True)
     screenshot = Unicode().tag(sync=True)
 
     objects = []
 
-    def __init__(self, antialias=True, background_color=0xFFFFFF, camera_auto_fit=True, grid_auto_fit=True,
+    def __init__(self, antialias=3, background_color=0xFFFFFF, camera_auto_fit=True, grid_auto_fit=True,
                  grid_visible=True, height=512, voxel_paint_color=0, grid=(-1, -1, -1, 1, 1, 1), screenshot_scale=2.0,
-                 lighting=1.0, time=0.0, fps_meter=False, menu_visibility=True, *args, **kwargs):
+                 lighting=1.0, time=0.0, fps_meter=False, menu_visibility=True, colorbar_object_id=-1,
+                 rendering_steps=1, *args, **kwargs):
         super(Plot, self).__init__()
 
         self.antialias = antialias
@@ -94,6 +97,8 @@ class Plot(widgets.DOMWidget):
         self.lighting = lighting
         self.time = time
         self.menu_visibility = menu_visibility
+        self.colorbar_object_id = colorbar_object_id
+        self.rendering_steps = rendering_steps
 
         self.object_ids = []
         self.objects = []
@@ -141,6 +146,7 @@ class Plot(widgets.DOMWidget):
 
     def yield_screenshots(self, generator_function):
         """Decorator for a generator function receiving screenshots via yield."""
+
         @wraps(generator_function)
         def inner():
             generator = generator_function()
@@ -150,7 +156,9 @@ class Plot(widgets.DOMWidget):
                     generator.send(base64.b64decode(change.new))
                 except StopIteration:
                     self.unobserve(send_new_value, 'screenshot')
+
             self.observe(send_new_value, 'screenshot')
             # start the decorated generator
             generator.send(None)
+
         return inner

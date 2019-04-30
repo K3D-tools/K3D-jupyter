@@ -13,7 +13,7 @@ import six
 from .colormaps import basic_color_maps
 from .plot import Plot
 from .objects import (Line, MarchingCubes, Mesh, Points, STL, Surface, Text, Text2d, Texture, TextureText, VectorField,
-                      Vectors, Volume, Voxels, SparseVoxels, VoxelsGroup, VoxelsIpyDW)
+                      Vectors, Volume, Voxels, SparseVoxels, VoxelsGroup, VoxelsIpyDW, VoxelChunk)
 from .transform import process_transform_arguments
 from .helpers import check_attribute_range
 
@@ -592,8 +592,8 @@ def sparse_voxels(sparse_voxels, space_size, color_map=nice_colors, wireframe=Fa
 
 
 # noinspection PyShadowingNames
-def voxels_group(voxels_group, space_size, color_map=nice_colors, wireframe=False, outlines=True, outlines_color=0,
-                 opacity=1.0, compression_level=0, **kwargs):
+def voxels_group(space_size, voxels_group=[], chunks_ids=[], color_map=nice_colors, wireframe=False, outlines=True,
+                 outlines_color=0, opacity=1.0, compression_level=0, **kwargs):
     """Create a Voxels drawable for 3D volumetric data.
 
     By default, the voxels are a grid inscribed in the -0.5 < x, y, z < 0.5 cube
@@ -604,10 +604,12 @@ def voxels_group(voxels_group, space_size, color_map=nice_colors, wireframe=Fals
         voxels(..., scaling=[scale_x, scale_y, scale_z]).
 
     Arguments:
-        voxels_group: `array_like`.
-            List of `chunks` in format {voxels: np.array, coord: [x,y,z], multiple: number}.
         space_size: `array_like`.
             Width, Height, Length of space
+        voxels_group: `array_like`.
+            List of `chunks` in format {voxels: np.array, coord: [x,y,z], multiple: number}.
+        chunks_ids: `array`.
+            List of `chunks_id`. Chunks widget you can create using k3d.voxel_chunk()
         color_map: `array_like`.
             Flat array of `int` packed RGB colors (0xff0000 is red, 0xff is blue).
         wireframe: `bool`.
@@ -629,8 +631,8 @@ def voxels_group(voxels_group, space_size, color_map=nice_colors, wireframe=Fals
             group['multiple'] = 1
 
     return process_transform_arguments(
-        VoxelsGroup(voxels_group=voxels_group, space_size=space_size, color_map=color_map, wireframe=wireframe,
-                    outlines=outlines, outlines_color=outlines_color, opacity=opacity,
+        VoxelsGroup(voxels_group=voxels_group, chunks_ids=chunks_ids, space_size=space_size, color_map=color_map,
+                    wireframe=wireframe, outlines=outlines, outlines_color=outlines_color, opacity=opacity,
                     compression_level=compression_level),
         **kwargs
     )
@@ -638,7 +640,8 @@ def voxels_group(voxels_group, space_size, color_map=nice_colors, wireframe=Fals
 
 # noinspection PyShadowingNames
 def volume(volume, color_map, color_range=[], samples=512.0, alpha_coef=50.0, gradient_step=0.005, shadow='off',
-           shadow_delay=500, shadow_res=128, compression_level=0, **kwargs):
+           shadow_delay=500, shadow_res=128, focal_length=0.0, focal_plane=100.0, ray_samples_count=16,
+           compression_level=0, **kwargs):
     """Create a Volume drawable for 3D volumetric data.
 
     By default, the volume are a grid inscribed in the -0.5 < x, y, z < 0.5 cube
@@ -675,6 +678,12 @@ def volume(volume, color_map, color_range=[], samples=512.0, alpha_coef=50.0, gr
             Alpha multiplier.
         gradient_step: `float`
             Gradient light step.
+        focal_length: `float`
+            focal length of depth of field renderer. 0.0 for disabled
+        focal_plane: `float`
+            focal plane for depth of field renderer
+        ray_samples_count: `Int`
+            Number of rays for Depth of Field rendering
         shadow: `str`.
             Type of shadow on volume
             Legal values are:
@@ -695,8 +704,8 @@ def volume(volume, color_map, color_range=[], samples=512.0, alpha_coef=50.0, gr
     return process_transform_arguments(
         Volume(volume=volume, color_map=color_map, color_range=color_range, compression_level=compression_level,
                samples=samples, alpha_coef=alpha_coef, gradient_step=gradient_step, shadow=shadow,
-               shadow_delay=shadow_delay, shadow_res=shadow_res),
-        **kwargs)
+               shadow_delay=shadow_delay, shadow_res=shadow_res, focal_plane=focal_plane, focal_length=focal_length,
+               ray_samples_count=ray_samples_count), **kwargs)
 
 
 def vtk_poly_data(poly_data, color=_default_color, color_attribute=None, color_map=basic_color_maps.Rainbow,
@@ -755,8 +764,26 @@ def vtk_poly_data(poly_data, color=_default_color, color_attribute=None, color_m
     )
 
 
+def voxel_chunk(voxels, coord, multiple=1, compression_level=0):
+    """Create a chunk of data that can be used for k3d.voxels_group.
+
+    Arguments:
+        voxels: `array_like`.
+            3D array of `int` in range (0, 255).
+            0 means empty voxel, 1 and above refer to consecutive color_map entries.
+        coord: `array_like`.
+            Coordinate of chunk
+        multiple: `Int`
+            For future usage"""
+
+    return VoxelChunk(voxels=np.array(voxels, np.uint8),
+                      coord=np.array(coord, np.uint32),
+                      multiple=multiple,
+                      compression_level=compression_level)
+
+
 def plot(height=512,
-         antialias=True,
+         antialias=3,
          background_color=0xffffff,
          camera_auto_fit=True,
          grid_auto_fit=True,

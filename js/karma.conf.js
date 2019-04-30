@@ -20,6 +20,7 @@ module.exports = function (config) {
             'node_modules/requirejs/require.js',
             'node_modules/karma-requirejs/lib/adapter.js',
             {pattern: 'dev/index.js', included: true},
+            {pattern: 'dev/index.js.map', included: false},
             {pattern: 'node_modules/resemblejs/resemble.js', included: true},
             {pattern: 'test/utils/*.js', included: true},
             {pattern: 'node_modules/components-webfontloader/webfont.js', included: true},

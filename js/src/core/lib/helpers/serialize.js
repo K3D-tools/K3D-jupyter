@@ -1,6 +1,7 @@
 'use strict';
 
 var pako = require('pako'),
+    Float16Array = require('./float16Array'),
     ipyDataWidgets = require('jupyter-dataserializers').data_union_array_serialization,
     typesToArray = {
         int8: Int8Array,
@@ -9,6 +10,7 @@ var pako = require('pako'),
         uint8: Uint8Array,
         uint16: Uint16Array,
         uint32: Uint32Array,
+        float16: Float16Array,
         float32: Float32Array,
         float64: Float64Array
     };

@@ -35,8 +35,13 @@
                 lib.ThreeJsProvider,
                 document.getElementById('canvasTarget'),
                 {
-                    cameraAutoFit: false,
+                    menuVisibility: true,
+                    cameraAutoFit: true,
                     gridAutoFit: true,
+                    gridVisible: true,
+                    colorbarObjectId: 2524948058800,
+                    renderingSteps: 1,
+                    lighting: 2.5,
                     grid: [
                         -1, -1, -1,
                         1, 1, 1]
@@ -48,50 +53,39 @@
         }
 
         if (K3DInstance) {
-            K3DInstance.setClearColor(0xffffff, 1);
+            K3DInstance.setClearColor(-1);
             K3DInstance.setScreenshotScale(1.0);
 
             // jsonLoader('test/samples/voxels_dense.json', function (json) {
             // jsonLoader('test/samples/data.json', function (json) {
-            jsonLoader('test/samples/voxels_group.json', function (json) {
+            jsonLoader('test/samples/voxels.json', function (json) {
+                K3DInstance.setClippingPlanes([
+                    [-1, -1.5, 0, 0],
+                    [0, 0, -1, 0.01]
+                ]);
                 K3DInstance.load(json);
             });
 
-            // fileLoader('K3D-snapshot-1548166524274.html', function (data) {
+            // fileLoader('heart.html', function (data) {
             //     var snapshot = K3DInstance.extractSnapshot(data);
-            //     K3DInstance.setSnapshot(atob(snapshot[1]));
-            // });
-
-            // fileLoader('K3D-snapshot-1546614659588.html', function (data) {
-            // var snapshot = K3DInstance.extractSnapshot(data);
-            //
-            //     K3DInstance.setSnapshot(atob(snapshot[1]));
-            // });
-            //
-            // fileLoader('K3D-snapshot-1546685854522.html', function (data) {
-            //     var snapshot = K3DInstance.extractSnapshot(data);
-            //
             //     K3DInstance.setSnapshot(atob(snapshot[1]));
             // });
         }
 
-        if (localStorage.getItem('camera') !== null) {
-            K3DInstance.setCamera(JSON.parse(localStorage.getItem('camera')));
-        }
-
-        K3DInstance.on(K3DInstance.events.CAMERA_CHANGE, function (control) {
-            localStorage.setItem('camera', JSON.stringify(control));
-        });
+        // if (localStorage.getItem('camera') !== null) {
+        //     K3DInstance.setCamera(JSON.parse(localStorage.getItem('camera')));
+        // }
+        //
+        // K3DInstance.on(K3DInstance.events.CAMERA_CHANGE, function (control) {
+        //     localStorage.setItem('camera', JSON.stringify(control));
+        // });
 
         // K3DInstance.addFrameUpdateListener('after', function () {
         //
         // }, false);
         K3DInstance.setFpsMeter(true);
 
-        K3DInstance.setClippingPlanes([
-            // [-1, -1.5, 0, 0],
-            // [-0.001, 0.958, 0.286, 52.142]
-        ]);
+
     });
 </script>
 </body>

@@ -19,7 +19,7 @@ import zlib
 
 # pylint: disable=unused-argument
 # noinspection PyUnusedLocal
-def array_to_binary(ar, obj=None, force_contiguous=True):
+def array_to_binary(ar, compression_level=0, force_contiguous=True):
     """Pre-process numpy array for serialization in traittypes.Array."""
     if ar.dtype.kind not in ['u', 'i', 'f']:  # ints and floats
         raise ValueError("unsupported dtype: %s" % ar.dtype)
@@ -32,8 +32,8 @@ def array_to_binary(ar, obj=None, force_contiguous=True):
     if force_contiguous and not ar.flags["C_CONTIGUOUS"]:  # make sure it's contiguous
         ar = np.ascontiguousarray(ar)
 
-    if obj.compression_level > 0:
-        return {'compressed_buffer': zlib.compress(ar, obj.compression_level), 'dtype': str(ar.dtype),
+    if compression_level > 0:
+        return {'compressed_buffer': zlib.compress(ar, compression_level), 'dtype': str(ar.dtype),
                 'shape': ar.shape}
     else:
         return {'buffer': memoryview(ar), 'dtype': str(ar.dtype), 'shape': ar.shape}
@@ -47,17 +47,22 @@ def from_json_to_array(value, obj=None):
     return None
 
 
-def to_json(input, obj=None, force_contiguous=True):
+def to_json(name, input, obj=None, compression_level=0):
+    property = obj[name]
+
+    if hasattr(obj, 'compression_level'):
+        compression_level = obj.compression_level
+
     if isinstance(input, dict):
         ret = {}
         for key, value in input.items():
-            ret[key] = to_json(value, obj, force_contiguous)
+            ret[key] = to_json(key, value, property, compression_level)
 
         return ret
     elif isinstance(input, list):
-        return [to_json(i, obj) for i in input]
+        return [to_json(idx, v, property, compression_level) for idx, v in enumerate(input)]
     elif isinstance(input, np.ndarray):
-        return array_to_binary(input, obj, force_contiguous)
+        return array_to_binary(input, compression_level)
     else:
         return input
 
@@ -79,7 +84,11 @@ def from_json(input, obj=None):
         return input
 
 
-array_serialization = dict(to_json=to_json, from_json=from_json)
+def array_serialization_wrap(name):
+    return {
+        'to_json': (lambda input, obj: to_json(name, input, obj)),
+        'from_json': from_json,
+    }
 
 
 def download(url):

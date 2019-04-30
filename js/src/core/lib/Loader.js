@@ -9,14 +9,14 @@ var validateAndPrepareObject = require('./helpers/objectValidator'),
  * @description K3D objects objectProvider
  * @memberof K3D
  * @param {K3D.Core} K3D A K3D instance to load objects into
- * @param {Object} json K3D JSON with objects
+ * @param {Object} data K3D JSON with objects
  */
-function loader(K3D, json) {
+function loader(K3D, data) {
 
     var objectProvider, startTime, objectsPromieses = [], K3DObjectPromise;
 
     try {
-        json.objects.forEach(function (json) {
+        data.objects.forEach(function (json, i) {
             K3DObjectPromise = false;
 
             validateAndPrepareObject(K3D, json);
@@ -30,14 +30,14 @@ function loader(K3D, json) {
 
             startTime = new Date().getTime();
 
-            var interpolated_object = timeSeries.interpolateTimeSeries(json, K3D.parameters.time);
+            var interpolated = timeSeries.interpolateTimeSeries(json, K3D.parameters.time);
+            var changes = (data.changes && data.changes[i]) || interpolated.changes || {};
 
-            if (objectProvider.update) {
-                var obj = K3D.getObjectById(interpolated_object.id), prevConfig;
+            if (objectProvider.update && !_.isEmpty(changes)) {
+                var obj = K3D.getObjectById(interpolated.json.id);
 
                 if (typeof (obj) !== 'undefined') {
-                    prevConfig = K3D.getWorld().ObjectsListJson[interpolated_object.id];
-                    K3DObjectPromise = objectProvider.update(interpolated_object, prevConfig, obj, K3D);
+                    K3DObjectPromise = objectProvider.update(interpolated.json, changes, obj, K3D);
 
                     if (K3DObjectPromise) {
                         console.log('K3D: Object type "' + json.type + '" updated in: ',
@@ -47,7 +47,7 @@ function loader(K3D, json) {
             }
 
             if (!K3DObjectPromise) {
-                K3DObjectPromise = objectProvider.create(interpolated_object, K3D)
+                K3DObjectPromise = objectProvider.create(interpolated.json, K3D)
                     .then(function (K3DObject) {
                         var objectNumber;
 

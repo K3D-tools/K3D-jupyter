@@ -23,6 +23,7 @@ from .k3d import (plot,
                   sparse_voxels,
                   volume,
                   vtk_poly_data,
+                  voxel_chunk,
                   voxels_ipydw)
 
 

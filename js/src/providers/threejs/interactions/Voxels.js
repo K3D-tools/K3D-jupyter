@@ -62,7 +62,7 @@ module.exports = function (object, mesh, rollOverMesh, K3D) {
         });
     }
 
-    function rebuildChunk(voxelCoordinate, offset) {
+    function updateChunk(voxelCoordinate, offset) {
         var nextMesh = findMesh({
             x: voxelCoordinate.x + offset.x,
             y: voxelCoordinate.y + offset.y,
@@ -161,27 +161,27 @@ module.exports = function (object, mesh, rollOverMesh, K3D) {
         updateObject(mesh);
 
         if (voxelCoordinate.x === mesh.voxel.chunk.offset.x) {
-            rebuildChunk(voxelCoordinate, {x: -1, y: 0, z: 0});
+            updateChunk(voxelCoordinate, {x: -1, y: 0, z: 0});
         }
 
         if (voxelCoordinate.x === mesh.voxel.chunk.offset.x + mesh.voxel.chunk.size - 1) {
-            rebuildChunk(voxelCoordinate, {x: 1, y: 0, z: 0});
+            updateChunk(voxelCoordinate, {x: 1, y: 0, z: 0});
         }
 
         if (voxelCoordinate.y === mesh.voxel.chunk.offset.y) {
-            rebuildChunk(voxelCoordinate, {x: 0, y: -1, z: 0});
+            updateChunk(voxelCoordinate, {x: 0, y: -1, z: 0});
         }
 
         if (voxelCoordinate.y === mesh.voxel.chunk.offset.y + mesh.voxel.chunk.size - 1) {
-            rebuildChunk(voxelCoordinate, {x: 0, y: 1, z: 0});
+            updateChunk(voxelCoordinate, {x: 0, y: 1, z: 0});
         }
 
         if (voxelCoordinate.z === mesh.voxel.chunk.offset.z) {
-            rebuildChunk(voxelCoordinate, {x: 1, y: 0, z: -1});
+            updateChunk(voxelCoordinate, {x: 1, y: 0, z: -1});
         }
 
         if (voxelCoordinate.z === mesh.voxel.chunk.offset.z + mesh.voxel.chunk.size - 1) {
-            rebuildChunk(voxelCoordinate, {x: 0, y: 0, z: 1});
+            updateChunk(voxelCoordinate, {x: 0, y: 0, z: 1});
         }
 
         rollOverMesh.visible = false;

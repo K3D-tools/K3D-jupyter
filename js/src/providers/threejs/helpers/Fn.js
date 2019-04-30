@@ -1,6 +1,6 @@
 'use strict';
-var Detector = require('./../../../../node_modules/three/examples/js/Detector'),
-    lut = require('./../../../core/lib/helpers/lut');
+var lut = require('./../../../core/lib/helpers/lut'),
+    Float16Array = require('./../../../core/lib/helpers/float16Array');
 
 function getSpaceDimensionsFromTargetElement(world) {
     return [world.targetDOMNode.offsetWidth, world.targetDOMNode.offsetHeight];
@@ -180,15 +180,6 @@ module.exports = {
         return heads;
     },
 
-    validateWebGL: function (targetDOMNode) {
-        if (!Detector.webgl) {
-            Detector.addGetWebGLMessage({parent: targetDOMNode});
-            return false;
-        }
-
-        return true;
-    },
-
     handleColorMap: function (geometry, colorMap, colorRange, attributes, material) {
         var canvas, texture, uvs, i;
 
@@ -211,6 +202,24 @@ module.exports = {
             }
 
             geometry.addAttribute('uv', new THREE.BufferAttribute(uvs, 1));
+        }
+    },
+
+    typedArrayToThree: function (creator) {
+        if (creator === Int16Array) {
+            return THREE.ShortType;
+        }
+
+        if (creator === Int32Array) {
+            return THREE.IntType;
+        }
+
+        if (creator === Float16Array) {
+            return THREE.HalfFloatType;
+        }
+
+        if (creator === Float32Array) {
+            return THREE.FloatType;
         }
     }
 };

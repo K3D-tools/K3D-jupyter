@@ -2,8 +2,9 @@
 
 'use strict';
 
-var lut = require('./../../../core/lib/helpers/lut');
-var closestPowOfTwo = require('./../helpers/Fn').closestPowOfTwo;
+var lut = require('./../../../core/lib/helpers/lut'),
+    closestPowOfTwo = require('./../helpers/Fn').closestPowOfTwo,
+    typedArrayToThree = require('./../helpers/Fn').typedArrayToThree;
 
 /**
  * Loader strategy to handle Volume object
@@ -21,6 +22,10 @@ module.exports = {
         config.shadow = config.shadow || 'off';
         config.shadow_delay = config.shadow_delay || 500;
         config.shadow_res = closestPowOfTwo(config.shadow_res || 128);
+
+        config.ray_samples_count = config.ray_samples_count || 16;
+        config.focal_plane = config.focal_plane || 512.0;
+        config.focal_length = typeof (config.focal_length) !== 'undefined' ? config.focal_length : 0.0;
 
         var gl = K3D.getWorld().renderer.context,
             geometry = new THREE.BoxBufferGeometry(1, 1, 1),
@@ -55,25 +60,26 @@ module.exports = {
         modelMatrix.set.apply(modelMatrix, config.model_matrix.data);
         modelMatrix.decompose(translation, rotation, scale);
 
-        texture = new THREE.Texture3D(
-            new Float32Array(config.volume.data),
+        texture = new THREE.DataTexture3D(
+            config.volume.data,
             config.volume.shape[2],
             config.volume.shape[1],
-            config.volume.shape[0],
-            THREE.RedFormat,
-            THREE.FloatType);
+            config.volume.shape[0]);
+
+        texture.format = THREE.RedFormat;
+        texture.type = typedArrayToThree(config.volume.data.constructor);
 
         texture.generateMipmaps = false;
         texture.minFilter = THREE.LinearFilter;
         texture.magFilter = THREE.LinearFilter;
-        texture.wrapS = texture.wrapT = THREE.ClampToEdgeWrapping;
+        texture.wrapS = texture.wrapT = THREE.MirroredRepeatWrapping;
         texture.needsUpdate = true;
 
         jitterTexture = new THREE.DataTexture(
-            new Uint8Array(_.range(32 * 32).map(function () {
+            new Uint8Array(_.range(64 * 64).map(function () {
                 return 255.0 * Math.random();
             })),
-            32, 32, THREE.RedFormat, THREE.UnsignedByteType);
+            64, 64, THREE.RedFormat, THREE.UnsignedByteType);
         jitterTexture.minFilter = THREE.LinearFilter;
         jitterTexture.magFilter = THREE.LinearFilter;
         jitterTexture.wrapS = jitterTexture.wrapT = THREE.RepeatWrapping;
@@ -108,9 +114,11 @@ module.exports = {
             gradient_step: {value: config.gradient_step},
             translation: {value: translation},
             rotation: {value: rotation},
+            shadowTexture: {type: 't', value: (textureRTT ? textureRTT.texture : null)},
+            focal_length: {value: config.focal_length},
+            focal_plane: {value: config.focal_plane},
             scale: {value: scale},
             volumeTexture: {type: 't', value: texture},
-            shadowTexture: {type: 't', value: (textureRTT ? textureRTT.texture : null)},
             colormap: {type: 't', value: colormap},
             jitterTexture: {type: 't', value: jitterTexture}
         };
@@ -122,7 +130,8 @@ module.exports = {
             ),
             defines: {
                 USE_SPECULAR: 1,
-                USE_SHADOW: (config.shadow !== 'off' ? 1 : 0)
+                USE_SHADOW: (config.shadow !== 'off' ? 1 : 0),
+                RAY_SAMPLES_COUNT: config.focal_length !== 0.0 ? config.ray_samples_count : 0
             },
             vertexShader: require('./shaders/Volume.vertex.glsl'),
             fragmentShader: require('./shaders/Volume.fragment.glsl'),
@@ -200,8 +209,10 @@ module.exports = {
                         renderer.clippingPlanes.push(new THREE.Plane(new THREE.Vector3().fromArray(plane), plane[3]));
                     });
 
-                    renderer.clearTarget(textureRTT, true, true, true);
-                    renderer.render(sceneRTT, cameraRTT, textureRTT);
+                    renderer.setRenderTarget(textureRTT);
+                    renderer.clear(true, true, true);
+                    renderer.render(sceneRTT, cameraRTT);
+                    renderer.setRenderTarget(null);
                 }
             };
 
@@ -232,10 +243,13 @@ module.exports = {
         }
 
         object.onRemove = function () {
-            object.material.uniforms.volumeTexture.value.dispose();
+            quadRTT.material.uniforms.volumeTexture.value.dispose();
+            quadRTT.material.uniforms.volumeTexture.value = undefined;
             object.material.uniforms.volumeTexture.value = undefined;
             object.material.uniforms.colormap.value.dispose();
             object.material.uniforms.colormap.value = undefined;
+            jitterTexture.dispose();
+            jitterTexture = undefined;
 
             if (sceneRTT) {
                 sceneRTT = undefined;

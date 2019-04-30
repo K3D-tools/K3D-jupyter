@@ -4,6 +4,7 @@
 var viewModes = require('./lib/viewMode').viewModes,
     loader = require('./lib/Loader'),
     msgpack = require('msgpack-lite'),
+    MsgpackCodec = msgpack.createCodec({preset: true}),
     pako = require('pako'),
     screenshot = require('./lib/screenshot'),
     snapshot = require('./lib/snapshot'),
@@ -12,9 +13,13 @@ var viewModes = require('./lib/viewMode').viewModes,
     detachWindowGUI = require('./lib/detachWindow'),
     fullscreen = require('./lib/fullscreen'),
     viewModeGUI = require('./lib/viewMode').viewModeGUI,
+    colorMapLegend = require('./lib/colorMapLegend'),
     objectGUIProvider = require('./lib/objectsGUIprovider'),
     clippingPlanesGUIProvider = require('./lib/clippingPlanesGUIProvider'),
     timeSeries = require('./lib/timeSeries');
+
+window.Float16Array = require('./lib/helpers/float16Array');
+MsgpackCodec.extPackers.Float16Array = MsgpackCodec.extPackers.Uint16Array;
 
 /**
  * @constructor Core
@@ -39,6 +44,7 @@ function K3D(provider, targetDOMNode, parameters) {
         currentWindow = targetDOMNode.ownerDocument.defaultView || targetDOMNode.ownerDocument.parentWindow,
         world = {
             ObjectsListJson: {},
+            chunkList: {},
             targetDOMNode: targetDOMNode,
             overlayDOMNode: null
         },
@@ -73,10 +79,6 @@ function K3D(provider, targetDOMNode, parameters) {
         return new K3D(provider, targetDOMNode, parameters);
     }
 
-    if (!provider.Helpers.validateWebGL(world.targetDOMNode)) {
-        throw new Error('No WebGL');
-    }
-
     if (typeof (provider) !== 'object') {
         throw new Error('Provider should be an object (a key-value map following convention)');
     }
@@ -84,11 +86,11 @@ function K3D(provider, targetDOMNode, parameters) {
     function refreshAfterObjectsChange() {
         self.getWorld().setCameraToFitScene();
         timeSeries.refreshTimeScale(self, GUI);
-        Promise.all(self.rebuildSceneData()).then(self.render);
+        Promise.all(self.rebuildSceneData()).then(self.render.bind(null, true));
     }
 
-    this.render = function () {
-        world.render();
+    this.render = function (force) {
+        world.render(force);
     };
 
     this.resizeHelper = function () {
@@ -121,13 +123,15 @@ function K3D(provider, targetDOMNode, parameters) {
             gridAutoFit: true,
             gridVisible: true,
             grid: [-1, -1, -1, 1, 1, 1],
-            antialias: true,
+            antialias: 1,
             screenshotScale: 5.0,
+            renderingSteps: 1,
             clearColor: 0xffffff,
             clippingPlanes: [],
             fpsMeter: false,
             lighting: 1.5,
             time: 0.0,
+            colorbarObjectId: -1,
             fps: 25.0,
             guiVersion: require('./../../package.json').version
         },
@@ -229,6 +233,35 @@ function K3D(provider, targetDOMNode, parameters) {
         self.render();
     };
 
+    this.setColorMapLegend = function (v) {
+        var newValue = v.id || v;
+
+        if (self.parameters.colorbarObjectId !== newValue) {
+            self.parameters.colorbarObjectId = newValue;
+            changeParameters('colorbar_object_id', self.parameters.colorbarObjectId);
+
+            Object.keys(world.ObjectsListJson).forEach(function (id) {
+                if (world.ObjectsListJson[id].colorLegend) {
+                    world.ObjectsListJson[id].colorLegend = false;
+                }
+            });
+
+            if (newValue > 0 && typeof (world.ObjectsListJson[newValue]) !== 'undefined') {
+                world.ObjectsListJson[newValue].colorLegend = true;
+            }
+
+            Object.keys(GUI.objects.__folders).forEach(function (k) {
+                GUI.objects.__folders[k].__controllers.forEach(function (controller) {
+                    if (controller.property === 'colorLegend') {
+                        controller.updateDisplay();
+                    }
+                });
+            });
+        }
+
+        colorMapLegend(self, world.ObjectsListJson[self.parameters.colorbarObjectId] || v);
+    };
+
     /**
      * Set camera auto fit mode of K3D
      * @memberof K3D.Core
@@ -242,6 +275,16 @@ function K3D(provider, targetDOMNode, parameters) {
             }
         });
     };
+
+    /**
+     * Set rendering steps of K3D
+     * @memberof K3D.Core
+     * @param {String} mode
+     */
+    this.setRenderingSteps = function (steps) {
+        self.parameters.renderingSteps = steps;
+    };
+
 
     /**
      * Set grid auto fit mode of K3D
@@ -328,8 +371,11 @@ function K3D(provider, targetDOMNode, parameters) {
      */
     this.setClearColor = function (color) {
         self.parameters.clearColor = color;
-        color = parseInt(color, 10) + 0x1000000;
-        world.targetDOMNode.style.backgroundColor = '#' + color.toString(16).substr(1);
+
+        if (color >= 0) {
+            color = parseInt(color, 10) + 0x1000000;
+            world.targetDOMNode.style.backgroundColor = '#' + color.toString(16).substr(1);
+        }
     };
 
     this.on = function (eventName, listener) {
@@ -381,6 +427,15 @@ function K3D(provider, targetDOMNode, parameters) {
      */
     this.getObjectById = function (id) {
         return self.Provider.Helpers.getObjectById(world, id);
+    };
+
+    /**
+     * Set ChunkList
+     * @memberof K3D.Core
+     * @param {Object} chunkList
+     */
+    this.setChunkList = function (json) {
+        world.chunkList = json;
     };
 
     function removeObjectFromScene(id) {
@@ -443,7 +498,7 @@ function K3D(provider, targetDOMNode, parameters) {
         self.parameters.time = Math.min(Math.max(time, timeSeriesInfo.min), timeSeriesInfo.max);
 
         var promises = timeSeriesInfo.objects.reduce(function (previousValue, obj) {
-            previousValue.push(self.reload(obj, true));
+            previousValue.push(self.reload(obj, null, true));
 
             return previousValue;
         }, []);
@@ -484,9 +539,10 @@ function K3D(provider, targetDOMNode, parameters) {
      * Reload object in current world
      * @memberof K3D.Core
      * @param {Object} json
+     * @param {Object} changes
      * @param {Bool} suppressRefreshAfterObjects
      */
-    this.reload = function (json, suppressRefreshAfterObjects) {
+    this.reload = function (json, changes, suppressRefreshAfterObjects) {
         if (json.visible === false) {
             try {
                 removeObjectFromScene(json.id);
@@ -498,7 +554,13 @@ function K3D(provider, targetDOMNode, parameters) {
             return;
         }
 
-        return loader(self, {objects: [json]}).then(function (objects) {
+        var data = {objects: [json]};
+
+        if (changes !== null) {
+            data.changes = [changes];
+        }
+
+        return loader(self, data).then(function (objects) {
             objects.forEach(function (object) {
                 objectGUIProvider(self, object.json, objects);
                 world.ObjectsListJson[object.json.id] = object.json;
@@ -540,7 +602,21 @@ function K3D(provider, targetDOMNode, parameters) {
      * @returns {String|undefined}
      */
     this.getSnapshot = function () {
-        return pako.deflate(msgpack.encode(_.values(world.ObjectsListJson)), {to: 'string', level: 9});
+        var chunkList = Object.keys(world.chunkList).reduce(function (p, k) {
+            p[k] = world.chunkList[k].attributes;
+            return p;
+        }, {});
+
+        return pako.deflate(
+            msgpack.encode(
+                {
+                    objects: _.values(world.ObjectsListJson),
+                    chunkList: chunkList
+                },
+                {codec: MsgpackCodec}
+            ),
+            {to: 'string', level: 9}
+        );
     };
 
     /**
@@ -548,9 +624,15 @@ function K3D(provider, targetDOMNode, parameters) {
      * @memberof K3D.Core
      */
     this.setSnapshot = function (data) {
-        var objects = msgpack.decode(pako.inflate(data));
+        data = msgpack.decode(pako.inflate(data), {codec: MsgpackCodec});
 
-        return self.load({objects: objects});
+        Object.keys(data.chunkList).forEach(function (k) {
+            data.chunkList[k] = {attributes: data.chunkList[k]};
+        });
+
+        self.setChunkList(data.chunkList);
+
+        return self.load({objects: data.objects});
     };
 
     /**
@@ -676,6 +758,8 @@ function K3D(provider, targetDOMNode, parameters) {
     self.setCameraAutoFit(self.parameters.cameraAutoFit);
     self.setClippingPlanes(self.parameters.clippingPlanes);
     self.setDirectionalLightingIntensity(self.parameters.lighting);
+    self.setColorMapLegend(self.parameters.colorbarObjectId);
+
     world.setCameraToFitScene(true);
     self.render();
 
@@ -751,6 +835,5 @@ K3D.prototype.removeFrameUpdateListener = function (when, listener) {
 
     this.refreshAutoRenderingState();
 };
-
 
 module.exports = K3D;

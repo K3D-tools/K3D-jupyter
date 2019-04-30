@@ -1,6 +1,7 @@
 'use strict';
 
-var lut = require('./../../../core/lib/helpers/lut');
+var lut = require('./../../../core/lib/helpers/lut'),
+    typedArrayToThree = require('./../helpers/Fn').typedArrayToThree;
 
 /**
  * Loader strategy to handle Texture object
@@ -19,13 +20,14 @@ module.exports = {
                 object,
                 texture;
 
-            texture = new THREE.DataTexture(new Float32Array(config.attribute.data),
-                config.attribute.shape[1], config.attribute.shape[0], THREE.RedFormat, THREE.FloatType);
+            texture = new THREE.DataTexture(config.attribute.data,
+                config.attribute.shape[1], config.attribute.shape[0], THREE.RedFormat,
+                typedArrayToThree(config.attribute.data.constructor));
 
-            texture.minFilter = THREE.NearestFilter; //LinearMipMapLinearFilter
+            texture.minFilter = THREE.LinearFilter;
             texture.magFilter = THREE.LinearFilter;
             texture.generateMipmaps = false;
-            texture.anisotropy =  K3D.getWorld().renderer.capabilities.getMaxAnisotropy();
+            texture.anisotropy = K3D.getWorld().renderer.capabilities.getMaxAnisotropy();
             texture.needsUpdate = true;
 
             var canvas = lut(colorMap, 1024);
