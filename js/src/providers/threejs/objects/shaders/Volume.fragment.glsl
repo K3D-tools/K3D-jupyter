@@ -76,8 +76,18 @@ void intersect(
     tmax = min(min(tmax, tymax), tzmax);
 }
 
+vec3 worldGetNormal(in float px, in vec3 pos)
+{
+    return normalize(
+        vec3(px -  texture(volumeTexture, pos + vec3(gradient_step, 0, 0)).x,
+             px -  texture(volumeTexture, pos + vec3(0, gradient_step, 0)).x,
+             px -  texture(volumeTexture, pos + vec3(0, 0, gradient_step)).x
+         )
+    );
+}
+
 void main() {
-    float jitter = texture2D(jitterTexture, gl_FragCoord.xy/32.0).r;
+    float jitter = texture2D(jitterTexture, gl_FragCoord.xy/64.0).r;
 	float tmin = 0.0;
 	float tmax = 0.0;
     float px = 0.0;
@@ -94,15 +104,19 @@ void main() {
     for(int ray_samples=0; ray_samples < RAY_SAMPLES_COUNT; ray_samples++) {
 
         vec4 value = vec4(0.0, 0.0, 0.0, 0.0);
+
         vec3 direction = normalize(transformedWorldPosition - transformedCameraPosition);
 
         // Focal plane correction
         vec3 P = transformedCameraPosition + direction * focal_plane;
-        vec3 apertureShift = vec3(
-             1.0 - 2.0 * texture2D(jitterTexture, vec2(0.0) + gl_FragCoord.xy/32.0 * float(ray_samples)).r,
-             1.0 - 2.0 * texture2D(jitterTexture, vec2(0.1) + gl_FragCoord.xy/32.0 * float(ray_samples+1)).r,
-             1.0 - 2.0 * texture2D(jitterTexture, vec2(0.2) + gl_FragCoord.xy/32.0 * float(ray_samples+2)).r
-             ) * focal_length;
+
+        float r = texture2D(jitterTexture, vec2(0.3) + gl_FragCoord.xy/64.0 * float(ray_samples+3)).r;
+        vec3 apertureShift = normalize(vec3(
+             1.0 - 2.0 * texture2D(jitterTexture, vec2(0.0) + gl_FragCoord.xy/64.0 * float(ray_samples)).r,
+             1.0 - 2.0 * texture2D(jitterTexture, vec2(0.1) + gl_FragCoord.xy/64.0 * float(ray_samples+1)).r,
+             1.0 - 2.0 * texture2D(jitterTexture, vec2(0.2) + gl_FragCoord.xy/64.0 * float(ray_samples+2)).r
+             )) * r * focal_length;
+
         direction = normalize(P - (transformedCameraPosition + apertureShift));
 
         vec3 eye = P - direction * 1000000.0;
@@ -117,8 +131,6 @@ void main() {
 
         vec3 textcoord_end = localPosition + vec3(0.5);
     #endif
-
-
         vec3 textcoord_start = textcoord_end - (tmax - max(0.0, tmin)) * direction / scale.xyz;
         vec3 textcoord_delta = textcoord_end - textcoord_start;
 
@@ -193,11 +205,7 @@ void main() {
                 // LIGHT
                 #if NUM_DIR_LIGHTS > 0
                     vec4 addedLights = vec4(ambientLightColor, 1.0);
-                    vec3 normal = normalize(vec3(
-                        px -  texture(volumeTexture, textcoord + vec3(gradient_step, 0, 0)).x,
-                        px -  texture(volumeTexture, textcoord + vec3(0, gradient_step, 0)).x,
-                        px -  texture(volumeTexture, textcoord + vec3(0, 0, gradient_step)).x
-                    ));
+                    vec3 normal = worldGetNormal(px, textcoord);
 
                     vec3 lightDirection;
                     float lightingIntensity;
@@ -218,7 +226,7 @@ void main() {
 
                 value += pxColor;
 
-                if(value.a >= 0.95){
+                if (value.a >= 0.95) {
                     value.a = 1.0;
                     break;
                 }
@@ -226,12 +234,15 @@ void main() {
         }
 
     #if (RAY_SAMPLES_COUNT > 0)
+
         accuColor += value;
     }
+
     gl_FragColor = accuColor / float(RAY_SAMPLES_COUNT);
+
     #else
-        gl_FragColor = value;
+
+    gl_FragColor = value;
+
     #endif
-
-
 }

@@ -29,8 +29,8 @@ module.exports = function (K3D) {
     var self = this, renderingPromise = null,
         canvas = document.createElement('canvas'),
         context = canvas.getContext('webgl2', {
-            antialias: K3D.parameters.antialias,
-            preserveDrawingBuffer: false,
+            antialias: K3D.parameters.antialias > 0,
+            preserveDrawingBuffer: true,
             alpha: true,
             powerPreference: 'high-performance'
         }),
@@ -153,7 +153,8 @@ module.exports = function (K3D) {
     this.renderOffScreen = function (width, height) {
         var rt,
             chunk_heights = [],
-            chunk_count = Math.max(Math.min(128, K3D.parameters.renderingSteps), 1);
+            chunk_count = Math.max(Math.min(128, K3D.parameters.renderingSteps), 1),
+            aaLevel = Math.max(Math.min(5, K3D.parameters.antialias), 0);
 
         var s = height / chunk_count;
 
@@ -167,14 +168,14 @@ module.exports = function (K3D) {
         self.renderer.clippingPlanes = [];
 
         return getSSAAChunkedRender(self.renderer, self.gridScene, self.camera,
-            rt, width, height, chunk_heights, 5).then(function (grid) {
+            rt, width, height, [[0, height]], aaLevel).then(function (grid) {
 
                 K3D.parameters.clippingPlanes.forEach(function (plane) {
                     self.renderer.clippingPlanes.push(new THREE.Plane(new THREE.Vector3().fromArray(plane), plane[3]));
                 });
 
                 return getSSAAChunkedRender(self.renderer, self.scene, self.camera,
-                    rt, width, height, chunk_heights, 5).then(function (scene) {
+                    rt, width, height, chunk_heights, aaLevel).then(function (scene) {
                         rt.dispose();
                         return [grid, scene];
                     }

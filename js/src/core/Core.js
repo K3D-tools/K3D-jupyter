@@ -123,7 +123,7 @@ function K3D(provider, targetDOMNode, parameters) {
             gridAutoFit: true,
             gridVisible: true,
             grid: [-1, -1, -1, 1, 1, 1],
-            antialias: true,
+            antialias: 1,
             screenshotScale: 5.0,
             renderingSteps: 1,
             clearColor: 0xffffff,
@@ -371,8 +371,11 @@ function K3D(provider, targetDOMNode, parameters) {
      */
     this.setClearColor = function (color) {
         self.parameters.clearColor = color;
-        color = parseInt(color, 10) + 0x1000000;
-        world.targetDOMNode.style.backgroundColor = '#' + color.toString(16).substr(1);
+
+        if (color >= 0) {
+            color = parseInt(color, 10) + 0x1000000;
+            world.targetDOMNode.style.backgroundColor = '#' + color.toString(16).substr(1);
+        }
     };
 
     this.on = function (eventName, listener) {

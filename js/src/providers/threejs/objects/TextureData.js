@@ -1,7 +1,7 @@
 'use strict';
 
 var lut = require('./../../../core/lib/helpers/lut'),
-    TypedArrayToThree = require('./../helpers/Fn').TypedArrayToThree;
+    typedArrayToThree = require('./../helpers/Fn').typedArrayToThree;
 
 /**
  * Loader strategy to handle Texture object
@@ -22,7 +22,7 @@ module.exports = {
 
             texture = new THREE.DataTexture(config.attribute.data,
                 config.attribute.shape[1], config.attribute.shape[0], THREE.RedFormat,
-                TypedArrayToThree[config.attribute.data.constructor.name]);
+                typedArrayToThree(config.attribute.data.constructor));
 
             texture.minFilter = THREE.LinearFilter;
             texture.magFilter = THREE.LinearFilter;

@@ -19,7 +19,7 @@ require(['k3d'], function (lib) {
 
         beforeEach(function () {
             this.canvas = TestHelpers.createTestCanvas();
-            window.K3DInstance = this.K3D = K3D(ThreeJsProvider, this.canvas, {antialias: false});
+            window.K3DInstance = this.K3D = K3D(ThreeJsProvider, this.canvas, {antialias: 3});
         });
 
         afterEach(function () {
@@ -442,7 +442,7 @@ require(['k3d'], function (lib) {
                     TestHelpers.compareCanvasWithExpectedImage(self.K3D, 'stl_big', RESAMBLEThreshold, true, done);
                 }, true);
 
-                self.K3D.setClearColor(0x000000, 1);
+                self.K3D.setClearColor(0x000000);
                 self.K3D.load(json);
             });
         });

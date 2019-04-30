@@ -1,5 +1,6 @@
 'use strict';
-var lut = require('./../../../core/lib/helpers/lut');
+var lut = require('./../../../core/lib/helpers/lut'),
+    Float16Array = require('./../../../core/lib/helpers/float16Array');
 
 function getSpaceDimensionsFromTargetElement(world) {
     return [world.targetDOMNode.offsetWidth, world.targetDOMNode.offsetHeight];
@@ -204,10 +205,21 @@ module.exports = {
         }
     },
 
-    TypedArrayToThree: {
-        'Int16Array': THREE.ShortType,
-        'Int32Array': THREE.IntType,
-        'Float16Array': THREE.HalfFloatType,
-        'Float32Array': THREE.FloatType
+    typedArrayToThree: function (creator) {
+        if (creator === Int16Array) {
+            return THREE.ShortType;
+        }
+
+        if (creator === Int32Array) {
+            return THREE.IntType;
+        }
+
+        if (creator === Float16Array) {
+            return THREE.HalfFloatType;
+        }
+
+        if (creator === Float32Array) {
+            return THREE.FloatType;
+        }
     }
 };

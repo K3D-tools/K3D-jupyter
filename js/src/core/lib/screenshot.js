@@ -11,17 +11,21 @@ function getScreenshot(K3D, scale, onlyCanvas) {
             clearColor = K3D.parameters.clearColor,
             world = K3D.getWorld(),
             canvas3d = world.renderer.domElement,
-            renderPromise;
+            renderPromise,
+            t;
 
+        t = new Date().getTime();
         finalCanvas.width = htmlElementCanvas.width = Math.floor(canvas3d.width * scale);
         finalCanvas.height = htmlElementCanvas.height = Math.floor(canvas3d.height * scale);
 
-        finalCanvasCtx.fillStyle = 'rgb(' +
-                                   ((clearColor & 0xff0000) >> 16) + ',' +
-                                   ((clearColor & 0x00ff00) >> 8) + ',' +
-                                   (clearColor & 0x0000ff) + ')';
+        if (clearColor >= 0) {
+            finalCanvasCtx.fillStyle = 'rgb(' +
+                                       ((clearColor & 0xff0000) >> 16) + ',' +
+                                       ((clearColor & 0x00ff00) >> 8) + ',' +
+                                       (clearColor & 0x0000ff) + ')';
 
-        finalCanvasCtx.fillRect(0, 0, finalCanvas.width, finalCanvas.height);
+            finalCanvasCtx.fillRect(0, 0, finalCanvas.width, finalCanvas.height);
+        }
 
         if (onlyCanvas) {
             renderPromise = Promise.resolve();
@@ -39,7 +43,13 @@ function getScreenshot(K3D, scale, onlyCanvas) {
         }
 
         renderPromise.then(function (result) {
+            console.log('K3D: Screenshot [html]: ' + (new Date().getTime() - t) / 1000, 's');
+            t = new Date().getTime();
+
             world.renderOffScreen(finalCanvas.width, finalCanvas.height).then(function (arrays) {
+                console.log('K3D: Screenshot [canvas]: ' + (new Date().getTime() - t) / 1000, 's');
+                t = new Date().getTime();
+
                 finalCanvasCtx.scale(1, -1);
 
                 arrays.forEach(function (array) {

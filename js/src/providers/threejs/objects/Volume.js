@@ -4,7 +4,7 @@
 
 var lut = require('./../../../core/lib/helpers/lut'),
     closestPowOfTwo = require('./../helpers/Fn').closestPowOfTwo,
-    TypedArrayToThree = require('./../helpers/Fn').TypedArrayToThree;
+    typedArrayToThree = require('./../helpers/Fn').typedArrayToThree;
 
 /**
  * Loader strategy to handle Volume object
@@ -67,19 +67,19 @@ module.exports = {
             config.volume.shape[0]);
 
         texture.format = THREE.RedFormat;
-        texture.type = TypedArrayToThree[config.volume.data.constructor.name];
+        texture.type = typedArrayToThree(config.volume.data.constructor);
 
         texture.generateMipmaps = false;
         texture.minFilter = THREE.LinearFilter;
         texture.magFilter = THREE.LinearFilter;
-        texture.wrapS = texture.wrapT = THREE.ClampToEdgeWrapping;
+        texture.wrapS = texture.wrapT = THREE.MirroredRepeatWrapping;
         texture.needsUpdate = true;
 
         jitterTexture = new THREE.DataTexture(
-            new Uint8Array(_.range(32 * 32).map(function () {
+            new Uint8Array(_.range(64 * 64).map(function () {
                 return 255.0 * Math.random();
             })),
-            32, 32, THREE.RedFormat, THREE.UnsignedByteType);
+            64, 64, THREE.RedFormat, THREE.UnsignedByteType);
         jitterTexture.minFilter = THREE.LinearFilter;
         jitterTexture.magFilter = THREE.LinearFilter;
         jitterTexture.wrapS = jitterTexture.wrapT = THREE.RepeatWrapping;
@@ -248,6 +248,8 @@ module.exports = {
             object.material.uniforms.volumeTexture.value = undefined;
             object.material.uniforms.colormap.value.dispose();
             object.material.uniforms.colormap.value = undefined;
+            jitterTexture.dispose();
+            jitterTexture = undefined;
 
             if (sceneRTT) {
                 sceneRTT = undefined;

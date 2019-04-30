@@ -783,7 +783,7 @@ def voxel_chunk(voxels, coord, multiple=1, compression_level=0):
 
 
 def plot(height=512,
-         antialias=True,
+         antialias=3,
          background_color=0xffffff,
          camera_auto_fit=True,
          grid_auto_fit=True,

@@ -86,6 +86,7 @@ function rebuildChunk(object, forRebuild) {
         var newMesh = mesh.voxel.getVoxelChunkObject(mesh.voxel.generate());
 
         for (var j = 0; j < mesh.children.length; j++) {
+            mesh.children[j].geometry.dispose();
             mesh.children[j].geometry = newMesh.children[j].geometry;
         }
     }
