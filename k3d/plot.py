@@ -37,6 +37,8 @@ class Plot(widgets.DOMWidget):
             6-element tuple specifying the bounds of the plot grid (x0, y0, z0, x1, y1, z1).
         camera: `array_like`.
             9-element list or array specifying camera position.
+        axes: `list`.
+            Axes labels for plot.
         objects: `list`.
             List of `k3d.objects.Drawable` currently included in the plot, not to be changed directly.
     """
@@ -75,13 +77,14 @@ class Plot(widgets.DOMWidget):
     colorbar_object_id = Int(-1).tag(sync=True)
     rendering_steps = Int(1).tag(sync=True)
     screenshot = Unicode().tag(sync=True)
+    axes = List(minlen=3, maxlen=3, default_value=['x', 'y', 'z']).tag(sync=True)
 
     objects = []
 
     def __init__(self, antialias=3, background_color=0xFFFFFF, camera_auto_fit=True, grid_auto_fit=True,
                  grid_visible=True, height=512, voxel_paint_color=0, grid=(-1, -1, -1, 1, 1, 1), screenshot_scale=2.0,
                  lighting=1.0, time=0.0, fps_meter=False, menu_visibility=True, colorbar_object_id=-1,
-                 rendering_steps=1, *args, **kwargs):
+                 rendering_steps=1, axes=['x', 'y', 'z'], *args, **kwargs):
         super(Plot, self).__init__()
 
         self.antialias = antialias
@@ -99,6 +102,7 @@ class Plot(widgets.DOMWidget):
         self.menu_visibility = menu_visibility
         self.colorbar_object_id = colorbar_object_id
         self.rendering_steps = rendering_steps
+        self.axes = axes
 
         self.object_ids = []
         self.objects = []

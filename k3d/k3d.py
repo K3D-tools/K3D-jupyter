@@ -835,6 +835,7 @@ def plot(height=512,
          grid_auto_fit=True,
          menu_visibility=True,
          voxel_paint_color=0,
+         axes=['x', 'y', 'z'],
          grid=(-1, -1, -1, 1, 1, 1)):
     """Create a K3D Plot widget.
 
@@ -855,13 +856,16 @@ def plot(height=512,
             Enable menu on GUI.
         voxel_paint_color: `int`.
             The (initial) int value to be inserted when editing voxels.
+        axes: `list`.
+            Axes labels for plot.
         grid: `array_like`.
             6-element tuple specifying the bounds of the plot grid (x0, y0, z0, x1, y1, z1)."""
     return Plot(antialias=antialias,
                 background_color=background_color,
                 camera_auto_fit=camera_auto_fit, grid_auto_fit=grid_auto_fit,
                 height=height, menu_visibility=menu_visibility,
-                voxel_paint_color=voxel_paint_color, grid=grid)
+                voxel_paint_color=voxel_paint_color, grid=grid,
+                axes=axes)
 
 
 # noinspection PyShadowingNames

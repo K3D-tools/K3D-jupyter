@@ -133,6 +133,7 @@ function K3D(provider, targetDOMNode, parameters) {
             time: 0.0,
             colorbarObjectId: -1,
             fps: 25.0,
+            axes: ['x', 'y', 'z'],
             guiVersion: require('./../../package.json').version
         },
         parameters || {}
@@ -285,6 +286,17 @@ function K3D(provider, targetDOMNode, parameters) {
         self.parameters.renderingSteps = steps;
     };
 
+    /**
+     * Set axes labels of plot
+     * @memberof K3D.Core
+     * @param {String} mode
+     */
+    this.setAxes = function (axesLabel) {
+        self.parameters.axes = axesLabel;
+
+        self.rebuildSceneData(true);
+        self.render();
+    };
 
     /**
      * Set grid auto fit mode of K3D

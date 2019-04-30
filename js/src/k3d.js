@@ -204,6 +204,7 @@ PlotView = widgets.DOMWidgetView.extend({
         this.model.on('change:menu_visibility', this._setMenuVisibility, this);
         this.model.on('change:colorbar_object_id', this._setColorMapLegend, this);
         this.model.on('change:rendering_steps', this._setRenderingSteps, this);
+        this.model.on('change:axes', this._setAxes, this);
 
         try {
             this.K3DInstance = new K3D(ThreeJsProvider, this.container, {
@@ -212,6 +213,7 @@ PlotView = widgets.DOMWidgetView.extend({
                 backendVersion: this.model.get('_backend_version'),
                 screenshotScale: this.model.get('screenshot_scale'),
                 menuVisibility: this.model.get('menu_visibility'),
+                axes: this.model.get('axes'),
                 grid: this.model.get('grid')
             });
 
@@ -319,6 +321,10 @@ PlotView = widgets.DOMWidgetView.extend({
 
     _setRenderingSteps: function () {
         this.K3DInstance.setRenderingSteps(this.model.get('rendering_steps'));
+    },
+
+    _setAxes: function () {
+        this.K3DInstance.setAxes(this.model.get('axes'));
     },
 
     _setClippingPlanes: function () {
