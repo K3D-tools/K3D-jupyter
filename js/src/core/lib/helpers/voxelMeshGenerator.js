@@ -176,10 +176,6 @@ function generateGreedyVoxelMesh(chunk, colorMap, voxelSize, calculate_outlines,
                             : -1);
                     }
 
-                    if (x[d] === ending[d] - 1 && b >= 0) {
-                        continue;
-                    }
-
                     if (a === b || (a > 0 && b > 0 && !transparent)) {
                         mask[n] = 0;
                     } else if (a > 0) {

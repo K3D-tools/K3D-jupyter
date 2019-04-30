@@ -13,6 +13,8 @@ uniform sampler3D volumeTexture;
 
 uniform sampler2D colormap;
 uniform sampler2D jitterTexture;
+uniform float focal_length;
+uniform float focal_plane;
 uniform float low;
 uniform float high;
 uniform mat4 modelViewMatrix;
@@ -81,121 +83,155 @@ void main() {
     float px = 0.0;
     float shadow = 0.0;
     vec4 pxColor = vec4(0.0, 0.0, 0.0, 0.0);
-    vec4 value = vec4(0.0, 0.0, 0.0, 0.0);
 
     inv_range = 1.0 / (high - low);
     aabb[0] = aabb[0] * scale.xyz + translation.xyz;
     aabb[1] = aabb[1] * scale.xyz + translation.xyz;
 
-    vec3 direction = normalize(transformedWorldPosition - transformedCameraPosition);
-	intersect(makeRay(transformedCameraPosition, direction), aabb, tmin, tmax);
+    #if (RAY_SAMPLES_COUNT > 0)
+    vec4 accuColor = vec4(0.0, 0.0, 0.0, 0.0);
 
-    vec3 textcoord_end = localPosition + vec3(0.5);
-	vec3 textcoord_start = textcoord_end - (tmax - max(0.0, tmin)) * direction.xyz / scale.xyz;
-	vec3 textcoord_delta = textcoord_end - textcoord_start;
+    for(int ray_samples=0; ray_samples < RAY_SAMPLES_COUNT; ray_samples++) {
 
-    // @TODO: protection. Sometimes strange situation happen and sampleCount is out the limit
-    int sampleCount = min(int(length(textcoord_delta) * samples), int(samples * 1.8));
+        vec4 value = vec4(0.0, 0.0, 0.0, 0.0);
+        vec3 direction = normalize(transformedWorldPosition - transformedCameraPosition);
 
-    textcoord_delta = textcoord_delta / float(sampleCount);
-    textcoord_start = textcoord_start - textcoord_delta * (0.01 + 0.98 * jitter);
+        // Focal plane correction
+        vec3 P = transformedCameraPosition + direction * focal_plane;
+        vec3 apertureShift = vec3(
+             1.0 - 2.0 * texture2D(jitterTexture, vec2(0.0) + gl_FragCoord.xy/32.0 * float(ray_samples)).r,
+             1.0 - 2.0 * texture2D(jitterTexture, vec2(0.1) + gl_FragCoord.xy/32.0 * float(ray_samples+1)).r,
+             1.0 - 2.0 * texture2D(jitterTexture, vec2(0.2) + gl_FragCoord.xy/32.0 * float(ray_samples+2)).r
+             ) * focal_length;
+        direction = normalize(P - (transformedCameraPosition + apertureShift));
 
-    vec3 textcoord = textcoord_start - textcoord_delta;
+        vec3 eye = P - direction * 1000000.0;
 
-    float step = length(textcoord_delta);
+        intersect(makeRay(eye, direction), aabb, tmin, tmax);
 
-    #if (USE_SHADOW == 1)
-        float sliceSize = lightMapSize.x * lightMapSize.y;
-        vec2 sliceCount =  lightMapRenderTargetSize / lightMapSize.xy;
+        vec3 textcoord_end = ((eye + direction * tmax) - translation.xyz) / scale.xyz + vec3(0.5);
+    #else
+        vec4 value = vec4(0.0, 0.0, 0.0, 0.0);
+        vec3 direction = normalize(transformedWorldPosition - transformedCameraPosition);
+    	intersect(makeRay(transformedCameraPosition, direction), aabb, tmin, tmax);
+
+        vec3 textcoord_end = localPosition + vec3(0.5);
     #endif
 
-	for(int count = 0; count < sampleCount; count++){
-	    textcoord += textcoord_delta;
 
-        #if NUM_CLIPPING_PLANES > 0
-            vec4 plane;
-            vec3 pos = -vec3(modelViewMatrix * vec4(textcoord - vec3(0.5), 1.0));
+        vec3 textcoord_start = textcoord_end - (tmax - max(0.0, tmin)) * direction / scale.xyz;
+        vec3 textcoord_delta = textcoord_end - textcoord_start;
 
-            #pragma unroll_loop
-            for ( int i = 0; i < UNION_CLIPPING_PLANES; i ++ ) {
-                plane = clippingPlanes[ i ];
-                if ( dot( pos, plane.xyz ) > plane.w ) continue;
-            }
+        // @TODO: protection. Sometimes strange situation happen and sampleCount is out the limit
+        int sampleCount = min(int(length(textcoord_delta) * samples), int(samples * 1.8));
+
+        textcoord_delta = textcoord_delta / float(sampleCount);
+        textcoord_start = textcoord_start - textcoord_delta * (0.01 + 0.98 * jitter);
+
+        vec3 textcoord = textcoord_start - textcoord_delta;
+
+        float step = length(textcoord_delta);
+
+        #if (USE_SHADOW == 1)
+            float sliceSize = lightMapSize.x * lightMapSize.y;
+            vec2 sliceCount =  lightMapRenderTargetSize / lightMapSize.xy;
         #endif
 
-		px = texture(volumeTexture, textcoord).x;
-		float scaled_px = (px - low) * inv_range;
+        for(int count = 0; count < sampleCount; count++) {
+            textcoord += textcoord_delta;
 
-		if(scaled_px > 0.0) {
-            #if (USE_SHADOW == 1)
-                float zidx1 = floor(textcoord.z * lightMapSize.z);
-                float zidx2 = ceil(textcoord.z * lightMapSize.z);
-
-                float shadow1 = texture2D(shadowTexture,
-                    vec2(
-                        floor(mod(zidx1, sliceCount.x)) * lightMapSize.x / lightMapRenderTargetSize.x,
-                        floor(zidx1 / sliceCount.x)* lightMapSize.y / lightMapRenderTargetSize.y
-                    )
-                    + vec2(textcoord.x / sliceCount.x, textcoord.y / sliceCount.y)
-                ).r;
-
-                float shadow2 = texture2D(shadowTexture,
-                    vec2(
-                        floor(mod(zidx2, sliceCount.x)) * lightMapSize.x / lightMapRenderTargetSize.x,
-                        floor(zidx2 / sliceCount.x)* lightMapSize.y / lightMapRenderTargetSize.y
-                    )
-                    + vec2(textcoord.x / sliceCount.x, textcoord.y / sliceCount.y)
-                ).r;
-
-                shadow = mix(shadow1, shadow2, textcoord.z * lightMapSize.z - zidx1);
-            #else
-                shadow = 0.0;
-            #endif
-
-		    scaled_px = min(scaled_px, 0.99);
-
-            pxColor = texture(colormap, vec2(scaled_px, 0.5));
-            pxColor.a = scaled_px;
-
-            pxColor.a = 1.0 - pow(1.0 - pxColor.a, step * alpha_coef);
-            pxColor.a *= (1.0 - value.a);
-
-            pxColor.rgb *= pxColor.a;
-
-            // LIGHT
-            #if NUM_DIR_LIGHTS > 0
-                vec4 addedLights = vec4(ambientLightColor, 1.0);
-                vec3 normal = normalize(vec3(
-                    px -  texture(volumeTexture, textcoord + vec3(gradient_step, 0, 0)).x,
-                    px -  texture(volumeTexture, textcoord + vec3(0, gradient_step, 0)).x,
-                    px -  texture(volumeTexture, textcoord + vec3(0, 0, gradient_step)).x
-                ));
-
-                vec3 lightDirection;
-                float lightingIntensity;
+            #if NUM_CLIPPING_PLANES > 0
+                vec4 plane;
+                vec3 pos = -vec3(modelViewMatrix * vec4(textcoord - vec3(0.5), 1.0));
 
                 #pragma unroll_loop
-                for ( int i = 0; i < NUM_DIR_LIGHTS; i ++ ) {
-                    lightDirection = -directionalLights[ i ].direction;
-                    lightingIntensity = clamp(dot(-lightDirection, normal), 0.0, 1.0);
-                    addedLights.rgb += directionalLights[ i ].color * (0.05 + 0.95 * lightingIntensity) * (1.0 - shadow);
-
-                    #if (USE_SPECULAR == 1)
-                    pxColor.rgb += directionalLights[ i ].color * pow(lightingIntensity, 50.0) * pxColor.a * (1.0 - shadow);
-                    #endif
+                for ( int i = 0; i < UNION_CLIPPING_PLANES; i ++ ) {
+                    plane = clippingPlanes[ i ];
+                    if ( dot( pos, plane.xyz ) > plane.w ) continue;
                 }
-
-                pxColor.rgb *= addedLights.xyz;
             #endif
 
-            value += pxColor;
+            px = texture(volumeTexture, textcoord).x;
+            float scaled_px = (px - low) * inv_range;
 
-            if(value.a >= 0.95){
-                value.a = 1.0;
-                break;
+            if(scaled_px > 0.0) {
+                #if (USE_SHADOW == 1)
+                    float zidx1 = floor(textcoord.z * lightMapSize.z);
+                    float zidx2 = ceil(textcoord.z * lightMapSize.z);
+
+                    float shadow1 = texture2D(shadowTexture,
+                        vec2(
+                            floor(mod(zidx1, sliceCount.x)) * lightMapSize.x / lightMapRenderTargetSize.x,
+                            floor(zidx1 / sliceCount.x)* lightMapSize.y / lightMapRenderTargetSize.y
+                        )
+                        + vec2(textcoord.x / sliceCount.x, textcoord.y / sliceCount.y)
+                    ).r;
+
+                    float shadow2 = texture2D(shadowTexture,
+                        vec2(
+                            floor(mod(zidx2, sliceCount.x)) * lightMapSize.x / lightMapRenderTargetSize.x,
+                            floor(zidx2 / sliceCount.x)* lightMapSize.y / lightMapRenderTargetSize.y
+                        )
+                        + vec2(textcoord.x / sliceCount.x, textcoord.y / sliceCount.y)
+                    ).r;
+
+                    shadow = mix(shadow1, shadow2, textcoord.z * lightMapSize.z - zidx1);
+                #else
+                    shadow = 0.0;
+                #endif
+
+                scaled_px = min(scaled_px, 0.99);
+
+                pxColor = texture(colormap, vec2(scaled_px, 0.5));
+                pxColor.a = scaled_px;
+
+                pxColor.a = 1.0 - pow(1.0 - pxColor.a, step * alpha_coef);
+                pxColor.a *= (1.0 - value.a);
+
+                pxColor.rgb *= pxColor.a;
+
+                // LIGHT
+                #if NUM_DIR_LIGHTS > 0
+                    vec4 addedLights = vec4(ambientLightColor, 1.0);
+                    vec3 normal = normalize(vec3(
+                        px -  texture(volumeTexture, textcoord + vec3(gradient_step, 0, 0)).x,
+                        px -  texture(volumeTexture, textcoord + vec3(0, gradient_step, 0)).x,
+                        px -  texture(volumeTexture, textcoord + vec3(0, 0, gradient_step)).x
+                    ));
+
+                    vec3 lightDirection;
+                    float lightingIntensity;
+
+                    #pragma unroll_loop
+                    for ( int i = 0; i < NUM_DIR_LIGHTS; i ++ ) {
+                        lightDirection = -directionalLights[ i ].direction;
+                        lightingIntensity = clamp(dot(-lightDirection, normal), 0.0, 1.0);
+                        addedLights.rgb += directionalLights[ i ].color * (0.05 + 0.95 * lightingIntensity) * (1.0 - shadow);
+
+                        #if (USE_SPECULAR == 1)
+                        pxColor.rgb += directionalLights[ i ].color * pow(lightingIntensity, 50.0) * pxColor.a * (1.0 - shadow);
+                        #endif
+                    }
+
+                    pxColor.rgb *= addedLights.xyz;
+                #endif
+
+                value += pxColor;
+
+                if(value.a >= 0.95){
+                    value.a = 1.0;
+                    break;
+                }
             }
-		}
-	}
+        }
 
-    gl_FragColor = value;
+    #if (RAY_SAMPLES_COUNT > 0)
+        accuColor += value;
+    }
+    gl_FragColor = accuColor / float(RAY_SAMPLES_COUNT);
+    #else
+        gl_FragColor = value;
+    #endif
+
+
 }

@@ -73,6 +73,7 @@ class Plot(widgets.DOMWidget):
     camera = ListOrArray(minlen=9, maxlen=9, empty_ok=True).tag(sync=True)
     clipping_planes = ListOrArray(empty_ok=True).tag(sync=True)
     colorbar_object_id = Int(-1).tag(sync=True)
+    rendering_steps = Int(1).tag(sync=True)
     screenshot = Unicode().tag(sync=True)
 
     objects = []
@@ -80,7 +81,7 @@ class Plot(widgets.DOMWidget):
     def __init__(self, antialias=True, background_color=0xFFFFFF, camera_auto_fit=True, grid_auto_fit=True,
                  grid_visible=True, height=512, voxel_paint_color=0, grid=(-1, -1, -1, 1, 1, 1), screenshot_scale=2.0,
                  lighting=1.0, time=0.0, fps_meter=False, menu_visibility=True, colorbar_object_id=-1,
-                 *args, **kwargs):
+                 rendering_steps=1, *args, **kwargs):
         super(Plot, self).__init__()
 
         self.antialias = antialias
@@ -97,6 +98,7 @@ class Plot(widgets.DOMWidget):
         self.time = time
         self.menu_visibility = menu_visibility
         self.colorbar_object_id = colorbar_object_id
+        self.rendering_steps = rendering_steps
 
         self.object_ids = []
         self.objects = []

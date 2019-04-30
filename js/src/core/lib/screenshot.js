@@ -39,27 +39,28 @@ function getScreenshot(K3D, scale, onlyCanvas) {
         }
 
         renderPromise.then(function (result) {
-            var arrays = world.renderOffScreen(finalCanvas.width, finalCanvas.height);
-
-            finalCanvasCtx.scale(1, -1);
-            arrays.forEach(function (array) {
-                var imageData = new ImageData(array, finalCanvas.width, finalCanvas.height);
-                var canvas = document.createElement('canvas');
-                var ctx = canvas.getContext('2d');
-
-                canvas.width = imageData.width;
-                canvas.height = imageData.height;
-                ctx.putImageData(imageData, 0, 0);
-
-                finalCanvasCtx.drawImage(canvas, 0, 0, finalCanvas.width, -finalCanvas.height);
-            });
-
-            if (result) {
+            world.renderOffScreen(finalCanvas.width, finalCanvas.height).then(function (arrays) {
                 finalCanvasCtx.scale(1, -1);
-                finalCanvasCtx.drawImage(htmlElementCanvas, 0, 0);
-            }
 
-            resolve(finalCanvas);
+                arrays.forEach(function (array) {
+                    var imageData = new ImageData(array, finalCanvas.width, finalCanvas.height);
+                    var canvas = document.createElement('canvas');
+                    var ctx = canvas.getContext('2d');
+
+                    canvas.width = imageData.width;
+                    canvas.height = imageData.height;
+                    ctx.putImageData(imageData, 0, 0);
+
+                    finalCanvasCtx.drawImage(canvas, 0, 0, finalCanvas.width, -finalCanvas.height);
+                });
+
+                if (result) {
+                    finalCanvasCtx.scale(1, -1);
+                    finalCanvasCtx.drawImage(htmlElementCanvas, 0, 0);
+                }
+
+                resolve(finalCanvas);
+            });
         }, function (e) {
             reject(e);
         });

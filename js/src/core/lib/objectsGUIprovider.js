@@ -5,7 +5,7 @@
 function objectGUIProvider(K3D, json, objects) {
 
     function change(json, key, value) {
-        K3D.reload(json);
+        K3D.reload(json, {key: value});
 
         K3D.dispatch(K3D.events.OBJECT_CHANGE, {
             id: json.id,
@@ -69,7 +69,7 @@ function objectGUIProvider(K3D, json, objects) {
 
     var defaultParams = ['visible', 'outlines', 'wireframe', 'flat_shading', 'use_head', 'head_size', 'line_width',
         'scale', 'font_size', 'font_weight', 'size', 'point_size', 'level', 'samples', 'alpha_coef', 'gradient_step',
-        'shadow_delay'];
+        'shadow_delay', 'focal_length', 'focal_plane'];
 
     _.keys(json).forEach(function (param) {
             var colorMapLegendControllers, controller;
@@ -180,6 +180,12 @@ function objectGUIProvider(K3D, json, objects) {
                 case 'shadow':
                     if (json.type === 'Volume') {
                         K3D.gui_map[json.id].add(json, param, ['off', 'on_demand', 'dynamic']).onChange(
+                            change.bind(this, json, param));
+                    }
+                    break;
+                case 'ray_samples_count':
+                    if (json.type === 'Volume') {
+                        K3D.gui_map[json.id].add(json, param, [8, 16, 32, 64]).onChange(
                             change.bind(this, json, param));
                     }
                     break;

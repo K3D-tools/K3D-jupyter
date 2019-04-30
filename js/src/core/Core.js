@@ -44,6 +44,7 @@ function K3D(provider, targetDOMNode, parameters) {
         currentWindow = targetDOMNode.ownerDocument.defaultView || targetDOMNode.ownerDocument.parentWindow,
         world = {
             ObjectsListJson: {},
+            chunkList: {},
             targetDOMNode: targetDOMNode,
             overlayDOMNode: null
         },
@@ -85,11 +86,11 @@ function K3D(provider, targetDOMNode, parameters) {
     function refreshAfterObjectsChange() {
         self.getWorld().setCameraToFitScene();
         timeSeries.refreshTimeScale(self, GUI);
-        Promise.all(self.rebuildSceneData()).then(self.render);
+        Promise.all(self.rebuildSceneData()).then(self.render.bind(null, true));
     }
 
-    this.render = function () {
-        world.render();
+    this.render = function (force) {
+        world.render(force);
     };
 
     this.resizeHelper = function () {
@@ -124,6 +125,7 @@ function K3D(provider, targetDOMNode, parameters) {
             grid: [-1, -1, -1, 1, 1, 1],
             antialias: true,
             screenshotScale: 5.0,
+            renderingSteps: 1,
             clearColor: 0xffffff,
             clippingPlanes: [],
             fpsMeter: false,
@@ -275,6 +277,16 @@ function K3D(provider, targetDOMNode, parameters) {
     };
 
     /**
+     * Set rendering steps of K3D
+     * @memberof K3D.Core
+     * @param {String} mode
+     */
+    this.setRenderingSteps = function (steps) {
+        self.parameters.renderingSteps = steps;
+    };
+
+
+    /**
      * Set grid auto fit mode of K3D
      * @memberof K3D.Core
      * @param {String} mode
@@ -414,6 +426,15 @@ function K3D(provider, targetDOMNode, parameters) {
         return self.Provider.Helpers.getObjectById(world, id);
     };
 
+    /**
+     * Set ChunkList
+     * @memberof K3D.Core
+     * @param {Object} chunkList
+     */
+    this.setChunkList = function (json) {
+        world.chunkList = json;
+    };
+
     function removeObjectFromScene(id) {
         var object = self.Provider.Helpers.getObjectById(world, id);
 
@@ -474,7 +495,7 @@ function K3D(provider, targetDOMNode, parameters) {
         self.parameters.time = Math.min(Math.max(time, timeSeriesInfo.min), timeSeriesInfo.max);
 
         var promises = timeSeriesInfo.objects.reduce(function (previousValue, obj) {
-            previousValue.push(self.reload(obj, true));
+            previousValue.push(self.reload(obj, null, true));
 
             return previousValue;
         }, []);
@@ -515,9 +536,10 @@ function K3D(provider, targetDOMNode, parameters) {
      * Reload object in current world
      * @memberof K3D.Core
      * @param {Object} json
+     * @param {Object} changes
      * @param {Bool} suppressRefreshAfterObjects
      */
-    this.reload = function (json, suppressRefreshAfterObjects) {
+    this.reload = function (json, changes, suppressRefreshAfterObjects) {
         if (json.visible === false) {
             try {
                 removeObjectFromScene(json.id);
@@ -529,7 +551,13 @@ function K3D(provider, targetDOMNode, parameters) {
             return;
         }
 
-        return loader(self, {objects: [json]}).then(function (objects) {
+        var data = {objects: [json]};
+
+        if (changes !== null) {
+            data.changes = [changes];
+        }
+
+        return loader(self, data).then(function (objects) {
             objects.forEach(function (object) {
                 objectGUIProvider(self, object.json, objects);
                 world.ObjectsListJson[object.json.id] = object.json;
@@ -571,12 +599,20 @@ function K3D(provider, targetDOMNode, parameters) {
      * @returns {String|undefined}
      */
     this.getSnapshot = function () {
+        var chunkList = Object.keys(world.chunkList).reduce(function (p, k) {
+            p[k] = world.chunkList[k].attributes;
+            return p;
+        }, {});
+
         return pako.deflate(
-            msgpack.encode(_.values(world.ObjectsListJson), {codec: MsgpackCodec}),
-            {
-                to: 'string',
-                level: 9
-            }
+            msgpack.encode(
+                {
+                    objects: _.values(world.ObjectsListJson),
+                    chunkList: chunkList
+                },
+                {codec: MsgpackCodec}
+            ),
+            {to: 'string', level: 9}
         );
     };
 
@@ -585,9 +621,15 @@ function K3D(provider, targetDOMNode, parameters) {
      * @memberof K3D.Core
      */
     this.setSnapshot = function (data) {
-        var objects = msgpack.decode(pako.inflate(data), {codec: MsgpackCodec});
+        data = msgpack.decode(pako.inflate(data), {codec: MsgpackCodec});
 
-        return self.load({objects: objects});
+        Object.keys(data.chunkList).forEach(function (k) {
+            data.chunkList[k] = {attributes: data.chunkList[k]};
+        });
+
+        self.setChunkList(data.chunkList);
+
+        return self.load({objects: data.objects});
     };
 
     /**

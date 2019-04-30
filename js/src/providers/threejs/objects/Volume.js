@@ -23,6 +23,10 @@ module.exports = {
         config.shadow_delay = config.shadow_delay || 500;
         config.shadow_res = closestPowOfTwo(config.shadow_res || 128);
 
+        config.ray_samples_count = config.ray_samples_count || 16;
+        config.focal_plane = config.focal_plane || 512.0;
+        config.focal_length = typeof (config.focal_length) !== 'undefined' ? config.focal_length : 0.0;
+
         var gl = K3D.getWorld().renderer.context,
             geometry = new THREE.BoxBufferGeometry(1, 1, 1),
             modelMatrix = new THREE.Matrix4(),
@@ -110,6 +114,9 @@ module.exports = {
             gradient_step: {value: config.gradient_step},
             translation: {value: translation},
             rotation: {value: rotation},
+            shadowTexture: {type: 't', value: (textureRTT ? textureRTT.texture : null)},
+            focal_length: {value: config.focal_length},
+            focal_plane: {value: config.focal_plane},
             scale: {value: scale},
             volumeTexture: {type: 't', value: texture},
             colormap: {type: 't', value: colormap},
@@ -118,15 +125,13 @@ module.exports = {
 
         var material = new THREE.ShaderMaterial({
             uniforms: _.merge(
-                _.clone(uniforms),
-                THREE.UniformsLib.lights,
-                {
-                    shadowTexture: {type: 't', value: (textureRTT ? textureRTT.texture : null)}
-                }
+                uniforms,
+                THREE.UniformsLib.lights
             ),
             defines: {
                 USE_SPECULAR: 1,
-                USE_SHADOW: (config.shadow !== 'off' ? 1 : 0)
+                USE_SHADOW: (config.shadow !== 'off' ? 1 : 0),
+                RAY_SAMPLES_COUNT: config.focal_length !== 0.0 ? config.ray_samples_count : 0
             },
             vertexShader: require('./shaders/Volume.vertex.glsl'),
             fragmentShader: require('./shaders/Volume.fragment.glsl'),
@@ -153,7 +158,7 @@ module.exports = {
                 new THREE.PlaneBufferGeometry(lightMapRenderTargetSize, lightMapRenderTargetSize),
                 new THREE.ShaderMaterial({
                     uniforms: _.merge(
-                        _.clone(uniforms),
+                        uniforms,
                         THREE.UniformsLib.lights,
                         {
                             lightDirection: {type: 'v3', value: new THREE.Vector3()}
@@ -238,7 +243,8 @@ module.exports = {
         }
 
         object.onRemove = function () {
-            object.material.uniforms.volumeTexture.value.dispose();
+            quadRTT.material.uniforms.volumeTexture.value.dispose();
+            quadRTT.material.uniforms.volumeTexture.value = undefined;
             object.material.uniforms.volumeTexture.value = undefined;
             object.material.uniforms.colormap.value.dispose();
             object.material.uniforms.colormap.value = undefined;

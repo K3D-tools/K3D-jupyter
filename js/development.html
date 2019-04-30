@@ -35,8 +35,13 @@
                 lib.ThreeJsProvider,
                 document.getElementById('canvasTarget'),
                 {
+                    menuVisibility: true,
                     cameraAutoFit: false,
                     gridAutoFit: true,
+                    gridVisible: true,
+                    colorbarObjectId: 2524948058800,
+                    renderingSteps: 1,
+                    lighting: 1.5,
                     grid: [
                         -1, -1, -1,
                         1, 1, 1]
@@ -49,28 +54,16 @@
 
         if (K3DInstance) {
             K3DInstance.setClearColor(0xffffff, 1);
-            K3DInstance.setScreenshotScale(1.0);
+            K3DInstance.setScreenshotScale(2.0);
 
             // jsonLoader('test/samples/voxels_dense.json', function (json) {
             // jsonLoader('test/samples/data.json', function (json) {
-            jsonLoader('test/samples/voxels_group.json', function (json) {
+            jsonLoader('test/samples/texture_data.json', function (json) {
                 K3DInstance.load(json);
             });
 
-            // fileLoader('K3D-snapshot-1548166524274.html', function (data) {
+            // fileLoader('heart.html', function (data) {
             //     var snapshot = K3DInstance.extractSnapshot(data);
-            //     K3DInstance.setSnapshot(atob(snapshot[1]));
-            // });
-
-            // fileLoader('K3D-snapshot-1546614659588.html', function (data) {
-            // var snapshot = K3DInstance.extractSnapshot(data);
-            //
-            //     K3DInstance.setSnapshot(atob(snapshot[1]));
-            // });
-            //
-            // fileLoader('K3D-snapshot-1546685854522.html', function (data) {
-            //     var snapshot = K3DInstance.extractSnapshot(data);
-            //
             //     K3DInstance.setSnapshot(atob(snapshot[1]));
             // });
         }

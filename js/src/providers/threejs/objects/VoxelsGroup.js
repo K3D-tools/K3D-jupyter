@@ -1,5 +1,4 @@
 'use strict';
-
 var VoxelsHelper = require('./../helpers/Voxels');
 
 function K3DVoxelsMap(group) {
@@ -24,6 +23,7 @@ function K3DVoxelsMap(group) {
     }
 
     this.neighbours = [];
+    this.data = data;
 
     this.set = function (x, y, z, value, skipSearchingNeighbours) {
         var lx = x - cx,
@@ -33,7 +33,7 @@ function K3DVoxelsMap(group) {
         if (lx >= 0 && lx < sx &&
             ly >= 0 && ly < sy &&
             lz >= 0 && lz < sz) {
-            data[(lz * sy + ly) * sx + lx] = value;
+            this.data[(lz * sy + ly) * sx + lx] = value;
         } else if (!skipSearchingNeighbours) {
             for (var i = 0; i < this.neighbours.length; i++) {
                 if (this.neighbours[i].voxels.set(x, y, z, value, true)) {
@@ -53,7 +53,7 @@ function K3DVoxelsMap(group) {
         if (lx >= 0 && lx < sx &&
             ly >= 0 && ly < sy &&
             lz >= 0 && lz < sz) {
-            return data[(lz * sy + ly) * sx + lx];
+            return this.data[(lz * sy + ly) * sx + lx];
         } else if (!skipSearchingNeighbours) {
             for (var i = 0; i < this.neighbours.length; i++) {
                 var v = this.neighbours[i].voxels.get(x, y, z, true);
@@ -69,7 +69,7 @@ function K3DVoxelsMap(group) {
 
     this.setNeighbours = function (list, chunk) {
         this.neighbours = list.reduce(function (p, v) {
-            if (v === chunk) {
+            if (v.id === chunk.id) {
                 return p;
             }
 
@@ -103,6 +103,17 @@ function K3DVoxelsMap(group) {
     };
 }
 
+function prepareChunk(group, idx) {
+    return {
+        voxels: new K3DVoxelsMap(group),
+        size: [group.voxels.shape[2], group.voxels.shape[1], group.voxels.shape[0]],
+        offset: group.coord.data,
+        multiple: group.multiple,
+        id: group.id || idx,
+        idx: idx
+    };
+}
+
 /**
  * Loader strategy to handle SparseVoxels object
  * @method Voxel
@@ -114,14 +125,17 @@ module.exports = {
     create: function (config, K3D) {
         var chunkList = [];
 
-        config.voxels_group.forEach(function (group) {
-            chunkList.push({
-                voxels: new K3DVoxelsMap(group),
-                size: [group.voxels.shape[2], group.voxels.shape[1], group.voxels.shape[0]],
-                offset: group.coord.data,
-                multiple: group.multiple
+        if (typeof (config.voxels_group) !== 'undefined') {
+            config.voxels_group.forEach(function (group, idx) {
+                chunkList.push(prepareChunk(group, idx));
             });
-        });
+        }
+
+        if (typeof (config.chunks_ids) !== 'undefined') {
+            config.chunks_ids.forEach(function (chunkId, idx) {
+                chunkList.push(prepareChunk(K3D.getWorld().chunkList[chunkId].attributes, idx));
+            });
+        }
 
         chunkList.forEach(function (chunk) {
             chunk.voxels.setNeighbours(chunkList, chunk);
@@ -133,5 +147,96 @@ module.exports = {
             config.space_size.data,
             K3D
         );
+    },
+
+    update: function (config, changes, obj, K3D) {
+        if (changes.opacity) {
+            obj.traverse(function (object) {
+                if (object.material) {
+                    if (object.material.userData.outline) {
+                        object.material.opacity = object.material.uniforms.opacity.value = config.opacity * 0.75;
+                    } else {
+                        object.material.opacity = config.opacity;
+                        object.material.depthWrite = config.opacity === 1.0;
+                        object.material.transparent = config.opacity !== 1.0;
+                    }
+                }
+            });
+
+            return Promise.resolve({json: config, obj: obj});
+        }
+
+        if (changes.chunks_ids) {
+            var idsMap = {}, affectedIds = new Set();
+
+            obj.children.forEach(function (g) {
+                if (g.voxel) {
+                    idsMap[g.voxel.chunk.id] = g;
+                }
+            });
+
+            var ids = Object.keys(idsMap).reduce(function (p, v) {
+                p.push(parseInt(v));
+                return p;
+            }, []);
+
+            // Remove
+            _.difference(ids, changes.chunks_ids).forEach(function (id) {
+                idsMap[id].voxel.chunk.voxels.neighbours.forEach(function (value) {
+                    affectedIds.add(value.id);
+                });
+
+                obj.remove(idsMap[id]);
+
+                idsMap[id].children.forEach(function (mesh) {
+                    mesh.geometry.dispose();
+                    mesh.material.dispose();
+                });
+                idsMap[id] = null;
+            });
+
+            // Add new
+            _.difference(changes.chunks_ids, ids).forEach(function (id) {
+                var chunk = prepareChunk(K3D.getWorld().chunkList[id].attributes, obj.voxelsChunks.length),
+                    mesh = obj.addChunk(chunk);
+
+                obj.voxelsChunks.push(chunk);
+                idsMap[id] = mesh;
+            });
+
+            obj.voxelsChunks.forEach(function (chunk) {
+                chunk.voxels.setNeighbours(obj.voxelsChunks, chunk);
+            });
+
+            _.difference(changes.chunks_ids, ids).forEach(function (id) {
+                var chunk = idsMap[id].voxel.chunk;
+
+                affectedIds.add(chunk.id);
+                chunk.voxels.neighbours.forEach(function (value) {
+                    affectedIds.add(value.id);
+                });
+            });
+
+            // Update
+            for (var id of affectedIds.values()) {
+                if (idsMap[id]) {
+                    obj.updateChunk(idsMap[id].voxel.chunk, true);
+                }
+            }
+
+            return Promise.resolve({json: config, obj: obj});
+        }
+
+        if (typeof (changes._hold_remeshing) !== 'undefined') {
+            obj.holdRemeshing = config._hold_remeshing;
+
+            if (!config._hold_remeshing) {
+                obj.rebuildChunk();
+            }
+
+            return Promise.resolve({json: config, obj: obj});
+        }
+
+        return false;
     }
 };
