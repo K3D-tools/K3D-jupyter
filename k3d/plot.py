@@ -37,6 +37,12 @@ class Plot(widgets.DOMWidget):
             6-element tuple specifying the bounds of the plot grid (x0, y0, z0, x1, y1, z1).
         camera: `array_like`.
             9-element list or array specifying camera position.
+        camera_no_rotate: `Bool`.
+            Lock for camera rotation.
+        camera_no_zoom: `Bool`.
+            Lock for camera zoom.
+        camera_no_pan: `Bool`.
+            Lock for camera pan.
         axes: `list`.
             Axes labels for plot.
         objects: `list`.
@@ -73,6 +79,9 @@ class Plot(widgets.DOMWidget):
     background_color = Int().tag(sync=True)
     voxel_paint_color = Int().tag(sync=True)
     camera = ListOrArray(minlen=9, maxlen=9, empty_ok=True).tag(sync=True)
+    camera_no_rotate = Bool(False).tag(sync=True)
+    camera_no_zoom = Bool(False).tag(sync=True)
+    camera_no_pan = Bool(False).tag(sync=True)
     clipping_planes = ListOrArray(empty_ok=True).tag(sync=True)
     colorbar_object_id = Int(-1).tag(sync=True)
     rendering_steps = Int(1).tag(sync=True)
@@ -84,7 +93,8 @@ class Plot(widgets.DOMWidget):
     def __init__(self, antialias=3, background_color=0xFFFFFF, camera_auto_fit=True, grid_auto_fit=True,
                  grid_visible=True, height=512, voxel_paint_color=0, grid=(-1, -1, -1, 1, 1, 1), screenshot_scale=2.0,
                  lighting=1.0, time=0.0, fps_meter=False, menu_visibility=True, colorbar_object_id=-1,
-                 rendering_steps=1, axes=['x', 'y', 'z'], *args, **kwargs):
+                 rendering_steps=1, axes=['x', 'y', 'z'], camera_no_rotate=False, camera_no_zoom=False,
+                 camera_no_pan=False, *args, **kwargs):
         super(Plot, self).__init__()
 
         self.antialias = antialias
@@ -102,6 +112,9 @@ class Plot(widgets.DOMWidget):
         self.menu_visibility = menu_visibility
         self.colorbar_object_id = colorbar_object_id
         self.rendering_steps = rendering_steps
+        self.camera_no_rotate = camera_no_rotate
+        self.camera_no_zoom = camera_no_zoom
+        self.camera_no_pan = camera_no_pan
         self.axes = axes
 
         self.object_ids = []

@@ -836,6 +836,9 @@ def plot(height=512,
          menu_visibility=True,
          voxel_paint_color=0,
          axes=['x', 'y', 'z'],
+         camera_no_zoom=False,
+         camera_no_rotate=False,
+         camera_no_pan=False,
          grid=(-1, -1, -1, 1, 1, 1)):
     """Create a K3D Plot widget.
 
@@ -856,6 +859,12 @@ def plot(height=512,
             Enable menu on GUI.
         voxel_paint_color: `int`.
             The (initial) int value to be inserted when editing voxels.
+        camera_no_rotate: `Bool`.
+            Lock for camera rotation.
+        camera_no_zoom: `Bool`.
+            Lock for camera zoom.
+        camera_no_pan: `Bool`.
+            Lock for camera pan.
         axes: `list`.
             Axes labels for plot.
         grid: `array_like`.
@@ -865,7 +874,8 @@ def plot(height=512,
                 camera_auto_fit=camera_auto_fit, grid_auto_fit=grid_auto_fit,
                 height=height, menu_visibility=menu_visibility,
                 voxel_paint_color=voxel_paint_color, grid=grid,
-                axes=axes)
+                axes=axes,
+                camera_no_zoom=camera_no_zoom, camera_no_rotate=camera_no_rotate, camera_no_pan=camera_no_pan)
 
 
 # noinspection PyShadowingNames

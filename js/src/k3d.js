@@ -205,6 +205,9 @@ PlotView = widgets.DOMWidgetView.extend({
         this.model.on('change:colorbar_object_id', this._setColorMapLegend, this);
         this.model.on('change:rendering_steps', this._setRenderingSteps, this);
         this.model.on('change:axes', this._setAxes, this);
+        this.model.on('change:camera_no_rotate', this._setCameraLock, this);
+        this.model.on('change:camera_no_zoom', this._setCameraLock, this);
+        this.model.on('change:camera_no_pan', this._setCameraLock, this);
 
         try {
             this.K3DInstance = new K3D(ThreeJsProvider, this.container, {
@@ -213,6 +216,9 @@ PlotView = widgets.DOMWidgetView.extend({
                 backendVersion: this.model.get('_backend_version'),
                 screenshotScale: this.model.get('screenshot_scale'),
                 menuVisibility: this.model.get('menu_visibility'),
+                cameraNoRotate: this.model.get('camera_no_rotate'),
+                cameraNoZoom: this.model.get('camera_no_zoom'),
+                cameraNoPan: this.model.get('camera_no_pan'),
                 axes: this.model.get('axes'),
                 grid: this.model.get('grid')
             });
@@ -325,6 +331,14 @@ PlotView = widgets.DOMWidgetView.extend({
 
     _setAxes: function () {
         this.K3DInstance.setAxes(this.model.get('axes'));
+    },
+
+    _setCameraLock: function () {
+        this.K3DInstance.setCameraLock(
+            this.model.get('camera_no_rotate'),
+            this.model.get('camera_no_zoom'),
+            this.model.get('camera_no_pan')
+        );
     },
 
     _setClippingPlanes: function () {

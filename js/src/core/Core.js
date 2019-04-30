@@ -134,6 +134,9 @@ function K3D(provider, targetDOMNode, parameters) {
             colorbarObjectId: -1,
             fps: 25.0,
             axes: ['x', 'y', 'z'],
+            cameraNoRotate: false,
+            cameraNoZoom: false,
+            cameraNoPan: false,
             guiVersion: require('./../../package.json').version
         },
         parameters || {}
@@ -310,6 +313,19 @@ function K3D(provider, targetDOMNode, parameters) {
                 controller.updateDisplay();
             }
         });
+    };
+
+    /**
+     * Set camera lock
+     * @memberof K3D.Core
+     * @param {Boolean} cameraNoRotate
+     * @param {Boolean} cameraNoZoom
+     * @param {Boolean} cameraNoPan
+     */
+    this.setCameraLock = function (cameraNoRotate, cameraNoZoom, cameraNoPan) {
+        self.parameters.cameraNoRotate = world.controls.noRotate = cameraNoRotate;
+        self.parameters.cameraNoZoom = world.controls.noZoom = cameraNoZoom;
+        self.parameters.cameraNoPan = world.controls.noPan = cameraNoPan;
     };
 
     /**
@@ -771,6 +787,11 @@ function K3D(provider, targetDOMNode, parameters) {
     self.setClippingPlanes(self.parameters.clippingPlanes);
     self.setDirectionalLightingIntensity(self.parameters.lighting);
     self.setColorMapLegend(self.parameters.colorbarObjectId);
+    self.setCameraLock(
+        self.parameters.cameraNoRotate,
+        self.parameters.cameraNoZoom,
+        self.parameters.cameraNoPan
+    );
 
     world.setCameraToFitScene(true);
     self.render();
