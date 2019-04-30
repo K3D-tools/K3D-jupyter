@@ -498,7 +498,7 @@ def vectors(origins, vectors=None, colors=[],
 
 # noinspection PyShadowingNames
 def voxels(voxels, color_map=nice_colors, wireframe=False, outlines=True, outlines_color=0, opacity=1.0,
-           compression_level=0,
+           compression_level=0, bounds=None,
            **kwargs):
     """Create a Voxels drawable for 3D volumetric data.
 
@@ -538,6 +538,12 @@ def voxels(voxels, color_map=nice_colors, wireframe=False, outlines=True, outlin
             Packed RGB color of the resulting outlines (0xff0000 is red, 0xff is blue)
         kwargs: `dict`.
             Dictionary arguments to configure transform and model_matrix."""
+
+    if bounds is not None:
+        kwargs['bounds'] = bounds
+    else:
+        kwargs['bounds'] = np.stack([np.zeros(3), np.shape(voxels)], axis=1).flatten()
+
     return process_transform_arguments(
         Voxels(voxels=voxels, color_map=color_map, wireframe=wireframe,
                outlines=outlines, outlines_color=outlines_color, opacity=opacity,
@@ -614,6 +620,14 @@ def voxels_group(voxels_group, space_size, color_map=nice_colors, wireframe=Fals
             Packed RGB color of the resulting outlines (0xff0000 is red, 0xff is blue)
         kwargs: `dict`.
             Dictionary arguments to configure transform and model_matrix."""
+
+    for group in voxels_group:
+        group['coord'] = np.array(group['coord'])
+        group['voxels'] = np.array(group['voxels'])
+
+        if 'multiple' not in group:
+            group['multiple'] = 1
+
     return process_transform_arguments(
         VoxelsGroup(voxels_group=voxels_group, space_size=space_size, color_map=color_map, wireframe=wireframe,
                     outlines=outlines, outlines_color=outlines_color, opacity=opacity,
@@ -746,6 +760,7 @@ def plot(height=512,
          background_color=0xffffff,
          camera_auto_fit=True,
          grid_auto_fit=True,
+         menu_visibility=True,
          voxel_paint_color=0,
          grid=(-1, -1, -1, 1, 1, 1)):
     """Create a K3D Plot widget.
@@ -763,6 +778,8 @@ def plot(height=512,
             Enable automatic camera setting after adding, removing or changing a plot object.
         grid_auto_fit: `bool`.
             Enable automatic adjustment of the plot grid to contained objects.
+        menu_visibility: `bool`.
+            Enable menu on GUI.
         voxel_paint_color: `int`.
             The (initial) int value to be inserted when editing voxels.
         grid: `array_like`.
@@ -770,7 +787,7 @@ def plot(height=512,
     return Plot(antialias=antialias,
                 background_color=background_color,
                 camera_auto_fit=camera_auto_fit, grid_auto_fit=grid_auto_fit,
-                height=height,
+                height=height, menu_visibility=menu_visibility,
                 voxel_paint_color=voxel_paint_color, grid=grid)
 
 

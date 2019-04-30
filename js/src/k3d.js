@@ -164,6 +164,7 @@ PlotView = widgets.DOMWidgetView.extend({
         this.model.on('change:camera', this._setCamera, this);
         this.model.on('change:clipping_planes', this._setClippingPlanes, this);
         this.model.on('change:object_ids', this._onObjectsListChange, this);
+        this.model.on('change:menu_visibility', this._setMenuVisibility, this);
 
         try {
             this.K3DInstance = new K3D(ThreeJsProvider, this.container, {
@@ -171,6 +172,7 @@ PlotView = widgets.DOMWidgetView.extend({
                 specVersion: this.model.get('_view_module_version'),
                 backendVersion: this.model.get('_backend_version'),
                 screenshotScale: this.model.get('screenshot_scale'),
+                menuVisibility: this.model.get('menu_visibility'),
                 grid: this.model.get('grid')
             });
         } catch (e) {
@@ -185,6 +187,7 @@ PlotView = widgets.DOMWidgetView.extend({
 
         this._setCameraAutoFit();
         this._setGridAutoFit();
+        this._setMenuVisibility();
         this._setVoxelPaintColor();
 
         this.model.get('object_ids').forEach(function (id) {
@@ -256,6 +259,10 @@ PlotView = widgets.DOMWidgetView.extend({
 
     _setGrid: function () {
         this.K3DInstance.setGrid(this.model.get('grid'));
+    },
+
+    _setMenuVisibility: function () {
+        this.K3DInstance.setMenuVisibility(this.model.get('menu_visibility'));
     },
 
     _setCamera: function () {

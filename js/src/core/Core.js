@@ -116,6 +116,7 @@ function K3D(provider, targetDOMNode, parameters) {
     this.parameters = _.assign({
             viewMode: viewModes.view,
             voxelPaintColor: 0,
+            menuVisibility: true,
             cameraAutoFit: true,
             gridAutoFit: true,
             gridVisible: true,
@@ -209,6 +210,16 @@ function K3D(provider, targetDOMNode, parameters) {
                 controller.updateDisplay();
             }
         });
+    };
+
+    /**
+     * Set menu visibility of K3D
+     * @memberof K3D.Core
+     * @param {String} mode
+     */
+    this.setMenuVisibility = function (mode) {
+        self.parameters.menuVisibility = mode;
+        this.gui.domElement.hidden = !mode;
     };
 
     this.setClippingPlanes = function (planes) {
@@ -356,7 +367,9 @@ function K3D(provider, targetDOMNode, parameters) {
 
         }
 
-        world.K3DObjects.add(K3DObject);
+        if (object.visible !== false) {
+            world.K3DObjects.add(K3DObject);
+        }
 
         return objectIndex++;
     };
@@ -618,10 +631,13 @@ function K3D(provider, targetDOMNode, parameters) {
 
     GUI.controls.add(self.parameters, 'cameraAutoFit').onChange(changeParameters.bind(this, 'camera_auto_fit'));
     GUI.controls.add(self.parameters, 'gridAutoFit').onChange(function (value) {
-        self.setGridVisible(value);
+        self.setGridAutoFit(value);
         changeParameters.call(self, 'grid_auto_fit', value);
     });
-    GUI.controls.add(self.parameters, 'gridVisible').onChange(changeParameters.bind(this, 'grid_visible'));
+    GUI.controls.add(self.parameters, 'gridVisible').onChange(function (value) {
+        self.setGridVisible(value);
+        changeParameters.call(self, 'grid_visible', value);
+    });
     viewModeGUI(GUI.controls, this);
     GUI.controls.add(self.parameters, 'voxelPaintColor').step(1).min(0).max(255).name('voxelColor').onChange(
         changeParameters.bind(this, 'voxel_paint_color'));
@@ -653,6 +669,7 @@ function K3D(provider, targetDOMNode, parameters) {
         GUI.info.__controllers[1].__input.readOnly = true;
     }
 
+    self.setMenuVisibility(self.parameters.menuVisibility);
     self.setTime(self.parameters.time);
     self.setGridAutoFit(self.parameters.gridAutoFit);
     self.setGridVisible(self.parameters.gridVisible);

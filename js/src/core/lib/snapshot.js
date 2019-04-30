@@ -34,6 +34,8 @@ function getSnapshot(K3D) {
         timestamp = new Date().toUTCString();
 
     filecontent = filecontent.replace('[DATA]', btoa(data));
+    filecontent = filecontent.replace('[PARAMS]', JSON.stringify(K3D.parameters));
+    filecontent = filecontent.replace('[CAMERA]', JSON.stringify(K3D.getWorld().controls.getCameraArray()));
     filecontent = filecontent.replace('[TIMESTAMP]', timestamp);
     filecontent = filecontent.replace('[REQUIRE_JS]', requireJsSource);
     filecontent = filecontent.replace('[PAKO_JS]', pakoJsSource);

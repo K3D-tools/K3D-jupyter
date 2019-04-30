@@ -33,7 +33,7 @@ def array_to_binary(ar, obj=None, force_contiguous=True):
         ar = np.ascontiguousarray(ar)
 
     if obj.compression_level > 0:
-        return {'compressed_buffer': zlib.compress(memoryview(ar), obj.compression_level), 'dtype': str(ar.dtype),
+        return {'compressed_buffer': zlib.compress(ar, obj.compression_level), 'dtype': str(ar.dtype),
                 'shape': ar.shape}
     else:
         return {'buffer': memoryview(ar), 'dtype': str(ar.dtype), 'shape': ar.shape}
