@@ -10,12 +10,13 @@ except ImportError:
 
 import numpy as np
 import six
+
 from .colormaps import basic_color_maps
-from .plot import Plot
+from .helpers import check_attribute_range
 from .objects import (Line, MarchingCubes, Mesh, Points, STL, Surface, Text, Text2d, Texture, TextureText, VectorField,
                       Vectors, Volume, Voxels, SparseVoxels, VoxelsGroup, VoxelsIpyDW, VoxelChunk)
+from .plot import Plot
 from .transform import process_transform_arguments
-from .helpers import check_attribute_range
 
 _default_color = 0x0000FF  # blue
 nice_colors = (
@@ -29,7 +30,7 @@ nice_colors = (
 
 
 def line(vertices, color=_default_color, colors=[], attribute=[], color_map=[], color_range=[], width=0.01,
-         shader='thick', radial_segments=8, compression_level=0, **kwargs):
+         shader='thick', radial_segments=8, name=None, compression_level=0, **kwargs):
     """Create a Line drawable for plotting segments and polylines.
 
     Arguments:
@@ -61,6 +62,8 @@ def line(vertices, color=_default_color, colors=[], attribute=[], color_map=[], 
             Number of segmented faces around the circumference of the tube
         width: `float`.
             Thickness of the lines.
+        name: `string`.
+            A name of a object
         kwargs: `dict`.
             Dictionary arguments to configure transform and model_matrix."""
 
@@ -78,13 +81,14 @@ def line(vertices, color=_default_color, colors=[], attribute=[], color_map=[], 
              attribute=attribute,
              color_map=color_map,
              color_range=color_range,
+             name=name,
              compression_level=compression_level),
         **kwargs
     )
 
 
-def marching_cubes(scalar_field, level, color=_default_color, wireframe=False, flat_shading=True, compression_level=0,
-                   **kwargs):
+def marching_cubes(scalar_field, level, color=_default_color, wireframe=False, flat_shading=True, name=None,
+                   compression_level=0, **kwargs):
     """Create a MarchingCubes drawable.
 
     Plot an isosurface of a scalar field obtained through a Marching Cubes algorithm.
@@ -109,6 +113,8 @@ def marching_cubes(scalar_field, level, color=_default_color, wireframe=False, f
             Whether mesh should display as wireframe.
         flat_shading: `bool`.
             Whether mesh should display with flat shading.
+        name: `string`.
+            A name of a object
         kwargs: `dict`.
             Dictionary arguments to configure transform and model_matrix."""
     return process_transform_arguments(
@@ -117,13 +123,14 @@ def marching_cubes(scalar_field, level, color=_default_color, wireframe=False, f
                       level=level,
                       wireframe=wireframe,
                       flat_shading=flat_shading,
+                      name=name,
                       compression_level=compression_level),
         **kwargs
     )
 
 
 def mesh(vertices, indices, color=_default_color, attribute=[], color_map=[], color_range=[], wireframe=False,
-         flat_shading=True, compression_level=0, **kwargs):
+         flat_shading=True, name=None, compression_level=0, **kwargs):
     """Create a Mesh drawable representing a 3D triangles mesh.
 
     Arguments:
@@ -145,6 +152,8 @@ def mesh(vertices, indices, color=_default_color, attribute=[], color_map=[], co
             Whether mesh should display as wireframe.
         flat_shading: `bool`.
             Whether mesh should display with flat shading.
+        name: `string`.
+            A name of a object
         kwargs: `dict`.
             Dictionary arguments to configure transform and model_matrix."""
     color_map = np.array(color_map, np.float32)
@@ -160,12 +169,13 @@ def mesh(vertices, indices, color=_default_color, attribute=[], color_map=[], co
              color_range=color_range,
              wireframe=wireframe,
              flat_shading=flat_shading,
+             name=name,
              compression_level=compression_level),
         **kwargs
     )
 
 
-def points(positions, colors=[], color=_default_color, point_size=1.0, shader='3dSpecular', opacity=1.0,
+def points(positions, colors=[], color=_default_color, point_size=1.0, shader='3dSpecular', opacity=1.0, name=None,
            compression_level=0, **kwargs):
     """Create a Points drawable representing a point cloud.
 
@@ -192,19 +202,22 @@ def points(positions, colors=[], color=_default_color, point_size=1.0, shader='3
 
             :`mesh`: high precision triangle mesh of a ball (high quality and GPU load).
 
+        name: `string`.
+            A name of a object
         kwargs: `dict`.
             Dictionary arguments to configure transform and model_matrix."""
     return process_transform_arguments(
         Points(positions=positions, colors=colors,
                color=color, point_size=point_size, shader=shader,
                opacity=opacity,
+               name=name,
                compression_level=compression_level),
         **kwargs
     )
 
 
 # noinspection PyShadowingNames
-def stl(stl, color=_default_color, wireframe=False, flat_shading=True, compression_level=0, **kwargs):
+def stl(stl, color=_default_color, wireframe=False, flat_shading=True, name=None, compression_level=0, **kwargs):
     """Create an STL drawable for data in STereoLitograpy format.
 
     Arguments:
@@ -216,6 +229,8 @@ def stl(stl, color=_default_color, wireframe=False, flat_shading=True, compressi
             Whether mesh should display as wireframe.
         flat_shading: `bool`.
             Whether mesh should display with flat shading.
+        name: `string`.
+            A name of a object
         kwargs: `dict`.
             Dictionary arguments to configure transform and model_matrix."""
     plain = isinstance(stl, six.string_types)
@@ -226,12 +241,14 @@ def stl(stl, color=_default_color, wireframe=False, flat_shading=True, compressi
             color=color,
             wireframe=wireframe,
             flat_shading=flat_shading,
+            name=name,
             compression_level=compression_level),
         **kwargs
     )
 
 
-def surface(heights, color=_default_color, wireframe=False, flat_shading=True, compression_level=0, **kwargs):
+def surface(heights, color=_default_color, wireframe=False, flat_shading=True, name=None, compression_level=0,
+            **kwargs):
     """Create a Surface drawable.
 
     Plot a 2d function: z = f(x, y).
@@ -252,17 +269,20 @@ def surface(heights, color=_default_color, wireframe=False, flat_shading=True, c
             Whether mesh should display as wireframe.
         flat_shading: `bool`.
             Whether mesh should display with flat shading.
+        name: `string`.
+            A name of a object
         kwargs: `dict`.
             Dictionary arguments to configure transform and model_matrix."""
     return process_transform_arguments(
-        Surface(heights=heights, color=color, wireframe=wireframe, flat_shading=flat_shading,
+        Surface(heights=heights, color=color, wireframe=wireframe, flat_shading=flat_shading, name=name,
                 compression_level=compression_level),
         **kwargs
     )
 
 
 # noinspection PyShadowingNames
-def text(text, position=(0, 0, 0), color=_default_color, reference_point='lb', size=1.0, compression_level=0):
+def text(text, position=(0, 0, 0), color=_default_color, reference_point='lb', size=1.0, name=None,
+         compression_level=0):
     """Create a Text drawable for 3D-positioned text labels.
 
     Arguments:
@@ -277,14 +297,17 @@ def text(text, position=(0, 0, 0), color=_default_color, reference_point='lb', s
             First letter: 'l', 'c' or 'r': left, center or right
 
             Second letter: 't', 'c' or 'b': top, center or bottom.
+        name: `string`.
+            A name of a object
         size: `float`.
             Font size in 'em' HTML units."""
-    return Text(position=position, reference_point=reference_point, text=text, size=size, color=color,
+
+    return Text(position=position, reference_point=reference_point, text=text, size=size, color=color, name=name,
                 compression_level=compression_level)
 
 
 # noinspection PyShadowingNames
-def text2d(text, position=(0, 0), color=_default_color, size=1.0, reference_point='lt', compression_level=0):
+def text2d(text, position=(0, 0), color=_default_color, size=1.0, reference_point='lt', name=None, compression_level=0):
     """Create a Text2d drawable for 2D-positioned (viewport bound, OSD) labels.
 
     Arguments:
@@ -300,13 +323,15 @@ def text2d(text, position=(0, 0), color=_default_color, size=1.0, reference_poin
             First letter: 'l', 'c' or 'r': left, center or right
 
             Second letter: 't', 'c' or 'b': top, center or bottom.
+        name: `string`.
+            A name of a object
         size: `float`.
             Font size in 'em' HTML units."""
     return Text2d(position=position, reference_point=reference_point, text=text, size=size, color=color,
-                  compression_level=compression_level)
+                  name=name, compression_level=compression_level)
 
 
-def texture(binary=None, file_format=None, color_map=basic_color_maps.Rainbow, color_range=[], attribute=[],
+def texture(binary=None, file_format=None, color_map=basic_color_maps.Rainbow, color_range=[], attribute=[], name=None,
             compression_level=0, **kwargs):
     """Create a Texture drawable for displaying 2D raster images in common formats.
 
@@ -333,6 +358,8 @@ def texture(binary=None, file_format=None, color_map=basic_color_maps.Rainbow, c
         color_range: `list`.
             A pair [min_value, max_value], which determines the levels of color attribute mapped
             to 0 and 1 in the color map respectively.
+        name: `string`.
+            A name of a object
         kwargs: `dict`.
             Dictionary arguments to configure transform and model_matrix."""
 
@@ -346,6 +373,7 @@ def texture(binary=None, file_format=None, color_map=basic_color_maps.Rainbow, c
                 color_map=color_map,
                 color_range=color_range,
                 attribute=attribute,
+                name=name,
                 compression_level=compression_level),
         **kwargs
     )
@@ -353,7 +381,7 @@ def texture(binary=None, file_format=None, color_map=basic_color_maps.Rainbow, c
 
 # noinspection PyShadowingNames
 def texture_text(text, position=(0, 0, 0), color=_default_color, font_weight=400, font_face='Courier New',
-                 font_size=68, size=1.0, compression_level=0):
+                 font_size=68, size=1.0, name=None, compression_level=0):
     """Create a TextureText drawable.
 
     Compared to Text and Text2d this drawable has less features (no KaTeX support), but the labels are located
@@ -374,11 +402,13 @@ def texture_text(text, position=(0, 0, 0), color=_default_color, font_weight=400
         font_weight: `int`.
             Thickness of the characters in HTML-like units from the range (100, 900), where
             400 is normal and 600 is bold font.
+        name: `string`.
+            A name of a object
         font_size: `int`.
             The font size inside the sprite texture in px units. This does not affect the size of the
             text in the scene, only the accuracy and raster size of the texture."""
     return TextureText(text=text, position=position, color=color, size=size,
-                       font_face=font_face, font_size=font_size, font_weight=font_weight,
+                       font_face=font_face, font_size=font_size, font_weight=font_weight, name=name,
                        compression_level=compression_level)
 
 
@@ -386,7 +416,7 @@ def texture_text(text, position=(0, 0, 0), color=_default_color, font_weight=400
 def vector_field(vectors,
                  colors=[],
                  origin_color=None, head_color=None, color=_default_color,
-                 use_head=True, head_size=1.0, scale=1.0, line_width=0.01, compression_level=0, **kwargs):
+                 use_head=True, head_size=1.0, scale=1.0, line_width=0.01, name=None, compression_level=0, **kwargs):
     """Create a VectorField drawable for displaying dense 2D or 3D grids of vectors of same dimensionality.
 
     By default, the origins of the vectors are assumed to be a grid inscribed in the -0.5 < x, y, z < 0.5 cube
@@ -420,6 +450,8 @@ def vector_field(vectors,
             Scale factor for the vector lengths, for artificially scaling the vectors in place.
         line_width: `float`.
             Width of the vector segments.
+        name: `string`.
+            A name of a object
         kwargs: `dict`.
             Dictionary arguments to configure transform and model_matrix."""
     return process_transform_arguments(
@@ -431,6 +463,7 @@ def vector_field(vectors,
                     head_color=head_color if head_color is not None else color,
                     origin_color=origin_color if origin_color is not None else color,
                     scale=scale,
+                    name=name,
                     compression_level=compression_level),
         **kwargs
     )
@@ -441,7 +474,7 @@ def vectors(origins, vectors=None, colors=[],
             origin_color=None, head_color=None, color=_default_color,
             use_head=True, head_size=1.0,
             labels=[], label_size=1.0,
-            line_width=0.01, compression_level=0, **kwargs):
+            line_width=0.01, name=None, compression_level=0, **kwargs):
     """Create a Vectors drawable representing individual 3D vectors.
 
     The color of the vectors is a gradient from origin_color to head_color. Heads, when used, have uniform head_color.
@@ -476,6 +509,8 @@ def vectors(origins, vectors=None, colors=[],
             Label font size in 'em' HTML units.
         line_width: `float`.
             Width of the vector segments.
+        name: `string`.
+            A name of a object
         kwargs: `dict`.
             Dictionary arguments to configure transform and model_matrix."""
     return process_transform_arguments(
@@ -490,6 +525,7 @@ def vectors(origins, vectors=None, colors=[],
             labels=labels,
             label_size=label_size,
             line_width=line_width,
+            name=name,
             compression_level=compression_level
         ),
         **kwargs
@@ -497,7 +533,7 @@ def vectors(origins, vectors=None, colors=[],
 
 
 # noinspection PyShadowingNames
-def voxels(voxels, color_map=nice_colors, wireframe=False, outlines=True, outlines_color=0, opacity=1.0,
+def voxels(voxels, color_map=nice_colors, wireframe=False, outlines=True, outlines_color=0, opacity=1.0, name=None,
            compression_level=0, bounds=None,
            **kwargs):
     """Create a Voxels drawable for 3D volumetric data.
@@ -536,6 +572,8 @@ def voxels(voxels, color_map=nice_colors, wireframe=False, outlines=True, outlin
             Whether mesh should display with outlines.
         outlines_color: `int`.
             Packed RGB color of the resulting outlines (0xff0000 is red, 0xff is blue)
+        name: `string`.
+            A name of a object
         kwargs: `dict`.
             Dictionary arguments to configure transform and model_matrix."""
 
@@ -546,7 +584,7 @@ def voxels(voxels, color_map=nice_colors, wireframe=False, outlines=True, outlin
 
     return process_transform_arguments(
         Voxels(voxels=voxels, color_map=color_map, wireframe=wireframe,
-               outlines=outlines, outlines_color=outlines_color, opacity=opacity,
+               outlines=outlines, outlines_color=outlines_color, opacity=opacity, name=name,
                compression_level=compression_level),
         **kwargs
     )
@@ -554,8 +592,7 @@ def voxels(voxels, color_map=nice_colors, wireframe=False, outlines=True, outlin
 
 # noinspection PyShadowingNames
 def sparse_voxels(sparse_voxels, space_size, color_map=nice_colors, wireframe=False, outlines=True, outlines_color=0,
-                  opacity=1.0, compression_level=0,
-                  **kwargs):
+                  opacity=1.0, name=None, compression_level=0, **kwargs):
     """Create a Voxels drawable for 3D volumetric data.
 
     By default, the voxels are a grid inscribed in the -0.5 < x, y, z < 0.5 cube
@@ -581,11 +618,13 @@ def sparse_voxels(sparse_voxels, space_size, color_map=nice_colors, wireframe=Fa
             Whether mesh should display with outlines.
         outlines_color: `int`.
             Packed RGB color of the resulting outlines (0xff0000 is red, 0xff is blue)
+        name: `string`.
+            A name of a object
         kwargs: `dict`.
             Dictionary arguments to configure transform and model_matrix."""
     return process_transform_arguments(
         SparseVoxels(sparse_voxels=sparse_voxels, space_size=space_size, color_map=color_map, wireframe=wireframe,
-                     outlines=outlines, outlines_color=outlines_color, opacity=opacity,
+                     outlines=outlines, outlines_color=outlines_color, opacity=opacity, name=name,
                      compression_level=compression_level),
         **kwargs
     )
@@ -593,7 +632,7 @@ def sparse_voxels(sparse_voxels, space_size, color_map=nice_colors, wireframe=Fa
 
 # noinspection PyShadowingNames
 def voxels_group(space_size, voxels_group=[], chunks_ids=[], color_map=nice_colors, wireframe=False, outlines=True,
-                 outlines_color=0, opacity=1.0, compression_level=0, **kwargs):
+                 outlines_color=0, opacity=1.0, name=None, compression_level=0, **kwargs):
     """Create a Voxels drawable for 3D volumetric data.
 
     By default, the voxels are a grid inscribed in the -0.5 < x, y, z < 0.5 cube
@@ -620,6 +659,8 @@ def voxels_group(space_size, voxels_group=[], chunks_ids=[], color_map=nice_colo
             Whether mesh should display with outlines.
         outlines_color: `int`.
             Packed RGB color of the resulting outlines (0xff0000 is red, 0xff is blue)
+        name: `string`.
+            A name of a object
         kwargs: `dict`.
             Dictionary arguments to configure transform and model_matrix."""
 
@@ -632,7 +673,7 @@ def voxels_group(space_size, voxels_group=[], chunks_ids=[], color_map=nice_colo
 
     return process_transform_arguments(
         VoxelsGroup(voxels_group=voxels_group, chunks_ids=chunks_ids, space_size=space_size, color_map=color_map,
-                    wireframe=wireframe, outlines=outlines, outlines_color=outlines_color, opacity=opacity,
+                    wireframe=wireframe, outlines=outlines, outlines_color=outlines_color, opacity=opacity, name=name,
                     compression_level=compression_level),
         **kwargs
     )
@@ -640,7 +681,7 @@ def voxels_group(space_size, voxels_group=[], chunks_ids=[], color_map=nice_colo
 
 # noinspection PyShadowingNames
 def volume(volume, color_map, color_range=[], samples=512.0, alpha_coef=50.0, gradient_step=0.005, shadow='off',
-           shadow_delay=500, shadow_res=128, focal_length=0.0, focal_plane=100.0, ray_samples_count=16,
+           shadow_delay=500, shadow_res=128, focal_length=0.0, focal_plane=100.0, ray_samples_count=16, name=None,
            compression_level=0, **kwargs):
     """Create a Volume drawable for 3D volumetric data.
 
@@ -696,6 +737,8 @@ def volume(volume, color_map, color_range=[], samples=512.0, alpha_coef=50.0, gr
             Minimum number of miliseconds between shadow map updates.
         shadow_res: `int`.
             Resolution of shadow map.
+        name: `string`.
+            A name of a object
         kwargs: `dict`.
             Dictionary arguments to configure transform and model_matrix."""
 
@@ -705,11 +748,11 @@ def volume(volume, color_map, color_range=[], samples=512.0, alpha_coef=50.0, gr
         Volume(volume=volume, color_map=color_map, color_range=color_range, compression_level=compression_level,
                samples=samples, alpha_coef=alpha_coef, gradient_step=gradient_step, shadow=shadow,
                shadow_delay=shadow_delay, shadow_res=shadow_res, focal_plane=focal_plane, focal_length=focal_length,
-               ray_samples_count=ray_samples_count), **kwargs)
+               name=name, ray_samples_count=ray_samples_count), **kwargs)
 
 
 def vtk_poly_data(poly_data, color=_default_color, color_attribute=None, color_map=basic_color_maps.Rainbow,
-                  wireframe=False, compression_level=0, **kwargs):
+                  wireframe=False, name=None, compression_level=0, **kwargs):
     """Create a Mesh drawable from given vtkPolyData.
 
     This function requires the vtk module (from package VTK) to be installed.
@@ -730,6 +773,8 @@ def vtk_poly_data(poly_data, color=_default_color, color_attribute=None, color_m
             quadruplet should have value 0.0, the last 1.0; R, G, B are RGB color components in the range 0.0 to 1.0.
         wireframe: `bool`.
             Whether mesh should display as wireframe.
+        name: `string`.
+            A name of a object
         kwargs: `dict`.
             Dictionary arguments to configure transform and model_matrix."""
     if vtk is None:
@@ -759,6 +804,7 @@ def vtk_poly_data(poly_data, color=_default_color, color_attribute=None, color_m
              color_range=color_range,
              color_map=np.array(color_map, np.float32),
              wireframe=wireframe,
+             name=name,
              compression_level=compression_level),
         **kwargs
     )
