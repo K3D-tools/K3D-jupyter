@@ -49,8 +49,8 @@ function objectGUIProvider(K3D, json, objects) {
 
     if (typeof (K3D.gui_map[json.id]) === 'undefined') {
         K3D.gui_counts[json.type] = K3D.gui_counts[json.type] + 1 || 1;
-        K3D.gui_map[json.id] = objects.addFolder(json.type + ' #' + K3D.gui_counts[json.type]);
 
+        K3D.gui_map[json.id] = objects.addFolder(json.type + ' #' + K3D.gui_counts[json.type]);
         K3D.gui_map[json.id].listenersId = K3D.on(K3D.events.OBJECT_REMOVED, function (id) {
             if (id === json.id) {
                 var listenersId = K3D.gui_map[json.id].listenersId;
@@ -76,6 +76,14 @@ function objectGUIProvider(K3D, json, objects) {
 
             if (param[0] === '_') {
                 return;
+            }
+
+            if (param === 'name') {
+                if (json.name === null) {
+                    K3D.gui_map[json.id].name = json.type + ' #' + K3D.gui_counts[json.type];
+                } else {
+                    K3D.gui_map[json.id].name = json.name;
+                }
             }
 
             if (param === 'color_range' && json[param].length === 2) {

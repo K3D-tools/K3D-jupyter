@@ -7,7 +7,15 @@
 
 Jupyter notebook extension for 3D visualization.
 
-![screenshot](screenshot.png)
+![points_cloud](imgs/points_cloud.gif)
+
+![streamlines](imgs/streamlines.gif)
+
+#### YouTube:
+
+[![Volume renderer](https://img.youtube.com/vi/4XMyZWviSsU/0.jpg)](https://www.youtube.com/watch?v=4XMyZWviSsU)
+
+[![Volume renderer](https://img.youtube.com/vi/Hcr8lf-fawU/0.jpg)](https://www.youtube.com/watch?v=Hcr8lf-fawU)
 
 ## Try it Now!
 [![Binder](https://mybinder.org/badge.svg)](https://mybinder.org/v2/gh/K3D-tools/K3D-jupyter/master?filepath=index.ipynb)

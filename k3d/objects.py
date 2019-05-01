@@ -63,6 +63,7 @@ class Drawable(widgets.Widget):
     _model_module_version = Unicode(EXTENSION_SPEC_VERSION).tag(sync=True)
 
     id = Integer().tag(sync=True)
+    name = Unicode(default_value=None, allow_none=True).tag(sync=True)
     visible = Bool(True).tag(sync=True)
     compression_level = Integer().tag(sync=True)
 

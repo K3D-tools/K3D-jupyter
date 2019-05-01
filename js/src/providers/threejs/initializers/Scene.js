@@ -286,7 +286,7 @@ function rebuildSceneData(K3D, grids, force) {
                 'position': middle.toArray(),
                 'reference_point': 'cc',
                 'color': 0x444444,
-                'text': iterateAxis,
+                'text': K3D.parameters.axes[['x', 'y', 'z'].indexOf(iterateAxis)],
                 'size': 1.0
             }, K3D);
 
