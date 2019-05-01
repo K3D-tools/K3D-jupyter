@@ -11,6 +11,8 @@ Jupyter notebook extension for 3D visualization.
 
 ![streamlines](imgs/streamlines.gif)
 
+![volume_rendering](imgs/vr.gif)
+
 #### YouTube:
 
 [![Volume renderer](https://img.youtube.com/vi/4XMyZWviSsU/0.jpg)](https://www.youtube.com/watch?v=4XMyZWviSsU)

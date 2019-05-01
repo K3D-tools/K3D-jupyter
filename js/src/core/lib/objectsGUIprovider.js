@@ -20,7 +20,7 @@ function objectGUIProvider(K3D, json, objects) {
         for (var i = 0; i < K3D.gui_map[json.id].__controllers.length; i++) {
             var controller = K3D.gui_map[json.id].__controllers[i];
 
-            if (controller.property === param || controller.property.indexOf('_' + param) !== -1) {
+            if (controller.property === param || controller.property.indexOf('_' + param) === 0) {
                 controllers.push(controller);
             }
         }
