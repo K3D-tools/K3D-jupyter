@@ -11,11 +11,16 @@ Jupyter notebook extension for 3D visualization.
 
 ![streamlines](imgs/streamlines.gif)
 
+![volume_rendering](imgs/vr.gif)
+
 #### YouTube:
 
 [![Volume renderer](https://img.youtube.com/vi/4XMyZWviSsU/0.jpg)](https://www.youtube.com/watch?v=4XMyZWviSsU)
 
 [![Volume renderer](https://img.youtube.com/vi/Hcr8lf-fawU/0.jpg)](https://www.youtube.com/watch?v=Hcr8lf-fawU)
+
+[![Volume renderer](https://img.youtube.com/vi/ZFkw8zt2QXs/0.jpg)](https://www.youtube.com/watch?v=ZFkw8zt2QXs)
+
 
 ## Try it Now!
 [![Binder](https://mybinder.org/badge.svg)](https://mybinder.org/v2/gh/K3D-tools/K3D-jupyter/master?filepath=index.ipynb)
