@@ -1,16 +1,8 @@
-//jshint maxstatements:false, maxcomplexity:false, maxdepth:false
+'use strict';
+//jshint ignore: start
+//jscs:disable
 
-;(function () {
-    'use strict';
-
-    var root = this,
-        has_require = typeof require !== 'undefined',
-        THREE = root.THREE || has_require && require('three');
-
-    if (!THREE) {
-        throw new Error('MeshLine requires three.js');
-    }
-
+module.exports = function (THREE) {
     function MeshLine() {
         this.positions = [];
         this.previous = [];
@@ -393,14 +385,8 @@
         return this;
     };
 
-    if (typeof exports !== 'undefined') {
-        if (typeof module !== 'undefined' && module.exports) {
-            exports = module.exports = {MeshLine: MeshLine, MeshLineMaterial: MeshLineMaterial};
-        }
-        exports.MeshLine = MeshLine;
-        exports.MeshLineMaterial = MeshLineMaterial;
-    } else {
-        root.MeshLine = MeshLine;
-        root.MeshLineMaterial = MeshLineMaterial;
-    }
-}).call(this);
+    return {
+        MeshLine: MeshLine,
+        MeshLineMaterial: MeshLineMaterial
+    };
+};

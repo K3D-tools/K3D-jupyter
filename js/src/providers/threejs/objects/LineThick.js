@@ -1,8 +1,8 @@
 'use strict';
 
-var colorsToFloat32Array = require('./../../../core/lib/helpers/buffer').colorsToFloat32Array,
-//    diff = require('./../../../core/lib/helpers/diff').diff,
-    MeshLine = require('./../helpers/THREE.MeshLine'),
+var THREE = require('three'),
+    colorsToFloat32Array = require('./../../../core/lib/helpers/buffer').colorsToFloat32Array,
+    MeshLine = require('./../helpers/THREE.MeshLine')(THREE),
     Fn = require('./../helpers/Fn'),
     lut = require('./../../../core/lib/helpers/lut'),
     getColorsArray = Fn.getColorsArray;

@@ -1,7 +1,8 @@
 'use strict';
 
-var Text = require('./../objects/Text'),
-    MeshLine = require('./../helpers/THREE.MeshLine'),
+var THREE = require('three'),
+    Text = require('./../objects/Text'),
+    MeshLine = require('./../helpers/THREE.MeshLine')(THREE),
     viewModes = require('./../../../core/lib/viewMode').viewModes,
     pow10ceil = require('./../../../core/lib/helpers/math').pow10ceil;
 
@@ -552,6 +553,18 @@ module.exports = {
                     K3D.render();
                 }
             }
+        });
+
+        K3D.on(K3D.events.RESIZED, function () {
+            // update outlines
+            Object.keys(grids.planes).forEach(function (axis) {
+                grids.planes[axis].forEach(function (plane) {
+                    var objResolution = plane.obj.material.uniforms.resolution;
+
+                    objResolution.value.x = K3D.getWorld().width;
+                    objResolution.value.y = K3D.getWorld().height;
+                }, this);
+            }, this);
         });
     }
 };

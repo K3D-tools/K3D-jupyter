@@ -25,7 +25,6 @@
   "globals": {
     "$": true,
     "K3D": true,
-    "THREE": true,
     "_": true,
     "ImageData": true,
     "jsonpatch": true,

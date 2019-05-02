@@ -2,7 +2,8 @@
 
 'use strict';
 
-var lut = require('./../../../core/lib/helpers/lut'),
+var THREE = require('three'),
+    lut = require('./../../../core/lib/helpers/lut'),
     closestPowOfTwo = require('./../helpers/Fn').closestPowOfTwo,
     typedArrayToThree = require('./../helpers/Fn').typedArrayToThree;
 

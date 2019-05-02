@@ -1,6 +1,8 @@
 'use strict';
 //jshint maxstatements:false
 
+var THREE = require('three');
+
 module.exports = function (points, attributes, radius, radialSegments, color, verticesColors, colorRange) {
 
     var geometry = new THREE.BufferGeometry(),

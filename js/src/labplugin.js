@@ -5,7 +5,7 @@
 require('./deps');
 
 var k3d = require('./index'),
-    EXTENSION_SPEC_VERSION = require('./version').EXTENSION_SPEC_VERSION,
+    version = require('./version').version,
     base = require('@jupyter-widgets/base');
 
 module.exports = {
@@ -14,7 +14,7 @@ module.exports = {
     activate: function (app, widgets) {
         widgets.registerWidget({
             name: 'k3d',
-            version: EXTENSION_SPEC_VERSION,
+            version: version,
             exports: k3d
         });
     },

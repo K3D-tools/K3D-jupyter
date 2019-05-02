@@ -1,5 +1,7 @@
 'use strict';
 
+var THREE = require('three');
+
 /**
  * Loader strategy to handle Surface object
  * @method MarchingCubes

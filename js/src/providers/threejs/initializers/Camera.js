@@ -1,5 +1,7 @@
 'use strict';
 
+var THREE = require('three');
+
 /**
  * Camera initializer for Three.js library
  * @this K3D.Core~world

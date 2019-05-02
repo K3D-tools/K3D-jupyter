@@ -1,6 +1,7 @@
 'use strict';
 
-var viewModes = require('./../../../core/lib/viewMode').viewModes;
+var THREE = require('three'),
+    viewModes = require('./../../../core/lib/viewMode').viewModes;
 /**
  * Interactions handlers for Voxels object
  * @method Voxels

@@ -1,5 +1,7 @@
 'use strict';
-var getSSAAChunkedRender = require('./../helpers/SSAAChunkedRender');
+
+var THREE = require('three'),
+    getSSAAChunkedRender = require('./../helpers/SSAAChunkedRender');
 
 /**
  * @memberof K3D.Providers.ThreeJS.Initializers

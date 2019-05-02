@@ -1,4 +1,7 @@
 'use strict';
+
+var THREE = require('three');
+
 /**
  * Canvas initializer for Three.js library
  * @this K3D.Core~world
@@ -78,6 +81,10 @@ module.exports = function (K3D) {
         var r = event.target.getCameraArray();
 
         K3D.dispatch(K3D.events.CAMERA_CHANGE, r);
+    });
+
+    K3D.on(K3D.events.RESIZED, function () {
+        self.controls.handleResize();
     });
 
     refresh();

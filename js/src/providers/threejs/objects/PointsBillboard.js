@@ -1,6 +1,7 @@
 'use strict';
 
-var buffer = require('./../../../core/lib/helpers/buffer'),
+var THREE = require('three'),
+    buffer = require('./../../../core/lib/helpers/buffer'),
     Fn = require('./../helpers/Fn'),
     getColorsArray = Fn.getColorsArray;
 
