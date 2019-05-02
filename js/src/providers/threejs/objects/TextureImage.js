@@ -1,6 +1,7 @@
 'use strict';
 
-var buffer = require('./../../../core/lib/helpers/buffer');
+var THREE = require('three'),
+    buffer = require('./../../../core/lib/helpers/buffer');
 
 /**
  * Loader strategy to handle Texture object

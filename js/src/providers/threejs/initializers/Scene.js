@@ -1,7 +1,8 @@
 'use strict';
 
-var Text = require('./../objects/Text'),
-    MeshLine = require('./../helpers/THREE.MeshLine'),
+var THREE = require('three'),
+    Text = require('./../objects/Text'),
+    MeshLine = require('./../helpers/THREE.MeshLine')(THREE),
     viewModes = require('./../../../core/lib/viewMode').viewModes,
     pow10ceil = require('./../../../core/lib/helpers/math').pow10ceil;
 

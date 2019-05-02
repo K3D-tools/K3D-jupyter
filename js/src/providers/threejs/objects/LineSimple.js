@@ -1,6 +1,7 @@
 'use strict';
 
-var colorsToFloat32Array = require('./../../../core/lib/helpers/buffer').colorsToFloat32Array,
+var THREE = require('three'),
+    colorsToFloat32Array = require('./../../../core/lib/helpers/buffer').colorsToFloat32Array,
     Fn = require('./../helpers/Fn'),
     getColorsArray = Fn.getColorsArray,
     handleColorMap = Fn.handleColorMap;

@@ -1,4 +1,7 @@
 'use strict';
+
+var THREE = require('three');
+
 /**
  * Canvas initializer for Three.js library
  * @this K3D.Core~world

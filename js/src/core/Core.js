@@ -772,13 +772,6 @@ function K3D(provider, targetDOMNode, parameters) {
         GUI.info.__controllers[1].__input.readOnly = true;
     }
 
-    if (self.parameters.specVersion) {
-        GUI.info.add({
-            version: self.parameters.specVersion.substr(1)
-        }, 'version').name('Spec version:');
-        GUI.info.__controllers[1].__input.readOnly = true;
-    }
-
     self.setMenuVisibility(self.parameters.menuVisibility);
     self.setTime(self.parameters.time);
     self.setGridAutoFit(self.parameters.gridAutoFit);

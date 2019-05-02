@@ -3,9 +3,9 @@ from traitlets import Unicode, Int, Float, List, Bool, Bytes, Integer, Dict, Uni
 from traitlets import validate, TraitError
 from traittypes import Array
 from .helpers import array_serialization_wrap
-from ._frontend import EXTENSION_SPEC_VERSION
 import numpy as np
 from ipydatawidgets import DataUnion, data_union_serialization
+from ._version import __version__ as version
 
 EPSILON = np.finfo(np.float32).eps
 
@@ -35,7 +35,7 @@ class VoxelChunk(widgets.Widget):
 
     _model_name = Unicode('ChunkModel').tag(sync=True)
     _model_module = Unicode('k3d').tag(sync=True)
-    _model_module_version = Unicode(EXTENSION_SPEC_VERSION).tag(sync=True)
+    _model_module_version = Unicode(version).tag(sync=True)
 
     id = Int().tag(sync=True)
     voxels = Array(dtype=np.uint8).tag(sync=True, **array_serialization_wrap('voxels'))
@@ -60,7 +60,7 @@ class Drawable(widgets.Widget):
 
     _model_name = Unicode('ObjectModel').tag(sync=True)
     _model_module = Unicode('k3d').tag(sync=True)
-    _model_module_version = Unicode(EXTENSION_SPEC_VERSION).tag(sync=True)
+    _model_module_version = Unicode(version).tag(sync=True)
 
     id = Integer().tag(sync=True)
     name = Unicode(default_value=None, allow_none=True).tag(sync=True)

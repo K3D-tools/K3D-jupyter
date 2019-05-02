@@ -1,6 +1,7 @@
 'use strict';
 
-var MeshLine = require('./THREE.MeshLine'),
+var THREE = require('three'),
+    MeshLine = require('./THREE.MeshLine')(THREE),
     yieldingLoop = require('./../../../core/lib/helpers/yieldingLoop'),
     voxelMeshGenerator = require('./../../../core/lib/helpers/voxelMeshGenerator'),
     interactionsVoxels = require('./../interactions/Voxels'),

@@ -1,4 +1,5 @@
 'use strict';
+//jshint maxstatements:false
 
 var widgets = require('@jupyter-widgets/base'),
     K3D = require('./core/Core'),
@@ -9,7 +10,7 @@ var widgets = require('@jupyter-widgets/base'),
     ChunkModel,
     ObjectModel,
     ObjectView,
-    semverRange = require('./version').EXTENSION_SPEC_VERSION,
+    semverRange = require('./version').version,
     objectsList = {},
     chunkList = {},
     plotsList = [];
@@ -212,7 +213,6 @@ PlotView = widgets.DOMWidgetView.extend({
         try {
             this.K3DInstance = new K3D(ThreeJsProvider, this.container, {
                 antialias: this.model.get('antialias'),
-                specVersion: this.model.get('_view_module_version'),
                 backendVersion: this.model.get('_backend_version'),
                 screenshotScale: this.model.get('screenshot_scale'),
                 menuVisibility: this.model.get('menu_visibility'),

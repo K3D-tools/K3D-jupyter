@@ -1,5 +1,7 @@
 'use strict';
 
+var THREE = require('three');
+
 function clippingPlanesGUIProvider(K3D, clippingPlanesGUI) {
 
     function dispatch() {

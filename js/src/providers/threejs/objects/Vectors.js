@@ -1,7 +1,8 @@
 'use strict';
 
-var buffer = require('./../../../core/lib/helpers/buffer'),
-    MeshLine = require('./../helpers/THREE.MeshLine'),
+var THREE = require('three'),
+    buffer = require('./../../../core/lib/helpers/buffer'),
+    MeshLine = require('./../helpers/THREE.MeshLine')(THREE),
     getTwoColorsArray = require('./../helpers/Fn').getTwoColorsArray,
     generateArrow = require('./../helpers/Fn').generateArrow,
     Text = require('./Text');

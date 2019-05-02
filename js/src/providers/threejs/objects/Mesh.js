@@ -1,6 +1,7 @@
 'use strict';
 
-var handleColorMap = require('./../helpers/Fn').handleColorMap;
+var THREE = require('three'),
+    handleColorMap = require('./../helpers/Fn').handleColorMap;
 
 /**
  * Loader strategy to handle Mesh object

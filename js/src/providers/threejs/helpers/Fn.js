@@ -1,5 +1,6 @@
 'use strict';
-var lut = require('./../../../core/lib/helpers/lut'),
+var THREE = require('three'),
+    lut = require('./../../../core/lib/helpers/lut'),
     Float16Array = require('./../../../core/lib/helpers/float16Array');
 
 function getSpaceDimensionsFromTargetElement(world) {

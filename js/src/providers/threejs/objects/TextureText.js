@@ -1,6 +1,7 @@
 'use strict';
 
-var closestPowOfTwo = require('./../helpers/Fn').closestPowOfTwo;
+var THREE = require('three'),
+    closestPowOfTwo = require('./../helpers/Fn').closestPowOfTwo;
 
 /**
  * Loader strategy to handle Text object

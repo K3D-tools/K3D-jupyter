@@ -1,6 +1,7 @@
 'use strict';
 
-var katex = require('katex');
+var THREE = require('three'),
+    katex = require('katex');
 
 /**
  * Loader strategy to handle LaTex object

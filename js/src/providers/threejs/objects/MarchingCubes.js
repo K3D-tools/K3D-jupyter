@@ -1,6 +1,7 @@
 'use strict';
 
-var marchingCubesPolygonise = require('./../../../core/lib/helpers/marchingCubesPolygonise'),
+var THREE = require('three'),
+    marchingCubesPolygonise = require('./../../../core/lib/helpers/marchingCubesPolygonise'),
     yieldingLoop = require('./../../../core/lib/helpers/yieldingLoop');
 /**
  * Loader strategy to handle Marching Cubes object

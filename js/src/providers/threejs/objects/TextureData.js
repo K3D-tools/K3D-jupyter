@@ -1,6 +1,7 @@
 'use strict';
 
-var lut = require('./../../../core/lib/helpers/lut'),
+var THREE = require('three'),
+    lut = require('./../../../core/lib/helpers/lut'),
     typedArrayToThree = require('./../helpers/Fn').typedArrayToThree;
 
 /**

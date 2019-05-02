@@ -1,5 +1,7 @@
 'use strict';
 
+var THREE = require('three');
+
 /**
  * Loader strategy to handle STL object
  * @method STL
