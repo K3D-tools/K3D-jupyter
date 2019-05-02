@@ -60,6 +60,7 @@ module.exports = function getColorLegend(K3D, object) {
         intervalOffset,
         intervalCount = 0,
         strokeWidth = 0.5,
+        resizeListenerId = null,
         i, y;
 
     if (K3D.colorMapNode) {
@@ -152,13 +153,30 @@ module.exports = function getColorLegend(K3D, object) {
 
     K3D.getWorld().targetDOMNode.appendChild(svg);
 
-    maxTextWidth = texts.reduce(function (max, text) {
-        return Math.max(max, text.getBBox().width);
-    }, 0);
+    function tryPosLabels() {
+        if (K3D.getWorld().width < 10 || K3D.getWorld().height < 10) {
+            if (resizeListenerId === null) {
+                resizeListenerId = K3D.on(K3D.events.RESIZED, function () {
+                    tryPosLabels();
+                });
+            }
+        } else {
+            if (resizeListenerId !== null) {
+                K3D.off(K3D.events.RESIZED, resizeListenerId);
+                resizeListenerId = null;
+            }
 
-    texts.forEach(function (text) {
-        text.setAttribute('x', (maxTextWidth + 20).toString(10));
-    });
+            maxTextWidth = texts.reduce(function (max, text) {
+                return Math.max(max, text.getBBox().width);
+            }, 0);
+
+            texts.forEach(function (text) {
+                text.setAttribute('x', (maxTextWidth + 20).toString(10));
+            });
+        }
+    }
+
+    tryPosLabels();
 
     K3D.colorMapNode = svg;
 };

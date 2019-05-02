@@ -83,5 +83,9 @@ module.exports = function (K3D) {
         K3D.dispatch(K3D.events.CAMERA_CHANGE, r);
     });
 
+    K3D.on(K3D.events.RESIZED, function () {
+        self.controls.handleResize();
+    });
+
     refresh();
 };

@@ -554,5 +554,17 @@ module.exports = {
                 }
             }
         });
+
+        K3D.on(K3D.events.RESIZED, function () {
+            // update outlines
+            Object.keys(grids.planes).forEach(function (axis) {
+                grids.planes[axis].forEach(function (plane) {
+                    var objResolution = plane.obj.material.uniforms.resolution;
+
+                    objResolution.value.x = K3D.getWorld().width;
+                    objResolution.value.y = K3D.getWorld().height;
+                }, this);
+            }, this);
+        });
     }
 };

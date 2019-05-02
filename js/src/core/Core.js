@@ -97,10 +97,9 @@ function K3D(provider, targetDOMNode, parameters) {
         if (!self.disabling) {
             self.gui.domElement.parentNode.style['max-height'] = world.targetDOMNode.offsetHeight + 'px';
             self.Provider.Helpers.resizeListener(world);
+            dispatch(self.events.RESIZED);
             self.render();
         }
-
-        dispatch(self.events.RESIZED);
     };
 
     world.overlayDOMNode = currentWindow.document.createElement('div');
