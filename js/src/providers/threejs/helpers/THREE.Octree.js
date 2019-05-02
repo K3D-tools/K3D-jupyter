@@ -225,8 +225,7 @@ module.exports = function (THREE) {
                 faces,
                 useFaces,
                 vertices,
-                useVertices,
-                objectData;
+                useVertices;
 
             // ensure object is not object data
 
@@ -401,7 +400,6 @@ module.exports = function (THREE) {
 
             var i, l,
                 node,
-                object,
                 objectData,
                 indexOctant,
                 indexOctantLast,
@@ -1415,7 +1413,6 @@ module.exports = function (THREE) {
                 objectsExpand,
                 indexOctant,
                 flagsOutside,
-                indexOutside,
                 indexOctantInverse,
                 iom = this.tree.INDEX_OUTSIDE_MAP,
                 indexOutsideCounts,
@@ -1676,7 +1673,6 @@ module.exports = function (THREE) {
         merge: function (nodes) {
 
             var i, l,
-                j, k,
                 node;
 
             // handle nodes
@@ -1802,8 +1798,7 @@ module.exports = function (THREE) {
 
         getOctantIndex: function (objectData) {
 
-            var i, l,
-                positionObj,
+            var positionObj,
                 radiusObj,
                 position = this.position,
                 radiusOverlap = this.radiusOverlap,
