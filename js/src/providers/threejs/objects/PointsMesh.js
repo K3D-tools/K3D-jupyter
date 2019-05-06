@@ -18,6 +18,7 @@ module.exports = {
             color = new THREE.Color(config.color),
             positions = config.positions.data,
             pointColors = (config.colors && config.colors.data) || null,
+            meshDetail = typeof (config.mesh_detail) !== 'undefined' ? config.mesh_detail : 2,
             colors,
             object,
             colorsToFloat32Array = buffer.colorsToFloat32Array,
@@ -32,7 +33,7 @@ module.exports = {
                 clipping: true,
                 vertexColors: THREE.VertexColors
             }),
-            sphereGeometry = new THREE.IcosahedronBufferGeometry(config.point_size * 0.5, 2),
+            sphereGeometry = new THREE.IcosahedronBufferGeometry(config.point_size * 0.5, meshDetail),
             instancedGeometry = new THREE.InstancedBufferGeometry().copy(sphereGeometry),
             geometry = new THREE.BufferGeometry();
 
