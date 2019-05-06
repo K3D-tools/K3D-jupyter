@@ -176,7 +176,7 @@ def mesh(vertices, indices, color=_default_color, attribute=[], color_map=[], co
 
 
 def points(positions, colors=[], color=_default_color, point_size=1.0, shader='3dSpecular', opacity=1.0, name=None,
-           compression_level=0, **kwargs):
+           compression_level=0, mesh_detail=2, **kwargs):
     """Create a Points drawable representing a point cloud.
 
     Arguments:
@@ -202,6 +202,9 @@ def points(positions, colors=[], color=_default_color, point_size=1.0, shader='3
 
             :`mesh`: high precision triangle mesh of a ball (high quality and GPU load).
 
+        mesh_detail: `int`.
+            Default is 2. Setting this to a value greater than 0 adds more vertices making it no longer an
+            icosahedron. When detail is greater than 1, it's effectively a sphere. Only valid if shader='mesh'
         name: `string`.
             A name of a object
         kwargs: `dict`.
@@ -209,7 +212,7 @@ def points(positions, colors=[], color=_default_color, point_size=1.0, shader='3
     return process_transform_arguments(
         Points(positions=positions, colors=colors,
                color=color, point_size=point_size, shader=shader,
-               opacity=opacity,
+               opacity=opacity, mesh_detail=mesh_detail,
                name=name,
                compression_level=compression_level),
         **kwargs

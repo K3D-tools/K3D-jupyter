@@ -208,6 +208,12 @@ function objectGUIProvider(K3D, json, objects) {
                             change.bind(this, json, param));
                     }
                     break;
+                case 'mesh_detail':
+                    if (json.shader === 'mesh') {
+                        K3D.gui_map[json.id].add(json, param, 0, 8, 1).name('meshDetail').onChange(
+                            change.bind(this, json, param));
+                    }
+                    break;
                 case 'opacity':
                     K3D.gui_map[json.id].add(json, param, 0, 1.0).name('opacity').onChange(
                         change.bind(this, json, param));

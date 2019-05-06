@@ -326,7 +326,9 @@ class Points(Drawable):
             :`3dSpecular`: little 3D balls with specular lightning,
 
             :`mesh`: high precision triangle mesh of a ball (high quality and GPU load).
-
+        mesh_detail: `int`.
+            Default is 2. Setting this to a value greater than 0 adds more vertices making it no longer an
+            icosahedron. When detail is greater than 1, it's effectively a sphere. Only valid if shader='mesh'
         model_matrix: `array_like`.
             4x4 model transform matrix.
     """
@@ -338,6 +340,7 @@ class Points(Drawable):
     point_size = TimeSeries(Float(min=EPSILON, default_value=1.0)).tag(sync=True)
     opacity = TimeSeries(Float(min=0.0, max=1.0, default_value=1.0)).tag(sync=True)
     shader = TimeSeries(Unicode()).tag(sync=True)
+    mesh_detail = TimeSeries(Int(min=0, max=8)).tag(sync=True)
     model_matrix = TimeSeries(Array(dtype=np.float32)).tag(sync=True, **array_serialization_wrap('model_matrix'))
 
     def __init__(self, **kwargs):
