@@ -33,9 +33,11 @@ To install from PyPI use pip:
 
     $ pip install k3d
 
-Then, if required, JupyterLab installation:
+### Conda/Anaconda
 
-    $ jupyter labextension install k3d
+To install from PyPI use pip:
+
+    $ conda install -c conda-forge k3d
 
 ### Installing directly from GitHub
 
@@ -60,6 +62,14 @@ For a development installation (requires npm and node.js),
 Then, if required, JupyterLab installation:
 
     $ jupyter labextension install ./js
+
+## JupyterLab
+
+Then, if required, JupyterLab installation:
+
+    $ jupyter labextension install k3d
+
+Please notice that support for jupyterLab is still experimental.
 
 ### Developer's How To
 
