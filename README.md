@@ -35,7 +35,7 @@ To install from PyPI use pip:
 
 ### Conda/Anaconda
 
-To install from PyPI use pip:
+To install from conda-forge use:
 
     $ conda install -c conda-forge k3d
 
