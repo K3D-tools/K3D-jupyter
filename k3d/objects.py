@@ -281,6 +281,8 @@ class Mesh(Drawable):
             Whether mesh should display as wireframe.
         flat_shading: `bool`.
             Whether mesh should display with flat shading.
+        opacity: `float`.
+            Opacity of mesh.
         model_matrix: `array_like`.
             4x4 model transform matrix.
     """
@@ -294,6 +296,7 @@ class Mesh(Drawable):
     color_range = TimeSeries(ListOrArray(minlen=2, maxlen=2, empty_ok=True)).tag(sync=True)
     wireframe = TimeSeries(Bool()).tag(sync=True)
     flat_shading = TimeSeries(Bool()).tag(sync=True)
+    opacity = Float(min=0.0, max=1.0, default_value=1.0).tag(sync=True)
     model_matrix = TimeSeries(Array(dtype=np.float32)).tag(sync=True, **array_serialization_wrap('model_matrix'))
 
     def __init__(self, **kwargs):

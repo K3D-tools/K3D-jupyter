@@ -811,6 +811,20 @@ require(['k3d'], function (lib) {
             });
         });
 
+        it('should draw a opacity mesh', function (done) {
+            var self = this;
+
+            jsonLoader('http://localhost:9001/samples/mesh_opacity.json', function (json) {
+
+                self.K3D.addFrameUpdateListener('after', function () {
+                    TestHelpers.compareCanvasWithExpectedImage(self.K3D, 'mesh_opacity', RESAMBLEThreshold,
+                        true, done);
+                }, true);
+
+                self.K3D.load(json);
+            });
+        });
+
         it('should draw a wireframe marching cubes', function (done) {
             var self = this;
 

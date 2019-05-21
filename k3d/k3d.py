@@ -130,7 +130,7 @@ def marching_cubes(scalar_field, level, color=_default_color, wireframe=False, f
 
 
 def mesh(vertices, indices, color=_default_color, attribute=[], color_map=[], color_range=[], wireframe=False,
-         flat_shading=True, name=None, compression_level=0, **kwargs):
+         flat_shading=True, opacity=1.0, name=None, compression_level=0, **kwargs):
     """Create a Mesh drawable representing a 3D triangles mesh.
 
     Arguments:
@@ -152,10 +152,13 @@ def mesh(vertices, indices, color=_default_color, attribute=[], color_map=[], co
             Whether mesh should display as wireframe.
         flat_shading: `bool`.
             Whether mesh should display with flat shading.
+        opacity: `float`.
+            Opacity of mesh.
         name: `string`.
             A name of a object
         kwargs: `dict`.
             Dictionary arguments to configure transform and model_matrix."""
+
     color_map = np.array(color_map, np.float32)
     attribute = np.array(attribute, np.float32)
     color_range = check_attribute_range(attribute, color_range)
@@ -169,6 +172,7 @@ def mesh(vertices, indices, color=_default_color, attribute=[], color_map=[], co
              color_range=color_range,
              wireframe=wireframe,
              flat_shading=flat_shading,
+             opacity=opacity,
              name=name,
              compression_level=compression_level),
         **kwargs
@@ -755,7 +759,7 @@ def volume(volume, color_map, color_range=[], samples=512.0, alpha_coef=50.0, gr
 
 
 def vtk_poly_data(poly_data, color=_default_color, color_attribute=None, color_map=basic_color_maps.Rainbow,
-                  wireframe=False, name=None, compression_level=0, **kwargs):
+                  wireframe=False, opacity=1.0, name=None, compression_level=0, **kwargs):
     """Create a Mesh drawable from given vtkPolyData.
 
     This function requires the vtk module (from package VTK) to be installed.
@@ -776,6 +780,8 @@ def vtk_poly_data(poly_data, color=_default_color, color_attribute=None, color_m
             quadruplet should have value 0.0, the last 1.0; R, G, B are RGB color components in the range 0.0 to 1.0.
         wireframe: `bool`.
             Whether mesh should display as wireframe.
+        opacity: `float`.
+            Opacity of mesh.
         name: `string`.
             A name of a object
         kwargs: `dict`.
@@ -803,6 +809,7 @@ def vtk_poly_data(poly_data, color=_default_color, color_attribute=None, color_m
         Mesh(vertices=np.array(vertices, np.float32),
              indices=np.array(indices, np.uint32),
              color=color,
+             opacity=opacity,
              attribute=np.array(attribute, np.float32),
              color_range=color_range,
              color_map=np.array(color_map, np.float32),

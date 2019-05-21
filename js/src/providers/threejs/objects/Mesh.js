@@ -16,6 +16,7 @@ module.exports = {
         config.color = typeof (config.color) !== 'undefined' ? config.color : 255;
         config.wireframe = typeof (config.wireframe) !== 'undefined' ? config.wireframe : false;
         config.flat_shading = typeof (config.flat_shading) !== 'undefined' ? config.flat_shading : true;
+        config.opacity = typeof (config.opacity) !== 'undefined' ? config.opacity : 1.0;
 
         var modelMatrix = new THREE.Matrix4(),
             MaterialConstructor = config.wireframe ? THREE.MeshBasicMaterial : THREE.MeshPhongMaterial,
@@ -26,7 +27,10 @@ module.exports = {
                 specular: 0x111111,
                 side: THREE.DoubleSide,
                 flatShading: config.flat_shading,
-                wireframe: config.wireframe
+                wireframe: config.wireframe,
+                opacity: config.opacity,
+                depthTest: config.opacity === 1.0,
+                transparent: config.opacity !== 1.0
             }),
             colorRange = config.color_range,
             colorMap = (config.color_map && config.color_map.data) || null,
