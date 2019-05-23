@@ -19,7 +19,15 @@ var viewModes = require('./lib/viewMode').viewModes,
     timeSeries = require('./lib/timeSeries');
 
 window.Float16Array = require('./lib/helpers/float16Array');
-MsgpackCodec.extPackers.Float16Array = MsgpackCodec.extPackers.Uint16Array;
+
+MsgpackCodec.addExtPacker(0x20, Float16Array, function (val) {
+    return val;
+});
+
+MsgpackCodec.addExtUnpacker(0x20, function (val) {
+    return Float16Array(val.buffer);
+});
+
 
 /**
  * @constructor Core
