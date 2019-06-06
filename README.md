@@ -1,5 +1,7 @@
 # K3D Jupyter
 
+[![Downloads](https://pepy.tech/badge/k3d)](https://pepy.tech/project/k3d)
+[![Anaconda-Server Badge](https://anaconda.org/conda-forge/k3d/badges/downloads.svg)](https://anaconda.org/conda-forge/k3d)
 [![Build Status](https://travis-ci.org/K3D-tools/K3D-jupyter.svg)](https://travis-ci.org/K3D-tools/K3D-jupyter)
 [![Total Alerts](https://img.shields.io/lgtm/alerts/g/K3D-tools/K3D-jupyter.svg?logo=lgtm&logoWidth=18)](https://lgtm.com/projects/g/K3D-tools/K3D-jupyter/alerts/)
 [![Language Grade: JavaScript](https://img.shields.io/lgtm/grade/javascript/g/K3D-tools/K3D-jupyter.svg?logo=lgtm&logoWidth=18)](https://lgtm.com/projects/g/K3D-tools/K3D-jupyter/context:javascript)
@@ -15,11 +17,13 @@ Jupyter notebook extension for 3D visualization.
 
 #### YouTube:
 
-[![Volume renderer](https://img.youtube.com/vi/4XMyZWviSsU/0.jpg)](https://www.youtube.com/watch?v=4XMyZWviSsU)
+[![Volume renderer](https://img.youtube.com/vi/zCeQ_ZXy_Ps/0.jpg)](https://www.youtube.com/watch?v=zCeQ_ZXy_Ps)
 
-[![Volume renderer](https://img.youtube.com/vi/Hcr8lf-fawU/0.jpg)](https://www.youtube.com/watch?v=Hcr8lf-fawU)
+[![Volume renderer](https://img.youtube.com/vi/9evYSq3ieVs/0.jpg)](https://www.youtube.com/watch?v=9evYSq3ieVs)
 
-[![Volume renderer](https://img.youtube.com/vi/ZFkw8zt2QXs/0.jpg)](https://www.youtube.com/watch?v=ZFkw8zt2QXs)
+[![Volume renderer](https://img.youtube.com/vi/DbCiauTuJrU/0.jpg)](https://www.youtube.com/watch?v=DbCiauTuJrU)
+
+[![Volume renderer](https://img.youtube.com/vi/wIbBpUlB5vc/0.jpg)](https://www.youtube.com/watch?v=wIbBpUlB5vc)
 
 
 ## Try it Now!

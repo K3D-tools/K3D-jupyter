@@ -39,14 +39,18 @@ class Transform(object):
         :param custom_matrix: np.array - 4x4 arbitrary transform matrix
         :param parent: `Transform` optional parent transform, which is applied before this transform
         """
-
         self.bounds = bounds
+        assert translation is None or len(translation) == 3
         self.translation = translation
+        assert rotation is None or len(rotation) == 4
         self.rotation = rotation
+        assert scaling is None or len(scaling) == 3
         self.scaling = scaling
+
         self.parent = parent
         if parent is not None:
             parent._add_child(self)
+
         self.drawables = []
         self.children = []
         self.parent_matrix = parent.model_matrix if parent else np.identity(4, dtype=np.float32)
@@ -179,22 +183,22 @@ def process_transform_arguments(drawable, **kwargs):
     """Process keyword arguments dictionary for a drawable to create a Transform for it.
 
     Keyword arguments:
-        transform: `Transform`. 
+        transform: `Transform`.
             An existing transform object to be (re-)used for the drawable.
             This is useful if the transform should have a parent.
-        xmin: `float`. 
+        xmin: `float`.
             Lower bound in the X dimension for array fields of scalars or vectors.
-        xmax: `float`. 
+        xmax: `float`.
             Upper bound in the X dimension for array fields of scalars or vectors.
-        ymin: `float`. 
+        ymin: `float`.
             Lower bound in the Y dimension for array fields of scalars or vectors.
-        ymax: `float`. 
+        ymax: `float`.
             Upper bound in the Y dimension for array fields of scalars or vectors.
-        zmin: `float`. 
+        zmin: `float`.
             Lower bound in the Z dimension for array fields of scalars or vectors.
-        zmax: `float`. 
+        zmax: `float`.
             Upper bound in the Z dimension for array fields of scalars or vectors.
-        bounds: `array_like`. 
+        bounds: `array_like`.
             Array of bounds (bounding box or rectangle) for array fields of scalars or vectors.
             This array can be of size 6 (xmin, xmax, ymin, ymax, zmin, zmax) for 3D fields,
             or of size 4 (xmin, xmax, ymin, ymax) for 2D fields.

@@ -114,6 +114,7 @@ class Plot(widgets.DOMWidget):
         self.camera_no_zoom = camera_no_zoom
         self.camera_no_pan = camera_no_pan
         self.axes = axes
+        self.camera = [4.5, 4.5, 4.5, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0]
 
         self.object_ids = []
         self.objects = []
@@ -155,6 +156,9 @@ class Plot(widgets.DOMWidget):
             output.clear_output()
 
         self.outputs = []
+
+    def reset_camera(self):
+        self.send({'msg_type': 'reset_camera'})
 
     def fetch_screenshot(self, only_canvas=False):
         self.send({'msg_type': 'fetch_screenshot', 'only_canvas': only_canvas})

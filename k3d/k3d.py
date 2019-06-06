@@ -29,7 +29,8 @@ nice_colors = (
 )
 
 
-def line(vertices, color=_default_color, colors=[], attribute=[], color_map=[], color_range=[], width=0.01,
+def line(vertices, color=_default_color, colors=[],  # lgtm [py/similar-function]
+         attribute=[], color_map=[], color_range=[], width=0.01,
          shader='thick', radial_segments=8, name=None, compression_level=0, **kwargs):
     """Create a Line drawable for plotting segments and polylines.
 
@@ -129,8 +130,9 @@ def marching_cubes(scalar_field, level, color=_default_color, wireframe=False, f
     )
 
 
-def mesh(vertices, indices, color=_default_color, attribute=[], color_map=[], color_range=[], wireframe=False,
-         flat_shading=True, opacity=1.0, name=None, compression_level=0, **kwargs):
+def mesh(vertices, indices, color=_default_color, attribute=[], color_map=[],  # lgtm [py/similar-function]
+         color_range=[], wireframe=False, flat_shading=True, opacity=1.0,
+         name=None, compression_level=0, **kwargs):
     """Create a Mesh drawable representing a 3D triangles mesh.
 
     Arguments:
@@ -587,7 +589,8 @@ def voxels(voxels, color_map=nice_colors, wireframe=False, outlines=True, outlin
     if bounds is not None:
         kwargs['bounds'] = bounds
     else:
-        kwargs['bounds'] = np.stack([np.zeros(3), np.shape(voxels)], axis=1).flatten()
+        max_z, max_y, max_x = np.shape(voxels)
+        kwargs['bounds'] = np.array([0, max_x, 0, max_y, 0, max_z])
 
     return process_transform_arguments(
         Voxels(voxels=voxels, color_map=color_map, wireframe=wireframe,
@@ -599,11 +602,9 @@ def voxels(voxels, color_map=nice_colors, wireframe=False, outlines=True, outlin
 
 # noinspection PyShadowingNames
 def sparse_voxels(sparse_voxels, space_size, color_map=nice_colors, wireframe=False, outlines=True, outlines_color=0,
-                  opacity=1.0, name=None, compression_level=0, **kwargs):
+                  opacity=1.0, name=None, compression_level=0, bounds=None, **kwargs):
     """Create a Voxels drawable for 3D volumetric data.
 
-    By default, the voxels are a grid inscribed in the -0.5 < x, y, z < 0.5 cube
-    regardless of the passed voxel array shape (aspect ratio etc.).
     Different grid size, shape and rotation can be obtained using  kwargs:
         voxels(..., bounds=[0, 300, 0, 400, 0, 500])
     or:
@@ -611,7 +612,8 @@ def sparse_voxels(sparse_voxels, space_size, color_map=nice_colors, wireframe=Fa
 
     Arguments:
         sparse_voxels: `array_like`.
-            2D array of `coords` in format [[x,y,z,v],[x,y,z,v]].
+            2D array of `coords` in format [[x,y,z,v], [x,y,z,v]].
+            x, y, z >= 0
             v = 0 means empty voxel, 1 and above refer to consecutive color_map entries.
         space_size: `array_like`.
             Width, Height, Length of space
@@ -629,6 +631,16 @@ def sparse_voxels(sparse_voxels, space_size, color_map=nice_colors, wireframe=Fa
             A name of a object
         kwargs: `dict`.
             Dictionary arguments to configure transform and model_matrix."""
+
+    assert isinstance(space_size, (tuple, list, np.ndarray)) and \
+           np.shape(space_size) == (3,) and all(d > 0 for d in space_size)
+
+    if bounds is not None:
+        kwargs['bounds'] = bounds
+    else:
+        max_x, max_y, max_z = space_size
+        kwargs['bounds'] = np.array([0, max_x, 0, max_y, 0, max_z])
+
     return process_transform_arguments(
         SparseVoxels(sparse_voxels=sparse_voxels, space_size=space_size, color_map=color_map, wireframe=wireframe,
                      outlines=outlines, outlines_color=outlines_color, opacity=opacity, name=name,

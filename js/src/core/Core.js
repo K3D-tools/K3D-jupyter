@@ -91,8 +91,11 @@ function K3D(provider, targetDOMNode, parameters) {
         throw new Error('Provider should be an object (a key-value map following convention)');
     }
 
-    function refreshAfterObjectsChange() {
-        self.getWorld().setCameraToFitScene();
+    function refreshAfterObjectsChange(isUpdate) {
+        if (!isUpdate) {
+            self.getWorld().setCameraToFitScene();
+        }
+
         timeSeries.refreshTimeScale(self, GUI);
         Promise.all(self.rebuildSceneData()).then(self.render.bind(null, true));
     }
@@ -280,11 +283,16 @@ function K3D(provider, targetDOMNode, parameters) {
      */
     this.setCameraAutoFit = function (state) {
         self.parameters.cameraAutoFit = state;
+
         GUI.controls.__controllers.forEach(function (controller) {
             if (controller.property === 'cameraAutoFit') {
                 controller.updateDisplay();
             }
         });
+
+        if (state) {
+            self.getWorld().setCameraToFitScene();
+        }
     };
 
     /**
@@ -371,7 +379,6 @@ function K3D(provider, targetDOMNode, parameters) {
 
         Promise.all(self.rebuildSceneData(true)).then(function () {
             self.refreshGrid();
-            world.setCameraToFitScene();
             self.render();
         });
     };
@@ -383,6 +390,15 @@ function K3D(provider, targetDOMNode, parameters) {
      */
     this.setCamera = function (array) {
         world.setupCamera(array);
+    };
+
+    /**
+     * Reset camera of K3D
+     * @memberof K3D.Core
+     */
+    this.resetCamera = function () {
+        world.setCameraToFitScene(true);
+        world.render();
     };
 
     /**
@@ -518,7 +534,7 @@ function K3D(provider, targetDOMNode, parameters) {
         removeObjectFromScene(id);
         delete world.ObjectsListJson[id];
         dispatch(self.events.OBJECT_REMOVED, id);
-        refreshAfterObjectsChange();
+        refreshAfterObjectsChange(false);
     };
 
     /**
@@ -539,7 +555,7 @@ function K3D(provider, targetDOMNode, parameters) {
         }, []);
 
         Promise.all(promises).then(function () {
-            refreshAfterObjectsChange();
+            refreshAfterObjectsChange(true);
         });
 
         GUI.controls.__controllers.forEach(function (controller) {
@@ -564,7 +580,7 @@ function K3D(provider, targetDOMNode, parameters) {
             });
 
             dispatch(self.events.OBJECT_LOADED);
-            refreshAfterObjectsChange();
+            refreshAfterObjectsChange(false);
 
             return objects;
         });
@@ -581,7 +597,7 @@ function K3D(provider, targetDOMNode, parameters) {
         if (json.visible === false) {
             try {
                 removeObjectFromScene(json.id);
-                refreshAfterObjectsChange();
+                refreshAfterObjectsChange(true);
             } catch (e) {
                 console.log(e);
             }
@@ -604,7 +620,7 @@ function K3D(provider, targetDOMNode, parameters) {
             dispatch(self.events.OBJECT_LOADED);
 
             if (suppressRefreshAfterObjects !== true) {
-                refreshAfterObjectsChange();
+                refreshAfterObjectsChange(true);
             }
 
             return objects;
@@ -793,7 +809,6 @@ function K3D(provider, targetDOMNode, parameters) {
         self.parameters.cameraNoPan
     );
 
-    world.setCameraToFitScene(true);
     self.render();
 
     world.targetDOMNode.className += ' k3d-target';

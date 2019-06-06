@@ -86,6 +86,30 @@ vec3 worldGetNormal(in float px, in vec3 pos)
     );
 }
 
+float getShadow(vec3 textcoord, vec2 sliceCount)
+{
+    float zidx1 = floor(textcoord.z * lightMapSize.z);
+    float zidx2 = ceil(textcoord.z * lightMapSize.z);
+
+    float shadow1 = texture2D(shadowTexture,
+        vec2(
+            floor(mod(zidx1, sliceCount.x)) * lightMapSize.x / lightMapRenderTargetSize.x,
+            floor(zidx1 / sliceCount.x)* lightMapSize.y / lightMapRenderTargetSize.y
+        )
+        + vec2(textcoord.x / sliceCount.x, textcoord.y / sliceCount.y)
+    ).r;
+
+    float shadow2 = texture2D(shadowTexture,
+        vec2(
+            floor(mod(zidx2, sliceCount.x)) * lightMapSize.x / lightMapRenderTargetSize.x,
+            floor(zidx2 / sliceCount.x)* lightMapSize.y / lightMapRenderTargetSize.y
+        )
+        + vec2(textcoord.x / sliceCount.x, textcoord.y / sliceCount.y)
+    ).r;
+
+    return mix(shadow1, shadow2, textcoord.z * lightMapSize.z - zidx1);
+}
+
 void main() {
     float jitter = texture2D(jitterTexture, gl_FragCoord.xy/64.0).r;
 	float tmin = 0.0;
@@ -168,26 +192,14 @@ void main() {
 
             if(scaled_px > 0.0) {
                 #if (USE_SHADOW == 1)
-                    float zidx1 = floor(textcoord.z * lightMapSize.z);
-                    float zidx2 = ceil(textcoord.z * lightMapSize.z);
-
-                    float shadow1 = texture2D(shadowTexture,
-                        vec2(
-                            floor(mod(zidx1, sliceCount.x)) * lightMapSize.x / lightMapRenderTargetSize.x,
-                            floor(zidx1 / sliceCount.x)* lightMapSize.y / lightMapRenderTargetSize.y
-                        )
-                        + vec2(textcoord.x / sliceCount.x, textcoord.y / sliceCount.y)
-                    ).r;
-
-                    float shadow2 = texture2D(shadowTexture,
-                        vec2(
-                            floor(mod(zidx2, sliceCount.x)) * lightMapSize.x / lightMapRenderTargetSize.x,
-                            floor(zidx2 / sliceCount.x)* lightMapSize.y / lightMapRenderTargetSize.y
-                        )
-                        + vec2(textcoord.x / sliceCount.x, textcoord.y / sliceCount.y)
-                    ).r;
-
-                    shadow = mix(shadow1, shadow2, textcoord.z * lightMapSize.z - zidx1);
+                    shadow =
+                        (getShadow(textcoord, sliceCount) +
+                         getShadow(textcoord + vec3(1.0/lightMapSize.x, 0, 0), sliceCount) +
+                         getShadow(textcoord - vec3(1.0/lightMapSize.x, 0, 0), sliceCount) +
+                         getShadow(textcoord + vec3(0, 1.0/lightMapSize.y, 0), sliceCount) +
+                         getShadow(textcoord - vec3(0, 1.0/lightMapSize.y, 0), sliceCount) +
+                         getShadow(textcoord + vec3(0, 0, 1.0/lightMapSize.z), sliceCount) +
+                         getShadow(textcoord - vec3(0, 0, 1.0/lightMapSize.z), sliceCount)) / 7.0;
                 #else
                     shadow = 0.0;
                 #endif

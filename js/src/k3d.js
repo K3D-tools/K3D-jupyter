@@ -188,6 +188,10 @@ PlotView = widgets.DOMWidgetView.extend({
                         model.save('screenshot', data);
                     });
             }
+
+            if (obj.msg_type === 'reset_camera') {
+                this.K3DInstance.resetCamera();
+            }
         }, this);
         this.model.on('change:camera_auto_fit', this._setCameraAutoFit, this);
         this.model.on('change:lighting', this._setDirectionalLightingIntensity, this);
