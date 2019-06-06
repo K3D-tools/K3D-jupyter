@@ -2,7 +2,7 @@ import ipywidgets as widgets
 from traitlets import Unicode, Int, Float, List, Bool, Bytes, Integer, Dict, Union
 from traitlets import validate, TraitError
 from traittypes import Array
-from .helpers import array_serialization_wrap
+from .helpers import array_serialization_wrap, shape_validation, validate_sparse_voxels
 import numpy as np
 from ipydatawidgets import DataUnion, data_union_serialization
 from ._version import __version__ as version
@@ -761,9 +761,7 @@ class Voxels(Drawable):
     """
     3D volumetric data.
 
-    By default, the voxels are a grid inscribed in the -0.5 < x, y, z < 0.5 cube
-    regardless of the passed voxel array shape (aspect ratio etc.).
-    Different grid size, shape and rotation can be obtained using the model_matrix.
+    Different grid size, shape and rotation can be obtained using model_matrix.
 
     Attributes:
         voxels: `array_like`.
@@ -847,8 +845,12 @@ class SparseVoxels(Drawable):
     """
 
     type = Unicode(read_only=True).tag(sync=True)
-    sparse_voxels = Array(dtype=np.uint16).tag(sync=True, **array_serialization_wrap('sparse_voxels'))
-    space_size = Array(dtype=np.uint32).tag(sync=True, **array_serialization_wrap('space_size'))
+    sparse_voxels = Array(dtype=np.uint16).tag(sync=True, **array_serialization_wrap('sparse_voxels')).valid(
+        validate_sparse_voxels
+    )
+    space_size = Array(dtype=np.uint32).tag(sync=True, **array_serialization_wrap('space_size')).valid(
+        shape_validation(3)
+    )
     color_map = Array(dtype=np.uint32).tag(sync=True, **array_serialization_wrap('color_map'))
     wireframe = Bool().tag(sync=True)
     outlines = Bool().tag(sync=True)

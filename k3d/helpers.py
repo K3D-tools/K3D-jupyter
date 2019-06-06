@@ -154,3 +154,29 @@ def bounding_corners(bounds, z_bounds=(0., 1)):
 def min_bounding_dimension(bounds):
     """Return a minimal dimension along axis in a bounds ([min_x, max_x, min_y, max_y, min_z, max_z]) array."""
     return min(abs(x1 - x0) for x0, x1 in zip(bounds, bounds[1:]))
+
+
+def shape_validation(*dimensions):
+    """Create a validator callback (for Array traittype) ensuring shape."""
+    from traitlets import TraitError
+
+    def validator(trait, value):
+        if np.shape(value) != dimensions:
+            raise TraitError('Expected an array of shape %s and got %s' % (dimensions, value.shape))
+
+        return value
+
+    return validator
+
+
+def validate_sparse_voxels(trait, value):
+    """Check sparse voxels for array shape and values."""
+    from traitlets import TraitError
+
+    if len(value.shape) != 2 or value.shape[1] != 4:
+        raise TraitError('Expected an array of shape (N, 4) and got %s' % (value.shape,))
+
+    if (value.astype(np.int16) < 0).any():
+        raise TraitError('Voxel coordinates and values must be non-negative')
+
+    return value
