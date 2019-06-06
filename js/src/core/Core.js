@@ -393,6 +393,15 @@ function K3D(provider, targetDOMNode, parameters) {
     };
 
     /**
+     * Reset camera of K3D
+     * @memberof K3D.Core
+     */
+    this.resetCamera = function () {
+        world.setCameraToFitScene(true);
+        world.render();
+    };
+
+    /**
      * Set voxelPaintColor of K3D
      * @memberof K3D.Core
      * @param {Number} color
