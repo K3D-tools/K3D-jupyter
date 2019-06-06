@@ -29,7 +29,8 @@ nice_colors = (
 )
 
 
-def line(vertices, color=_default_color, colors=[], attribute=[], color_map=[], color_range=[], width=0.01,
+def line(vertices, color=_default_color, colors=[],  # lgtm [py/similar-function]
+         attribute=[], color_map=[], color_range=[], width=0.01,
          shader='thick', radial_segments=8, name=None, compression_level=0, **kwargs):
     """Create a Line drawable for plotting segments and polylines.
 
@@ -129,8 +130,9 @@ def marching_cubes(scalar_field, level, color=_default_color, wireframe=False, f
     )
 
 
-def mesh(vertices, indices, color=_default_color, attribute=[], color_map=[], color_range=[], wireframe=False,
-         flat_shading=True, opacity=1.0, name=None, compression_level=0, **kwargs):
+def mesh(vertices, indices, color=_default_color, attribute=[], color_map=[],  # lgtm [py/similar-function]
+         color_range=[], wireframe=False, flat_shading=True, opacity=1.0,
+         name=None, compression_level=0, **kwargs):
     """Create a Mesh drawable representing a 3D triangles mesh.
 
     Arguments:
@@ -630,7 +632,8 @@ def sparse_voxels(sparse_voxels, space_size, color_map=nice_colors, wireframe=Fa
         kwargs: `dict`.
             Dictionary arguments to configure transform and model_matrix."""
 
-    assert isinstance(space_size, (tuple, list, np.ndarray)) and np.shape(space_size) == (3,) and all(d > 0 for d in space_size)
+    assert isinstance(space_size, (tuple, list, np.ndarray)) and \
+           np.shape(space_size) == (3,) and all(d > 0 for d in space_size)
 
     if bounds is not None:
         kwargs['bounds'] = bounds
@@ -638,7 +641,8 @@ def sparse_voxels(sparse_voxels, space_size, color_map=nice_colors, wireframe=Fa
         try:
             max_x, max_y, max_z = space_size
             kwargs['bounds'] = np.array([0, max_x, 0, max_y, 0, max_z])
-        except: pass
+        except:
+            pass
 
     return process_transform_arguments(
         SparseVoxels(sparse_voxels=sparse_voxels, space_size=space_size, color_map=color_map, wireframe=wireframe,

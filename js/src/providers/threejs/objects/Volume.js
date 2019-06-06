@@ -138,6 +138,7 @@ module.exports = {
             fragmentShader: require('./shaders/Volume.fragment.glsl'),
             side: THREE.BackSide,
             depthTest: false,
+            depthWrite: false,
             lights: true,
             clipping: true,
             transparent: true

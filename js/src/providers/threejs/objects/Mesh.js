@@ -30,6 +30,7 @@ module.exports = {
                 wireframe: config.wireframe,
                 opacity: config.opacity,
                 depthTest: config.opacity === 1.0,
+                depthWrite: config.opacity === 1.0,
                 transparent: config.opacity !== 1.0
             }),
             colorRange = config.color_range,
