@@ -114,6 +114,7 @@ class Plot(widgets.DOMWidget):
         self.camera_no_zoom = camera_no_zoom
         self.camera_no_pan = camera_no_pan
         self.axes = axes
+        self.camera = [4.5, 4.5, 4.5, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0]
 
         self.object_ids = []
         self.objects = []

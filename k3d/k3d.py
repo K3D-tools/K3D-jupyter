@@ -638,11 +638,8 @@ def sparse_voxels(sparse_voxels, space_size, color_map=nice_colors, wireframe=Fa
     if bounds is not None:
         kwargs['bounds'] = bounds
     else:
-        try:
-            max_x, max_y, max_z = space_size
-            kwargs['bounds'] = np.array([0, max_x, 0, max_y, 0, max_z])
-        except:
-            pass
+        max_x, max_y, max_z = space_size
+        kwargs['bounds'] = np.array([0, max_x, 0, max_y, 0, max_z])
 
     return process_transform_arguments(
         SparseVoxels(sparse_voxels=sparse_voxels, space_size=space_size, color_map=color_map, wireframe=wireframe,
