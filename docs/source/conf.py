@@ -209,7 +209,7 @@ if not on_rtd:  # only import and set the theme if we're building docs locally
 else:
     import subprocess
 
-    subprocess.call("python setup.py build", shell=True, cwd=os.path.abspath('./../'))
+    subprocess.call("python setup.py build", shell=True, cwd=os.path.abspath(here + '/../'))
 
 def add_scripts(app):
     from shutil import copyfile
