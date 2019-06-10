@@ -64,7 +64,7 @@ master_doc = 'index'
 
 # General information about the project.
 project = 'K3D-jupyter'
-copyright = u'2018, Marcin Kostur, Artur Trzęsiok, Filip Kaśkosz'
+copyright = u'2019, Marcin Kostur, Artur Trzęsiok, Filip Kaśkosz'
 author = u'Marcin Kostur, Artur Trzęsiok, Filip Kaśkosz'
 
 # The version info for the project you're documenting, acts as replacement for

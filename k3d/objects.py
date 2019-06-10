@@ -772,16 +772,14 @@ class Voxels(Drawable):
 
             The color defined at index i is for voxel value (i+1), e.g.:
 
-            color_map = [0xff, 0x00ff]
+           | color_map = [0xff, 0x00ff]
+           | voxels =
+           | [
+           | 0, # empty voxel
+           | 1, # blue voxel
+           | 2  # red voxel
+           | ]
 
-            voxels =
-            [[[
-                0, # empty voxel
-
-                1, # blue voxel
-
-                2  # red voxel
-            ]]]
         model_matrix: `array_like`.
             4x4 model transform matrix.
         wireframe: `bool`.
@@ -943,16 +941,14 @@ class VoxelsIpyDW(Drawable):
 
             The color defined at index i is for voxel value (i+1), e.g.:
 
-            color_map = [0xff, 0x00ff]
+           | color_map = [0xff, 0x00ff]
+           | voxels =
+           | [
+           | 0, # empty voxel
+           | 1, # blue voxel
+           | 2  # red voxel
+           | ]
 
-            voxels =
-            [[[
-                0, # empty voxel
-
-                1, # blue voxel
-
-                2  # red voxel
-            ]]]
         model_matrix: `array_like`.
             4x4 model transform matrix.
         wireframe: `bool`.

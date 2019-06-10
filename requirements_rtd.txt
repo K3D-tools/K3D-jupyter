@@ -1,0 +1,4 @@
+jupyter_sphinx>=0.1.4
+ipywidgets>=7.0.1
+ipywidgets>=7.4.0
+nbsphinx

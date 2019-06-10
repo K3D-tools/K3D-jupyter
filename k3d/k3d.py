@@ -347,10 +347,15 @@ def texture(binary=None, file_format=None, color_map=basic_color_maps.Rainbow, c
     By default, the texture image is mapped into the square: -0.5 < x, y < 0.5, z = 1.
     If the size (scale, aspect ratio) or position should be different then the texture should be transformed
     using kwargs, for example:
+
         texture(..., xmin=0, xmax=640, ymin=0, ymax=480)
+
     or:
+
         texture(..., bounds=[0, 10, 0, 20])
+
     or:
+
         texture(..., scaling=[1.0, 0.75, 0])
 
     Arguments:
@@ -431,8 +436,11 @@ def vector_field(vectors,
     By default, the origins of the vectors are assumed to be a grid inscribed in the -0.5 < x, y, z < 0.5 cube
     or -0.5 < x, y < 0.5 square, regardless of the passed vector field shape (aspect ratio etc.).
     Different grid size, shape and rotation can be obtained using kwargs:
+
         vector_field(..., bounds=[-pi, pi, -pi, pi, 0, 1])
+
     or:
+
         vector_field(..., scaling=[scale_x, scale_y, scale_z]).
 
     For sparse (i.e. not forming a grid) 3D vectors, use the `vectors()` function.
@@ -550,8 +558,11 @@ def voxels(voxels, color_map=nice_colors, wireframe=False, outlines=True, outlin
     By default, the voxels are a grid inscribed in the -0.5 < x, y, z < 0.5 cube
     regardless of the passed voxel array shape (aspect ratio etc.).
     Different grid size, shape and rotation can be obtained using  kwargs:
+
         voxels(..., bounds=[0, 300, 0, 400, 0, 500])
+
     or:
+
         voxels(..., scaling=[scale_x, scale_y, scale_z]).
 
     Arguments:
@@ -560,19 +571,16 @@ def voxels(voxels, color_map=nice_colors, wireframe=False, outlines=True, outlin
             0 means empty voxel, 1 and above refer to consecutive color_map entries.
         color_map: `array_like`.
             Flat array of `int` packed RGB colors (0xff0000 is red, 0xff is blue).
-
             The color defined at index i is for voxel value (i+1), e.g.:
 
-            color_map = [0xff, 0x00ff]
+            | color_map = [0xff, 0x00ff]
+            | voxels =
+            | [
+            | 0, # empty voxel
+            | 1, # blue voxel
+            | 2  # red voxel
+            | ]
 
-            voxels =
-            [[[
-                0, # empty voxel
-
-                1, # blue voxel
-
-                2  # red voxel
-            ]]]
         wireframe: `bool`.
             Whether mesh should display as wireframe.
         opacity: `float`.
@@ -606,8 +614,11 @@ def sparse_voxels(sparse_voxels, space_size, color_map=nice_colors, wireframe=Fa
     """Create a Voxels drawable for 3D volumetric data.
 
     Different grid size, shape and rotation can be obtained using  kwargs:
+
         voxels(..., bounds=[0, 300, 0, 400, 0, 500])
+
     or:
+
         voxels(..., scaling=[scale_x, scale_y, scale_z]).
 
     Arguments:
@@ -657,8 +668,11 @@ def voxels_group(space_size, voxels_group=[], chunks_ids=[], color_map=nice_colo
     By default, the voxels are a grid inscribed in the -0.5 < x, y, z < 0.5 cube
     regardless of the passed voxel array shape (aspect ratio etc.).
     Different grid size, shape and rotation can be obtained using  kwargs:
+
         voxels(..., bounds=[0, 300, 0, 400, 0, 500])
+
     or:
+
         voxels(..., scaling=[scale_x, scale_y, scale_z]).
 
     Arguments:
@@ -707,28 +721,19 @@ def volume(volume, color_map, color_range=[], samples=512.0, alpha_coef=50.0, gr
     By default, the volume are a grid inscribed in the -0.5 < x, y, z < 0.5 cube
     regardless of the passed voxel array shape (aspect ratio etc.).
     Different grid size, shape and rotation can be obtained using  kwargs:
+
         volume(..., bounds=[0, 300, 0, 400, 0, 500])
+
     or:
+
         volume(..., scaling=[scale_x, scale_y, scale_z]).
 
     Arguments:
         volume: `array_like`.
             3D array of `float`
-        color_map: `array_like`.
-            Flat array of `int` packed RGB colors (0xff0000 is red, 0xff is blue).
-
-            The color defined at index i is for voxel value (i+1), e.g.:
-
-            color_map = [0xff, 0x00ff]
-
-            voxels =
-            [[[
-                0, # empty voxel
-
-                1, # blue voxel
-
-                2  # red voxel
-            ]]]
+        color_map: `list`.
+            A list of float quadruplets (attribute value, R, G, B), sorted by attribute value. The first
+            quadruplet should have value 0.0, the last 1.0; R, G, B are RGB color components in the range 0.0 to 1.0.
         color_range: `list`.
             A pair [min_value, max_value], which determines the levels of volume attribute mapped
             to 0 and 1 in the color map respectively.
@@ -747,11 +752,11 @@ def volume(volume, color_map, color_range=[], samples=512.0, alpha_coef=50.0, gr
         shadow: `str`.
             Type of shadow on volume
             Legal values are:
+
                 :`off`: shadow disabled,
-
                 :`on_demand`: update shadow map on demand,
-
                 :`dynamic`: update shadow map automaticaly every shadow_delay.
+
         shadow_delay: `float`.
             Minimum number of miliseconds between shadow map updates.
         shadow_res: `int`.
@@ -907,8 +912,11 @@ def voxels_ipydw(voxels, color_map, wireframe=False, outlines=True, outlines_col
     By default, the voxels are a grid inscribed in the -0.5 < x, y, z < 0.5 cube
     regardless of the passed voxel array shape (aspect ratio etc.).
     Different grid size, shape and rotation can be obtained using  kwargs:
+
         voxels(..., bounds=[0, 300, 0, 400, 0, 500])
+
     or:
+
         voxels(..., scaling=[scale_x, scale_y, scale_z]).
 
     Arguments:
@@ -920,16 +928,14 @@ def voxels_ipydw(voxels, color_map, wireframe=False, outlines=True, outlines_col
 
             The color defined at index i is for voxel value (i+1), e.g.:
 
-            color_map = [0xff, 0x00ff]
+           | color_map = [0xff, 0x00ff]
+           | voxels =
+           | [
+           | 0, # empty voxel
+           | 1, # blue voxel
+           | 2  # red voxel
+           | ]
 
-            voxels =
-            [[[
-                0, # empty voxel
-
-                1, # blue voxel
-
-                2  # red voxel
-            ]]]
         wireframe: `bool`.
             Whether mesh should display as wireframe.
         outlines: `bool`.
