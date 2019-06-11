@@ -19,8 +19,8 @@
 
 # -- path -------------------------------------------------------
 
-import sys
 import os
+import sys
 from os.path import dirname
 
 here = os.path.dirname(__file__)
@@ -76,7 +76,7 @@ repo = os.path.join(here, '..', '..')
 _version_py = os.path.join(repo, 'k3d', '_version.py')
 version_ns = {}
 with open(_version_py) as f:
-    exec(f.read(), version_ns)
+    exec (f.read(), version_ns)
 
 # The short X.Y version.
 version = '%i.%i' % version_ns['version_info'][:2]
@@ -207,18 +207,32 @@ if not on_rtd:  # only import and set the theme if we're building docs locally
     html_theme = 'sphinx_rtd_theme'
     html_theme_path = [sphinx_rtd_theme.get_html_theme_path()]
 
-def add_scripts(app):
-    from shutil import copyfile
 
-    src = os.path.join(
-        here, '..', '..', 'js', 'dist', 'index.js')
-    fname = 'k3d.js'
-    dst = os.path.join(here, '_static', fname)
-    copyfile(src, dst)
-    app.add_javascript(fname)
+def add_scripts(app):
+    from shutil import copyfile, move
+
+    app.add_javascript('require_config.js')
+
+    if not on_rtd:
+        src = os.path.join(here, '..', '..', 'js', 'dist', 'index.js')
+        dst = os.path.join(here, '_static', 'k3d.js')
+        copyfile(src, dst)
+
+        src = os.path.join(here, '..', '..', 'js', 'dist', 'standalone.js')
+        dst = os.path.join(here, '_static', 'standalone.js')
+        copyfile(src, dst)
+    else:
+        sys.path.append(os.path.abspath('./../../'))
+        from k3d.helpers import download
+
+        filename = download('https://unpkg.com/k3d/dist/index.js')
+        move(filename, os.path.join(here, '_static', 'k3d.js'))
+
+        filename = download('https://unpkg.com/k3d/dist/standalone.js')
+        move(filename, os.path.join(here, '_static', filename))
+
 
 def setup(app):
     app.setup_extension('jupyter_sphinx.embed_widgets')
     app.add_stylesheet('style.css')
-
     app.connect('builder-inited', add_scripts)
