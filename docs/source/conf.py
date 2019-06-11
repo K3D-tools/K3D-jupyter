@@ -21,6 +21,7 @@
 
 import os
 import sys
+import sphinx_rtd_theme
 from os.path import dirname
 
 here = os.path.dirname(__file__)
