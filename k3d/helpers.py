@@ -2,10 +2,11 @@
 Utilities module.
 """
 
-import os
-import numpy as np
 import itertools
+import numpy as np
+import os
 import zlib
+
 
 # import logging
 #
@@ -43,7 +44,11 @@ def array_to_binary(ar, compression_level=0, force_contiguous=True):
 def from_json_to_array(value, obj=None):
     """Post-process traittypes.Array after deserialization to numpy array."""
     if value:
-        return np.frombuffer(value['buffer'], dtype=value['dtype']).reshape(value['shape'])
+        if 'buffer' in value:
+            return np.frombuffer(value['buffer'], dtype=value['dtype']).reshape(value['shape'])
+        else:
+            return np.frombuffer(zlib.decompress(value['compressed_buffer']),
+                                 dtype=value['dtype']).reshape(value['shape'])
     return None
 
 
@@ -70,7 +75,8 @@ def to_json(name, input, obj=None, compression_level=0):
 def from_json(input, obj=None):
     # logger.info('from_json:' + pformat(input))
 
-    if isinstance(input, dict) and 'dtype' in input and 'buffer' in input and 'shape' in input:
+    if isinstance(input, dict) and 'dtype' in input and ('buffer' in input or 'compressed_buffer' in input) \
+            and 'shape' in input:
         return from_json_to_array(input, obj)
     elif isinstance(input, list):
         return [from_json(i, obj) for i in input]

@@ -40,7 +40,7 @@ function deserializeArray(obj) {
 function serializeArray(obj) {
     return {
         dtype: _.invert(typesToArray)[obj.data.constructor],
-        buffer: obj.data,
+        compressed_buffer: pako.deflate(obj.data.buffer, {level: 9}),
         shape: obj.shape
     };
 }
