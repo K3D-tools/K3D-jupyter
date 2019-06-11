@@ -2,15 +2,11 @@
     width: 100%;
 }
 
-.dg input, .dg select {
+.p-Widget .jp-OutputArea-output .dg * {
     box-shadow: none;
 }
 
-.dg.main ul {
-    margin-bottom: 0;
-}
-
-.dg li {
-    list-style: none !important;
-    margin: 0 !important;
+.rst-content .section .p-Widget .jp-OutputArea-output li,
+.rst-content .section .p-Widget .jp-OutputArea-output ul {
+    margin-left: 0;
 }

@@ -75,6 +75,9 @@ Then, if required, JupyterLab installation:
 
 Please notice that support for jupyterLab is still experimental.
 
+## Documentation
+Documentation is generated at readthedocs: [![Documentation Status](https://readthedocs.org/projects/k3d-jupyter/badge/?version=latest)](https://k3d-jupyter.readthedocs.io/en/latest/?badge=latest)
+
 ### Developer's How To
 
 Please make sure to take a look at the [HOW-TO.md](HOW-TO.md) document.

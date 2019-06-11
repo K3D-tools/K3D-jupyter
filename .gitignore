@@ -17,3 +17,5 @@ js/test/assets/Lato-Regular.ttf
 js/dev
 examples/*.vtk
 examples/*.vtp
+docs/source/_static/k3d.js
+docs/source/_static/standalone.js

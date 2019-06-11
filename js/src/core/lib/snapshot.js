@@ -15,14 +15,15 @@ if (typeof (sourceCode) === 'undefined') {
     sourceCode = '';
 
     for (var i = 0; i < scripts.length; i++) {
-        if (scripts[i].getAttribute('src') && scripts[i].getAttribute('src').includes('k3d') &&
-            scripts[i].getAttribute('src').includes('index.js')) {
+        if (scripts[i].getAttribute('src') &&
+            scripts[i].getAttribute('src').includes('k3d') &&
+            scripts[i].getAttribute('src').includes('.js')) {
             path = scripts[i].getAttribute('src');
         }
     }
 
     if (typeof (path) !== 'undefined') {
-        fileLoader(path.replace('index.js', 'standalone.js'), function (data) {
+        fileLoader(path.replace('k3d.js', 'standalone.js').replace('index.js', 'standalone.js'), function (data) {
             sourceCode = btoa(pako.deflate(data, {to: 'string', level: 9}));
         });
     }
