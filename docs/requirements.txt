@@ -7,3 +7,4 @@ numpy>=1.11.0
 jupyter_sphinx>=0.1.4
 nbsphinx
 nbsphinx_link
+sphinx_rtd_theme
