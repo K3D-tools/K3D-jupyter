@@ -28,6 +28,12 @@ Gallery
 .. image:: streamlines.png
    :target: streamlines.html
 
+.. image:: VTK_cutter.png
+   :target: VTK_cutter.html
+
+.. image:: segmentation_preview.png
+   :target: segmentation_preview.html
+
 .. toctree::
    :glob:
    :hidden:
@@ -41,3 +47,5 @@ Gallery
    volume
    gray_scott
    streamlines
+   VTK_cutter
+   segmentation_preview
