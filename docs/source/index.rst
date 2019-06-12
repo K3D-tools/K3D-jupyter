@@ -23,9 +23,9 @@ standardized protocol.
 
 .. toctree::
    :maxdepth: 2
-   :caption: Examples:
+   :caption: Showcase:
 
-   examples/index
+   showcase/index
 
 
 .. toctree::
