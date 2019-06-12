@@ -10,3 +10,15 @@
 .rst-content .section .p-Widget .jp-OutputArea-output ul {
     margin-left: 0;
 }
+
+.wy-nav-content {
+    max-width: 1072px;
+}
+
+#gallery {
+    text-align: center;
+}
+
+#gallery h1 {
+    text-align: left;
+}
