@@ -34,6 +34,9 @@ Gallery
 .. image:: segmentation_preview.png
    :target: segmentation_preview.html
 
+.. image:: nbody.png
+   :target: nbody.html
+
 .. toctree::
    :glob:
    :hidden:
@@ -49,3 +52,4 @@ Gallery
    streamlines
    VTK_cutter
    segmentation_preview
+   nbody
