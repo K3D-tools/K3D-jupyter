@@ -860,13 +860,17 @@ def plot(height=512,
          background_color=0xffffff,
          camera_auto_fit=True,
          grid_auto_fit=True,
+         grid_visible=True,
+         screenshot_scale=2.0,
+         grid=(-1, -1, -1, 1, 1, 1),
+         lighting=1.0,
          menu_visibility=True,
          voxel_paint_color=0,
+         time=0.0,
          axes=['x', 'y', 'z'],
          camera_no_zoom=False,
          camera_no_rotate=False,
-         camera_no_pan=False,
-         grid=(-1, -1, -1, 1, 1, 1)):
+         camera_no_pan=False):
     """Create a K3D Plot widget.
 
     This creates the main widget for displaying 3D objects.
@@ -882,6 +886,14 @@ def plot(height=512,
             Enable automatic camera setting after adding, removing or changing a plot object.
         grid_auto_fit: `bool`.
             Enable automatic adjustment of the plot grid to contained objects.
+        grid_visible: `bool`.
+            Enable or disable grid.
+        grid: `array_like`.
+            6-element tuple specifying the bounds of the plot grid (x0, y0, z0, x1, y1, z1).
+        screenshot_scale: `Float`.
+            Multipiler to screenshot resolution.
+        lighting: `Float`.
+            Lighting factor.
         menu_visibility: `bool`.
             Enable menu on GUI.
         voxel_paint_color: `int`.
@@ -894,14 +906,18 @@ def plot(height=512,
             Lock for camera pan.
         axes: `list`.
             Axes labels for plot.
+        time: `list`.
+            Time value (used in TimeSeries)
         grid: `array_like`.
             6-element tuple specifying the bounds of the plot grid (x0, y0, z0, x1, y1, z1)."""
     return Plot(antialias=antialias,
                 background_color=background_color,
+                lighting=lighting, time=time,
                 camera_auto_fit=camera_auto_fit, grid_auto_fit=grid_auto_fit,
+                grid_visible=grid_visible,
                 height=height, menu_visibility=menu_visibility,
                 voxel_paint_color=voxel_paint_color, grid=grid,
-                axes=axes,
+                axes=axes, screenshot_scale=screenshot_scale,
                 camera_no_zoom=camera_no_zoom, camera_no_rotate=camera_no_rotate, camera_no_pan=camera_no_pan)
 
 

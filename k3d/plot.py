@@ -1,14 +1,13 @@
 from __future__ import print_function
 
-from functools import wraps
 import base64
-
 import ipywidgets as widgets
-from traitlets import Unicode, Bool, Int, List, Float
 from IPython.display import display
+from functools import wraps
+from traitlets import Unicode, Bool, Int, List, Float
 
-from .objects import Drawable, ListOrArray
 from ._version import __version__ as version
+from .objects import Drawable, ListOrArray
 
 
 class Plot(widgets.DOMWidget):
@@ -32,6 +31,8 @@ class Plot(widgets.DOMWidget):
             Multipiler to screenshot resolution.
         voxel_paint_color: `int`.
             The (initial) int value to be inserted when editing voxels.
+        lighting: `Float`.
+            Lighting factor.
         grid: `array_like`.
             6-element tuple specifying the bounds of the plot grid (x0, y0, z0, x1, y1, z1).
         camera: `array_like`.
@@ -44,6 +45,8 @@ class Plot(widgets.DOMWidget):
             Lock for camera pan.
         axes: `list`.
             Axes labels for plot.
+        time: `list`.
+            Time value (used in TimeSeries)
         objects: `list`.
             List of `k3d.objects.Drawable` currently included in the plot, not to be changed directly.
     """
