@@ -22,3 +22,7 @@
 #gallery h1 {
     text-align: left;
 }
+
+.dg .cr.color {
+    display: block;
+}

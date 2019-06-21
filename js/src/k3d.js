@@ -225,7 +225,8 @@ PlotView = widgets.DOMWidgetView.extend({
                 cameraNoZoom: this.model.get('camera_no_zoom'),
                 cameraNoPan: this.model.get('camera_no_pan'),
                 axes: this.model.get('axes'),
-                grid: this.model.get('grid')
+                grid: this.model.get('grid'),
+                gridVisible: this.model.get('grid_visible')
             });
 
             if (this.model.get('camera_auto_fit') === false) {
