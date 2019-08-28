@@ -324,6 +324,8 @@ class Points(Drawable):
 
             :`flat`: simple circles with uniform color,
 
+            :`dot`: simple dot with uniform color,
+
             :`3d`: little 3D balls,
 
             :`3dSpecular`: little 3D balls with specular lightning,

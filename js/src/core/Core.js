@@ -147,6 +147,7 @@ function K3D(provider, targetDOMNode, parameters) {
             cameraNoRotate: false,
             cameraNoZoom: false,
             cameraNoPan: false,
+            camera_fov: 60.0,
             guiVersion: require('./../../package.json').version
         },
         parameters || {}
@@ -341,6 +342,24 @@ function K3D(provider, targetDOMNode, parameters) {
         self.parameters.cameraNoRotate = world.controls.noRotate = cameraNoRotate;
         self.parameters.cameraNoZoom = world.controls.noZoom = cameraNoZoom;
         self.parameters.cameraNoPan = world.controls.noPan = cameraNoPan;
+    };
+
+    /**
+     * Set camera field of view
+     * @memberof K3D.Core
+     * @param {Float} angle
+     */
+    this.setCameraFOV = function (angle) {
+        self.parameters.camera_fov = angle;
+        world.setupCamera(null, angle);
+
+        GUI.controls.__controllers.forEach(function (controller) {
+            if (controller.property === 'fov') {
+                controller.updateDisplay();
+            }
+        });
+
+        self.render();
     };
 
     /**
@@ -772,6 +791,10 @@ function K3D(provider, targetDOMNode, parameters) {
         changeParameters.call(self, 'grid_visible', value);
     });
     viewModeGUI(GUI.controls, this);
+    GUI.controls.add(self.parameters, 'camera_fov').step(0.1).min(1.0).max(179).name('FOV').onChange(function (value) {
+        self.setCameraFOV(value);
+        changeParameters.call(self, 'camera_fov', value);
+    });
     GUI.controls.add(self.parameters, 'voxelPaintColor').step(1).min(0).max(255).name('voxelColor').onChange(
         changeParameters.bind(this, 'voxel_paint_color'));
     GUI.controls.add(self.parameters, 'lighting').step(0.01).min(0).max(4).name('lighting')
@@ -808,6 +831,7 @@ function K3D(provider, targetDOMNode, parameters) {
         self.parameters.cameraNoZoom,
         self.parameters.cameraNoPan
     );
+    self.setCameraFOV(self.parameters.camera_fov);
 
     self.render();
 

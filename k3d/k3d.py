@@ -11,7 +11,7 @@ except ImportError:
 import numpy as np
 import six
 
-from .colormaps import basic_color_maps
+from .colormaps import basic_color_maps, matplotlib_color_maps
 from .helpers import check_attribute_range
 from .objects import (Line, MarchingCubes, Mesh, Points, STL, Surface, Text, Text2d, Texture, TextureText, VectorField,
                       Vectors, Volume, Voxels, SparseVoxels, VoxelsGroup, VoxelsIpyDW, VoxelChunk)
@@ -201,6 +201,8 @@ def points(positions, colors=[], color=_default_color, point_size=1.0, shader='3
             Legal values are:
 
             :`flat`: simple circles with uniform color,
+
+            :`dot`: simple dot with uniform color,
 
             :`3d`: little 3D balls,
 
@@ -713,7 +715,7 @@ def voxels_group(space_size, voxels_group=[], chunks_ids=[], color_map=nice_colo
 
 
 # noinspection PyShadowingNames
-def volume(volume, color_map, color_range=[], samples=512.0, alpha_coef=50.0, gradient_step=0.005, shadow='off',
+def volume(volume, color_map=matplotlib_color_maps.Inferno, color_range=[], samples=512.0, alpha_coef=50.0, gradient_step=0.005, shadow='off',
            shadow_delay=500, shadow_res=128, focal_length=0.0, focal_plane=100.0, ray_samples_count=16, name=None,
            compression_level=0, **kwargs):
     """Create a Volume drawable for 3D volumetric data.
@@ -866,6 +868,7 @@ def plot(height=512,
          lighting=1.0,
          menu_visibility=True,
          voxel_paint_color=0,
+         camera_fov=60.0,
          time=0.0,
          axes=['x', 'y', 'z'],
          camera_no_zoom=False,
@@ -904,6 +907,8 @@ def plot(height=512,
             Lock for camera zoom.
         camera_no_pan: `Bool`.
             Lock for camera pan.
+        camera_fov: `Float`.
+            Camera Field of View.
         axes: `list`.
             Axes labels for plot.
         time: `list`.
@@ -917,7 +922,7 @@ def plot(height=512,
                 grid_visible=grid_visible,
                 height=height, menu_visibility=menu_visibility,
                 voxel_paint_color=voxel_paint_color, grid=grid,
-                axes=axes, screenshot_scale=screenshot_scale,
+                axes=axes, screenshot_scale=screenshot_scale, camera_fov=camera_fov,
                 camera_no_zoom=camera_no_zoom, camera_no_rotate=camera_no_rotate, camera_no_pan=camera_no_pan)
 
 

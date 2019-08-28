@@ -25,12 +25,21 @@ module.exports = {
             colorsToFloat32Array = buffer.colorsToFloat32Array,
             fragmentShader,
             fragmentShaderMap = {
+                'dot': require('./shaders/Points.dot.fragment.glsl'),
                 'flat': require('./shaders/Points.flat.fragment.glsl'),
                 '3d': require('./shaders/Points.3d.fragment.glsl'),
                 '3dspecular': require('./shaders/Points.3d.fragment.glsl')
+            },
+            vertexShader,
+            vertexShaderMap = {
+                'dot': require('./shaders/Points.dot.vertex.glsl'),
+                'flat': require('./shaders/Points.vertex.glsl'),
+                '3d': require('./shaders/Points.vertex.glsl'),
+                '3dspecular': require('./shaders/Points.vertex.glsl')
             };
 
         fragmentShader = fragmentShaderMap[shader.toLowerCase()] || fragmentShaderMap.flat;
+        vertexShader = vertexShaderMap[shader.toLowerCase()] || vertexShaderMap.flat;
 
         material = new THREE.ShaderMaterial({
             uniforms: THREE.UniformsUtils.merge([
@@ -40,7 +49,7 @@ module.exports = {
             defines: {
                 USE_SPECULAR: (shader === '3dSpecular' ? 1 : 0)
             },
-            vertexShader: require('./shaders/Points.vertex.glsl'),
+            vertexShader: vertexShader,
             fragmentShader: fragmentShader,
             opacity: config.opacity,
             depthTest: config.opacity === 1.0,

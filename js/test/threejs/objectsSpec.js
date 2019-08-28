@@ -103,6 +103,21 @@ require(['k3d'], function (lib) {
             });
         });
 
+        it('Points-based horse model with colors and shader=dot should be drawn', function (done) {
+
+            var self = this;
+
+            jsonLoader('http://localhost:9001/samples/horse_with_colors_dot.json', function (json) {
+
+                self.K3D.addFrameUpdateListener('after', function () {
+                    TestHelpers.compareCanvasWithExpectedImage(self.K3D, 'horse_with_colors_dot',
+                        RESAMBLEThreshold, true, done);
+                }, true);
+
+                self.K3D.load(json);
+            });
+        });
+
         it('Points-based horse model with colors and shader=flat should be drawn', function (done) {
 
             var self = this;

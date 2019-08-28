@@ -57,12 +57,12 @@
             K3DInstance.setScreenshotScale(1.0);
 
             // jsonLoader('test/samples/voxels_dense.json', function (json) {
-            // jsonLoader('test/samples/data.json', function (json) {
-            jsonLoader('test/samples/voxels.json', function (json) {
-                K3DInstance.setClippingPlanes([
-                    [-1, -1.5, 0, 0],
-                    [0, 0, -1, 0.01]
-                ]);
+            jsonLoader('test/samples/horse_with_colors_dot.json', function (json) {
+            // jsonLoader('test/samples/voxels.json', function (json) {
+            //     K3DInstance.setClippingPlanes([
+            //         [-1, -1.5, 0, 0],
+            //         [0, 0, -1, 0.01]
+            //     ]);
                 K3DInstance.load(json);
             });
 

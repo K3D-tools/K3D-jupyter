@@ -92,13 +92,13 @@ module.exports = function getColorLegend(K3D, object) {
         'font-family: KaTeX_Main'
     ].join(';');
 
-    createGradient(svg, svgNS, 'colormap', object.color_map.data);
+    createGradient(svg, svgNS, 'colormap' + object.id, object.color_map.data);
 
-    rect.setAttribute('fill', 'url(#colormap)');
+    rect.setAttribute('fill', 'url(#colormap' + object.id + ')');
     rect.setAttribute('stroke-width', strokeWidth.toString(10));
     rect.setAttribute('stroke-linecap', 'square');
     rect.setAttribute('stroke', 'black');
-    rect.setAttribute('fill', 'url(#colormap)');
+    rect.setAttribute('fill', 'url(#colormap' + object.id + ')');
     rect.setAttribute('width', (15 - margin).toString(10));
     rect.setAttribute('height', (100 - margin * 2).toString(10));
     rect.setAttribute('x', margin.toString(10));

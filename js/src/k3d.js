@@ -213,6 +213,7 @@ PlotView = widgets.DOMWidgetView.extend({
         this.model.on('change:camera_no_rotate', this._setCameraLock, this);
         this.model.on('change:camera_no_zoom', this._setCameraLock, this);
         this.model.on('change:camera_no_pan', this._setCameraLock, this);
+        this.model.on('change:camera_fov', this._setCameraFOV, this);
 
         try {
             this.K3DInstance = new K3D(ThreeJsProvider, this.container, {
@@ -345,6 +346,10 @@ PlotView = widgets.DOMWidgetView.extend({
             this.model.get('camera_no_zoom'),
             this.model.get('camera_no_pan')
         );
+    },
+
+    _setCameraFOV: function () {
+        this.K3DInstance.setCameraFOV(this.model.get('camera_fov'));
     },
 
     _setClippingPlanes: function () {

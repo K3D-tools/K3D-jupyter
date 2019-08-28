@@ -43,6 +43,8 @@ class Plot(widgets.DOMWidget):
             Lock for camera zoom.
         camera_no_pan: `Bool`.
             Lock for camera pan.
+        camera_fov: `Float`.
+            Camera Field of View.
         axes: `list`.
             Axes labels for plot.
         time: `list`.
@@ -87,6 +89,7 @@ class Plot(widgets.DOMWidget):
     colorbar_object_id = Int(-1).tag(sync=True)
     rendering_steps = Int(1).tag(sync=True)
     screenshot = Unicode().tag(sync=True)
+    camera_fov = Float().tag(sync=True)
     axes = List(minlen=3, maxlen=3, default_value=['x', 'y', 'z']).tag(sync=True)
 
     objects = []
@@ -95,7 +98,7 @@ class Plot(widgets.DOMWidget):
                  grid_visible=True, height=512, voxel_paint_color=0, grid=(-1, -1, -1, 1, 1, 1), screenshot_scale=2.0,
                  lighting=1.0, time=0.0, fps_meter=False, menu_visibility=True, colorbar_object_id=-1,
                  rendering_steps=1, axes=['x', 'y', 'z'], camera_no_rotate=False, camera_no_zoom=False,
-                 camera_no_pan=False, *args, **kwargs):
+                 camera_no_pan=False, camera_fov = 45.0, *args, **kwargs):
         super(Plot, self).__init__()
 
         self.antialias = antialias
@@ -116,6 +119,7 @@ class Plot(widgets.DOMWidget):
         self.camera_no_rotate = camera_no_rotate
         self.camera_no_zoom = camera_no_zoom
         self.camera_no_pan = camera_no_pan
+        self.camera_fov = camera_fov
         self.axes = axes
         self.camera = [4.5, 4.5, 4.5, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0]
 
