@@ -74,10 +74,15 @@ function handleDragOver(evt) {
 function snapshotGUI(gui, K3D) {
     var obj = {
             snapshot: function () {
-                var data = getSnapshot(K3D);
+                var data = getSnapshot(K3D),
+                    filename = 'K3D-snapshot-' + Date.now() + '.html';
+
+                if (K3D.parameters.name) {
+                    filename = K3D.parameters.name + '.html';
+                }
 
                 data = new Blob([data], {type: 'text/plain;charset=utf-8'});
-                FileSaver.saveAs(data, 'K3D-snapshot-' + Date.now() + '.html');
+                FileSaver.saveAs(data, filename);
             }
         },
         targetDomNode;

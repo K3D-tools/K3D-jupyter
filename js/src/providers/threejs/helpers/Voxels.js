@@ -83,12 +83,15 @@ function rebuildChunk(object, forRebuild) {
     });
 
     for (var id of forRebuild.values()) {
-        var mesh = idsMap[id];
-        var newMesh = mesh.voxel.getVoxelChunkObject(mesh.voxel.generate());
+        var mesh = idsMap[id], newMesh;
 
-        for (var j = 0; j < mesh.children.length; j++) {
-            mesh.children[j].geometry.dispose();
-            mesh.children[j].geometry = newMesh.children[j].geometry;
+        if (mesh) {
+            newMesh = mesh.voxel.getVoxelChunkObject(mesh.voxel.generate());
+
+            for (var j = 0; j < mesh.children.length; j++) {
+                mesh.children[j].geometry.dispose();
+                mesh.children[j].geometry = newMesh.children[j].geometry;
+            }
         }
     }
 

@@ -1,11 +1,12 @@
 import ipywidgets as widgets
+import numpy as np
+from ipydatawidgets import DataUnion, data_union_serialization
 from traitlets import Unicode, Int, Float, List, Bool, Bytes, Integer, Dict, Union
 from traitlets import validate, TraitError
 from traittypes import Array
-from .helpers import array_serialization_wrap, shape_validation, validate_sparse_voxels
-import numpy as np
-from ipydatawidgets import DataUnion, data_union_serialization
+
 from ._version import __version__ as version
+from .helpers import array_serialization_wrap, shape_validation, validate_sparse_voxels
 
 EPSILON = np.finfo(np.float32).eps
 
@@ -186,27 +187,16 @@ class Line(Drawable):
 
     type = Unicode(read_only=True).tag(sync=True)
 
-    # vertices = TimeSeries(Array(dtype=np.float32)).tag(sync=True, **array_serialization)
-    # colors = TimeSeries(Array(dtype=np.uint32)).tag(sync=True, **array_serialization)
-    # color = TimeSeries(Int(min=0, max=0xffffff)).tag(sync=True)
-    # width = TimeSeries(Float(min=EPSILON, default_value=0.01)).tag(sync=True)
-    # attribute = TimeSeries(Array(dtype=np.float32)).tag(sync=True, **array_serialization)
-    # color_map = TimeSeries(Array(dtype=np.float32)).tag(sync=True, **array_serialization)
-    # color_range = TimeSeries(ListOrArray(minlen=2, maxlen=2, empty_ok=True)).tag(sync=True)
-    # shader = TimeSeries(Unicode()).tag(sync=True)
-    # radial_segments = TimeSeries(Int()).tag(sync=True)
-    # model_matrix = TimeSeries(Array(dtype=np.float32)).tag(sync=True, **array_serialization)
-
-    vertices = Array(dtype=np.float32).tag(sync=True, **array_serialization_wrap('vertices'))
-    colors = Array(dtype=np.uint32).tag(sync=True, **array_serialization_wrap('colors'))
-    color = Int(min=0, max=0xffffff).tag(sync=True)
-    width = Float(min=EPSILON, default_value=0.01).tag(sync=True)
-    attribute = Array(dtype=np.float32).tag(sync=True, **array_serialization_wrap('attribute'))
-    color_map = Array(dtype=np.float32).tag(sync=True, **array_serialization_wrap('color_map'))
-    color_range = ListOrArray(minlen=2, maxlen=2, empty_ok=True).tag(sync=True)
-    shader = Unicode().tag(sync=True)
-    radial_segments = Int().tag(sync=True)
-    model_matrix = Array(dtype=np.float32).tag(sync=True, **array_serialization_wrap('model_matrix'))
+    vertices = TimeSeries(Array(dtype=np.float32)).tag(sync=True, **array_serialization_wrap('vertices'))
+    colors = TimeSeries(Array(dtype=np.uint32)).tag(sync=True, **array_serialization_wrap('colors'))
+    color = TimeSeries(Int(min=0, max=0xffffff)).tag(sync=True)
+    width = TimeSeries(Float(min=EPSILON, default_value=0.01)).tag(sync=True)
+    attribute = TimeSeries(Array(dtype=np.float32)).tag(sync=True, **array_serialization_wrap('attribute'))
+    color_map = TimeSeries(Array(dtype=np.float32)).tag(sync=True, **array_serialization_wrap('color_map'))
+    color_range = TimeSeries(ListOrArray(minlen=2, maxlen=2, empty_ok=True)).tag(sync=True)
+    shader = TimeSeries(Unicode()).tag(sync=True)
+    radial_segments = TimeSeries(Int()).tag(sync=True)
+    model_matrix = TimeSeries(Array(dtype=np.float32)).tag(sync=True, **array_serialization_wrap('model_matrix'))
 
     def __init__(self, **kwargs):
         super(Line, self).__init__(**kwargs)
@@ -215,6 +205,9 @@ class Line(Drawable):
 
     @validate('colors')
     def _validate_colors(self, proposal):
+        if type(proposal['value']) is dict or type(self.vertices) is dict:
+            return proposal['value']
+
         required = self.vertices.size // 3  # (x, y, z) triplet per 1 color
         actual = proposal['value'].size
         if actual != 0 and required != actual:

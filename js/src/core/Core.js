@@ -97,7 +97,7 @@ function K3D(provider, targetDOMNode, parameters) {
         }
 
         timeSeries.refreshTimeScale(self, GUI);
-        Promise.all(self.rebuildSceneData()).then(self.render.bind(null, true));
+        self.rebuildSceneData().then(self.render.bind(null, true));
     }
 
     this.render = function (force) {
@@ -147,7 +147,9 @@ function K3D(provider, targetDOMNode, parameters) {
             cameraNoRotate: false,
             cameraNoZoom: false,
             cameraNoPan: false,
+            name: null,
             camera_fov: 60.0,
+            axesHelper: 1.0,
             guiVersion: require('./../../package.json').version
         },
         parameters || {}
@@ -313,9 +315,33 @@ function K3D(provider, targetDOMNode, parameters) {
     this.setAxes = function (axesLabel) {
         self.parameters.axes = axesLabel;
 
-        self.rebuildSceneData(true);
-        self.render();
+        self.rebuildSceneData(true).then(function () {
+            self.render();
+        });
     };
+
+    /**
+     * Set name of plot
+     * @memberof K3D.Core
+     * @param {String} name
+     */
+    this.setName = function (name) {
+        self.parameters.name = name;
+    };
+
+    /**
+     * Set axes helper of plot
+     * @memberof K3D.Core
+     * @param {Number} size
+     */
+    this.setAxesHelper = function (size) {
+        self.parameters.axesHelper = size;
+
+        self.rebuildSceneData(true).then(function () {
+            self.render();
+        });
+    };
+
 
     /**
      * Set grid auto fit mode of K3D

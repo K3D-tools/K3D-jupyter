@@ -222,5 +222,11 @@ module.exports = {
         if (creator === Float32Array) {
             return THREE.FloatType;
         }
+    },
+
+    areAllChangesResolve: function (changes) {
+        return Object.keys(changes).every(function (key) {
+            return changes[key] === null;
+        });
     }
 };

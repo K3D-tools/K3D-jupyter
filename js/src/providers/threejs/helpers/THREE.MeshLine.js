@@ -18,45 +18,51 @@ module.exports = function (THREE) {
     MeshLine.prototype.setGeometry = function (g, segments, widths, colors, uvs) {
         var j, c, l;
 
-        this.positions = [];
-        this.counters = [];
-        this.width = [];
-        this.colors = [];
-        this.uvs = [];
-
         if (g instanceof Float32Array || g instanceof Array) {
+            this.positions = new Float32Array(g.length * 2);
+            this.counters = new Float32Array(2 * g.length / 3);
+
             for (j = 0; j < g.length; j += 3) {
                 c = j / g.length;
-                this.positions.push(g[j], g[j + 1], g[j + 2]);
-                this.positions.push(g[j], g[j + 1], g[j + 2]);
-                this.counters.push(c);
-                this.counters.push(c);
+
+                this.positions[j * 2] = this.positions[j * 2 + 3] = g[j];
+                this.positions[j * 2 + 1] = this.positions[j * 2 + 4] = g[j + 1];
+                this.positions[j * 2 + 2] = this.positions[j * 2 + 5] = g[j + 2];
+
+                this.counters[j * 2] = this.counters[j * 2 + 1] = c;
             }
         }
 
         l = this.positions.length / 6;
 
-        for (j = 0; j < this.positions.length / 6; j++) {
+        this.width = new Float32Array(l * 2);
+        this.colors = new Float32Array(l * 6);
+        this.uvs = new Float32Array(l * 4);
+
+        for (j = 0; j < l; j++) {
             if (widths) {
-                this.width.push(widths[j], widths[j]);
+                this.width[j * 2] = this.width[j * 2 + 1] = widths[j];
             } else {
-                this.width.push(1.0, 1.0);
+                this.width[j * 2] = this.width[j * 2 + 1] = 1.0;
             }
 
             if (colors) {
-                this.colors.push(colors[j * 3], colors[j * 3 + 1], colors[j * 3 + 2]);
-                this.colors.push(colors[j * 3], colors[j * 3 + 1], colors[j * 3 + 2]);
+                this.colors[j * 6] = this.colors[j * 6 + 3] = colors[j * 3];
+                this.colors[j * 6 + 1] = this.colors[j * 6 + 4] = colors[j * 3 + 1];
+                this.colors[j * 6 + 2] = this.colors[j * 6 + 5] = colors[j * 3 + 2];
             } else {
-                this.colors.push(1.0, 1.0, 1.0);
-                this.colors.push(1.0, 1.0, 1.0);
+                this.colors[j * 6] = this.colors[j * 6 + 1] = this.colors[j * 6 + 2] =
+                    this.colors[j * 6 + 3] = this.colors[j * 6 + 4] = this.colors[j * 6 + 5] = 1.0;
             }
 
             if (uvs) {
-                this.uvs.push(uvs[j], 0);
-                this.uvs.push(uvs[j], 1);
+                this.uvs[j * 4] = this.uvs[j * 4 + 2] = uvs[j];
+                this.uvs[j * 4 + 1] = 0;
+                this.uvs[j * 4 + 3] = 1;
             } else {
-                this.uvs.push(j / (l - 1), 0);
-                this.uvs.push(j / (l - 1), 1);
+                this.uvs[j * 4] = this.uvs[j * 4 + 2] = j / (l - 1);
+                this.uvs[j * 4 + 1] = 0;
+                this.uvs[j * 4 + 3] = 1;
             }
         }
 
@@ -79,39 +85,44 @@ module.exports = function (THREE) {
     };
 
     MeshLine.prototype.process = function (segments) {
-        var l = this.positions.length / 6, j, n, k, v;
+        var l = this.positions.length / 6, j, n, k, v, o;
 
-        this.previous = [];
-        this.next = [];
-        this.side = [];
-        this.indices_array = [];
+        this.previous = new Float32Array(12 * l / 2);
+        this.next = new Float32Array(12 * l / 2);
+        this.side = new Float32Array(l * 2);
+        this.indices_array = new Uint32Array((Math.max(l, 1) - 1) * 6);
 
         for (j = 0; j < l; j++) {
-            this.side.push(1);
-            this.side.push(-1);
+            this.side[j * 2] = 1;
+            this.side[j * 2 + 1] = -1;
         }
 
         if (segments) {
             for (j = 0; j < l; j += 2) {
-                this.previous.push(this.positions[j * 6], this.positions[j * 6 + 1], this.positions[j * 6 + 2]);
-                this.previous.push(this.positions[j * 6], this.positions[j * 6 + 1], this.positions[j * 6 + 2]);
-                this.previous.push(this.positions[j * 6], this.positions[j * 6 + 1], this.positions[j * 6 + 2]);
-                this.previous.push(this.positions[j * 6], this.positions[j * 6 + 1], this.positions[j * 6 + 2]);
+                o = j / 2 * 12;
+
+                this.previous[o] = this.previous[o + 3] = this.previous[o + 6] = this.previous[o + 9] = this.positions[j * 6];
+                this.previous[o + 1] = this.previous[o + 4] = this.previous[o + 7] = this.previous[o + 10] = this.positions[j * 6 + 1];
+                this.previous[o + 2] = this.previous[o + 5] = this.previous[o + 8] = this.previous[o + 11] = this.positions[j * 6 + 2];
             }
 
             for (j = 0; j < l; j += 2) {
                 k = j + 1;
+                o = j / 2 * 12;
 
-                this.next.push(this.positions[k * 6], this.positions[k * 6 + 1], this.positions[k * 6 + 2]);
-                this.next.push(this.positions[k * 6], this.positions[k * 6 + 1], this.positions[k * 6 + 2]);
-                this.next.push(this.positions[k * 6], this.positions[k * 6 + 1], this.positions[k * 6 + 2]);
-                this.next.push(this.positions[k * 6], this.positions[k * 6 + 1], this.positions[k * 6 + 2]);
+                this.next[o] = this.next[o + 3] = this.next[o + 6] = this.next[o + 9] = this.positions[k * 6];
+                this.next[o + 1] = this.next[o + 4] = this.next[o + 7] = this.next[o + 10] = this.positions[k * 6 + 1];
+                this.next[o + 2] = this.next[o + 5] = this.next[o + 8] = this.next[o + 11] = this.positions[k * 6 + 2];
             }
 
             for (j = 0; j < l - 1; j += 2) {
                 n = j * 2;
-                this.indices_array.push(n, n + 1, n + 2);
-                this.indices_array.push(n + 2, n + 1, n + 3);
+                this.indices_array[j * 6] = n;
+                this.indices_array[j * 6 + 1] = n + 1;
+                this.indices_array[j * 6 + 2] = n + 2;
+                this.indices_array[j * 6 + 3] = n + 2;
+                this.indices_array[j * 6 + 4] = n + 1;
+                this.indices_array[j * 6 + 5] = n + 3;
             }
         } else {
             if (this.compareV3(0, l - 1)) {
@@ -119,18 +130,25 @@ module.exports = function (THREE) {
             } else {
                 v = this.copyV3(0);
             }
-            this.previous.push(v[0], v[1], v[2]);
-            this.previous.push(v[0], v[1], v[2]);
+
+            this.previous[0] = this.previous[3] = v[0];
+            this.previous[1] = this.previous[4] = v[1];
+            this.previous[2] = this.previous[5] = v[2];
+
             for (j = 0; j < l - 1; j++) {
                 v = this.copyV3(j);
-                this.previous.push(v[0], v[1], v[2]);
-                this.previous.push(v[0], v[1], v[2]);
+
+                this.previous[6 + j * 6] = this.previous[6 + j * 6 + 3] = v[0];
+                this.previous[6 + j * 6 + 1] = this.previous[6 + j * 6 + 4] = v[1];
+                this.previous[6 + j * 6 + 2] = this.previous[6 + j * 6 + 5] = v[2];
             }
 
             for (j = 1; j < l; j++) {
                 v = this.copyV3(j);
-                this.next.push(v[0], v[1], v[2]);
-                this.next.push(v[0], v[1], v[2]);
+
+                this.next[(j - 1) * 6] = this.next[(j - 1) * 6 + 3] = v[0];
+                this.next[(j - 1) * 6 + 1] = this.next[(j - 1) * 6 + 4] = v[1];
+                this.next[(j - 1) * 6 + 2] = this.next[(j - 1) * 6 + 5] = v[2];
             }
 
             if (this.compareV3(l - 1, 0)) {
@@ -138,44 +156,51 @@ module.exports = function (THREE) {
             } else {
                 v = this.copyV3(l - 1);
             }
-            this.next.push(v[0], v[1], v[2]);
-            this.next.push(v[0], v[1], v[2]);
+
+            this.next[(l - 1) * 6] = this.next[(l - 1) * 6 + 3] = v[0];
+            this.next[(l - 1) * 6 + 1] = this.next[(l - 1) * 6 + 4] = v[1];
+            this.next[(l - 1) * 6 + 2] = this.next[(l - 1) * 6 + 5] = v[2];
 
             for (j = 0; j < l - 1; j++) {
                 n = j * 2;
-                this.indices_array.push(n, n + 1, n + 2);
-                this.indices_array.push(n + 2, n + 1, n + 3);
+
+                this.indices_array[j * 6] = n;
+                this.indices_array[j * 6 + 1] = n + 1;
+                this.indices_array[j * 6 + 2] = n + 2;
+                this.indices_array[j * 6 + 3] = n + 2;
+                this.indices_array[j * 6 + 4] = n + 1;
+                this.indices_array[j * 6 + 5] = n + 3;
             }
         }
 
         if (!this.attributes) {
             this.attributes = {
-                position: new THREE.BufferAttribute(new Float32Array(this.positions), 3),
-                previous: new THREE.BufferAttribute(new Float32Array(this.previous), 3),
-                next: new THREE.BufferAttribute(new Float32Array(this.next), 3),
-                side: new THREE.BufferAttribute(new Float32Array(this.side), 1),
-                width: new THREE.BufferAttribute(new Float32Array(this.width), 1),
-                uv: new THREE.BufferAttribute(new Float32Array(this.uvs), 2),
-                index: new THREE.BufferAttribute(new Uint32Array(this.indices_array), 1),
-                counters: new THREE.BufferAttribute(new Float32Array(this.counters), 1),
-                colors: new THREE.BufferAttribute(new Float32Array(this.colors), 3)
+                position: new THREE.BufferAttribute(this.positions, 3),
+                previous: new THREE.BufferAttribute(this.previous, 3),
+                next: new THREE.BufferAttribute(this.next, 3),
+                side: new THREE.BufferAttribute(this.side, 1),
+                width: new THREE.BufferAttribute(this.width, 1),
+                uv: new THREE.BufferAttribute(this.uvs, 2),
+                index: new THREE.BufferAttribute(this.indices_array, 1),
+                counters: new THREE.BufferAttribute(this.counters, 1),
+                colors: new THREE.BufferAttribute(this.colors, 3)
             };
         } else {
-            this.attributes.position.copyArray(new Float32Array(this.positions));
+            this.attributes.position.copyArray(this.positions);
             this.attributes.position.needsUpdate = true;
-            this.attributes.previous.copyArray(new Float32Array(this.previous));
+            this.attributes.previous.copyArray(this.previous);
             this.attributes.previous.needsUpdate = true;
-            this.attributes.next.copyArray(new Float32Array(this.next));
+            this.attributes.next.copyArray(this.next);
             this.attributes.next.needsUpdate = true;
-            this.attributes.side.copyArray(new Float32Array(this.side));
+            this.attributes.side.copyArray(this.side);
             this.attributes.side.needsUpdate = true;
-            this.attributes.width.copyArray(new Float32Array(this.width));
+            this.attributes.width.copyArray(this.width);
             this.attributes.width.needsUpdate = true;
-            this.attributes.uv.copyArray(new Float32Array(this.uvs));
+            this.attributes.uv.copyArray(this.uvs);
             this.attributes.uv.needsUpdate = true;
-            this.attributes.index.copyArray(new Uint32Array(this.indices_array));
+            this.attributes.index.copyArray(this.indices_array);
             this.attributes.index.needsUpdate = true;
-            this.attributes.colors.copyArray(new Float32Array(this.colors));
+            this.attributes.colors.copyArray(this.colors);
             this.attributes.colors.needsUpdate = true;
         }
 

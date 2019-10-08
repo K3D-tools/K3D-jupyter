@@ -82,7 +82,12 @@ module.exports = function (K3D) {
 
             self.camera.updateMatrixWorld();
             self.renderer.clear();
+
             self.renderer.render(self.gridScene, self.camera);
+
+            self.renderer.setViewport(size.x - self.axesHelper.width, 0, self.axesHelper.width, self.axesHelper.height);
+            self.renderer.render(self.axesHelper.scene, self.axesHelper.camera);
+            self.renderer.setViewport(0, 0, size.x, size.y);
 
             K3D.parameters.clippingPlanes.forEach(function (plane) {
                 self.renderer.clippingPlanes.push(new THREE.Plane(new THREE.Vector3().fromArray(plane), plane[3]));
@@ -153,12 +158,18 @@ module.exports = function (K3D) {
     };
 
     this.renderOffScreen = function (width, height) {
-        var rt,
+        var rt, rtAxesHelper,
             chunk_heights = [],
             chunk_count = Math.max(Math.min(128, K3D.parameters.renderingSteps), 1),
             aaLevel = Math.max(Math.min(5, K3D.parameters.antialias), 0);
 
         var s = height / chunk_count;
+
+        var size = new THREE.Vector2();
+
+        self.renderer.getSize(size);
+
+        var scale = Math.max(width / size.x, height / size.y);
 
         for (var i = 0; i < chunk_count; i++) {
             var o1 = Math.round(i * s);
@@ -167,10 +178,25 @@ module.exports = function (K3D) {
         }
 
         rt = new THREE.WebGLRenderTarget(width, Math.ceil(height / chunk_count));
+        rtAxesHelper = new THREE.WebGLRenderTarget(self.axesHelper.width * scale, self.axesHelper.height * scale);
         self.renderer.clippingPlanes = [];
 
-        return getSSAAChunkedRender(self.renderer, self.gridScene, self.camera,
-            rt, width, height, [[0, height]], aaLevel).then(function (grid) {
+        return getSSAAChunkedRender(self.renderer, self.axesHelper.scene, self.axesHelper.camera,
+            rtAxesHelper, rtAxesHelper.width, rtAxesHelper.height, [[0, rtAxesHelper.height]],
+            aaLevel).then(function (result) {
+
+            var axesHelper = new Uint8ClampedArray(width * height * 4);
+
+            for (var y = 0; y < rtAxesHelper.height; y++) {
+                // fast row-copy
+                axesHelper.set(
+                    result.slice(y * rtAxesHelper.width * 4, (y + 1) * rtAxesHelper.width * 4),
+                    (y * width + width - rtAxesHelper.width) * 4
+                );
+            }
+
+            return getSSAAChunkedRender(self.renderer, self.gridScene, self.camera,
+                rt, width, height, [[0, height]], aaLevel).then(function (grid) {
 
                 K3D.parameters.clippingPlanes.forEach(function (plane) {
                     self.renderer.clippingPlanes.push(new THREE.Plane(new THREE.Vector3().fromArray(plane), plane[3]));
@@ -178,11 +204,11 @@ module.exports = function (K3D) {
 
                 return getSSAAChunkedRender(self.renderer, self.scene, self.camera,
                     rt, width, height, chunk_heights, aaLevel).then(function (scene) {
-                        rt.dispose();
-                        return [grid, scene];
-                    }
-                );
-            }
-        );
+                    rt.dispose();
+                    return [axesHelper, grid, scene];
+                });
+            });
+
+        });
     };
 };

@@ -12,7 +12,7 @@ var THREE = require('three'),
  * @return {Object} 3D object ready to render
  */
 module.exports = {
-    create: function (config, K3D) {
+    create: function (config, K3D, axesHelper) {
         config.visible = typeof (config.visible) !== 'undefined' ? config.visible : true;
         config.color = typeof (config.color) !== 'undefined' ? config.color : 0;
         config.text = typeof (config.text) !== 'undefined' ? config.text : '\\KaTeX';
@@ -24,7 +24,8 @@ module.exports = {
             position = config.position,
             object = new THREE.Object3D(),
             domElement = document.createElement('div'),
-            overlayDOMNode = K3D.getWorld().overlayDOMNode,
+            world = K3D.getWorld(),
+            overlayDOMNode = world.overlayDOMNode,
             listenersId;
 
         domElement.innerHTML = katex.renderToString(text, {displayMode: true});
@@ -44,7 +45,23 @@ module.exports = {
                 return;
             }
 
-            coord = toScreenPosition(object, K3D.getWorld());
+            if (axesHelper) {
+                coord = toScreenPosition(object, {
+                        width: axesHelper.width,
+                        height: axesHelper.height,
+                        offsetX: world.width - axesHelper.width,
+                        offsetY: world.height - axesHelper.height
+                    },
+                    axesHelper.camera);
+            } else {
+                coord = toScreenPosition(object, {
+                        width: world.width,
+                        height: world.height,
+                        offsetX: 0,
+                        offsetY: 0
+                    },
+                    world.camera);
+            }
 
             switch (referencePoint[0]) {
                 case 'l':
@@ -95,17 +112,17 @@ module.exports = {
     }
 };
 
-function toScreenPosition(obj, world) {
+function toScreenPosition(obj, viewport, camera) {
     var vector = new THREE.Vector3(),
-        widthHalf = 0.5 * world.width,
-        heightHalf = 0.5 * world.height;
+        widthHalf = 0.5 * viewport.width,
+        heightHalf = 0.5 * viewport.height;
 
     obj.updateMatrixWorld();
     vector.setFromMatrixPosition(obj.matrixWorld);
-    vector.project(world.camera);
+    vector.project(camera);
 
-    vector.x = (vector.x + 1) * widthHalf;
-    vector.y = (-vector.y + 1) * heightHalf;
+    vector.x = (vector.x + 1) * widthHalf + viewport.offsetX;
+    vector.y = (-vector.y + 1) * heightHalf + viewport.offsetY;
 
     return {
         x: Math.round(vector.x),

@@ -3,6 +3,7 @@
 var THREE = require('three'),
     colorsToFloat32Array = require('./../../../core/lib/helpers/buffer').colorsToFloat32Array,
     Fn = require('./../helpers/Fn'),
+    areAllChangesResolve = Fn.areAllChangesResolve,
     getColorsArray = Fn.getColorsArray,
     handleColorMap = Fn.handleColorMap;
 
@@ -50,11 +51,31 @@ module.exports = {
         object.updateMatrixWorld();
 
         return Promise.resolve(object);
-    }
+    },
 
-    // update: function (config, prevConfig, obj, K3D) {
-    //     console.log(config, prevConfig, obj, K3D);
-    //
-    //     return false;
-    // }
+    update: function (config, changes, obj) {
+        if (typeof(changes.attribute) !== 'undefined' && !changes.attribute.timeSeries) {
+            var data = obj.geometry.attributes.uv.array;
+
+            for (var i = 0; i < data.length; i++) {
+                data[i] = (changes.attribute.data[i] - config.color_range[0]) /
+                          (config.color_range[1] - config.color_range[0]);
+            }
+
+            obj.geometry.attributes.uv.needsUpdate = true;
+            changes.attribute = null;
+        }
+
+        if (typeof(changes.vertices) !== 'undefined' && !changes.vertices.timeSeries) {
+            obj.geometry.attributes.position.array.set(changes.vertices.data);
+            obj.geometry.attributes.position.needsUpdate = true;
+            changes.vertices = null;
+        }
+
+        if (areAllChangesResolve(changes)) {
+            return Promise.resolve({json: config, obj: obj});
+        } else {
+            return false;
+        }
+    }
 };

@@ -73,7 +73,13 @@ module.exports = {
  */
 function getLongestLineWidth(lines, context) {
     return lines.reduce(function (longest, text) {
-        return Math.max(longest, context.measureText(text).width);
+        var metric = context.measureText(text), height = 0;
+
+        if (metric.actualBoundingBoxAscent && metric.actualBoundingBoxDescent) {
+            height = metric.actualBoundingBoxAscent + metric.actualBoundingBoxDescent;
+        }
+
+        return Math.max(longest, height, metric.width);
     }, 0);
 }
 

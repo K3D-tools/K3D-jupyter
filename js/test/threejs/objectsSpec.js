@@ -19,7 +19,7 @@ require(['k3d'], function (lib) {
 
         beforeEach(function () {
             this.canvas = TestHelpers.createTestCanvas();
-            window.K3DInstance = this.K3D = K3D(ThreeJsProvider, this.canvas, {antialias: 3});
+            window.K3DInstance = this.K3D = K3D(ThreeJsProvider, this.canvas, {antialias: 3, axesHelper: false});
         });
 
         afterEach(function () {
@@ -417,6 +417,26 @@ require(['k3d'], function (lib) {
                 self.K3D.addFrameUpdateListener('after', function () {
                     TestHelpers.compareCanvasWithExpectedImage(
                         self.K3D, 'lines_colormap_thick', RESAMBLEThreshold, true, done);
+                }, true);
+
+                self.K3D.load(json);
+            });
+        });
+
+        it('should draw lines with colormap with thick and axes helper', function (done) {
+            var self = this;
+
+            self.K3D.setAxesHelper(200);
+            jsonLoader('http://localhost:9001/samples/lines_colormap_thick.json', function (json) {
+
+                self.K3D.getWorld().camera.position.z = 15;
+
+                self.K3D.addFrameUpdateListener('after', function () {
+                    TestHelpers.compareCanvasWithExpectedImage(
+                        self.K3D, 'lines_colormap_thick_axes_helper', RESAMBLEThreshold, true, function () {
+                            self.K3D.setAxesHelper(200);
+                            done();
+                        });
                 }, true);
 
                 self.K3D.load(json);

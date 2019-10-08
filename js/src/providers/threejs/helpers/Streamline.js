@@ -18,9 +18,26 @@ module.exports = function (points, attributes, radius, radialSegments, color, ve
         P1, P2, tangent, mat,
         vec2, r, theta,
         offset, originalP1, originalP2,
-        a, b, c, d;
+        start, newRingCount = 0;
 
-    function makeSegment(P1, P2, i, mat) {
+    function connectRings(from) {
+        var a, b, c, d, k;
+
+        for (j = from; j < from + newRingCount - 1; j++) {
+            for (k = 0; k < radialSegments; k++) {
+                a = radialSegments * j + k;
+                b = radialSegments * (j + 1) + k;
+                c = radialSegments * (j + 1) + ((k + 1) % radialSegments);
+                d = radialSegments * j + ((k + 1) % radialSegments);
+
+                // faces
+                indices.push(a, b, d);
+                indices.push(b, c, d);
+            }
+        }
+    }
+
+    function makeRing(P1, P2, i, mat) {
         var normal = new THREE.Vector3(),
             vec = new THREE.Vector3(),
             B = new THREE.Vector3(),
@@ -85,7 +102,11 @@ module.exports = function (points, attributes, radius, radialSegments, color, ve
                 colors.push(color.r, color.g, color.b);
             }
         }
+
+        newRingCount++;
     }
+
+    start = 0;
 
     for (i = 0; i < points.length / 3; i++) {
         mat = null;
@@ -100,6 +121,17 @@ module.exports = function (points, attributes, radius, radialSegments, color, ve
             P2.add(P1.clone().sub(P2).multiplyScalar(2.0));
         }
 
+        if (isNaN(P1.x) || isNaN(P1.y) || isNaN(P1.z) ||
+            isNaN(P2.x) || isNaN(P2.y) || isNaN(P2.z)) {
+            connectRings(start);
+            last_tangent = null;
+            N = null;
+            start += newRingCount;
+            newRingCount = 0;
+
+            continue;
+        }
+
         if (last_tangent && tangent) {
             vec2 = new THREE.Vector3().crossVectors(last_tangent, tangent);
             r = vec2.length();
@@ -112,7 +144,7 @@ module.exports = function (points, attributes, radius, radialSegments, color, ve
 
                     P1.sub(last_tangent.clone().multiplyScalar(offset));
                     P2.copy(originalP1).add(last_tangent.clone().multiplyScalar(offset));
-                    makeSegment(P1, P2, i);
+                    makeRing(P1, P2, i);
 
                     P1.copy(originalP1).add(tangent.clone().multiplyScalar(offset));
                     P2.copy(originalP2);
@@ -125,23 +157,11 @@ module.exports = function (points, attributes, radius, radialSegments, color, ve
             }
         }
 
-        makeSegment(P1, P2, i, mat);
-
+        makeRing(P1, P2, i, mat);
         last_tangent = tangent.clone();
     }
 
-    for (j = 0; j < (vertices.length / 3 / radialSegments) - 1; j++) {
-        for (i = 0; i < radialSegments; i++) {
-            a = radialSegments * j + i;
-            b = radialSegments * (j + 1) + i;
-            c = radialSegments * (j + 1) + ((i + 1) % radialSegments);
-            d = radialSegments * j + ((i + 1) % radialSegments);
-
-            // faces
-            indices.push(a, b, d);
-            indices.push(b, c, d);
-        }
-    }
+    connectRings(start);
 
     geometry.setIndex(indices);
     geometry.addAttribute('position', new THREE.Float32BufferAttribute(vertices, 3));

@@ -82,7 +82,13 @@ function screenshotGUI(gui, K3D) {
         screenshot: function () {
             getScreenshot(K3D, K3D.parameters.screenshotScale).then(function (canvas) {
                 canvas.toBlob(function (blob) {
-                    FileSaver.saveAs(blob, 'K3D-' + Date.now() + '.png');
+                    var filename = 'K3D-' + Date.now() + '.png';
+
+                    if (K3D.parameters.name) {
+                        filename = K3D.parameters.name + '.png';
+                    }
+
+                    FileSaver.saveAs(blob, filename);
                 });
             }, function () {
                 console.error('Failed to render screenshot.');

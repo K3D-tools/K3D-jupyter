@@ -15,4 +15,9 @@ module.exports = function () {
 
     this.width = dimensions[0];
     this.height = dimensions[1];
+
+    this.axesHelper = {
+        width: 100,
+        height: 100
+    };
 };
