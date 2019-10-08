@@ -43,10 +43,14 @@ class Plot(widgets.DOMWidget):
             Lock for camera zoom.
         camera_no_pan: `Bool`.
             Lock for camera pan.
+        camera_fov: `Float`.
+            Camera Field of View.
         axes: `list`.
             Axes labels for plot.
         time: `list`.
             Time value (used in TimeSeries)
+        name: `string`.
+            Name of the plot. Used to filenames of snapshot/screenshot etc.
         objects: `list`.
             List of `k3d.objects.Drawable` currently included in the plot, not to be changed directly.
     """
@@ -87,15 +91,18 @@ class Plot(widgets.DOMWidget):
     colorbar_object_id = Int(-1).tag(sync=True)
     rendering_steps = Int(1).tag(sync=True)
     screenshot = Unicode().tag(sync=True)
+    camera_fov = Float().tag(sync=True)
+    name = Unicode(default_value=None, allow_none=True).tag(sync=True)
     axes = List(minlen=3, maxlen=3, default_value=['x', 'y', 'z']).tag(sync=True)
+    axes_helper = Float().tag(sync=True)
 
     objects = []
 
     def __init__(self, antialias=3, background_color=0xFFFFFF, camera_auto_fit=True, grid_auto_fit=True,
                  grid_visible=True, height=512, voxel_paint_color=0, grid=(-1, -1, -1, 1, 1, 1), screenshot_scale=2.0,
-                 lighting=1.0, time=0.0, fps_meter=False, menu_visibility=True, colorbar_object_id=-1,
+                 lighting=1.5, time=0.0, fps_meter=False, menu_visibility=True, colorbar_object_id=-1,
                  rendering_steps=1, axes=['x', 'y', 'z'], camera_no_rotate=False, camera_no_zoom=False,
-                 camera_no_pan=False, *args, **kwargs):
+                 camera_no_pan=False, camera_fov=45.0, axes_helper=1.0, name=None, *args, **kwargs):
         super(Plot, self).__init__()
 
         self.antialias = antialias
@@ -116,7 +123,10 @@ class Plot(widgets.DOMWidget):
         self.camera_no_rotate = camera_no_rotate
         self.camera_no_zoom = camera_no_zoom
         self.camera_no_pan = camera_no_pan
+        self.camera_fov = camera_fov
         self.axes = axes
+        self.axes_helper = axes_helper
+        self.name = name
         self.camera = [4.5, 4.5, 4.5, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0]
 
         self.object_ids = []

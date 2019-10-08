@@ -114,6 +114,7 @@ class Transform(object):
                 raise ValueError('Wrong size of bounds array ({}), should be 4 for 2D or 6 for 3D bounds.'.format(
                     self.bounds
                 ))
+
             fit_matrix = get_bounds_fit_matrix(xmin, xmax, ymin, ymax, zmin, zmax)
 
         if self.translation is not None:

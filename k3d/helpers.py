@@ -133,7 +133,7 @@ def check_attribute_range(attribute, color_range=()):
     If the attribute is empty or color_range has 2 elements, returns color_range unchanged.
     Computes color range as [min(attribute), max(attribute)].
     When min(attribute) == max(attribute) returns [min(attribute), min(attribute)+1]."""
-    if attribute.size == 0 or len(color_range) == 2:
+    if type(attribute) is dict or attribute.size == 0 or len(color_range) == 2:
         return color_range
     color_range = minmax(attribute)
     if color_range[0] == color_range[1]:

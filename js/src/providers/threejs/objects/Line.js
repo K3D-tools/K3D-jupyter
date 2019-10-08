@@ -24,15 +24,15 @@ module.exports = {
         } else {
             return new LineThick.create(config, K3D);
         }
-    }
+    },
 
-    // update: function (config, prevConfig, obj, K3D) {
-    //     if (config.shader === 'mesh') {
-    //         return LineMesh.update(config, prevConfig, obj, K3D);
-    //     } else if (config.shader === 'simple') {
-    //         return LineSimple.update(config, prevConfig, obj, K3D);
-    //     } else {
-    //         return LineThick.update(config, prevConfig, obj, K3D);
-    //     }
-    // }
+    update: function (config, prevConfig, obj, K3D) {
+        if (config.shader === 'mesh') {
+            return LineMesh.update(config, prevConfig, obj, K3D);
+        } else if (config.shader === 'simple') {
+            return LineSimple.update(config, prevConfig, obj, K3D);
+        } else {
+            return LineThick.update(config, prevConfig, obj, K3D);
+        }
+    }
 };

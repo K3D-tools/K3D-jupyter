@@ -5,7 +5,8 @@
 var THREE = require('three'),
     lut = require('./../../../core/lib/helpers/lut'),
     closestPowOfTwo = require('./../helpers/Fn').closestPowOfTwo,
-    typedArrayToThree = require('./../helpers/Fn').typedArrayToThree;
+    typedArrayToThree = require('./../helpers/Fn').typedArrayToThree,
+    areAllChangesResolve = require('./../helpers/Fn').areAllChangesResolve;
 
 /**
  * Loader strategy to handle Volume object
@@ -272,5 +273,36 @@ module.exports = {
         };
 
         return Promise.resolve(object);
+    },
+
+    update: function (config, changes, obj) {
+        if (typeof(changes.color_range) !== 'undefined' && !changes.color_range.timeSeries) {
+            obj.material.uniforms.low.value = changes.color_range[0];
+            obj.material.uniforms.high.value = changes.color_range[1];
+
+            changes.color_range = null;
+        }
+
+        if (typeof(changes.focal_length) !== 'undefined' && !changes.focal_length.timeSeries) {
+            if ((obj.material.uniforms.focal_length.value === 0.0 && changes.focal_length !== 0.0) ||
+                changes.focal_length === 0.0) {
+
+                // shader needs to be recompile
+                return false;
+            }
+        }
+
+        ['samples', 'alpha_coef', 'gradient_step', 'focal_plane', 'focal_length'].forEach(function (key) {
+            if (changes[key] && !changes[key].timeSeries) {
+                obj.material.uniforms[key].value = changes[key];
+                changes[key] = null;
+            }
+        });
+
+        if (areAllChangesResolve(changes)) {
+            return Promise.resolve({json: config, obj: obj});
+        } else {
+            return false;
+        }
     }
 };

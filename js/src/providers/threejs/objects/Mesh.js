@@ -1,7 +1,8 @@
 'use strict';
 
 var THREE = require('three'),
-    handleColorMap = require('./../helpers/Fn').handleColorMap;
+    handleColorMap = require('./../helpers/Fn').handleColorMap,
+    areAllChangesResolve = require('./../helpers/Fn').areAllChangesResolve;
 
 /**
  * Loader strategy to handle Mesh object
@@ -63,11 +64,25 @@ module.exports = {
         object.updateMatrixWorld();
 
         return Promise.resolve(object);
-    }
+    },
 
-    // update: function (config, prevConfig, obj, K3D) {
-    //     console.log(config, prevConfig, obj, K3D);
-    //
-    //     return false;
-    // }
+    update: function (config, changes, obj) {
+        if (typeof(changes.attribute) !== 'undefined' && !changes.attribute.timeSeries) {
+            var data = obj.geometry.attributes.uv.array;
+
+            for (var i = 0; i < data.length; i++) {
+                data[i] = (changes.attribute.data[i] - config.color_range[0]) /
+                          (config.color_range[1] - config.color_range[0]);
+            }
+
+            obj.geometry.attributes.uv.needsUpdate = true;
+            changes.attribute = null;
+        }
+
+        if (areAllChangesResolve(changes)) {
+            return Promise.resolve({json: config, obj: obj});
+        } else {
+            return false;
+        }
+    }
 };

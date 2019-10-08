@@ -3,6 +3,7 @@
 var THREE = require('three'),
     buffer = require('./../../../core/lib/helpers/buffer'),
     Fn = require('./../helpers/Fn'),
+    areAllChangesResolve = Fn.areAllChangesResolve,
     getColorsArray = Fn.getColorsArray;
 
 /**
@@ -25,12 +26,21 @@ module.exports = {
             colorsToFloat32Array = buffer.colorsToFloat32Array,
             fragmentShader,
             fragmentShaderMap = {
+                'dot': require('./shaders/Points.dot.fragment.glsl'),
                 'flat': require('./shaders/Points.flat.fragment.glsl'),
                 '3d': require('./shaders/Points.3d.fragment.glsl'),
                 '3dspecular': require('./shaders/Points.3d.fragment.glsl')
+            },
+            vertexShader,
+            vertexShaderMap = {
+                'dot': require('./shaders/Points.dot.vertex.glsl'),
+                'flat': require('./shaders/Points.vertex.glsl'),
+                '3d': require('./shaders/Points.vertex.glsl'),
+                '3dspecular': require('./shaders/Points.vertex.glsl')
             };
 
         fragmentShader = fragmentShaderMap[shader.toLowerCase()] || fragmentShaderMap.flat;
+        vertexShader = vertexShaderMap[shader.toLowerCase()] || vertexShaderMap.flat;
 
         material = new THREE.ShaderMaterial({
             uniforms: THREE.UniformsUtils.merge([
@@ -40,7 +50,7 @@ module.exports = {
             defines: {
                 USE_SPECULAR: (shader === '3dSpecular' ? 1 : 0)
             },
-            vertexShader: require('./shaders/Points.vertex.glsl'),
+            vertexShader: vertexShader,
             fragmentShader: fragmentShader,
             opacity: config.opacity,
             depthTest: config.opacity === 1.0,
@@ -71,6 +81,19 @@ module.exports = {
         object.updateMatrixWorld();
 
         return Promise.resolve(object);
+    },
+    update: function (config, changes, obj) {
+        if (typeof(changes.positions) !== 'undefined' && !changes.positions.timeSeries) {
+            obj.geometry.attributes.position.array.set(changes.positions.data);
+            obj.geometry.attributes.position.needsUpdate = true;
+            changes.positions = null;
+        }
+
+        if (areAllChangesResolve(changes)) {
+            return Promise.resolve({json: config, obj: obj});
+        } else {
+            return false;
+        }
     }
 };
 

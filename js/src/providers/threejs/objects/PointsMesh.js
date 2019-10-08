@@ -60,5 +60,8 @@ module.exports = {
         object.updateMatrixWorld();
 
         return Promise.resolve(object);
+    },
+    update: function () {
+        return false;
     }
 };

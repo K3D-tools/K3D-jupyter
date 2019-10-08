@@ -37,7 +37,7 @@ function loader(K3D, data) {
                 var obj = K3D.getObjectById(interpolated.json.id);
 
                 if (typeof (obj) !== 'undefined') {
-                    K3DObjectPromise = objectProvider.update(interpolated.json, changes, obj, K3D);
+                    K3DObjectPromise = objectProvider.update(json, changes, obj, K3D);
 
                     if (K3DObjectPromise) {
                         console.log('K3D: Object type "' + json.type + '" updated in: ',

@@ -25,5 +25,13 @@ module.exports = {
         } else {
             return new PointsBillboard.create(config);
         }
+    },
+
+    update: function (config, prevConfig, obj, K3D) {
+        if (config.shader === 'mesh') {
+            return PointsMesh.update(config, prevConfig, obj, K3D);
+        } else {
+            return PointsBillboard.update(config, prevConfig, obj, K3D);
+        }
     }
 };

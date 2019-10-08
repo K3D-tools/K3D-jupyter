@@ -187,6 +187,9 @@ module.exports = {
                 });
 
                 obj.remove(idsMap[id]);
+                obj.voxelsChunks = obj.voxelsChunks.filter(function (v) {
+                    return v.id !== id;
+                });
 
                 idsMap[id].children.forEach(function (mesh) {
                     mesh.geometry.dispose();

@@ -81,6 +81,12 @@ module.exports = function (K3D) {
         var r = event.target.getCameraArray();
 
         K3D.dispatch(K3D.events.CAMERA_CHANGE, r);
+
+        self.axesHelper.camera.position.copy(
+            self.camera.position.clone().sub(self.controls.target).normalize().multiplyScalar(2.5)
+        );
+        self.axesHelper.camera.lookAt(0, 0, 0);
+        self.axesHelper.camera.up.copy(self.camera.up);
     });
 
     K3D.on(K3D.events.RESIZED, function () {

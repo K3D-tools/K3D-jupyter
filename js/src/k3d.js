@@ -213,6 +213,9 @@ PlotView = widgets.DOMWidgetView.extend({
         this.model.on('change:camera_no_rotate', this._setCameraLock, this);
         this.model.on('change:camera_no_zoom', this._setCameraLock, this);
         this.model.on('change:camera_no_pan', this._setCameraLock, this);
+        this.model.on('change:camera_fov', this._setCameraFOV, this);
+        this.model.on('change:axes_helper', this._setAxesHelper, this);
+        this.model.on('change:name', this._setName, this);
 
         try {
             this.K3DInstance = new K3D(ThreeJsProvider, this.container, {
@@ -224,7 +227,9 @@ PlotView = widgets.DOMWidgetView.extend({
                 cameraNoRotate: this.model.get('camera_no_rotate'),
                 cameraNoZoom: this.model.get('camera_no_zoom'),
                 cameraNoPan: this.model.get('camera_no_pan'),
+                name: this.model.get('name'),
                 axes: this.model.get('axes'),
+                axesHelper: this.model.get('axes_helper'),
                 grid: this.model.get('grid'),
                 gridVisible: this.model.get('grid_visible')
             });
@@ -263,7 +268,7 @@ PlotView = widgets.DOMWidgetView.extend({
 
         this.GUIObjectChanges = this.K3DInstance.on(this.K3DInstance.events.OBJECT_CHANGE, function (change) {
             if (self.model._comm_live) {
-                objectsList[change.id].save(change.key, change.value);
+                objectsList[change.id].save(change.key, change.value, {patch: true});
             }
         });
 
@@ -339,12 +344,24 @@ PlotView = widgets.DOMWidgetView.extend({
         this.K3DInstance.setAxes(this.model.get('axes'));
     },
 
+    _setName: function () {
+        this.K3DInstance.setName(this.model.get('name'));
+    },
+
+    _setAxesHelper: function () {
+        this.K3DInstance.setAxesHelper(this.model.get('axes_helper'));
+    },
+
     _setCameraLock: function () {
         this.K3DInstance.setCameraLock(
             this.model.get('camera_no_rotate'),
             this.model.get('camera_no_zoom'),
             this.model.get('camera_no_pan')
         );
+    },
+
+    _setCameraFOV: function () {
+        this.K3DInstance.setCameraFOV(this.model.get('camera_fov'));
     },
 
     _setClippingPlanes: function () {

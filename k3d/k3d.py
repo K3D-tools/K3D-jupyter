@@ -11,7 +11,7 @@ except ImportError:
 import numpy as np
 import six
 
-from .colormaps import basic_color_maps
+from .colormaps import basic_color_maps, matplotlib_color_maps
 from .helpers import check_attribute_range
 from .objects import (Line, MarchingCubes, Mesh, Points, STL, Surface, Text, Text2d, Texture, TextureText, VectorField,
                       Vectors, Volume, Voxels, SparseVoxels, VoxelsGroup, VoxelsIpyDW, VoxelChunk)
@@ -30,7 +30,7 @@ nice_colors = (
 
 
 def line(vertices, color=_default_color, colors=[],  # lgtm [py/similar-function]
-         attribute=[], color_map=[], color_range=[], width=0.01,
+         attribute=[], color_map=matplotlib_color_maps.Inferno, color_range=[], width=0.01,
          shader='thick', radial_segments=8, name=None, compression_level=0, **kwargs):
     """Create a Line drawable for plotting segments and polylines.
 
@@ -68,8 +68,8 @@ def line(vertices, color=_default_color, colors=[],  # lgtm [py/similar-function
         kwargs: `dict`.
             Dictionary arguments to configure transform and model_matrix."""
 
-    color_map = np.array(color_map, np.float32)
-    attribute = np.array(attribute, np.float32)
+    color_map = np.array(color_map, np.float32) if type(color_map) is not dict else color_map
+    attribute = np.array(attribute, np.float32) if type(attribute) is not dict else attribute
     color_range = check_attribute_range(attribute, color_range)
 
     return process_transform_arguments(
@@ -161,8 +161,8 @@ def mesh(vertices, indices, color=_default_color, attribute=[], color_map=[],  #
         kwargs: `dict`.
             Dictionary arguments to configure transform and model_matrix."""
 
-    color_map = np.array(color_map, np.float32)
-    attribute = np.array(attribute, np.float32)
+    color_map = np.array(color_map, np.float32) if type(color_map) is not dict else color_map
+    attribute = np.array(attribute, np.float32) if type(attribute) is not dict else attribute
     color_range = check_attribute_range(attribute, color_range)
 
     return process_transform_arguments(
@@ -201,6 +201,8 @@ def points(positions, colors=[], color=_default_color, point_size=1.0, shader='3
             Legal values are:
 
             :`flat`: simple circles with uniform color,
+
+            :`dot`: simple dot with uniform color,
 
             :`3d`: little 3D balls,
 
@@ -713,7 +715,8 @@ def voxels_group(space_size, voxels_group=[], chunks_ids=[], color_map=nice_colo
 
 
 # noinspection PyShadowingNames
-def volume(volume, color_map, color_range=[], samples=512.0, alpha_coef=50.0, gradient_step=0.005, shadow='off',
+def volume(volume, color_map=matplotlib_color_maps.Inferno, color_range=[], samples=512.0, alpha_coef=50.0,
+           gradient_step=0.005, shadow='off',
            shadow_delay=500, shadow_res=128, focal_length=0.0, focal_plane=100.0, ray_samples_count=16, name=None,
            compression_level=0, **kwargs):
     """Create a Volume drawable for 3D volumetric data.
@@ -863,11 +866,14 @@ def plot(height=512,
          grid_visible=True,
          screenshot_scale=2.0,
          grid=(-1, -1, -1, 1, 1, 1),
-         lighting=1.0,
+         lighting=1.5,
          menu_visibility=True,
          voxel_paint_color=0,
+         camera_fov=60.0,
          time=0.0,
          axes=['x', 'y', 'z'],
+         axes_helper=1.0,
+         name=None,
          camera_no_zoom=False,
          camera_no_rotate=False,
          camera_no_pan=False):
@@ -904,10 +910,16 @@ def plot(height=512,
             Lock for camera zoom.
         camera_no_pan: `Bool`.
             Lock for camera pan.
+        camera_fov: `Float`.
+            Camera Field of View.
         axes: `list`.
             Axes labels for plot.
+        axes_helper: `Float`.
+            Axes helper size.
         time: `list`.
             Time value (used in TimeSeries)
+        name: `string`.
+            Name of the plot. Used to filenames of snapshot/screenshot etc.
         grid: `array_like`.
             6-element tuple specifying the bounds of the plot grid (x0, y0, z0, x1, y1, z1)."""
     return Plot(antialias=antialias,
@@ -917,7 +929,7 @@ def plot(height=512,
                 grid_visible=grid_visible,
                 height=height, menu_visibility=menu_visibility,
                 voxel_paint_color=voxel_paint_color, grid=grid,
-                axes=axes, screenshot_scale=screenshot_scale,
+                axes=axes, axes_helper=axes_helper, screenshot_scale=screenshot_scale, camera_fov=camera_fov, name=name,
                 camera_no_zoom=camera_no_zoom, camera_no_rotate=camera_no_rotate, camera_no_pan=camera_no_pan)
 
 

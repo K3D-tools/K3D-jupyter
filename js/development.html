@@ -39,9 +39,10 @@
                     cameraAutoFit: true,
                     gridAutoFit: true,
                     gridVisible: true,
+                    axesHelper: 1,
                     colorbarObjectId: 2524948058800,
                     renderingSteps: 1,
-                    lighting: 2.5,
+                    lighting: 1.5,
                     grid: [
                         -1, -1, -1,
                         1, 1, 1]
@@ -54,15 +55,15 @@
 
         if (K3DInstance) {
             K3DInstance.setClearColor(-1);
-            K3DInstance.setScreenshotScale(1.0);
+            K3DInstance.setScreenshotScale(3.0);
 
-            // jsonLoader('test/samples/voxels_dense.json', function (json) {
-            // jsonLoader('test/samples/data.json', function (json) {
-            jsonLoader('test/samples/voxels.json', function (json) {
-                K3DInstance.setClippingPlanes([
-                    [-1, -1.5, 0, 0],
-                    [0, 0, -1, 0.01]
-                ]);
+            jsonLoader('test/samples/simple_text_label.json', function (json) {
+            // jsonLoader('test/samples/cube_with_labels.json', function (json) {
+            // // jsonLoader('test/samples/voxels.json', function (json) {
+            // //     K3DInstance.setClippingPlanes([
+            // //         [-1, -1.5, 0, 0],
+            // //         [0, 0, -1, 0.01]
+            // //     ]);
                 K3DInstance.load(json);
             });
 

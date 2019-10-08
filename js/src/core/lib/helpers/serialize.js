@@ -15,6 +15,10 @@ var pako = require('pako'),
         float64: Float64Array
     };
 
+function isNumeric(n) {
+    return !isNaN(parseFloat(n)) && isFinite(n);
+}
+
 function deserializeArray(obj) {
     var buffer;
 
@@ -65,7 +69,7 @@ function deserialize(obj, manager) {
         // time series or dict
         var timeSeries = true;
         var deserializedObj = Object.keys(obj).reduce(function (p, k) {
-            if (!_.isNumber(k)) {
+            if (!isNumeric(k)) {
                 timeSeries = false;
             }
 

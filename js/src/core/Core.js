@@ -97,7 +97,7 @@ function K3D(provider, targetDOMNode, parameters) {
         }
 
         timeSeries.refreshTimeScale(self, GUI);
-        Promise.all(self.rebuildSceneData()).then(self.render.bind(null, true));
+        self.rebuildSceneData().then(self.render.bind(null, true));
     }
 
     this.render = function (force) {
@@ -147,6 +147,9 @@ function K3D(provider, targetDOMNode, parameters) {
             cameraNoRotate: false,
             cameraNoZoom: false,
             cameraNoPan: false,
+            name: null,
+            camera_fov: 60.0,
+            axesHelper: 1.0,
             guiVersion: require('./../../package.json').version
         },
         parameters || {}
@@ -312,9 +315,33 @@ function K3D(provider, targetDOMNode, parameters) {
     this.setAxes = function (axesLabel) {
         self.parameters.axes = axesLabel;
 
-        self.rebuildSceneData(true);
-        self.render();
+        self.rebuildSceneData(true).then(function () {
+            self.render();
+        });
     };
+
+    /**
+     * Set name of plot
+     * @memberof K3D.Core
+     * @param {String} name
+     */
+    this.setName = function (name) {
+        self.parameters.name = name;
+    };
+
+    /**
+     * Set axes helper of plot
+     * @memberof K3D.Core
+     * @param {Number} size
+     */
+    this.setAxesHelper = function (size) {
+        self.parameters.axesHelper = size;
+
+        self.rebuildSceneData(true).then(function () {
+            self.render();
+        });
+    };
+
 
     /**
      * Set grid auto fit mode of K3D
@@ -341,6 +368,24 @@ function K3D(provider, targetDOMNode, parameters) {
         self.parameters.cameraNoRotate = world.controls.noRotate = cameraNoRotate;
         self.parameters.cameraNoZoom = world.controls.noZoom = cameraNoZoom;
         self.parameters.cameraNoPan = world.controls.noPan = cameraNoPan;
+    };
+
+    /**
+     * Set camera field of view
+     * @memberof K3D.Core
+     * @param {Float} angle
+     */
+    this.setCameraFOV = function (angle) {
+        self.parameters.camera_fov = angle;
+        world.setupCamera(null, angle);
+
+        GUI.controls.__controllers.forEach(function (controller) {
+            if (controller.property === 'fov') {
+                controller.updateDisplay();
+            }
+        });
+
+        self.render();
     };
 
     /**
@@ -772,6 +817,10 @@ function K3D(provider, targetDOMNode, parameters) {
         changeParameters.call(self, 'grid_visible', value);
     });
     viewModeGUI(GUI.controls, this);
+    GUI.controls.add(self.parameters, 'camera_fov').step(0.1).min(1.0).max(179).name('FOV').onChange(function (value) {
+        self.setCameraFOV(value);
+        changeParameters.call(self, 'camera_fov', value);
+    });
     GUI.controls.add(self.parameters, 'voxelPaintColor').step(1).min(0).max(255).name('voxelColor').onChange(
         changeParameters.bind(this, 'voxel_paint_color'));
     GUI.controls.add(self.parameters, 'lighting').step(0.01).min(0).max(4).name('lighting')
@@ -808,6 +857,7 @@ function K3D(provider, targetDOMNode, parameters) {
         self.parameters.cameraNoZoom,
         self.parameters.cameraNoPan
     );
+    self.setCameraFOV(self.parameters.camera_fov);
 
     self.render();
 
