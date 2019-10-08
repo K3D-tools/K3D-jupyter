@@ -1,4 +1,4 @@
-from ._version import version_info
+from ._version import version_info, __version__
 
 from .colormaps import paraview_color_maps
 from .colormaps import basic_color_maps
