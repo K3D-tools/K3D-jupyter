@@ -1,4 +1,5 @@
 import re
+import struct
 
 from traitlets import Bytes, Unicode, TraitError
 
@@ -45,15 +46,27 @@ class AsciiStlData(Unicode):
 
 class BinaryStlData(Bytes):
     HEADER = 80
+    COUNT_SIZE = 4
     FACET_SIZE = 50
 
     def validate(self, owner, stl):
         stl = super(BinaryStlData, self).validate(owner, stl)
 
-        if (len(stl) - self.HEADER) % self.FACET_SIZE != 0:
+        if len(stl) < self.HEADER + self.COUNT_SIZE:
             raise TraitError(
-                'Given bytestring has wrong length ({}) for Binary STL data.'
+                'Given bytestring is too short ({}) for Binary STL data.'
                 .format(len(stl))
+            )
+
+        (num_facets,) = struct.unpack('<I', stl[self.HEADER : self.HEADER + self.COUNT_SIZE])
+
+        expected_size = self.HEADER + self.COUNT_SIZE + num_facets * self.FACET_SIZE
+
+        if len(stl) != expected_size:
+            raise TraitError(
+                'Given bytestring has wrong length ({}) for Binary STL data. '
+                'For {} facets {} bytes were expected.'
+                .format(len(stl), num_facets, expected_size)
             )
 
         return stl
