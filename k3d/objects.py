@@ -7,6 +7,7 @@ from traittypes import Array
 
 from ._version import __version__ as version
 from .helpers import array_serialization_wrap, shape_validation, validate_sparse_voxels
+from .validation.stl import AsciiStlData, BinaryStlData
 
 EPSILON = np.finfo(np.float32).eps
 
@@ -378,8 +379,8 @@ class STL(Drawable):
     """
 
     type = Unicode(read_only=True).tag(sync=True)
-    text = Unicode(allow_none=True).tag(sync=True)
-    binary = Bytes(allow_none=True).tag(sync=True)
+    text = AsciiStlData(allow_none=True, default_value=None).tag(sync=True)
+    binary = BinaryStlData(allow_none=True, default_value=None).tag(sync=True)
     color = Int(min=0, max=0xffffff).tag(sync=True)
     model_matrix = Array(dtype=np.float32).tag(sync=True, **array_serialization_wrap('model_matrix'))
     wireframe = Bool().tag(sync=True)

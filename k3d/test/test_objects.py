@@ -1,7 +1,10 @@
 import unittest
+
+from traitlets import TraitError
+import numpy as np
+
 from ..objects import Drawable
 from ..k3d import text
-import numpy as np
 
 
 class TestDrawable(unittest.TestCase):
@@ -31,6 +34,35 @@ class TestText(unittest.TestCase):
         text_ = text('test', [0, 0, 0])
         text_.position = np.arange(3)
 
+
+class TestSTL(unittest.TestCase):
+    def test_creation(self):
+        from ..objects import STL
+        s = STL(text='''
+solid
+    facet normal 0 0 0
+        outer loop
+            vertex -1.000000 1.000000 -1.000000
+            vertex -1.000000 -1.000000 -1.000000
+            vertex -1.000000 -1.000000 1.000000
+        endloop
+    endfacet
+endsolid
+        '''.strip())
+
+        def assign_bad():
+            # missing endsolid, gibberish after facet normal:
+            s.text = '''solid
+    facet normal 0 0 0 bebebe
+        outer loop
+            vertex -1.000000 1.000000 -1.000000
+            vertex -1.000000 -1.000000 -1.000000
+            vertex -1.000000 -1.000000 1.000000
+        endloop
+    endfacet
+        '''
+
+        self.assertRaises(TraitError, assign_bad)
 
 if __name__ == '__main__':
     unittest.main()
