@@ -40,10 +40,17 @@ var THREE = require('three'),
     ];
 
 function getArrayFromRenderTarget(renderer, rt) {
-    var array = new Uint8Array(rt.width * rt.height * 4);
+    var array = new Float32Array(rt.width * rt.height * 4),
+        image = new Uint8ClampedArray(rt.width * rt.height * 4),
+        i;
 
     renderer.readRenderTargetPixels(rt, 0, 0, rt.width, rt.height, array);
-    return new Uint8ClampedArray(array, rt.width, rt.height);
+
+    for (i = 0; i < array.length; i++) {
+        image[i] = Math.floor(array[i] * 256.0);
+    }
+
+    return image;
 }
 
 module.exports = function (renderer, scene, camera, rt, fullWidth, fullHeight, chunk_heights, sampleLevel) {

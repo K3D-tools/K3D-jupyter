@@ -356,7 +356,6 @@ function K3DTransferFunctionEditor(targetDOMNode, parameters, onChange) {
     targetDOMNode.appendChild(colorPicker);
 
     function refresh() {
-        console.log('refresh');
         refreshChart(svg);
         refreshRect(svg);
     }
