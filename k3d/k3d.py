@@ -88,8 +88,8 @@ def line(vertices, color=_default_color, colors=[],  # lgtm [py/similar-function
     )
 
 
-def marching_cubes(scalar_field, level, color=_default_color, wireframe=False, flat_shading=True, name=None,
-                   compression_level=0, **kwargs):
+def marching_cubes(scalar_field, level, color=_default_color, wireframe=False, flat_shading=True, opacity=1.0,
+                   name=None, compression_level=0, **kwargs):
     """Create a MarchingCubes drawable.
 
     Plot an isosurface of a scalar field obtained through a Marching Cubes algorithm.
@@ -114,6 +114,8 @@ def marching_cubes(scalar_field, level, color=_default_color, wireframe=False, f
             Whether mesh should display as wireframe.
         flat_shading: `bool`.
             Whether mesh should display with flat shading.
+        opacity: `float`.
+            Opacity of mesh.
         name: `string`.
             A name of a object
         kwargs: `dict`.
@@ -124,6 +126,7 @@ def marching_cubes(scalar_field, level, color=_default_color, wireframe=False, f
                       level=level,
                       wireframe=wireframe,
                       flat_shading=flat_shading,
+                      opacity=opacity,
                       name=name,
                       compression_level=compression_level),
         **kwargs

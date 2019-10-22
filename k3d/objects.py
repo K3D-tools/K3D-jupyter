@@ -237,6 +237,8 @@ class MarchingCubes(Drawable):
             Whether mesh should display as wireframe.
         flat_shading: `bool`.
             Whether mesh should display with flat shading.
+        opacity: `float`.
+            Opacity of mesh.
         model_matrix: `array_like`.
             4x4 model transform matrix.
     """
@@ -247,6 +249,7 @@ class MarchingCubes(Drawable):
     color = Int(min=0, max=0xffffff).tag(sync=True)
     wireframe = Bool().tag(sync=True)
     flat_shading = Bool().tag(sync=True)
+    opacity = Float(min=0.0, max=1.0, default_value=1.0).tag(sync=True)
     model_matrix = Array(dtype=np.float32).tag(sync=True, **array_serialization_wrap('model_matrix'))
 
     def __init__(self, **kwargs):
