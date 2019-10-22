@@ -9,7 +9,7 @@ var k3d = require('./index'),
     base = require('@jupyter-widgets/base');
 
 module.exports = {
-    id: 'k3d',
+    id: 'jupyter.extensions.k3d',
     requires: [base.IJupyterWidgetRegistry],
     activate: function (app, widgets) {
         widgets.registerWidget({
