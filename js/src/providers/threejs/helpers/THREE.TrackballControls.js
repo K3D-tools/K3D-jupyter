@@ -56,7 +56,7 @@ module.exports = function (THREE) {
         // var EPS = 0.000001;
         var EPS = 0.0000000001;
 
-        var lastPosition = new THREE.Vector3();
+        var lastPosition = new THREE.Vector3(), lastUp = new THREE.Vector3();
 
         var _state = STATE.NONE,
             _prevState = STATE.NONE,
@@ -336,12 +336,13 @@ module.exports = function (THREE) {
 
             _this.object.lookAt(_this.target);
 
-            if (lastPosition.distanceToSquared(_this.object.position) > EPS) {
+            if (lastPosition.distanceToSquared(_this.object.position) > EPS ||
+                lastUp.distanceToSquared(_this.object.up) > EPS) {
 
                 _this.dispatchEvent(changeEvent);
 
                 lastPosition.copy(_this.object.position);
-
+                lastUp.copy(_this.object.up);
             }
 
         };
@@ -362,6 +363,7 @@ module.exports = function (THREE) {
             _this.dispatchEvent(changeEvent);
 
             lastPosition.copy(_this.object.position);
+            lastUp.copy(_this.object.up);
 
         };
 

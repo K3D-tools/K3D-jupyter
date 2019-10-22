@@ -6,5 +6,6 @@ require('style-loader?{attrs:{id: "k3d-dat.gui"}}!css-loader!../node_modules/dat
 
 module.exports = {
     K3D: require('./core/Core'),
+    TransferFunctionEditor: require('./transferFunctionEditor'),
     ThreeJsProvider: require('./providers/threejs/provider')
 };

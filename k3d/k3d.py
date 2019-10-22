@@ -14,7 +14,7 @@ import six
 from .colormaps import basic_color_maps, matplotlib_color_maps
 from .helpers import check_attribute_range
 from .objects import (Line, MarchingCubes, Mesh, Points, STL, Surface, Text, Text2d, Texture, TextureText, VectorField,
-                      Vectors, Volume, Voxels, SparseVoxels, VoxelsGroup, VoxelsIpyDW, VoxelChunk)
+                      Vectors, Volume, Voxels, SparseVoxels, VoxelsGroup, VoxelChunk)
 from .plot import Plot
 from .transform import process_transform_arguments
 
@@ -715,8 +715,8 @@ def voxels_group(space_size, voxels_group=[], chunks_ids=[], color_map=nice_colo
 
 
 # noinspection PyShadowingNames
-def volume(volume, color_map=matplotlib_color_maps.Inferno, color_range=[], samples=512.0, alpha_coef=50.0,
-           gradient_step=0.005, shadow='off',
+def volume(volume, color_map=matplotlib_color_maps.Inferno, opacity_function=None, color_range=[], samples=512.0,
+           alpha_coef=50.0, gradient_step=0.005, shadow='off',
            shadow_delay=500, shadow_res=128, focal_length=0.0, focal_plane=100.0, ray_samples_count=16, name=None,
            compression_level=0, **kwargs):
     """Create a Volume drawable for 3D volumetric data.
@@ -737,6 +737,9 @@ def volume(volume, color_map=matplotlib_color_maps.Inferno, color_range=[], samp
         color_map: `list`.
             A list of float quadruplets (attribute value, R, G, B), sorted by attribute value. The first
             quadruplet should have value 0.0, the last 1.0; R, G, B are RGB color components in the range 0.0 to 1.0.
+        opacity_function: `array`.
+            A list of float tuples (attribute value, opacity), sorted by attribute value. The first
+            typles should have value 0.0, the last 1.0; opacity is in the range 0.0 to 1.0.
         color_range: `list`.
             A pair [min_value, max_value], which determines the levels of volume attribute mapped
             to 0 and 1 in the color map respectively.
@@ -771,11 +774,14 @@ def volume(volume, color_map=matplotlib_color_maps.Inferno, color_range=[], samp
 
     color_range = check_attribute_range(volume, color_range)
 
+    if opacity_function is None:
+        opacity_function = [np.min(color_map[::4]), 0.0, np.max(color_map[::4]), 1.0]
+
     return process_transform_arguments(
-        Volume(volume=volume, color_map=color_map, color_range=color_range, compression_level=compression_level,
-               samples=samples, alpha_coef=alpha_coef, gradient_step=gradient_step, shadow=shadow,
-               shadow_delay=shadow_delay, shadow_res=shadow_res, focal_plane=focal_plane, focal_length=focal_length,
-               name=name, ray_samples_count=ray_samples_count), **kwargs)
+        Volume(volume=volume, color_map=color_map, opacity_function=opacity_function, color_range=color_range,
+               compression_level=compression_level, samples=samples, alpha_coef=alpha_coef, gradient_step=gradient_step,
+               shadow=shadow, shadow_delay=shadow_delay, shadow_res=shadow_res, focal_plane=focal_plane,
+               focal_length=focal_length, name=name, ray_samples_count=ray_samples_count), **kwargs)
 
 
 def vtk_poly_data(poly_data, color=_default_color, color_attribute=None, color_map=basic_color_maps.Rainbow,
@@ -931,50 +937,3 @@ def plot(height=512,
                 voxel_paint_color=voxel_paint_color, grid=grid,
                 axes=axes, axes_helper=axes_helper, screenshot_scale=screenshot_scale, camera_fov=camera_fov, name=name,
                 camera_no_zoom=camera_no_zoom, camera_no_rotate=camera_no_rotate, camera_no_pan=camera_no_pan)
-
-
-# noinspection PyShadowingNames
-def voxels_ipydw(voxels, color_map, wireframe=False, outlines=True, outlines_color=0, compression_level=0, **kwargs):
-    """Create a Voxels drawable for 3D volumetric data.
-
-    By default, the voxels are a grid inscribed in the -0.5 < x, y, z < 0.5 cube
-    regardless of the passed voxel array shape (aspect ratio etc.).
-    Different grid size, shape and rotation can be obtained using  kwargs:
-
-        voxels(..., bounds=[0, 300, 0, 400, 0, 500])
-
-    or:
-
-        voxels(..., scaling=[scale_x, scale_y, scale_z]).
-
-    Arguments:
-        voxels: `array_like`.
-            3D array of `int` in range (0, 255).
-            0 means empty voxel, 1 and above refer to consecutive color_map entries.
-        color_map: `array_like`.
-            Flat array of `int` packed RGB colors (0xff0000 is red, 0xff is blue).
-
-            The color defined at index i is for voxel value (i+1), e.g.:
-
-           | color_map = [0xff, 0x00ff]
-           | voxels =
-           | [
-           | 0, # empty voxel
-           | 1, # blue voxel
-           | 2  # red voxel
-           | ]
-
-        wireframe: `bool`.
-            Whether mesh should display as wireframe.
-        outlines: `bool`.
-            Whether mesh should display with outlines.
-        outlines_color: `int`.
-            Packed RGB color of the resulting outlines (0xff0000 is red, 0xff is blue)
-        kwargs: `dict`.
-            Dictionary arguments to configure transform and model_matrix."""
-    return process_transform_arguments(
-        VoxelsIpyDW(voxels=voxels, color_map=color_map, wireframe=wireframe,
-                    outlines=outlines, outlines_color=outlines_color,
-                    compression_level=compression_level),
-        **kwargs
-    )

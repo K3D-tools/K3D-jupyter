@@ -13,7 +13,7 @@ var viewModes = require('./lib/viewMode').viewModes,
     detachWindowGUI = require('./lib/detachWindow'),
     fullscreen = require('./lib/fullscreen'),
     viewModeGUI = require('./lib/viewMode').viewModeGUI,
-    colorMapLegend = require('./lib/colorMapLegend'),
+    getColorLegend = require('./lib/colorMapLegend').getColorLegend,
     objectGUIProvider = require('./lib/objectsGUIprovider'),
     clippingPlanesGUIProvider = require('./lib/clippingPlanesGUIProvider'),
     timeSeries = require('./lib/timeSeries');
@@ -276,7 +276,7 @@ function K3D(provider, targetDOMNode, parameters) {
             });
         }
 
-        colorMapLegend(self, world.ObjectsListJson[self.parameters.colorbarObjectId] || v);
+        getColorLegend(self, world.ObjectsListJson[self.parameters.colorbarObjectId] || v);
     };
 
     /**

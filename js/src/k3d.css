@@ -36,3 +36,19 @@
     position: relative;
     z-index: 10;
 }
+
+.k3d-transfer-function {
+    height: 100% !important;
+}
+
+.k3d-transfer-function circle {
+    cursor: move;
+}
+
+.k3d-transfer-function circle.selected {
+    /*stroke: red;*/
+}
+
+.k3d-color-picker {
+    display: none;
+}

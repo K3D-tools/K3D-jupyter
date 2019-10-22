@@ -207,7 +207,6 @@ void main() {
                 scaled_px = min(scaled_px, 0.99);
 
                 pxColor = texture(colormap, vec2(scaled_px, 0.5));
-                pxColor.a = scaled_px;
 
                 pxColor.a = 1.0 - pow(1.0 - pxColor.a, step * alpha_coef);
                 pxColor.a *= (1.0 - value.a);

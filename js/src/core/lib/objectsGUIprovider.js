@@ -172,7 +172,7 @@ function objectGUIProvider(K3D, json, objects) {
                     K3D.gui_map[json.id].addColor(json, param).onChange(change.bind(this, json, param));
                     break;
                 case 'text':
-                    if (json.type !== 'STL') {
+                    if (json.type !== 'STL' && !json[param].timeSeries) {
                         K3D.gui_map[json.id].add(json, param).onChange(change.bind(this, json, param));
                     }
                     break;

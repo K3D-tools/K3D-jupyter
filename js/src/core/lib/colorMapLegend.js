@@ -1,51 +1,9 @@
 'use strict';
 
-var mathHelper = require('./helpers/math');
+var mathHelper = require('./helpers/math'),
+    colorMapHelper = require('./helpers/colorMap');
 
-function toColor(val) {
-    if (val > 1.0) {
-        val = 1.0;
-    }
-
-    if (val < 0.0) {
-        val = 0.0;
-    }
-
-    return Math.round((val * 255));
-}
-
-function createGradient(svg, svgNS, id, colormap) {
-    var grad = document.createElementNS(svgNS, 'linearGradient'),
-        min, max;
-
-    grad.setAttribute('id', id);
-    grad.setAttribute('x1', '0');
-    grad.setAttribute('x2', '0');
-    grad.setAttribute('y1', '1');
-    grad.setAttribute('y2', '0');
-
-    min = colormap[0];
-    max = colormap[colormap.length - 4];
-
-    for (var i = 0; i < colormap.length / 4; i++) {
-        var stop = document.createElementNS(svgNS, 'stop'),
-            segment = colormap.slice(i * 4, i * 4 + 4);
-
-        stop.setAttribute('offset', ((segment[0] - min) / (max - min)).toString(10));
-        stop.setAttribute('stop-color', 'rgb(' +
-                                        toColor(segment[1]) + ',' +
-                                        toColor(segment[2]) + ',' +
-                                        toColor(segment[3]) + ')');
-        grad.appendChild(stop);
-    }
-
-    var defs = svg.querySelector('defs') ||
-               svg.insertBefore(document.createElementNS(svgNS, 'defs'), svg.firstChild);
-
-    return defs.appendChild(grad);
-}
-
-module.exports = function getColorLegend(K3D, object) {
+function getColorLegend(K3D, object) {
     var svg,
         svgNS,
         rect,
@@ -92,9 +50,8 @@ module.exports = function getColorLegend(K3D, object) {
         'font-family: KaTeX_Main'
     ].join(';');
 
-    createGradient(svg, svgNS, 'colormap' + object.id, object.color_map.data);
+    colorMapHelper.createSVGGradient(svg, 'colormap' + object.id, object.color_map.data);
 
-    rect.setAttribute('fill', 'url(#colormap' + object.id + ')');
     rect.setAttribute('stroke-width', strokeWidth.toString(10));
     rect.setAttribute('stroke-linecap', 'square');
     rect.setAttribute('stroke', 'black');
@@ -179,4 +136,8 @@ module.exports = function getColorLegend(K3D, object) {
     tryPosLabels();
 
     K3D.colorMapNode = svg;
+};
+
+module.exports = {
+    getColorLegend: getColorLegend
 };

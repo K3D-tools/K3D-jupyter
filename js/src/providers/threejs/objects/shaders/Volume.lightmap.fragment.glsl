@@ -9,6 +9,7 @@ varying vec2 vUv;
 uniform vec3 lightMapSize;
 uniform vec2 lightMapRenderTargetSize;
 uniform vec3 volumeMapSize;
+uniform sampler2D colormap;
 uniform sampler3D volumeTexture;
 uniform float low;
 uniform float high;
@@ -147,8 +148,9 @@ void main() {
 
         if(scaled_px > 0.0) {
             scaled_px = min(scaled_px, 0.99);
+            float alpha = texture(colormap, vec2(scaled_px, 0.5)).a;
 
-            float density = 1.0 - pow(1.0 - scaled_px, textcoord_delta_step * alpha_coef);
+            float density = 1.0 - pow(1.0 - alpha, textcoord_delta_step * alpha_coef);
             density *= (1.0 - sum_density);
             sum_density += density;
 

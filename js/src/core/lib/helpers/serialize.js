@@ -2,7 +2,6 @@
 
 var pako = require('pako'),
     Float16Array = require('./float16Array'),
-    ipyDataWidgets = require('jupyter-dataserializers').data_union_array_serialization,
     typesToArray = {
         int8: Int8Array,
         int16: Int16Array,
@@ -52,8 +51,8 @@ function serializeArray(obj) {
 function deserialize(obj, manager) {
     if (obj == null) {
         return null;
-    } else if (typeof (obj) === 'string') {
-        return ipyDataWidgets.deserialize(obj, manager);
+    } else if (typeof (obj) === 'string' || typeof(obj) === 'boolean') {
+        return obj;
     } else if (_.isNumber(obj)) { // plain number
         return obj;
     } else if (typeof (obj.shape) !== 'undefined') {
@@ -88,6 +87,8 @@ function deserialize(obj, manager) {
 
 function serialize(obj) {
     if (_.isNumber(obj)) {
+        return obj;
+    } else if (typeof (obj) === 'string' || typeof(obj) === 'boolean') {
         return obj;
     }
 

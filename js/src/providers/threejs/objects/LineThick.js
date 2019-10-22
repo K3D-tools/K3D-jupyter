@@ -5,7 +5,7 @@ var THREE = require('three'),
     MeshLine = require('./../helpers/THREE.MeshLine')(THREE),
     Fn = require('./../helpers/Fn'),
     areAllChangesResolve = Fn.areAllChangesResolve,
-    lut = require('./../../../core/lib/helpers/lut'),
+    colorMapHelper = require('./../../../core/lib/helpers/colorMap'),
     getColorsArray = Fn.getColorsArray;
 
 /**
@@ -40,7 +40,7 @@ function create(config, K3D) {
         position = config.vertices.data;
 
     if (attribute && colorRange && colorMap && attribute.length > 0 && colorRange.length > 0 && colorMap.length > 0) {
-        var canvas = lut(colorMap, 1024);
+        var canvas = colorMapHelper.createCanvasGradient(colorMap, 1024);
         var texture = new THREE.CanvasTexture(canvas, THREE.UVMapping, THREE.ClampToEdgeWrapping,
             THREE.ClampToEdgeWrapping, THREE.NearestFilter, THREE.NearestFilter);
         texture.needsUpdate = true;
@@ -96,6 +96,10 @@ function update(config, changes, obj) {
     var uvs = null, position = obj.userData.lastPosition;
 
     if (typeof(changes.attribute) !== 'undefined' && !changes.attribute.timeSeries) {
+        if (changes.attribute.data.length !== obj.geometry.attributes.uv.array.length) {
+            return false;
+        }
+
         uvs = new Float32Array(changes.attribute.data.length);
 
         for (var i = 0; i < uvs.length; i++) {
@@ -105,6 +109,10 @@ function update(config, changes, obj) {
     }
 
     if (typeof(changes.vertices) !== 'undefined' && !changes.vertices.timeSeries) {
+        if (changes.vertices.data.length !== position.length) {
+            return false;
+        }
+
         position = changes.vertices.data;
     }
 
