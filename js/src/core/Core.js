@@ -380,12 +380,14 @@ function K3D(provider, targetDOMNode, parameters) {
         world.setupCamera(null, angle);
 
         GUI.controls.__controllers.forEach(function (controller) {
-            if (controller.property === 'fov') {
+            if (controller.property === 'camera_fov') {
                 controller.updateDisplay();
             }
         });
 
-        self.render();
+        self.rebuildSceneData(false).then(function () {
+            self.render();
+        });
     };
 
     /**
@@ -422,7 +424,7 @@ function K3D(provider, targetDOMNode, parameters) {
     this.setGrid = function (vectors) {
         self.parameters.grid = vectors;
 
-        Promise.all(self.rebuildSceneData(true)).then(function () {
+        self.rebuildSceneData(true).then(function () {
             self.refreshGrid();
             self.render();
         });

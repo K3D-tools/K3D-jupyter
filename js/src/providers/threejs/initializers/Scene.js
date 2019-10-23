@@ -178,6 +178,7 @@ function rebuildSceneData(K3D, grids, axesHelper, force) {
         size,
         majorScale,
         minorScale,
+        camDistance,
         sceneBoundingBox = new THREE.Box3().setFromArray(K3D.parameters.grid),
         extendedSceneBoundingBox,
         unitVectors = {
@@ -445,7 +446,9 @@ function rebuildSceneData(K3D, grids, axesHelper, force) {
 
     fullSceneDiameter = fullSceneBoundingBox.getSize(new THREE.Vector3()).length();
 
-    this.camera.far = fullSceneDiameter * 10;
+    camDistance = (fullSceneDiameter / 2.0) / Math.sin(THREE.Math.degToRad(K3D.parameters.camera_fov / 2.0));
+
+    this.camera.far = (camDistance + fullSceneDiameter / 2) * 5.0;
     this.camera.near = fullSceneDiameter * 0.0001;
     this.camera.updateProjectionMatrix();
 

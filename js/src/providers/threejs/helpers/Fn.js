@@ -228,5 +228,11 @@ module.exports = {
         return Object.keys(changes).every(function (key) {
             return changes[key] === null;
         });
+    },
+
+    recalculateFrustum: function (camera) {
+        camera.frustum.setFromMatrix(new THREE.Matrix4().multiplyMatrices(
+            camera.projectionMatrix, camera.matrixWorldInverse
+        ));
     }
 };

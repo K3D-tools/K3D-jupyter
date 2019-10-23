@@ -1,6 +1,7 @@
 'use strict';
 
-var THREE = require('three');
+var THREE = require('three'),
+    recalculateFrustum = require('./../helpers/Fn').recalculateFrustum;
 
 /**
  * Canvas initializer for Three.js library
@@ -79,6 +80,8 @@ module.exports = function (K3D) {
 
     this.controls.addEventListener('change', function (event) {
         var r = event.target.getCameraArray();
+
+        recalculateFrustum(self.camera);
 
         K3D.dispatch(K3D.events.CAMERA_CHANGE, r);
 
