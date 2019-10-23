@@ -1,6 +1,6 @@
 'use strict';
 var THREE = require('three'),
-    lut = require('./../../../core/lib/helpers/lut'),
+    createCanvasGradient = require('./../../../core/lib/helpers/colorMap').createCanvasGradient,
     Float16Array = require('./../../../core/lib/helpers/float16Array');
 
 function getSpaceDimensionsFromTargetElement(world) {
@@ -184,7 +184,7 @@ module.exports = {
     handleColorMap: function (geometry, colorMap, colorRange, attributes, material) {
         var canvas, texture, uvs, i;
 
-        canvas = lut(colorMap, 1024);
+        canvas = createCanvasGradient(colorMap, 1024);
 
         texture = new THREE.CanvasTexture(canvas, THREE.UVMapping, THREE.ClampToEdgeWrapping,
             THREE.ClampToEdgeWrapping, THREE.NearestFilter, THREE.NearestFilter);
@@ -228,5 +228,11 @@ module.exports = {
         return Object.keys(changes).every(function (key) {
             return changes[key] === null;
         });
+    },
+
+    recalculateFrustum: function (camera) {
+        camera.frustum.setFromMatrix(new THREE.Matrix4().multiplyMatrices(
+            camera.projectionMatrix, camera.matrixWorldInverse
+        ));
     }
 };

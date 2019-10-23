@@ -6,6 +6,7 @@ var fileLoader = require('./helpers/fileLoader');
 var template = require('raw-loader!./snapshot.txt');
 var requireJsSource = require('raw-loader!./../../../node_modules/requirejs/require.js');
 var pakoJsSource = require('raw-loader!./../../../node_modules/pako/dist/pako_inflate.min.js');
+var semverRange = require('./../../version').version;
 
 var sourceCode = window.k3dCompressed;
 var scripts = document.getElementsByTagName('script');
@@ -15,6 +16,7 @@ if (typeof (sourceCode) === 'undefined') {
     sourceCode = '';
 
     for (var i = 0; i < scripts.length; i++) {
+        // working in jupyter notebooks
         if (scripts[i].getAttribute('src') &&
             scripts[i].getAttribute('src').includes('k3d') &&
             scripts[i].getAttribute('src').includes('.js')) {
@@ -23,10 +25,15 @@ if (typeof (sourceCode) === 'undefined') {
     }
 
     if (typeof (path) !== 'undefined') {
-        fileLoader(path.replace('k3d.js', 'standalone.js').replace('index.js', 'standalone.js'), function (data) {
-            sourceCode = btoa(pako.deflate(data, {to: 'string', level: 9}));
-        });
+        path = path.replace('k3d.js', 'standalone.js').replace('index.js', 'standalone.js');
+    } else {
+        // use npm repository
+        path = 'https://unpkg.com/k3d@' + semverRange + '/dist/standalone.js';
     }
+
+    fileLoader(path, function (data) {
+        sourceCode = btoa(pako.deflate(data, {to: 'string', level: 9}));
+    });
 }
 
 function getSnapshot(K3D) {

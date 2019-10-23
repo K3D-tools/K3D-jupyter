@@ -119,6 +119,15 @@ function toScreenPosition(obj, viewport, camera) {
 
     obj.updateMatrixWorld();
     vector.setFromMatrixPosition(obj.matrixWorld);
+
+    if (camera.frustum && !camera.frustum.containsPoint(vector)) {
+        return {
+            x: -100,
+            y: -100,
+            z: -100
+        }
+    }
+
     vector.project(camera);
 
     vector.x = (vector.x + 1) * widthHalf + viewport.offsetX;
@@ -129,7 +138,6 @@ function toScreenPosition(obj, viewport, camera) {
         y: Math.round(vector.y),
         z: vector.z
     };
-
 }
 
 function colorToHex(color) {

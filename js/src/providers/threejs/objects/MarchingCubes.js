@@ -16,6 +16,7 @@ module.exports = {
         config.color = typeof (config.color) !== 'undefined' ? config.color : 255;
         config.wireframe = typeof (config.wireframe) !== 'undefined' ? config.wireframe : false;
         config.flat_shading = typeof (config.flat_shading) !== 'undefined' ? config.flat_shading : true;
+        config.opacity = typeof (config.opacity) !== 'undefined' ? config.opacity : 1.0;
 
         return new Promise(function (resolve) {
             var scalarField = config.scalar_field.data,
@@ -32,7 +33,11 @@ module.exports = {
                     specular: 0x111111,
                     side: THREE.DoubleSide,
                     flatShading: config.flat_shading,
-                    wireframe: config.wireframe
+                    wireframe: config.wireframe,
+                    opacity: config.opacity,
+                    depthTest: config.opacity === 1.0,
+                    depthWrite: config.opacity === 1.0,
+                    transparent: config.opacity !== 1.0
                 }),
                 geometry = new THREE.BufferGeometry(),
                 positions = [],

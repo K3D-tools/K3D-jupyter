@@ -7,13 +7,17 @@ from traittypes import Array
 
 from ._version import __version__ as version
 from .helpers import array_serialization_wrap, shape_validation, validate_sparse_voxels
+from .validation.stl import AsciiStlData, BinaryStlData
 
 EPSILON = np.finfo(np.float32).eps
 
 
 class TimeSeries(Union):
     def __init__(self, trait):
-        Union.__init__(self, [trait, Dict(trait)])
+        if isinstance(trait, list):
+            Union.__init__(self, trait + [Dict(t) for t in trait])
+        else:
+            Union.__init__(self, [trait, Dict(trait)])
 
 
 class ListOrArray(List):
@@ -233,6 +237,8 @@ class MarchingCubes(Drawable):
             Whether mesh should display as wireframe.
         flat_shading: `bool`.
             Whether mesh should display with flat shading.
+        opacity: `float`.
+            Opacity of mesh.
         model_matrix: `array_like`.
             4x4 model transform matrix.
     """
@@ -243,6 +249,7 @@ class MarchingCubes(Drawable):
     color = Int(min=0, max=0xffffff).tag(sync=True)
     wireframe = Bool().tag(sync=True)
     flat_shading = Bool().tag(sync=True)
+    opacity = Float(min=0.0, max=1.0, default_value=1.0).tag(sync=True)
     model_matrix = Array(dtype=np.float32).tag(sync=True, **array_serialization_wrap('model_matrix'))
 
     def __init__(self, **kwargs):
@@ -378,8 +385,8 @@ class STL(Drawable):
     """
 
     type = Unicode(read_only=True).tag(sync=True)
-    text = Unicode(allow_none=True).tag(sync=True)
-    binary = Bytes(allow_none=True).tag(sync=True)
+    text = AsciiStlData(allow_none=True, default_value=None).tag(sync=True)
+    binary = BinaryStlData(allow_none=True, default_value=None).tag(sync=True)
     color = Int(min=0, max=0xffffff).tag(sync=True)
     model_matrix = Array(dtype=np.float32).tag(sync=True, **array_serialization_wrap('model_matrix'))
     wireframe = Bool().tag(sync=True)
@@ -446,11 +453,11 @@ class Text(Drawable):
     """
 
     type = Unicode(read_only=True).tag(sync=True)
-    text = Unicode().tag(sync=True)
-    position = ListOrArray(minlen=3, maxlen=3).tag(sync=True)
+    text = TimeSeries(Unicode()).tag(sync=True)
+    position = TimeSeries(ListOrArray(minlen=3, maxlen=3)).tag(sync=True)
     color = Int(min=0, max=0xffffff).tag(sync=True)
     reference_point = Unicode().tag(sync=True)
-    size = Float(min=EPSILON, default_value=1.0).tag(sync=True)
+    size = TimeSeries(Float(min=EPSILON, default_value=1.0)).tag(sync=True)
 
     def __init__(self, **kwargs):
         super(Text, self).__init__(**kwargs)
@@ -481,10 +488,10 @@ class Text2d(Drawable):
 
     type = Unicode(read_only=True).tag(sync=True)
     color = Int(min=0, max=0xffffff).tag(sync=True)
-    size = Float(min=EPSILON, default_value=1.0).tag(sync=True)
+    size = TimeSeries(Float(min=EPSILON, default_value=1.0)).tag(sync=True)
     reference_point = Unicode().tag(sync=True)
-    position = ListOrArray(minlen=2, maxlen=2).tag(sync=True)
-    text = Unicode().tag(sync=True)
+    position = TimeSeries(ListOrArray(minlen=2, maxlen=2)).tag(sync=True)
+    text = TimeSeries(Unicode()).tag(sync=True)
 
     def __init__(self, **kwargs):
         super(Text2d, self).__init__(**kwargs)
@@ -701,6 +708,9 @@ class Volume(Drawable):
         color_map: `array_like`.
             A list of float quadruplets (attribute value, R, G, B), sorted by attribute value. The first
             quadruplet should have value 0.0, the last 1.0; R, G, B are RGB color components in the range 0.0 to 1.0.
+        opacity_function: `array`.
+            A list of float tuples (attribute value, opacity), sorted by attribute value. The first
+            typles should have value 0.0, the last 1.0; opacity is in the range 0.0 to 1.0.
         color_range: `list`.
             A pair [min_value, max_value], which determines the levels of color attribute mapped
             to 0 and 1 in the color map respectively.
@@ -727,19 +737,22 @@ class Volume(Drawable):
     """
 
     type = Unicode(read_only=True).tag(sync=True)
-    volume = Array().tag(sync=True, **array_serialization_wrap('volume'))
-    color_map = Array(dtype=np.float32).tag(sync=True, **array_serialization_wrap('color_map'))
-    color_range = ListOrArray(minlen=2, maxlen=2, empty_ok=True).tag(sync=True)
-    samples = Float().tag(sync=True)
-    alpha_coef = Float().tag(sync=True)
-    gradient_step = Float().tag(sync=True)
-    shadow = Unicode().tag(sync=True)
-    shadow_res = Int(min=31, max=513, default_value=128).tag(sync=True)
-    shadow_delay = Float().tag(sync=True)
-    ray_samples_count = Int(min=1, max=128, default_value=16).tag(sync=True)
-    focal_length = Float().tag(sync=True)
-    focal_plane = Float().tag(sync=True)
-    model_matrix = Array(dtype=np.float32).tag(sync=True, **array_serialization_wrap('model_matrix'))
+    volume = TimeSeries([Array(dtype=np.float32),
+                         Array(dtype=np.float16)]).tag(sync=True, **array_serialization_wrap('volume'))
+    color_map = TimeSeries(Array(dtype=np.float32)).tag(sync=True, **array_serialization_wrap('color_map'))
+    opacity_function = TimeSeries(Array(dtype=np.float32)).tag(sync=True,
+                                                               **array_serialization_wrap('opacity_function'))
+    color_range = TimeSeries(ListOrArray(minlen=2, maxlen=2, empty_ok=True)).tag(sync=True)
+    samples = TimeSeries(Float()).tag(sync=True)
+    alpha_coef = TimeSeries(Float()).tag(sync=True)
+    gradient_step = TimeSeries(Float()).tag(sync=True)
+    shadow = TimeSeries(Unicode()).tag(sync=True)
+    shadow_res = TimeSeries(Int(min=31, max=513, default_value=128)).tag(sync=True)
+    shadow_delay = TimeSeries(Float()).tag(sync=True)
+    ray_samples_count = TimeSeries(Int(min=1, max=128, default_value=16)).tag(sync=True)
+    focal_length = TimeSeries(Float()).tag(sync=True)
+    focal_plane = TimeSeries(Float()).tag(sync=True)
+    model_matrix = TimeSeries(Array(dtype=np.float32)).tag(sync=True, **array_serialization_wrap('model_matrix'))
 
     def __init__(self, **kwargs):
         super(Volume, self).__init__(**kwargs)

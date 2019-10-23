@@ -1,0 +1,66 @@
+<!doctype html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>K3D</title>
+    <script src="node_modules/requirejs/require.js"></script>
+    <script src="dev/index.js?k3d"></script>
+    <script src="test/utils/globals.js"></script>
+    <script src="test/utils/testUtils.js"></script>
+    <style>
+        body, html {
+            background-color: #F5F5F5;
+            margin: 0;
+            padding: 0;
+            overflow: hidden;
+        }
+
+        #canvasTarget {
+            width: 100%;
+            height: 100%;
+            position: absolute;
+        }
+    </style>
+</head>
+<body>
+<div id="canvasTarget"></div>
+<script>
+    var K3DInstance;
+
+    require(['k3d'], function (lib) {
+        try {
+            K3DInstance = new lib.TransferFunctionEditor(
+                document.getElementById('canvasTarget'),
+                {
+                    colorMap: [
+                        0, 0.278431372549, 0.278431372549, 0.858823529412,
+                        0.143, 0, 0, 0.360784313725,
+                        0.285, 0, 1, 1,
+                        0.429, 0, 0.501960784314, 0,
+                        0.571, 1, 1, 0,
+                        0.714, 1, 0.380392156863, 0,
+                        0.857, 0.419607843137, 0, 0,
+                        1, 0.8784313725489999, 0.301960784314, 0.301960784314
+                    ],
+                    opacityFunction: [
+                        0.0, 0.0,
+                        0.1, 0.2,
+                        0.3, 0.9,
+                        0.4, 0.9,
+                        0.45, 0.1,
+                        0.5, 0.75,
+                        0.8, 0.85,
+                        1.0, 1.0
+                    ]
+                }
+            );
+        } catch (e) {
+            console.log(e);
+            return;
+        }
+
+
+    });
+</script>
+</body>
+</html>

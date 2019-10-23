@@ -13,7 +13,7 @@ var viewModes = require('./lib/viewMode').viewModes,
     detachWindowGUI = require('./lib/detachWindow'),
     fullscreen = require('./lib/fullscreen'),
     viewModeGUI = require('./lib/viewMode').viewModeGUI,
-    colorMapLegend = require('./lib/colorMapLegend'),
+    getColorLegend = require('./lib/colorMapLegend').getColorLegend,
     objectGUIProvider = require('./lib/objectsGUIprovider'),
     clippingPlanesGUIProvider = require('./lib/clippingPlanesGUIProvider'),
     timeSeries = require('./lib/timeSeries');
@@ -276,7 +276,7 @@ function K3D(provider, targetDOMNode, parameters) {
             });
         }
 
-        colorMapLegend(self, world.ObjectsListJson[self.parameters.colorbarObjectId] || v);
+        getColorLegend(self, world.ObjectsListJson[self.parameters.colorbarObjectId] || v);
     };
 
     /**
@@ -380,12 +380,14 @@ function K3D(provider, targetDOMNode, parameters) {
         world.setupCamera(null, angle);
 
         GUI.controls.__controllers.forEach(function (controller) {
-            if (controller.property === 'fov') {
+            if (controller.property === 'camera_fov') {
                 controller.updateDisplay();
             }
         });
 
-        self.render();
+        self.rebuildSceneData(false).then(function () {
+            self.render();
+        });
     };
 
     /**
@@ -422,7 +424,7 @@ function K3D(provider, targetDOMNode, parameters) {
     this.setGrid = function (vectors) {
         self.parameters.grid = vectors;
 
-        Promise.all(self.rebuildSceneData(true)).then(function () {
+        self.rebuildSceneData(true).then(function () {
             self.refreshGrid();
             self.render();
         });

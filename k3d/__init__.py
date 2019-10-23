@@ -23,8 +23,9 @@ from .k3d import (plot,
                   sparse_voxels,
                   volume,
                   vtk_poly_data,
-                  voxel_chunk,
-                  voxels_ipydw)
+                  voxel_chunk)
+
+from .transfer_function_editor import transfer_function_editor
 
 
 def _jupyter_nbextension_paths():

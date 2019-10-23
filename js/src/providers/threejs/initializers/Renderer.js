@@ -177,8 +177,13 @@ module.exports = function (K3D) {
             chunk_heights.push([o1, o2 - o1]);
         }
 
-        rt = new THREE.WebGLRenderTarget(width, Math.ceil(height / chunk_count));
-        rtAxesHelper = new THREE.WebGLRenderTarget(self.axesHelper.width * scale, self.axesHelper.height * scale);
+        rt = new THREE.WebGLRenderTarget(width, Math.ceil(height / chunk_count), {
+            type: THREE.FloatType
+        });
+
+        rtAxesHelper = new THREE.WebGLRenderTarget(self.axesHelper.width * scale, self.axesHelper.height * scale, {
+            type: THREE.FloatType
+        });
         self.renderer.clippingPlanes = [];
 
         return getSSAAChunkedRender(self.renderer, self.axesHelper.scene, self.axesHelper.camera,

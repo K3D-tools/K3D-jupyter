@@ -3,7 +3,7 @@
 'use strict';
 
 var THREE = require('three'),
-    lut = require('./../../../core/lib/helpers/lut'),
+    colorMapHelper = require('./../../../core/lib/helpers/colorMap'),
     closestPowOfTwo = require('./../helpers/Fn').closestPowOfTwo,
     typedArrayToThree = require('./../helpers/Fn').typedArrayToThree,
     areAllChangesResolve = require('./../helpers/Fn').areAllChangesResolve;
@@ -39,6 +39,7 @@ module.exports = {
             lightMapSize = config.shadow_res,
             lightMapRenderTargetSize,
             colorMap = (config.color_map && config.color_map.data) || null,
+            opacityFunction = (config.opacity_function && config.opacity_function.data) || null,
             colorRange = config.color_range,
             samples = config.samples,
             sceneRTT,
@@ -88,7 +89,7 @@ module.exports = {
         jitterTexture.generateMipmaps = false;
         jitterTexture.needsUpdate = true;
 
-        var canvas = lut(colorMap, 1024);
+        var canvas = colorMapHelper.createCanvasGradient(colorMap, 1024, opacityFunction);
         var colormap = new THREE.CanvasTexture(canvas, THREE.UVMapping, THREE.ClampToEdgeWrapping,
             THREE.ClampToEdgeWrapping, THREE.NearestFilter, THREE.NearestFilter);
         colormap.needsUpdate = true;
@@ -242,12 +243,16 @@ module.exports = {
                 });
             }
 
+            object.quadRTT = quadRTT;
             object.refreshLightMap();
         }
 
         object.onRemove = function () {
-            quadRTT.material.uniforms.volumeTexture.value.dispose();
-            quadRTT.material.uniforms.volumeTexture.value = undefined;
+            if (quadRTT) {
+                quadRTT.material.uniforms.volumeTexture.value.dispose();
+                quadRTT.material.uniforms.volumeTexture.value = undefined;
+            }
+
             object.material.uniforms.volumeTexture.value = undefined;
             object.material.uniforms.colormap.value.dispose();
             object.material.uniforms.colormap.value = undefined;
@@ -290,6 +295,34 @@ module.exports = {
                 // shader needs to be recompile
                 return false;
             }
+        }
+
+        if (typeof(changes.volume) !== 'undefined' && !changes.volume.timeSeries) {
+            obj.material.uniforms.volumeTexture.value.image.data = changes.volume.data;
+            obj.material.uniforms.volumeTexture.value.needsUpdate = true;
+
+            changes.volume = null;
+        }
+
+        if ((typeof(changes.color_map) !== 'undefined' && !changes.color_map.timeSeries) ||
+            (typeof(changes.opacity_function) !== 'undefined' && !changes.opacity_function.timeSeries)) {
+
+            var canvas = colorMapHelper.createCanvasGradient(
+                (changes.color_map && changes.color_map.data) || config.color_map.data,
+                1024,
+                (changes.opacity_function && changes.opacity_function.data) || config.opacity_function.data
+            );
+
+            obj.material.uniforms.colormap.value.image = canvas;
+            obj.material.uniforms.colormap.value.needsUpdate = true;
+
+            if (obj.quadRTT) {
+                obj.quadRTT.material.uniforms.colormap.value.image = canvas;
+                obj.quadRTT.material.uniforms.colormap.value.needsUpdate = true;
+            }
+
+            changes.color_map = null;
+            changes.opacity_function = null;
         }
 
         ['samples', 'alpha_coef', 'gradient_step', 'focal_plane', 'focal_length'].forEach(function (key) {

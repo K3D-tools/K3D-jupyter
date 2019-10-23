@@ -1,7 +1,7 @@
 'use strict';
 
 var THREE = require('three'),
-    lut = require('./../../../core/lib/helpers/lut'),
+    colorMapHelper = require('./../../../core/lib/helpers/colorMap'),
     typedArrayToThree = require('./../helpers/Fn').typedArrayToThree;
 
 /**
@@ -31,7 +31,7 @@ module.exports = {
             texture.anisotropy = K3D.getWorld().renderer.capabilities.getMaxAnisotropy();
             texture.needsUpdate = true;
 
-            var canvas = lut(colorMap, 1024);
+            var canvas = colorMapHelper.createCanvasGradient(colorMap, 1024);
             var colormap = new THREE.CanvasTexture(canvas, THREE.UVMapping, THREE.ClampToEdgeWrapping,
                 THREE.ClampToEdgeWrapping, THREE.NearestFilter, THREE.NearestFilter);
             colormap.needsUpdate = true;

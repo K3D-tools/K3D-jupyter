@@ -1,6 +1,7 @@
 'use strict';
 
-var THREE = require('three');
+var THREE = require('three'),
+    recalculateFrustum = require('./../helpers/Fn').recalculateFrustum;
 
 /**
  * Camera initializer for Three.js library
@@ -14,7 +15,7 @@ module.exports = function (K3D) {
     this.camera = new THREE.PerspectiveCamera(K3D.parameters.camera_fov, this.width / this.height, 0.1, currentFar);
     this.camera.position.set(2, -3, 0.2);
     this.camera.up.set(0, 0, 1);
-
+    this.camera.frustum = new THREE.Frustum();
 
     this.axesHelper.camera = new THREE.PerspectiveCamera(K3D.parameters.camera_fov,
         this.axesHelper.width / this.axesHelper.height, 0.1, 1000);
@@ -39,6 +40,8 @@ module.exports = function (K3D) {
             this.controls.target.fromArray(array, 3);
             this.controls.update();
         }
+
+        recalculateFrustum(this.camera);
     };
 
     this.setCameraToFitScene = function (force) {

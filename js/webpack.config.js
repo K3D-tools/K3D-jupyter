@@ -140,12 +140,7 @@ module.exports = [
         mode: mode,
         devtool: 'source-map',
         module: {
-            rules: [
-                {
-                    test: /\.glsl/,
-                    use: 'raw-loader'
-                }
-            ]
+            rules: rules
         },
         externals: [nodeExternals()]
     }

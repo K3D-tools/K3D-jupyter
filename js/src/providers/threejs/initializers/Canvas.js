@@ -1,6 +1,7 @@
 'use strict';
 
-var THREE = require('three');
+var THREE = require('three'),
+    recalculateFrustum = require('./../helpers/Fn').recalculateFrustum;
 
 /**
  * Canvas initializer for Three.js library
@@ -57,11 +58,11 @@ module.exports = function (K3D) {
     this.targetDOMNode.appendChild(this.renderer.domElement);
 
     this.controls = new THREE.TrackballControls(this.camera, this.renderer.domElement);
-    this.controls.rotateSpeed = 2.0;
+    this.controls.rotateSpeed = 1.0;
     this.controls.zoomSpeed = 1.2;
     this.controls.panSpeed = 0.8;
     this.controls.staticMoving = true;
-    this.controls.dynamicDampingFactor = 0.3;
+    this.controls.dynamicDampingFactor = 0.1;
 
     this.renderer.domElement.addEventListener('mousemove', onDocumentMouseMove, false);
     this.renderer.domElement.addEventListener('mousedown', onDocumentMouseDown, false);
@@ -79,6 +80,8 @@ module.exports = function (K3D) {
 
     this.controls.addEventListener('change', function (event) {
         var r = event.target.getCameraArray();
+
+        recalculateFrustum(self.camera);
 
         K3D.dispatch(K3D.events.CAMERA_CHANGE, r);
 
