@@ -3,6 +3,7 @@ import struct
 
 from traitlets import Bytes, Unicode, TraitError
 
+# reference to https://stackoverflow.com/a/385597/1338797
 float_re = r'''
 (?:
     [-+]? # optional sign
