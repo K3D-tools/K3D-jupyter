@@ -248,8 +248,11 @@ module.exports = {
         }
 
         object.onRemove = function () {
-            quadRTT.material.uniforms.volumeTexture.value.dispose();
-            quadRTT.material.uniforms.volumeTexture.value = undefined;
+            if (quadRTT) {
+                quadRTT.material.uniforms.volumeTexture.value.dispose();
+                quadRTT.material.uniforms.volumeTexture.value = undefined;
+            }
+
             object.material.uniforms.volumeTexture.value = undefined;
             object.material.uniforms.colormap.value.dispose();
             object.material.uniforms.colormap.value = undefined;

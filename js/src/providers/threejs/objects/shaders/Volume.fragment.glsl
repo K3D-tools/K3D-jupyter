@@ -237,7 +237,7 @@ void main() {
 
                 value += pxColor;
 
-                if (value.a >= 0.95) {
+                if (value.a >= 0.99) {
                     value.a = 1.0;
                     break;
                 }
