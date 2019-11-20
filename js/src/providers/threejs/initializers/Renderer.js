@@ -1,6 +1,7 @@
 'use strict';
 
 var THREE = require('three'),
+    error = require('./../../../core/lib/Error').error,
     getSSAAChunkedRender = require('./../helpers/SSAAChunkedRender');
 
 /**
@@ -46,6 +47,8 @@ module.exports = function (K3D) {
     canvas.addEventListener('webglcontextlost', function (event) {
         event.preventDefault();
         console.log(event);
+        K3D.disable();
+        error('WEBGL Error', 'Context lost.', true);
     }, false);
 
     gl = self.renderer.context;

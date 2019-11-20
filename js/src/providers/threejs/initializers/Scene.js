@@ -160,6 +160,21 @@ function generateEdgesPoints(box) {
     };
 }
 
+function cleanup(grids, gridScene) {
+    Object.keys(grids.planes).forEach(function (axis) {
+        grids.planes[axis].forEach(function (plane) {
+            gridScene.remove(plane.obj);
+            delete plane.obj;
+        });
+    });
+
+    Object.keys(grids.labelsOnEdges).forEach(function (key) {
+        grids.labelsOnEdges[key].labels.forEach(function (label) {
+            label.onRemove();
+        });
+    });
+}
+
 function rebuildSceneData(K3D, grids, axesHelper, force) {
     /*jshint validthis:true, maxstatements:false */
     var that = this;
@@ -242,18 +257,7 @@ function rebuildSceneData(K3D, grids, axesHelper, force) {
         }
 
         // cleanup previous data
-        Object.keys(grids.planes).forEach(function (axis) {
-            grids.planes[axis].forEach(function (plane) {
-                this.gridScene.remove(plane.obj);
-                delete plane.obj;
-            }, this);
-        }, this);
-
-        Object.keys(grids.labelsOnEdges).forEach(function (key) {
-            grids.labelsOnEdges[key].labels.forEach(function (label) {
-                label.onRemove();
-            }, this);
-        }, this);
+        cleanup(grids, this.gridScene);
 
         // generate new one
         size = sceneBoundingBox.getSize(new THREE.Vector3());
@@ -608,9 +612,12 @@ module.exports = {
         this.scene.add(this.camera);
         this.scene.add(this.K3DObjects);
 
+        this.cleanup = cleanup.bind(this, grids, this.gridScene);
+
         K3D.rebuildSceneData = rebuildSceneData.bind(this, K3D, grids, this.axesHelper);
         K3D.getSceneBoundingBox = getSceneBoundingBox.bind(this);
         K3D.refreshGrid = refreshGrid.bind(this, K3D, grids);
+
 
         K3D.rebuildSceneData().then(function () {
             K3D.refreshGrid();

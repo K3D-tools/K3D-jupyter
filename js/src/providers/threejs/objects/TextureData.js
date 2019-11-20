@@ -51,6 +51,21 @@ module.exports = {
                 clipping: true
             });
 
+            if (config.puv.data.length === 9) {
+                var positionArray = geometry.attributes.position.array;
+
+                var p = new THREE.Vector3().fromArray(config.puv.data, 0);
+                var u = new THREE.Vector3().fromArray(config.puv.data, 3);
+                var v = new THREE.Vector3().fromArray(config.puv.data, 6);
+
+                p.toArray(positionArray, 0);
+                p.clone().add(u).toArray(positionArray, 3);
+                p.clone().add(v).toArray(positionArray, 6);
+                p.clone().add(v).add(u).toArray(positionArray, 9);
+
+                geometry.computeVertexNormals();
+            }
+
             geometry.computeBoundingSphere();
             geometry.computeBoundingBox();
 

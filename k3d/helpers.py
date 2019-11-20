@@ -61,7 +61,7 @@ def to_json(name, input, obj=None, compression_level=0):
     if isinstance(input, dict):
         ret = {}
         for key, value in input.items():
-            ret[key] = to_json(key, value, property, compression_level)
+            ret[str(key)] = to_json(key, value, property, compression_level)
 
         return ret
     elif isinstance(input, list):

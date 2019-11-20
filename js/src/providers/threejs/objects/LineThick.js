@@ -68,6 +68,8 @@ function create(config, K3D) {
     object = new THREE.Mesh(line.geometry, material);
     object.userData.meshLine = line;
     object.userData.lastPosition = new Float32Array(position);
+    object.userData.lastUVs = uvs;
+    object.userData.lastColors = colors;
 
     modelMatrix.set.apply(modelMatrix, config.model_matrix.data);
     object.applyMatrix(modelMatrix);
@@ -93,7 +95,9 @@ function create(config, K3D) {
 
 
 function update(config, changes, obj) {
-    var uvs = null, position = obj.userData.lastPosition;
+    var uvs = obj.userData.lastUVs,
+        position = obj.userData.lastPosition,
+        colors = obj.userData.lastColors;
 
     if (typeof(changes.attribute) !== 'undefined' && !changes.attribute.timeSeries) {
         if (changes.attribute.data.length !== obj.geometry.attributes.uv.array.length) {
@@ -106,6 +110,8 @@ function update(config, changes, obj) {
             uvs[i] = (changes.attribute.data[i] - config.color_range[0]) /
                      (config.color_range[1] - config.color_range[0]);
         }
+
+        obj.userData.lastUVs = uvs;
     }
 
     if (typeof(changes.vertices) !== 'undefined' && !changes.vertices.timeSeries) {
@@ -114,10 +120,11 @@ function update(config, changes, obj) {
         }
 
         position = changes.vertices.data;
+        obj.userData.lastPosition = position;
     }
 
     if (typeof(changes.attribute) !== 'undefined' || typeof(changes.vertices) !== 'undefined') {
-        obj.userData.meshLine.setGeometry(position, false, null, null, uvs);
+        obj.userData.meshLine.setGeometry(position, false, null, colors, uvs);
 
         changes.attribute = null;
         changes.vertices = null;

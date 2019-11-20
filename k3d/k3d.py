@@ -345,8 +345,8 @@ def text2d(text, position=(0, 0), color=_default_color, size=1.0, reference_poin
                   name=name, compression_level=compression_level)
 
 
-def texture(binary=None, file_format=None, color_map=basic_color_maps.Rainbow, color_range=[], attribute=[], name=None,
-            compression_level=0, **kwargs):
+def texture(binary=None, file_format=None, color_map=basic_color_maps.Rainbow, color_range=[], attribute=[], puv=[],
+            name=None, compression_level=0, **kwargs):
     """Create a Texture drawable for displaying 2D raster images in common formats.
 
     By default, the texture image is mapped into the square: -0.5 < x, y < 0.5, z = 1.
@@ -379,6 +379,9 @@ def texture(binary=None, file_format=None, color_map=basic_color_maps.Rainbow, c
             to 0 and 1 in the color map respectively.
         name: `string`.
             A name of a object
+        puv: `list`.
+            A list of float triplets (x,y,z). The first triplet mean a position of left-bottom corner of texture.
+            Second and third triplets means a base of coordinate system for texture.
         kwargs: `dict`.
             Dictionary arguments to configure transform and model_matrix."""
 
@@ -392,6 +395,7 @@ def texture(binary=None, file_format=None, color_map=basic_color_maps.Rainbow, c
                 color_map=color_map,
                 color_range=color_range,
                 attribute=attribute,
+                puv=puv,
                 name=name,
                 compression_level=compression_level),
         **kwargs

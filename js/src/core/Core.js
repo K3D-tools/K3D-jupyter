@@ -758,6 +758,11 @@ function K3D(provider, targetDOMNode, parameters) {
             removeObjectFromScene(obj.K3DIdentifier);
             delete world.ObjectsListJson[obj.K3DIdentifier];
         });
+        world.cleanup();
+
+        if (fpsMeter) {
+            fpsMeter.domElement.remove();
+        }
 
         listeners = {};
         currentWindow.removeEventListener('resize', this.resizeHelper);

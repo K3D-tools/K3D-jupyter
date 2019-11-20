@@ -147,7 +147,8 @@ ObjectModel = widgets.WidgetModel.extend({
         opacity_function: serialize,
         text: serialize,
         size: serialize,
-        position: serialize
+        position: serialize,
+        puv: serialize
     }, widgets.WidgetModel.serializers)
 });
 

@@ -94,7 +94,10 @@ module.exports = {
         listenersId = K3D.on(K3D.events.RENDERED, render);
 
         object.onRemove = function () {
-            overlayDOMNode.removeChild(domElement);
+            if (overlayDOMNode.contains(domElement)) {
+                overlayDOMNode.removeChild(domElement);
+            }
+
             K3D.off(K3D.events.RENDERED, listenersId);
         };
 

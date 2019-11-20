@@ -170,7 +170,7 @@ class Plot(widgets.DOMWidget):
 
         self.outputs = []
 
-    def reset_camera(self):
+    def camera_reset(self):
         self.send({'msg_type': 'reset_camera'})
 
     def fetch_screenshot(self, only_canvas=False):

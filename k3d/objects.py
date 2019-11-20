@@ -521,6 +521,9 @@ class Texture(Drawable):
         color_range: `list`.
             A pair [min_value, max_value], which determines the levels of color attribute mapped
             to 0 and 1 in the color map respectively.
+        puv: `list`.
+            A list of float triplets (x,y,z). The first triplet mean a position of left-bottom corner of texture.
+            Second and third triplets means a base of coordinate system for texture.
         model_matrix: `array_like`.
             4x4 model transform matrix.
     """
@@ -529,6 +532,7 @@ class Texture(Drawable):
     binary = Bytes(allow_none=True).tag(sync=True)
     file_format = Unicode(allow_none=True).tag(sync=True)
     attribute = Array().tag(sync=True, **array_serialization_wrap('attribute'))
+    puv = Array(dtype=np.float32).tag(sync=True, **array_serialization_wrap('puv'))
     color_map = Array(dtype=np.float32).tag(sync=True, **array_serialization_wrap('color_map'))
     color_range = ListOrArray(minlen=2, maxlen=2, empty_ok=True).tag(sync=True)
     model_matrix = Array(dtype=np.float32).tag(sync=True, **array_serialization_wrap('model_matrix'))
