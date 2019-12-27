@@ -20,16 +20,16 @@ float_re = r'''
 stl_re = r'''
     solid .* \n  # header
     (?:
-        \s* facet \s normal (?: \s ''' + float_re + ''' ){3}
+        \s* facet \s normal (?: \s ''' + float_re + r''' ){3}
         \s* outer \s loop
         (?:
-            \s* vertex (?: \s ''' + float_re + ''' ){3}
+            \s* vertex (?: \s ''' + float_re + r''' ){3}
         ){3}
         \s* endloop
         \s* endfacet
     ) + # at least 1 facet.
-    \s* endsolid
-    \s* $ # e.g. trailing newline
+    \s* endsolid (?: .*)?
+    \s* $ # allow trailing WS
 '''
 
 ascii_stl = re.compile(stl_re, re.VERBOSE)

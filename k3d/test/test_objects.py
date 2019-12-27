@@ -50,6 +50,34 @@ solid
 endsolid
         '''.strip())
 
+    def test_creation_named(self):
+        from ..objects import STL
+        STL(text='''
+solid named_solid
+    facet normal 0 0 0
+        outer loop
+            vertex -1.000000 1.000000 -1.000000
+            vertex -1.000000 -1.000000 -1.000000
+            vertex -1.000000 -1.000000 1.000000
+        endloop
+    endfacet
+endsolid named_solid
+        '''.strip())
+
+    def test_invalid(self):
+        from ..objects import STL
+        s = STL(text='''
+solid
+    facet normal 0 0 0
+        outer loop
+            vertex -1.000000 1.000000 -1.000000
+            vertex -1.000000 -1.000000 -1.000000
+            vertex -1.000000 -1.000000 1.000000
+        endloop
+    endfacet
+endsolid
+        '''.strip())
+
         def assign_bad():
             # missing endsolid, gibberish after facet normal:
             s.text = '''solid

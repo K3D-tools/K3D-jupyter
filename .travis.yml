@@ -4,7 +4,7 @@ language: node_js
 node_js:
   - "10.8"
 addons:
-  firefox: "latest"
+  firefox: "70.0.1"
 services:
   - xvfb
 before_script:

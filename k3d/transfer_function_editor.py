@@ -5,7 +5,7 @@ from traitlets import Unicode, Int
 from traitlets import validate
 from traittypes import Array
 
-import k3d
+from .colormaps import paraview_color_maps
 from ._version import __version__ as version
 from .helpers import array_serialization_wrap
 
@@ -81,7 +81,7 @@ class TF_editor(widgets.DOMWidget):
         return proposal['value']
 
 
-def transfer_function_editor(color_map=k3d.paraview_color_maps.Jet, opacity_function=None, height=300):
+def transfer_function_editor(color_map=paraview_color_maps.Jet, opacity_function=None, height=300):
     """Create a K3D Transfer function editor widget.
 
     Arguments:
