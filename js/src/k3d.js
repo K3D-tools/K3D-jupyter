@@ -293,8 +293,6 @@ PlotView = widgets.DOMWidgetView.extend({
             return;
         }
 
-        this.objectsChangesQueue = [];
-        this.objectsChangesQueueRun = false;
 
         this.K3DInstance.setClearColor(this.model.get('background_color'));
         this.K3DInstance.setChunkList(chunkList);
@@ -305,12 +303,8 @@ PlotView = widgets.DOMWidgetView.extend({
         this._setVoxelPaintColor();
 
         this.model.get('object_ids').forEach(function (id) {
-            this.objectsChangesQueue.push({id: id, operation: 'insert'});
+            this.renderPromises.push(this.K3DInstance.load({objects: [objectsList[id].attributes]}));
         }, this);
-
-        if (this.objectsChangesQueue.length > 0) {
-            this.startRefreshing();
-        }
 
         this.cameraChangeId = this.K3DInstance.on(this.K3DInstance.events.CAMERA_CHANGE, function (control) {
             self.model.set('camera', control);
