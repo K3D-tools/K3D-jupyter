@@ -1,12 +1,11 @@
 import ipywidgets as widgets
 import numpy as np
-from ipydatawidgets import DataUnion, data_union_serialization
-from traitlets import Unicode, Int, Float, List, Bool, Bytes, Integer, Dict, Union
+from traitlets import Unicode, Int, Float, List, Bool, Bytes, Integer, Dict, Union, Any
 from traitlets import validate, TraitError
 from traittypes import Array
 
 from ._version import __version__ as version
-from .helpers import array_serialization_wrap, shape_validation, validate_sparse_voxels
+from .helpers import callback_serialization_wrap, array_serialization_wrap, shape_validation, validate_sparse_voxels
 from .validation.stl import AsciiStlData, BinaryStlData
 
 EPSILON = np.finfo(np.float32).eps
@@ -120,6 +119,54 @@ class Drawable(widgets.Widget):
         plot.display()
 
 
+class DrawableWithVoxelCallback(Drawable):
+    """
+    Base class for drawable with voxels callback handling
+    """
+
+    click_callback = None
+    hover_callback = None
+
+    def __init__(self, **kwargs):
+        super(DrawableWithVoxelCallback, self).__init__(**kwargs)
+
+        self.on_msg(self._handle_custom_msg)
+
+    def _handle_custom_msg(self, content, buffers):
+        if content.get('msg_type', '') == 'click_callback':
+            if self.click_callback is not None:
+                self.click_callback(content['coord']['x'], content['coord']['y'], content['coord']['z'])
+
+        if content.get('msg_type', '') == 'hover_callback':
+            if self.hover_callback is not None:
+                self.hover_callback(content['coord']['x'], content['coord']['y'], content['coord']['z'])
+
+
+class DrawableWithCallback(Drawable):
+    """
+    Base class for drawable with callback handling
+    """
+
+    click_callback = Any(default_value=None,
+                         allow_none=True).tag(sync=True, **callback_serialization_wrap('click_callback'))
+    hover_callback = Any(default_value=None,
+                         allow_none=True).tag(sync=True, **callback_serialization_wrap('hover_callback'))
+
+    def __init__(self, **kwargs):
+        super(DrawableWithCallback, self).__init__(**kwargs)
+
+        self.on_msg(self._handle_custom_msg)
+
+    def _handle_custom_msg(self, content, buffers):
+        if content.get('msg_type', '') == 'click_callback':
+            if self.click_callback is not None:
+                self.click_callback(content)
+
+        if content.get('msg_type', '') == 'hover_callback':
+            if self.hover_callback is not None:
+                self.hover_callback(content)
+
+
 class Group(Drawable):
     """
     An aggregated group of Drawables, itself a Drawable.
@@ -219,7 +266,7 @@ class Line(Drawable):
         return proposal['value']
 
 
-class MarchingCubes(Drawable):
+class MarchingCubes(DrawableWithCallback):
     """
     An isosurface in a scalar field obtained through Marching Cubes algorithm.
 
@@ -258,7 +305,7 @@ class MarchingCubes(Drawable):
         self.set_trait('type', 'MarchingCubes')
 
 
-class Mesh(Drawable):
+class Mesh(DrawableWithCallback):
     """
     A 3D triangles mesh.
 
@@ -398,7 +445,7 @@ class STL(Drawable):
         self.set_trait('type', 'STL')
 
 
-class Surface(Drawable):
+class Surface(DrawableWithCallback):
     """
     Surface plot of a 2D function z = f(x, y).
 
@@ -499,7 +546,7 @@ class Text2d(Drawable):
         self.set_trait('type', 'Text2d')
 
 
-class Texture(Drawable):
+class Texture(DrawableWithCallback):
     """
     A 2D image displayed as a texture.
 
@@ -769,7 +816,7 @@ class Volume(Drawable):
         self.send({'msg_type': 'shadow_map_update', 'direction': direction})
 
 
-class Voxels(Drawable):
+class Voxels(DrawableWithVoxelCallback):
     """
     3D volumetric data.
 
@@ -812,21 +859,14 @@ class Voxels(Drawable):
     outlines_color = Int(min=0, max=0xffffff).tag(sync=True)
     opacity = Float(min=0.0, max=1.0, default_value=1.0).tag(sync=True)
     model_matrix = Array(dtype=np.float32).tag(sync=True, **array_serialization_wrap('model_matrix'))
-    click_callback = None
 
     def __init__(self, **kwargs):
         super(Voxels, self).__init__(**kwargs)
 
         self.set_trait('type', 'Voxels')
-        self.on_msg(self._handle_custom_msg)
-
-    def _handle_custom_msg(self, content, buffers):
-        if content.get('msg_type', '') == 'click_callback':
-            if self.click_callback is not None:
-                self.click_callback(content['coord']['x'], content['coord']['y'], content['coord']['z'])
 
 
-class SparseVoxels(Drawable):
+class SparseVoxels(DrawableWithVoxelCallback):
     """
     3D volumetric data.
 
@@ -867,21 +907,14 @@ class SparseVoxels(Drawable):
     outlines_color = Int(min=0, max=0xffffff).tag(sync=True)
     opacity = Float(min=0.0, max=1.0, default_value=1.0).tag(sync=True)
     model_matrix = Array(dtype=np.float32).tag(sync=True, **array_serialization_wrap('model_matrix'))
-    click_callback = None
 
     def __init__(self, **kwargs):
         super(SparseVoxels, self).__init__(**kwargs)
 
         self.set_trait('type', 'SparseVoxels')
-        self.on_msg(self._handle_custom_msg)
-
-    def _handle_custom_msg(self, content, buffers):
-        if content.get('msg_type', '') == 'click_callback':
-            if self.click_callback is not None:
-                self.click_callback(content['coord']['x'], content['coord']['y'], content['coord']['z'])
 
 
-class VoxelsGroup(Drawable):
+class VoxelsGroup(DrawableWithVoxelCallback):
     """
     3D volumetric data.
 
@@ -922,74 +955,8 @@ class VoxelsGroup(Drawable):
     outlines_color = Int(min=0, max=0xffffff).tag(sync=True)
     opacity = Float(min=0.0, max=1.0, default_value=1.0).tag(sync=True)
     model_matrix = Array(dtype=np.float32).tag(sync=True, **array_serialization_wrap('model_matrix'))
-    click_callback = None
 
     def __init__(self, **kwargs):
         super(VoxelsGroup, self).__init__(**kwargs)
 
         self.set_trait('type', 'VoxelsGroup')
-        self.on_msg(self._handle_custom_msg)
-
-    def _handle_custom_msg(self, content, buffers):
-        if content.get('msg_type', '') == 'click_callback':
-            if self.click_callback is not None:
-                self.click_callback(content['coord']['x'], content['coord']['y'], content['coord']['z'])
-
-
-class VoxelsIpyDW(Drawable):
-    """
-    3D volumetric data.
-
-    By default, the voxels are a grid inscribed in the -0.5 < x, y, z < 0.5 cube
-    regardless of the passed voxel array shape (aspect ratio etc.).
-    Different grid size, shape and rotation can be obtained using the model_matrix.
-
-    Attributes:
-        voxels: `array_like`.
-            3D array of `int` in range (0, 255).
-            0 means empty voxel, 1 and above refer to consecutive color_map entries.
-        color_map: `array_like`.
-            Flat array of `int` packed RGB colors (0xff0000 is red, 0xff is blue).
-
-            The color defined at index i is for voxel value (i+1), e.g.:
-
-           | color_map = [0xff, 0x00ff]
-           | voxels =
-           | [
-           | 0, # empty voxel
-           | 1, # blue voxel
-           | 2  # red voxel
-           | ]
-
-        model_matrix: `array_like`.
-            4x4 model transform matrix.
-        wireframe: `bool`.
-            Whether mesh should display as wireframe.
-        opacity: `float`.
-            Opacity of voxels.
-        outlines: `bool`.
-            Whether mesh should display with outlines.
-        outlines_color: `int`.
-            Packed RGB color of the resulting outlines (0xff0000 is red, 0xff is blue)
-    """
-
-    type = Unicode(read_only=True).tag(sync=True)
-    voxels = DataUnion(default_value=[], dtype=np.uint8).tag(sync=True, **data_union_serialization)
-    color_map = Array(dtype=np.uint32).tag(sync=True, **array_serialization_wrap('color_map'))
-    wireframe = Bool().tag(sync=True)
-    outlines = Bool().tag(sync=True)
-    outlines_color = Int(min=0, max=0xffffff).tag(sync=True)
-    click_callback = None
-    opacity = Float(min=0.0, max=1.0, default_value=1.0).tag(sync=True)
-    model_matrix = Array(dtype=np.float32).tag(sync=True, **array_serialization_wrap('model_matrix'))
-
-    def __init__(self, **kwargs):
-        super(VoxelsIpyDW, self).__init__(**kwargs)
-
-        self.set_trait('type', 'Voxels')
-        self.on_msg(self._handle_custom_msg)
-
-    def _handle_custom_msg(self, content, buffers):
-        if content.get('msg_type', '') == 'click_callback':
-            if self.click_callback is not None:
-                self.click_callback(content['coord']['x'], content['coord']['y'], content['coord']['z'])

@@ -128,7 +128,7 @@ function toScreenPosition(obj, viewport, camera) {
             x: -100,
             y: -100,
             z: -100
-        }
+        };
     }
 
     vector.project(camera);

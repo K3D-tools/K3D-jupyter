@@ -231,6 +231,8 @@ function K3D(provider, targetDOMNode, parameters) {
                 controller.updateDisplay();
             }
         });
+
+        world.targetDOMNode.style.cursor = 'auto';
     };
 
     /**
@@ -695,6 +697,15 @@ function K3D(provider, targetDOMNode, parameters) {
     };
 
     /**
+     * Get HTML snapshot
+     * @memberof K3D.Core
+     * @returns {String|undefined}
+     */
+    this.getHTMLSnapshot = function () {
+        return snapshot.getHTMLSnapshot(this);
+    };
+
+    /**
      * Get snapshot
      * @memberof K3D.Core
      * @returns {String|undefined}
@@ -900,10 +911,12 @@ K3D.prototype.events = {
     OBJECT_LOADED: 'objectLoaded',
     OBJECT_REMOVED: 'objectRemoved',
     OBJECT_CHANGE: 'objectChange',
+    OBJECT_HOVERED: 'objectHovered',
+    OBJECT_CLICKED: 'objectClicked',
     PARAMETERS_CHANGE: 'parametersChange',
     VOXELS_CALLBACK: 'voxelsCallback',
     MOUSE_MOVE: 'mouseMove',
-    MOUSE_CLICK: 'mouseClick'
+    MOUSE_CLICK: 'mouseClick',
 };
 
 /**

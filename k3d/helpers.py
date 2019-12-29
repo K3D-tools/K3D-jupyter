@@ -97,6 +97,13 @@ def array_serialization_wrap(name):
     }
 
 
+def callback_serialization_wrap(name):
+    return {
+        'to_json': (lambda input, obj: obj[name] is not None),
+        'from_json': from_json,
+    }
+
+
 def download(url):
     """Retrieve the file at url, save it locally and return the path."""
     basename = os.path.basename(url)

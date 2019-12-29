@@ -1,6 +1,8 @@
 'use strict';
 
 var THREE = require('three'),
+    intersectHelper = require('./../helpers/Intersection'),
+    areAllChangesResolve = require('./../helpers/Fn').areAllChangesResolve,
     buffer = require('./../../../core/lib/helpers/buffer');
 
 /**
@@ -11,7 +13,7 @@ var THREE = require('three'),
  * @return {Object} 3D object ready to render
  */
 module.exports = {
-    create: function (config) {
+    create: function (config, K3D) {
         return new Promise(function (resolve) {
             var geometry = new THREE.PlaneBufferGeometry(1, 1),
                 modelMatrix = new THREE.Matrix4(),
@@ -46,6 +48,8 @@ module.exports = {
                 material = new THREE.MeshBasicMaterial({color: 0xffffff, side: THREE.DoubleSide, map: texture});
                 object = new THREE.Mesh(geometry, material);
 
+                intersectHelper.init(config, object, K3D);
+
                 modelMatrix.set.apply(modelMatrix, config.model_matrix.data);
                 object.applyMatrix(modelMatrix);
 
@@ -59,5 +63,15 @@ module.exports = {
                 resolve(object);
             };
         });
+    },
+
+    update: function (config, changes, obj, K3D) {
+        intersectHelper.update(config, changes, obj, K3D);
+
+        if (areAllChangesResolve(changes)) {
+            return Promise.resolve({json: config, obj: obj});
+        } else {
+            return false;
+        }
     }
 };

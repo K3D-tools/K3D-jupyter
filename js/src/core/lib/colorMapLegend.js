@@ -136,7 +136,7 @@ function getColorLegend(K3D, object) {
     tryPosLabels();
 
     K3D.colorMapNode = svg;
-};
+}
 
 module.exports = {
     getColorLegend: getColorLegend

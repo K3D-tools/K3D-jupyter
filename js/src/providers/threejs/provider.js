@@ -1,11 +1,13 @@
 'use strict';
 
-var THREE = require('three');
+var THREE = require('three'),
+    threeMeshBVH = require('three-mesh-bvh');
 
-require('./helpers/THREE.Octree')(THREE);
 require('./helpers/THREE.STLLoader')(THREE);
 require('./helpers/THREE.CopyShader')(THREE);
 require('./helpers/THREE.TrackballControls')(THREE);
+
+THREE.Mesh.prototype.raycast = threeMeshBVH.acceleratedRaycast;
 
 /**
  * K3D ThreeJS Provider namespace
@@ -66,6 +68,7 @@ module.exports = {
      * @type {Object}
      */
     Interactions: {
-        Voxels: require('./interactions/Voxels')
+        Voxels: require('./interactions/Voxels'),
+        intersectCallback: require('./interactions/intersectCallback')
     }
 };

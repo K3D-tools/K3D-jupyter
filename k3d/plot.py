@@ -51,6 +51,18 @@ class Plot(widgets.DOMWidget):
             Time value (used in TimeSeries)
         name: `string`.
             Name of the plot. Used to filenames of snapshot/screenshot etc.
+        mode: `str`.
+            Mode of K3D viewer.
+
+            Legal values are:
+
+            :`view`: No interaction with objects,
+
+            :`add`: On voxels objects adding mode,
+
+            :`change`: On voxels objects edit mode,
+
+            :`callback`: Handling click_callback and hover_callback on some type of objects.
         objects: `list`.
             List of `k3d.objects.Drawable` currently included in the plot, not to be changed directly.
     """
@@ -91,10 +103,12 @@ class Plot(widgets.DOMWidget):
     colorbar_object_id = Int(-1).tag(sync=True)
     rendering_steps = Int(1).tag(sync=True)
     screenshot = Unicode().tag(sync=True)
+    snapshot = Unicode().tag(sync=True)
     camera_fov = Float().tag(sync=True)
     name = Unicode(default_value=None, allow_none=True).tag(sync=True)
     axes = List(minlen=3, maxlen=3, default_value=['x', 'y', 'z']).tag(sync=True)
     axes_helper = Float().tag(sync=True)
+    mode = Unicode().tag(sync=True)
 
     objects = []
 
@@ -102,7 +116,7 @@ class Plot(widgets.DOMWidget):
                  grid_visible=True, height=512, voxel_paint_color=0, grid=(-1, -1, -1, 1, 1, 1), screenshot_scale=2.0,
                  lighting=1.5, time=0.0, fps_meter=False, menu_visibility=True, colorbar_object_id=-1,
                  rendering_steps=1, axes=['x', 'y', 'z'], camera_no_rotate=False, camera_no_zoom=False,
-                 camera_no_pan=False, camera_fov=45.0, axes_helper=1.0, name=None, *args, **kwargs):
+                 camera_no_pan=False, camera_fov=45.0, axes_helper=1.0, name=None, mode='view', *args, **kwargs):
         super(Plot, self).__init__()
 
         self.antialias = antialias
@@ -127,6 +141,7 @@ class Plot(widgets.DOMWidget):
         self.axes = axes
         self.axes_helper = axes_helper
         self.name = name
+        self.mode = mode
         self.camera = [4.5, 4.5, 4.5, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0]
 
         self.object_ids = []
@@ -190,6 +205,28 @@ class Plot(widgets.DOMWidget):
                     self.unobserve(send_new_value, 'screenshot')
 
             self.observe(send_new_value, 'screenshot')
+            # start the decorated generator
+            generator.send(None)
+
+        return inner
+
+    def fetch_snapshot(self):
+        self.send({'msg_type': 'fetch_snapshot'})
+
+    def yield_snapshots(self, generator_function):
+        """Decorator for a generator function receiving snapshots via yield."""
+
+        @wraps(generator_function)
+        def inner():
+            generator = generator_function()
+
+            def send_new_value(change):
+                try:
+                    generator.send(base64.b64decode(change.new))
+                except StopIteration:
+                    self.unobserve(send_new_value, 'snapshot')
+
+            self.observe(send_new_value, 'snapshot')
             # start the decorated generator
             generator.send(None)
 

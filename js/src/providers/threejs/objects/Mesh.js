@@ -1,18 +1,19 @@
 'use strict';
 
 var THREE = require('three'),
+    intersectHelper = require('./../helpers/Intersection'),
     handleColorMap = require('./../helpers/Fn').handleColorMap,
     areAllChangesResolve = require('./../helpers/Fn').areAllChangesResolve;
 
 /**
  * Loader strategy to handle Mesh object
- * @method STL
+ * @method Mesh
  * @memberof K3D.Providers.ThreeJS.Objects
  * @param {Object} config all configurations params from JSON
  * @return {Object} 3D object ready to render
  */
 module.exports = {
-    create: function (config) {
+    create: function (config, K3D) {
         config.visible = typeof (config.visible) !== 'undefined' ? config.visible : true;
         config.color = typeof (config.color) !== 'undefined' ? config.color : 255;
         config.wireframe = typeof (config.wireframe) !== 'undefined' ? config.wireframe : false;
@@ -58,6 +59,8 @@ module.exports = {
 
         object = new THREE.Mesh(geometry, material);
 
+        intersectHelper.init(config, object, K3D);
+
         modelMatrix.set.apply(modelMatrix, config.model_matrix.data);
         object.applyMatrix(modelMatrix);
 
@@ -66,7 +69,7 @@ module.exports = {
         return Promise.resolve(object);
     },
 
-    update: function (config, changes, obj) {
+    update: function (config, changes, obj, K3D) {
         if (typeof(changes.attribute) !== 'undefined' && !changes.attribute.timeSeries) {
             var data = obj.geometry.attributes.uv.array;
 
@@ -78,6 +81,8 @@ module.exports = {
             obj.geometry.attributes.uv.needsUpdate = true;
             changes.attribute = null;
         }
+
+        intersectHelper.update(config, changes, obj, K3D);
 
         if (areAllChangesResolve(changes)) {
             return Promise.resolve({json: config, obj: obj});

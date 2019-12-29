@@ -1,6 +1,7 @@
 'use strict';
 
 var THREE = require('three'),
+    threeMeshBVH = require('three-mesh-bvh'),
     MeshLine = require('./THREE.MeshLine')(THREE),
     yieldingLoop = require('./../../../core/lib/helpers/yieldingLoop'),
     voxelMeshGenerator = require('./../../../core/lib/helpers/voxelMeshGenerator'),
@@ -186,6 +187,16 @@ module.exports = {
                     chunk: chunk,
                     getVoxelChunkObject: getVoxelChunkObject.bind(this, K3D, config, object.voxelSize)
                 };
+
+                if (chunkData.vertices.length > 0) {
+                    voxelChunkObject.children[0].geometry.boundsTree =
+                        new threeMeshBVH.MeshBVH(voxelChunkObject.children[0].geometry);
+
+                    // var helper = new threeMeshBVH.Visualizer(voxelChunkObject.children[0]);
+                    // helper.depth = 40;
+                    // helper.update();
+                    // voxelChunkObject.children[0].add(helper);
+                }
 
                 voxelChunkObject.children[0].interactions =
                     interactionsVoxels(object, voxelChunkObject, rollOverMesh, K3D);

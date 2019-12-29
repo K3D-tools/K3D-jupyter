@@ -55,7 +55,7 @@ module.exports = {
 
     update: function (config, changes, obj) {
         if (typeof(changes.attribute) !== 'undefined' && !changes.attribute.timeSeries &&
-            changes.attribute.data.length == obj.geometry.attributes.uv.array.length) {
+            changes.attribute.data.length === obj.geometry.attributes.uv.array.length) {
             var data = obj.geometry.attributes.uv.array;
 
             for (var i = 0; i < data.length; i++) {
@@ -68,7 +68,7 @@ module.exports = {
         }
 
         if (typeof(changes.vertices) !== 'undefined' && !changes.vertices.timeSeries &&
-            changes.vertices.data.length == obj.geometry.attributes.position.array.length) {
+            changes.vertices.data.length === obj.geometry.attributes.position.array.length) {
             obj.geometry.attributes.position.array.set(changes.vertices.data);
             obj.geometry.attributes.position.needsUpdate = true;
             changes.vertices = null;

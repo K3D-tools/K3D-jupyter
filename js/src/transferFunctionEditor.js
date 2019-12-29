@@ -6,7 +6,7 @@ var colorMapHelper = require('./core/lib/helpers/colorMap'),
     widgets = require('@jupyter-widgets/base');
 
 function K3DTransferFunctionEditor(targetDOMNode, parameters, onChange) {
-    var svg = document.createElementNS("http://www.w3.org/2000/svg", "svg"),
+    var svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg'),
         opacityFunction = parameters.opacityFunction,
         svgNS = svg.namespaceURI,
         colorPicker,
@@ -59,10 +59,10 @@ function K3DTransferFunctionEditor(targetDOMNode, parameters, onChange) {
     }
 
     function makeCircle(cx, cy, r) {
-        var circle = document.createElementNS(svg.namespaceURI, "g");
+        var circle = document.createElementNS(svg.namespaceURI, 'g');
 
         [{offset: 1, color: 'white'}, {offset: 0, color: 'black'}].forEach(function (conf) {
-            var c = document.createElementNS(svg.namespaceURI, "circle");
+            var c = document.createElementNS(svg.namespaceURI, 'circle');
 
             c.setAttribute('cx', cx + conf.offset);
             c.setAttribute('cy', cy + conf.offset);
@@ -206,7 +206,7 @@ function K3DTransferFunctionEditor(targetDOMNode, parameters, onChange) {
             }
         }
 
-        function endDrag(evt) {
+        function endDrag() {
             draggableElement = false;
         }
     }
@@ -273,9 +273,9 @@ function K3DTransferFunctionEditor(targetDOMNode, parameters, onChange) {
                         colorPicker.removeEventListener('change', getColor);
                     }
 
-                    r = "0" + Math.round(colorMap[index * 4 + 1] * 255).toString(16);
-                    g = "0" + Math.round(colorMap[index * 4 + 2] * 255).toString(16);
-                    b = "0" + Math.round(colorMap[index * 4 + 3] * 255).toString(16);
+                    r = '0' + Math.round(colorMap[index * 4 + 1] * 255).toString(16);
+                    g = '0' + Math.round(colorMap[index * 4 + 2] * 255).toString(16);
+                    b = '0' + Math.round(colorMap[index * 4 + 3] * 255).toString(16);
 
                     colorPicker.k3dIndex = index;
                     colorPicker.value = '#' + r.substr(-2) + g.substr(-2) + b.substr(-2);
@@ -335,14 +335,13 @@ function K3DTransferFunctionEditor(targetDOMNode, parameters, onChange) {
         }
     }
 
-
     // set width and height
-    svg.setAttribute("width", "100%");
-    svg.setAttribute("height", "100%");
+    svg.setAttribute('width', '100%');
+    svg.setAttribute('height', '100%');
     svg.classList.add('k3d-transfer-function');
 
-    polygon = document.createElementNS(svgNS, "polygon");
-    rect = document.createElementNS(svgNS, "rect");
+    polygon = document.createElementNS(svgNS, 'polygon');
+    rect = document.createElementNS(svgNS, 'rect');
     rect.setAttribute('fill', 'url(#colorMap)');
 
     svg.appendChild(polygon);
@@ -390,7 +389,7 @@ function K3DTransferFunctionEditor(targetDOMNode, parameters, onChange) {
 
     this.isDragging = function () {
         return draggableElement !== false;
-    }
+    };
 }
 
 var transferFunctionModel = widgets.DOMWidgetModel.extend({
@@ -508,7 +507,7 @@ var transferFunctionView = widgets.DOMWidgetView.extend({
         }
     },
 
-    handleContextMenu: function (event) {
+    handleContextMenu: function () {
         // // Cancel context menu if on renderer:
         // if (this.container.contains(event.target)) {
         //     event.preventDefault();

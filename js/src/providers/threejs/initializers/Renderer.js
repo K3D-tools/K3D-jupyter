@@ -46,9 +46,8 @@ module.exports = function (K3D) {
 
     canvas.addEventListener('webglcontextlost', function (event) {
         event.preventDefault();
-        console.log(event);
         K3D.disable();
-        error('WEBGL Error', 'Context lost.', true);
+        error('WEBGL Error', 'Context lost.', false);
     }, false);
 
     gl = self.renderer.context;

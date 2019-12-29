@@ -1,4 +1,4 @@
-//jshint maxstatements:false
+//jshint maxstatements:false,maxcomplexity:false
 
 'use strict';
 
