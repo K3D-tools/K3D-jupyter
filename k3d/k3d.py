@@ -887,6 +887,7 @@ def plot(height=512,
          axes=['x', 'y', 'z'],
          axes_helper=1.0,
          name=None,
+         hold_auto_rendering=False,
          camera_no_zoom=False,
          camera_no_rotate=False,
          camera_no_pan=False):
@@ -933,6 +934,8 @@ def plot(height=512,
             Time value (used in TimeSeries)
         name: `string`.
             Name of the plot. Used to filenames of snapshot/screenshot etc.
+        hold_auto_rendering: `Bool`.
+            Lock for auto rendering.
         grid: `array_like`.
             6-element tuple specifying the bounds of the plot grid (x0, y0, z0, x1, y1, z1)."""
     return Plot(antialias=antialias,
@@ -943,4 +946,5 @@ def plot(height=512,
                 height=height, menu_visibility=menu_visibility,
                 voxel_paint_color=voxel_paint_color, grid=grid,
                 axes=axes, axes_helper=axes_helper, screenshot_scale=screenshot_scale, camera_fov=camera_fov, name=name,
-                camera_no_zoom=camera_no_zoom, camera_no_rotate=camera_no_rotate, camera_no_pan=camera_no_pan)
+                camera_no_zoom=camera_no_zoom, camera_no_rotate=camera_no_rotate, camera_no_pan=camera_no_pan,
+                hold_auto_rendering=hold_auto_rendering)

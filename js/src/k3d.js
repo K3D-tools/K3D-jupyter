@@ -202,6 +202,8 @@ PlotView = widgets.DOMWidgetView.extend({
     _init: function () {
         var self = this;
 
+        this.renderPromises = [];
+
         plotsList.push(this);
 
         this.model.on('msg:custom', function (obj) {
@@ -223,7 +225,22 @@ PlotView = widgets.DOMWidgetView.extend({
             if (obj.msg_type === 'reset_camera') {
                 this.K3DInstance.resetCamera();
             }
+
+            if (obj.msg_type === 'render') {
+                if (self.renderPromises.length === 0) {
+                    self.K3DInstance.refreshAfterObjectsChange(false, true);
+                } else {
+                    Promise.all(self.renderPromises).then(function (values) {
+                        self.K3DInstance.refreshAfterObjectsChange(false, true);
+
+                        if (values.length === self.renderPromises.length) {
+                            self.renderPromises = [];
+                        }
+                    });
+                }
+            }
         }, this);
+
         this.model.on('change:camera_auto_fit', this._setCameraAutoFit, this);
         this.model.on('change:lighting', this._setDirectionalLightingIntensity, this);
         this.model.on('change:time', this._setTime, this);
@@ -234,6 +251,7 @@ PlotView = widgets.DOMWidgetView.extend({
         this.model.on('change:voxel_paint_color', this._setVoxelPaintColor, this);
         this.model.on('change:background_color', this._setBackgroundColor, this);
         this.model.on('change:grid', this._setGrid, this);
+        this.model.on('change:hold_auto_rendering', this._setHoldAutoRendering, this);
         this.model.on('change:camera', this._setCamera, this);
         this.model.on('change:clipping_planes', this._setClippingPlanes, this);
         this.model.on('change:object_ids', this._onObjectsListChange, this);
@@ -263,6 +281,7 @@ PlotView = widgets.DOMWidgetView.extend({
                 axes: this.model.get('axes'),
                 axesHelper: this.model.get('axes_helper'),
                 grid: this.model.get('grid'),
+                holdAutoRendering: this.model.get('hold_auto_rendering'),
                 gridVisible: this.model.get('grid_visible')
             });
 
@@ -345,7 +364,7 @@ PlotView = widgets.DOMWidgetView.extend({
     },
 
     _setTime: function () {
-        this.K3DInstance.setTime(this.model.get('time'));
+        this.renderPromises.push(this.K3DInstance.setTime(this.model.get('time')));
     },
 
     _setCameraAutoFit: function () {
@@ -378,6 +397,10 @@ PlotView = widgets.DOMWidgetView.extend({
 
     _setGrid: function () {
         this.K3DInstance.setGrid(this.model.get('grid'));
+    },
+
+    _setHoldAutoRendering: function () {
+        this.K3DInstance.setHoldAutoRendering(this.model.get('hold_auto_rendering'));
     },
 
     _setMenuVisibility: function () {
@@ -428,61 +451,22 @@ PlotView = widgets.DOMWidgetView.extend({
         this.K3DInstance.setClippingPlanes(this.model.get('clipping_planes'));
     },
 
-    _processObjectsChangesQueue: function (self) {
-        var obj;
-
-        if (self.objectsChangesQueue.length === 0) {
-            return;
-        }
-
-        obj = self.objectsChangesQueue.shift();
-
-        if (obj.operation === 'delete') {
-            self.K3DInstance.removeObject(obj.id);
-        }
-
-        if (obj.operation === 'insert') {
-            self.K3DInstance.load({objects: [objectsList[obj.id].attributes]});
-        }
-
-        if (obj.operation === 'update') {
-            self.K3DInstance.reload(objectsList[obj.id].attributes, obj.changed);
-        }
-
-        if (self.objectsChangesQueue.length > 0) {
-            setTimeout(self._processObjectsChangesQueue, 0, self);
-        } else {
-            self.objectsChangesQueueRun = false;
-        }
-    },
-
     _onObjectsListChange: function () {
         var old_object_ids = this.model.previous('object_ids'),
             new_object_ids = this.model.get('object_ids');
 
         _.difference(old_object_ids, new_object_ids).forEach(function (id) {
-            this.objectsChangesQueue.push({id: id, operation: 'delete'});
+            this.renderPromises.push(this.K3DInstance.removeObject(id));
         }, this);
 
         _.difference(new_object_ids, old_object_ids).forEach(function (id) {
-            this.objectsChangesQueue.push({id: id, operation: 'insert'});
+            this.renderPromises.push(this.K3DInstance.load({objects: [objectsList[id].attributes]}));
         }, this);
-
-        this.startRefreshing();
     },
 
     refreshObject: function (obj, changed) {
         if (this.model.get('object_ids').indexOf(obj.get('id')) !== -1) {
-            this.objectsChangesQueue.push({id: obj.get('id'), changed: changed, operation: 'update'});
-            this.startRefreshing();
-        }
-    },
-
-    startRefreshing: function () {
-        // force setTimeout to avoid freeze on browser in case of heavy load
-        if (!this.objectsChangesQueueRun) {
-            this.objectsChangesQueueRun = true;
-            setTimeout(this._processObjectsChangesQueue, 0, this);
+            this.renderPromises.push(this.K3DInstance.reload(objectsList[obj.get('id')].attributes, changed));
         }
     },
 
