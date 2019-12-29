@@ -251,7 +251,7 @@ PlotView = widgets.DOMWidgetView.extend({
         this.model.on('change:voxel_paint_color', this._setVoxelPaintColor, this);
         this.model.on('change:background_color', this._setBackgroundColor, this);
         this.model.on('change:grid', this._setGrid, this);
-        this.model.on('change:hold_auto_rendering', this._setHoldAutoRendering, this);
+        this.model.on('change:auto_rendering', this._setAutoRendering, this);
         this.model.on('change:camera', this._setCamera, this);
         this.model.on('change:clipping_planes', this._setClippingPlanes, this);
         this.model.on('change:object_ids', this._onObjectsListChange, this);
@@ -281,7 +281,7 @@ PlotView = widgets.DOMWidgetView.extend({
                 axes: this.model.get('axes'),
                 axesHelper: this.model.get('axes_helper'),
                 grid: this.model.get('grid'),
-                holdAutoRendering: this.model.get('hold_auto_rendering'),
+                autoRendering: this.model.get('auto_rendering'),
                 gridVisible: this.model.get('grid_visible')
             });
 
@@ -399,8 +399,8 @@ PlotView = widgets.DOMWidgetView.extend({
         this.K3DInstance.setGrid(this.model.get('grid'));
     },
 
-    _setHoldAutoRendering: function () {
-        this.K3DInstance.setHoldAutoRendering(this.model.get('hold_auto_rendering'));
+    _setAutoRendering: function () {
+        this.K3DInstance.setAutoRendering(this.model.get('auto_rendering'));
     },
 
     _setMenuVisibility: function () {

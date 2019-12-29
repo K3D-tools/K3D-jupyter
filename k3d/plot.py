@@ -63,8 +63,8 @@ class Plot(widgets.DOMWidget):
             :`change`: On voxels objects edit mode,
 
             :`callback`: Handling click_callback and hover_callback on some type of objects.
-        hold_auto_rendering: `Bool`.
-            Lock for auto rendering.
+        auto_rendering: `Bool`.
+            State of auto rendering.
         objects: `list`.
             List of `k3d.objects.Drawable` currently included in the plot, not to be changed directly.
     """
@@ -87,7 +87,7 @@ class Plot(widgets.DOMWidget):
 
     # read-write
     camera_auto_fit = Bool(True).tag(sync=True)
-    hold_auto_rendering = Bool(False).tag(sync=True)
+    auto_rendering = Bool(True).tag(sync=True)
     lighting = Float().tag(sync=True)
     grid_auto_fit = Bool(True).tag(sync=True)
     grid_visible = Bool(True).tag(sync=True)
@@ -120,7 +120,7 @@ class Plot(widgets.DOMWidget):
                  lighting=1.5, time=0.0, fps_meter=False, menu_visibility=True, colorbar_object_id=-1,
                  rendering_steps=1, axes=['x', 'y', 'z'], camera_no_rotate=False, camera_no_zoom=False,
                  camera_no_pan=False, camera_fov=45.0, axes_helper=1.0, name=None, mode='view',
-                 hold_auto_rendering=False, *args, **kwargs):
+                 auto_rendering=True, *args, **kwargs):
         super(Plot, self).__init__()
 
         self.antialias = antialias
@@ -146,7 +146,7 @@ class Plot(widgets.DOMWidget):
         self.axes_helper = axes_helper
         self.name = name
         self.mode = mode
-        self.hold_auto_rendering = hold_auto_rendering
+        self.auto_rendering = auto_rendering
         self.camera = [4.5, 4.5, 4.5, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0]
 
         self.object_ids = []

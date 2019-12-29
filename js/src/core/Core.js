@@ -92,7 +92,7 @@ function K3D(provider, targetDOMNode, parameters) {
     }
 
     this.refreshAfterObjectsChange = function (isUpdate, force) {
-        if (!self.parameters.holdAutoRendering || force) {
+        if (self.parameters.autoRendering || force) {
             if (!isUpdate) {
                 self.getWorld().setCameraToFitScene();
             }
@@ -151,7 +151,7 @@ function K3D(provider, targetDOMNode, parameters) {
             cameraNoPan: false,
             name: null,
             camera_fov: 60.0,
-            holdAutoRendering: false,
+            autoRendering: true,
             axesHelper: 1.0,
             guiVersion: require('./../../package.json').version
         },
@@ -239,12 +239,12 @@ function K3D(provider, targetDOMNode, parameters) {
     };
 
     /**
-     * Set hold auto rendering of K3D
+     * Set auto rendering of K3D
      * @memberof K3D.Core
      * @param {Bool} flag
      */
-    this.setHoldAutoRendering = function (flag) {
-        self.parameters.holdAutoRendering = flag;
+    this.setAutoRendering = function (flag) {
+        self.parameters.autoRendering = flag;
     };
 
     /**
@@ -884,7 +884,7 @@ function K3D(provider, targetDOMNode, parameters) {
     self.setClippingPlanes(self.parameters.clippingPlanes);
     self.setDirectionalLightingIntensity(self.parameters.lighting);
     self.setColorMapLegend(self.parameters.colorbarObjectId);
-    self.setHoldAutoRendering(self.parameters.holdAutoRendering);
+    self.setAutoRendering(self.parameters.autoRendering);
     self.setCameraLock(
         self.parameters.cameraNoRotate,
         self.parameters.cameraNoZoom,
