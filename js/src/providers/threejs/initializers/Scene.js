@@ -95,8 +95,11 @@ function getSceneBoundingBox() {
 
             if (object.geometry && object.geometry.boundingBox) {
                 objectBoundingBox = object.geometry.boundingBox.clone();
-            } else {
+            } else if (object.boundingBox) {
                 objectBoundingBox = object.boundingBox.clone();
+            } else {
+                console.log('Object without bbox');
+                return;
             }
 
             objectBoundingBox.applyMatrix4(object.matrixWorld);
@@ -160,6 +163,21 @@ function generateEdgesPoints(box) {
     };
 }
 
+function cleanup(grids, gridScene) {
+    Object.keys(grids.planes).forEach(function (axis) {
+        grids.planes[axis].forEach(function (plane) {
+            gridScene.remove(plane.obj);
+            delete plane.obj;
+        });
+    });
+
+    Object.keys(grids.labelsOnEdges).forEach(function (key) {
+        grids.labelsOnEdges[key].labels.forEach(function (label) {
+            label.onRemove();
+        });
+    });
+}
+
 function rebuildSceneData(K3D, grids, axesHelper, force) {
     /*jshint validthis:true, maxstatements:false */
     var that = this;
@@ -185,26 +203,7 @@ function rebuildSceneData(K3D, grids, axesHelper, force) {
             'x': new THREE.Vector3(1.0, 0.0, 0.0),
             'y': new THREE.Vector3(0.0, 1.0, 0.0),
             'z': new THREE.Vector3(0.0, 0.0, 1.0)
-        },
-        octree = this.octree = new THREE.Octree({
-            //scene: this.scene,
-            undeferred: false,
-            depthMax: Infinity,
-            objectsThreshold: 2,
-            overlapPct: 0.5
-        });
-
-    this.K3DObjects.children.forEach(function (object) {
-        object.traverse(function (object) {
-            if (object.geometry &&
-                object.geometry.boundingSphere && object.geometry.boundingSphere.radius > 0 &&
-                object.interactions) {
-                octree.add(object);
-            }
-        });
-    });
-
-    octree.update();
+        };
 
     // axes Helper
     ['x', 'y', 'z'].forEach(function (axis) {
@@ -242,18 +241,7 @@ function rebuildSceneData(K3D, grids, axesHelper, force) {
         }
 
         // cleanup previous data
-        Object.keys(grids.planes).forEach(function (axis) {
-            grids.planes[axis].forEach(function (plane) {
-                this.gridScene.remove(plane.obj);
-                delete plane.obj;
-            }, this);
-        }, this);
-
-        Object.keys(grids.labelsOnEdges).forEach(function (key) {
-            grids.labelsOnEdges[key].labels.forEach(function (label) {
-                label.onRemove();
-            }, this);
-        }, this);
+        cleanup(grids, this.gridScene);
 
         // generate new one
         size = sceneBoundingBox.getSize(new THREE.Vector3());
@@ -497,44 +485,39 @@ function refreshGrid(K3D, grids) {
     });
 }
 
-function raycast(x, y, camera, click, viewMode) {
+function raycast(K3D, x, y, camera, click, viewMode) {
     /*jshint validthis:true */
-    var intersections,
-        octreeObjects,
+    var meshes = [],
         intersect,
         needRender = false;
 
     this.raycaster.setFromCamera(new THREE.Vector2(x, y), camera);
 
-    octreeObjects = this.octree.search(
-        this.raycaster.ray.origin,
-        this.raycaster.ray.far,
-        true,
-        this.raycaster.ray.direction
-    );
-
-    intersections = this.raycaster.intersectOctreeObjects(octreeObjects);
-
-    if (intersections.length > 0) {
-        document.body.style.cursor = 'pointer';
-
-        intersections.sort(function (a, b) {
-            return a.distance - b.distance;
-        });
-
-        intersect = intersections[0];
-
-        if (intersect.object.interactions && intersect.object.interactions.onHover) {
-            needRender |= intersect.object.interactions.onHover(intersect, viewMode);
+    this.K3DObjects.traverse(function (object) {
+        if (object.interactions) {
+            meshes.push(object);
         }
+    });
 
-        if (click) {
-            if (intersect.object.interactions && intersect.object.interactions.onClick) {
-                needRender |= intersect.object.interactions.onClick(intersect, viewMode);
+    if (meshes.length > 0) {
+        intersect = this.raycaster.intersectObjects(meshes);
+
+        if (intersect.length > 0) {
+            intersect = intersect[0];
+            K3D.getWorld().targetDOMNode.style.cursor = 'pointer';
+
+            if (intersect.object.interactions && intersect.object.interactions.onHover) {
+                needRender |= intersect.object.interactions.onHover(intersect, viewMode);
             }
+
+            if (click) {
+                if (intersect.object.interactions && intersect.object.interactions.onClick) {
+                    needRender |= intersect.object.interactions.onClick(intersect, viewMode);
+                }
+            }
+        } else {
+            K3D.getWorld().targetDOMNode.style.cursor = 'auto';
         }
-    } else {
-        document.body.style.cursor = 'auto';
     }
 
     return needRender;
@@ -564,6 +547,7 @@ module.exports = {
 
         this.lights = [];
         this.raycaster = new THREE.Raycaster();
+        this.raycaster.firstHitOnly = true;
 
         // https://www.vtk.org/doc/release/5.0/html/a01682.html
         // A LightKit consists of three lights, a key light, a fill light, and a headlight. The main light is the key
@@ -608,9 +592,12 @@ module.exports = {
         this.scene.add(this.camera);
         this.scene.add(this.K3DObjects);
 
+        this.cleanup = cleanup.bind(this, grids, this.gridScene);
+
         K3D.rebuildSceneData = rebuildSceneData.bind(this, K3D, grids, this.axesHelper);
         K3D.getSceneBoundingBox = getSceneBoundingBox.bind(this);
         K3D.refreshGrid = refreshGrid.bind(this, K3D, grids);
+
 
         K3D.rebuildSceneData().then(function () {
             K3D.refreshGrid();
@@ -635,7 +622,7 @@ module.exports = {
 
         K3D.on(K3D.events.MOUSE_MOVE, function (coord) {
             if (K3D.parameters.viewMode !== viewModes.view) {
-                if (raycast.call(self, coord.x, coord.y, self.camera, false, K3D.parameters.viewMode) &&
+                if (raycast.call(self, K3D, coord.x, coord.y, self.camera, false, K3D.parameters.viewMode) &&
                     !K3D.autoRendering) {
                     K3D.render();
                 }
@@ -644,7 +631,7 @@ module.exports = {
 
         K3D.on(K3D.events.MOUSE_CLICK, function (coord) {
             if (K3D.parameters.viewMode !== viewModes.view) {
-                if (raycast.call(self, coord.x, coord.y, self.camera, true, K3D.parameters.viewMode) &&
+                if (raycast.call(self, K3D, coord.x, coord.y, self.camera, true, K3D.parameters.viewMode) &&
                     !K3D.autoRendering) {
                     K3D.render();
                 }

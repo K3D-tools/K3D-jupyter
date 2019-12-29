@@ -61,7 +61,7 @@ def to_json(name, input, obj=None, compression_level=0):
     if isinstance(input, dict):
         ret = {}
         for key, value in input.items():
-            ret[key] = to_json(key, value, property, compression_level)
+            ret[str(key)] = to_json(key, value, property, compression_level)
 
         return ret
     elif isinstance(input, list):
@@ -93,6 +93,13 @@ def from_json(input, obj=None):
 def array_serialization_wrap(name):
     return {
         'to_json': (lambda input, obj: to_json(name, input, obj)),
+        'from_json': from_json,
+    }
+
+
+def callback_serialization_wrap(name):
+    return {
+        'to_json': (lambda input, obj: obj[name] is not None),
         'from_json': from_json,
     }
 

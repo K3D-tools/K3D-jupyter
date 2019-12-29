@@ -30,7 +30,7 @@ Jupyter notebook extension for 3D visualization.
 
 ## Try it Now!
 
-Interactive showcase gallery: [![Documentation Status](https://readthedocs.org/projects/k3d-jupyter/badge/?version=latest)](https://k3d-jupyter.readthedocs.io/en/latest/showcase/index.html)
+Watch: [Interactive showcase gallery](https://k3d-jupyter.readthedocs.io/en/latest/showcase/index.html)
 
 Documentation is generated at readthedocs: [![Documentation Status](https://readthedocs.org/projects/k3d-jupyter/badge/?version=latest)](https://k3d-jupyter.readthedocs.io/en/latest/?badge=latest)
 

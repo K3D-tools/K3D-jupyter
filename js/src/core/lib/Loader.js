@@ -72,7 +72,7 @@ function loader(K3D, data) {
 
         return Promise.all(objectsPromieses);
     } catch (e) {
-        error('Loader Error', 'K3D Loader failed, please consult browser error console!', true);
+        error('Loader Error', 'K3D Loader failed, please consult browser error console!', false);
         throw e;
     }
 }

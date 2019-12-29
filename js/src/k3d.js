@@ -147,7 +147,8 @@ ObjectModel = widgets.WidgetModel.extend({
         opacity_function: serialize,
         text: serialize,
         size: serialize,
-        position: serialize
+        position: serialize,
+        puv: serialize
     }, widgets.WidgetModel.serializers)
 });
 
@@ -194,6 +195,8 @@ PlotView = widgets.DOMWidgetView.extend({
         this.K3DInstance.off(this.K3DInstance.events.OBJECT_CHANGE, this.GUIObjectChanges);
         this.K3DInstance.off(this.K3DInstance.events.PARAMETERS_CHANGE, this.GUIParametersChanges);
         this.K3DInstance.off(this.K3DInstance.events.VOXELS_CALLBACK, this.voxelsCallback);
+        this.K3DInstance.off(this.K3DInstance.events.OBJECT_HOVERED, this.objectHoverCallback);
+        this.K3DInstance.off(this.K3DInstance.events.OBJECT_CLICKED, this.objectClickCallback);
     },
 
     _init: function () {
@@ -211,6 +214,10 @@ PlotView = widgets.DOMWidgetView.extend({
 
                         model.save('screenshot', data);
                     });
+            }
+
+            if (obj.msg_type === 'fetch_snapshot') {
+                model.save('snapshot', this.K3DInstance.getHTMLSnapshot());
             }
 
             if (obj.msg_type === 'reset_camera') {
@@ -240,6 +247,7 @@ PlotView = widgets.DOMWidgetView.extend({
         this.model.on('change:camera_fov', this._setCameraFOV, this);
         this.model.on('change:axes_helper', this._setAxesHelper, this);
         this.model.on('change:name', this._setName, this);
+        this.model.on('change:mode', this._setMode, this);
 
         try {
             this.K3DInstance = new K3D(ThreeJsProvider, this.container, {
@@ -306,6 +314,30 @@ PlotView = widgets.DOMWidgetView.extend({
                 objectsList[param.object.K3DIdentifier].send({msg_type: 'click_callback', coord: param.coord});
             }
         });
+
+        this.objectHoverCallback = this.K3DInstance.on(this.K3DInstance.events.OBJECT_HOVERED, function (param) {
+            if (objectsList[param.object.K3DIdentifier]) {
+                objectsList[param.object.K3DIdentifier].send({
+                    msg_type: 'hover_callback',
+                    position: param.point.toArray(),
+                    normal: param.face.normal.toArray(),
+                    distance: param.distance,
+                    face_index: param.face.faceIndex
+                });
+            }
+        });
+
+        this.objectClickCallback = this.K3DInstance.on(this.K3DInstance.events.OBJECT_CLICKED, function (param) {
+            if (objectsList[param.object.K3DIdentifier]) {
+                objectsList[param.object.K3DIdentifier].send({
+                    msg_type: 'click_callback',
+                    position: param.point.toArray(),
+                    normal: param.face.normal.toArray(),
+                    distance: param.distance,
+                    face_index: param.face.faceIndex
+                });
+            }
+        });
     },
 
     _setDirectionalLightingIntensity: function () {
@@ -370,6 +402,10 @@ PlotView = widgets.DOMWidgetView.extend({
 
     _setName: function () {
         this.K3DInstance.setName(this.model.get('name'));
+    },
+
+    _setMode: function () {
+        this.K3DInstance.setViewMode(this.model.get('mode'));
     },
 
     _setAxesHelper: function () {

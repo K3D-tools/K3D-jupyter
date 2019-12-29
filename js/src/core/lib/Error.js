@@ -11,8 +11,9 @@ function setupErrorDomHelper() {
         'color: #FFFFFF',
         'position: absolute',
         'top: 0px',
-        'right: 0px',
+        'left: 0px',
         'padding: 0px',
+        'z-index: 999',
         'margin: 0px',
         'list-style: none outside none'
     ].join(';');

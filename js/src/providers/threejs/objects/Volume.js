@@ -1,4 +1,4 @@
-//jshint maxstatements:false
+//jshint maxstatements:false,maxcomplexity:false
 
 'use strict';
 
@@ -58,6 +58,10 @@ module.exports = {
 
         if (lightMapRenderTargetSize > maxTextureSize) {
             throw new Error('To big light map size. gl.MAX_TEXTURE_SIZE=' + maxTextureSize);
+        }
+
+        if (opacityFunction === null) {
+            opacityFunction = [colorMap[0], 0.0, colorMap[colorMap.length - 4], 1.0];
         }
 
         modelMatrix.set.apply(modelMatrix, config.model_matrix.data);
