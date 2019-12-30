@@ -27,6 +27,8 @@ from .k3d import (plot,
 
 from .transfer_function_editor import transfer_function_editor
 
+from .transform import transform
+
 
 def _jupyter_nbextension_paths():
     return [{

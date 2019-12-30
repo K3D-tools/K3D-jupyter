@@ -638,7 +638,7 @@ function K3D(provider, targetDOMNode, parameters) {
     this.load = function (json) {
         return loader(self, json).then(function (objects) {
             objects.forEach(function (object) {
-                objectGUIProvider(self, object.json, GUI.objects);
+                objectGUIProvider(self, object.json, GUI.objects, null);
                 world.ObjectsListJson[object.json.id] = object.json;
             });
 
@@ -676,7 +676,7 @@ function K3D(provider, targetDOMNode, parameters) {
 
         return loader(self, data).then(function (objects) {
             objects.forEach(function (object) {
-                objectGUIProvider(self, object.json, objects);
+                objectGUIProvider(self, object.json, objects, changes);
                 world.ObjectsListJson[object.json.id] = object.json;
             });
 

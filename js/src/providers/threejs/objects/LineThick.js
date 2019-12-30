@@ -4,6 +4,7 @@ var THREE = require('three'),
     colorsToFloat32Array = require('./../../../core/lib/helpers/buffer').colorsToFloat32Array,
     MeshLine = require('./../helpers/THREE.MeshLine')(THREE),
     Fn = require('./../helpers/Fn'),
+    modelMatrixUpdate = Fn.modelMatrixUpdate,
     areAllChangesResolve = Fn.areAllChangesResolve,
     colorMapHelper = require('./../../../core/lib/helpers/colorMap'),
     getColorsArray = Fn.getColorsArray;
@@ -129,6 +130,8 @@ function update(config, changes, obj) {
         changes.attribute = null;
         changes.vertices = null;
     }
+
+    modelMatrixUpdate(config, changes, obj);
 
     if (areAllChangesResolve(changes)) {
         return Promise.resolve({json: config, obj: obj});

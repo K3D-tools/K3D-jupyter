@@ -3,6 +3,7 @@
 var THREE = require('three'),
     buffer = require('./../../../core/lib/helpers/buffer'),
     Fn = require('./../helpers/Fn'),
+    modelMatrixUpdate = Fn.modelMatrixUpdate,
     areAllChangesResolve = Fn.areAllChangesResolve,
     getColorsArray = Fn.getColorsArray;
 
@@ -64,6 +65,7 @@ module.exports = {
 
         // monkey-patching for imitate THREE.PointsMaterial
         material.size = config.point_size;
+        material.color = new THREE.Color(1.0, 1.0, 1.0);
         material.map = null;
         material.isPointsMaterial = true;
 
@@ -90,6 +92,8 @@ module.exports = {
             changes.positions = null;
         }
 
+        modelMatrixUpdate(config, changes, obj);
+
         if (areAllChangesResolve(changes)) {
             return Promise.resolve({json: config, obj: obj});
         } else {
@@ -109,8 +113,8 @@ module.exports = {
 function getGeometry(positions, colors) {
     var geometry = new THREE.BufferGeometry();
 
-    geometry.addAttribute('position', new THREE.BufferAttribute(new Float32Array(positions), 3));
-    geometry.addAttribute('color', new THREE.BufferAttribute(colors, 3));
+    geometry.setAttribute('position', new THREE.BufferAttribute(new Float32Array(positions), 3));
+    geometry.setAttribute('color', new THREE.BufferAttribute(colors, 3));
     geometry.computeBoundingSphere();
     geometry.computeBoundingBox();
 

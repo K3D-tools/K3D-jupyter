@@ -3,7 +3,8 @@
 var THREE = require('three'),
     intersectHelper = require('./../helpers/Intersection'),
     handleColorMap = require('./../helpers/Fn').handleColorMap,
-    areAllChangesResolve = require('./../helpers/Fn').areAllChangesResolve;
+    areAllChangesResolve = require('./../helpers/Fn').areAllChangesResolve,
+    modelMatrixUpdate = require('./../helpers/Fn').modelMatrixUpdate;
 
 /**
  * Loader strategy to handle Mesh object
@@ -47,7 +48,7 @@ module.exports = {
             handleColorMap(geometry, colorMap, colorRange, attribute, material);
         }
 
-        geometry.addAttribute('position', new THREE.BufferAttribute(vertices, 3));
+        geometry.setAttribute('position', new THREE.BufferAttribute(vertices, 3));
         geometry.setIndex(new THREE.BufferAttribute(indices, 1));
 
         if (config.flat_shading === false) {
@@ -83,6 +84,7 @@ module.exports = {
         }
 
         intersectHelper.update(config, changes, obj, K3D);
+        modelMatrixUpdate(config, changes, obj);
 
         if (areAllChangesResolve(changes)) {
             return Promise.resolve({json: config, obj: obj});

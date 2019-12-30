@@ -1,5 +1,7 @@
 'use strict';
-var VoxelsHelper = require('./../helpers/Voxels');
+var VoxelsHelper = require('./../helpers/Voxels'),
+    areAllChangesResolve = require('./../helpers/Fn').areAllChangesResolve,
+    modelMatrixUpdate = require('./../helpers/Fn').modelMatrixUpdate;
 
 function K3DVoxelsMap(group) {
     var cx = group.coord.data[0],
@@ -150,7 +152,7 @@ module.exports = {
     },
 
     update: function (config, changes, obj, K3D) {
-        if (changes.opacity) {
+        if (typeof(changes.opacity) !== 'undefined' && !changes.opacity.timeSeries) {
             obj.traverse(function (object) {
                 if (object.material) {
                     if (object.material.userData.outline) {
@@ -163,10 +165,10 @@ module.exports = {
                 }
             });
 
-            return Promise.resolve({json: config, obj: obj});
+            changes.opacity = null;
         }
 
-        if (changes.chunks_ids) {
+        if (typeof(changes.chunks_ids) !== 'undefined' && !changes.chunks_ids.timeSeries) {
             var idsMap = {}, affectedIds = new Set();
 
             obj.children.forEach(function (g) {
@@ -227,19 +229,25 @@ module.exports = {
                 }
             }
 
-            return Promise.resolve({json: config, obj: obj});
+            changes.chunks_ids = null;
         }
 
-        if (typeof (changes._hold_remeshing) !== 'undefined') {
+        if (typeof(changes._hold_remeshing) !== 'undefined' && !changes._hold_remeshing.timeSeries) {
             obj.holdRemeshing = config._hold_remeshing;
 
             if (!config._hold_remeshing) {
                 obj.rebuildChunk();
             }
 
-            return Promise.resolve({json: config, obj: obj});
+            changes._hold_remeshing = null;
         }
 
-        return false;
+        modelMatrixUpdate(config, changes, obj);
+
+        if (areAllChangesResolve(changes)) {
+            return Promise.resolve({json: config, obj: obj});
+        } else {
+            return false;
+        }
     }
 };

@@ -1,6 +1,8 @@
 'use strict';
 
-var VoxelsHelper = require('./../helpers/Voxels');
+var VoxelsHelper = require('./../helpers/Voxels'),
+    areAllChangesResolve = require('./../helpers/Fn').areAllChangesResolve,
+    modelMatrixUpdate = require('./../helpers/Fn').modelMatrixUpdate;
 
 function K3DVoxelsMap(config) {
     var newArray;
@@ -74,5 +76,15 @@ module.exports = {
             config.space_size.data,
             K3D
         );
+    },
+
+    update: function (config, changes, obj) {
+        modelMatrixUpdate(config, changes, obj);
+
+        if (areAllChangesResolve(changes)) {
+            return Promise.resolve({json: config, obj: obj});
+        } else {
+            return false;
+        }
     }
 };

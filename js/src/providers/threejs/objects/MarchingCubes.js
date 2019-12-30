@@ -4,7 +4,9 @@ var THREE = require('three'),
     intersectHelper = require('./../helpers/Intersection'),
     marchingCubesPolygonise = require('./../../../core/lib/helpers/marchingCubesPolygonise'),
     yieldingLoop = require('./../../../core/lib/helpers/yieldingLoop'),
-    areAllChangesResolve = require('./../helpers/Fn').areAllChangesResolve;
+    areAllChangesResolve = require('./../helpers/Fn').areAllChangesResolve,
+    modelMatrixUpdate = require('./../helpers/Fn').modelMatrixUpdate;
+
 /**
  * Loader strategy to handle Marching Cubes object
  * @method MarchingCubes
@@ -56,7 +58,7 @@ module.exports = {
             }, function () {
 
                 positions = new Float32Array(positions);
-                geometry.addAttribute('position', new THREE.BufferAttribute(positions, 3));
+                geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
 
                 geometry.boundingSphere = new THREE.Sphere(
                     new THREE.Vector3(0.5, 0.5, 0.5),
@@ -94,6 +96,8 @@ module.exports = {
 
     update: function (config, changes, obj, K3D) {
         intersectHelper.update(config, changes, obj, K3D);
+
+        modelMatrixUpdate(config, changes, obj);
 
         if (areAllChangesResolve(changes)) {
             return Promise.resolve({json: config, obj: obj});

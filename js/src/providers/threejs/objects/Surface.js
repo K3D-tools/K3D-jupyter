@@ -2,7 +2,8 @@
 
 var THREE = require('three'),
     intersectHelper = require('./../helpers/Intersection'),
-    areAllChangesResolve = require('./../helpers/Fn').areAllChangesResolve;
+    areAllChangesResolve = require('./../helpers/Fn').areAllChangesResolve,
+    modelMatrixUpdate = require('./../helpers/Fn').modelMatrixUpdate;
 
 /**
  * Loader strategy to handle Surface object
@@ -55,7 +56,7 @@ module.exports = {
             }
         }
 
-        geometry.addAttribute('position', new THREE.BufferAttribute(vertices, 3));
+        geometry.setAttribute('position', new THREE.BufferAttribute(vertices, 3));
         geometry.setIndex(indices);
 
         if (config.flat_shading === false) {
@@ -83,6 +84,7 @@ module.exports = {
 
     update: function (config, changes, obj, K3D) {
         intersectHelper.update(config, changes, obj, K3D);
+        modelMatrixUpdate(config, changes, obj);
 
         if (areAllChangesResolve(changes)) {
             return Promise.resolve({json: config, obj: obj});

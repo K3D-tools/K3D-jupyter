@@ -2,7 +2,8 @@
 
 'use strict';
 
-var pow10ceil = require('./helpers/math').pow10ceil,
+var THREE = require('three'),
+    pow10ceil = require('./helpers/math').pow10ceil,
     autoPlayed = false,
     autoPlayedHandler,
     autoPlayController,
@@ -42,8 +43,41 @@ function getObjectsWithTimeSeriesAndMinMax(K3D) {
     };
 }
 
-function interpolate(a, b, f) {
+function interpolate(a, b, f, property) {
     var i, interpolated;
+
+    if (property === 'model_matrix') {
+        var matrix = new THREE.Matrix4(),
+            translationA = new THREE.Vector3(),
+            rotationA = new THREE.Quaternion(),
+            scaleA = new THREE.Vector3(),
+            translationB = new THREE.Vector3(),
+            rotationB = new THREE.Quaternion(),
+            scaleB = new THREE.Vector3(),
+            d;
+
+        matrix.set.apply(matrix, a.data);
+        matrix.decompose(translationA, rotationA, scaleA);
+        matrix.set.apply(matrix, b.data);
+        matrix.decompose(translationB, rotationB, scaleB);
+
+        translationA.lerp(translationB, f);
+        rotationA.slerp(rotationB, f);
+        scaleA.lerp(scaleB, f);
+
+        matrix.compose(translationA, rotationA, scaleA);
+        d = matrix.toArray();
+
+        return {
+            data: new Float32Array([
+                d[0], d[4], d[8], d[12],
+                d[1], d[5], d[9], d[13],
+                d[2], d[6], d[10], d[14],
+                d[3], d[7], d[11], d[15]
+            ]),
+            shape: a.shape
+        };
+    }
 
     if (typeof (a) === 'string') {
         return (f > 0.5) ? a : b;
@@ -121,7 +155,8 @@ module.exports = {
                                 interpolated_json[property] = interpolate(
                                     json[property][keypoints[i - 1].k],
                                     json[property][keypoints[i].k],
-                                    f);
+                                    f,
+                                    property);
                             }
 
                             break;

@@ -23,10 +23,10 @@ function getVoxelChunkObject(K3D, config, voxelSize, chunkStructure) {
     );
     voxelsChunkObject.updateMatrix();
 
-    geometry.addAttribute('position',
+    geometry.setAttribute('position',
         new THREE.BufferAttribute(new Float32Array(chunkStructure.vertices), 3)
     );
-    geometry.addAttribute('color',
+    geometry.setAttribute('color',
         new THREE.BufferAttribute(new Float32Array(chunkStructure.colors), 3)
     );
 
