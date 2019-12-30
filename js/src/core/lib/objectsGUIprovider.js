@@ -4,8 +4,8 @@
 
 function objectGUIProvider(K3D, json, objects, changes) {
 
-    function addController(folder, obj, param, options) {
-        var controller = folder.add(obj, param, options);
+    function addController(folder, obj, param, options1, options2, options3) {
+        var controller = folder.add(obj, param, options1, options2, options3);
         folder.controllersMap[param] = controller;
 
         return controller;
