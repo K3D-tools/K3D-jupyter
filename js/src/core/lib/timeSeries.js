@@ -220,7 +220,7 @@ module.exports = {
                     }
                 }
 
-                changes[property] = _.cloneDeep(interpolated_json[property]);
+                changes[property] = interpolated_json[property];
             } else {
                 interpolated_json[property] = json[property];
             }
