@@ -1,7 +1,8 @@
 'use strict';
 
 var THREE = require('three'),
-    closestPowOfTwo = require('./../helpers/Fn').closestPowOfTwo;
+    closestPowOfTwo = require('./../helpers/Fn').closestPowOfTwo,
+    areAllChangesResolve = require('./../helpers/Fn').areAllChangesResolve;
 
 /**
  * Loader strategy to handle Text object
@@ -59,6 +60,26 @@ module.exports = {
         object = getSprite(canvas, position, size);
 
         return Promise.resolve(object);
+    },
+
+    update: function (config, changes, obj) {
+        if (typeof(changes.position) !== 'undefined' && !changes.position.timeSeries) {
+
+            obj.position.set(changes.position[0], changes.position[1], changes.position[2]);
+            changes.position = null;
+        }
+
+        if (typeof(changes.size) !== 'undefined' && !changes.size.timeSeries) {
+
+            obj.scale.set(changes.size, changes.size, changes.size);
+            changes.size = null;
+        }
+
+        if (areAllChangesResolve(changes)) {
+            return Promise.resolve({json: config, obj: obj});
+        } else {
+            return false;
+        }
     }
 };
 

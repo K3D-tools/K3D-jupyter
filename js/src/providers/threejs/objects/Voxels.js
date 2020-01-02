@@ -1,6 +1,8 @@
 'use strict';
 
-var VoxelsHelper = require('./../helpers/Voxels');
+var VoxelsHelper = require('./../helpers/Voxels'),
+    areAllChangesResolve = require('./../helpers/Fn').areAllChangesResolve,
+    modelMatrixUpdate = require('./../helpers/Fn').modelMatrixUpdate;
 
 /**
  * Loader strategy to handle SparseVoxels object
@@ -17,5 +19,15 @@ module.exports = {
             [config.voxels.shape[2], config.voxels.shape[1], config.voxels.shape[0]],
             K3D
         );
+    },
+
+    update: function (config, changes, obj) {
+        modelMatrixUpdate(config, changes, obj);
+
+        if (areAllChangesResolve(changes)) {
+            return Promise.resolve({json: config, obj: obj});
+        } else {
+            return false;
+        }
     }
 };

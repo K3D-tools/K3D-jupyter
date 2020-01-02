@@ -3,6 +3,8 @@
 var THREE = require('three'),
     buffer = require('./../../../core/lib/helpers/buffer'),
     Fn = require('./../helpers/Fn'),
+    areAllChangesResolve = Fn.areAllChangesResolve,
+    modelMatrixUpdate = Fn.modelMatrixUpdate,
     getColorsArray = Fn.getColorsArray;
 
 /**
@@ -41,11 +43,11 @@ module.exports = {
                 colorsToFloat32Array(pointColors) : getColorsArray(color, positions.length / 3)
         );
 
-        instancedGeometry.addAttribute('offset', new THREE.InstancedBufferAttribute(new Float32Array(positions), 3));
-        instancedGeometry.addAttribute('color', new THREE.InstancedBufferAttribute(new Float32Array(colors), 3));
+        instancedGeometry.setAttribute('offset', new THREE.InstancedBufferAttribute(new Float32Array(positions), 3));
+        instancedGeometry.setAttribute('color', new THREE.InstancedBufferAttribute(new Float32Array(colors), 3));
 
         // boundingBox & boundingSphere
-        geometry.addAttribute('position', new THREE.BufferAttribute(positions, 3));
+        geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
         geometry.computeBoundingSphere();
         instancedGeometry.boundingSphere = geometry.boundingSphere.clone();
         geometry.computeBoundingBox();
@@ -61,7 +63,14 @@ module.exports = {
 
         return Promise.resolve(object);
     },
-    update: function () {
-        return false;
+
+    update: function (config, changes, obj) {
+        modelMatrixUpdate(config, changes, obj);
+
+        if (areAllChangesResolve(changes)) {
+            return Promise.resolve({json: config, obj: obj});
+        } else {
+            return false;
+        }
     }
 };

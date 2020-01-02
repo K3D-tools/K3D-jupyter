@@ -4,6 +4,7 @@ var THREE = require('three'),
     intersectHelper = require('./../helpers/Intersection'),
     colorMapHelper = require('./../../../core/lib/helpers/colorMap'),
     areAllChangesResolve = require('./../helpers/Fn').areAllChangesResolve,
+    modelMatrixUpdate = require('./../helpers/Fn').modelMatrixUpdate,
     typedArrayToThree = require('./../helpers/Fn').typedArrayToThree;
 
 /**
@@ -92,6 +93,7 @@ module.exports = {
 
     update: function (config, changes, obj, K3D) {
         intersectHelper.update(config, changes, obj, K3D);
+        modelMatrixUpdate(config, changes, obj);
 
         if (areAllChangesResolve(changes)) {
             return Promise.resolve({json: config, obj: obj});

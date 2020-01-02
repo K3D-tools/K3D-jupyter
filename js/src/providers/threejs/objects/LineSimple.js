@@ -3,6 +3,7 @@
 var THREE = require('three'),
     colorsToFloat32Array = require('./../../../core/lib/helpers/buffer').colorsToFloat32Array,
     Fn = require('./../helpers/Fn'),
+    modelMatrixUpdate = Fn.modelMatrixUpdate,
     areAllChangesResolve = Fn.areAllChangesResolve,
     getColorsArray = Fn.getColorsArray,
     handleColorMap = Fn.handleColorMap;
@@ -37,10 +38,10 @@ module.exports = {
             );
 
             material.setValues({vertexColors: THREE.VertexColors});
-            geometry.addAttribute('color', new THREE.BufferAttribute(colors, 3));
+            geometry.setAttribute('color', new THREE.BufferAttribute(colors, 3));
         }
 
-        geometry.addAttribute('position', new THREE.BufferAttribute(position, 3));
+        geometry.setAttribute('position', new THREE.BufferAttribute(position, 3));
 
         geometry.computeBoundingSphere();
         geometry.computeBoundingBox();
@@ -73,6 +74,8 @@ module.exports = {
             obj.geometry.attributes.position.needsUpdate = true;
             changes.vertices = null;
         }
+
+        modelMatrixUpdate(config, changes, obj);
 
         if (areAllChangesResolve(changes)) {
             return Promise.resolve({json: config, obj: obj});

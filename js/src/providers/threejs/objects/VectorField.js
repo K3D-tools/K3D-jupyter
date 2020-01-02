@@ -2,6 +2,8 @@
 
 var THREE = require('three'),
     buffer = require('./../../../core/lib/helpers/buffer'),
+    areAllChangesResolve = require('./../helpers/Fn').areAllChangesResolve,
+    modelMatrixUpdate = require('./../helpers/Fn').modelMatrixUpdate,
     MeshLine = require('./../helpers/THREE.MeshLine')(THREE),
     getTwoColorsArray = require('./../helpers/Fn').getTwoColorsArray,
     generateArrow = require('./../helpers/Fn').generateArrow;
@@ -118,6 +120,16 @@ module.exports = {
         };
 
         return Promise.resolve(object);
+    },
+
+    update: function (config, changes, obj) {
+        modelMatrixUpdate(config, changes, obj);
+
+        if (areAllChangesResolve(changes)) {
+            return Promise.resolve({json: config, obj: obj});
+        } else {
+            return false;
+        }
     }
 };
 

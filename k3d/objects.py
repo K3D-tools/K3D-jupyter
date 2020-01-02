@@ -297,7 +297,7 @@ class MarchingCubes(DrawableWithCallback):
     wireframe = Bool().tag(sync=True)
     flat_shading = Bool().tag(sync=True)
     opacity = Float(min=0.0, max=1.0, default_value=1.0).tag(sync=True)
-    model_matrix = Array(dtype=np.float32).tag(sync=True, **array_serialization_wrap('model_matrix'))
+    model_matrix = TimeSeries(Array(dtype=np.float32)).tag(sync=True, **array_serialization_wrap('model_matrix'))
 
     def __init__(self, **kwargs):
         super(MarchingCubes, self).__init__(**kwargs)
@@ -402,6 +402,9 @@ class Points(Drawable):
 
     @validate('colors')
     def _validate_colors(self, proposal):
+        if type(proposal['value']) is dict or type(self.positions) is dict:
+            return proposal['value']
+
         required = self.positions.size // 3  # (x, y, z) triplet per 1 color
         actual = proposal['value'].size
         if actual != 0 and required != actual:
@@ -435,9 +438,9 @@ class STL(Drawable):
     text = AsciiStlData(allow_none=True, default_value=None).tag(sync=True)
     binary = BinaryStlData(allow_none=True, default_value=None).tag(sync=True)
     color = Int(min=0, max=0xffffff).tag(sync=True)
-    model_matrix = Array(dtype=np.float32).tag(sync=True, **array_serialization_wrap('model_matrix'))
     wireframe = Bool().tag(sync=True)
     flat_shading = Bool().tag(sync=True)
+    model_matrix = TimeSeries(Array(dtype=np.float32)).tag(sync=True, **array_serialization_wrap('model_matrix'))
 
     def __init__(self, **kwargs):
         super(STL, self).__init__(**kwargs)
@@ -470,7 +473,7 @@ class Surface(DrawableWithCallback):
     color = Int(min=0, max=0xffffff).tag(sync=True)
     wireframe = Bool().tag(sync=True)
     flat_shading = Bool().tag(sync=True)
-    model_matrix = Array(dtype=np.float32).tag(sync=True, **array_serialization_wrap('model_matrix'))
+    model_matrix = TimeSeries(Array(dtype=np.float32)).tag(sync=True, **array_serialization_wrap('model_matrix'))
 
     def __init__(self, **kwargs):
         super(Surface, self).__init__(**kwargs)
@@ -582,7 +585,7 @@ class Texture(DrawableWithCallback):
     puv = Array(dtype=np.float32).tag(sync=True, **array_serialization_wrap('puv'))
     color_map = Array(dtype=np.float32).tag(sync=True, **array_serialization_wrap('color_map'))
     color_range = ListOrArray(minlen=2, maxlen=2, empty_ok=True).tag(sync=True)
-    model_matrix = Array(dtype=np.float32).tag(sync=True, **array_serialization_wrap('model_matrix'))
+    model_matrix = TimeSeries(Array(dtype=np.float32)).tag(sync=True, **array_serialization_wrap('model_matrix'))
 
     def __init__(self, **kwargs):
         super(Texture, self).__init__(**kwargs)
@@ -618,10 +621,10 @@ class TextureText(Drawable):
     """
 
     type = Unicode(read_only=True).tag(sync=True)
-    text = Unicode().tag(sync=True)
-    position = ListOrArray(minlen=3, maxlen=3).tag(sync=True)
-    color = Int(min=0, max=0xffffff).tag(sync=True)
-    size = Float(min=EPSILON, default_value=1.0).tag(sync=True)
+    text = TimeSeries(Unicode()).tag(sync=True)
+    position = TimeSeries(ListOrArray(minlen=3, maxlen=3)).tag(sync=True)
+    color = TimeSeries(Int(min=0, max=0xffffff)).tag(sync=True)
+    size = TimeSeries(Float(min=EPSILON, default_value=1.0)).tag(sync=True)
     font_face = Unicode().tag(sync=True)
     font_weight = Int().tag(sync=True)
     font_size = Int().tag(sync=True)
@@ -676,7 +679,7 @@ class VectorField(Drawable):
     head_size = Float(min=EPSILON, default_value=1.0).tag(sync=True)
     scale = Float().tag(sync=True)
     line_width = Float(min=EPSILON, default_value=0.01).tag(sync=True)
-    model_matrix = Array(dtype=np.float32).tag(sync=True, **array_serialization_wrap('model_matrix'))
+    model_matrix = TimeSeries(Array(dtype=np.float32)).tag(sync=True, **array_serialization_wrap('model_matrix'))
 
     def __init__(self, **kwargs):
         super(VectorField, self).__init__(**kwargs)
@@ -738,7 +741,7 @@ class Vectors(Drawable):
     labels = List().tag(sync=True)
     label_size = Float(min=EPSILON, default_value=1.0).tag(sync=True)
     line_width = Float(min=EPSILON, default_value=0.01).tag(sync=True)
-    model_matrix = Array(dtype=np.float32).tag(sync=True, **array_serialization_wrap('model_matrix'))
+    model_matrix = TimeSeries(Array(dtype=np.float32)).tag(sync=True, **array_serialization_wrap('model_matrix'))
 
     def __init__(self, **kwargs):
         super(Vectors, self).__init__(**kwargs)
@@ -858,7 +861,7 @@ class Voxels(DrawableWithVoxelCallback):
     outlines = Bool().tag(sync=True)
     outlines_color = Int(min=0, max=0xffffff).tag(sync=True)
     opacity = Float(min=0.0, max=1.0, default_value=1.0).tag(sync=True)
-    model_matrix = Array(dtype=np.float32).tag(sync=True, **array_serialization_wrap('model_matrix'))
+    model_matrix = TimeSeries(Array(dtype=np.float32)).tag(sync=True, **array_serialization_wrap('model_matrix'))
 
     def __init__(self, **kwargs):
         super(Voxels, self).__init__(**kwargs)
@@ -906,7 +909,7 @@ class SparseVoxels(DrawableWithVoxelCallback):
     outlines = Bool().tag(sync=True)
     outlines_color = Int(min=0, max=0xffffff).tag(sync=True)
     opacity = Float(min=0.0, max=1.0, default_value=1.0).tag(sync=True)
-    model_matrix = Array(dtype=np.float32).tag(sync=True, **array_serialization_wrap('model_matrix'))
+    model_matrix = TimeSeries(Array(dtype=np.float32)).tag(sync=True, **array_serialization_wrap('model_matrix'))
 
     def __init__(self, **kwargs):
         super(SparseVoxels, self).__init__(**kwargs)
@@ -954,7 +957,7 @@ class VoxelsGroup(DrawableWithVoxelCallback):
     outlines = Bool().tag(sync=True)
     outlines_color = Int(min=0, max=0xffffff).tag(sync=True)
     opacity = Float(min=0.0, max=1.0, default_value=1.0).tag(sync=True)
-    model_matrix = Array(dtype=np.float32).tag(sync=True, **array_serialization_wrap('model_matrix'))
+    model_matrix = TimeSeries(Array(dtype=np.float32)).tag(sync=True, **array_serialization_wrap('model_matrix'))
 
     def __init__(self, **kwargs):
         super(VoxelsGroup, self).__init__(**kwargs)

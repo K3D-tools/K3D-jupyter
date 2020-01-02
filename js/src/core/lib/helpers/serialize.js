@@ -22,7 +22,6 @@ function deserializeArray(obj) {
     var buffer;
 
     if (typeof (obj.buffer) !== 'undefined') {
-        console.log('K3D: Receive: ' + obj.buffer.byteLength + ' bytes');
         return {
             data: new typesToArray[obj.dtype](obj.buffer.buffer),
             shape: obj.shape

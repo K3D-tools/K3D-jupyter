@@ -204,14 +204,14 @@ module.exports = function (THREE) {
             this.attributes.colors.needsUpdate = true;
         }
 
-        this.geometry.addAttribute('position', this.attributes.position);
-        this.geometry.addAttribute('previous', this.attributes.previous);
-        this.geometry.addAttribute('next', this.attributes.next);
-        this.geometry.addAttribute('side', this.attributes.side);
-        this.geometry.addAttribute('width', this.attributes.width);
-        this.geometry.addAttribute('uv', this.attributes.uv);
-        this.geometry.addAttribute('counters', this.attributes.counters);
-        this.geometry.addAttribute('colors', this.attributes.colors);
+        this.geometry.setAttribute('position', this.attributes.position);
+        this.geometry.setAttribute('previous', this.attributes.previous);
+        this.geometry.setAttribute('next', this.attributes.next);
+        this.geometry.setAttribute('side', this.attributes.side);
+        this.geometry.setAttribute('width', this.attributes.width);
+        this.geometry.setAttribute('uv', this.attributes.uv);
+        this.geometry.setAttribute('counters', this.attributes.counters);
+        this.geometry.setAttribute('colors', this.attributes.colors);
 
         this.geometry.setIndex(this.attributes.index);
     };
@@ -221,17 +221,13 @@ module.exports = function (THREE) {
         var vertexShaderSource = [
                 'precision highp float;',
                 '',
-                'attribute vec3 position;',
                 'attribute vec3 previous;',
                 'attribute vec3 next;',
                 'attribute vec3 colors;',
                 'attribute float side;',
                 'attribute float width;',
-                'attribute vec2 uv;',
                 'attribute float counters;',
                 '',
-                'uniform mat4 projectionMatrix;',
-                'uniform mat4 modelViewMatrix;',
                 'uniform vec2 resolution;',
                 'uniform float lineWidth;',
                 'uniform vec3 color;',
@@ -355,7 +351,7 @@ module.exports = function (THREE) {
         this.far = check(parameters.far, 1);
         this.visibility = check(parameters.visibility, 1);
 
-        material = new THREE.RawShaderMaterial({
+        material = new THREE.ShaderMaterial({
             uniforms: {
                 lineWidth: {type: 'f', value: this.lineWidth},
                 map: {type: 't', value: this.map},

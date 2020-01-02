@@ -63,6 +63,10 @@ class Plot(widgets.DOMWidget):
             :`change`: On voxels objects edit mode,
 
             :`callback`: Handling click_callback and hover_callback on some type of objects.
+        auto_rendering: `Bool`.
+            State of auto rendering.
+        fps: `Float`.
+            Fps of animation.
         objects: `list`.
             List of `k3d.objects.Drawable` currently included in the plot, not to be changed directly.
     """
@@ -85,7 +89,9 @@ class Plot(widgets.DOMWidget):
 
     # read-write
     camera_auto_fit = Bool(True).tag(sync=True)
+    auto_rendering = Bool(True).tag(sync=True)
     lighting = Float().tag(sync=True)
+    fps = Float().tag(sync=True)
     grid_auto_fit = Bool(True).tag(sync=True)
     grid_visible = Bool(True).tag(sync=True)
     fps_meter = Bool(True).tag(sync=True)
@@ -116,13 +122,15 @@ class Plot(widgets.DOMWidget):
                  grid_visible=True, height=512, voxel_paint_color=0, grid=(-1, -1, -1, 1, 1, 1), screenshot_scale=2.0,
                  lighting=1.5, time=0.0, fps_meter=False, menu_visibility=True, colorbar_object_id=-1,
                  rendering_steps=1, axes=['x', 'y', 'z'], camera_no_rotate=False, camera_no_zoom=False,
-                 camera_no_pan=False, camera_fov=45.0, axes_helper=1.0, name=None, mode='view', *args, **kwargs):
+                 camera_no_pan=False, camera_fov=45.0, axes_helper=1.0, name=None, mode='view',
+                 auto_rendering=True, fps=25.0, *args, **kwargs):
         super(Plot, self).__init__()
 
         self.antialias = antialias
         self.camera_auto_fit = camera_auto_fit
         self.grid_auto_fit = grid_auto_fit
         self.fps_meter = fps_meter
+        self.fps = fps
         self.grid = grid
         self.grid_visible = grid_visible
         self.background_color = background_color
@@ -142,6 +150,7 @@ class Plot(widgets.DOMWidget):
         self.axes_helper = axes_helper
         self.name = name
         self.mode = mode
+        self.auto_rendering = auto_rendering
         self.camera = [4.5, 4.5, 4.5, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0]
 
         self.object_ids = []
@@ -178,6 +187,15 @@ class Plot(widgets.DOMWidget):
         self.outputs.append(output)
 
         display(output)
+
+    def render(self):
+        self.send({'msg_type': 'render'})
+
+    def start_auto_play(self):
+        self.send({'msg_type': 'start_auto_play'})
+
+    def stop_auto_play(self):
+        self.send({'msg_type': 'stop_auto_play'})
 
     def close(self):
         for output in self.outputs:

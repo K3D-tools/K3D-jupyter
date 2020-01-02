@@ -39,10 +39,10 @@ function loader(K3D, data) {
                 if (typeof (obj) !== 'undefined') {
                     K3DObjectPromise = objectProvider.update(json, changes, obj, K3D);
 
-                    if (K3DObjectPromise) {
-                        console.log('K3D: Object type "' + json.type + '" updated in: ',
-                            (new Date().getTime() - startTime) / 1000, 's');
-                    }
+                    // if (K3DObjectPromise) {
+                    //     console.log('K3D: Object type "' + json.type + '" updated in: ',
+                    //         (new Date().getTime() - startTime) / 1000, 's');
+                    // }
                 }
             }
 

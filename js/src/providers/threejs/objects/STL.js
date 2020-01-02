@@ -1,6 +1,8 @@
 'use strict';
 
-var THREE = require('three');
+var THREE = require('three'),
+    areAllChangesResolve = require('./../helpers/Fn').areAllChangesResolve,
+    modelMatrixUpdate = require('./../helpers/Fn').modelMatrixUpdate;
 
 /**
  * Loader strategy to handle STL object
@@ -69,5 +71,15 @@ module.exports = {
         object.updateMatrixWorld();
 
         return Promise.resolve(object);
+    },
+
+    update: function (config, changes, obj) {
+        modelMatrixUpdate(config, changes, obj);
+
+        if (areAllChangesResolve(changes)) {
+            return Promise.resolve({json: config, obj: obj});
+        } else {
+            return false;
+        }
     }
 };

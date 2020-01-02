@@ -6,7 +6,8 @@ var THREE = require('three'),
     colorMapHelper = require('./../../../core/lib/helpers/colorMap'),
     closestPowOfTwo = require('./../helpers/Fn').closestPowOfTwo,
     typedArrayToThree = require('./../helpers/Fn').typedArrayToThree,
-    areAllChangesResolve = require('./../helpers/Fn').areAllChangesResolve;
+    areAllChangesResolve = require('./../helpers/Fn').areAllChangesResolve,
+    modelMatrixUpdate = require('./../helpers/Fn').modelMatrixUpdate;
 
 /**
  * Loader strategy to handle Volume object
@@ -29,7 +30,7 @@ module.exports = {
         config.focal_plane = config.focal_plane || 512.0;
         config.focal_length = typeof (config.focal_length) !== 'undefined' ? config.focal_length : 0.0;
 
-        var gl = K3D.getWorld().renderer.context,
+        var gl = K3D.getWorld().renderer.getContext(),
             geometry = new THREE.BoxBufferGeometry(1, 1, 1),
             modelMatrix = new THREE.Matrix4(),
             translation = new THREE.Vector3(),
@@ -335,6 +336,8 @@ module.exports = {
                 changes[key] = null;
             }
         });
+
+        modelMatrixUpdate(config, changes, obj);
 
         if (areAllChangesResolve(changes)) {
             return Promise.resolve({json: config, obj: obj});

@@ -50,7 +50,7 @@ module.exports = function (K3D) {
         error('WEBGL Error', 'Context lost.', false);
     }, false);
 
-    gl = self.renderer.context;
+    gl = self.renderer.getContext();
 
     debugInfo = gl.getExtension('WEBGL_debug_renderer_info');
     console.log('K3D: (UNMASKED_VENDOR_WEBGL)', gl.getParameter(debugInfo.UNMASKED_VENDOR_WEBGL));

@@ -70,6 +70,11 @@ class Transform(object):
             value = np.array(value, dtype=np.float32).reshape(3, 1)
         elif key == 'rotation':
             value = np.array(value, dtype=np.float32).reshape(4)
+            value[0] = np.fmod(value[0], 2.0 * np.pi)
+
+            if value[0] < 0.0:
+                value[0] += 2.0 * np.pi
+
             value[0] = np.cos(value[0] / 2)
 
             norm = np.linalg.norm(value[1:4])
@@ -127,6 +132,7 @@ class Transform(object):
 
         if self.rotation is not None:
             a, b, c, d = self.rotation
+
             rotation_matrix = np.array([
                 [a * a + b * b - c * c - d * d, 2 * (b * c - a * d), 2 * (b * d + a * c), 0.],
                 [2 * (b * c + a * d), a * a - b * b + c * c - d * d, 2 * (c * d - a * b), 0.],
@@ -239,3 +245,7 @@ def process_transform_arguments(drawable, **kwargs):
     drawable.transform = transform
 
     return drawable
+
+
+def transform(bounds=None, translation=None, rotation=None, scaling=None, custom_matrix=None, parent=None):
+    return Transform(bounds, translation, rotation, scaling, custom_matrix, parent)

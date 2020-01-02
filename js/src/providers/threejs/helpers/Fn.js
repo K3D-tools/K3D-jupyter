@@ -202,7 +202,7 @@ module.exports = {
                 uvs[i] = (attributes[i] - colorRange[0]) / (colorRange[1] - colorRange[0]);
             }
 
-            geometry.addAttribute('uv', new THREE.BufferAttribute(uvs, 1));
+            geometry.setAttribute('uv', new THREE.BufferAttribute(uvs, 1));
         }
     },
 
@@ -234,5 +234,21 @@ module.exports = {
         camera.frustum.setFromMatrix(new THREE.Matrix4().multiplyMatrices(
             camera.projectionMatrix, camera.matrixWorldInverse
         ));
+    },
+
+    modelMatrixUpdate: function (config, changes, obj) {
+        if (typeof(changes.model_matrix) !== 'undefined' && !changes.model_matrix.timeSeries) {
+            var modelMatrix = new THREE.Matrix4();
+
+            modelMatrix.set.apply(modelMatrix, changes.model_matrix.data);
+            obj.position.set(0.0, 0.0, 0.0);
+            obj.rotation.set(0.0, 0.0, 0.0);
+            obj.scale.set(1.0, 1.0, 1.0);
+
+            obj.applyMatrix(modelMatrix);
+            obj.updateMatrixWorld();
+
+            changes.model_matrix = null;
+        }
     }
 };
