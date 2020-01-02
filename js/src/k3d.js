@@ -222,6 +222,14 @@ PlotView = widgets.DOMWidgetView.extend({
                 model.save('snapshot', this.K3DInstance.getHTMLSnapshot());
             }
 
+            if (obj.msg_type === 'start_auto_play') {
+                this.K3DInstance.startAutoPlay();
+            }
+
+            if (obj.msg_type === 'stop_auto_play') {
+                this.K3DInstance.stopAutoPlay();
+            }
+
             if (obj.msg_type === 'reset_camera') {
                 this.K3DInstance.resetCamera();
             }
@@ -247,6 +255,7 @@ PlotView = widgets.DOMWidgetView.extend({
         this.model.on('change:grid_auto_fit', this._setGridAutoFit, this);
         this.model.on('change:grid_visible', this._setGridVisible, this);
         this.model.on('change:fps_meter', this._setFpsMeter, this);
+        this.model.on('change:fps', this._setFps, this);
         this.model.on('change:screenshot_scale', this._setScreenshotScale, this);
         this.model.on('change:voxel_paint_color', this._setVoxelPaintColor, this);
         this.model.on('change:background_color', this._setBackgroundColor, this);
@@ -281,6 +290,7 @@ PlotView = widgets.DOMWidgetView.extend({
                 axes: this.model.get('axes'),
                 axesHelper: this.model.get('axes_helper'),
                 grid: this.model.get('grid'),
+                fps: this.model.get('fps'),
                 autoRendering: this.model.get('auto_rendering'),
                 gridVisible: this.model.get('grid_visible')
             });
@@ -371,6 +381,10 @@ PlotView = widgets.DOMWidgetView.extend({
 
     _setGridVisible: function () {
         this.K3DInstance.setGridVisible(this.model.get('grid_visible'));
+    },
+
+    _setFps: function () {
+        this.K3DInstance.setFps(this.model.get('fps'));
     },
 
     _setFpsMeter: function () {

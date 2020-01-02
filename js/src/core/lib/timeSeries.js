@@ -3,11 +3,7 @@
 'use strict';
 
 var THREE = require('three'),
-    pow10ceil = require('./helpers/math').pow10ceil,
-    autoPlayed = false,
-    autoPlayedHandler,
-    autoPlayController,
-    timeController;
+    pow10ceil = require('./helpers/math').pow10ceil;
 
 function getObjectsWithTimeSeriesAndMinMax(K3D) {
     var min = 0.0, max = 0.0,
@@ -44,7 +40,7 @@ function getObjectsWithTimeSeriesAndMinMax(K3D) {
 }
 
 function interpolate(a, b, f, property) {
-    var i, interpolated;
+    var i, interpolated, minLength, maxLength;
 
     if (property === 'model_matrix') {
         var matrix = new THREE.Matrix4(),
@@ -87,20 +83,80 @@ function interpolate(a, b, f, property) {
         return a + f * (b - a);
     }
 
-    interpolated = new a.data.constructor(b.data.length);
+    if (a.data) {
+        minLength = Math.min(a.data.length, b.data.length);
+        maxLength = Math.max(a.data.length, b.data.length);
+        interpolated = new a.data.constructor(maxLength);
+
+        for (i = 0; i < minLength; i++) {
+            interpolated[i] = a.data[i] + f * (b.data[i] - a.data[i]);
+        }
+
+        if (minLength !== maxLength) {
+            for (i = minLength; i < maxLength; i++) {
+                interpolated[i] = a.data[i] || b.data[i];
+            }
+        }
+
+        return {
+            data: interpolated,
+            shape: a.shape
+        };
+    }
+
+    minLength = Math.min(a.length, b.length);
+    maxLength = Math.max(a.length, b.length);
+    interpolated = Array(maxLength);
 
     for (i = 0; i < interpolated.length; i++) {
-        if (a.data[i] && b.data[i]) {
-            interpolated[i] = a.data[i] + f * (b.data[i] - a.data[i]);
-        } else {
-            interpolated[i] = b.data[i];
+        interpolated[i] = a[i] + f * (b[i] - a[i]);
+    }
+
+    if (minLength !== maxLength) {
+        for (i = minLength; i < maxLength; i++) {
+            interpolated[i] = a[i] || b[i];
         }
     }
 
-    return {
-        data: interpolated,
-        shape: a.shape
-    };
+    return interpolated;
+}
+
+function startAutoPlay(K3D) {
+    if (K3D.autoPlayedHandler) {
+        return;
+    }
+
+    K3D.autoPlayedFps = K3D.parameters.fps;
+
+    K3D.autoPlayedHandler = setInterval(function () {
+        if (K3D.autoPlayedFps !== K3D.parameters.fps) {
+            clearInterval(K3D.autoPlayedHandler);
+            K3D.autoPlayedHandler = false;
+            startAutoPlay(K3D);
+
+            return;
+        }
+
+        var t = K3D.parameters.time + 1.0 / K3D.parameters.fps;
+
+        if (t > K3D.GUI.controls.controllersMap.time.__max) {
+            t = t - K3D.GUI.controls.controllersMap.time.__max;
+        }
+
+        K3D.setTime(t);
+    }, 1000.0 / K3D.parameters.fps);
+
+    K3D.GUI.controls.controllersMap.autoPlay.name('Stop loop');
+}
+
+function stopAutoPlay(K3D) {
+    if (!K3D.autoPlayedHandler) {
+        return;
+    }
+
+    clearInterval(K3D.autoPlayedHandler);
+    K3D.autoPlayedHandler = false;
+    K3D.GUI.controls.controllersMap.autoPlay.name('Play loop');
 }
 
 module.exports = {
@@ -139,19 +195,19 @@ module.exports = {
                 });
 
                 if (time <= keypoints[0].v) {
-                    interpolated_json[property] = json[property][keypoints[0].k];
+                    interpolated_json[property] = _.cloneDeep(json[property][keypoints[0].k]);
                 } else if (time >= keypoints[keypoints.length - 1].v) {
-                    interpolated_json[property] = json[property][keypoints[keypoints.length - 1].k];
+                    interpolated_json[property] = _.cloneDeep(json[property][keypoints[keypoints.length - 1].k]);
                 } else {
                     for (i = 1; i < keypoints.length; i++) {
                         if (keypoints[i].v > time) {
-                            a = keypoints[i - 1].v;
-                            b = keypoints[i].v;
-                            f = (time - a) / (b - a);
-
                             if (Math.abs(keypoints[i - 1].v - time) < Number.EPSILON) {
-                                interpolated_json[property] = json[property][keypoints[i - 1].k];
+                                interpolated_json[property] = _.cloneDeep(json[property][keypoints[i - 1].k]);
                             } else {
+                                a = keypoints[i - 1].v;
+                                b = keypoints[i].v;
+                                f = (time - a) / (b - a);
+
                                 interpolated_json[property] = interpolate(
                                     json[property][keypoints[i - 1].k],
                                     json[property][keypoints[i].k],
@@ -164,7 +220,7 @@ module.exports = {
                     }
                 }
 
-                changes[property] = interpolated_json[property];
+                changes[property] = _.cloneDeep(interpolated_json[property]);
             } else {
                 interpolated_json[property] = json[property];
             }
@@ -178,43 +234,30 @@ module.exports = {
     timeSeriesGUI: function (gui, K3D, changeParameters) {
         var obj = {
             togglePlay: function () {
-                if (autoPlayed) {
-                    clearInterval(autoPlayedHandler);
-                    autoPlayed = false;
-                    autoPlayController.name('Play loop');
+                if (K3D.autoPlayedHandler) {
+                    stopAutoPlay(K3D);
                 } else {
-                    autoPlayedHandler = setInterval(function () {
-                        var t = K3D.parameters.time + 1.0 / K3D.parameters.fps;
-
-                        if (t > timeController.__max) {
-                            t = t - timeController.__max;
-                        }
-
-                        K3D.setTime(t);
-                    }, 1000.0 / K3D.parameters.fps);
-
-                    autoPlayed = true;
-                    autoPlayController.name('Stop loop');
+                    startAutoPlay(K3D);
                 }
             }
         };
 
-        timeController = gui.add(K3D.parameters, 'time').min(0).max(1).name('time')
+        gui.controllersMap = gui.controllersMap || {};
+
+        gui.controllersMap.time = gui.add(K3D.parameters, 'time').min(0).max(1).name('time')
             .onChange(function (value) {
                 K3D.setTime(value);
                 changeParameters('time', value);
             });
 
-        gui.add(K3D.parameters, 'fps').min(0).max(120).name('fps')
+        gui.controllersMap.fps = gui.add(K3D.parameters, 'fps').min(0).max(120).name('fps')
             .onChange(function (value) {
                 changeParameters('fps', value);
-
-                if (autoPlayed) {
-                    obj.togglePlay();
-                    obj.togglePlay();
-                }
             });
 
-        autoPlayController = gui.add(obj, 'togglePlay').name('Play loop');
-    }
+        gui.controllersMap.autoPlay = gui.add(obj, 'togglePlay').name('Play loop');
+    },
+
+    startAutoPlay: startAutoPlay,
+    stopAutoPlay: stopAutoPlay
 };

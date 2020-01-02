@@ -162,7 +162,7 @@ function objectGUIProvider(K3D, json, objects, changes) {
                 return;
             }
 
-            if (defaultParams.indexOf(param) !== -1) {
+            if (defaultParams.indexOf(param) !== -1 && !json[param].timeSeries) {
                 addController(K3D.gui_map[json.id], json, param).onChange(change.bind(this, json, param));
             }
 

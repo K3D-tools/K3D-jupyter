@@ -127,6 +127,7 @@ function K3D(provider, targetDOMNode, parameters) {
 
     world.targetDOMNode.appendChild(world.overlayDOMNode);
 
+    this.GUI = GUI;
     this.parameters = _.assign({
             viewMode: viewModes.view,
             voxelPaintColor: 0,
@@ -159,6 +160,24 @@ function K3D(provider, targetDOMNode, parameters) {
     );
 
     this.autoRendering = false;
+
+    this.startAutoPlay = function () {
+        timeSeries.startAutoPlay(self);
+    };
+
+    this.stopAutoPlay = function () {
+        timeSeries.stopAutoPlay(self);
+    };
+
+    this.setFps = function (fps) {
+        self.parameters.fps = fps;
+
+        GUI.controls.__controllers.forEach(function (controller) {
+            if (controller.property === 'fps') {
+                controller.updateDisplay();
+            }
+        });
+    };
 
     this.setFpsMeter = function (state) {
         var Stats;
@@ -891,6 +910,7 @@ function K3D(provider, targetDOMNode, parameters) {
         self.parameters.cameraNoPan
     );
     self.setCameraFOV(self.parameters.camera_fov);
+    self.setFps(self.parameters.fps);
 
     self.render();
 

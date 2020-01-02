@@ -86,7 +86,7 @@ module.exports = {
     },
     update: function (config, changes, obj) {
         if (typeof(changes.positions) !== 'undefined' && !changes.positions.timeSeries &&
-            changes.positions.data.length === obj.geometry.attributes.positions.array.length) {
+            changes.positions.data.length === obj.geometry.attributes.position.array.length) {
             obj.geometry.attributes.position.array.set(changes.positions.data);
             obj.geometry.attributes.position.needsUpdate = true;
             changes.positions = null;

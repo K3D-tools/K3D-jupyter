@@ -402,6 +402,9 @@ class Points(Drawable):
 
     @validate('colors')
     def _validate_colors(self, proposal):
+        if type(proposal['value']) is dict or type(self.positions) is dict:
+            return proposal['value']
+
         required = self.positions.size // 3  # (x, y, z) triplet per 1 color
         actual = proposal['value'].size
         if actual != 0 and required != actual:
@@ -618,10 +621,10 @@ class TextureText(Drawable):
     """
 
     type = Unicode(read_only=True).tag(sync=True)
-    text = Unicode().tag(sync=True)
-    position = ListOrArray(minlen=3, maxlen=3).tag(sync=True)
-    color = Int(min=0, max=0xffffff).tag(sync=True)
-    size = Float(min=EPSILON, default_value=1.0).tag(sync=True)
+    text = TimeSeries(Unicode()).tag(sync=True)
+    position = TimeSeries(ListOrArray(minlen=3, maxlen=3)).tag(sync=True)
+    color = TimeSeries(Int(min=0, max=0xffffff)).tag(sync=True)
+    size = TimeSeries(Float(min=EPSILON, default_value=1.0)).tag(sync=True)
     font_face = Unicode().tag(sync=True)
     font_weight = Int().tag(sync=True)
     font_size = Int().tag(sync=True)
