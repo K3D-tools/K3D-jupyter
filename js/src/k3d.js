@@ -345,7 +345,7 @@ PlotView = widgets.DOMWidgetView.extend({
                     position: param.point.toArray(),
                     normal: param.face.normal.toArray(),
                     distance: param.distance,
-                    face_index: param.face.faceIndex
+                    face_index: param.faceIndex
                 });
             }
         });
@@ -357,7 +357,7 @@ PlotView = widgets.DOMWidgetView.extend({
                     position: param.point.toArray(),
                     normal: param.face.normal.toArray(),
                     distance: param.distance,
-                    face_index: param.face.faceIndex
+                    face_index: param.faceIndex
                 });
             }
         });

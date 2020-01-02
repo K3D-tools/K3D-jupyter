@@ -221,17 +221,13 @@ module.exports = function (THREE) {
         var vertexShaderSource = [
                 'precision highp float;',
                 '',
-                'attribute vec3 position;',
                 'attribute vec3 previous;',
                 'attribute vec3 next;',
                 'attribute vec3 colors;',
                 'attribute float side;',
                 'attribute float width;',
-                'attribute vec2 uv;',
                 'attribute float counters;',
                 '',
-                'uniform mat4 projectionMatrix;',
-                'uniform mat4 modelViewMatrix;',
                 'uniform vec2 resolution;',
                 'uniform float lineWidth;',
                 'uniform vec3 color;',
@@ -355,7 +351,7 @@ module.exports = function (THREE) {
         this.far = check(parameters.far, 1);
         this.visibility = check(parameters.visibility, 1);
 
-        material = new THREE.RawShaderMaterial({
+        material = new THREE.ShaderMaterial({
             uniforms: {
                 lineWidth: {type: 'f', value: this.lineWidth},
                 map: {type: 't', value: this.map},
