@@ -822,7 +822,8 @@ def vtk_poly_data(poly_data, color=_default_color, color_attribute=None, color_m
     if vtk is None:
         raise RuntimeError('vtk module is not available')
 
-    if poly_data.GetPolys().GetMaxCellSize() > 3:
+    if max(poly_data.GetPolys().GetMaxCellSize(),
+           poly_data.GetStrips().GetMaxCellSize()) > 3:
         cut_triangles = vtk.vtkTriangleFilter()
         cut_triangles.SetInputData(poly_data)
         cut_triangles.Update()
