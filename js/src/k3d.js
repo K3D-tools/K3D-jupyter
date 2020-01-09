@@ -523,9 +523,9 @@ module.exports = {
     PlotView: PlotView,
     ObjectModel: ObjectModel,
     ObjectView: ObjectView,
-    K3D: K3D,
+    ThreeJsProvider: ThreeJsProvider,
     TransferFunctionEditor: TFEdit.transferFunctionEditor,
     TransferFunctionModel: TFEdit.transferFunctionModel,
     TransferFunctionView: TFEdit.transferFunctionView,
-    ThreeJsProvider: ThreeJsProvider
+    K3D: K3D
 };

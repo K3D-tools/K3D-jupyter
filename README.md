@@ -78,6 +78,7 @@ Then, if required, JupyterLab installation:
 
 Then, if required, JupyterLab installation:
 
+    $ jupyter labextension install @jupyter-widgets/jupyterlab-manager
     $ jupyter labextension install k3d
 
 Please notice that support for jupyterLab is still experimental.

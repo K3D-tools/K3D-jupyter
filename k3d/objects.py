@@ -464,6 +464,14 @@ class Surface(DrawableWithCallback):
             Whether mesh should display as wireframe.
         flat_shading: `bool`.
             Whether mesh should display with flat shading.
+        attribute: `array_like`.
+            Array of float attribute for the color mapping, coresponding to each vertex.
+        color_map: `list`.
+            A list of float quadruplets (attribute value, R, G, B), sorted by attribute value. The first
+            quadruplet should have value 0.0, the last 1.0; R, G, B are RGB color components in the range 0.0 to 1.0.
+        color_range: `list`.
+            A pair [min_value, max_value], which determines the levels of color attribute mapped
+            to 0 and 1 in the color map respectively.
         model_matrix: `array_like`.
             4x4 model transform matrix.
     """
@@ -473,6 +481,9 @@ class Surface(DrawableWithCallback):
     color = Int(min=0, max=0xffffff).tag(sync=True)
     wireframe = Bool().tag(sync=True)
     flat_shading = Bool().tag(sync=True)
+    attribute = TimeSeries(Array(dtype=np.float32)).tag(sync=True, **array_serialization_wrap('attribute'))
+    color_map = TimeSeries(Array(dtype=np.float32)).tag(sync=True, **array_serialization_wrap('color_map'))
+    color_range = TimeSeries(ListOrArray(minlen=2, maxlen=2, empty_ok=True)).tag(sync=True)
     model_matrix = TimeSeries(Array(dtype=np.float32)).tag(sync=True, **array_serialization_wrap('model_matrix'))
 
     def __init__(self, **kwargs):
