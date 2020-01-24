@@ -203,8 +203,8 @@ class Plot(widgets.DOMWidget):
 
         self.outputs = []
 
-    def camera_reset(self):
-        self.send({'msg_type': 'reset_camera'})
+    def camera_reset(self, factor=1.5):
+        self.send({'msg_type': 'reset_camera', 'factor': factor})
 
     def fetch_screenshot(self, only_canvas=False):
         self.send({'msg_type': 'fetch_screenshot', 'only_canvas': only_canvas})
@@ -228,8 +228,8 @@ class Plot(widgets.DOMWidget):
 
         return inner
 
-    def fetch_snapshot(self):
-        self.send({'msg_type': 'fetch_snapshot'})
+    def fetch_snapshot(self, compression_level=9):
+        self.send({'msg_type': 'fetch_snapshot', 'compression_level': compression_level})
 
     def yield_snapshots(self, generator_function):
         """Decorator for a generator function receiving snapshots via yield."""

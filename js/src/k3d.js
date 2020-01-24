@@ -219,7 +219,7 @@ PlotView = widgets.DOMWidgetView.extend({
             }
 
             if (obj.msg_type === 'fetch_snapshot') {
-                model.save('snapshot', this.K3DInstance.getHTMLSnapshot());
+                model.save('snapshot', this.K3DInstance.getHTMLSnapshot(obj.compression_level));
             }
 
             if (obj.msg_type === 'start_auto_play') {
@@ -231,7 +231,7 @@ PlotView = widgets.DOMWidgetView.extend({
             }
 
             if (obj.msg_type === 'reset_camera') {
-                this.K3DInstance.resetCamera();
+                this.K3DInstance.resetCamera(obj.factor);
             }
 
             if (obj.msg_type === 'render') {

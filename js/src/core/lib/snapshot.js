@@ -36,8 +36,8 @@ if (typeof (sourceCode) === 'undefined') {
     });
 }
 
-function getHTMLSnapshot(K3D) {
-    var data = K3D.getSnapshot(),
+function getHTMLSnapshot(K3D, compressionLevel) {
+    var data = K3D.getSnapshot(compressionLevel),
         filecontent = template,
         timestamp = new Date().toUTCString();
 
@@ -81,7 +81,7 @@ function handleDragOver(evt) {
 function snapshotGUI(gui, K3D) {
     var obj = {
             snapshot: function () {
-                var data = getHTMLSnapshot(K3D),
+                var data = getHTMLSnapshot(K3D, 9),
                     filename = 'K3D-snapshot-' + Date.now() + '.html';
 
                 if (K3D.parameters.name) {

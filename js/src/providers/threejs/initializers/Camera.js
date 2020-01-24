@@ -44,7 +44,7 @@ module.exports = function (K3D) {
         recalculateFrustum(this.camera);
     };
 
-    this.setCameraToFitScene = function (force) {
+    this.setCameraToFitScene = function (force, factor) {
         var camDistance,
             sceneBoundingBox = new THREE.Box3().setFromArray(K3D.parameters.grid),
             sceneBoundingSphere;
@@ -55,6 +55,10 @@ module.exports = function (K3D) {
 
         if (this.K3DObjects.children.length > 0) {
             sceneBoundingBox = K3D.getSceneBoundingBox() || sceneBoundingBox;
+        }
+
+        if(typeof(factor) === 'undefined') {
+            factor = 1.5;
         }
 
         // Compute the distance the camera should be to fit the entire bounding sphere
@@ -108,7 +112,9 @@ module.exports = function (K3D) {
 
         sceneBoundingSphere = sceneBoundingBox.getBoundingSphere(new THREE.Sphere());
 
-        camDistance = sceneBoundingSphere.radius * 1.5 / Math.sin(THREE.Math.degToRad(K3D.parameters.camera_fov / 2.0));
+        camDistance = sceneBoundingSphere.radius * factor / Math.sin(
+            THREE.Math.degToRad(K3D.parameters.camera_fov / 2.0)
+        );
 
         this.camera.position.subVectors(
             sceneBoundingSphere.center,
