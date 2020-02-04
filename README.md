@@ -86,7 +86,7 @@ Please notice that support for jupyterLab is still experimental.
 
 Please make sure to take a look at the [HOW-TO.md](HOW-TO.md) document.
 
-### Developer's How To
+### Code of Conduct
 K3D-jupyter follows the Python Software Foundation Code of Conduct in everything we do.
 
 
