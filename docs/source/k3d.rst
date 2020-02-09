@@ -1,15 +1,10 @@
 k3d package
 ===========
 
-Subpackages
------------
-
-.. toctree::
-
-    k3d.colormaps
 
 Submodules
 ----------
+
 
 k3d\.helpers module
 -------------------
@@ -26,7 +21,7 @@ k3d\.k3d module
     :members:
     :undoc-members:
     :show-inheritance:
-
+        
 k3d\.objects module
 -------------------
 
@@ -66,3 +61,10 @@ Module contents
     :members:
     :undoc-members:
     :show-inheritance:
+
+Subpackages
+-----------
+
+.. toctree::
+
+    k3d.colormaps
