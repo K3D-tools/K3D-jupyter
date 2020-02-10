@@ -5,6 +5,21 @@
 var THREE = require('three'),
     pow10ceil = require('./helpers/math').pow10ceil;
 
+function clone(val) {
+    if (typeof(val) === 'object') {
+        if (val.data) {
+            return {
+                data: val.data.slice(0),
+                shape: val.shape
+            };
+        } else {
+            return _.cloneDeep(val);
+        }
+    }
+
+    return val;
+}
+
 function getObjectsWithTimeSeriesAndMinMax(K3D) {
     var min = 0.0, max = 0.0,
         world = K3D.getWorld(),
@@ -195,25 +210,27 @@ module.exports = {
                 });
 
                 if (time <= keypoints[0].v) {
-                    interpolated_json[property] = _.cloneDeep(json[property][keypoints[0].k]);
+                    interpolated_json[property] = clone(json[property][keypoints[0].k]);
                 } else if (time >= keypoints[keypoints.length - 1].v) {
-                    interpolated_json[property] = _.cloneDeep(json[property][keypoints[keypoints.length - 1].k]);
+                    interpolated_json[property] = clone(json[property][keypoints[keypoints.length - 1].k]);
                 } else {
-                    for (i = 1; i < keypoints.length; i++) {
-                        if (keypoints[i].v > time) {
-                            if (Math.abs(keypoints[i - 1].v - time) < Number.EPSILON) {
-                                interpolated_json[property] = _.cloneDeep(json[property][keypoints[i - 1].k]);
-                            } else {
-                                a = keypoints[i - 1].v;
-                                b = keypoints[i].v;
-                                f = (time - a) / (b - a);
+                    for (i = 0; i < keypoints.length; i++) {
+                        if (Math.abs(keypoints[i].v - time) < 0.001) {
+                            interpolated_json[property] = clone(json[property][keypoints[i].k]);
 
-                                interpolated_json[property] = interpolate(
-                                    json[property][keypoints[i - 1].k],
-                                    json[property][keypoints[i].k],
-                                    f,
-                                    property);
-                            }
+                            break;
+                        }
+
+                        if (keypoints[i].v > time && i > 0) {
+                            a = keypoints[i - 1].v;
+                            b = keypoints[i].v;
+                            f = (time - a) / (b - a);
+
+                            interpolated_json[property] = interpolate(
+                                json[property][keypoints[i - 1].k],
+                                json[property][keypoints[i].k],
+                                f,
+                                property);
 
                             break;
                         }

@@ -30,9 +30,9 @@ Jupyter notebook extension for 3D visualization.
 
 ## Try it Now!
 
-Watch: [Interactive showcase gallery](https://k3d-jupyter.readthedocs.io/en/latest/showcase/index.html)
+Watch: [Interactive showcase gallery](https://k3d-jupyter.org/showcase/index.html)
 
-Documentation is generated at readthedocs: [![Documentation Status](https://readthedocs.org/projects/k3d-jupyter/badge/?version=latest)](https://k3d-jupyter.readthedocs.io/en/latest/?badge=latest)
+Documentation: [https://k3d-jupyter.org](https://k3d-jupyter.org)
 
 Jupyter version: [![Binder](https://mybinder.org/badge.svg)](https://mybinder.org/v2/gh/K3D-tools/K3D-jupyter/master?filepath=index.ipynb)
 
@@ -74,7 +74,7 @@ Then, if required, JupyterLab installation:
 
     $ jupyter labextension install ./js
 
-## JupyterLab
+### JupyterLab
 
 Then, if required, JupyterLab installation:
 
@@ -86,6 +86,10 @@ Please notice that support for jupyterLab is still experimental.
 ### Developer's How To
 
 Please make sure to take a look at the [HOW-TO.md](HOW-TO.md) document.
+
+### Code of Conduct
+K3D-jupyter follows the Python Software Foundation Code of Conduct in everything we do.
+
 
 
 ## Acknowledgments
