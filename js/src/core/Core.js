@@ -6,6 +6,7 @@ var viewModes = require('./lib/viewMode').viewModes,
     msgpack = require('msgpack-lite'),
     MsgpackCodec = msgpack.createCodec({preset: true}),
     pako = require('pako'),
+    serialize = require('./lib/helpers/serialize'),
     screenshot = require('./lib/screenshot'),
     snapshot = require('./lib/snapshot'),
     dat = require('dat.gui'),
@@ -774,6 +775,14 @@ function K3D(provider, targetDOMNode, parameters) {
         });
 
         self.setChunkList(data.chunkList);
+
+        data.objects.forEach(function (o) {
+            Object.keys(o).forEach(function (k) {
+                if (o[k] && o[k].buffer && o[k].buffer !== '') {
+                    o[k] = serialize.deserialize(o[k]);
+                }
+            });
+        });
 
         return self.load({objects: data.objects});
     };

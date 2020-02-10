@@ -520,7 +520,6 @@ require(['k3d'], function (lib) {
                     TestHelpers.compareCanvasWithExpectedImage(self.K3D, 'latex', RESAMBLEThreshold, false, done);
                 }, true);
 
-                self.K3D.getWorld().camera.position.z = 1.5;
                 self.K3D.load(json);
             });
         });

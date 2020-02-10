@@ -1,6 +1,7 @@
 from __future__ import print_function
 
 import base64
+import json
 import ipywidgets as widgets
 from IPython.display import display
 from functools import wraps
@@ -81,40 +82,40 @@ class Plot(widgets.DOMWidget):
     _backend_version = Unicode(version).tag(sync=True)
 
     # readonly (specified at creation)
-    antialias = Int(min=0, max=5).tag(sync=True)
+    antialias = Int(min=0, max=5).tag(sync=True, k3dParam=True)
     height = Int().tag(sync=True)
 
     # readonly (not to be modified directly)
     object_ids = List().tag(sync=True)
 
     # read-write
-    camera_auto_fit = Bool(True).tag(sync=True)
-    auto_rendering = Bool(True).tag(sync=True)
-    lighting = Float().tag(sync=True)
-    fps = Float().tag(sync=True)
-    grid_auto_fit = Bool(True).tag(sync=True)
-    grid_visible = Bool(True).tag(sync=True)
-    fps_meter = Bool(True).tag(sync=True)
-    menu_visibility = Bool(True).tag(sync=True)
-    screenshot_scale = Float().tag(sync=True)
-    time = Float().tag(sync=True)
-    grid = ListOrArray((-1, -1, -1, 1, 1, 1), minlen=6, maxlen=6).tag(sync=True)
-    background_color = Int().tag(sync=True)
-    voxel_paint_color = Int().tag(sync=True)
-    camera = ListOrArray(minlen=9, maxlen=9, empty_ok=True).tag(sync=True)
-    camera_no_rotate = Bool(False).tag(sync=True)
-    camera_no_zoom = Bool(False).tag(sync=True)
-    camera_no_pan = Bool(False).tag(sync=True)
-    clipping_planes = ListOrArray(empty_ok=True).tag(sync=True)
-    colorbar_object_id = Int(-1).tag(sync=True)
-    rendering_steps = Int(1).tag(sync=True)
+    camera_auto_fit = Bool(True).tag(sync=True, k3dParam=True)
+    auto_rendering = Bool(True).tag(sync=True, k3dParam=True)
+    lighting = Float().tag(sync=True, k3dParam=True)
+    fps = Float().tag(sync=True, k3dParam=True)
+    grid_auto_fit = Bool(True).tag(sync=True, k3dParam=True)
+    grid_visible = Bool(True).tag(sync=True, k3dParam=True)
+    fps_meter = Bool(True).tag(sync=True, k3dParam=True)
+    menu_visibility = Bool(True).tag(sync=True, k3dParam=True)
+    screenshot_scale = Float().tag(sync=True, k3dParam=True)
+    time = Float().tag(sync=True, k3dParam=True)
+    grid = ListOrArray((-1, -1, -1, 1, 1, 1), minlen=6, maxlen=6).tag(sync=True, k3dParam=True)
+    background_color = Int().tag(sync=True, k3dParam=True)
+    voxel_paint_color = Int().tag(sync=True, k3dParam=True)
+    camera = ListOrArray(minlen=9, maxlen=9, empty_ok=True).tag(sync=True, k3dParam=True)
+    camera_no_rotate = Bool(False).tag(sync=True, k3dParam=True)
+    camera_no_zoom = Bool(False).tag(sync=True, k3dParam=True)
+    camera_no_pan = Bool(False).tag(sync=True, k3dParam=True)
+    clipping_planes = ListOrArray(empty_ok=True).tag(sync=True, k3dParam=True)
+    colorbar_object_id = Int(-1).tag(sync=True, k3dParam=True)
+    rendering_steps = Int(1).tag(sync=True, k3dParam=True)
     screenshot = Unicode().tag(sync=True)
     snapshot = Unicode().tag(sync=True)
-    camera_fov = Float().tag(sync=True)
-    name = Unicode(default_value=None, allow_none=True).tag(sync=True)
-    axes = List(minlen=3, maxlen=3, default_value=['x', 'y', 'z']).tag(sync=True)
-    axes_helper = Float().tag(sync=True)
-    mode = Unicode().tag(sync=True)
+    camera_fov = Float().tag(sync=True, k3dParam=True)
+    name = Unicode(default_value=None, allow_none=True).tag(sync=True, k3dParam=True)
+    axes = List(minlen=3, maxlen=3, default_value=['x', 'y', 'z']).tag(sync=True, k3dParam=True)
+    axes_helper = Float().tag(sync=True, k3dParam=True)
+    mode = Unicode().tag(sync=True, k3dParam=True)
 
     objects = []
 
@@ -151,7 +152,7 @@ class Plot(widgets.DOMWidget):
         self.name = name
         self.mode = mode
         self.auto_rendering = auto_rendering
-        self.camera = [4.5, 4.5, 4.5, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0]
+        self.camera = [2, -3, 0.2, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0]
 
         self.object_ids = []
         self.objects = []
@@ -270,14 +271,14 @@ class Plot(widgets.DOMWidget):
             for k, v in o.traits().items():
                 if 'sync' in v.metadata:
                     if isinstance(o[k], np.ndarray):
-                        obj[k] = to_json(k, o[k], o, compression_level)
+                        obj[k] = to_json(k, o[k], o, o['compression_level'])
                     else:
                         obj[k] = o[k]
 
             snapshot['objects'].append(obj)
 
-        data = msgpack.packb(snapshot)
-        data = b64encode(zlib.compress(data, compression_level))
+        data = msgpack.packb(snapshot, use_bin_type=True)
+        data = base64.b64encode(zlib.compress(data, compression_level))
 
         f = io.open(os.path.join(dir_path, 'static', 'snapshot.txt'), mode="r", encoding="utf-8")
         template = f.read()
@@ -285,7 +286,8 @@ class Plot(widgets.DOMWidget):
 
         f = io.open(os.path.join(dir_path, 'static', 'standalone.js'), mode="r", encoding="utf-8")
         template = template.replace('[K3D_SOURCE]',
-                                    b64encode(zlib.compress(f.read().encode(), compression_level)).decode("utf-8")
+                                    base64.b64encode(zlib.compress(f.read().encode(), compression_level)).decode(
+                                        "utf-8")
                                     )
         f.close()
 
@@ -298,7 +300,13 @@ class Plot(widgets.DOMWidget):
         f.close()
 
         template = template.replace('[DATA]', data.decode("utf-8"))
-        template = template.replace('[PARAMS]', "{}")
-        template = template.replace('[CAMERA]', "[1,0,0,0,0,0,0,1,0]")
+
+        params = {}
+        for k, v in self.traits().items():
+            if 'k3dParam' in v.metadata:
+                params[str(k)] = getattr(self, k)
+
+        template = template.replace('[PARAMS]', json.dumps(params))
+        template = template.replace('[CAMERA]', str(self.camera))
 
         return template

@@ -206,6 +206,8 @@ PlotView = widgets.DOMWidgetView.extend({
 
         plotsList.push(this);
 
+        this.model.lastCameraSync = (new Date()).getTime();
+
         this.model.on('msg:custom', function (obj) {
             var model = this.model;
 
@@ -318,7 +320,11 @@ PlotView = widgets.DOMWidgetView.extend({
 
         this.cameraChangeId = this.K3DInstance.on(this.K3DInstance.events.CAMERA_CHANGE, function (control) {
             self.model.set('camera', control);
-            self.model.save_changes();
+
+            if ((new Date()).getTime() - self.model.lastCameraSync > 200) {
+                self.model.lastCameraSync = (new Date()).getTime();
+                self.model.save_changes();
+            }
         });
 
         this.GUIObjectChanges = this.K3DInstance.on(this.K3DInstance.events.OBJECT_CHANGE, function (change) {
