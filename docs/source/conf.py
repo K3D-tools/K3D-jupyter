@@ -52,6 +52,9 @@ extensions = ['sphinx.ext.autodoc',
 #              'jupyter_sphinx.execute'
 ]
 
+autodoc_dumb_docstring = True
+
+
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ['_templates']
 
@@ -60,6 +63,7 @@ templates_path = ['_templates']
 #
 # source_suffix = ['.rst', '.md']
 source_suffix = '.rst'
+
 
 # The master toctree document.
 master_doc = 'index'
@@ -235,3 +239,5 @@ def setup(app):
 #    app.setup_extension('jupyter_sphinx.execute')
     app.add_stylesheet('style.css')
 #    app.connect('builder-inited', add_scripts)
+
+
