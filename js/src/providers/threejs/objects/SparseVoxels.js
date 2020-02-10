@@ -79,9 +79,11 @@ module.exports = {
     },
 
     update: function (config, changes, obj) {
-        modelMatrixUpdate(config, changes, obj);
+        var resolvedChanges = {};
 
-        if (areAllChangesResolve(changes)) {
+        modelMatrixUpdate(config, changes, resolvedChanges, obj);
+
+        if (areAllChangesResolve(changes, resolvedChanges)) {
             return Promise.resolve({json: config, obj: obj});
         } else {
             return false;

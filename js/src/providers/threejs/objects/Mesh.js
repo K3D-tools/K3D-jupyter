@@ -71,22 +71,33 @@ module.exports = {
     },
 
     update: function (config, changes, obj, K3D) {
-        if (typeof(changes.attribute) !== 'undefined' && !changes.attribute.timeSeries) {
-            var data = obj.geometry.attributes.uv.array;
+        var resolvedChanges = {};
 
-            for (var i = 0; i < data.length; i++) {
-                data[i] = (changes.attribute.data[i] - config.color_range[0]) /
-                          (config.color_range[1] - config.color_range[0]);
+        if (typeof (obj.geometry.attributes.uv) !== 'undefined') {
+            if (typeof(changes.color_range) !== 'undefined' && !changes.color_range.timeSeries) {
+                obj.material.uniforms.low.value = changes.color_range[0];
+                obj.material.uniforms.high.value = changes.color_range[1];
+
+                resolvedChanges.color_range = null;
             }
 
-            obj.geometry.attributes.uv.needsUpdate = true;
-            changes.attribute = null;
+            if (typeof(changes.attribute) !== 'undefined' && !changes.attribute.timeSeries) {
+                var data = obj.geometry.attributes.uv.array;
+
+                for (var i = 0; i < data.length; i++) {
+                    data[i] = (changes.attribute.data[i] - config.color_range[0]) /
+                              (config.color_range[1] - config.color_range[0]);
+                }
+
+                obj.geometry.attributes.uv.needsUpdate = true;
+                resolvedChanges.attribute = null;
+            }
         }
 
-        intersectHelper.update(config, changes, obj, K3D);
-        modelMatrixUpdate(config, changes, obj);
+        intersectHelper.update(config, changes, resolvedChanges, obj, K3D);
+        modelMatrixUpdate(config, changes, resolvedChanges, obj);
 
-        if (areAllChangesResolve(changes)) {
+        if (areAllChangesResolve(changes, resolvedChanges)) {
             return Promise.resolve({json: config, obj: obj});
         } else {
             return false;

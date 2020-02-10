@@ -224,9 +224,9 @@ module.exports = {
         }
     },
 
-    areAllChangesResolve: function (changes) {
+    areAllChangesResolve: function (changes, resolvedChanges) {
         return Object.keys(changes).every(function (key) {
-            return changes[key] === null;
+            return typeof(resolvedChanges[key]) !== 'undefined';
         });
     },
 
@@ -236,7 +236,7 @@ module.exports = {
         ));
     },
 
-    modelMatrixUpdate: function (config, changes, obj) {
+    modelMatrixUpdate: function (config, changes, resolvedChanges, obj) {
         if (typeof(changes.model_matrix) !== 'undefined' && !changes.model_matrix.timeSeries) {
             var modelMatrix = new THREE.Matrix4();
 
@@ -248,7 +248,7 @@ module.exports = {
             obj.applyMatrix(modelMatrix);
             obj.updateMatrixWorld();
 
-            changes.model_matrix = null;
+            resolvedChanges.model_matrix = null;
         }
     }
 };

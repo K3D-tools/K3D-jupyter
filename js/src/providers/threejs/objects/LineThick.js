@@ -98,21 +98,31 @@ function create(config, K3D) {
 function update(config, changes, obj) {
     var uvs = obj.userData.lastUVs,
         position = obj.userData.lastPosition,
-        colors = obj.userData.lastColors;
+        colors = obj.userData.lastColors,
+        resolvedChanges = {};
 
-    if (typeof(changes.attribute) !== 'undefined' && !changes.attribute.timeSeries) {
-        if (changes.attribute.data.length !== obj.geometry.attributes.uv.array.length) {
-            return false;
+    if (typeof (obj.geometry.attributes.uv) !== 'undefined') {
+        if (typeof(changes.color_range) !== 'undefined' && !changes.color_range.timeSeries) {
+            obj.material.uniforms.low.value = changes.color_range[0];
+            obj.material.uniforms.high.value = changes.color_range[1];
+
+            resolvedChanges.color_range = null;
         }
 
-        uvs = new Float32Array(changes.attribute.data.length);
+        if (typeof(changes.attribute) !== 'undefined' && !changes.attribute.timeSeries) {
+            if (changes.attribute.data.length !== obj.geometry.attributes.uv.array.length) {
+                return false;
+            }
 
-        for (var i = 0; i < uvs.length; i++) {
-            uvs[i] = (changes.attribute.data[i] - config.color_range[0]) /
-                     (config.color_range[1] - config.color_range[0]);
+            uvs = new Float32Array(changes.attribute.data.length);
+
+            for (var i = 0; i < uvs.length; i++) {
+                uvs[i] = (changes.attribute.data[i] - config.color_range[0]) /
+                         (config.color_range[1] - config.color_range[0]);
+            }
+
+            obj.userData.lastUVs = uvs;
         }
-
-        obj.userData.lastUVs = uvs;
     }
 
     if (typeof(changes.vertices) !== 'undefined' && !changes.vertices.timeSeries) {
@@ -127,13 +137,13 @@ function update(config, changes, obj) {
     if (typeof(changes.attribute) !== 'undefined' || typeof(changes.vertices) !== 'undefined') {
         obj.userData.meshLine.setGeometry(position, false, null, colors, uvs);
 
-        changes.attribute = null;
-        changes.vertices = null;
+        resolvedChanges.attribute = null;
+        resolvedChanges.vertices = null;
     }
 
-    modelMatrixUpdate(config, changes, obj);
+    modelMatrixUpdate(config, changes, resolvedChanges, obj);
 
-    if (areAllChangesResolve(changes)) {
+    if (areAllChangesResolve(changes, resolvedChanges)) {
         return Promise.resolve({json: config, obj: obj});
     } else {
         return false;

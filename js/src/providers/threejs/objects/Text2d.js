@@ -85,20 +85,22 @@ module.exports = {
     },
 
     update: function (config, changes, obj) {
+        var resolvedChanges = {};
+
         if (typeof(changes.text) !== 'undefined' && !changes.text.timeSeries) {
             obj.domElement.innerHTML = katex.renderToString(changes.text, {displayMode: true});
 
-            changes.text = null;
+            resolvedChanges.text = null;
         }
 
         if (typeof(changes.position) !== 'undefined' && !changes.position.timeSeries) {
             obj.position.set(changes.position[0], changes.position[1], changes.position[2]);
             obj.updateMatrixWorld();
 
-            changes.position = null;
+            resolvedChanges.position = null;
         }
 
-        if (areAllChangesResolve(changes)) {
+        if (areAllChangesResolve(changes, resolvedChanges)) {
             return Promise.resolve({json: config, obj: obj});
         } else {
             return false;

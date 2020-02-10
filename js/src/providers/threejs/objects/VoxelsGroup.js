@@ -152,6 +152,8 @@ module.exports = {
     },
 
     update: function (config, changes, obj, K3D) {
+        var resolvedChanges = {};
+
         if (typeof(changes.opacity) !== 'undefined' && !changes.opacity.timeSeries) {
             obj.traverse(function (object) {
                 if (object.material) {
@@ -165,7 +167,7 @@ module.exports = {
                 }
             });
 
-            changes.opacity = null;
+            resolvedChanges.opacity = null;
         }
 
         if (typeof(changes.chunks_ids) !== 'undefined' && !changes.chunks_ids.timeSeries) {
@@ -229,7 +231,7 @@ module.exports = {
                 }
             }
 
-            changes.chunks_ids = null;
+            resolvedChanges.chunks_ids = null;
         }
 
         if (typeof(changes._hold_remeshing) !== 'undefined' && !changes._hold_remeshing.timeSeries) {
@@ -239,12 +241,12 @@ module.exports = {
                 obj.rebuildChunk();
             }
 
-            changes._hold_remeshing = null;
+            resolvedChanges._hold_remeshing = null;
         }
 
-        modelMatrixUpdate(config, changes, obj);
+        modelMatrixUpdate(config, changes, resolvedChanges, obj);
 
-        if (areAllChangesResolve(changes)) {
+        if (areAllChangesResolve(changes, resolvedChanges)) {
             return Promise.resolve({json: config, obj: obj});
         } else {
             return false;
