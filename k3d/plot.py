@@ -256,7 +256,6 @@ class Plot(widgets.DOMWidget):
         import msgpack
         import zlib
         import numpy as np
-        from base64 import b64encode
         from .helpers import to_json
 
         dir_path = os.path.dirname(os.path.realpath(__file__))
