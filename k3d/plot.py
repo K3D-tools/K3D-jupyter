@@ -249,3 +249,57 @@ class Plot(widgets.DOMWidget):
             generator.send(None)
 
         return inner
+
+    def get_snapshot(self, compression_level=9):
+        import os
+        import io
+        import msgpack
+        import zlib
+        import numpy as np
+        from base64 import b64encode
+        from .helpers import to_json
+
+        dir_path = os.path.dirname(os.path.realpath(__file__))
+
+        snapshot = {
+            "objects": [],
+            "chunkList": []
+        }
+
+        for o in self.objects:
+            obj = {}
+            for k, v in o.traits().items():
+                if 'sync' in v.metadata:
+                    if isinstance(o[k], np.ndarray):
+                        obj[k] = to_json(k, o[k], o, compression_level)
+                    else:
+                        obj[k] = o[k]
+
+            snapshot['objects'].append(obj)
+
+        data = msgpack.packb(snapshot)
+        data = b64encode(zlib.compress(data, compression_level))
+
+        f = io.open(os.path.join(dir_path, 'static', 'snapshot.txt'), mode="r", encoding="utf-8")
+        template = f.read()
+        f.close()
+
+        f = io.open(os.path.join(dir_path, 'static', 'standalone.js'), mode="r", encoding="utf-8")
+        template = template.replace('[K3D_SOURCE]',
+                                    b64encode(zlib.compress(f.read().encode(), compression_level)).decode("utf-8")
+                                    )
+        f.close()
+
+        f = io.open(os.path.join(dir_path, 'static', 'require.js'), mode="r", encoding="utf-8")
+        template = template.replace('[REQUIRE_JS]', f.read())
+        f.close()
+
+        f = io.open(os.path.join(dir_path, 'static', 'pako_inflate.min.js'), mode="r", encoding="utf-8")
+        template = template.replace('[PAKO_JS]', f.read())
+        f.close()
+
+        template = template.replace('[DATA]', data.decode("utf-8"))
+        template = template.replace('[PARAMS]', "{}")
+        template = template.replace('[CAMERA]', "[1,0,0,0,0,0,0,1,0]")
+
+        return template
