@@ -11,7 +11,7 @@ except ImportError:
 import numpy as np
 import six
 
-from .colormaps import basic_color_maps, matplotlib_color_maps
+from .colormaps import matplotlib_color_maps
 from .helpers import check_attribute_range
 from .objects import (Line, MarchingCubes, Mesh, Points, STL, Surface, Text, Text2d, Texture, TextureText, VectorField,
                       Vectors, Volume, Voxels, SparseVoxels, VoxelsGroup, VoxelChunk)
