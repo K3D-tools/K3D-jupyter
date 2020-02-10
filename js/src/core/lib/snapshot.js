@@ -54,12 +54,13 @@ function getHTMLSnapshot(K3D, compressionLevel) {
 
 function handleFileSelect(K3D, evt) {
     var files = evt.dataTransfer.files,
-        reader = new FileReader();
+        snapshotReader = new FileReader(),
+        STLReader = new FileReader();
 
     evt.stopPropagation();
     evt.preventDefault();
 
-    reader.onload = function (event) {
+    snapshotReader.onload = function (event) {
         var snapshot = K3D.extractSnapshot(event.target.result);
 
         if (snapshot[1]) {
@@ -67,8 +68,36 @@ function handleFileSelect(K3D, evt) {
         }
     };
 
+    STLReader.onload = function (event) {
+        var stl = event.target.result;
+
+        K3D.load({
+            objects: [{
+                type: 'STL',
+                model_matrix: {
+                    data: [
+                        1, 0, 0, 0,
+                        0, 1, 0, 0,
+                        0, 0, 1, 0,
+                        0, 0, 0, 1]
+                },
+                binary: stl,
+                visible: true,
+                color: 0x0000ff,
+                wireframe: false,
+                flat_shading: false
+            }]
+        });
+    };
+
     if (files.length > 0) {
-        reader.readAsText(files[0]);
+        if (files[0].name.substr(-4).toLowerCase() === 'html') {
+            snapshotReader.readAsText(files[0]);
+        }
+
+        if (files[0].name.substr(-3).toLowerCase() === 'stl') {
+            STLReader.readAsArrayBuffer(files[0]);
+        }
     }
 }
 
