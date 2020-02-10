@@ -82,40 +82,40 @@ class Plot(widgets.DOMWidget):
     _backend_version = Unicode(version).tag(sync=True)
 
     # readonly (specified at creation)
-    antialias = Int(min=0, max=5).tag(sync=True, k3dParam=True)
+    antialias = Int(min=0, max=5).tag(sync=True)
     height = Int().tag(sync=True)
 
     # readonly (not to be modified directly)
     object_ids = List().tag(sync=True)
 
     # read-write
-    camera_auto_fit = Bool(True).tag(sync=True, k3dParam=True)
-    auto_rendering = Bool(True).tag(sync=True, k3dParam=True)
-    lighting = Float().tag(sync=True, k3dParam=True)
-    fps = Float().tag(sync=True, k3dParam=True)
-    grid_auto_fit = Bool(True).tag(sync=True, k3dParam=True)
-    grid_visible = Bool(True).tag(sync=True, k3dParam=True)
-    fps_meter = Bool(True).tag(sync=True, k3dParam=True)
-    menu_visibility = Bool(True).tag(sync=True, k3dParam=True)
-    screenshot_scale = Float().tag(sync=True, k3dParam=True)
-    time = Float().tag(sync=True, k3dParam=True)
-    grid = ListOrArray((-1, -1, -1, 1, 1, 1), minlen=6, maxlen=6).tag(sync=True, k3dParam=True)
-    background_color = Int().tag(sync=True, k3dParam=True)
-    voxel_paint_color = Int().tag(sync=True, k3dParam=True)
-    camera = ListOrArray(minlen=9, maxlen=9, empty_ok=True).tag(sync=True, k3dParam=True)
-    camera_no_rotate = Bool(False).tag(sync=True, k3dParam=True)
-    camera_no_zoom = Bool(False).tag(sync=True, k3dParam=True)
-    camera_no_pan = Bool(False).tag(sync=True, k3dParam=True)
-    clipping_planes = ListOrArray(empty_ok=True).tag(sync=True, k3dParam=True)
-    colorbar_object_id = Int(-1).tag(sync=True, k3dParam=True)
-    rendering_steps = Int(1).tag(sync=True, k3dParam=True)
+    camera_auto_fit = Bool(True).tag(sync=True)
+    auto_rendering = Bool(True).tag(sync=True)
+    lighting = Float().tag(sync=True)
+    fps = Float().tag(sync=True)
+    grid_auto_fit = Bool(True).tag(sync=True)
+    grid_visible = Bool(True).tag(sync=True)
+    fps_meter = Bool(True).tag(sync=True)
+    menu_visibility = Bool(True).tag(sync=True)
+    screenshot_scale = Float().tag(sync=True)
+    time = Float().tag(sync=True)
+    grid = ListOrArray((-1, -1, -1, 1, 1, 1), minlen=6, maxlen=6).tag(sync=True)
+    background_color = Int().tag(sync=True)
+    voxel_paint_color = Int().tag(sync=True)
+    camera = ListOrArray(minlen=9, maxlen=9, empty_ok=True).tag(sync=True)
+    camera_no_rotate = Bool(False).tag(sync=True)
+    camera_no_zoom = Bool(False).tag(sync=True)
+    camera_no_pan = Bool(False).tag(sync=True)
+    clipping_planes = ListOrArray(empty_ok=True).tag(sync=True)
+    colorbar_object_id = Int(-1).tag(sync=True)
+    rendering_steps = Int(1).tag(sync=True)
     screenshot = Unicode().tag(sync=True)
     snapshot = Unicode().tag(sync=True)
-    camera_fov = Float().tag(sync=True, k3dParam=True)
-    name = Unicode(default_value=None, allow_none=True).tag(sync=True, k3dParam=True)
-    axes = List(minlen=3, maxlen=3, default_value=['x', 'y', 'z']).tag(sync=True, k3dParam=True)
-    axes_helper = Float().tag(sync=True, k3dParam=True)
-    mode = Unicode().tag(sync=True, k3dParam=True)
+    camera_fov = Float().tag(sync=True)
+    name = Unicode(default_value=None, allow_none=True).tag(sync=True)
+    axes = List(minlen=3, maxlen=3, default_value=['x', 'y', 'z']).tag(sync=True)
+    axes_helper = Float().tag(sync=True)
+    mode = Unicode().tag(sync=True)
 
     objects = []
 
@@ -301,10 +301,27 @@ class Plot(widgets.DOMWidget):
 
         template = template.replace('[DATA]', data.decode("utf-8"))
 
-        params = {}
-        for k, v in self.traits().items():
-            if 'k3dParam' in v.metadata:
-                params[str(k)] = getattr(self, k)
+        params = {
+            "cameraAutoFit": self.camera_auto_fit,
+            "menuVisibility": self.menu_visibility,
+            "gridAutoFit": self.grid_auto_fit,
+            "gridVisible": self.grid_visible,
+            "grid": self.grid,
+            "antialias": self.antialias,
+            "screenshotScale": self.screenshot_scale,
+            "clearColor": self.background_color,
+            "clippingPlanes": self.clipping_planes,
+            "lighting": self.lighting,
+            "time": self.time,
+            "colorbarObjectId": self.colorbar_object_id,
+            "axes": self.axes,
+            "cameraNoRotate": self.camera_no_rotate,
+            "cameraNoZoom": self.camera_no_zoom,
+            "cameraNoPan": self.camera_no_pan,
+            "name": self.name,
+            "camera_fov": self.camera_fov,
+            "axesHelper": self.axes_helper
+        }
 
         template = template.replace('[PARAMS]', json.dumps(params))
         template = template.replace('[CAMERA]', str(self.camera))
