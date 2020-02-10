@@ -74,7 +74,7 @@ Then, if required, JupyterLab installation:
 
     $ jupyter labextension install ./js
 
-## JupyterLab
+### JupyterLab
 
 Then, if required, JupyterLab installation:
 
@@ -86,6 +86,10 @@ Please notice that support for jupyterLab is still experimental.
 ### Developer's How To
 
 Please make sure to take a look at the [HOW-TO.md](HOW-TO.md) document.
+
+### Code of Conduct
+K3D-jupyter follows the Python Software Foundation Code of Conduct in everything we do.
+
 
 
 ## Acknowledgments
