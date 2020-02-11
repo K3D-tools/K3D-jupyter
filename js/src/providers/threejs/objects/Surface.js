@@ -2,6 +2,7 @@
 
 var THREE = require('three'),
     intersectHelper = require('./../helpers/Intersection'),
+    handleColorMap = require('./../helpers/Fn').handleColorMap,
     areAllChangesResolve = require('./../helpers/Fn').areAllChangesResolve,
     modelMatrixUpdate = require('./../helpers/Fn').modelMatrixUpdate;
 
@@ -24,6 +25,9 @@ module.exports = {
             height = config.heights.shape[0],
             modelMatrix = new THREE.Matrix4(),
             MaterialConstructor = config.wireframe ? THREE.MeshBasicMaterial : THREE.MeshPhongMaterial,
+            colorRange = config.color_range,
+            colorMap = (config.color_map && config.color_map.data) || null,
+            attribute = (config.attribute && config.attribute.data) || null,
             material = new MaterialConstructor({
                 color: config.color,
                 emissive: 0,
@@ -63,6 +67,10 @@ module.exports = {
             geometry.computeVertexNormals();
         }
 
+        if (attribute && colorRange && colorMap && attribute.length > 0 && colorRange.length > 0 && colorMap.length > 0) {
+            handleColorMap(geometry, colorMap, colorRange, attribute, material);
+        }
+
         geometry.computeBoundingSphere();
         geometry.computeBoundingBox();
 
@@ -83,10 +91,12 @@ module.exports = {
     },
 
     update: function (config, changes, obj, K3D) {
-        intersectHelper.update(config, changes, obj, K3D);
-        modelMatrixUpdate(config, changes, obj);
+        var resolvedChanges = {};
 
-        if (areAllChangesResolve(changes)) {
+        intersectHelper.update(config, changes, resolvedChanges, obj, K3D);
+        modelMatrixUpdate(config, changes, resolvedChanges, obj);
+
+        if (areAllChangesResolve(changes, resolvedChanges)) {
             return Promise.resolve({json: config, obj: obj});
         } else {
             return false;

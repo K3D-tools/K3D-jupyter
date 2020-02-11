@@ -1,15 +1,14 @@
 'use strict';
 
 /**
- * Decodes provided base64-encoded string into a ArrayBuffer
+ * Decodes provided binary string into a ArrayBuffer
  * @method base64ToArrayBuffer
  * @memberof K3D.Helpers
  * @param  {String} base64 BASE64 encoded string
  * @return {ArrayBuffer} from Uint8Array created from decoding base64
  */
-function base64ToArrayBuffer(base64) {
-    var binary_string = window.atob(base64),
-        len = binary_string.length,
+function stringToArrayBuffer(binary_string) {
+    var len = binary_string.length,
         bytes = new Uint8Array(len),
         i;
 
@@ -18,6 +17,17 @@ function base64ToArrayBuffer(base64) {
     }
 
     return bytes.buffer;
+}
+
+/**
+ * Decodes provided base64-encoded string into a ArrayBuffer
+ * @method base64ToArrayBuffer
+ * @memberof K3D.Helpers
+ * @param  {String} base64 BASE64 encoded string
+ * @return {ArrayBuffer} from Uint8Array created from decoding base64
+ */
+function base64ToArrayBuffer(base64) {
+    return stringToArrayBuffer(window.atob(base64));
 }
 
 /**
@@ -61,5 +71,6 @@ function bufferToBase64(array) {
 module.exports = {
     colorsToFloat32Array: colorsToFloat32Array,
     bufferToBase64: bufferToBase64,
-    base64ToArrayBuffer: base64ToArrayBuffer
+    base64ToArrayBuffer: base64ToArrayBuffer,
+    stringToArrayBuffer: stringToArrayBuffer
 };

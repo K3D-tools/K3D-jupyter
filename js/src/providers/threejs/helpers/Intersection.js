@@ -19,7 +19,7 @@ module.exports = {
         // return Promise.resolve(o);
     },
 
-    update: function (config, changes, obj, K3D) {
+    update: function (config, changes, resolvedChanges, obj, K3D) {
         if (typeof(changes.click_callback) !== 'undefined' || typeof(changes.hover_callback) !== 'undefined') {
             if ((changes.click_callback || changes.hover_callback) && !obj.interactions) {
                 obj.geometry.boundsTree = new threeMeshBVH.MeshBVH(obj.geometry);
@@ -31,8 +31,8 @@ module.exports = {
                 obj.interactions = null;
             }
 
-            changes.click_callback = null;
-            changes.hover_callback = null;
+            resolvedChanges.click_callback = null;
+            resolvedChanges.hover_callback = null;
         }
     }
 };

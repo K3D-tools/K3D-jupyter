@@ -206,6 +206,8 @@ PlotView = widgets.DOMWidgetView.extend({
 
         plotsList.push(this);
 
+        this.model.lastCameraSync = (new Date()).getTime();
+
         this.model.on('msg:custom', function (obj) {
             var model = this.model;
 
@@ -219,7 +221,7 @@ PlotView = widgets.DOMWidgetView.extend({
             }
 
             if (obj.msg_type === 'fetch_snapshot') {
-                model.save('snapshot', this.K3DInstance.getHTMLSnapshot());
+                model.save('snapshot', this.K3DInstance.getHTMLSnapshot(obj.compression_level));
             }
 
             if (obj.msg_type === 'start_auto_play') {
@@ -231,7 +233,7 @@ PlotView = widgets.DOMWidgetView.extend({
             }
 
             if (obj.msg_type === 'reset_camera') {
-                this.K3DInstance.resetCamera();
+                this.K3DInstance.resetCamera(obj.factor);
             }
 
             if (obj.msg_type === 'render') {
@@ -318,7 +320,11 @@ PlotView = widgets.DOMWidgetView.extend({
 
         this.cameraChangeId = this.K3DInstance.on(this.K3DInstance.events.CAMERA_CHANGE, function (control) {
             self.model.set('camera', control);
-            self.model.save_changes();
+
+            if ((new Date()).getTime() - self.model.lastCameraSync > 200) {
+                self.model.lastCameraSync = (new Date()).getTime();
+                self.model.save_changes();
+            }
         });
 
         this.GUIObjectChanges = this.K3DInstance.on(this.K3DInstance.events.OBJECT_CHANGE, function (change) {
@@ -523,9 +529,9 @@ module.exports = {
     PlotView: PlotView,
     ObjectModel: ObjectModel,
     ObjectView: ObjectView,
-    K3D: K3D,
+    ThreeJsProvider: ThreeJsProvider,
     TransferFunctionEditor: TFEdit.transferFunctionEditor,
     TransferFunctionModel: TFEdit.transferFunctionModel,
     TransferFunctionView: TFEdit.transferFunctionView,
-    ThreeJsProvider: ThreeJsProvider
+    K3D: K3D
 };

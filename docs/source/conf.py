@@ -49,7 +49,11 @@ extensions = ['sphinx.ext.autodoc',
               'sphinx.ext.githubpages',
               'nbsphinx',
               'nbsphinx_link',
-              'jupyter_sphinx.embed_widgets']
+#              'jupyter_sphinx.execute'
+]
+
+autodoc_dumb_docstring = True
+
 
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ['_templates']
@@ -59,6 +63,7 @@ templates_path = ['_templates']
 #
 # source_suffix = ['.rst', '.md']
 source_suffix = '.rst'
+
 
 # The master toctree document.
 master_doc = 'index'
@@ -231,6 +236,8 @@ def add_scripts(app):
 
 
 def setup(app):
-    app.setup_extension('jupyter_sphinx.embed_widgets')
+#    app.setup_extension('jupyter_sphinx.execute')
     app.add_stylesheet('style.css')
-    app.connect('builder-inited', add_scripts)
+#    app.connect('builder-inited', add_scripts)
+
+

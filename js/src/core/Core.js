@@ -6,6 +6,7 @@ var viewModes = require('./lib/viewMode').viewModes,
     msgpack = require('msgpack-lite'),
     MsgpackCodec = msgpack.createCodec({preset: true}),
     pako = require('pako'),
+    serialize = require('./lib/helpers/serialize'),
     screenshot = require('./lib/screenshot'),
     snapshot = require('./lib/snapshot'),
     dat = require('dat.gui'),
@@ -154,6 +155,7 @@ function K3D(provider, targetDOMNode, parameters) {
             camera_fov: 60.0,
             autoRendering: true,
             axesHelper: 1.0,
+            depthPeels: 8,
             guiVersion: require('./../../package.json').version
         },
         parameters || {}
@@ -476,8 +478,8 @@ function K3D(provider, targetDOMNode, parameters) {
      * Reset camera of K3D
      * @memberof K3D.Core
      */
-    this.resetCamera = function () {
-        world.setCameraToFitScene(true);
+    this.resetCamera = function (factor) {
+        world.setCameraToFitScene(true, factor);
         world.render();
     };
 
@@ -734,8 +736,8 @@ function K3D(provider, targetDOMNode, parameters) {
      * @memberof K3D.Core
      * @returns {String|undefined}
      */
-    this.getHTMLSnapshot = function () {
-        return snapshot.getHTMLSnapshot(this);
+    this.getHTMLSnapshot = function (compression_level) {
+        return snapshot.getHTMLSnapshot(this, compression_level);
     };
 
     /**
@@ -743,7 +745,7 @@ function K3D(provider, targetDOMNode, parameters) {
      * @memberof K3D.Core
      * @returns {String|undefined}
      */
-    this.getSnapshot = function () {
+    this.getSnapshot = function (compressionLevel) {
         var chunkList = Object.keys(world.chunkList).reduce(function (p, k) {
             p[k] = world.chunkList[k].attributes;
             return p;
@@ -757,7 +759,7 @@ function K3D(provider, targetDOMNode, parameters) {
                 },
                 {codec: MsgpackCodec}
             ),
-            {to: 'string', level: 9}
+            {to: 'string', level: compressionLevel}
         );
     };
 
@@ -773,6 +775,14 @@ function K3D(provider, targetDOMNode, parameters) {
         });
 
         self.setChunkList(data.chunkList);
+
+        data.objects.forEach(function (o) {
+            Object.keys(o).forEach(function (k) {
+                if (o[k] && o[k].buffer && o[k].buffer !== '') {
+                    o[k] = serialize.deserialize(o[k]);
+                }
+            });
+        });
 
         return self.load({objects: data.objects});
     };

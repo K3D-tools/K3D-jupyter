@@ -63,19 +63,21 @@ module.exports = {
     },
 
     update: function (config, changes, obj) {
+        var resolvedChanges = {};
+
         if (typeof(changes.position) !== 'undefined' && !changes.position.timeSeries) {
 
             obj.position.set(changes.position[0], changes.position[1], changes.position[2]);
-            changes.position = null;
+            resolvedChanges.position = null;
         }
 
         if (typeof(changes.size) !== 'undefined' && !changes.size.timeSeries) {
 
             obj.scale.set(changes.size, changes.size, changes.size);
-            changes.size = null;
+            resolvedChanges.size = null;
         }
 
-        if (areAllChangesResolve(changes)) {
+        if (areAllChangesResolve(changes, resolvedChanges)) {
             return Promise.resolve({json: config, obj: obj});
         } else {
             return false;

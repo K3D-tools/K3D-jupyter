@@ -95,11 +95,13 @@ module.exports = {
     },
 
     update: function (config, changes, obj, K3D) {
+        var resolvedChanges = {};
+
         intersectHelper.update(config, changes, obj, K3D);
 
-        modelMatrixUpdate(config, changes, obj);
+        modelMatrixUpdate(config, changes, resolvedChanges, obj);
 
-        if (areAllChangesResolve(changes)) {
+        if (areAllChangesResolve(changes, resolvedChanges)) {
             return Promise.resolve({json: config, obj: obj});
         } else {
             return false;

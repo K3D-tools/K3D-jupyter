@@ -1,6 +1,7 @@
 from __future__ import print_function
 
 import base64
+import json
 import ipywidgets as widgets
 from IPython.display import display
 from functools import wraps
@@ -151,7 +152,7 @@ class Plot(widgets.DOMWidget):
         self.name = name
         self.mode = mode
         self.auto_rendering = auto_rendering
-        self.camera = [4.5, 4.5, 4.5, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0]
+        self.camera = [2, -3, 0.2, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0]
 
         self.object_ids = []
         self.objects = []
@@ -203,8 +204,8 @@ class Plot(widgets.DOMWidget):
 
         self.outputs = []
 
-    def camera_reset(self):
-        self.send({'msg_type': 'reset_camera'})
+    def camera_reset(self, factor=1.5):
+        self.send({'msg_type': 'reset_camera', 'factor': factor})
 
     def fetch_screenshot(self, only_canvas=False):
         self.send({'msg_type': 'fetch_screenshot', 'only_canvas': only_canvas})
@@ -228,8 +229,8 @@ class Plot(widgets.DOMWidget):
 
         return inner
 
-    def fetch_snapshot(self):
-        self.send({'msg_type': 'fetch_snapshot'})
+    def fetch_snapshot(self, compression_level=9):
+        self.send({'msg_type': 'fetch_snapshot', 'compression_level': compression_level})
 
     def yield_snapshots(self, generator_function):
         """Decorator for a generator function receiving snapshots via yield."""
@@ -249,3 +250,80 @@ class Plot(widgets.DOMWidget):
             generator.send(None)
 
         return inner
+
+    def get_snapshot(self, compression_level=9):
+        import os
+        import io
+        import msgpack
+        import zlib
+        import numpy as np
+        from .helpers import to_json
+
+        dir_path = os.path.dirname(os.path.realpath(__file__))
+
+        snapshot = {
+            "objects": [],
+            "chunkList": []
+        }
+
+        for o in self.objects:
+            obj = {}
+            for k, v in o.traits().items():
+                if 'sync' in v.metadata:
+                    if isinstance(o[k], np.ndarray):
+                        obj[k] = to_json(k, o[k], o, o['compression_level'])
+                    else:
+                        obj[k] = o[k]
+
+            snapshot['objects'].append(obj)
+
+        data = msgpack.packb(snapshot, use_bin_type=True)
+        data = base64.b64encode(zlib.compress(data, compression_level))
+
+        f = io.open(os.path.join(dir_path, 'static', 'snapshot.txt'), mode="r", encoding="utf-8")
+        template = f.read()
+        f.close()
+
+        f = io.open(os.path.join(dir_path, 'static', 'standalone.js'), mode="r", encoding="utf-8")
+        template = template.replace('[K3D_SOURCE]',
+                                    base64.b64encode(zlib.compress(f.read().encode(), compression_level)).decode(
+                                        "utf-8")
+                                    )
+        f.close()
+
+        f = io.open(os.path.join(dir_path, 'static', 'require.js'), mode="r", encoding="utf-8")
+        template = template.replace('[REQUIRE_JS]', f.read())
+        f.close()
+
+        f = io.open(os.path.join(dir_path, 'static', 'pako_inflate.min.js'), mode="r", encoding="utf-8")
+        template = template.replace('[PAKO_JS]', f.read())
+        f.close()
+
+        template = template.replace('[DATA]', data.decode("utf-8"))
+
+        params = {
+            "cameraAutoFit": self.camera_auto_fit,
+            "menuVisibility": self.menu_visibility,
+            "gridAutoFit": self.grid_auto_fit,
+            "gridVisible": self.grid_visible,
+            "grid": self.grid,
+            "antialias": self.antialias,
+            "screenshotScale": self.screenshot_scale,
+            "clearColor": self.background_color,
+            "clippingPlanes": self.clipping_planes,
+            "lighting": self.lighting,
+            "time": self.time,
+            "colorbarObjectId": self.colorbar_object_id,
+            "axes": self.axes,
+            "cameraNoRotate": self.camera_no_rotate,
+            "cameraNoZoom": self.camera_no_zoom,
+            "cameraNoPan": self.camera_no_pan,
+            "name": self.name,
+            "camera_fov": self.camera_fov,
+            "axesHelper": self.axes_helper
+        }
+
+        template = template.replace('[PARAMS]', json.dumps(params))
+        template = template.replace('[CAMERA]', str(self.camera))
+
+        return template

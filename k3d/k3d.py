@@ -11,7 +11,7 @@ except ImportError:
 import numpy as np
 import six
 
-from .colormaps import basic_color_maps, matplotlib_color_maps
+from .colormaps import matplotlib_color_maps
 from .helpers import check_attribute_range
 from .objects import (Line, MarchingCubes, Mesh, Points, STL, Surface, Text, Text2d, Texture, TextureText, VectorField,
                       Vectors, Volume, Voxels, SparseVoxels, VoxelsGroup, VoxelChunk)
@@ -28,9 +28,10 @@ nice_colors = (
     0xFFFFFF, 0x000000
 )
 
+default_colormap = matplotlib_color_maps.Inferno
 
 def line(vertices, color=_default_color, colors=[],  # lgtm [py/similar-function]
-         attribute=[], color_map=matplotlib_color_maps.Inferno, color_range=[], width=0.01,
+         attribute=[], color_map=default_colormap, color_range=[], width=0.01,
          shader='thick', radial_segments=8, name=None, compression_level=0, **kwargs):
     """Create a Line drawable for plotting segments and polylines.
 
@@ -133,7 +134,7 @@ def marching_cubes(scalar_field, level, color=_default_color, wireframe=False, f
     )
 
 
-def mesh(vertices, indices, color=_default_color, attribute=[], color_map=[],  # lgtm [py/similar-function]
+def mesh(vertices, indices, color=_default_color, attribute=[], color_map=default_colormap,  # lgtm [py/similar-function]
          color_range=[], wireframe=False, flat_shading=True, opacity=1.0,
          name=None, compression_level=0, **kwargs):
     """Create a Mesh drawable representing a 3D triangles mesh.
@@ -261,7 +262,8 @@ def stl(stl, color=_default_color, wireframe=False, flat_shading=True, name=None
     )
 
 
-def surface(heights, color=_default_color, wireframe=False, flat_shading=True, name=None, compression_level=0,
+def surface(heights, color=_default_color, wireframe=False, flat_shading=True, attribute=[],
+            color_map=default_colormap, color_range=[], name=None, compression_level=0,
             **kwargs):
     """Create a Surface drawable.
 
@@ -283,13 +285,26 @@ def surface(heights, color=_default_color, wireframe=False, flat_shading=True, n
             Whether mesh should display as wireframe.
         flat_shading: `bool`.
             Whether mesh should display with flat shading.
+        attribute: `array_like`.
+            Array of float attribute for the color mapping, coresponding to each vertex.
+        color_map: `list`.
+            A list of float quadruplets (attribute value, R, G, B), sorted by attribute value. The first
+            quadruplet should have value 0.0, the last 1.0; R, G, B are RGB color components in the range 0.0 to 1.0.
+        color_range: `list`.
+            A pair [min_value, max_value], which determines the levels of color attribute mapped
+            to 0 and 1 in the color map respectively.
         name: `string`.
             A name of a object
         kwargs: `dict`.
             Dictionary arguments to configure transform and model_matrix."""
+
+    color_map = np.array(color_map, np.float32)
+    attribute = np.array(attribute, np.float32)
+    color_range = check_attribute_range(attribute, color_range)
+
     return process_transform_arguments(
-        Surface(heights=heights, color=color, wireframe=wireframe, flat_shading=flat_shading, name=name,
-                compression_level=compression_level),
+        Surface(heights=heights, color=color, wireframe=wireframe, flat_shading=flat_shading, attribute=attribute,
+                color_map=color_map, color_range=color_range, name=name, compression_level=compression_level),
         **kwargs
     )
 
@@ -345,7 +360,7 @@ def text2d(text, position=(0, 0), color=_default_color, size=1.0, reference_poin
                   name=name, compression_level=compression_level)
 
 
-def texture(binary=None, file_format=None, color_map=basic_color_maps.Rainbow, color_range=[], attribute=[], puv=[],
+def texture(binary=None, file_format=None, color_map=default_colormap, color_range=[], attribute=[], puv=[],
             name=None, compression_level=0, **kwargs):
     """Create a Texture drawable for displaying 2D raster images in common formats.
 
@@ -722,7 +737,7 @@ def voxels_group(space_size, voxels_group=[], chunks_ids=[], color_map=nice_colo
 
 
 # noinspection PyShadowingNames
-def volume(volume, color_map=matplotlib_color_maps.Inferno, opacity_function=None, color_range=[], samples=512.0,
+def volume(volume, color_map=default_colormap, opacity_function=None, color_range=[], samples=512.0,
            alpha_coef=50.0, gradient_step=0.005, shadow='off',
            shadow_delay=500, shadow_res=128, focal_length=0.0, focal_plane=100.0, ray_samples_count=16, name=None,
            compression_level=0, **kwargs):
@@ -791,7 +806,7 @@ def volume(volume, color_map=matplotlib_color_maps.Inferno, opacity_function=Non
                focal_length=focal_length, name=name, ray_samples_count=ray_samples_count), **kwargs)
 
 
-def vtk_poly_data(poly_data, color=_default_color, color_attribute=None, color_map=basic_color_maps.Rainbow,
+def vtk_poly_data(poly_data, color=_default_color, color_attribute=None, color_map=default_colormap,
                   wireframe=False, opacity=1.0, name=None, compression_level=0, **kwargs):
     """Create a Mesh drawable from given vtkPolyData.
 
@@ -822,7 +837,8 @@ def vtk_poly_data(poly_data, color=_default_color, color_attribute=None, color_m
     if vtk is None:
         raise RuntimeError('vtk module is not available')
 
-    if poly_data.GetPolys().GetMaxCellSize() > 3:
+    if max(poly_data.GetPolys().GetMaxCellSize(),
+           poly_data.GetStrips().GetMaxCellSize()) > 3:
         cut_triangles = vtk.vtkTriangleFilter()
         cut_triangles.SetInputData(poly_data)
         cut_triangles.Update()

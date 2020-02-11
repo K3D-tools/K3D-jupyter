@@ -1,6 +1,7 @@
 var version = require('./package.json').version;
 var webpack = require('webpack');
 var nodeExternals = require('webpack-node-externals');
+var CopyPlugin = require('copy-webpack-plugin');
 // var Visualizer = require('webpack-visualizer-plugin');
 
 // Custom webpack loaders are generally the same for all webpack bundles, hence
@@ -111,7 +112,11 @@ module.exports = [
         module: {
             rules: rules
         },
-        plugins: plugins
+        plugins: [new CopyPlugin([
+            {from: './src/core/lib/snapshot.txt', to: __dirname + '/../k3d/static'},
+            {from: './node_modules/requirejs/require.js', to: __dirname + '/../k3d/static'},
+            {from: './node_modules/pako/dist/pako_inflate.min.js', to: __dirname + '/../k3d/static'}
+        ])]
     },
     {
         entry: './src/standalone.js',

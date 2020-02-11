@@ -25,7 +25,7 @@ module.exports = {
 
             image = document.createElement('img');
             image.src = 'data:image/' + config.file_format + ';base64,' +
-                buffer.bufferToBase64(config.binary.buffer);
+                        buffer.bufferToBase64(config.binary.buffer);
 
             if (config.puv.data.length === 9) {
                 var positionArray = geometry.attributes.position.array;
@@ -67,10 +67,12 @@ module.exports = {
     },
 
     update: function (config, changes, obj, K3D) {
-        intersectHelper.update(config, changes, obj, K3D);
-        modelMatrixUpdate(config, changes, obj);
+        var resolvedChanges = {};
 
-        if (areAllChangesResolve(changes)) {
+        intersectHelper.update(config, changes, resolvedChanges, obj, K3D);
+        modelMatrixUpdate(config, changes, resolvedChanges, obj);
+
+        if (areAllChangesResolve(changes, resolvedChanges)) {
             return Promise.resolve({json: config, obj: obj});
         } else {
             return false;

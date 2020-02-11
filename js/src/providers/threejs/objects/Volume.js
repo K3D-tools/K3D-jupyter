@@ -286,11 +286,13 @@ module.exports = {
     },
 
     update: function (config, changes, obj) {
+        var resolvedChanges = {};
+
         if (typeof(changes.color_range) !== 'undefined' && !changes.color_range.timeSeries) {
             obj.material.uniforms.low.value = changes.color_range[0];
             obj.material.uniforms.high.value = changes.color_range[1];
 
-            changes.color_range = null;
+            resolvedChanges.color_range = null;
         }
 
         if (typeof(changes.focal_length) !== 'undefined' && !changes.focal_length.timeSeries) {
@@ -306,7 +308,7 @@ module.exports = {
             obj.material.uniforms.volumeTexture.value.image.data = changes.volume.data;
             obj.material.uniforms.volumeTexture.value.needsUpdate = true;
 
-            changes.volume = null;
+            resolvedChanges.volume = null;
         }
 
         if ((typeof(changes.color_map) !== 'undefined' && !changes.color_map.timeSeries) ||
@@ -326,20 +328,20 @@ module.exports = {
                 obj.quadRTT.material.uniforms.colormap.value.needsUpdate = true;
             }
 
-            changes.color_map = null;
-            changes.opacity_function = null;
+            resolvedChanges.color_map = null;
+            resolvedChanges.opacity_function = null;
         }
 
         ['samples', 'alpha_coef', 'gradient_step', 'focal_plane', 'focal_length'].forEach(function (key) {
             if (changes[key] && !changes[key].timeSeries) {
                 obj.material.uniforms[key].value = changes[key];
-                changes[key] = null;
+                resolvedChanges[key] = null;
             }
         });
 
         modelMatrixUpdate(config, changes, obj);
 
-        if (areAllChangesResolve(changes)) {
+        if (areAllChangesResolve(changes, resolvedChanges )) {
             return Promise.resolve({json: config, obj: obj});
         } else {
             return false;

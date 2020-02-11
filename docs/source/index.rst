@@ -13,8 +13,13 @@ them. K3D plots are ipywidgets, thus it assures a perfect interaction
 of a browser side widget with Python kernel by a proven and
 standardized protocol.
 
+.. toctree::
+   :maxdepth: 2
+   :caption: Basic concepts
 
+   intro
 
+   
 .. toctree::
    :maxdepth: 2
    :caption: K3D in nutshell:

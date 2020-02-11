@@ -85,16 +85,19 @@ module.exports = {
         return Promise.resolve(object);
     },
     update: function (config, changes, obj) {
+        var resolvedChanges = {};
+
         if (typeof(changes.positions) !== 'undefined' && !changes.positions.timeSeries &&
             changes.positions.data.length === obj.geometry.attributes.position.array.length) {
             obj.geometry.attributes.position.array.set(changes.positions.data);
             obj.geometry.attributes.position.needsUpdate = true;
-            changes.positions = null;
+
+            resolvedChanges.positions = null;
         }
 
-        modelMatrixUpdate(config, changes, obj);
+        modelMatrixUpdate(config, changes, resolvedChanges, obj);
 
-        if (areAllChangesResolve(changes)) {
+        if (areAllChangesResolve(changes, resolvedChanges)) {
             return Promise.resolve({json: config, obj: obj});
         } else {
             return false;

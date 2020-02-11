@@ -55,29 +55,41 @@ module.exports = {
     },
 
     update: function (config, changes, obj) {
-        if (typeof(changes.attribute) !== 'undefined' && !changes.attribute.timeSeries &&
-            changes.attribute.data.length === obj.geometry.attributes.uv.array.length) {
-            var data = obj.geometry.attributes.uv.array;
+        var resolvedChanges = {};
 
-            for (var i = 0; i < data.length; i++) {
-                data[i] = (changes.attribute.data[i] - config.color_range[0]) /
-                          (config.color_range[1] - config.color_range[0]);
+        if (typeof (obj.geometry.attributes.uv) !== 'undefined') {
+            if (typeof(changes.color_range) !== 'undefined' && !changes.color_range.timeSeries) {
+                obj.material.uniforms.low.value = changes.color_range[0];
+                obj.material.uniforms.high.value = changes.color_range[1];
+
+                resolvedChanges.color_range = null;
             }
 
-            obj.geometry.attributes.uv.needsUpdate = true;
-            changes.attribute = null;
+            if (typeof(changes.attribute) !== 'undefined' && !changes.attribute.timeSeries &&
+                changes.attribute.data.length === obj.geometry.attributes.uv.array.length) {
+
+                var data = obj.geometry.attributes.uv.array;
+
+                for (var i = 0; i < data.length; i++) {
+                    data[i] = (changes.attribute.data[i] - config.color_range[0]) /
+                              (config.color_range[1] - config.color_range[0]);
+                }
+
+                obj.geometry.attributes.uv.needsUpdate = true;
+                resolvedChanges.attribute = null;
+            }
         }
 
         if (typeof(changes.vertices) !== 'undefined' && !changes.vertices.timeSeries &&
             changes.vertices.data.length === obj.geometry.attributes.position.array.length) {
             obj.geometry.attributes.position.array.set(changes.vertices.data);
             obj.geometry.attributes.position.needsUpdate = true;
-            changes.vertices = null;
+            resolvedChanges.vertices = null;
         }
 
-        modelMatrixUpdate(config, changes, obj);
+        modelMatrixUpdate(config, changes, resolvedChanges, obj);
 
-        if (areAllChangesResolve(changes)) {
+        if (areAllChangesResolve(changes, resolvedChanges)) {
             return Promise.resolve({json: config, obj: obj});
         } else {
             return false;

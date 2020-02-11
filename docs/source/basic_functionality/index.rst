@@ -1,4 +1,4 @@
-Basic functionality
+Elementary examples
 ===================
 
 .. toctree::
@@ -7,6 +7,7 @@ Basic functionality
    Points
    Line
    Surface
+   Mesh
+   Implicit_plot
    Platonic_solids
-   Group
    Text

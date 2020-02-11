@@ -266,6 +266,20 @@ require(['k3d'], function (lib) {
             });
         });
 
+        it('Surface smoothed with attributes from normal array', function (done) {
+
+            var self = this;
+
+            jsonLoader('http://localhost:9001/samples/surface_smooth_attributes.json', function (json) {
+
+                self.K3D.addFrameUpdateListener('after', function () {
+                    TestHelpers.compareCanvasWithExpectedImage(self.K3D, 'surface_smooth_attributes', RESAMBLEThreshold,
+                        true, done);
+                }, true);
+
+                self.K3D.load(json);
+            });
+        });
         it('Surface (not cube) from normal array', function (done) {
 
             var self = this;
@@ -506,7 +520,6 @@ require(['k3d'], function (lib) {
                     TestHelpers.compareCanvasWithExpectedImage(self.K3D, 'latex', RESAMBLEThreshold, false, done);
                 }, true);
 
-                self.K3D.getWorld().camera.position.z = 1.5;
                 self.K3D.load(json);
             });
         });

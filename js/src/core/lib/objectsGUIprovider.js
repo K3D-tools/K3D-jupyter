@@ -22,7 +22,10 @@ function objectGUIProvider(K3D, json, objects, changes) {
         var change = {};
 
         change[key] = value;
-        K3D.reload(json, change);
+
+        if (key !== 'name') {
+            K3D.reload(json, change);
+        }
 
         K3D.dispatch(K3D.events.OBJECT_CHANGE, {
             id: json.id,
