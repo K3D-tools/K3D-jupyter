@@ -4,7 +4,7 @@ from .colormaps import paraview_color_maps
 from .colormaps import basic_color_maps
 from .colormaps import matplotlib_color_maps
 
-from .k3d import (plot,
+from .factory import (plot,
                   nice_colors,
                   line,
                   marching_cubes,
