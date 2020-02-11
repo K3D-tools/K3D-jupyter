@@ -241,7 +241,13 @@ module.exports = {
             var modelMatrix = new THREE.Matrix4();
 
             modelMatrix.set.apply(modelMatrix, changes.model_matrix.data);
-            obj.position.set(0.0, 0.0, 0.0);
+
+            if(obj.initialPosition) {
+                obj.position.copy(obj.initialPosition);
+            } else {
+                obj.position.set(0.0, 0.0, 0.0);
+            }
+
             obj.rotation.set(0.0, 0.0, 0.0);
             obj.scale.set(1.0, 1.0, 1.0);
 

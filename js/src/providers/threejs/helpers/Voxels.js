@@ -210,6 +210,7 @@ module.exports = {
                 object.addChunk(voxelsChunks[index]);
             }, function () {
                 object.position.set(-0.5, -0.5, -0.5);
+                object.initialPosition = object.position.clone();
                 object.updateMatrix();
 
                 modelMatrix.set.apply(modelMatrix, config.model_matrix.data);
