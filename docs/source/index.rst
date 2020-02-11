@@ -4,14 +4,13 @@ K3D-jupyter - documentation
 
 
 
-K3D-jupyter is a Jupyter notebook 3d visualization package.
+K3D-jupyter is a Jupyter notebook 3D visualization package.
 
-The primary aim of K3D is to be an easy tool for 3d visualization. We
+The primary aim of K3D is to be an easy tool for 3D visualization. We
 designed it with native interoperation with existing powerful
-libraries such as VTK however, it is not strictly depending on
-them. K3D plots are ipywidgets, thus it assures a perfect interaction
-of a browser side widget with Python kernel by a proven and
-standardized protocol.
+libraries such as VTK. However, it is not strictly dependent on them.
+K3D plots are :code:`ipywidgets` assuring a perfect interaction of a browser
+side widget with Python kernel by a proven and standardized protocol.
 
 .. toctree::
    :maxdepth: 2
