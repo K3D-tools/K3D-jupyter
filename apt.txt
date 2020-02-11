@@ -1,3 +1,0 @@
-ffmpeg
-libvtk7-dev
-xvfb
