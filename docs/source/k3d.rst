@@ -17,11 +17,11 @@ k3d\.helpers module
 k3d\.k3d module
 ---------------
 
-.. automodule:: k3d.k3d
+.. automodule:: k3d.factory
     :members:
     :undoc-members:
     :show-inheritance:
-        
+
 k3d\.objects module
 -------------------
 

@@ -1,5 +1,6 @@
 import ipywidgets as widgets
 import numpy as np
+import warnings
 from traitlets import Unicode, Int, Float, List, Bool, Bytes, Integer, Dict, Union, Any
 from traitlets import validate, TraitError
 from traittypes import Array
@@ -802,8 +803,7 @@ class Volume(Drawable):
     """
 
     type = Unicode(read_only=True).tag(sync=True)
-    volume = TimeSeries([Array(dtype=np.float32),
-                         Array(dtype=np.float16)]).tag(sync=True, **array_serialization_wrap('volume'))
+    volume = TimeSeries(Array()).tag(sync=True, **array_serialization_wrap('volume'))
     color_map = TimeSeries(Array(dtype=np.float32)).tag(sync=True, **array_serialization_wrap('color_map'))
     opacity_function = TimeSeries(Array(dtype=np.float32)).tag(sync=True,
                                                                **array_serialization_wrap('opacity_function'))
@@ -823,6 +823,21 @@ class Volume(Drawable):
         super(Volume, self).__init__(**kwargs)
 
         self.set_trait('type', 'Volume')
+
+    @validate('volume')
+    def _validate_volume(self, proposal):
+        if type(proposal['value']) is dict:
+            return proposal['value']
+
+        required = [np.float16, np.float32]
+        actual = proposal['value'].dtype
+
+        if actual not in required:
+            warnings.warn('wrong dtype: %s (%s required)' % (actual, required))
+
+            return proposal['value'].astype(np.float32)
+
+        return proposal['value']
 
     def shadow_map_update(self, direction=None):
         """Request updating the shadow map in browser."""

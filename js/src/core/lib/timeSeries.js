@@ -47,6 +47,13 @@ function getObjectsWithTimeSeriesAndMinMax(K3D) {
         }
     });
 
+    Object.keys(K3D.parameters.cameraAnimation).forEach(function (t) {
+        if (!isNaN(parseFloat(t))) {
+            min = Math.min(min, parseFloat(t));
+            max = Math.max(max, parseFloat(t));
+        }
+    });
+
     return {
         min: min,
         max: max,

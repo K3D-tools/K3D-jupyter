@@ -339,9 +339,9 @@ module.exports = {
             }
         });
 
-        modelMatrixUpdate(config, changes, obj);
+        modelMatrixUpdate(config, changes, resolvedChanges, obj);
 
-        if (areAllChangesResolve(changes, resolvedChanges )) {
+        if (areAllChangesResolve(changes, resolvedChanges)) {
             return Promise.resolve({json: config, obj: obj});
         } else {
             return false;

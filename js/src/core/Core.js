@@ -99,7 +99,7 @@ function K3D(provider, targetDOMNode, parameters) {
             }
 
             timeSeries.refreshTimeScale(self, GUI);
-            self.rebuildSceneData().then(self.render.bind(null, true));
+            self.rebuildSceneData(force).then(self.render.bind(null, true));
         }
     };
 
@@ -153,6 +153,7 @@ function K3D(provider, targetDOMNode, parameters) {
             cameraNoPan: false,
             name: null,
             camera_fov: 60.0,
+            cameraAnimation: {},
             autoRendering: true,
             axesHelper: 1.0,
             depthPeels: 8,
@@ -468,10 +469,20 @@ function K3D(provider, targetDOMNode, parameters) {
     /**
      * Set camera of K3D
      * @memberof K3D.Core
-     * @param {String} mode
+     * @param {Object} mode
      */
-    this.setCamera = function (array) {
-        world.setupCamera(array);
+    this.setCamera = function (camera) {
+        world.setupCamera(camera);
+    };
+
+    /**
+     * Set camera animation of K3D
+     * @memberof K3D.Core
+     * @param {Object} mode
+     */
+    this.setCameraAnimation = function (config) {
+        self.parameters.cameraAnimation = config;
+        timeSeries.refreshTimeScale(self, GUI);
     };
 
     /**
@@ -638,6 +649,17 @@ function K3D(provider, targetDOMNode, parameters) {
             return previousValue;
         }, []);
 
+        if (Object.keys(self.parameters.cameraAnimation).length > 0) {
+            var json = {
+                camera: self.parameters.cameraAnimation
+            };
+            json.camera.timeSeries = true;
+
+            var newCamera = timeSeries.interpolateTimeSeries(json, time);
+
+            world.setupCamera(newCamera.json.camera);
+        }
+
         GUI.controls.__controllers.forEach(function (controller) {
             if (controller.property === 'time') {
                 controller.updateDisplay();
@@ -784,7 +806,9 @@ function K3D(provider, targetDOMNode, parameters) {
             });
         });
 
-        return self.load({objects: data.objects});
+        return self.load({objects: data.objects}).then(function () {
+            self.refreshAfterObjectsChange(false, true);
+        })
     };
 
     /**

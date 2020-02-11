@@ -105,6 +105,7 @@ module.exports = {
         object.add(line);
 
         object.position.set(-0.5, -0.5, length === 1 ? 0 : -0.5);
+        object.initialPosition = object.position.clone();
         object.updateMatrix();
         object.applyMatrix(modelMatrix);
         object.boundingBox = line.geometry.boundingBox;
