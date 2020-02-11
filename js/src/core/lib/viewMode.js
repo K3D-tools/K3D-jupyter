@@ -16,6 +16,11 @@ function viewModeGUI(gui, K3D) {
     }).name('Mode').onChange(
         function (mode) {
             K3D.setViewMode(mode);
+
+            K3D.dispatch(K3D.events.PARAMETERS_CHANGE, {
+                key: 'mode',
+                value: mode
+            });
         });
 }
 

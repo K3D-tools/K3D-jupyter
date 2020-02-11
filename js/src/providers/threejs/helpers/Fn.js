@@ -242,7 +242,7 @@ module.exports = {
 
             modelMatrix.set.apply(modelMatrix, changes.model_matrix.data);
 
-            if(obj.initialPosition) {
+            if (obj.initialPosition) {
                 obj.position.copy(obj.initialPosition);
             } else {
                 obj.position.set(0.0, 0.0, 0.0);
