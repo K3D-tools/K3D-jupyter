@@ -264,6 +264,7 @@ PlotView = widgets.DOMWidgetView.extend({
         this.model.on('change:grid', this._setGrid, this);
         this.model.on('change:auto_rendering', this._setAutoRendering, this);
         this.model.on('change:camera', this._setCamera, this);
+        this.model.on('change:camera_animation', this._setCameraAnimation, this);
         this.model.on('change:clipping_planes', this._setClippingPlanes, this);
         this.model.on('change:object_ids', this._onObjectsListChange, this);
         this.model.on('change:menu_visibility', this._setMenuVisibility, this);
@@ -288,6 +289,7 @@ PlotView = widgets.DOMWidgetView.extend({
                 cameraNoRotate: this.model.get('camera_no_rotate'),
                 cameraNoZoom: this.model.get('camera_no_zoom'),
                 cameraNoPan: this.model.get('camera_no_pan'),
+                cameraAnimation: this.model.get('camera_animation'),
                 name: this.model.get('name'),
                 axes: this.model.get('axes'),
                 axesHelper: this.model.get('axes_helper'),
@@ -427,6 +429,10 @@ PlotView = widgets.DOMWidgetView.extend({
 
     _setCamera: function () {
         this.K3DInstance.setCamera(this.model.get('camera'));
+    },
+
+    _setCameraAnimation: function () {
+        this.K3DInstance.setCameraAnimation(this.model.get('camera_animation'));
     },
 
     _setRenderingSteps: function () {

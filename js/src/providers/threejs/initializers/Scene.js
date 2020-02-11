@@ -236,9 +236,7 @@ function rebuildSceneData(K3D, grids, axesHelper, force) {
     if (K3D.parameters.gridAutoFit || force) {
         // Grid generation
 
-        if (K3D.parameters.gridAutoFit) {
-            sceneBoundingBox = K3D.getSceneBoundingBox() || sceneBoundingBox;
-        }
+        sceneBoundingBox = K3D.getSceneBoundingBox() || sceneBoundingBox;
 
         // cleanup previous data
         cleanup(grids, this.gridScene);

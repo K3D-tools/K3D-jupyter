@@ -8,7 +8,7 @@ from functools import wraps
 from traitlets import Unicode, Bool, Int, List, Float
 
 from ._version import __version__ as version
-from .objects import Drawable, ListOrArray
+from .objects import Drawable, ListOrArray, TimeSeries
 
 
 class Plot(widgets.DOMWidget):
@@ -103,6 +103,7 @@ class Plot(widgets.DOMWidget):
     background_color = Int().tag(sync=True)
     voxel_paint_color = Int().tag(sync=True)
     camera = ListOrArray(minlen=9, maxlen=9, empty_ok=True).tag(sync=True)
+    camera_animation = TimeSeries(ListOrArray(minlen=9, maxlen=9, empty_ok=True)).tag(sync=True)
     camera_no_rotate = Bool(False).tag(sync=True)
     camera_no_zoom = Bool(False).tag(sync=True)
     camera_no_pan = Bool(False).tag(sync=True)
