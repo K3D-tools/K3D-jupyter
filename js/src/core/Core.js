@@ -697,13 +697,15 @@ function K3D(provider, targetDOMNode, parameters) {
      * @memberof K3D.Core
      * @param {Object} json
      * @param {Object} changes
-     * @param {Bool} suppressRefreshAfterObjects
+     * @param {Bool} timeSeriesReload
      */
-    this.reload = function (json, changes, suppressRefreshAfterObjects) {
+    this.reload = function (json, changes, timeSeriesReload) {
         if (json.visible === false) {
             try {
                 removeObjectFromScene(json.id);
-                self.refreshAfterObjectsChange(true);
+                if (timeSeriesReload !== true) {
+                    self.refreshAfterObjectsChange(true);
+                }
             } catch (e) {
                 console.log(e);
             }
@@ -719,13 +721,16 @@ function K3D(provider, targetDOMNode, parameters) {
 
         return loader(self, data).then(function (objects) {
             objects.forEach(function (object) {
-                objectGUIProvider(self, object.json, objects, changes);
+                if (timeSeriesReload !== true) {
+                    objectGUIProvider(self, object.json, objects, changes);
+                }
+
                 world.ObjectsListJson[object.json.id] = object.json;
             });
 
             dispatch(self.events.OBJECT_LOADED);
 
-            if (suppressRefreshAfterObjects !== true) {
+            if (timeSeriesReload !== true) {
                 self.refreshAfterObjectsChange(true);
             }
 
@@ -800,9 +805,7 @@ function K3D(provider, targetDOMNode, parameters) {
 
         data.objects.forEach(function (o) {
             Object.keys(o).forEach(function (k) {
-                if (o[k] && o[k].buffer && o[k].buffer !== '') {
-                    o[k] = serialize.deserialize(o[k]);
-                }
+                o[k] = serialize.deserialize(o[k]);
             });
         });
 

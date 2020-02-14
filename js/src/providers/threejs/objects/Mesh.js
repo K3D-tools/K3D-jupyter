@@ -4,7 +4,7 @@ var THREE = require('three'),
     intersectHelper = require('./../helpers/Intersection'),
     handleColorMap = require('./../helpers/Fn').handleColorMap,
     areAllChangesResolve = require('./../helpers/Fn').areAllChangesResolve,
-    modelMatrixUpdate = require('./../helpers/Fn').modelMatrixUpdate;
+    commonUpdate = require('./../helpers/Fn').commonUpdate;
 
 /**
  * Loader strategy to handle Mesh object
@@ -94,8 +94,19 @@ module.exports = {
             }
         }
 
+        if (typeof(changes.opacity) !== 'undefined' && !changes.opacity.timeSeries) {
+            obj.material.opacity = changes.opacity;
+            obj.material.depthTest = changes.opacity === 1.0;
+            obj.material.depthWrite = changes.opacity === 1.0;
+            obj.material.transparent = changes.opacity !== 1.0;
+            obj.material.needsUpdate = true;
+
+            resolvedChanges.opacity = null;
+        }
+
         intersectHelper.update(config, changes, resolvedChanges, obj, K3D);
-        modelMatrixUpdate(config, changes, resolvedChanges, obj);
+
+        commonUpdate(config, changes, resolvedChanges, obj);
 
         if (areAllChangesResolve(changes, resolvedChanges)) {
             return Promise.resolve({json: config, obj: obj});

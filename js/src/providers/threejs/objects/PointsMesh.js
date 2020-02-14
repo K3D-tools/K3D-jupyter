@@ -4,7 +4,7 @@ var THREE = require('three'),
     buffer = require('./../../../core/lib/helpers/buffer'),
     Fn = require('./../helpers/Fn'),
     areAllChangesResolve = Fn.areAllChangesResolve,
-    modelMatrixUpdate = Fn.modelMatrixUpdate,
+    commonUpdate = Fn.commonUpdate,
     getColorsArray = Fn.getColorsArray;
 
 /**
@@ -67,7 +67,13 @@ module.exports = {
     update: function (config, changes, obj) {
         var resolvedChanges = {};
 
-        modelMatrixUpdate(config, changes, resolvedChanges, obj);
+        // if (typeof(changes.opacity) !== 'undefined' && !changes.opacity.timeSeries) {
+        //     obj.material.uniforms.opacity.value = changes.opacity;
+        //
+        //     resolvedChanges.opacity = null;
+        // }
+
+        commonUpdate(config, changes, resolvedChanges, obj);
 
         if (areAllChangesResolve(changes, resolvedChanges)) {
             return Promise.resolve({json: config, obj: obj});

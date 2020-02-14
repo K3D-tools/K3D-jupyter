@@ -3,7 +3,7 @@
 var THREE = require('three'),
     Fn = require('./../helpers/Fn'),
     areAllChangesResolve = Fn.areAllChangesResolve,
-    modelMatrixUpdate = Fn.modelMatrixUpdate,
+    commonUpdate = Fn.commonUpdate,
     colorsToFloat32Array = require('./../../../core/lib/helpers/buffer').colorsToFloat32Array,
     streamLine = require('./../helpers/Streamline'),
     handleColorMap = Fn.handleColorMap;
@@ -67,7 +67,7 @@ module.exports = {
     update: function (config, changes, obj) {
         var resolvedChanges = {};
 
-        modelMatrixUpdate(config, changes, resolvedChanges, obj);
+        commonUpdate(config, changes, resolvedChanges, obj);
 
         if (areAllChangesResolve(changes, resolvedChanges)) {
             return Promise.resolve({json: config, obj: obj});

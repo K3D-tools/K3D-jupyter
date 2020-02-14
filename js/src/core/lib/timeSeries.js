@@ -98,7 +98,11 @@ function interpolate(a, b, f, property) {
     }
 
     if (typeof (a) === 'string') {
-        return (f > 0.5) ? a : b;
+        return (f > 0.5) ? b : a;
+    }
+
+    if (typeof (a) === 'boolean') {
+        return (f > 0.5) ? b : a;
     }
 
     if (_.isNumber(a)) {

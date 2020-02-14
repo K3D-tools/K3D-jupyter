@@ -48,6 +48,7 @@ function getHTMLSnapshot(K3D, compressionLevel) {
     filecontent = filecontent.replace('[REQUIRE_JS]', requireJsSource);
     filecontent = filecontent.replace('[PAKO_JS]', pakoJsSource);
     filecontent = filecontent.replace('[K3D_SOURCE]', sourceCode);
+    filecontent = filecontent.replace('[ADDITIONAL]', '//[ADDITIONAL]');
 
     return filecontent;
 }

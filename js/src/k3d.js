@@ -148,7 +148,8 @@ ObjectModel = widgets.WidgetModel.extend({
         text: serialize,
         size: serialize,
         position: serialize,
-        puv: serialize
+        puv: serialize,
+        visible: serialize
     }, widgets.WidgetModel.serializers)
 });
 

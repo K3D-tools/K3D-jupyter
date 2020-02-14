@@ -3,7 +3,7 @@
 var THREE = require('three'),
     buffer = require('./../../../core/lib/helpers/buffer'),
     Fn = require('./../helpers/Fn'),
-    modelMatrixUpdate = Fn.modelMatrixUpdate,
+    commonUpdate = Fn.commonUpdate,
     areAllChangesResolve = Fn.areAllChangesResolve,
     getColorsArray = Fn.getColorsArray;
 
@@ -95,7 +95,16 @@ module.exports = {
             resolvedChanges.positions = null;
         }
 
-        modelMatrixUpdate(config, changes, resolvedChanges, obj);
+        // if (typeof(changes.opacity) !== 'undefined' && !changes.opacity.timeSeries) {
+        //     obj.material.uniforms.opacity.value = changes.opacity;
+        //     obj.material.depthTest = config.opacity === 1.0;
+        //     obj.material.depthWrite = config.opacity === 1.0;
+        //     obj.material.transparent = config.opacity !== 1.0;
+        //
+        //     resolvedChanges.opacity = null;
+        // }
+
+        commonUpdate(config, changes, resolvedChanges, obj);
 
         if (areAllChangesResolve(changes, resolvedChanges)) {
             return Promise.resolve({json: config, obj: obj});

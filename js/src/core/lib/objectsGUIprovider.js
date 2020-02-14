@@ -250,8 +250,10 @@ function objectGUIProvider(K3D, json, objects, changes) {
                     }
                     break;
                 case 'opacity':
-                    addController(K3D.gui_map[json.id], json, param, 0, 1.0).name('opacity').onChange(
-                        change.bind(this, json, param));
+                    if (!json[param].timeSeries) {
+                        addController(K3D.gui_map[json.id], json, param, 0, 1.0).name('opacity').onChange(
+                            change.bind(this, json, param));
+                    }
                     break;
                 case 'color_range':
                     if (json[param].length === 2) {

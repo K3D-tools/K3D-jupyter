@@ -1,7 +1,7 @@
 'use strict';
 var VoxelsHelper = require('./../helpers/Voxels'),
     areAllChangesResolve = require('./../helpers/Fn').areAllChangesResolve,
-    modelMatrixUpdate = require('./../helpers/Fn').modelMatrixUpdate;
+    commonUpdate = require('./../helpers/Fn').commonUpdate;
 
 function K3DVoxelsMap(group) {
     var cx = group.coord.data[0],
@@ -244,7 +244,7 @@ module.exports = {
             resolvedChanges._hold_remeshing = null;
         }
 
-        modelMatrixUpdate(config, changes, resolvedChanges, obj);
+        commonUpdate(config, changes, resolvedChanges, obj);
 
         if (areAllChangesResolve(changes, resolvedChanges)) {
             return Promise.resolve({json: config, obj: obj});

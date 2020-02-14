@@ -15,7 +15,7 @@ k3d\.helpers module
     :show-inheritance:
 
 k3d\.factory module
----------------
+-------------------
 
 .. automodule:: k3d.factory
     :members:
