@@ -30,6 +30,7 @@ nice_colors = (
 
 default_colormap = matplotlib_color_maps.Inferno
 
+
 def line(vertices, color=_default_color, colors=[],  # lgtm [py/similar-function]
          attribute=[], color_map=default_colormap, color_range=[], width=0.01,
          shader='thick', radial_segments=8, name=None, compression_level=0, **kwargs):
@@ -134,7 +135,8 @@ def marching_cubes(scalar_field, level, color=_default_color, wireframe=False, f
     )
 
 
-def mesh(vertices, indices, color=_default_color, attribute=[], color_map=default_colormap,  # lgtm [py/similar-function]
+def mesh(vertices, indices, color=_default_color, attribute=[], color_map=default_colormap,
+         # lgtm [py/similar-function]
          color_range=[], wireframe=False, flat_shading=True, opacity=1.0,
          name=None, compression_level=0, **kwargs):
     """Create a Mesh drawable representing a 3D triangles mesh.
@@ -185,8 +187,8 @@ def mesh(vertices, indices, color=_default_color, attribute=[], color_map=defaul
     )
 
 
-def points(positions, colors=[], color=_default_color, point_size=1.0, shader='3dSpecular', opacity=1.0, name=None,
-           compression_level=0, mesh_detail=2, **kwargs):
+def points(positions, colors=[], color=_default_color, point_size=1.0, shader='3dSpecular', opacity=1.0, opacities=[],
+           name=None, compression_level=0, mesh_detail=2, **kwargs):
     """Create a Points drawable representing a point cloud.
 
     Arguments:
@@ -198,6 +200,8 @@ def points(positions, colors=[], color=_default_color, point_size=1.0, shader='3
             Packed RGB color of the points (0xff0000 is red, 0xff is blue) when `colors` is empty.
         opacity: `float`.
             Opacity of points.
+        opacities: `array_like`.
+            Same-length array of `float` opacity of the points.
         point_size: `float`.
             Diameter of the balls representing the points in 3D space.
         shader: `str`.
@@ -224,8 +228,8 @@ def points(positions, colors=[], color=_default_color, point_size=1.0, shader='3
     return process_transform_arguments(
         Points(positions=positions, colors=colors,
                color=color, point_size=point_size, shader=shader,
-               opacity=opacity, mesh_detail=mesh_detail,
-               name=name,
+               opacity=opacity, opacities=opacities,
+               mesh_detail=mesh_detail, name=name,
                compression_level=compression_level),
         **kwargs
     )

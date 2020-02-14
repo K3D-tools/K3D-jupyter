@@ -22,15 +22,23 @@ module.exports = {
             pointColors = (config.colors && config.colors.data) || null,
             meshDetail = typeof (config.mesh_detail) !== 'undefined' ? config.mesh_detail : 2,
             colors,
+            opacities = (config.opacities && config.opacities.data &&
+                         config.opacities.data.length === positions.length / 3) ? config.opacities.data : null,
             object,
             colorsToFloat32Array = buffer.colorsToFloat32Array,
             phongShader = THREE.ShaderLib.phong,
             material = new THREE.ShaderMaterial({
-                uniforms: THREE.UniformsUtils.merge([phongShader.uniforms, {shininess: {value: 50}}]),
+                uniforms: THREE.UniformsUtils.merge([phongShader.uniforms, {
+                    shininess: {value: 50},
+                    opacity: {value: config.opacity},
+                }]),
+                defines: {
+                    USE_PER_POINT_OPACITY: (opacities !== null ? 1 : 0)
+                },
                 vertexShader: require('./shaders/PointsMesh.vertex.glsl'),
-                fragmentShader: phongShader.fragmentShader,
-                depthTest: config.opacity === 1.0,
-                transparent: config.opacity !== 1.0,
+                fragmentShader: require('./shaders/PointsMesh.fragment.glsl'),
+                depthTest: (config.opacity === 1.0 && opacities === null),
+                transparent: (config.opacity !== 1.0 || opacities !== null),
                 lights: true,
                 clipping: true,
                 vertexColors: THREE.VertexColors
@@ -45,6 +53,11 @@ module.exports = {
 
         instancedGeometry.setAttribute('offset', new THREE.InstancedBufferAttribute(new Float32Array(positions), 3));
         instancedGeometry.setAttribute('color', new THREE.InstancedBufferAttribute(new Float32Array(colors), 3));
+
+        if (opacities) {
+            instancedGeometry.setAttribute('opacities',
+                new THREE.InstancedBufferAttribute(opacities, 1).setUsage(THREE.DynamicDrawUsage));
+        }
 
         // boundingBox & boundingSphere
         geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));

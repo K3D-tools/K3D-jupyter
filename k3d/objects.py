@@ -392,6 +392,7 @@ class Points(Drawable):
     color = TimeSeries(Int(min=0, max=0xffffff)).tag(sync=True)
     point_size = TimeSeries(Float(min=EPSILON, default_value=1.0)).tag(sync=True)
     opacity = TimeSeries(Float(min=0.0, max=1.0, default_value=1.0)).tag(sync=True)
+    opacities = TimeSeries(Array(dtype=np.float32)).tag(sync=True, **array_serialization_wrap('opacities'))
     shader = TimeSeries(Unicode()).tag(sync=True)
     mesh_detail = TimeSeries(Int(min=0, max=8)).tag(sync=True)
     model_matrix = TimeSeries(Array(dtype=np.float32)).tag(sync=True, **array_serialization_wrap('model_matrix'))

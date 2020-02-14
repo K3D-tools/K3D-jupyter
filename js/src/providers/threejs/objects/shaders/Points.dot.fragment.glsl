@@ -1,4 +1,4 @@
-varying vec3 vColor;
+varying vec4 vColor;
 uniform float opacity;
 
 #include <clipping_planes_pars_fragment>
@@ -6,5 +6,9 @@ uniform float opacity;
 void main (void)
 {
     #include <clipping_planes_fragment>
-    gl_FragColor = vec4(vColor, opacity);
+
+    vec4 color = vColor;
+    color.a  *= opacity;
+
+    gl_FragColor = color;
 }

@@ -4,7 +4,7 @@ uniform float opacity;
 uniform mat4 projectionMatrix;
 uniform vec3 ambientLightColor;
 
-varying vec3 vColor;
+varying vec4 vColor;
 varying vec4 mvPosition;
 
 struct DirectionalLight {
@@ -49,7 +49,9 @@ void main (void)
     vec3 normal = vec3(impostorSpaceCoordinate, normalizedDepth);
 
     vec4 addedLights = vec4(ambientLightColor, 1.0);
-    vec4 finalSphereColor = vec4(vColor, opacity);
+    vec4 finalSphereColor = vColor;
+
+    finalSphereColor.a *= opacity;
 
     for(int l = 0; l <NUM_DIR_LIGHTS; l++) {
         vec3 lightDirection = -directionalLights[l].direction;

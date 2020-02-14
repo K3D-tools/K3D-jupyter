@@ -210,7 +210,8 @@ function objectGUIProvider(K3D, json, objects, changes) {
                     break;
                 case 'shader':
                     if (json.type === 'Points') {
-                        addController(K3D.gui_map[json.id], json, param, ['3dSpecular', '3d', 'flat', 'mesh']).onChange(
+                        addController(K3D.gui_map[json.id], json, param,
+                            ['3dSpecular', '3d', 'flat', 'mesh', 'dot']).onChange(
                             change.bind(this, json, param));
                     }
                     break;

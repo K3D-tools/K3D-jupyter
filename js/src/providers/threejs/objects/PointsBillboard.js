@@ -22,6 +22,8 @@ module.exports = {
             pointColors = (config.colors && config.colors.data) || null,
             shader = config.shader,
             colors,
+            opacities = (config.opacities && config.opacities.data &&
+                         config.opacities.data.length === pointPositions.length / 3) ? config.opacities.data : null,
             object,
             material,
             colorsToFloat32Array = buffer.colorsToFloat32Array,
@@ -49,13 +51,14 @@ module.exports = {
                 THREE.UniformsLib.points
             ]),
             defines: {
-                USE_SPECULAR: (shader === '3dSpecular' ? 1 : 0)
+                USE_SPECULAR: (shader === '3dSpecular' ? 1 : 0),
+                USE_PER_POINT_OPACITY: (opacities !== null ? 1 : 0)
             },
             vertexShader: vertexShader,
             fragmentShader: fragmentShader,
             opacity: config.opacity,
-            depthTest: config.opacity === 1.0,
-            transparent: config.opacity !== 1.0,
+            depthTest: (config.opacity === 1.0 && opacities === null),
+            transparent: (config.opacity !== 1.0 || opacities !== null),
             lights: true,
             clipping: true,
             extensions: {
@@ -73,7 +76,7 @@ module.exports = {
                 colorsToFloat32Array(pointColors) : getColorsArray(color, pointPositions.length / 3)
         );
 
-        object = new THREE.Points(getGeometry(pointPositions, colors), material);
+        object = new THREE.Points(getGeometry(pointPositions, colors, opacities), material);
 
         Fn.expandBoundingBox(object.geometry.boundingBox, config.point_size * 0.5);
 
@@ -120,13 +123,19 @@ module.exports = {
  * @memberof K3D.Providers.ThreeJS.Objects.Points
  * @param  {Float32Array} positions
  * @param  {Float32Array} colors
+ * @param  {Float32Array} opacities
  * @return {THREE.BufferGeometry}
  */
-function getGeometry(positions, colors) {
+function getGeometry(positions, colors, opacities) {
     var geometry = new THREE.BufferGeometry();
 
     geometry.setAttribute('position', new THREE.BufferAttribute(new Float32Array(positions), 3));
     geometry.setAttribute('color', new THREE.BufferAttribute(colors, 3));
+
+    if (opacities) {
+        geometry.setAttribute('opacities', new THREE.BufferAttribute(opacities, 1).setUsage(THREE.DynamicDrawUsage));
+    }
+
     geometry.computeBoundingSphere();
     geometry.computeBoundingBox();
 

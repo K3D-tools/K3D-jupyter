@@ -130,6 +130,7 @@ ObjectModel = widgets.WidgetModel.extend({
         origins: serialize,
         vectors: serialize,
         opacity: serialize,
+        opacities: serialize,
         point_size: serialize,
         width: serialize,
         shader: serialize,
