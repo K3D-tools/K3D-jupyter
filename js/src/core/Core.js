@@ -811,7 +811,7 @@ function K3D(provider, targetDOMNode, parameters) {
 
         return self.load({objects: data.objects}).then(function () {
             self.refreshAfterObjectsChange(false, true);
-        })
+        });
     };
 
     /**

@@ -138,6 +138,7 @@ def marching_cubes(scalar_field, level, color=_default_color, wireframe=False, f
 def mesh(vertices, indices, color=_default_color, attribute=[], color_map=default_colormap,
          # lgtm [py/similar-function]
          color_range=[], wireframe=False, flat_shading=True, opacity=1.0,
+         volume=[], volume_bounds=[], opacity_function=[],
          name=None, compression_level=0, **kwargs):
     """Create a Mesh drawable representing a 3D triangles mesh.
 
@@ -162,6 +163,13 @@ def mesh(vertices, indices, color=_default_color, attribute=[], color_map=defaul
             Whether mesh should display with flat shading.
         opacity: `float`.
             Opacity of mesh.
+        volume: `array_like`.
+            3D array of `float`
+        volume_bounds: `array_like`.
+            6-element tuple specifying the bounds of the volume data (x0, x1, y0, y1, z0, z1)
+        opacity_function: `array`.
+            A list of float tuples (attribute value, opacity), sorted by attribute value. The first
+            typles should have value 0.0, the last 1.0; opacity is in the range 0.0 to 1.0.
         name: `string`.
             A name of a object
         kwargs: `dict`.
@@ -169,7 +177,13 @@ def mesh(vertices, indices, color=_default_color, attribute=[], color_map=defaul
 
     color_map = np.array(color_map, np.float32) if type(color_map) is not dict else color_map
     attribute = np.array(attribute, np.float32) if type(attribute) is not dict else attribute
-    color_range = check_attribute_range(attribute, color_range)
+    volume_bounds = np.array(volume_bounds, np.float32) if type(volume_bounds) is not dict else volume_bounds
+
+    if len(attribute) > 0:
+        color_range = check_attribute_range(attribute, color_range)
+
+    if len(volume) > 0:
+        color_range = check_attribute_range(volume, color_range)
 
     return process_transform_arguments(
         Mesh(vertices=vertices,
@@ -181,6 +195,9 @@ def mesh(vertices, indices, color=_default_color, attribute=[], color_map=defaul
              wireframe=wireframe,
              flat_shading=flat_shading,
              opacity=opacity,
+             volume=volume,
+             volume_bounds=volume_bounds,
+             opacity_function=opacity_function,
              name=name,
              compression_level=compression_level),
         **kwargs
@@ -811,7 +828,8 @@ def volume(volume, color_map=default_colormap, opacity_function=None, color_rang
 
 
 def vtk_poly_data(poly_data, color=_default_color, color_attribute=None, color_map=default_colormap,
-                  wireframe=False, opacity=1.0, name=None, compression_level=0, **kwargs):
+                  wireframe=False, opacity=1.0, volume=[], volume_bounds=[], opacity_function=[], name=None,
+                  compression_level=0, **kwargs):
     """Create a Mesh drawable from given vtkPolyData.
 
     This function requires the vtk module (from package VTK) to be installed.
@@ -834,6 +852,13 @@ def vtk_poly_data(poly_data, color=_default_color, color_attribute=None, color_m
             Whether mesh should display as wireframe.
         opacity: `float`.
             Opacity of mesh.
+        volume: `array_like`.
+            3D array of `float`
+        volume_bounds: `array_like`.
+            6-element tuple specifying the bounds of the volume data (x0, x1, y0, y1, z0, z1)
+        opacity_function: `array`.
+            A list of float tuples (attribute value, opacity), sorted by attribute value. The first
+            typles should have value 0.0, the last 1.0; opacity is in the range 0.0 to 1.0.
         name: `string`.
             A name of a object
         kwargs: `dict`.
@@ -857,6 +882,7 @@ def vtk_poly_data(poly_data, color=_default_color, color_attribute=None, color_m
 
     vertices = numpy_support.vtk_to_numpy(poly_data.GetPoints().GetData())
     indices = numpy_support.vtk_to_numpy(poly_data.GetPolys().GetData()).reshape(-1, 4)[:, 1:4]
+    volume_bounds = np.array(volume_bounds, np.float32) if type(volume_bounds) is not dict else volume_bounds
 
     return process_transform_arguments(
         Mesh(vertices=np.array(vertices, np.float32),
@@ -867,6 +893,9 @@ def vtk_poly_data(poly_data, color=_default_color, color_attribute=None, color_m
              color_range=color_range,
              color_map=np.array(color_map, np.float32),
              wireframe=wireframe,
+             volume=volume,
+             volume_bounds=volume_bounds,
+             opacity_function=opacity_function,
              name=name,
              compression_level=compression_level),
         **kwargs

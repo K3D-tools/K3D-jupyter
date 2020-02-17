@@ -27,11 +27,11 @@ module.exports = {
         }
     },
 
-    update: function (config, prevConfig, obj, K3D) {
+    update: function (config, changes, obj, K3D) {
         if (config.shader === 'mesh') {
-            return PointsMesh.update(config, prevConfig, obj, K3D);
+            return PointsMesh.update(config, changes, obj, K3D);
         } else {
-            return PointsBillboard.update(config, prevConfig, obj, K3D);
+            return PointsBillboard.update(config, changes, obj, K3D);
         }
     }
 };

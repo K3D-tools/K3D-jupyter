@@ -100,7 +100,7 @@ function objectGUIProvider(K3D, json, objects, changes) {
 
     var availableParams = defaultParams.concat(['color', 'origin_color', 'origin_color', 'head_color', 'outlines_color',
         'text', 'shader', 'shadow_res', 'shadow', 'ray_samples_count', 'width', 'radial_segments', 'mesh_detail',
-        'opacity', 'color_range', 'name']);
+        'opacity', 'color_range', 'name', 'color_map']);
 
     ((changes && Object.keys(changes)) || Object.keys(json)).forEach(function (param) {
             var colorMapLegendControllers, controller;
@@ -125,12 +125,6 @@ function objectGUIProvider(K3D, json, objects, changes) {
                 // handle colorLegend
                 if (K3D.parameters.colorbarObjectId === -1) { //auto
                     K3D.parameters.colorbarObjectId = json.id;
-                }
-
-                json.colorLegend = (K3D.parameters.colorbarObjectId === json.id);
-
-                if (json.colorLegend) {
-                    K3D.setColorMapLegend(json);
                 }
 
                 colorMapLegendControllers = findControllers(json, 'colorLegend');
@@ -158,6 +152,14 @@ function objectGUIProvider(K3D, json, objects, changes) {
                     if (json.colorLegend) {
                         K3D.setColorMapLegend(json);
                     }
+                }
+            }
+
+            json.colorLegend = (K3D.parameters.colorbarObjectId === json.id);
+
+            if (param === 'color_map' || param === 'color_range') {
+                if (json.colorLegend) {
+                    K3D.setColorMapLegend(json);
                 }
             }
 
