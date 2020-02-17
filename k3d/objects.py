@@ -69,7 +69,7 @@ class Drawable(widgets.Widget):
 
     id = Integer().tag(sync=True)
     name = Unicode(default_value=None, allow_none=True).tag(sync=True)
-    visible = Bool(True).tag(sync=True)
+    visible = TimeSeries(Bool(True)).tag(sync=True)
     compression_level = Integer().tag(sync=True)
 
     def __getitem__(self, name):
@@ -297,7 +297,7 @@ class MarchingCubes(DrawableWithCallback):
     color = Int(min=0, max=0xffffff).tag(sync=True)
     wireframe = Bool().tag(sync=True)
     flat_shading = Bool().tag(sync=True)
-    opacity = Float(min=0.0, max=1.0, default_value=1.0).tag(sync=True)
+    opacity = TimeSeries(Float(min=0.0, max=1.0, default_value=1.0)).tag(sync=True)
     model_matrix = TimeSeries(Array(dtype=np.float32)).tag(sync=True, **array_serialization_wrap('model_matrix'))
 
     def __init__(self, **kwargs):
@@ -331,6 +331,10 @@ class Mesh(DrawableWithCallback):
             Whether mesh should display with flat shading.
         opacity: `float`.
             Opacity of mesh.
+        volume: `array_like`.
+            3D array of `float`
+        volume_bounds: `array_like`.
+            6-element tuple specifying the bounds of the volume data (x0, x1, y0, y1, z0, z1)
         model_matrix: `array_like`.
             4x4 model transform matrix.
     """
@@ -344,13 +348,35 @@ class Mesh(DrawableWithCallback):
     color_range = TimeSeries(ListOrArray(minlen=2, maxlen=2, empty_ok=True)).tag(sync=True)
     wireframe = TimeSeries(Bool()).tag(sync=True)
     flat_shading = TimeSeries(Bool()).tag(sync=True)
-    opacity = Float(min=0.0, max=1.0, default_value=1.0).tag(sync=True)
+    opacity = TimeSeries(Float(min=0.0, max=1.0, default_value=1.0)).tag(sync=True)
+    volume = TimeSeries(Array()).tag(sync=True, **array_serialization_wrap('volume'))
+    volume_bounds = TimeSeries(Array(dtype=np.float32)).tag(sync=True, **array_serialization_wrap('volume_bounds'))
+    opacity_function = TimeSeries(Array(dtype=np.float32)).tag(sync=True,
+                                                               **array_serialization_wrap('opacity_function'))
     model_matrix = TimeSeries(Array(dtype=np.float32)).tag(sync=True, **array_serialization_wrap('model_matrix'))
 
     def __init__(self, **kwargs):
         super(Mesh, self).__init__(**kwargs)
 
         self.set_trait('type', 'Mesh')
+
+    @validate('volume')
+    def _validate_volume(self, proposal):
+        if type(proposal['value']) is dict:
+            return proposal['value']
+
+        if proposal['value'].shape == (0,):
+            return np.array(proposal['value'], dtype=np.float32)
+
+        required = [np.float16, np.float32]
+        actual = proposal['value'].dtype
+
+        if actual not in required:
+            warnings.warn('wrong dtype: %s (%s required)' % (actual, required))
+
+            return proposal['value'].astype(np.float32)
+
+        return proposal['value']
 
 
 class Points(Drawable):
@@ -392,6 +418,7 @@ class Points(Drawable):
     color = TimeSeries(Int(min=0, max=0xffffff)).tag(sync=True)
     point_size = TimeSeries(Float(min=EPSILON, default_value=1.0)).tag(sync=True)
     opacity = TimeSeries(Float(min=0.0, max=1.0, default_value=1.0)).tag(sync=True)
+    opacities = TimeSeries(Array(dtype=np.float32)).tag(sync=True, **array_serialization_wrap('opacities'))
     shader = TimeSeries(Unicode()).tag(sync=True)
     mesh_detail = TimeSeries(Int(min=0, max=8)).tag(sync=True)
     model_matrix = TimeSeries(Array(dtype=np.float32)).tag(sync=True, **array_serialization_wrap('model_matrix'))
@@ -886,7 +913,7 @@ class Voxels(DrawableWithVoxelCallback):
     wireframe = Bool().tag(sync=True)
     outlines = Bool().tag(sync=True)
     outlines_color = Int(min=0, max=0xffffff).tag(sync=True)
-    opacity = Float(min=0.0, max=1.0, default_value=1.0).tag(sync=True)
+    opacity = TimeSeries(Float(min=0.0, max=1.0, default_value=1.0)).tag(sync=True)
     model_matrix = TimeSeries(Array(dtype=np.float32)).tag(sync=True, **array_serialization_wrap('model_matrix'))
 
     def __init__(self, **kwargs):
@@ -934,7 +961,7 @@ class SparseVoxels(DrawableWithVoxelCallback):
     wireframe = Bool().tag(sync=True)
     outlines = Bool().tag(sync=True)
     outlines_color = Int(min=0, max=0xffffff).tag(sync=True)
-    opacity = Float(min=0.0, max=1.0, default_value=1.0).tag(sync=True)
+    opacity = TimeSeries(Float(min=0.0, max=1.0, default_value=1.0)).tag(sync=True)
     model_matrix = TimeSeries(Array(dtype=np.float32)).tag(sync=True, **array_serialization_wrap('model_matrix'))
 
     def __init__(self, **kwargs):
@@ -982,7 +1009,7 @@ class VoxelsGroup(DrawableWithVoxelCallback):
     wireframe = Bool().tag(sync=True)
     outlines = Bool().tag(sync=True)
     outlines_color = Int(min=0, max=0xffffff).tag(sync=True)
-    opacity = Float(min=0.0, max=1.0, default_value=1.0).tag(sync=True)
+    opacity = TimeSeries(Float(min=0.0, max=1.0, default_value=1.0)).tag(sync=True)
     model_matrix = TimeSeries(Array(dtype=np.float32)).tag(sync=True, **array_serialization_wrap('model_matrix'))
 
     def __init__(self, **kwargs):

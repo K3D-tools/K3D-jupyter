@@ -2,7 +2,7 @@
 
 var VoxelsHelper = require('./../helpers/Voxels'),
     areAllChangesResolve = require('./../helpers/Fn').areAllChangesResolve,
-    modelMatrixUpdate = require('./../helpers/Fn').modelMatrixUpdate;
+    commonUpdate = require('./../helpers/Fn').commonUpdate;
 
 function K3DVoxelsMap(config) {
     var newArray;
@@ -81,7 +81,7 @@ module.exports = {
     update: function (config, changes, obj) {
         var resolvedChanges = {};
 
-        modelMatrixUpdate(config, changes, resolvedChanges, obj);
+        commonUpdate(config, changes, resolvedChanges, obj);
 
         if (areAllChangesResolve(changes, resolvedChanges)) {
             return Promise.resolve({json: config, obj: obj});

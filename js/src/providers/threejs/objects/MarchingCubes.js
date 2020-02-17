@@ -5,7 +5,7 @@ var THREE = require('three'),
     marchingCubesPolygonise = require('./../../../core/lib/helpers/marchingCubesPolygonise'),
     yieldingLoop = require('./../../../core/lib/helpers/yieldingLoop'),
     areAllChangesResolve = require('./../helpers/Fn').areAllChangesResolve,
-    modelMatrixUpdate = require('./../helpers/Fn').modelMatrixUpdate;
+    commonUpdate = require('./../helpers/Fn').commonUpdate;
 
 /**
  * Loader strategy to handle Marching Cubes object
@@ -100,7 +100,17 @@ module.exports = {
 
         intersectHelper.update(config, changes, obj, K3D);
 
-        modelMatrixUpdate(config, changes, resolvedChanges, obj);
+        if (typeof(changes.opacity) !== 'undefined' && !changes.opacity.timeSeries) {
+            obj.material.opacity = changes.opacity;
+            obj.material.depthTest = changes.opacity === 1.0;
+            obj.material.depthWrite = changes.opacity === 1.0;
+            obj.material.transparent = changes.opacity !== 1.0;
+            obj.material.needsUpdate = true;
+
+            resolvedChanges.opacity = null;
+        }
+
+        commonUpdate(config, changes, resolvedChanges, obj);
 
         if (areAllChangesResolve(changes, resolvedChanges)) {
             return Promise.resolve({json: config, obj: obj});

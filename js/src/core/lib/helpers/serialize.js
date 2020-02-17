@@ -36,6 +36,8 @@ function deserializeArray(obj) {
             data: buffer,
             shape: obj.shape
         };
+    } else {
+        return obj;
     }
 }
 

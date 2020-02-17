@@ -252,12 +252,11 @@ class Plot(widgets.DOMWidget):
 
         return inner
 
-    def get_snapshot(self, compression_level=9):
+    def get_snapshot(self, compression_level=9, additional_js_code=''):
         import os
         import io
         import msgpack
         import zlib
-        import numpy as np
         from .helpers import to_json
 
         dir_path = os.path.dirname(os.path.realpath(__file__))
@@ -271,10 +270,7 @@ class Plot(widgets.DOMWidget):
             obj = {}
             for k, v in o.traits().items():
                 if 'sync' in v.metadata:
-                    if isinstance(o[k], np.ndarray):
-                        obj[k] = to_json(k, o[k], o, o['compression_level'])
-                    else:
-                        obj[k] = o[k]
+                    obj[k] = to_json(k, o[k], o, o['compression_level'])
 
             snapshot['objects'].append(obj)
 
@@ -321,10 +317,13 @@ class Plot(widgets.DOMWidget):
             "cameraNoPan": self.camera_no_pan,
             "name": self.name,
             "camera_fov": self.camera_fov,
-            "axesHelper": self.axes_helper
+            "axesHelper": self.axes_helper,
+            "cameraAnimation": self.camera_animation,
+            "fps": self.fps
         }
 
         template = template.replace('[PARAMS]', json.dumps(params))
         template = template.replace('[CAMERA]', str(self.camera))
+        template = template.replace('[ADDITIONAL]', additional_js_code)
 
         return template

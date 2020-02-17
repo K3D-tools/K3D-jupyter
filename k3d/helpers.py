@@ -131,7 +131,7 @@ def minmax(iterable):
 
     This should be a built in function in Python, and has even been proposed on Python-ideas newsgroup.
     This is not to be confused with the algorithm for finding winning strategies in 2-player games."""
-    return [np.nanmin(iterable), np.nanmax(iterable)]
+    return [float(np.nanmin(iterable)), float(np.nanmax(iterable))]
 
 
 def check_attribute_range(attribute, color_range=()):
@@ -193,3 +193,15 @@ def validate_sparse_voxels(trait, value):
         raise TraitError('Voxel coordinates and values must be non-negative')
 
     return value
+
+
+def quad(w, h):
+    w /= 2
+    h /= 2
+    vertices = np.array([-w, -h, -0,
+                         w, -h, 0,
+                         w, h, 0,
+                         -w, h, 0], dtype=np.float32)
+    indices = np.array([0, 1, 2, 0, 2, 3], dtype=np.uint32)
+
+    return vertices, indices

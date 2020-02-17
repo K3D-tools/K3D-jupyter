@@ -236,7 +236,7 @@ module.exports = {
         ));
     },
 
-    modelMatrixUpdate: function (config, changes, resolvedChanges, obj) {
+    commonUpdate: function (config, changes, resolvedChanges, obj) {
         if (typeof(changes.model_matrix) !== 'undefined' && !changes.model_matrix.timeSeries) {
             var modelMatrix = new THREE.Matrix4();
 
@@ -255,6 +255,12 @@ module.exports = {
             obj.updateMatrixWorld();
 
             resolvedChanges.model_matrix = null;
+        }
+
+        if (typeof(changes.visible) !== 'undefined' && !changes.visible.timeSeries) {
+            obj.visible = changes.visible;
+
+            resolvedChanges.visible = null;
         }
     }
 };

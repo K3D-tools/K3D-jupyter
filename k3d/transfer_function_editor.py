@@ -95,6 +95,6 @@ def transfer_function_editor(color_map=paraview_color_maps.Jet, opacity_function
             typles should have value 0.0, the last 1.0; opacity is in the range 0.0 to 1.0.
     """
     if opacity_function is None:
-        opacity_function = np.array([np.min(color_map[::4]), 0.0, np.max(color_map[::4]), 1.0])
+        opacity_function = np.array([np.min(color_map[::4]), 0.0, np.max(color_map[::4]), 1.0], dtype=np.float32)
 
     return TF_editor(height, color_map, opacity_function)

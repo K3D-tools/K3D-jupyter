@@ -130,6 +130,7 @@ ObjectModel = widgets.WidgetModel.extend({
         origins: serialize,
         vectors: serialize,
         opacity: serialize,
+        opacities: serialize,
         point_size: serialize,
         width: serialize,
         shader: serialize,
@@ -148,7 +149,9 @@ ObjectModel = widgets.WidgetModel.extend({
         text: serialize,
         size: serialize,
         position: serialize,
-        puv: serialize
+        puv: serialize,
+        visible: serialize,
+        volume_bounds: serialize
     }, widgets.WidgetModel.serializers)
 });
 

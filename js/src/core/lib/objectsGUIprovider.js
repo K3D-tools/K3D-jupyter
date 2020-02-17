@@ -100,7 +100,7 @@ function objectGUIProvider(K3D, json, objects, changes) {
 
     var availableParams = defaultParams.concat(['color', 'origin_color', 'origin_color', 'head_color', 'outlines_color',
         'text', 'shader', 'shadow_res', 'shadow', 'ray_samples_count', 'width', 'radial_segments', 'mesh_detail',
-        'opacity', 'color_range', 'name']);
+        'opacity', 'color_range', 'name', 'color_map']);
 
     ((changes && Object.keys(changes)) || Object.keys(json)).forEach(function (param) {
             var colorMapLegendControllers, controller;
@@ -125,12 +125,6 @@ function objectGUIProvider(K3D, json, objects, changes) {
                 // handle colorLegend
                 if (K3D.parameters.colorbarObjectId === -1) { //auto
                     K3D.parameters.colorbarObjectId = json.id;
-                }
-
-                json.colorLegend = (K3D.parameters.colorbarObjectId === json.id);
-
-                if (json.colorLegend) {
-                    K3D.setColorMapLegend(json);
                 }
 
                 colorMapLegendControllers = findControllers(json, 'colorLegend');
@@ -158,6 +152,14 @@ function objectGUIProvider(K3D, json, objects, changes) {
                     if (json.colorLegend) {
                         K3D.setColorMapLegend(json);
                     }
+                }
+            }
+
+            json.colorLegend = (K3D.parameters.colorbarObjectId === json.id);
+
+            if (param === 'color_map' || param === 'color_range') {
+                if (json.colorLegend) {
+                    K3D.setColorMapLegend(json);
                 }
             }
 
@@ -210,7 +212,8 @@ function objectGUIProvider(K3D, json, objects, changes) {
                     break;
                 case 'shader':
                     if (json.type === 'Points') {
-                        addController(K3D.gui_map[json.id], json, param, ['3dSpecular', '3d', 'flat', 'mesh']).onChange(
+                        addController(K3D.gui_map[json.id], json, param,
+                            ['3dSpecular', '3d', 'flat', 'mesh', 'dot']).onChange(
                             change.bind(this, json, param));
                     }
                     break;
@@ -250,8 +253,10 @@ function objectGUIProvider(K3D, json, objects, changes) {
                     }
                     break;
                 case 'opacity':
-                    addController(K3D.gui_map[json.id], json, param, 0, 1.0).name('opacity').onChange(
-                        change.bind(this, json, param));
+                    if (!json[param].timeSeries) {
+                        addController(K3D.gui_map[json.id], json, param, 0, 1.0).name('opacity').onChange(
+                            change.bind(this, json, param));
+                    }
                     break;
                 case 'color_range':
                     if (json[param].length === 2) {

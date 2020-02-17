@@ -1,6 +1,13 @@
 attribute vec3 offset;
+uniform float opacity;
+
 varying vec3 vViewPosition;
 varying vec3 vNormal;
+
+#if (USE_PER_POINT_OPACITY == 1)
+attribute float opacities;
+varying float perPointOpacity;
+#endif
 
 #include <common>
 #include <uv_pars_vertex>
@@ -20,6 +27,10 @@ void main() {
         #include <uv2_vertex>
 
         vColor.xyz = color.xyz;
+
+        #if (USE_PER_POINT_OPACITY == 1)
+            perPointOpacity = opacities;
+        #endif
 
         #include <beginnormal_vertex>
         #include <morphnormal_vertex>

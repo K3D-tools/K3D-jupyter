@@ -7,7 +7,7 @@ var THREE = require('three'),
     closestPowOfTwo = require('./../helpers/Fn').closestPowOfTwo,
     typedArrayToThree = require('./../helpers/Fn').typedArrayToThree,
     areAllChangesResolve = require('./../helpers/Fn').areAllChangesResolve,
-    modelMatrixUpdate = require('./../helpers/Fn').modelMatrixUpdate;
+    commonUpdate = require('./../helpers/Fn').commonUpdate;
 
 /**
  * Loader strategy to handle Volume object
@@ -339,7 +339,7 @@ module.exports = {
             }
         });
 
-        modelMatrixUpdate(config, changes, resolvedChanges, obj);
+        commonUpdate(config, changes, resolvedChanges, obj);
 
         if (areAllChangesResolve(changes, resolvedChanges)) {
             return Promise.resolve({json: config, obj: obj});

@@ -14,8 +14,8 @@ k3d\.helpers module
     :undoc-members:
     :show-inheritance:
 
-k3d\.k3d module
----------------
+k3d\.factory module
+-------------------
 
 .. automodule:: k3d.factory
     :members:

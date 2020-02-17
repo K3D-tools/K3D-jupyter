@@ -2,7 +2,7 @@
 
 var THREE = require('three'),
     areAllChangesResolve = require('./../helpers/Fn').areAllChangesResolve,
-    modelMatrixUpdate = require('./../helpers/Fn').modelMatrixUpdate;
+    commonUpdate = require('./../helpers/Fn').commonUpdate;
 
 /**
  * Loader strategy to handle STL object
@@ -76,7 +76,7 @@ module.exports = {
     update: function (config, changes, obj) {
         var resolvedChanges = {};
 
-        modelMatrixUpdate(config, changes, resolvedChanges, obj);
+        commonUpdate(config, changes, resolvedChanges, obj);
 
         if (areAllChangesResolve(changes, resolvedChanges)) {
             return Promise.resolve({json: config, obj: obj});

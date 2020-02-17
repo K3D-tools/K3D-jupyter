@@ -3,7 +3,7 @@
 var THREE = require('three'),
     buffer = require('./../../../core/lib/helpers/buffer'),
     areAllChangesResolve = require('./../helpers/Fn').areAllChangesResolve,
-    modelMatrixUpdate = require('./../helpers/Fn').modelMatrixUpdate,
+    commonUpdate = require('./../helpers/Fn').commonUpdate,
     MeshLine = require('./../helpers/THREE.MeshLine')(THREE),
     getTwoColorsArray = require('./../helpers/Fn').getTwoColorsArray,
     generateArrow = require('./../helpers/Fn').generateArrow;
@@ -126,7 +126,7 @@ module.exports = {
     update: function (config, changes, obj) {
         var resolvedChanges = {};
 
-        modelMatrixUpdate(config, changes, resolvedChanges, obj);
+        commonUpdate(config, changes, resolvedChanges, obj);
 
         if (areAllChangesResolve(changes, resolvedChanges)) {
             return Promise.resolve({json: config, obj: obj});

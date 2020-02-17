@@ -21,6 +21,7 @@
 
 import os
 import sys
+import time
 import sphinx_rtd_theme
 from os.path import dirname
 
@@ -70,8 +71,8 @@ master_doc = 'index'
 
 # General information about the project.
 project = 'K3D-jupyter'
-copyright = u'2019, Marcin Kostur, Artur Trzęsiok, Filip Kaśkosz'
-author = u'Marcin Kostur, Artur Trzęsiok, Filip Kaśkosz'
+copyright = time.strftime('%Y') + u' Marcin Kostur, Artur Trzęsiok, Tomasz Gandor, Filip Kaśkosz'
+author = u'Marcin Kostur, Artur Trzęsiok, Tomasz Gandor, Filip Kaśkosz'
 
 # The version info for the project you're documenting, acts as replacement for
 # |version| and |release|, also used in various other places throughout the

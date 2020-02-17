@@ -51,6 +51,8 @@
 
             K3DInstance.setCamera(k3dCamera);
             K3DInstance.setSnapshot(atob(data));
+
+            [ADDITIONAL]
         }
     });
 </script>

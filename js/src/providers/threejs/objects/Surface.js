@@ -4,7 +4,7 @@ var THREE = require('three'),
     intersectHelper = require('./../helpers/Intersection'),
     handleColorMap = require('./../helpers/Fn').handleColorMap,
     areAllChangesResolve = require('./../helpers/Fn').areAllChangesResolve,
-    modelMatrixUpdate = require('./../helpers/Fn').modelMatrixUpdate;
+    commonUpdate = require('./../helpers/Fn').commonUpdate;
 
 /**
  * Loader strategy to handle Surface object
@@ -95,7 +95,7 @@ module.exports = {
         var resolvedChanges = {};
 
         intersectHelper.update(config, changes, resolvedChanges, obj, K3D);
-        modelMatrixUpdate(config, changes, resolvedChanges, obj);
+        commonUpdate(config, changes, resolvedChanges, obj);
 
         if (areAllChangesResolve(changes, resolvedChanges)) {
             return Promise.resolve({json: config, obj: obj});
