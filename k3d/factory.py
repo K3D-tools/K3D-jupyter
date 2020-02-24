@@ -331,8 +331,8 @@ def surface(heights, color=_default_color, wireframe=False, flat_shading=True, a
 
 
 # noinspection PyShadowingNames
-def text(text, position=(0, 0, 0), color=_default_color, reference_point='lb', on_top=True, size=1.0, name=None,
-         compression_level=0):
+def text(text, position=(0, 0, 0), color=_default_color, reference_point='lb', on_top=True, size=1.0, label_box=True,
+         name=None, compression_level=0):
     """Create a Text drawable for 3D-positioned text labels.
 
     Arguments:
@@ -342,6 +342,8 @@ def text(text, position=(0, 0, 0), color=_default_color, reference_point='lb', o
             Coordinates (x, y, z) of the text's position.
         on_top: `Boolean`.
             Render order with 3d object
+        label_box: `Boolean`.
+            Label background box.
         color: `int`.
             Packed RGB color of the text (0xff0000 is red, 0xff is blue).
         reference_point: `str`.
@@ -355,11 +357,12 @@ def text(text, position=(0, 0, 0), color=_default_color, reference_point='lb', o
             Font size in 'em' HTML units."""
 
     return Text(position=position, reference_point=reference_point, text=text, size=size, color=color, on_top=on_top,
-                name=name, compression_level=compression_level)
+                label_box=label_box, name=name, compression_level=compression_level)
 
 
 # noinspection PyShadowingNames
-def text2d(text, position=(0, 0), color=_default_color, size=1.0, reference_point='lt', name=None, compression_level=0):
+def text2d(text, position=(0, 0), color=_default_color, size=1.0, reference_point='lt', label_box=True, name=None,
+           compression_level=0):
     """Create a Text2d drawable for 2D-positioned (viewport bound, OSD) labels.
 
     Arguments:
@@ -375,12 +378,15 @@ def text2d(text, position=(0, 0), color=_default_color, size=1.0, reference_poin
             First letter: 'l', 'c' or 'r': left, center or right
 
             Second letter: 't', 'c' or 'b': top, center or bottom.
+        label_box: `Boolean`.
+            Label background box.
         name: `string`.
             A name of a object
         size: `float`.
             Font size in 'em' HTML units."""
+
     return Text2d(position=position, reference_point=reference_point, text=text, size=size, color=color,
-                  name=name, compression_level=compression_level)
+                  label_box=label_box, name=name, compression_level=compression_level)
 
 
 # noinspection PyShadowingNames
@@ -408,7 +414,8 @@ def label(text, position=(0, 0, 0), color=_default_color, on_top=True, size=1.0,
         size: `float`.
             Font size in 'em' HTML units."""
 
-    return Label(position=position, text=text, size=size, color=color, on_top=on_top, max_length=max_length, mode=mode,
+    return Label(position=position, text=text, size=size, color=color, on_top=on_top, max_length=max_length,
+                 mode=mode,
                  label_box=label_box, name=name, compression_level=compression_level)
 
 
@@ -506,7 +513,8 @@ def texture_text(text, position=(0, 0, 0), color=_default_color, font_weight=400
 def vector_field(vectors,
                  colors=[],
                  origin_color=None, head_color=None, color=_default_color,
-                 use_head=True, head_size=1.0, scale=1.0, line_width=0.01, name=None, compression_level=0, **kwargs):
+                 use_head=True, head_size=1.0, scale=1.0, line_width=0.01, name=None, compression_level=0,
+                 **kwargs):
     """Create a VectorField drawable for displaying dense 2D or 3D grids of vectors of same dimensionality.
 
     By default, the origins of the vectors are assumed to be a grid inscribed in the -0.5 < x, y, z < 0.5 cube
@@ -685,7 +693,8 @@ def voxels(voxels, color_map=nice_colors, wireframe=False, outlines=True, outlin
 
 
 # noinspection PyShadowingNames
-def sparse_voxels(sparse_voxels, space_size, color_map=nice_colors, wireframe=False, outlines=True, outlines_color=0,
+def sparse_voxels(sparse_voxels, space_size, color_map=nice_colors, wireframe=False, outlines=True,
+                  outlines_color=0,
                   opacity=1.0, name=None, compression_level=0, bounds=None, **kwargs):
     """Create a Voxels drawable for 3D volumetric data.
 
@@ -782,7 +791,8 @@ def voxels_group(space_size, voxels_group=[], chunks_ids=[], color_map=nice_colo
 
     return process_transform_arguments(
         VoxelsGroup(voxels_group=voxels_group, chunks_ids=chunks_ids, space_size=space_size, color_map=color_map,
-                    wireframe=wireframe, outlines=outlines, outlines_color=outlines_color, opacity=opacity, name=name,
+                    wireframe=wireframe, outlines=outlines, outlines_color=outlines_color, opacity=opacity,
+                    name=name,
                     compression_level=compression_level),
         **kwargs
     )
@@ -853,7 +863,8 @@ def volume(volume, color_map=default_colormap, opacity_function=None, color_rang
 
     return process_transform_arguments(
         Volume(volume=volume, color_map=color_map, opacity_function=opacity_function, color_range=color_range,
-               compression_level=compression_level, samples=samples, alpha_coef=alpha_coef, gradient_step=gradient_step,
+               compression_level=compression_level, samples=samples, alpha_coef=alpha_coef,
+               gradient_step=gradient_step,
                shadow=shadow, shadow_delay=shadow_delay, shadow_res=shadow_res, focal_plane=focal_plane,
                focal_length=focal_length, name=name, ray_samples_count=ray_samples_count), **kwargs)
 
@@ -1028,6 +1039,7 @@ def plot(height=512,
                 grid_visible=grid_visible,
                 height=height, menu_visibility=menu_visibility,
                 voxel_paint_color=voxel_paint_color, grid=grid,
-                axes=axes, axes_helper=axes_helper, screenshot_scale=screenshot_scale, camera_fov=camera_fov, name=name,
+                axes=axes, axes_helper=axes_helper, screenshot_scale=screenshot_scale, camera_fov=camera_fov,
+                name=name,
                 camera_no_zoom=camera_no_zoom, camera_no_rotate=camera_no_rotate, camera_no_pan=camera_no_pan,
                 auto_rendering=auto_rendering, fps=fps)

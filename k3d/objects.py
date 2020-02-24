@@ -541,6 +541,8 @@ class Text(Drawable):
             Second letter: 't', 'c' or 'b': top, center or bottom.
         size: `float`.
             Font size in 'em' HTML units.
+        label_box: `Boolean`.
+            Label background box.
     """
 
     type = Unicode(read_only=True).tag(sync=True)
@@ -550,6 +552,7 @@ class Text(Drawable):
     reference_point = Unicode().tag(sync=True)
     size = TimeSeries(Float(min=EPSILON, default_value=1.0)).tag(sync=True)
     on_top = Bool().tag(sync=True)
+    label_box = Bool().tag(sync=True)
 
     def __init__(self, **kwargs):
         super(Text, self).__init__(**kwargs)
@@ -576,6 +579,8 @@ class Text2d(Drawable):
             Second letter: 't', 'c' or 'b': top, center or bottom.
         size: `float`.
             Font size in 'em' HTML units.
+        label_box: `Boolean`.
+            Label background box.
     """
 
     type = Unicode(read_only=True).tag(sync=True)
@@ -584,6 +589,7 @@ class Text2d(Drawable):
     reference_point = Unicode().tag(sync=True)
     position = TimeSeries(ListOrArray(minlen=2, maxlen=2)).tag(sync=True)
     text = TimeSeries(Unicode()).tag(sync=True)
+    label_box = Bool().tag(sync=True)
 
     def __init__(self, **kwargs):
         super(Text2d, self).__init__(**kwargs)

@@ -33,6 +33,13 @@ module.exports = {
         domElement.style.color = colorToHex(color);
         domElement.style.fontSize = size + 'em';
 
+        if (config.label_box) {
+            domElement.style.padding = '5px';
+            domElement.style.background = K3D.getWorld().targetDOMNode.style.backgroundColor;
+            domElement.style.border = '1px solid ' + colorToHex(color);
+            domElement.style.borderRadius = '10px';
+        }
+
         overlayDOMNode.appendChild(domElement);
 
         object.position.set(position[0], position[1], position[2]);
