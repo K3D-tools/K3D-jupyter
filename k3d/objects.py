@@ -531,6 +531,8 @@ class Text(Drawable):
             Coordinates (x, y, z) of the text's position.
         color: `int`.
             Packed RGB color of the text (0xff0000 is red, 0xff is blue).
+        on_top: `Boolean`.
+            Render order with 3d object
         reference_point: `str`.
             Two-letter string representing the text's alignment.
 
@@ -547,6 +549,7 @@ class Text(Drawable):
     color = Int(min=0, max=0xffffff).tag(sync=True)
     reference_point = Unicode().tag(sync=True)
     size = TimeSeries(Float(min=EPSILON, default_value=1.0)).tag(sync=True)
+    on_top = Bool().tag(sync=True)
 
     def __init__(self, **kwargs):
         super(Text, self).__init__(**kwargs)
@@ -586,6 +589,45 @@ class Text2d(Drawable):
         super(Text2d, self).__init__(**kwargs)
 
         self.set_trait('type', 'Text2d')
+
+
+class Label(Drawable):
+    """
+    Label rendered using KaTeX with a 3D position.
+
+    Attributes:
+        text: `str`.
+            Content of the text.
+        position: `list`.
+            Coordinates (x, y, z) of the text's position.
+        color: `int`.
+            Packed RGB color of the text (0xff0000 is red, 0xff is blue).
+        on_top: `Boolean`.
+            Render order with 3d object
+        label_box: `Boolean`.
+            Label background box.
+        mode: `str`.
+            Label node. Can be 'dynamic', 'local' or 'side'.
+        max_length: `float`.
+            Maximum length of line in % of half screen size.
+        size: `float`.
+            Font size in 'em' HTML units.
+    """
+
+    type = Unicode(read_only=True).tag(sync=True)
+    mode = Unicode().tag(sync=True)
+    text = TimeSeries(Unicode()).tag(sync=True)
+    position = TimeSeries(ListOrArray(minlen=3, maxlen=3)).tag(sync=True)
+    color = Int(min=0, max=0xffffff).tag(sync=True)
+    max_length = Float(min=0, max=1.0).tag(sync=True)
+    size = TimeSeries(Float(min=EPSILON, default_value=1.0)).tag(sync=True)
+    on_top = Bool().tag(sync=True)
+    label_box = Bool().tag(sync=True)
+
+    def __init__(self, **kwargs):
+        super(Label, self).__init__(**kwargs)
+
+        self.set_trait('type', 'Label')
 
 
 class Texture(DrawableWithCallback):

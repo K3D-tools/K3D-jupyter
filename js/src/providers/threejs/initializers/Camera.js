@@ -26,8 +26,6 @@ module.exports = function (K3D) {
     this.setupCamera = function (array, fov) {
         if (fov) {
             this.camera.fov = this.axesHelper.camera.fov = fov;
-            this.camera.updateProjectionMatrix();
-            this.axesHelper.camera.updateProjectionMatrix();
         }
 
         if (array) {
@@ -40,6 +38,9 @@ module.exports = function (K3D) {
             this.controls.target.fromArray(array, 3);
             this.controls.update();
         }
+
+        this.camera.updateProjectionMatrix();
+        this.axesHelper.camera.updateProjectionMatrix();
 
         recalculateFrustum(this.camera);
     };
@@ -57,7 +58,7 @@ module.exports = function (K3D) {
             sceneBoundingBox = K3D.getSceneBoundingBox() || sceneBoundingBox;
         }
 
-        if(typeof(factor) === 'undefined') {
+        if (typeof(factor) === 'undefined') {
             factor = 1.5;
         }
 

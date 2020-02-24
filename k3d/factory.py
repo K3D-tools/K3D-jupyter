@@ -14,7 +14,7 @@ import six
 from .colormaps import matplotlib_color_maps
 from .helpers import check_attribute_range
 from .objects import (Line, MarchingCubes, Mesh, Points, STL, Surface, Text, Text2d, Texture, TextureText, VectorField,
-                      Vectors, Volume, Voxels, SparseVoxels, VoxelsGroup, VoxelChunk)
+                      Vectors, Volume, Voxels, SparseVoxels, VoxelsGroup, VoxelChunk, Label)
 from .plot import Plot
 from .transform import process_transform_arguments
 
@@ -331,7 +331,7 @@ def surface(heights, color=_default_color, wireframe=False, flat_shading=True, a
 
 
 # noinspection PyShadowingNames
-def text(text, position=(0, 0, 0), color=_default_color, reference_point='lb', size=1.0, name=None,
+def text(text, position=(0, 0, 0), color=_default_color, reference_point='lb', on_top=True, size=1.0, name=None,
          compression_level=0):
     """Create a Text drawable for 3D-positioned text labels.
 
@@ -340,6 +340,8 @@ def text(text, position=(0, 0, 0), color=_default_color, reference_point='lb', s
             Content of the text.
         position: `list`.
             Coordinates (x, y, z) of the text's position.
+        on_top: `Boolean`.
+            Render order with 3d object
         color: `int`.
             Packed RGB color of the text (0xff0000 is red, 0xff is blue).
         reference_point: `str`.
@@ -352,8 +354,8 @@ def text(text, position=(0, 0, 0), color=_default_color, reference_point='lb', s
         size: `float`.
             Font size in 'em' HTML units."""
 
-    return Text(position=position, reference_point=reference_point, text=text, size=size, color=color, name=name,
-                compression_level=compression_level)
+    return Text(position=position, reference_point=reference_point, text=text, size=size, color=color, on_top=on_top,
+                name=name, compression_level=compression_level)
 
 
 # noinspection PyShadowingNames
@@ -379,6 +381,35 @@ def text2d(text, position=(0, 0), color=_default_color, size=1.0, reference_poin
             Font size in 'em' HTML units."""
     return Text2d(position=position, reference_point=reference_point, text=text, size=size, color=color,
                   name=name, compression_level=compression_level)
+
+
+# noinspection PyShadowingNames
+def label(text, position=(0, 0, 0), color=_default_color, on_top=True, size=1.0, name=None, max_length=0.8,
+          mode="dynamic", label_box=True, compression_level=0):
+    """Create a Text drawable for 3D-positioned text labels.
+
+    Arguments:
+        text: `str`.
+            Content of the text.
+        position: `list`.
+            Coordinates (x, y, z) of the text's position.
+        on_top: `Boolean`.
+            Render order with 3d object
+        label_box: `Boolean`.
+            Label background box.
+        color: `int`.
+            Packed RGB color of the text (0xff0000 is red, 0xff is blue).
+        max_length: `float`.
+            Maximum length of line in % of half screen size (only for mode='dynamic').
+        mode: `str`.
+            Label node. Can be 'dynamic', 'local' or 'side'.
+        name: `string`.
+            A name of a object
+        size: `float`.
+            Font size in 'em' HTML units."""
+
+    return Label(position=position, text=text, size=size, color=color, on_top=on_top, max_length=max_length, mode=mode,
+                 label_box=label_box, name=name, compression_level=compression_level)
 
 
 def texture(binary=None, file_format=None, color_map=default_colormap, color_range=[], attribute=[], puv=[],

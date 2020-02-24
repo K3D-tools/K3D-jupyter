@@ -144,6 +144,8 @@ module.exports = function (K3D) {
     this.renderer.autoClear = false;
 
     this.render = function (force) {
+        K3D.labels = [];
+
         if (!K3D.autoRendering || force) {
             if (renderingPromise === null) {
                 renderingPromise = render().then(function () {

@@ -60,7 +60,8 @@ module.exports = {
         Voxels: require('./objects/Voxels'),
         SparseVoxels: require('./objects/SparseVoxels'),
         VoxelsGroup: require('./objects/VoxelsGroup'),
-        Volume: require('./objects/Volume')
+        Volume: require('./objects/Volume'),
+        Label: require('./objects/Label')
     },
     /**
      * @namespace Interactions

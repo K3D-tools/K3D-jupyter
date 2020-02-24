@@ -36,6 +36,7 @@ module.exports = {
         overlayDOMNode.appendChild(domElement);
 
         object.position.set(position[0], position[1], position[2]);
+        object.text = text;
         object.updateMatrixWorld();
 
         function render() {
@@ -88,7 +89,7 @@ module.exports = {
             }
 
             domElement.style.transform = 'translate(' + x + ',' + y + ')';
-            domElement.style.zIndex = 16777271 - Math.round(coord.z * 1e6);
+            domElement.style.zIndex = config.on_top ? 16777271 - Math.round(coord.z * 1e6) : '5';
         }
 
         listenersId = K3D.on(K3D.events.RENDERED, render);
@@ -125,9 +126,9 @@ function toScreenPosition(obj, viewport, camera) {
 
     if (camera.frustum && !camera.frustum.containsPoint(vector)) {
         return {
-            x: -100,
-            y: -100,
-            z: -100
+            x: -1000,
+            y: -1000,
+            z: -1000
         };
     }
 

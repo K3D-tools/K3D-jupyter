@@ -99,7 +99,12 @@ function K3D(provider, targetDOMNode, parameters) {
             }
 
             timeSeries.refreshTimeScale(self, GUI);
-            self.rebuildSceneData(force).then(self.render.bind(null, true));
+
+            if (!isUpdate) {
+                self.rebuildSceneData(force).then(self.render.bind(null, true));
+            } else {
+                self.render(true);
+            }
         }
     };
 
@@ -121,12 +126,11 @@ function K3D(provider, targetDOMNode, parameters) {
         'position: absolute',
         'width: 100%',
         'height: 100%',
+        'top: 0',
+        'right: 0',
         'pointer-events: none',
-        'overflow: hidden',
-        'z-index: 1'
+        'overflow: hidden'
     ].join(';');
-
-    world.targetDOMNode.appendChild(world.overlayDOMNode);
 
     this.GUI = GUI;
     this.parameters = _.assign({
@@ -519,6 +523,8 @@ function K3D(provider, targetDOMNode, parameters) {
         if (color >= 0) {
             color = parseInt(color, 10) + 0x1000000;
             world.targetDOMNode.style.backgroundColor = '#' + color.toString(16).substr(1);
+        } else {
+            world.targetDOMNode.style.backgroundColor = '#fff';
         }
     };
 
@@ -849,6 +855,8 @@ function K3D(provider, targetDOMNode, parameters) {
         currentWindow.removeEventListener('resize', this.resizeHelper);
     };
 
+    world.targetDOMNode.appendChild(world.overlayDOMNode);
+
     this.Provider.Initializers.Renderer.call(world, this);
     this.Provider.Initializers.Setup.call(world, this);
     this.Provider.Initializers.Camera.call(world, this);
@@ -873,7 +881,7 @@ function K3D(provider, targetDOMNode, parameters) {
         'color: black',
         'top: 0',
         'right: 0',
-        'z-index: 20',
+        'z-index: 16777271',
         'max-height: ' + targetDOMNode.clientHeight + 'px'
     ].join(';');
     world.targetDOMNode.appendChild(guiContainer);
@@ -932,6 +940,7 @@ function K3D(provider, targetDOMNode, parameters) {
         GUI.info.__controllers[1].__input.readOnly = true;
     }
 
+    self.setClearColor(self.parameters.clearColor);
     self.setMenuVisibility(self.parameters.menuVisibility);
     self.setTime(self.parameters.time);
     self.setGridAutoFit(self.parameters.gridAutoFit);
