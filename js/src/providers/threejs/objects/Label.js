@@ -68,7 +68,7 @@ module.exports = {
                 domElement.style.display = 'inline-block';
 
                 if (config.mode === 'dynamic') {
-                    var fi = Math.atan2(coord.y - heightHalf, coord.x - widthHalf), dist, fiIsOK = true,
+                    var fi = Math.atan2(coord.y - heightHalf, coord.x - widthHalf), dist, fiIsOK,
                         minDistance = 150;
 
                     do {
