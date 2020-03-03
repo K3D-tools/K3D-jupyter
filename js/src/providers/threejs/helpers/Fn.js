@@ -268,17 +268,21 @@ module.exports = {
         }
     },
 
-    getSideMap: function (side) {
+    getSide: function (config) {
         var map = {
             'front': THREE.FrontSide,
             'back': THREE.BackSide,
             'double': THREE.DoubleSide
         };
 
-        if (!side) {
+        if (config.opacity < 1.0) {
+            return map.double;
+        }
+
+        if (!config.side) {
             return map.front;
         }
 
-        return map[side] || map.front;
+        return map[config.side] || map.front;
     }
 };

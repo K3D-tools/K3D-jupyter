@@ -6,7 +6,7 @@ var THREE = require('three'),
     typedArrayToThree = require('./../helpers/Fn').typedArrayToThree,
     areAllChangesResolve = require('./../helpers/Fn').areAllChangesResolve,
     commonUpdate = require('./../helpers/Fn').commonUpdate,
-    getSideMap = require('./../helpers/Fn').getSideMap;
+    getSide = require('./../helpers/Fn').getSide;
 
 /**
  * Loader strategy to handle Mesh object
@@ -79,7 +79,7 @@ module.exports = {
                         config.volume_bounds.data[5])
                 }
             },
-            side: getSideMap(config.side),
+            side: getSide(config),
             vertexShader: require('./shaders/MeshVolume.vertex.glsl'),
             fragmentShader: require('./shaders/MeshVolume.fragment.glsl'),
             depthTest: (config.opacity === 1.0 && opacityFunction === null),
