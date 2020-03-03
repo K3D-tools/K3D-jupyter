@@ -445,7 +445,6 @@ module.exports = function (THREE) {
         }
 
         function mousemove(event) {
-
             if (_this.enabled === false) return;
 
             event.preventDefault();

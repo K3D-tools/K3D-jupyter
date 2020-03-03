@@ -14,6 +14,7 @@ var viewModes = require('./lib/viewMode').viewModes,
     detachWindowGUI = require('./lib/detachWindow'),
     fullscreen = require('./lib/fullscreen'),
     viewModeGUI = require('./lib/viewMode').viewModeGUI,
+    manipulate = require('./lib/manipulate'),
     getColorLegend = require('./lib/colorMapLegend').getColorLegend,
     objectGUIProvider = require('./lib/objectsGUIprovider'),
     clippingPlanesGUIProvider = require('./lib/clippingPlanesGUIProvider'),
@@ -135,6 +136,7 @@ function K3D(provider, targetDOMNode, parameters) {
     this.GUI = GUI;
     this.parameters = _.assign({
             viewMode: viewModes.view,
+            manipulateMode: manipulate.manipulateModes.translate,
             voxelPaintColor: 0,
             menuVisibility: true,
             cameraAutoFit: true,
@@ -261,7 +263,27 @@ function K3D(provider, targetDOMNode, parameters) {
             }
         });
 
+        manipulate.refreshManipulateGUI(self, GUI);
         world.targetDOMNode.style.cursor = 'auto';
+    };
+
+    /**
+     * Set manipulate mode of K3D
+     * @memberof K3D.Core
+     * @param {String} mode
+     */
+    this.setManipulateMode = function (mode) {
+        self.parameters.manipulateMode = mode;
+
+        if (dispatch(self.events.MANIPULATE_MODE_CHANGE, mode)) {
+            self.render();
+        }
+
+        GUI.controls.__controllers.forEach(function (controller) {
+            if (controller.property === 'manipulateMode') {
+                controller.updateDisplay();
+            }
+        });
     };
 
     /**
@@ -784,10 +806,18 @@ function K3D(provider, targetDOMNode, parameters) {
             return p;
         }, {});
 
+        var serializedObjects = _.values(world.ObjectsListJson).map(function (o) {
+            return Object.keys(o).reduce(function (p, k) {
+                p[k] = serialize.serialize(o[k]);
+
+                return p;
+            }, {});
+        });
+
         return pako.deflate(
             msgpack.encode(
                 {
-                    objects: _.values(world.ObjectsListJson),
+                    objects: serializedObjects,
                     chunkList: chunkList
                 },
                 {codec: MsgpackCodec}
@@ -862,6 +892,7 @@ function K3D(provider, targetDOMNode, parameters) {
     this.Provider.Initializers.Camera.call(world, this);
     this.Provider.Initializers.Canvas.call(world, this);
     this.Provider.Initializers.Scene.call(world, this);
+    this.Provider.Initializers.Manipulate.call(world, this);
 
     world.controls.addEventListener('change', function () {
         if (self.frameUpdateHandlers.before.length === 0 && self.frameUpdateHandlers.after.length === 0) {
@@ -912,7 +943,10 @@ function K3D(provider, targetDOMNode, parameters) {
         self.setGridVisible(value);
         changeParameters.call(self, 'grid_visible', value);
     });
+
     viewModeGUI(GUI.controls, this);
+    manipulate.manipulateGUI(GUI.controls, this, changeParameters);
+
     GUI.controls.add(self.parameters, 'camera_fov').step(0.1).min(1.0).max(179).name('FOV').onChange(function (value) {
         self.setCameraFOV(value);
         changeParameters.call(self, 'camera_fov', value);
@@ -957,6 +991,7 @@ function K3D(provider, targetDOMNode, parameters) {
     );
     self.setCameraFOV(self.parameters.camera_fov);
     self.setFps(self.parameters.fps);
+    self.setViewMode(self.parameters.viewMode);
 
     self.render();
 
@@ -985,6 +1020,7 @@ K3D.prototype.frameUpdateHandlers = {
 
 K3D.prototype.events = {
     VIEW_MODE_CHANGE: 'viewModeChange',
+    MANIPULATE_MODE_CHANGE: 'manipulateModeChange',
     RENDERED: 'rendered',
     BEFORE_RENDER: 'before_render',
     RESIZED: 'resized',
@@ -997,7 +1033,7 @@ K3D.prototype.events = {
     PARAMETERS_CHANGE: 'parametersChange',
     VOXELS_CALLBACK: 'voxelsCallback',
     MOUSE_MOVE: 'mouseMove',
-    MOUSE_CLICK: 'mouseClick',
+    MOUSE_CLICK: 'mouseClick'
 };
 
 /**

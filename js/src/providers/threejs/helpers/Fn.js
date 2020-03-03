@@ -254,6 +254,10 @@ module.exports = {
             obj.applyMatrix(modelMatrix);
             obj.updateMatrixWorld();
 
+            if (obj.transformControls) {
+                obj.transformControls.updateMatrixWorld();
+            }
+
             resolvedChanges.model_matrix = null;
         }
 

@@ -88,6 +88,10 @@ ObjectModel = widgets.WidgetModel.extend({
                     obj.t = Math.random();
                 }
 
+                if (obj.data && obj.shape) {
+                    obj.compression_level = this.attributes.compression_level;
+                }
+
                 this.save(msg.field, obj);
             }
 
@@ -281,6 +285,7 @@ PlotView = widgets.DOMWidgetView.extend({
         this.model.on('change:axes_helper', this._setAxesHelper, this);
         this.model.on('change:name', this._setName, this);
         this.model.on('change:mode', this._setMode, this);
+        this.model.on('change:manipulate_mode', this._setManipulateMode, this);
 
         try {
             this.K3DInstance = new K3D(ThreeJsProvider, this.container, {
@@ -310,7 +315,6 @@ PlotView = widgets.DOMWidgetView.extend({
             return;
         }
 
-
         this.K3DInstance.setClearColor(this.model.get('background_color'));
         this.K3DInstance.setChunkList(chunkList);
 
@@ -334,7 +338,12 @@ PlotView = widgets.DOMWidgetView.extend({
 
         this.GUIObjectChanges = this.K3DInstance.on(this.K3DInstance.events.OBJECT_CHANGE, function (change) {
             if (self.model._comm_live) {
-                objectsList[change.id].save(change.key, change.value, {patch: true});
+                if (change.value.data && change.value.shape) {
+                    change.value.compression_level = objectsList[change.id].attributes.compression_level;
+                }
+
+                objectsList[change.id].set(change.key, change.value);
+                objectsList[change.id].save_changes();
             }
         });
 
@@ -452,6 +461,10 @@ PlotView = widgets.DOMWidgetView.extend({
 
     _setMode: function () {
         this.K3DInstance.setViewMode(this.model.get('mode'));
+    },
+
+    _setManipulateMode: function () {
+        this.K3DInstance.setManipulateMode(this.model.get('manipulate_mode'));
     },
 
     _setAxesHelper: function () {

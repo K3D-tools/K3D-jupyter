@@ -6,6 +6,7 @@ var THREE = require('three'),
 require('./helpers/THREE.STLLoader')(THREE);
 require('./helpers/THREE.CopyShader')(THREE);
 require('./helpers/THREE.TrackballControls')(THREE);
+require('./helpers/TransformControls')(THREE);
 
 THREE.Mesh.prototype.raycast = threeMeshBVH.acceleratedRaycast;
 
@@ -36,7 +37,8 @@ module.exports = {
         Camera: require('./initializers/Camera'),
         Renderer: require('./initializers/Renderer'),
         Scene: require('./initializers/Scene').Init,
-        Setup: require('./initializers/Setup')
+        Setup: require('./initializers/Setup'),
+        Manipulate: require('./initializers/Manipulate')
     },
     /**
      * @namespace Objects

@@ -21,13 +21,13 @@ function isNumeric(n) {
 function deserializeArray(obj) {
     var buffer;
 
-    if (typeof (obj.buffer) !== 'undefined') {
+    if (typeof (obj.data) !== 'undefined') {
         return {
-            data: new typesToArray[obj.dtype](obj.buffer.buffer),
+            data: new typesToArray[obj.dtype](obj.data.buffer),
             shape: obj.shape
         };
-    } else if (typeof (obj.compressed_buffer) !== 'undefined') {
-        buffer = new typesToArray[obj.dtype](pako.inflate(obj.compressed_buffer.buffer).buffer);
+    } else if (typeof (obj.compressed_data) !== 'undefined') {
+        buffer = new typesToArray[obj.dtype](pako.inflate(obj.compressed_data.buffer).buffer);
 
         console.log('K3D: Receive: ' + buffer.byteLength + ' bytes compressed to ' +
                     obj.compressed_buffer.byteLength + ' bytes');
@@ -42,11 +42,19 @@ function deserializeArray(obj) {
 }
 
 function serializeArray(obj) {
-    return {
-        dtype: _.invert(typesToArray)[obj.data.constructor],
-        compressed_buffer: pako.deflate(obj.data.buffer, {level: 9}),
-        shape: obj.shape
-    };
+    if (obj.compression_level && obj.compression_level > 0) {
+        return {
+            dtype: _.invert(typesToArray)[obj.data.constructor],
+            compressed_data: pako.deflate(obj.data.buffer, {level: obj.compression_level}),
+            shape: obj.shape
+        };
+    } else {
+        return {
+            dtype: _.invert(typesToArray)[obj.data.constructor],
+            data: obj.data,
+            shape: obj.shape
+        };
+    }
 }
 
 function deserialize(obj, manager) {

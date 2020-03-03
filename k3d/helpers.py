@@ -34,20 +34,20 @@ def array_to_binary(ar, compression_level=0, force_contiguous=True):
         ar = np.ascontiguousarray(ar)
 
     if compression_level > 0:
-        return {'compressed_buffer': zlib.compress(ar.flatten(), compression_level), 'dtype': str(ar.dtype),
+        return {'compressed_data': zlib.compress(ar.flatten(), compression_level), 'dtype': str(ar.dtype),
                 'shape': ar.shape}
     else:
-        return {'buffer': memoryview(ar.flatten()), 'dtype': str(ar.dtype), 'shape': ar.shape}
+        return {'data': memoryview(ar.flatten()), 'dtype': str(ar.dtype), 'shape': ar.shape}
 
 
 # noinspection PyUnusedLocal
 def from_json_to_array(value, obj=None):
     """Post-process traittypes.Array after deserialization to numpy array."""
     if value:
-        if 'buffer' in value:
-            return np.frombuffer(value['buffer'], dtype=value['dtype']).reshape(value['shape'])
+        if 'data' in value:
+            return np.frombuffer(value['data'], dtype=value['dtype']).reshape(value['shape'])
         else:
-            return np.frombuffer(zlib.decompress(value['compressed_buffer']),
+            return np.frombuffer(zlib.decompress(value['compressed_data']),
                                  dtype=value['dtype']).reshape(value['shape'])
     return None
 
@@ -75,7 +75,7 @@ def to_json(name, input, obj=None, compression_level=0):
 def from_json(input, obj=None):
     # logger.info('from_json:' + pformat(input))
 
-    if isinstance(input, dict) and 'dtype' in input and ('buffer' in input or 'compressed_buffer' in input) \
+    if isinstance(input, dict) and 'dtype' in input and ('data' in input or 'compressed_data' in input) \
             and 'shape' in input:
         return from_json_to_array(input, obj)
     elif isinstance(input, list):

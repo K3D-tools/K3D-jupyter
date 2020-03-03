@@ -90,7 +90,7 @@ module.exports = {
             64, 64, THREE.RedFormat, THREE.UnsignedByteType);
         jitterTexture.minFilter = THREE.LinearFilter;
         jitterTexture.magFilter = THREE.LinearFilter;
-        jitterTexture.wrapS = jitterTexture.wrapT = THREE.RepeatWrapping;
+        jitterTexture.wrapS = jitterTexture.wrapT = THREE.ClampToEdgeWrapping;
         jitterTexture.generateMipmaps = false;
         jitterTexture.needsUpdate = true;
 

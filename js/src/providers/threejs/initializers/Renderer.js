@@ -97,7 +97,7 @@ module.exports = function (K3D) {
 
             K3D.dispatch(K3D.events.BEFORE_RENDER);
 
-            var p = Promise.resolve();
+            var p = Promise.resolve(), originalControlsEnabledState = self.controls.enabled;
 
             if (K3D.parameters.renderingSteps > 1) {
                 self.controls.enabled = false;
@@ -122,7 +122,7 @@ module.exports = function (K3D) {
             }
 
             p = p.then(function () {
-                self.controls.enabled = true;
+                self.controls.enabled = originalControlsEnabledState;
 
                 self.renderer.setViewport(0, 0, size.x, size.y);
                 self.camera.clearViewOffset();

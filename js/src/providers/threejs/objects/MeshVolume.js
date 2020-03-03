@@ -53,7 +53,7 @@ module.exports = {
         texture.generateMipmaps = false;
         texture.minFilter = THREE.LinearFilter;
         texture.magFilter = THREE.LinearFilter;
-        texture.wrapS = texture.wrapT = THREE.MirroredRepeatWrapping;
+        texture.wrapS = texture.wrapT = THREE.ClampToEdgeWrapping;
         texture.needsUpdate = true;
 
         material = new THREE.ShaderMaterial({

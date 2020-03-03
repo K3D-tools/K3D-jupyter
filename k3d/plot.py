@@ -63,7 +63,19 @@ class Plot(widgets.DOMWidget):
 
             :`change`: On voxels objects edit mode,
 
-            :`callback`: Handling click_callback and hover_callback on some type of objects.
+            :`callback`: Handling click_callback and hover_callback on some type of objects,
+
+            :`manipulate`: Enable object transform widget.
+        manipulate_mode: `str`.
+            Mode of manipulate widgets.
+
+            Legal values are:
+
+            :`translate`: Translation widget,
+
+            :`rotate`: Rotation widget,
+
+            :`scale`: Scaling widget.
         auto_rendering: `Bool`.
             State of auto rendering.
         fps: `Float`.
@@ -117,6 +129,7 @@ class Plot(widgets.DOMWidget):
     axes = List(minlen=3, maxlen=3, default_value=['x', 'y', 'z']).tag(sync=True)
     axes_helper = Float().tag(sync=True)
     mode = Unicode().tag(sync=True)
+    manipulate_mode = Unicode().tag(sync=True)
 
     objects = []
 
@@ -125,7 +138,7 @@ class Plot(widgets.DOMWidget):
                  lighting=1.5, time=0.0, fps_meter=False, menu_visibility=True, colorbar_object_id=-1,
                  rendering_steps=1, axes=['x', 'y', 'z'], camera_no_rotate=False, camera_no_zoom=False,
                  camera_no_pan=False, camera_fov=45.0, axes_helper=1.0, name=None, mode='view',
-                 auto_rendering=True, fps=25.0, *args, **kwargs):
+                 manipulate_mode='translate', auto_rendering=True, fps=25.0, *args, **kwargs):
         super(Plot, self).__init__()
 
         self.antialias = antialias
@@ -152,6 +165,7 @@ class Plot(widgets.DOMWidget):
         self.axes_helper = axes_helper
         self.name = name
         self.mode = mode
+        self.manipulate_mode = manipulate_mode
         self.auto_rendering = auto_rendering
         self.camera = [2, -3, 0.2, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0]
 

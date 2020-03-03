@@ -2,12 +2,28 @@
 
 var threeMeshBVH = require('three-mesh-bvh'),
     intersectCallback = require('./../interactions/intersectCallback');
+    // viewModes = require('./../../../core/lib/viewMode').viewModes;
 
 module.exports = {
     init: function (config, object, K3D) {
+
+        object.startInteraction = function () {
+            if (!object.interactions) {
+                object.geometry.boundsTree = new threeMeshBVH.MeshBVH(object.geometry);
+                object.interactions = intersectCallback(object, K3D);
+            }
+        };
+
+        object.stopInteraction = function () {
+            if (object.interactions) {
+                object.geometry.boundsTree = null;
+                object.interactions = null;
+            }
+        };
+
+        // if (config.click_callback || config.hover_callback || K3D.parameters.viewMode === viewModes.manipulate) {
         if (config.click_callback || config.hover_callback) {
-            object.geometry.boundsTree = new threeMeshBVH.MeshBVH(object.geometry);
-            object.interactions = intersectCallback(object, K3D);
+            object.startInteraction();
         }
 
         // var o = new THREE.Group(),
@@ -19,16 +35,14 @@ module.exports = {
         // return Promise.resolve(o);
     },
 
-    update: function (config, changes, resolvedChanges, obj, K3D) {
+    update: function (config, changes, resolvedChanges, obj) {
         if (typeof(changes.click_callback) !== 'undefined' || typeof(changes.hover_callback) !== 'undefined') {
-            if ((changes.click_callback || changes.hover_callback) && !obj.interactions) {
-                obj.geometry.boundsTree = new threeMeshBVH.MeshBVH(obj.geometry);
-                obj.interactions = intersectCallback(obj, K3D);
+            if ((changes.click_callback || changes.hover_callback)) {
+                obj.startInteraction();
             }
 
-            if (!(changes.click_callback || changes.hover_callback) && obj.interactions) {
-                obj.geometry.boundsTree = null;
-                obj.interactions = null;
+            if (!(changes.click_callback || changes.hover_callback)) {
+                obj.stopInteraction();
             }
 
             resolvedChanges.click_callback = null;
