@@ -4,7 +4,8 @@ var THREE = require('three'),
     intersectHelper = require('./../helpers/Intersection'),
     handleColorMap = require('./../helpers/Fn').handleColorMap,
     areAllChangesResolve = require('./../helpers/Fn').areAllChangesResolve,
-    commonUpdate = require('./../helpers/Fn').commonUpdate;
+    commonUpdate = require('./../helpers/Fn').commonUpdate,
+    getSideMap = require('./../helpers/Fn').getSideMap;
 
 /**
  * Loader strategy to handle Mesh object
@@ -27,7 +28,7 @@ module.exports = {
                 emissive: 0,
                 shininess: 50,
                 specular: 0x111111,
-                side: THREE.DoubleSide,
+                side: getSideMap(config.side),
                 flatShading: config.flat_shading,
                 wireframe: config.wireframe,
                 opacity: config.opacity,

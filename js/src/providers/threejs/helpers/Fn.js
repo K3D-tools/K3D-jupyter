@@ -266,5 +266,19 @@ module.exports = {
 
             resolvedChanges.visible = null;
         }
+    },
+
+    getSideMap: function (side) {
+        var map = {
+            'front': THREE.FrontSide,
+            'back': THREE.BackSide,
+            'double': THREE.DoubleSide
+        };
+
+        if (!side) {
+            return map.front;
+        }
+
+        return map[side] || map.front;
     }
 };

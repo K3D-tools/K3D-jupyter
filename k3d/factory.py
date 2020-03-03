@@ -138,7 +138,7 @@ def marching_cubes(scalar_field, level, color=_default_color, wireframe=False, f
 def mesh(vertices, indices, color=_default_color, attribute=[], color_map=default_colormap,
          # lgtm [py/similar-function]
          color_range=[], wireframe=False, flat_shading=True, opacity=1.0,
-         volume=[], volume_bounds=[], opacity_function=[],
+         volume=[], volume_bounds=[], opacity_function=[], side='front',
          name=None, compression_level=0, **kwargs):
     """Create a Mesh drawable representing a 3D triangles mesh.
 
@@ -170,6 +170,8 @@ def mesh(vertices, indices, color=_default_color, attribute=[], color_map=defaul
         opacity_function: `array`.
             A list of float tuples (attribute value, opacity), sorted by attribute value. The first
             typles should have value 0.0, the last 1.0; opacity is in the range 0.0 to 1.0.
+        side: `string`.
+            Control over which side to render for a mesh. Legal values are `front`, `back`, `double`.
         name: `string`.
             A name of a object
         kwargs: `dict`.
@@ -198,6 +200,7 @@ def mesh(vertices, indices, color=_default_color, attribute=[], color_map=defaul
              volume=volume,
              volume_bounds=volume_bounds,
              opacity_function=opacity_function,
+             side=side,
              name=name,
              compression_level=compression_level),
         **kwargs
@@ -869,7 +872,7 @@ def volume(volume, color_map=default_colormap, opacity_function=None, color_rang
                focal_length=focal_length, name=name, ray_samples_count=ray_samples_count), **kwargs)
 
 
-def vtk_poly_data(poly_data, color=_default_color, color_attribute=None, color_map=default_colormap,
+def vtk_poly_data(poly_data, color=_default_color, color_attribute=None, color_map=default_colormap, side='front',
                   wireframe=False, opacity=1.0, volume=[], volume_bounds=[], opacity_function=[], name=None,
                   compression_level=0, **kwargs):
     """Create a Mesh drawable from given vtkPolyData.
@@ -901,6 +904,8 @@ def vtk_poly_data(poly_data, color=_default_color, color_attribute=None, color_m
         opacity_function: `array`.
             A list of float tuples (attribute value, opacity), sorted by attribute value. The first
             typles should have value 0.0, the last 1.0; opacity is in the range 0.0 to 1.0.
+        side: `string`.
+            Control over which side to render for a mesh. Legal values are `front`, `back`, `double`.
         name: `string`.
             A name of a object
         kwargs: `dict`.
@@ -938,6 +943,7 @@ def vtk_poly_data(poly_data, color=_default_color, color_attribute=None, color_m
              volume=volume,
              volume_bounds=volume_bounds,
              opacity_function=opacity_function,
+             side=side,
              name=name,
              compression_level=compression_level),
         **kwargs

@@ -348,6 +348,7 @@ class Mesh(DrawableWithCallback):
     color_range = TimeSeries(ListOrArray(minlen=2, maxlen=2, empty_ok=True)).tag(sync=True)
     wireframe = TimeSeries(Bool()).tag(sync=True)
     flat_shading = TimeSeries(Bool()).tag(sync=True)
+    side = TimeSeries(Unicode()).tag(sync=True)
     opacity = TimeSeries(Float(min=0.0, max=1.0, default_value=1.0)).tag(sync=True)
     volume = TimeSeries(Array()).tag(sync=True, **array_serialization_wrap('volume'))
     volume_bounds = TimeSeries(Array(dtype=np.float32)).tag(sync=True, **array_serialization_wrap('volume_bounds'))

@@ -5,7 +5,8 @@ var THREE = require('three'),
     colorMapHelper = require('./../../../core/lib/helpers/colorMap'),
     typedArrayToThree = require('./../helpers/Fn').typedArrayToThree,
     areAllChangesResolve = require('./../helpers/Fn').areAllChangesResolve,
-    commonUpdate = require('./../helpers/Fn').commonUpdate;
+    commonUpdate = require('./../helpers/Fn').commonUpdate,
+    getSideMap = require('./../helpers/Fn').getSideMap;
 
 /**
  * Loader strategy to handle Mesh object
@@ -78,6 +79,7 @@ module.exports = {
                         config.volume_bounds.data[5])
                 }
             },
+            side: getSideMap(config.side),
             vertexShader: require('./shaders/MeshVolume.vertex.glsl'),
             fragmentShader: require('./shaders/MeshVolume.fragment.glsl'),
             depthTest: (config.opacity === 1.0 && opacityFunction === null),
