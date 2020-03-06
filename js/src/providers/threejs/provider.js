@@ -63,6 +63,7 @@ module.exports = {
         SparseVoxels: require('./objects/SparseVoxels'),
         VoxelsGroup: require('./objects/VoxelsGroup'),
         Volume: require('./objects/Volume'),
+        MIP: require('./objects/MIP'),
         Label: require('./objects/Label')
     },
     /**

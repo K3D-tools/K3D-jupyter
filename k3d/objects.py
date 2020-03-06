@@ -921,6 +921,61 @@ class Volume(Drawable):
         self.send({'msg_type': 'shadow_map_update', 'direction': direction})
 
 
+class MIP(Drawable):
+    """
+    3D volumetric data.
+
+    By default, the volume are a grid inscribed in the -0.5 < x, y, z < 0.5 cube
+    regardless of the passed voxel array shape (aspect ratio etc.).
+
+    Attributes:
+        volume: `array_like`.
+            3D array of `float`.
+        color_map: `array_like`.
+            A list of float quadruplets (attribute value, R, G, B), sorted by attribute value. The first
+            quadruplet should have value 0.0, the last 1.0; R, G, B are RGB color components in the range 0.0 to 1.0.
+        opacity_function: `array`.
+            A list of float tuples (attribute value, opacity), sorted by attribute value. The first
+            typles should have value 0.0, the last 1.0; opacity is in the range 0.0 to 1.0.
+        color_range: `list`.
+            A pair [min_value, max_value], which determines the levels of color attribute mapped
+            to 0 and 1 in the color map respectively.
+        samples: `float`.
+            Number of iteration per 1 unit of space.
+        model_matrix: `array_like`.
+            4x4 model transform matrix.
+    """
+
+    type = Unicode(read_only=True).tag(sync=True)
+    volume = TimeSeries(Array()).tag(sync=True, **array_serialization_wrap('volume'))
+    color_map = TimeSeries(Array(dtype=np.float32)).tag(sync=True, **array_serialization_wrap('color_map'))
+    opacity_function = TimeSeries(Array(dtype=np.float32)).tag(sync=True,
+                                                               **array_serialization_wrap('opacity_function'))
+    color_range = TimeSeries(ListOrArray(minlen=2, maxlen=2, empty_ok=True)).tag(sync=True)
+    samples = TimeSeries(Float()).tag(sync=True)
+    model_matrix = TimeSeries(Array(dtype=np.float32)).tag(sync=True, **array_serialization_wrap('model_matrix'))
+
+    def __init__(self, **kwargs):
+        super(MIP, self).__init__(**kwargs)
+
+        self.set_trait('type', 'MIP')
+
+    @validate('volume')
+    def _validate_volume(self, proposal):
+        if type(proposal['value']) is dict:
+            return proposal['value']
+
+        required = [np.float16, np.float32]
+        actual = proposal['value'].dtype
+
+        if actual not in required:
+            warnings.warn('wrong dtype: %s (%s required)' % (actual, required))
+
+            return proposal['value'].astype(np.float32)
+
+        return proposal['value']
+
+
 class Voxels(DrawableWithVoxelCallback):
     """
     3D volumetric data.

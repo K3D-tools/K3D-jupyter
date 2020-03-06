@@ -14,7 +14,7 @@ import six
 from .colormaps import matplotlib_color_maps
 from .helpers import check_attribute_range
 from .objects import (Line, MarchingCubes, Mesh, Points, STL, Surface, Text, Text2d, Texture, TextureText, VectorField,
-                      Vectors, Volume, Voxels, SparseVoxels, VoxelsGroup, VoxelChunk, Label)
+                      Vectors, Volume, MIP, Voxels, SparseVoxels, VoxelsGroup, VoxelChunk, Label)
 from .plot import Plot
 from .transform import process_transform_arguments
 
@@ -870,6 +870,50 @@ def volume(volume, color_map=default_colormap, opacity_function=None, color_rang
                gradient_step=gradient_step,
                shadow=shadow, shadow_delay=shadow_delay, shadow_res=shadow_res, focal_plane=focal_plane,
                focal_length=focal_length, name=name, ray_samples_count=ray_samples_count), **kwargs)
+
+
+# noinspection PyShadowingNames
+def mip(volume, color_map=default_colormap, opacity_function=None, color_range=[], samples=512.0,
+        name=None, compression_level=0, **kwargs):
+    """Create a MIP drawable for 3D volumetric data.
+
+    By default, the volume are a grid inscribed in the -0.5 < x, y, z < 0.5 cube
+    regardless of the passed voxel array shape (aspect ratio etc.).
+    Different grid size, shape and rotation can be obtained using  kwargs:
+
+        mip(..., bounds=[0, 300, 0, 400, 0, 500])
+
+    or:
+
+        mip(..., scaling=[scale_x, scale_y, scale_z]).
+
+    Arguments:
+        volume: `array_like`.
+            3D array of `float`
+        color_map: `list`.
+            A list of float quadruplets (attribute value, R, G, B), sorted by attribute value. The first
+            quadruplet should have value 0.0, the last 1.0; R, G, B are RGB color components in the range 0.0 to 1.0.
+        opacity_function: `array`.
+            A list of float tuples (attribute value, opacity), sorted by attribute value. The first
+            typles should have value 0.0, the last 1.0; opacity is in the range 0.0 to 1.0.
+        color_range: `list`.
+            A pair [min_value, max_value], which determines the levels of volume attribute mapped
+            to 0 and 1 in the color map respectively.
+        samples: `float`.
+            Number of iteration per 1 unit of space.
+       name: `string`.
+            A name of a object
+        kwargs: `dict`.
+            Dictionary arguments to configure transform and model_matrix."""
+
+    color_range = check_attribute_range(volume, color_range)
+
+    if opacity_function is None:
+        opacity_function = [np.min(color_map[::4]), 0.0, np.max(color_map[::4]), 1.0]
+
+    return process_transform_arguments(
+        MIP(volume=volume, color_map=color_map, opacity_function=opacity_function, color_range=color_range,
+            compression_level=compression_level, samples=samples, name=name), **kwargs)
 
 
 def vtk_poly_data(poly_data, color=_default_color, color_attribute=None, color_map=default_colormap, side='front',
