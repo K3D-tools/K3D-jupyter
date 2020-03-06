@@ -32,8 +32,7 @@ module.exports = {
             samples = config.samples,
             object,
             texture,
-            jitterTexture,
-            listenersId;
+            jitterTexture;
 
         if (opacityFunction === null) {
             opacityFunction = [colorMap[0], 0.0, colorMap[colorMap.length - 4], 1.0];
@@ -118,10 +117,6 @@ module.exports = {
             object.material.uniforms.colormap.value = undefined;
             jitterTexture.dispose();
             jitterTexture = undefined;
-
-            if (listenersId) {
-                K3D.off(K3D.events.BEFORE_RENDER, listenersId);
-            }
         };
 
         return Promise.resolve(object);
