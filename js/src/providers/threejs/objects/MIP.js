@@ -19,6 +19,7 @@ var THREE = require('three'),
 module.exports = {
     create: function (config, K3D) {
         config.samples = config.samples || 512.0;
+        config.gradient_step = config.gradient_step || 0.005;
 
         var geometry = new THREE.BoxBufferGeometry(1, 1, 1),
             modelMatrix = new THREE.Matrix4(),
@@ -76,6 +77,7 @@ module.exports = {
             volumeMapSize: {value: new THREE.Vector3(config.volume.shape[2], config.volume.shape[1], config.volume.shape[0])},
             low: {value: colorRange[0]},
             high: {value: colorRange[1]},
+            gradient_step: {value: config.gradient_step},
             samples: {value: samples},
             translation: {value: translation},
             rotation: {value: rotation},
@@ -90,6 +92,9 @@ module.exports = {
                 uniforms,
                 THREE.UniformsLib.lights
             ),
+            defines: {
+                USE_SPECULAR: 1
+            },
             vertexShader: require('./shaders/MIP.vertex.glsl'),
             fragmentShader: require('./shaders/MIP.fragment.glsl'),
             side: THREE.BackSide,
@@ -156,7 +161,7 @@ module.exports = {
             resolvedChanges.opacity_function = null;
         }
 
-        ['samples'].forEach(function (key) {
+        ['samples', 'gradient_step'].forEach(function (key) {
             if (changes[key] && !changes[key].timeSeries) {
                 obj.material.uniforms[key].value = changes[key];
                 resolvedChanges[key] = null;

@@ -942,6 +942,8 @@ class MIP(Drawable):
             to 0 and 1 in the color map respectively.
         samples: `float`.
             Number of iteration per 1 unit of space.
+        gradient_step: `float`
+            Gradient light step.
         model_matrix: `array_like`.
             4x4 model transform matrix.
     """
@@ -952,6 +954,7 @@ class MIP(Drawable):
     opacity_function = TimeSeries(Array(dtype=np.float32)).tag(sync=True,
                                                                **array_serialization_wrap('opacity_function'))
     color_range = TimeSeries(ListOrArray(minlen=2, maxlen=2, empty_ok=True)).tag(sync=True)
+    gradient_step = TimeSeries(Float()).tag(sync=True)
     samples = TimeSeries(Float()).tag(sync=True)
     model_matrix = TimeSeries(Array(dtype=np.float32)).tag(sync=True, **array_serialization_wrap('model_matrix'))
 

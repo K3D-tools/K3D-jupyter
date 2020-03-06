@@ -873,7 +873,7 @@ def volume(volume, color_map=default_colormap, opacity_function=None, color_rang
 
 
 # noinspection PyShadowingNames
-def mip(volume, color_map=default_colormap, opacity_function=None, color_range=[], samples=512.0,
+def mip(volume, color_map=default_colormap, opacity_function=None, color_range=[], samples=512.0, gradient_step=0.005,
         name=None, compression_level=0, **kwargs):
     """Create a MIP drawable for 3D volumetric data.
 
@@ -901,6 +901,8 @@ def mip(volume, color_map=default_colormap, opacity_function=None, color_range=[
             to 0 and 1 in the color map respectively.
         samples: `float`.
             Number of iteration per 1 unit of space.
+        gradient_step: `float`
+            Gradient light step.
        name: `string`.
             A name of a object
         kwargs: `dict`.
@@ -913,7 +915,7 @@ def mip(volume, color_map=default_colormap, opacity_function=None, color_range=[
 
     return process_transform_arguments(
         MIP(volume=volume, color_map=color_map, opacity_function=opacity_function, color_range=color_range,
-            compression_level=compression_level, samples=samples, name=name), **kwargs)
+            compression_level=compression_level, samples=samples, gradient_step=gradient_step, name=name), **kwargs)
 
 
 def vtk_poly_data(poly_data, color=_default_color, color_attribute=None, color_map=default_colormap, side='front',

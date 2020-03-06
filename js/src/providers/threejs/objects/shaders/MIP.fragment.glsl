@@ -13,6 +13,7 @@ uniform float low;
 uniform float high;
 uniform mat4 modelViewMatrix;
 uniform float samples;
+uniform float gradient_step;
 
 uniform vec4 scale;
 uniform vec4 translation;
@@ -68,6 +69,16 @@ void intersect(
     tmax = min(min(tmax, tymax), tzmax);
 }
 
+vec3 worldGetNormal(in float px, in vec3 pos)
+{
+    return normalize(
+        vec3(px -  texture(volumeTexture, pos + vec3(gradient_step, 0, 0)).x,
+             px -  texture(volumeTexture, pos + vec3(0, gradient_step, 0)).x,
+             px -  texture(volumeTexture, pos + vec3(0, 0, gradient_step)).x
+         )
+    );
+}
+
 void main() {
     float jitter = texture2D(jitterTexture, gl_FragCoord.xy/64.0).r;
 	float tmin = 0.0;
@@ -93,6 +104,7 @@ void main() {
     textcoord_start = textcoord_start - textcoord_delta * (0.01 + 0.98 * jitter);
 
     vec3 textcoord = textcoord_start - textcoord_delta;
+    vec3 maxTextcoord = textcoord;
 
     float step = length(textcoord_delta);
 
@@ -110,7 +122,12 @@ void main() {
             }
         #endif
 
-        px = max(texture(volumeTexture, textcoord).x, px);
+        float newPx = texture(volumeTexture, textcoord).x;
+
+        if(newPx > px) {
+            px = newPx;
+            maxTextcoord = textcoord;
+        }
 
         if (px >= high) {
             break;
@@ -118,11 +135,34 @@ void main() {
     }
 
     float scaled_px = (px - low) * inv_range;
+
     if(scaled_px > 0.0) {
         scaled_px = min(scaled_px, 0.99);
 
         pxColor = texture(colormap, vec2(scaled_px, 0.5));
     }
+
+    // LIGHT
+    #if NUM_DIR_LIGHTS > 0
+        vec4 addedLights = vec4(ambientLightColor, 1.0);
+        vec3 normal = worldGetNormal(px, maxTextcoord);
+
+        vec3 lightDirection;
+        float lightingIntensity;
+
+        #pragma unroll_loop
+        for ( int i = 0; i < NUM_DIR_LIGHTS; i ++ ) {
+            lightDirection = -directionalLights[ i ].direction;
+            lightingIntensity = clamp(dot(-lightDirection, normal), 0.0, 1.0);
+            addedLights.rgb += directionalLights[ i ].color * (0.05 + 0.95 * lightingIntensity);
+
+            #if (USE_SPECULAR == 1)
+            pxColor.rgb += directionalLights[ i ].color * pow(lightingIntensity, 50.0) * pxColor.a;
+            #endif
+        }
+
+        pxColor.rgb *= addedLights.xyz;
+    #endif
 
     gl_FragColor = pxColor;
 }
