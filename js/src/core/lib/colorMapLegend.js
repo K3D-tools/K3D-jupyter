@@ -7,7 +7,7 @@ function getColorLegend(K3D, object) {
     var svg,
         svgNS,
         rect,
-        line, text, textShadow, textGroup,
+        line, text, textShadow, textGroup, tick,
         margin = 5,
         majorScale,
         colorRange,
@@ -89,6 +89,14 @@ function getColorLegend(K3D, object) {
         text = document.createElementNS(svgNS, 'text');
         textShadow = document.createElementNS(svgNS, 'text');
         y = margin + (100 - margin * 2) * (1.0 - (v - range[0]) / colorRange);
+        if (K3D.parameters.colorbarScientific)
+        {
+            tick = v.toPrecision(4);
+        }
+        else
+        {
+            tick = v.toFixed((majorScale.toString(10).split('.')[1] || '').length);
+        }
 
         line.setAttribute('x1', '13');
         line.setAttribute('y1', y.toString(10));
@@ -104,7 +112,7 @@ function getColorLegend(K3D, object) {
         text.setAttribute('text-anchor', 'end');
         text.setAttribute('font-size', '0.5em');
         text.setAttribute('fill', 'rgb(68, 68, 68)');
-        text.innerHTML = v.toFixed((majorScale.toString(10).split('.')[1] || '').length);
+        text.innerHTML = tick;
 
         textShadow.setAttribute('x', '0.5');
         textShadow.setAttribute('y', '0.5');
@@ -112,7 +120,7 @@ function getColorLegend(K3D, object) {
         textShadow.setAttribute('text-anchor', 'end');
         textShadow.setAttribute('font-size', '0.5em');
         textShadow.setAttribute('fill', 'rgb(255, 255, 255)');
-        textShadow.innerHTML = v.toFixed((majorScale.toString(10).split('.')[1] || '').length);
+        textShadow.innerHTML = tick;
 
         textGroup.setAttribute('pos_y', y.toString(10));
 

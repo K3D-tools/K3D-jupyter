@@ -152,6 +152,7 @@ function K3D(provider, targetDOMNode, parameters) {
             lighting: 1.5,
             time: 0.0,
             colorbarObjectId: -1,
+            colorbarScientific: false,
             fps: 25.0,
             axes: ['x', 'y', 'z'],
             cameraNoRotate: false,
@@ -311,6 +312,11 @@ function K3D(provider, targetDOMNode, parameters) {
         clippingPlanesGUIProvider(self, GUI.clippingPlanes);
         self.render();
     };
+
+    this.setColorbarScientific = function(flag) {
+        self.parameters.colorbarScientific = flag;
+        self.render();
+    }
 
     this.setColorMapLegend = function (v) {
         var newValue = v.id || v;
@@ -983,6 +989,7 @@ function K3D(provider, targetDOMNode, parameters) {
     self.setClippingPlanes(self.parameters.clippingPlanes);
     self.setDirectionalLightingIntensity(self.parameters.lighting);
     self.setColorMapLegend(self.parameters.colorbarObjectId);
+    self.setColorbarScientific(self.parameters.colorbarScientific);
     self.setAutoRendering(self.parameters.autoRendering);
     self.setCameraLock(
         self.parameters.cameraNoRotate,

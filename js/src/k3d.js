@@ -276,6 +276,7 @@ PlotView = widgets.DOMWidgetView.extend({
         this.model.on('change:object_ids', this._onObjectsListChange, this);
         this.model.on('change:menu_visibility', this._setMenuVisibility, this);
         this.model.on('change:colorbar_object_id', this._setColorMapLegend, this);
+        this.model.on('change:colorbar_scientific', this._setColorbarScientific, this);
         this.model.on('change:rendering_steps', this._setRenderingSteps, this);
         this.model.on('change:axes', this._setAxes, this);
         this.model.on('change:camera_no_rotate', this._setCameraLock, this);
@@ -437,6 +438,10 @@ PlotView = widgets.DOMWidgetView.extend({
 
     _setColorMapLegend: function () {
         this.K3DInstance.setColorMapLegend(this.model.get('colorbar_object_id'));
+    },
+
+    _setColorbarScientific: function () {
+        this.K3DInstance.setColorbarScientific(this.model.get('colorbar_scientific'));
     },
 
     _setCamera: function () {
