@@ -89,12 +89,9 @@ function getColorLegend(K3D, object) {
         text = document.createElementNS(svgNS, 'text');
         textShadow = document.createElementNS(svgNS, 'text');
         y = margin + (100 - margin * 2) * (1.0 - (v - range[0]) / colorRange);
-        if (K3D.parameters.colorbarScientific)
-        {
+        if (K3D.parameters.colorbarScientific) {
             tick = v.toPrecision(4);
-        }
-        else
-        {
+        } else {
             tick = v.toFixed((majorScale.toString(10).split('.')[1] || '').length);
         }
 

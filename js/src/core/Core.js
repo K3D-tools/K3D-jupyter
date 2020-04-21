@@ -316,7 +316,7 @@ function K3D(provider, targetDOMNode, parameters) {
     this.setColorbarScientific = function(flag) {
         self.parameters.colorbarScientific = flag;
         self.render();
-    }
+    };
 
     this.setColorMapLegend = function (v) {
         var newValue = v.id || v;
