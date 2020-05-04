@@ -1,6 +1,7 @@
 'use strict';
 
 var THREE = require('three'),
+    cameraModes = require('./../../../core/lib/cameraMode').cameraModes,
     recalculateFrustum = require('./../helpers/Fn').recalculateFrustum;
 
 /**
@@ -121,6 +122,13 @@ module.exports = function (K3D) {
             sceneBoundingSphere.center,
             this.camera.getWorldDirection(new THREE.Vector3()).setLength(camDistance)
         );
-        this.controls.target = sceneBoundingSphere.center;
+
+        if (K3D.parameters.cameraMode === cameraModes.fly) {
+            this.controls.target = this.camera.position.clone().add(
+                this.camera.getWorldDirection(new THREE.Vector3()).setLength(camDistance / 10.0)
+            );
+        } else {
+            this.controls.target = sceneBoundingSphere.center;
+        }
     };
 };

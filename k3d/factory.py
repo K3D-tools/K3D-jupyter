@@ -1030,6 +1030,7 @@ def plot(height=512,
          axes=['x', 'y', 'z'],
          axes_helper=1.0,
          name=None,
+         camera_mode='trackball',
          auto_rendering=True,
          camera_no_zoom=False,
          camera_no_rotate=False,
@@ -1078,6 +1079,16 @@ def plot(height=512,
             Time value (used in TimeSeries)
         name: `string`.
             Name of the plot. Used to filenames of snapshot/screenshot etc.
+        camera_mode: `str`.
+            Mode of camera.
+
+            Legal values are:
+
+            :`trackball`: orbit around point with dynamic up-vector of camera,
+
+            :`orbit`: orbit around point with fixed up-vector of camera,
+
+            :`fly`: orbit around point with dynamic up-vector of camera, wheel on mouse change also target point.
         auto_rendering: `Bool`.
             State of auto rendering.
         fps: `Float`.
@@ -1092,6 +1103,6 @@ def plot(height=512,
                 height=height, menu_visibility=menu_visibility,
                 voxel_paint_color=voxel_paint_color, grid=grid,
                 axes=axes, axes_helper=axes_helper, screenshot_scale=screenshot_scale, camera_fov=camera_fov,
-                name=name,
+                name=name, camera_mode=camera_mode,
                 camera_no_zoom=camera_no_zoom, camera_no_rotate=camera_no_rotate, camera_no_pan=camera_no_pan,
                 auto_rendering=auto_rendering, fps=fps)

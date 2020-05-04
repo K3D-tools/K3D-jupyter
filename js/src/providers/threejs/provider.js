@@ -6,6 +6,7 @@ var THREE = require('three'),
 require('./helpers/THREE.STLLoader')(THREE);
 require('./helpers/THREE.CopyShader')(THREE);
 require('./helpers/THREE.TrackballControls')(THREE);
+require('./helpers/THREE.OrbitControls')(THREE);
 require('./helpers/TransformControls')(THREE);
 
 THREE.Mesh.prototype.raycast = threeMeshBVH.acceleratedRaycast;

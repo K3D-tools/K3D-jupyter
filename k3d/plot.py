@@ -66,6 +66,16 @@ class Plot(widgets.DOMWidget):
             :`callback`: Handling click_callback and hover_callback on some type of objects,
 
             :`manipulate`: Enable object transform widget.
+        camera_mode: `str`.
+            Mode of camera.
+
+            Legal values are:
+
+            :`trackball`: orbit around point with dynamic up-vector of camera,
+
+            :`orbit`: orbit around point with fixed up-vector of camera,
+
+            :`fly`: orbit around point with dynamic up-vector of camera, wheel on mouse change also target point.
         manipulate_mode: `str`.
             Mode of manipulate widgets.
 
@@ -129,6 +139,7 @@ class Plot(widgets.DOMWidget):
     axes = List(minlen=3, maxlen=3, default_value=['x', 'y', 'z']).tag(sync=True)
     axes_helper = Float().tag(sync=True)
     mode = Unicode().tag(sync=True)
+    camera_mode = Unicode().tag(sync=True)
     manipulate_mode = Unicode().tag(sync=True)
 
     objects = []
@@ -137,7 +148,7 @@ class Plot(widgets.DOMWidget):
                  grid_visible=True, height=512, voxel_paint_color=0, grid=(-1, -1, -1, 1, 1, 1), screenshot_scale=2.0,
                  lighting=1.5, time=0.0, fps_meter=False, menu_visibility=True, colorbar_object_id=-1,
                  rendering_steps=1, axes=['x', 'y', 'z'], camera_no_rotate=False, camera_no_zoom=False,
-                 camera_no_pan=False, camera_fov=45.0, axes_helper=1.0, name=None, mode='view',
+                 camera_no_pan=False, camera_fov=45.0, axes_helper=1.0, name=None, mode='view', camera_mode='trackball',
                  manipulate_mode='translate', auto_rendering=True, fps=25.0, *args, **kwargs):
         super(Plot, self).__init__()
 
@@ -165,6 +176,7 @@ class Plot(widgets.DOMWidget):
         self.axes_helper = axes_helper
         self.name = name
         self.mode = mode
+        self.camera_mode = camera_mode
         self.manipulate_mode = manipulate_mode
         self.auto_rendering = auto_rendering
         self.camera = [2, -3, 0.2, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0]

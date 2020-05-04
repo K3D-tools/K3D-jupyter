@@ -2,6 +2,7 @@
 
 'use strict';
 var viewModes = require('./lib/viewMode').viewModes,
+    cameraModes = require('./lib/cameraMode').cameraModes,
     loader = require('./lib/Loader'),
     msgpack = require('msgpack-lite'),
     MsgpackCodec = msgpack.createCodec({preset: true}),
@@ -14,6 +15,7 @@ var viewModes = require('./lib/viewMode').viewModes,
     detachWindowGUI = require('./lib/detachWindow'),
     fullscreen = require('./lib/fullscreen'),
     viewModeGUI = require('./lib/viewMode').viewModeGUI,
+    cameraModeGUI = require('./lib/cameraMode').cameraModeGUI,
     manipulate = require('./lib/manipulate'),
     getColorLegend = require('./lib/colorMapLegend').getColorLegend,
     objectGUIProvider = require('./lib/objectsGUIprovider'),
@@ -136,6 +138,7 @@ function K3D(provider, targetDOMNode, parameters) {
     this.GUI = GUI;
     this.parameters = _.assign({
             viewMode: viewModes.view,
+            cameraMode: cameraModes.trackball,
             manipulateMode: manipulate.manipulateModes.translate,
             voxelPaintColor: 0,
             menuVisibility: true,
@@ -267,6 +270,26 @@ function K3D(provider, targetDOMNode, parameters) {
         world.targetDOMNode.style.cursor = 'auto';
     };
 
+    /**
+     * Set camera mode of K3D
+     * @memberof K3D.Core
+     * @param {String} mode
+     */
+    this.setCameraMode = function (mode) {
+        self.parameters.cameraMode = mode;
+        self.getWorld().changeControls();
+        self.getWorld().setCameraToFitScene(true);
+
+        if (dispatch(self.events.CAMERA_MODE_CHANGE, mode)) {
+            self.render();
+        }
+
+        GUI.controls.__controllers.forEach(function (controller) {
+            if (controller.property === 'cameraMode') {
+                controller.updateDisplay();
+            }
+        });
+    };
     /**
      * Set manipulate mode of K3D
      * @memberof K3D.Core
@@ -945,6 +968,7 @@ function K3D(provider, targetDOMNode, parameters) {
     });
 
     viewModeGUI(GUI.controls, this);
+    cameraModeGUI(GUI.controls, this);
     manipulate.manipulateGUI(GUI.controls, this, changeParameters);
 
     GUI.controls.add(self.parameters, 'camera_fov').step(0.1).min(1.0).max(179).name('FOV').onChange(function (value) {
@@ -1020,6 +1044,7 @@ K3D.prototype.frameUpdateHandlers = {
 
 K3D.prototype.events = {
     VIEW_MODE_CHANGE: 'viewModeChange',
+    CAMERA_MODE_CHANGE: 'cameraModeChange',
     MANIPULATE_MODE_CHANGE: 'manipulateModeChange',
     RENDERED: 'rendered',
     BEFORE_RENDER: 'before_render',

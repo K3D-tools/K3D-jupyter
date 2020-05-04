@@ -284,13 +284,15 @@ PlotView = widgets.DOMWidgetView.extend({
         this.model.on('change:camera_fov', this._setCameraFOV, this);
         this.model.on('change:axes_helper', this._setAxesHelper, this);
         this.model.on('change:name', this._setName, this);
-        this.model.on('change:mode', this._setMode, this);
+        this.model.on('change:mode', this._setViewMode, this);
+        this.model.on('change:camera_mode', this._setCameraMode, this);
         this.model.on('change:manipulate_mode', this._setManipulateMode, this);
 
         try {
             this.K3DInstance = new K3D(ThreeJsProvider, this.container, {
                 antialias: this.model.get('antialias'),
                 lighting: this.model.get('lighting'),
+                cameraMode: this.model.get('camera_mode'),
                 backendVersion: this.model.get('_backend_version'),
                 screenshotScale: this.model.get('screenshot_scale'),
                 menuVisibility: this.model.get('menu_visibility'),
@@ -459,8 +461,12 @@ PlotView = widgets.DOMWidgetView.extend({
         this.K3DInstance.setName(this.model.get('name'));
     },
 
-    _setMode: function () {
+    _setViewMode: function () {
         this.K3DInstance.setViewMode(this.model.get('mode'));
+    },
+
+    _setCameraMode: function () {
+        this.K3DInstance.setCameraMode(this.model.get('camera_mode'));
     },
 
     _setManipulateMode: function () {
