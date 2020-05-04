@@ -44,6 +44,8 @@ module.exports = {
             geometry = new THREE.BufferGeometry(),
             object;
 
+        // material.onBeforeCompile = K3D.getWorld().colorOnBeforeCompile;
+
         if (attribute && colorRange && colorMap && attribute.length > 0 && colorRange.length > 0 && colorMap.length > 0) {
             handleColorMap(geometry, colorMap, colorRange, attribute, material);
         }

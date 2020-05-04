@@ -2,7 +2,7 @@
 
 var THREE = require('three'),
     katex = require('katex'),
-    areAllChangesResolve = require('./../helpers/Fn').areAllChangesResolve
+    areAllChangesResolve = require('./../helpers/Fn').areAllChangesResolve;
 
 /**
  * Loader strategy to handle Label object

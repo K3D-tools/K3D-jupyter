@@ -18,7 +18,7 @@ var THREE = require('three'),
  * @return {Object} 3D object ready to render
  */
 module.exports = {
-    create: function (config, K3D) {
+    create: function (config) {
         config.samples = config.samples || 512.0;
         config.gradient_step = config.gradient_step || 0.005;
 

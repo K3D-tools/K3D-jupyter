@@ -16,7 +16,7 @@ module.exports = function (K3D) {
                 if (!obj.transformControls && world.ObjectsListJson[obj.K3DIdentifier].model_matrix) {
                     var control = new THREE.TransformControls(world.camera, world.renderer.domElement);
 
-                    control.addEventListener('change', function (event) {
+                    control.addEventListener('change', function () {
                         K3D.dispatch(K3D.events.OBJECT_CHANGE, {
                             id: obj.K3DIdentifier,
                             key: 'model_matrix',
