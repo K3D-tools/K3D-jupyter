@@ -1,6 +1,7 @@
 'use strict';
 
 var THREE = require('three'),
+    _ = require('./../../../lodash'),
     Text = require('./../objects/Text'),
     Vectors = require('./../objects/Vectors'),
     MeshLine = require('./../helpers/THREE.MeshLine')(THREE),

@@ -2,6 +2,7 @@
 
 'use strict';
 var viewModes = require('./lib/viewMode').viewModes,
+    _ = require('./../lodash'),
     cameraModes = require('./lib/cameraMode').cameraModes,
     loader = require('./lib/Loader'),
     msgpack = require('msgpack-lite'),

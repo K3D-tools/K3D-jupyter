@@ -366,6 +366,9 @@ class Mesh(DrawableWithCallback):
         if type(proposal['value']) is dict:
             return proposal['value']
 
+        if type(proposal['value']) is np.ndarray and proposal['value'].dtype is np.dtype(object):
+            return proposal['value'].tolist()
+
         if proposal['value'].shape == (0,):
             return np.array(proposal['value'], dtype=np.float32)
 
@@ -905,6 +908,9 @@ class Volume(Drawable):
         if type(proposal['value']) is dict:
             return proposal['value']
 
+        if type(proposal['value']) is np.ndarray and proposal['value'].dtype is np.dtype(object):
+            return proposal['value'].tolist()
+
         required = [np.float16, np.float32]
         actual = proposal['value'].dtype
 
@@ -967,6 +973,9 @@ class MIP(Drawable):
     def _validate_volume(self, proposal):
         if type(proposal['value']) is dict:
             return proposal['value']
+
+        if type(proposal['value']) is np.ndarray and proposal['value'].dtype is np.dtype(object):
+            return proposal['value'].tolist()
 
         required = [np.float16, np.float32]
         actual = proposal['value'].dtype

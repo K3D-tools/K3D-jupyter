@@ -1,6 +1,7 @@
 'use strict';
 
 var pako = require('pako'),
+    _ = require('./../../../lodash'),
     Float16Array = require('./float16Array'),
     typesToArray = {
         int8: Int8Array,

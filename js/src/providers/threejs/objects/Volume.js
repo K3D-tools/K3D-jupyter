@@ -3,6 +3,7 @@
 'use strict';
 
 var THREE = require('three'),
+    _ = require('./../../../lodash'),
     colorMapHelper = require('./../../../core/lib/helpers/colorMap'),
     closestPowOfTwo = require('./../helpers/Fn').closestPowOfTwo,
     typedArrayToThree = require('./../helpers/Fn').typedArrayToThree,

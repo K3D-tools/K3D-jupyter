@@ -3,6 +3,7 @@
 'use strict';
 
 var THREE = require('three'),
+    _ = require('./../../../lodash'),
     colorMapHelper = require('./../../../core/lib/helpers/colorMap'),
     typedArrayToThree = require('./../helpers/Fn').typedArrayToThree,
     areAllChangesResolve = require('./../helpers/Fn').areAllChangesResolve,

@@ -1,4 +1,5 @@
 'use strict';
+var _ = require('./../../lodash');
 
 function detachWindowGUI(gui, K3D) {
     var newWindow,

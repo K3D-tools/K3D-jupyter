@@ -2,6 +2,7 @@
 //jshint maxstatements:false
 
 var widgets = require('@jupyter-widgets/base'),
+    _ = require('./lodash'),
     K3D = require('./core/Core'),
     TFEdit = require('./transferFunctionEditor'),
     serialize = require('./core/lib/helpers/serialize'),

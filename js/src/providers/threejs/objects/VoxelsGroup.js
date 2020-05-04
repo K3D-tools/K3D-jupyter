@@ -1,5 +1,6 @@
 'use strict';
 var VoxelsHelper = require('./../helpers/Voxels'),
+    _ = require('./../../../lodash'),
     areAllChangesResolve = require('./../helpers/Fn').areAllChangesResolve,
     commonUpdate = require('./../helpers/Fn').commonUpdate;
 

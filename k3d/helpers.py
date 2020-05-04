@@ -9,13 +9,13 @@ import zlib
 
 
 # import logging
-#
 # from pprint import pprint, pformat
 #
-# logger = logging.getLogger("k3d")
+# logger = logging.getLogger()
+# logger.setLevel(logging.INFO)
 # fh = logging.FileHandler('k3d.log')
+# fh.setLevel(logging.INFO)
 # logger.addHandler(fh)
-# logger.setLevel(logging.DEBUG)
 
 
 # pylint: disable=unused-argument
@@ -53,18 +53,20 @@ def from_json_to_array(value, obj=None):
 
 
 def to_json(name, input, obj=None, compression_level=0):
-    property = obj[name]
-
     if hasattr(obj, 'compression_level'):
         compression_level = obj.compression_level
 
     if isinstance(input, dict):
+        property = obj[name]
         ret = {}
         for key, value in input.items():
             ret[str(key)] = to_json(key, value, property, compression_level)
 
         return ret
+    elif isinstance(input, np.ndarray) and input.dtype is np.dtype(object):
+        return to_json(name, input.tolist(), obj, compression_level)
     elif isinstance(input, list):
+        property = obj[name]
         return [to_json(idx, v, property, compression_level) for idx, v in enumerate(input)]
     elif isinstance(input, np.ndarray):
         return array_to_binary(input, compression_level)

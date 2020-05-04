@@ -2,8 +2,6 @@
 
 'use strict';
 
-require('./deps');
-
 var k3d = require('./index'),
     version = require('./version').version,
     base = require('@jupyter-widgets/base');
