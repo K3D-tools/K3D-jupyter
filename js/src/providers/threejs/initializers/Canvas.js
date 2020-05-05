@@ -29,7 +29,6 @@ function addEvents(self, K3D, controls) {
         self.axesHelper.camera.up.copy(self.camera.up);
     });
 
-    console.log('add events');
     controls.addEventListener('change', function () {
         if (K3D.frameUpdateHandlers.before.length === 0 && K3D.frameUpdateHandlers.after.length === 0) {
             self.render();
@@ -38,7 +37,6 @@ function addEvents(self, K3D, controls) {
 }
 
 function createTrackballControls(self, K3D) {
-    console.log('createTrackballControls');
     var controls = new THREE.TrackballControls(self.camera, self.renderer.domElement);
 
     controls.rotateSpeed = 1.0;
@@ -53,7 +51,6 @@ function createTrackballControls(self, K3D) {
 }
 
 function createOrbitControls(self, K3D) {
-    console.log('createOrbitControls');
     var controls = new THREE.OrbitControls(self.camera, self.renderer.domElement);
 
     controls.enableDamping = false;
@@ -69,7 +66,6 @@ function createOrbitControls(self, K3D) {
 }
 
 function createFlyControls(self, K3D) {
-    console.log('createFlyControls');
     var controls = new THREE.TrackballControls(self.camera, self.renderer.domElement);
 
     controls.rotateSpeed = 1.0;

@@ -28,7 +28,6 @@ function handleListeners(K3D, on, listener) {
  * @param {Object} K3D current K3D instance
  */
 module.exports = function (K3D) {
-
     var self = this, renderingPromise = null,
         canvas = document.createElement('canvas'),
         context = canvas.getContext('webgl2', {
@@ -44,11 +43,17 @@ module.exports = function (K3D) {
         context: context
     });
 
-    canvas.addEventListener('webglcontextlost', function (event) {
+    function handleContextLoss(event) {
         event.preventDefault();
         K3D.disable();
         error('WEBGL Error', 'Context lost.', false);
-    }, false);
+    }
+
+    canvas.addEventListener('webglcontextlost', handleContextLoss, false);
+
+    self.renderer.removeContextLossListener = function () {
+        canvas.removeEventListener('webglcontextlost', handleContextLoss);
+    };
 
     gl = self.renderer.getContext();
 
