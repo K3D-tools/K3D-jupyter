@@ -67,7 +67,7 @@ class Plot(widgets.DOMWidget):
 
             :`manipulate`: Enable object transform widget.
         camera_mode: `str`.
-            Mode of camera.
+            Mode of camera movement.
 
             Legal values are:
 
@@ -75,7 +75,7 @@ class Plot(widgets.DOMWidget):
 
             :`orbit`: orbit around point with fixed up-vector of camera,
 
-            :`fly`: orbit around point with dynamic up-vector of camera, wheel on mouse change also target point.
+            :`fly`: orbit around point with dynamic up-vector of camera, mouse wheel also moves target point.
         manipulate_mode: `str`.
             Mode of manipulate widgets.
 
@@ -187,6 +187,7 @@ class Plot(widgets.DOMWidget):
         self.outputs = []
 
     def __iadd__(self, objs):
+        """Add Drawable to plot."""
         assert isinstance(objs, Drawable)
 
         for obj in objs:
@@ -197,6 +198,7 @@ class Plot(widgets.DOMWidget):
         return self
 
     def __isub__(self, objs):
+        """Remove Drawable from plot."""
         assert isinstance(objs, Drawable)
 
         for obj in objs:
@@ -207,6 +209,7 @@ class Plot(widgets.DOMWidget):
         return self
 
     def display(self, **kwargs):
+        """Show plot inside ipywidgets.Output()."""
         output = widgets.Output()
 
         with output:
@@ -217,24 +220,38 @@ class Plot(widgets.DOMWidget):
         display(output)
 
     def render(self):
+        """Trigger rendering on demand.
+
+        Useful when self.auto_rendering == False."""
         self.send({'msg_type': 'render'})
 
     def start_auto_play(self):
+        """Start animation of plot with objects using TimeSeries."""
         self.send({'msg_type': 'start_auto_play'})
 
     def stop_auto_play(self):
+        """Stop animation of plot with objects using TimeSeries."""
         self.send({'msg_type': 'stop_auto_play'})
 
     def close(self):
+        """Remove plot from all its ipywidgets.Output()-s."""
         for output in self.outputs:
             output.clear_output()
 
         self.outputs = []
 
     def camera_reset(self, factor=1.5):
+        """Trigger auto-adjustment of camera.
+
+        Useful when self.camera_auto_fit == False."""
         self.send({'msg_type': 'reset_camera', 'factor': factor})
 
     def fetch_screenshot(self, only_canvas=False):
+        """Request creating a PNG screenshot on the JS side and saving it in self.screenshot
+
+        The result is a string of a PNG file in base64 encoding.
+        This function requires a round-trip of websocket messages. The result will
+        be available after the current cell finishes execution."""
         self.send({'msg_type': 'fetch_screenshot', 'only_canvas': only_canvas})
 
     def yield_screenshots(self, generator_function):
@@ -257,6 +274,11 @@ class Plot(widgets.DOMWidget):
         return inner
 
     def fetch_snapshot(self, compression_level=9):
+        """Request creating a HTML snapshot on the JS side and saving it in self.snapshot
+
+        The result is a string: a HTML document with this plot embedded.
+        This function requires a round-trip of websocket messages. The result will
+        be available after the current cell finishes execution."""
         self.send({'msg_type': 'fetch_snapshot', 'compression_level': compression_level})
 
     def yield_snapshots(self, generator_function):
@@ -279,6 +301,7 @@ class Plot(widgets.DOMWidget):
         return inner
 
     def get_snapshot(self, compression_level=9, additional_js_code=''):
+        """Produce on the Python side a HTML document with the current plot embedded."""
         import os
         import io
         import msgpack
