@@ -535,6 +535,8 @@ class Text(Drawable):
             Coordinates (x, y, z) of the text's position.
         color: `int`.
             Packed RGB color of the text (0xff0000 is red, 0xff is blue).
+        is_html: `Boolean`.
+            Whether text should be interpreted as HTML insted of KaTeX.
         on_top: `Boolean`.
             Render order with 3d object
         reference_point: `str`.
@@ -552,6 +554,7 @@ class Text(Drawable):
     type = Unicode(read_only=True).tag(sync=True)
     text = TimeSeries(Unicode()).tag(sync=True)
     position = TimeSeries(ListOrArray(minlen=3, maxlen=3)).tag(sync=True)
+    is_html = Bool(False).tag(sync=True)
     color = Int(min=0, max=0xffffff).tag(sync=True)
     reference_point = Unicode().tag(sync=True)
     size = TimeSeries(Float(min=EPSILON, default_value=1.0)).tag(sync=True)
@@ -575,6 +578,8 @@ class Text2d(Drawable):
             Ratios (r_x, r_y) of the text's position in range (0, 1) - relative to canvas size.
         color: `int`.
             Packed RGB color of the text (0xff0000 is red, 0xff is blue).
+        is_html: `Boolean`.
+            Whether text should be interpreted as HTML insted of KaTeX.
         reference_point: `str`.
             Two-letter string representing the text's alignment.
 
@@ -590,6 +595,7 @@ class Text2d(Drawable):
     type = Unicode(read_only=True).tag(sync=True)
     color = Int(min=0, max=0xffffff).tag(sync=True)
     size = TimeSeries(Float(min=EPSILON, default_value=1.0)).tag(sync=True)
+    is_html = Bool(False).tag(sync=True)
     reference_point = Unicode().tag(sync=True)
     position = TimeSeries(ListOrArray(minlen=2, maxlen=2)).tag(sync=True)
     text = TimeSeries(Unicode()).tag(sync=True)
@@ -618,6 +624,8 @@ class Label(Drawable):
             Label background box.
         mode: `str`.
             Label node. Can be 'dynamic', 'local' or 'side'.
+        is_html: `Boolean`.
+            Whether text should be interpreted as HTML insted of KaTeX.
         max_length: `float`.
             Maximum length of line in % of half screen size.
         size: `float`.
@@ -627,6 +635,7 @@ class Label(Drawable):
     type = Unicode(read_only=True).tag(sync=True)
     mode = Unicode().tag(sync=True)
     text = TimeSeries(Unicode()).tag(sync=True)
+    is_html = Bool(False).tag(sync=True)
     position = TimeSeries(ListOrArray(minlen=3, maxlen=3)).tag(sync=True)
     color = Int(min=0, max=0xffffff).tag(sync=True)
     max_length = Float(min=0, max=1.0).tag(sync=True)

@@ -335,7 +335,7 @@ def surface(heights, color=_default_color, wireframe=False, flat_shading=True, a
 
 # noinspection PyShadowingNames
 def text(text, position=(0, 0, 0), color=_default_color, reference_point='lb', on_top=True, size=1.0, label_box=True,
-         name=None, compression_level=0):
+         is_html=False, name=None, compression_level=0):
     """Create a Text drawable for 3D-positioned text labels.
 
     Arguments:
@@ -349,6 +349,8 @@ def text(text, position=(0, 0, 0), color=_default_color, reference_point='lb', o
             Label background box.
         color: `int`.
             Packed RGB color of the text (0xff0000 is red, 0xff is blue).
+        is_html: `Boolean`.
+            Whether text should be interpreted as HTML insted of KaTeX.
         reference_point: `str`.
             Two-letter string representing the text's alignment.
             First letter: 'l', 'c' or 'r': left, center or right
@@ -360,12 +362,12 @@ def text(text, position=(0, 0, 0), color=_default_color, reference_point='lb', o
             Font size in 'em' HTML units."""
 
     return Text(position=position, reference_point=reference_point, text=text, size=size, color=color, on_top=on_top,
-                label_box=label_box, name=name, compression_level=compression_level)
+                is_html=is_html, label_box=label_box, name=name, compression_level=compression_level)
 
 
 # noinspection PyShadowingNames
 def text2d(text, position=(0, 0), color=_default_color, size=1.0, reference_point='lt', label_box=True, name=None,
-           compression_level=0):
+           is_html=False, compression_level=0):
     """Create a Text2d drawable for 2D-positioned (viewport bound, OSD) labels.
 
     Arguments:
@@ -375,6 +377,8 @@ def text2d(text, position=(0, 0), color=_default_color, size=1.0, reference_poin
             Ratios (r_x, r_y) of the text's position in range (0, 1) - relative to canvas size.
         color: `int`.
             Packed RGB color of the text (0xff0000 is red, 0xff is blue).
+        is_html: `Boolean`.
+            Whether text should be interpreted as HTML insted of KaTeX.
         reference_point: `str`.
             Two-letter string representing the text's alignment.
 
@@ -389,12 +393,12 @@ def text2d(text, position=(0, 0), color=_default_color, size=1.0, reference_poin
             Font size in 'em' HTML units."""
 
     return Text2d(position=position, reference_point=reference_point, text=text, size=size, color=color,
-                  label_box=label_box, name=name, compression_level=compression_level)
+                  is_html=is_html, label_box=label_box, name=name, compression_level=compression_level)
 
 
 # noinspection PyShadowingNames
 def label(text, position=(0, 0, 0), color=_default_color, on_top=True, size=1.0, name=None, max_length=0.8,
-          mode="dynamic", label_box=True, compression_level=0):
+          mode="dynamic", is_html=False, label_box=True, compression_level=0):
     """Create a Text drawable for 3D-positioned text labels.
 
     Arguments:
@@ -414,12 +418,13 @@ def label(text, position=(0, 0, 0), color=_default_color, on_top=True, size=1.0,
             Label node. Can be 'dynamic', 'local' or 'side'.
         name: `string`.
             A name of a object
+        is_html: `Boolean`.
+            Whether text should be interpreted as HTML insted of KaTeX.
         size: `float`.
             Font size in 'em' HTML units."""
 
     return Label(position=position, text=text, size=size, color=color, on_top=on_top, max_length=max_length,
-                 mode=mode,
-                 label_box=label_box, name=name, compression_level=compression_level)
+                 mode=mode, is_html=is_html, label_box=label_box, name=name, compression_level=compression_level)
 
 
 def texture(binary=None, file_format=None, color_map=default_colormap, color_range=[], attribute=[], puv=[],

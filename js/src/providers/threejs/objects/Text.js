@@ -28,7 +28,13 @@ module.exports = {
             overlayDOMNode = world.overlayDOMNode,
             listenersId;
 
-        domElement.innerHTML = katex.renderToString(text, {displayMode: true});
+        if (config.is_html) {
+            domElement.innerHTML = text;
+            domElement.style.cssText = 'pointer-events: all';
+        } else {
+            domElement.innerHTML = katex.renderToString(text, {displayMode: true});
+        }
+
         domElement.style.position = 'absolute';
         domElement.style.color = colorToHex(color);
         domElement.style.fontSize = size + 'em';

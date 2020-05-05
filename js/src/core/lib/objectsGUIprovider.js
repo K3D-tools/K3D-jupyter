@@ -96,7 +96,7 @@ function objectGUIProvider(K3D, json, objects, changes) {
 
     var defaultParams = ['visible', 'outlines', 'wireframe', 'flat_shading', 'use_head', 'head_size', 'line_width',
         'scale', 'font_size', 'font_weight', 'size', 'point_size', 'level', 'samples', 'alpha_coef', 'gradient_step',
-        'shadow_delay', 'focal_length', 'focal_plane', 'on_top', 'max_length', 'label_box'];
+        'shadow_delay', 'focal_length', 'focal_plane', 'on_top', 'max_length', 'label_box', 'is_html'];
 
     var availableParams = defaultParams.concat(['color', 'origin_color', 'origin_color', 'head_color', 'outlines_color',
         'text', 'shader', 'shadow_res', 'shadow', 'ray_samples_count', 'width', 'radial_segments', 'mesh_detail',
