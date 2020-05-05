@@ -131,6 +131,7 @@ class Plot(widgets.DOMWidget):
     camera_no_pan = Bool(False).tag(sync=True)
     clipping_planes = ListOrArray(empty_ok=True).tag(sync=True)
     colorbar_object_id = Int(-1).tag(sync=True)
+    colorbar_scientific = Bool(False).tag(sync=True)
     rendering_steps = Int(1).tag(sync=True)
     screenshot = Unicode().tag(sync=True)
     snapshot = Unicode().tag(sync=True)
