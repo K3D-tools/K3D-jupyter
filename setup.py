@@ -23,7 +23,8 @@ LONG_DESCRIPTION = 'Jupyter notebook extension for 3D visualization.'
 # Representative files that should exist after a successful build
 targets = [
     os.path.join(here, 'k3d', 'static', 'standalone.js'),
-    os.path.join(here, 'k3d', 'static', 'snapshot.txt'),
+    os.path.join(here, 'k3d', 'static', 'snapshot_standalone.txt'),
+    os.path.join(here, 'k3d', 'static', 'snapshot_online.txt'),
     os.path.join(here, 'k3d', 'static', 'extension.js'),
     os.path.join(here, 'k3d', 'static', 'index.js')
 ]
@@ -53,7 +54,8 @@ setup_args = {
             'share/jupyter/nbextensions/k3d',
             [
                 'k3d/static/extension.js',
-                'k3d/static/snapshot.txt',
+                'k3d/static/snapshot_standalone.txt',
+                'k3d/static/snapshot_online.txt',
                 'k3d/static/standalone.js',
                 'k3d/static/index.js',
                 'k3d/static/index.js.map',

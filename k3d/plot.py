@@ -46,6 +46,8 @@ class Plot(widgets.DOMWidget):
             Lock for camera pan.
         camera_fov: `Float`.
             Camera Field of View.
+        snapshot_include_js: `Bool`.
+            If it's true snapshot html is standalone.
         axes: `list`.
             Axes labels for plot.
         time: `list`.
@@ -113,6 +115,7 @@ class Plot(widgets.DOMWidget):
     # read-write
     camera_auto_fit = Bool(True).tag(sync=True)
     auto_rendering = Bool(True).tag(sync=True)
+    snapshot_include_js = Bool(True).tag(sync=True)
     lighting = Float().tag(sync=True)
     fps = Float().tag(sync=True)
     grid_auto_fit = Bool(True).tag(sync=True)
@@ -149,8 +152,9 @@ class Plot(widgets.DOMWidget):
                  grid_visible=True, height=512, voxel_paint_color=0, grid=(-1, -1, -1, 1, 1, 1), screenshot_scale=2.0,
                  lighting=1.5, time=0.0, fps_meter=False, menu_visibility=True, colorbar_object_id=-1,
                  rendering_steps=1, axes=['x', 'y', 'z'], camera_no_rotate=False, camera_no_zoom=False,
-                 camera_no_pan=False, camera_fov=45.0, axes_helper=1.0, name=None, mode='view', camera_mode='trackball',
-                 manipulate_mode='translate', auto_rendering=True, fps=25.0, *args, **kwargs):
+                 snapshot_include_js=True, camera_no_pan=False, camera_fov=45.0, axes_helper=1.0, name=None,
+                 mode='view', camera_mode='trackball', manipulate_mode='translate', auto_rendering=True, fps=25.0,
+                 *args, **kwargs):
         super(Plot, self).__init__()
 
         self.antialias = antialias
@@ -177,6 +181,7 @@ class Plot(widgets.DOMWidget):
         self.axes_helper = axes_helper
         self.name = name
         self.mode = mode
+        self.snapshot_include_js = snapshot_include_js
         self.camera_mode = camera_mode
         self.manipulate_mode = manipulate_mode
         self.auto_rendering = auto_rendering
@@ -327,24 +332,31 @@ class Plot(widgets.DOMWidget):
         data = msgpack.packb(snapshot, use_bin_type=True)
         data = base64.b64encode(zlib.compress(data, compression_level))
 
-        f = io.open(os.path.join(dir_path, 'static', 'snapshot.txt'), mode="r", encoding="utf-8")
-        template = f.read()
-        f.close()
+        if self.snapshot_include_js:
+            f = io.open(os.path.join(dir_path, 'static', 'snapshot_standalone.txt'), mode="r", encoding="utf-8")
+            template = f.read()
+            f.close()
 
-        f = io.open(os.path.join(dir_path, 'static', 'standalone.js'), mode="r", encoding="utf-8")
-        template = template.replace('[K3D_SOURCE]',
-                                    base64.b64encode(zlib.compress(f.read().encode(), compression_level)).decode(
-                                        "utf-8")
-                                    )
-        f.close()
+            f = io.open(os.path.join(dir_path, 'static', 'standalone.js'), mode="r", encoding="utf-8")
+            template = template.replace('[K3D_SOURCE]',
+                                        base64.b64encode(zlib.compress(f.read().encode(), compression_level)).decode(
+                                            "utf-8")
+                                        )
+            f.close()
 
-        f = io.open(os.path.join(dir_path, 'static', 'require.js'), mode="r", encoding="utf-8")
-        template = template.replace('[REQUIRE_JS]', f.read())
-        f.close()
+            f = io.open(os.path.join(dir_path, 'static', 'require.js'), mode="r", encoding="utf-8")
+            template = template.replace('[REQUIRE_JS]', f.read())
+            f.close()
 
-        f = io.open(os.path.join(dir_path, 'static', 'pako_inflate.min.js'), mode="r", encoding="utf-8")
-        template = template.replace('[PAKO_JS]', f.read())
-        f.close()
+            f = io.open(os.path.join(dir_path, 'static', 'pako_inflate.min.js'), mode="r", encoding="utf-8")
+            template = template.replace('[PAKO_JS]', f.read())
+            f.close()
+        else:
+            f = io.open(os.path.join(dir_path, 'static', 'snapshot_online.txt'), mode="r", encoding="utf-8")
+            template = f.read()
+            f.close()
+
+            template = template.replace('[VERSION]', self._view_module_version)
 
         template = template.replace('[DATA]', data.decode("utf-8"))
 

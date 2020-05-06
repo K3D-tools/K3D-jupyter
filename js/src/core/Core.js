@@ -142,6 +142,7 @@ function K3D(provider, targetDOMNode, parameters) {
             cameraMode: cameraModes.trackball,
             manipulateMode: manipulate.manipulateModes.translate,
             voxelPaintColor: 0,
+            snapshotIncludeJs: true,
             menuVisibility: true,
             cameraAutoFit: true,
             gridAutoFit: true,
@@ -337,7 +338,7 @@ function K3D(provider, targetDOMNode, parameters) {
         self.render();
     };
 
-    this.setColorbarScientific = function(flag) {
+    this.setColorbarScientific = function (flag) {
         self.parameters.colorbarScientific = flag;
         self.render();
     };
@@ -506,6 +507,15 @@ function K3D(provider, targetDOMNode, parameters) {
      */
     this.setScreenshotScale = function (scale) {
         self.parameters.screenshotScale = scale;
+    };
+
+    /**
+     * Set snapshot include param for K3D
+     * @memberof K3D.Core
+     * @param {Number} state
+     */
+    this.setSnapshotIncludeJs = function (state) {
+        self.parameters.snapshotIncludeJs = state;
     };
 
     /**

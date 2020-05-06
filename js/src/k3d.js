@@ -285,6 +285,7 @@ PlotView = widgets.DOMWidgetView.extend({
         this.model.on('change:camera_no_pan', this._setCameraLock, this);
         this.model.on('change:camera_fov', this._setCameraFOV, this);
         this.model.on('change:axes_helper', this._setAxesHelper, this);
+        this.model.on('change:snapshot_include_js', this._setSnapshotIncludeJs, this);
         this.model.on('change:name', this._setName, this);
         this.model.on('change:mode', this._setViewMode, this);
         this.model.on('change:camera_mode', this._setCameraMode, this);
@@ -295,6 +296,7 @@ PlotView = widgets.DOMWidgetView.extend({
                 antialias: this.model.get('antialias'),
                 lighting: this.model.get('lighting'),
                 cameraMode: this.model.get('camera_mode'),
+                snapshotIncludeJs: this.model.get('snapshot_include_js'),
                 backendVersion: this.model.get('_backend_version'),
                 screenshotScale: this.model.get('screenshot_scale'),
                 menuVisibility: this.model.get('menu_visibility'),
@@ -481,6 +483,10 @@ PlotView = widgets.DOMWidgetView.extend({
 
     _setAxesHelper: function () {
         this.K3DInstance.setAxesHelper(this.model.get('axes_helper'));
+    },
+
+    _setSnapshotIncludeJs: function () {
+        this.K3DInstance.setSnapshotIncludeJs(this.model.get('snapshot_include_js'));
     },
 
     _setCameraLock: function () {

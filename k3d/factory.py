@@ -1036,6 +1036,7 @@ def plot(height=512,
          axes_helper=1.0,
          name=None,
          camera_mode='trackball',
+         snapshot_include_js=True,
          auto_rendering=True,
          camera_no_zoom=False,
          camera_no_rotate=False,
@@ -1076,6 +1077,8 @@ def plot(height=512,
             Lock for camera pan.
         camera_fov: `Float`.
             Camera Field of View.
+        snapshot_include_js: `Bool`.
+            If it's true snapshot html is standalone.
         axes: `list`.
             Axes labels for plot.
         axes_helper: `Float`.
@@ -1108,6 +1111,6 @@ def plot(height=512,
                 height=height, menu_visibility=menu_visibility,
                 voxel_paint_color=voxel_paint_color, grid=grid,
                 axes=axes, axes_helper=axes_helper, screenshot_scale=screenshot_scale, camera_fov=camera_fov,
-                name=name, camera_mode=camera_mode,
+                name=name, camera_mode=camera_mode, snapshot_include_js=snapshot_include_js,
                 camera_no_zoom=camera_no_zoom, camera_no_rotate=camera_no_rotate, camera_no_pan=camera_no_pan,
                 auto_rendering=auto_rendering, fps=fps)
