@@ -254,6 +254,10 @@ module.exports = {
             obj.applyMatrix(modelMatrix);
             obj.updateMatrixWorld();
 
+            if (obj.transformControls) {
+                obj.transformControls.updateMatrixWorld();
+            }
+
             resolvedChanges.model_matrix = null;
         }
 
@@ -262,5 +266,23 @@ module.exports = {
 
             resolvedChanges.visible = null;
         }
+    },
+
+    getSide: function (config) {
+        var map = {
+            'front': THREE.FrontSide,
+            'back': THREE.BackSide,
+            'double': THREE.DoubleSide
+        };
+
+        if (config.opacity < 1.0) {
+            return map.double;
+        }
+
+        if (!config.side) {
+            return map.front;
+        }
+
+        return map[config.side] || map.front;
     }
 };

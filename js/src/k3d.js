@@ -2,6 +2,7 @@
 //jshint maxstatements:false
 
 var widgets = require('@jupyter-widgets/base'),
+    _ = require('./lodash'),
     K3D = require('./core/Core'),
     TFEdit = require('./transferFunctionEditor'),
     serialize = require('./core/lib/helpers/serialize'),
@@ -86,6 +87,10 @@ ObjectModel = widgets.WidgetModel.extend({
                 // hack because of https://github.com/jashkenas/underscore/issues/2692
                 if (_.isObject(obj)) {
                     obj.t = Math.random();
+                }
+
+                if (obj.data && obj.shape) {
+                    obj.compression_level = this.attributes.compression_level;
                 }
 
                 this.save(msg.field, obj);
@@ -272,6 +277,7 @@ PlotView = widgets.DOMWidgetView.extend({
         this.model.on('change:object_ids', this._onObjectsListChange, this);
         this.model.on('change:menu_visibility', this._setMenuVisibility, this);
         this.model.on('change:colorbar_object_id', this._setColorMapLegend, this);
+        this.model.on('change:colorbar_scientific', this._setColorbarScientific, this);
         this.model.on('change:rendering_steps', this._setRenderingSteps, this);
         this.model.on('change:axes', this._setAxes, this);
         this.model.on('change:camera_no_rotate', this._setCameraLock, this);
@@ -279,13 +285,18 @@ PlotView = widgets.DOMWidgetView.extend({
         this.model.on('change:camera_no_pan', this._setCameraLock, this);
         this.model.on('change:camera_fov', this._setCameraFOV, this);
         this.model.on('change:axes_helper', this._setAxesHelper, this);
+        this.model.on('change:snapshot_include_js', this._setSnapshotIncludeJs, this);
         this.model.on('change:name', this._setName, this);
-        this.model.on('change:mode', this._setMode, this);
+        this.model.on('change:mode', this._setViewMode, this);
+        this.model.on('change:camera_mode', this._setCameraMode, this);
+        this.model.on('change:manipulate_mode', this._setManipulateMode, this);
 
         try {
             this.K3DInstance = new K3D(ThreeJsProvider, this.container, {
                 antialias: this.model.get('antialias'),
                 lighting: this.model.get('lighting'),
+                cameraMode: this.model.get('camera_mode'),
+                snapshotIncludeJs: this.model.get('snapshot_include_js'),
                 backendVersion: this.model.get('_backend_version'),
                 screenshotScale: this.model.get('screenshot_scale'),
                 menuVisibility: this.model.get('menu_visibility'),
@@ -310,7 +321,6 @@ PlotView = widgets.DOMWidgetView.extend({
             return;
         }
 
-
         this.K3DInstance.setClearColor(this.model.get('background_color'));
         this.K3DInstance.setChunkList(chunkList);
 
@@ -334,7 +344,12 @@ PlotView = widgets.DOMWidgetView.extend({
 
         this.GUIObjectChanges = this.K3DInstance.on(this.K3DInstance.events.OBJECT_CHANGE, function (change) {
             if (self.model._comm_live) {
-                objectsList[change.id].save(change.key, change.value, {patch: true});
+                if (change.value.data && change.value.shape) {
+                    change.value.compression_level = objectsList[change.id].attributes.compression_level;
+                }
+
+                objectsList[change.id].set(change.key, change.value);
+                objectsList[change.id].save_changes();
             }
         });
 
@@ -430,6 +445,10 @@ PlotView = widgets.DOMWidgetView.extend({
         this.K3DInstance.setColorMapLegend(this.model.get('colorbar_object_id'));
     },
 
+    _setColorbarScientific: function () {
+        this.K3DInstance.setColorbarScientific(this.model.get('colorbar_scientific'));
+    },
+
     _setCamera: function () {
         this.K3DInstance.setCamera(this.model.get('camera'));
     },
@@ -450,12 +469,24 @@ PlotView = widgets.DOMWidgetView.extend({
         this.K3DInstance.setName(this.model.get('name'));
     },
 
-    _setMode: function () {
+    _setViewMode: function () {
         this.K3DInstance.setViewMode(this.model.get('mode'));
+    },
+
+    _setCameraMode: function () {
+        this.K3DInstance.setCameraMode(this.model.get('camera_mode'));
+    },
+
+    _setManipulateMode: function () {
+        this.K3DInstance.setManipulateMode(this.model.get('manipulate_mode'));
     },
 
     _setAxesHelper: function () {
         this.K3DInstance.setAxesHelper(this.model.get('axes_helper'));
+    },
+
+    _setSnapshotIncludeJs: function () {
+        this.K3DInstance.setSnapshotIncludeJs(this.model.get('snapshot_include_js'));
     },
 
     _setCameraLock: function () {

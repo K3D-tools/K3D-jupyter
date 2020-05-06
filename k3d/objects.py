@@ -348,6 +348,7 @@ class Mesh(DrawableWithCallback):
     color_range = TimeSeries(ListOrArray(minlen=2, maxlen=2, empty_ok=True)).tag(sync=True)
     wireframe = TimeSeries(Bool()).tag(sync=True)
     flat_shading = TimeSeries(Bool()).tag(sync=True)
+    side = TimeSeries(Unicode()).tag(sync=True)
     opacity = TimeSeries(Float(min=0.0, max=1.0, default_value=1.0)).tag(sync=True)
     volume = TimeSeries(Array()).tag(sync=True, **array_serialization_wrap('volume'))
     volume_bounds = TimeSeries(Array(dtype=np.float32)).tag(sync=True, **array_serialization_wrap('volume_bounds'))
@@ -364,6 +365,9 @@ class Mesh(DrawableWithCallback):
     def _validate_volume(self, proposal):
         if type(proposal['value']) is dict:
             return proposal['value']
+
+        if type(proposal['value']) is np.ndarray and proposal['value'].dtype is np.dtype(object):
+            return proposal['value'].tolist()
 
         if proposal['value'].shape == (0,):
             return np.array(proposal['value'], dtype=np.float32)
@@ -531,6 +535,10 @@ class Text(Drawable):
             Coordinates (x, y, z) of the text's position.
         color: `int`.
             Packed RGB color of the text (0xff0000 is red, 0xff is blue).
+        is_html: `Boolean`.
+            Whether text should be interpreted as HTML insted of KaTeX.
+        on_top: `Boolean`.
+            Render order with 3d object
         reference_point: `str`.
             Two-letter string representing the text's alignment.
 
@@ -539,14 +547,19 @@ class Text(Drawable):
             Second letter: 't', 'c' or 'b': top, center or bottom.
         size: `float`.
             Font size in 'em' HTML units.
+        label_box: `Boolean`.
+            Label background box.
     """
 
     type = Unicode(read_only=True).tag(sync=True)
     text = TimeSeries(Unicode()).tag(sync=True)
     position = TimeSeries(ListOrArray(minlen=3, maxlen=3)).tag(sync=True)
+    is_html = Bool(False).tag(sync=True)
     color = Int(min=0, max=0xffffff).tag(sync=True)
     reference_point = Unicode().tag(sync=True)
     size = TimeSeries(Float(min=EPSILON, default_value=1.0)).tag(sync=True)
+    on_top = Bool().tag(sync=True)
+    label_box = Bool().tag(sync=True)
 
     def __init__(self, **kwargs):
         super(Text, self).__init__(**kwargs)
@@ -565,6 +578,8 @@ class Text2d(Drawable):
             Ratios (r_x, r_y) of the text's position in range (0, 1) - relative to canvas size.
         color: `int`.
             Packed RGB color of the text (0xff0000 is red, 0xff is blue).
+        is_html: `Boolean`.
+            Whether text should be interpreted as HTML insted of KaTeX.
         reference_point: `str`.
             Two-letter string representing the text's alignment.
 
@@ -573,19 +588,65 @@ class Text2d(Drawable):
             Second letter: 't', 'c' or 'b': top, center or bottom.
         size: `float`.
             Font size in 'em' HTML units.
+        label_box: `Boolean`.
+            Label background box.
     """
 
     type = Unicode(read_only=True).tag(sync=True)
     color = Int(min=0, max=0xffffff).tag(sync=True)
     size = TimeSeries(Float(min=EPSILON, default_value=1.0)).tag(sync=True)
+    is_html = Bool(False).tag(sync=True)
     reference_point = Unicode().tag(sync=True)
     position = TimeSeries(ListOrArray(minlen=2, maxlen=2)).tag(sync=True)
     text = TimeSeries(Unicode()).tag(sync=True)
+    label_box = Bool().tag(sync=True)
 
     def __init__(self, **kwargs):
         super(Text2d, self).__init__(**kwargs)
 
         self.set_trait('type', 'Text2d')
+
+
+class Label(Drawable):
+    """
+    Label rendered using KaTeX with a 3D position.
+
+    Attributes:
+        text: `str`.
+            Content of the text.
+        position: `list`.
+            Coordinates (x, y, z) of the text's position.
+        color: `int`.
+            Packed RGB color of the text (0xff0000 is red, 0xff is blue).
+        on_top: `Boolean`.
+            Render order with 3d object
+        label_box: `Boolean`.
+            Label background box.
+        mode: `str`.
+            Label node. Can be 'dynamic', 'local' or 'side'.
+        is_html: `Boolean`.
+            Whether text should be interpreted as HTML insted of KaTeX.
+        max_length: `float`.
+            Maximum length of line in % of half screen size.
+        size: `float`.
+            Font size in 'em' HTML units.
+    """
+
+    type = Unicode(read_only=True).tag(sync=True)
+    mode = Unicode().tag(sync=True)
+    text = TimeSeries(Unicode()).tag(sync=True)
+    is_html = Bool(False).tag(sync=True)
+    position = TimeSeries(ListOrArray(minlen=3, maxlen=3)).tag(sync=True)
+    color = Int(min=0, max=0xffffff).tag(sync=True)
+    max_length = Float(min=0, max=1.0).tag(sync=True)
+    size = TimeSeries(Float(min=EPSILON, default_value=1.0)).tag(sync=True)
+    on_top = Bool().tag(sync=True)
+    label_box = Bool().tag(sync=True)
+
+    def __init__(self, **kwargs):
+        super(Label, self).__init__(**kwargs)
+
+        self.set_trait('type', 'Label')
 
 
 class Texture(DrawableWithCallback):
@@ -856,6 +917,9 @@ class Volume(Drawable):
         if type(proposal['value']) is dict:
             return proposal['value']
 
+        if type(proposal['value']) is np.ndarray and proposal['value'].dtype is np.dtype(object):
+            return proposal['value'].tolist()
+
         required = [np.float16, np.float32]
         actual = proposal['value'].dtype
 
@@ -870,6 +934,67 @@ class Volume(Drawable):
         """Request updating the shadow map in browser."""
 
         self.send({'msg_type': 'shadow_map_update', 'direction': direction})
+
+
+class MIP(Drawable):
+    """
+    3D volumetric data.
+
+    By default, the volume are a grid inscribed in the -0.5 < x, y, z < 0.5 cube
+    regardless of the passed voxel array shape (aspect ratio etc.).
+
+    Attributes:
+        volume: `array_like`.
+            3D array of `float`.
+        color_map: `array_like`.
+            A list of float quadruplets (attribute value, R, G, B), sorted by attribute value. The first
+            quadruplet should have value 0.0, the last 1.0; R, G, B are RGB color components in the range 0.0 to 1.0.
+        opacity_function: `array`.
+            A list of float tuples (attribute value, opacity), sorted by attribute value. The first
+            typles should have value 0.0, the last 1.0; opacity is in the range 0.0 to 1.0.
+        color_range: `list`.
+            A pair [min_value, max_value], which determines the levels of color attribute mapped
+            to 0 and 1 in the color map respectively.
+        samples: `float`.
+            Number of iteration per 1 unit of space.
+        gradient_step: `float`
+            Gradient light step.
+        model_matrix: `array_like`.
+            4x4 model transform matrix.
+    """
+
+    type = Unicode(read_only=True).tag(sync=True)
+    volume = TimeSeries(Array()).tag(sync=True, **array_serialization_wrap('volume'))
+    color_map = TimeSeries(Array(dtype=np.float32)).tag(sync=True, **array_serialization_wrap('color_map'))
+    opacity_function = TimeSeries(Array(dtype=np.float32)).tag(sync=True,
+                                                               **array_serialization_wrap('opacity_function'))
+    color_range = TimeSeries(ListOrArray(minlen=2, maxlen=2, empty_ok=True)).tag(sync=True)
+    gradient_step = TimeSeries(Float()).tag(sync=True)
+    samples = TimeSeries(Float()).tag(sync=True)
+    model_matrix = TimeSeries(Array(dtype=np.float32)).tag(sync=True, **array_serialization_wrap('model_matrix'))
+
+    def __init__(self, **kwargs):
+        super(MIP, self).__init__(**kwargs)
+
+        self.set_trait('type', 'MIP')
+
+    @validate('volume')
+    def _validate_volume(self, proposal):
+        if type(proposal['value']) is dict:
+            return proposal['value']
+
+        if type(proposal['value']) is np.ndarray and proposal['value'].dtype is np.dtype(object):
+            return proposal['value'].tolist()
+
+        required = [np.float16, np.float32]
+        actual = proposal['value'].dtype
+
+        if actual not in required:
+            warnings.warn('wrong dtype: %s (%s required)' % (actual, required))
+
+            return proposal['value'].astype(np.float32)
+
+        return proposal['value']
 
 
 class Voxels(DrawableWithVoxelCallback):

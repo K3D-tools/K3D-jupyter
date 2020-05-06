@@ -28,7 +28,6 @@ function handleListeners(K3D, on, listener) {
  * @param {Object} K3D current K3D instance
  */
 module.exports = function (K3D) {
-
     var self = this, renderingPromise = null,
         canvas = document.createElement('canvas'),
         context = canvas.getContext('webgl2', {
@@ -44,11 +43,17 @@ module.exports = function (K3D) {
         context: context
     });
 
-    canvas.addEventListener('webglcontextlost', function (event) {
+    function handleContextLoss(event) {
         event.preventDefault();
         K3D.disable();
         error('WEBGL Error', 'Context lost.', false);
-    }, false);
+    }
+
+    canvas.addEventListener('webglcontextlost', handleContextLoss, false);
+
+    self.renderer.removeContextLossListener = function () {
+        canvas.removeEventListener('webglcontextlost', handleContextLoss);
+    };
 
     gl = self.renderer.getContext();
 
@@ -97,7 +102,7 @@ module.exports = function (K3D) {
 
             K3D.dispatch(K3D.events.BEFORE_RENDER);
 
-            var p = Promise.resolve();
+            var p = Promise.resolve(), originalControlsEnabledState = self.controls.enabled;
 
             if (K3D.parameters.renderingSteps > 1) {
                 self.controls.enabled = false;
@@ -122,7 +127,7 @@ module.exports = function (K3D) {
             }
 
             p = p.then(function () {
-                self.controls.enabled = true;
+                self.controls.enabled = originalControlsEnabledState;
 
                 self.renderer.setViewport(0, 0, size.x, size.y);
                 self.camera.clearViewOffset();
@@ -144,6 +149,8 @@ module.exports = function (K3D) {
     this.renderer.autoClear = false;
 
     this.render = function (force) {
+        K3D.labels = [];
+
         if (!K3D.autoRendering || force) {
             if (renderingPromise === null) {
                 renderingPromise = render().then(function () {

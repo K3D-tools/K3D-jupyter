@@ -28,10 +28,23 @@ module.exports = {
             listenersId,
             world = K3D.getWorld();
 
-        domElement.innerHTML = katex.renderToString(text, {displayMode: true});
+        if (config.is_html) {
+            domElement.innerHTML = text;
+            domElement.style.cssText = 'pointer-events: all';
+        } else {
+            domElement.innerHTML = katex.renderToString(text, {displayMode: true});
+        }
+
         domElement.style.position = 'absolute';
         domElement.style.color = colorToHex(color);
         domElement.style.fontSize = size + 'em';
+
+        if (config.label_box) {
+            domElement.style.padding = '5px';
+            domElement.style.background = K3D.getWorld().targetDOMNode.style.backgroundColor;
+            domElement.style.border = '1px solid ' + colorToHex(color);
+            domElement.style.borderRadius = '10px';
+        }
 
         overlayDOMNode.appendChild(domElement);
 

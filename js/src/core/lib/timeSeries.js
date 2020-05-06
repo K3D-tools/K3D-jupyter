@@ -3,6 +3,7 @@
 'use strict';
 
 var THREE = require('three'),
+    _ = require('./../../lodash'),
     pow10ceil = require('./helpers/math').pow10ceil;
 
 function clone(val) {

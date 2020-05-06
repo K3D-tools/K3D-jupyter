@@ -524,6 +524,20 @@ require(['k3d'], function (lib) {
             });
         });
 
+        it('should draw a label with LaTeX', function (done) {
+            var self = this;
+
+            jsonLoader('http://localhost:9001/samples/mesh_with_annotations.json', function (json) {
+
+                self.K3D.addFrameUpdateListener('after', function () {
+                    TestHelpers.compareCanvasWithExpectedImage(self.K3D, 'mesh_with_annotations',
+                        RESAMBLEThreshold, false, done);
+                }, true);
+
+                self.K3D.load(json);
+            });
+        });
+
         it('should draw a 2d text with LaTeX', function (done) {
             var self = this;
 

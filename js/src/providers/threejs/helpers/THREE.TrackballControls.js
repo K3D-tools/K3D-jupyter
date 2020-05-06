@@ -33,6 +33,7 @@ module.exports = function (THREE) {
 
         this.screen = {left: 0, top: 0, width: 0, height: 0};
 
+        this.flyMode = false;
         this.rotateSpeed = 1.0;
         this.zoomSpeed = 1.2;
         this.panSpeed = 0.3;
@@ -75,8 +76,8 @@ module.exports = function (THREE) {
             _touchZoomDistanceStart = 0,
             _touchZoomDistanceEnd = 0,
 
-            _panStart = new THREE.Vector2(),
-            _panEnd = new THREE.Vector2();
+            _panStart = new THREE.Vector3(),
+            _panEnd = new THREE.Vector3();
 
         // for reset
 
@@ -228,6 +229,10 @@ module.exports = function (THREE) {
 
             } else {
 
+                if( _this.flyMode) {
+                    return;
+                }
+
                 factor = 1.0 + (_zoomEnd.y - _zoomStart.y) * _this.zoomSpeed;
 
                 if (factor !== 1.0 && factor > 0.0) {
@@ -252,8 +257,9 @@ module.exports = function (THREE) {
 
         this.panCamera = (function () {
 
-            var mouseChange = new THREE.Vector2(),
+            var mouseChange = new THREE.Vector3(),
                 objectUp = new THREE.Vector3(),
+                zAxis = new THREE.Vector3(),
                 pan = new THREE.Vector3();
 
             return function panCamera() {
@@ -266,6 +272,7 @@ module.exports = function (THREE) {
 
                     pan.copy(_eye).cross(_this.object.up).setLength(mouseChange.x);
                     pan.add(objectUp.copy(_this.object.up).setLength(mouseChange.y));
+                    pan.add(zAxis.copy(_eye).setLength(mouseChange.z));
 
                     _this.object.position.add(pan);
                     _this.target.add(pan);
@@ -338,11 +345,10 @@ module.exports = function (THREE) {
 
             if (lastPosition.distanceToSquared(_this.object.position) > EPS ||
                 lastUp.distanceToSquared(_this.object.up) > EPS) {
-
-                _this.dispatchEvent(changeEvent);
-
                 lastPosition.copy(_this.object.position);
                 lastUp.copy(_this.object.up);
+
+                _this.dispatchEvent(changeEvent);
             }
 
         };
@@ -433,6 +439,8 @@ module.exports = function (THREE) {
             } else if (_state === STATE.PAN && !_this.noPan) {
 
                 _panStart.copy(getMouseOnScreen(event.pageX, event.pageY));
+                _panStart.z = 0.0;
+
                 _panEnd.copy(_panStart);
 
             }
@@ -445,7 +453,6 @@ module.exports = function (THREE) {
         }
 
         function mousemove(event) {
-
             if (_this.enabled === false) return;
 
             event.preventDefault();
@@ -462,7 +469,10 @@ module.exports = function (THREE) {
 
             } else if (_state === STATE.PAN && !_this.noPan) {
 
-                _panEnd.copy(getMouseOnScreen(event.pageX, event.pageY));
+                var mouseOnScreen = getMouseOnScreen(event.pageX, event.pageY);
+                _panEnd.x = mouseOnScreen.x;
+                _panEnd.y = mouseOnScreen.y;
+                _panEnd.z = _panEnd.z || 0.0;
 
             }
 
@@ -506,6 +516,11 @@ module.exports = function (THREE) {
 
             }
 
+            if ((_state === STATE.PAN && !_this.noPan) || _this.flyMode) {
+                _panEnd.z -= delta * 0.01;
+                return;
+            }
+
             _zoomStart.y += delta * 0.01;
             _this.dispatchEvent(startEvent);
             _this.dispatchEvent(endEvent);
@@ -533,6 +548,7 @@ module.exports = function (THREE) {
                     var x = (event.touches[0].pageX + event.touches[1].pageX) / 2;
                     var y = (event.touches[0].pageY + event.touches[1].pageY) / 2;
                     _panStart.copy(getMouseOnScreen(x, y));
+                    _panStart.z = 0.0;
                     _panEnd.copy(_panStart);
                     break;
 

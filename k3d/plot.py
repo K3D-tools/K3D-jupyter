@@ -46,6 +46,8 @@ class Plot(widgets.DOMWidget):
             Lock for camera pan.
         camera_fov: `Float`.
             Camera Field of View.
+        snapshot_include_js: `Bool`.
+            If it's true snapshot html is standalone.
         axes: `list`.
             Axes labels for plot.
         time: `list`.
@@ -63,7 +65,29 @@ class Plot(widgets.DOMWidget):
 
             :`change`: On voxels objects edit mode,
 
-            :`callback`: Handling click_callback and hover_callback on some type of objects.
+            :`callback`: Handling click_callback and hover_callback on some type of objects,
+
+            :`manipulate`: Enable object transform widget.
+        camera_mode: `str`.
+            Mode of camera movement.
+
+            Legal values are:
+
+            :`trackball`: orbit around point with dynamic up-vector of camera,
+
+            :`orbit`: orbit around point with fixed up-vector of camera,
+
+            :`fly`: orbit around point with dynamic up-vector of camera, mouse wheel also moves target point.
+        manipulate_mode: `str`.
+            Mode of manipulate widgets.
+
+            Legal values are:
+
+            :`translate`: Translation widget,
+
+            :`rotate`: Rotation widget,
+
+            :`scale`: Scaling widget.
         auto_rendering: `Bool`.
             State of auto rendering.
         fps: `Float`.
@@ -91,6 +115,7 @@ class Plot(widgets.DOMWidget):
     # read-write
     camera_auto_fit = Bool(True).tag(sync=True)
     auto_rendering = Bool(True).tag(sync=True)
+    snapshot_include_js = Bool(True).tag(sync=True)
     lighting = Float().tag(sync=True)
     fps = Float().tag(sync=True)
     grid_auto_fit = Bool(True).tag(sync=True)
@@ -109,6 +134,7 @@ class Plot(widgets.DOMWidget):
     camera_no_pan = Bool(False).tag(sync=True)
     clipping_planes = ListOrArray(empty_ok=True).tag(sync=True)
     colorbar_object_id = Int(-1).tag(sync=True)
+    colorbar_scientific = Bool(False).tag(sync=True)
     rendering_steps = Int(1).tag(sync=True)
     screenshot = Unicode().tag(sync=True)
     snapshot = Unicode().tag(sync=True)
@@ -117,6 +143,8 @@ class Plot(widgets.DOMWidget):
     axes = List(minlen=3, maxlen=3, default_value=['x', 'y', 'z']).tag(sync=True)
     axes_helper = Float().tag(sync=True)
     mode = Unicode().tag(sync=True)
+    camera_mode = Unicode().tag(sync=True)
+    manipulate_mode = Unicode().tag(sync=True)
 
     objects = []
 
@@ -124,8 +152,9 @@ class Plot(widgets.DOMWidget):
                  grid_visible=True, height=512, voxel_paint_color=0, grid=(-1, -1, -1, 1, 1, 1), screenshot_scale=2.0,
                  lighting=1.5, time=0.0, fps_meter=False, menu_visibility=True, colorbar_object_id=-1,
                  rendering_steps=1, axes=['x', 'y', 'z'], camera_no_rotate=False, camera_no_zoom=False,
-                 camera_no_pan=False, camera_fov=45.0, axes_helper=1.0, name=None, mode='view',
-                 auto_rendering=True, fps=25.0, *args, **kwargs):
+                 snapshot_include_js=True, camera_no_pan=False, camera_fov=45.0, axes_helper=1.0, name=None,
+                 mode='view', camera_mode='trackball', manipulate_mode='translate', auto_rendering=True, fps=25.0,
+                 *args, **kwargs):
         super(Plot, self).__init__()
 
         self.antialias = antialias
@@ -152,6 +181,9 @@ class Plot(widgets.DOMWidget):
         self.axes_helper = axes_helper
         self.name = name
         self.mode = mode
+        self.snapshot_include_js = snapshot_include_js
+        self.camera_mode = camera_mode
+        self.manipulate_mode = manipulate_mode
         self.auto_rendering = auto_rendering
         self.camera = [2, -3, 0.2, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0]
 
@@ -161,6 +193,7 @@ class Plot(widgets.DOMWidget):
         self.outputs = []
 
     def __iadd__(self, objs):
+        """Add Drawable to plot."""
         assert isinstance(objs, Drawable)
 
         for obj in objs:
@@ -171,6 +204,7 @@ class Plot(widgets.DOMWidget):
         return self
 
     def __isub__(self, objs):
+        """Remove Drawable from plot."""
         assert isinstance(objs, Drawable)
 
         for obj in objs:
@@ -181,6 +215,7 @@ class Plot(widgets.DOMWidget):
         return self
 
     def display(self, **kwargs):
+        """Show plot inside ipywidgets.Output()."""
         output = widgets.Output()
 
         with output:
@@ -191,24 +226,38 @@ class Plot(widgets.DOMWidget):
         display(output)
 
     def render(self):
+        """Trigger rendering on demand.
+
+        Useful when self.auto_rendering == False."""
         self.send({'msg_type': 'render'})
 
     def start_auto_play(self):
+        """Start animation of plot with objects using TimeSeries."""
         self.send({'msg_type': 'start_auto_play'})
 
     def stop_auto_play(self):
+        """Stop animation of plot with objects using TimeSeries."""
         self.send({'msg_type': 'stop_auto_play'})
 
     def close(self):
+        """Remove plot from all its ipywidgets.Output()-s."""
         for output in self.outputs:
             output.clear_output()
 
         self.outputs = []
 
     def camera_reset(self, factor=1.5):
+        """Trigger auto-adjustment of camera.
+
+        Useful when self.camera_auto_fit == False."""
         self.send({'msg_type': 'reset_camera', 'factor': factor})
 
     def fetch_screenshot(self, only_canvas=False):
+        """Request creating a PNG screenshot on the JS side and saving it in self.screenshot
+
+        The result is a string of a PNG file in base64 encoding.
+        This function requires a round-trip of websocket messages. The result will
+        be available after the current cell finishes execution."""
         self.send({'msg_type': 'fetch_screenshot', 'only_canvas': only_canvas})
 
     def yield_screenshots(self, generator_function):
@@ -231,6 +280,11 @@ class Plot(widgets.DOMWidget):
         return inner
 
     def fetch_snapshot(self, compression_level=9):
+        """Request creating a HTML snapshot on the JS side and saving it in self.snapshot
+
+        The result is a string: a HTML document with this plot embedded.
+        This function requires a round-trip of websocket messages. The result will
+        be available after the current cell finishes execution."""
         self.send({'msg_type': 'fetch_snapshot', 'compression_level': compression_level})
 
     def yield_snapshots(self, generator_function):
@@ -253,6 +307,7 @@ class Plot(widgets.DOMWidget):
         return inner
 
     def get_snapshot(self, compression_level=9, additional_js_code=''):
+        """Produce on the Python side a HTML document with the current plot embedded."""
         import os
         import io
         import msgpack
@@ -277,24 +332,31 @@ class Plot(widgets.DOMWidget):
         data = msgpack.packb(snapshot, use_bin_type=True)
         data = base64.b64encode(zlib.compress(data, compression_level))
 
-        f = io.open(os.path.join(dir_path, 'static', 'snapshot.txt'), mode="r", encoding="utf-8")
-        template = f.read()
-        f.close()
+        if self.snapshot_include_js:
+            f = io.open(os.path.join(dir_path, 'static', 'snapshot_standalone.txt'), mode="r", encoding="utf-8")
+            template = f.read()
+            f.close()
 
-        f = io.open(os.path.join(dir_path, 'static', 'standalone.js'), mode="r", encoding="utf-8")
-        template = template.replace('[K3D_SOURCE]',
-                                    base64.b64encode(zlib.compress(f.read().encode(), compression_level)).decode(
-                                        "utf-8")
-                                    )
-        f.close()
+            f = io.open(os.path.join(dir_path, 'static', 'standalone.js'), mode="r", encoding="utf-8")
+            template = template.replace('[K3D_SOURCE]',
+                                        base64.b64encode(zlib.compress(f.read().encode(), compression_level)).decode(
+                                            "utf-8")
+                                        )
+            f.close()
 
-        f = io.open(os.path.join(dir_path, 'static', 'require.js'), mode="r", encoding="utf-8")
-        template = template.replace('[REQUIRE_JS]', f.read())
-        f.close()
+            f = io.open(os.path.join(dir_path, 'static', 'require.js'), mode="r", encoding="utf-8")
+            template = template.replace('[REQUIRE_JS]', f.read())
+            f.close()
 
-        f = io.open(os.path.join(dir_path, 'static', 'pako_inflate.min.js'), mode="r", encoding="utf-8")
-        template = template.replace('[PAKO_JS]', f.read())
-        f.close()
+            f = io.open(os.path.join(dir_path, 'static', 'pako_inflate.min.js'), mode="r", encoding="utf-8")
+            template = template.replace('[PAKO_JS]', f.read())
+            f.close()
+        else:
+            f = io.open(os.path.join(dir_path, 'static', 'snapshot_online.txt'), mode="r", encoding="utf-8")
+            template = f.read()
+            f.close()
+
+            template = template.replace('[VERSION]', self._view_module_version)
 
         template = template.replace('[DATA]', data.decode("utf-8"))
 

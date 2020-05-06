@@ -5,7 +5,8 @@ var THREE = require('three'),
     colorMapHelper = require('./../../../core/lib/helpers/colorMap'),
     typedArrayToThree = require('./../helpers/Fn').typedArrayToThree,
     areAllChangesResolve = require('./../helpers/Fn').areAllChangesResolve,
-    commonUpdate = require('./../helpers/Fn').commonUpdate;
+    commonUpdate = require('./../helpers/Fn').commonUpdate,
+    getSide = require('./../helpers/Fn').getSide;
 
 /**
  * Loader strategy to handle Mesh object
@@ -53,7 +54,7 @@ module.exports = {
         texture.generateMipmaps = false;
         texture.minFilter = THREE.LinearFilter;
         texture.magFilter = THREE.LinearFilter;
-        texture.wrapS = texture.wrapT = THREE.MirroredRepeatWrapping;
+        texture.wrapS = texture.wrapT = THREE.ClampToEdgeWrapping;
         texture.needsUpdate = true;
 
         material = new THREE.ShaderMaterial({
@@ -78,6 +79,7 @@ module.exports = {
                         config.volume_bounds.data[5])
                 }
             },
+            side: getSide(config),
             vertexShader: require('./shaders/MeshVolume.vertex.glsl'),
             fragmentShader: require('./shaders/MeshVolume.fragment.glsl'),
             depthTest: (config.opacity === 1.0 && opacityFunction === null),

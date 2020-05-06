@@ -1,6 +1,7 @@
 'use strict';
 
 var validateAndPrepareObject = require('./helpers/objectValidator'),
+    _ = require('./../../lodash'),
     timeSeries = require('./timeSeries'),
     error = require('./Error').error;
 

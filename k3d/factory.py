@@ -14,7 +14,7 @@ import six
 from .colormaps import matplotlib_color_maps
 from .helpers import check_attribute_range
 from .objects import (Line, MarchingCubes, Mesh, Points, STL, Surface, Text, Text2d, Texture, TextureText, VectorField,
-                      Vectors, Volume, Voxels, SparseVoxels, VoxelsGroup, VoxelChunk)
+                      Vectors, Volume, MIP, Voxels, SparseVoxels, VoxelsGroup, VoxelChunk, Label)
 from .plot import Plot
 from .transform import process_transform_arguments
 
@@ -138,7 +138,7 @@ def marching_cubes(scalar_field, level, color=_default_color, wireframe=False, f
 def mesh(vertices, indices, color=_default_color, attribute=[], color_map=default_colormap,
          # lgtm [py/similar-function]
          color_range=[], wireframe=False, flat_shading=True, opacity=1.0,
-         volume=[], volume_bounds=[], opacity_function=[],
+         volume=[], volume_bounds=[], opacity_function=[], side='front',
          name=None, compression_level=0, **kwargs):
     """Create a Mesh drawable representing a 3D triangles mesh.
 
@@ -170,6 +170,8 @@ def mesh(vertices, indices, color=_default_color, attribute=[], color_map=defaul
         opacity_function: `array`.
             A list of float tuples (attribute value, opacity), sorted by attribute value. The first
             typles should have value 0.0, the last 1.0; opacity is in the range 0.0 to 1.0.
+        side: `string`.
+            Control over which side to render for a mesh. Legal values are `front`, `back`, `double`.
         name: `string`.
             A name of a object
         kwargs: `dict`.
@@ -198,6 +200,7 @@ def mesh(vertices, indices, color=_default_color, attribute=[], color_map=defaul
              volume=volume,
              volume_bounds=volume_bounds,
              opacity_function=opacity_function,
+             side=side,
              name=name,
              compression_level=compression_level),
         **kwargs
@@ -331,8 +334,8 @@ def surface(heights, color=_default_color, wireframe=False, flat_shading=True, a
 
 
 # noinspection PyShadowingNames
-def text(text, position=(0, 0, 0), color=_default_color, reference_point='lb', size=1.0, name=None,
-         compression_level=0):
+def text(text, position=(0, 0, 0), color=_default_color, reference_point='lb', on_top=True, size=1.0, label_box=True,
+         is_html=False, name=None, compression_level=0):
     """Create a Text drawable for 3D-positioned text labels.
 
     Arguments:
@@ -340,8 +343,14 @@ def text(text, position=(0, 0, 0), color=_default_color, reference_point='lb', s
             Content of the text.
         position: `list`.
             Coordinates (x, y, z) of the text's position.
+        on_top: `Boolean`.
+            Render order with 3d object
+        label_box: `Boolean`.
+            Label background box.
         color: `int`.
             Packed RGB color of the text (0xff0000 is red, 0xff is blue).
+        is_html: `Boolean`.
+            Whether text should be interpreted as HTML insted of KaTeX.
         reference_point: `str`.
             Two-letter string representing the text's alignment.
             First letter: 'l', 'c' or 'r': left, center or right
@@ -352,12 +361,13 @@ def text(text, position=(0, 0, 0), color=_default_color, reference_point='lb', s
         size: `float`.
             Font size in 'em' HTML units."""
 
-    return Text(position=position, reference_point=reference_point, text=text, size=size, color=color, name=name,
-                compression_level=compression_level)
+    return Text(position=position, reference_point=reference_point, text=text, size=size, color=color, on_top=on_top,
+                is_html=is_html, label_box=label_box, name=name, compression_level=compression_level)
 
 
 # noinspection PyShadowingNames
-def text2d(text, position=(0, 0), color=_default_color, size=1.0, reference_point='lt', name=None, compression_level=0):
+def text2d(text, position=(0, 0), color=_default_color, size=1.0, reference_point='lt', label_box=True, name=None,
+           is_html=False, compression_level=0):
     """Create a Text2d drawable for 2D-positioned (viewport bound, OSD) labels.
 
     Arguments:
@@ -367,18 +377,54 @@ def text2d(text, position=(0, 0), color=_default_color, size=1.0, reference_poin
             Ratios (r_x, r_y) of the text's position in range (0, 1) - relative to canvas size.
         color: `int`.
             Packed RGB color of the text (0xff0000 is red, 0xff is blue).
+        is_html: `Boolean`.
+            Whether text should be interpreted as HTML insted of KaTeX.
         reference_point: `str`.
             Two-letter string representing the text's alignment.
 
             First letter: 'l', 'c' or 'r': left, center or right
 
             Second letter: 't', 'c' or 'b': top, center or bottom.
+        label_box: `Boolean`.
+            Label background box.
         name: `string`.
             A name of a object
         size: `float`.
             Font size in 'em' HTML units."""
+
     return Text2d(position=position, reference_point=reference_point, text=text, size=size, color=color,
-                  name=name, compression_level=compression_level)
+                  is_html=is_html, label_box=label_box, name=name, compression_level=compression_level)
+
+
+# noinspection PyShadowingNames
+def label(text, position=(0, 0, 0), color=_default_color, on_top=True, size=1.0, name=None, max_length=0.8,
+          mode="dynamic", is_html=False, label_box=True, compression_level=0):
+    """Create a Text drawable for 3D-positioned text labels.
+
+    Arguments:
+        text: `str`.
+            Content of the text.
+        position: `list`.
+            Coordinates (x, y, z) of the text's position.
+        on_top: `Boolean`.
+            Render order with 3d object
+        label_box: `Boolean`.
+            Label background box.
+        color: `int`.
+            Packed RGB color of the text (0xff0000 is red, 0xff is blue).
+        max_length: `float`.
+            Maximum length of line in % of half screen size (only for mode='dynamic').
+        mode: `str`.
+            Label node. Can be 'dynamic', 'local' or 'side'.
+        name: `string`.
+            A name of a object
+        is_html: `Boolean`.
+            Whether text should be interpreted as HTML insted of KaTeX.
+        size: `float`.
+            Font size in 'em' HTML units."""
+
+    return Label(position=position, text=text, size=size, color=color, on_top=on_top, max_length=max_length,
+                 mode=mode, is_html=is_html, label_box=label_box, name=name, compression_level=compression_level)
 
 
 def texture(binary=None, file_format=None, color_map=default_colormap, color_range=[], attribute=[], puv=[],
@@ -475,7 +521,8 @@ def texture_text(text, position=(0, 0, 0), color=_default_color, font_weight=400
 def vector_field(vectors,
                  colors=[],
                  origin_color=None, head_color=None, color=_default_color,
-                 use_head=True, head_size=1.0, scale=1.0, line_width=0.01, name=None, compression_level=0, **kwargs):
+                 use_head=True, head_size=1.0, scale=1.0, line_width=0.01, name=None, compression_level=0,
+                 **kwargs):
     """Create a VectorField drawable for displaying dense 2D or 3D grids of vectors of same dimensionality.
 
     By default, the origins of the vectors are assumed to be a grid inscribed in the -0.5 < x, y, z < 0.5 cube
@@ -654,7 +701,8 @@ def voxels(voxels, color_map=nice_colors, wireframe=False, outlines=True, outlin
 
 
 # noinspection PyShadowingNames
-def sparse_voxels(sparse_voxels, space_size, color_map=nice_colors, wireframe=False, outlines=True, outlines_color=0,
+def sparse_voxels(sparse_voxels, space_size, color_map=nice_colors, wireframe=False, outlines=True,
+                  outlines_color=0,
                   opacity=1.0, name=None, compression_level=0, bounds=None, **kwargs):
     """Create a Voxels drawable for 3D volumetric data.
 
@@ -751,7 +799,8 @@ def voxels_group(space_size, voxels_group=[], chunks_ids=[], color_map=nice_colo
 
     return process_transform_arguments(
         VoxelsGroup(voxels_group=voxels_group, chunks_ids=chunks_ids, space_size=space_size, color_map=color_map,
-                    wireframe=wireframe, outlines=outlines, outlines_color=outlines_color, opacity=opacity, name=name,
+                    wireframe=wireframe, outlines=outlines, outlines_color=outlines_color, opacity=opacity,
+                    name=name,
                     compression_level=compression_level),
         **kwargs
     )
@@ -822,12 +871,59 @@ def volume(volume, color_map=default_colormap, opacity_function=None, color_rang
 
     return process_transform_arguments(
         Volume(volume=volume, color_map=color_map, opacity_function=opacity_function, color_range=color_range,
-               compression_level=compression_level, samples=samples, alpha_coef=alpha_coef, gradient_step=gradient_step,
+               compression_level=compression_level, samples=samples, alpha_coef=alpha_coef,
+               gradient_step=gradient_step,
                shadow=shadow, shadow_delay=shadow_delay, shadow_res=shadow_res, focal_plane=focal_plane,
                focal_length=focal_length, name=name, ray_samples_count=ray_samples_count), **kwargs)
 
 
-def vtk_poly_data(poly_data, color=_default_color, color_attribute=None, color_map=default_colormap,
+# noinspection PyShadowingNames
+def mip(volume, color_map=default_colormap, opacity_function=None, color_range=[], samples=512.0, gradient_step=0.005,
+        name=None, compression_level=0, **kwargs):
+    """Create a MIP drawable for 3D volumetric data.
+
+    By default, the volume are a grid inscribed in the -0.5 < x, y, z < 0.5 cube
+    regardless of the passed voxel array shape (aspect ratio etc.).
+    Different grid size, shape and rotation can be obtained using  kwargs:
+
+        mip(..., bounds=[0, 300, 0, 400, 0, 500])
+
+    or:
+
+        mip(..., scaling=[scale_x, scale_y, scale_z]).
+
+    Arguments:
+        volume: `array_like`.
+            3D array of `float`
+        color_map: `list`.
+            A list of float quadruplets (attribute value, R, G, B), sorted by attribute value. The first
+            quadruplet should have value 0.0, the last 1.0; R, G, B are RGB color components in the range 0.0 to 1.0.
+        opacity_function: `array`.
+            A list of float tuples (attribute value, opacity), sorted by attribute value. The first
+            typles should have value 0.0, the last 1.0; opacity is in the range 0.0 to 1.0.
+        color_range: `list`.
+            A pair [min_value, max_value], which determines the levels of volume attribute mapped
+            to 0 and 1 in the color map respectively.
+        samples: `float`.
+            Number of iteration per 1 unit of space.
+        gradient_step: `float`
+            Gradient light step.
+       name: `string`.
+            A name of a object
+        kwargs: `dict`.
+            Dictionary arguments to configure transform and model_matrix."""
+
+    color_range = check_attribute_range(volume, color_range)
+
+    if opacity_function is None:
+        opacity_function = [np.min(color_map[::4]), 0.0, np.max(color_map[::4]), 1.0]
+
+    return process_transform_arguments(
+        MIP(volume=volume, color_map=color_map, opacity_function=opacity_function, color_range=color_range,
+            compression_level=compression_level, samples=samples, gradient_step=gradient_step, name=name), **kwargs)
+
+
+def vtk_poly_data(poly_data, color=_default_color, color_attribute=None, color_map=default_colormap, side='front',
                   wireframe=False, opacity=1.0, volume=[], volume_bounds=[], opacity_function=[], name=None,
                   compression_level=0, **kwargs):
     """Create a Mesh drawable from given vtkPolyData.
@@ -859,6 +955,8 @@ def vtk_poly_data(poly_data, color=_default_color, color_attribute=None, color_m
         opacity_function: `array`.
             A list of float tuples (attribute value, opacity), sorted by attribute value. The first
             typles should have value 0.0, the last 1.0; opacity is in the range 0.0 to 1.0.
+        side: `string`.
+            Control over which side to render for a mesh. Legal values are `front`, `back`, `double`.
         name: `string`.
             A name of a object
         kwargs: `dict`.
@@ -896,6 +994,7 @@ def vtk_poly_data(poly_data, color=_default_color, color_attribute=None, color_m
              volume=volume,
              volume_bounds=volume_bounds,
              opacity_function=opacity_function,
+             side=side,
              name=name,
              compression_level=compression_level),
         **kwargs
@@ -936,6 +1035,8 @@ def plot(height=512,
          axes=['x', 'y', 'z'],
          axes_helper=1.0,
          name=None,
+         camera_mode='trackball',
+         snapshot_include_js=True,
          auto_rendering=True,
          camera_no_zoom=False,
          camera_no_rotate=False,
@@ -976,6 +1077,8 @@ def plot(height=512,
             Lock for camera pan.
         camera_fov: `Float`.
             Camera Field of View.
+        snapshot_include_js: `Bool`.
+            If it's true snapshot html is standalone.
         axes: `list`.
             Axes labels for plot.
         axes_helper: `Float`.
@@ -984,6 +1087,16 @@ def plot(height=512,
             Time value (used in TimeSeries)
         name: `string`.
             Name of the plot. Used to filenames of snapshot/screenshot etc.
+        camera_mode: `str`.
+            Mode of camera.
+
+            Legal values are:
+
+            :`trackball`: orbit around point with dynamic up-vector of camera,
+
+            :`orbit`: orbit around point with fixed up-vector of camera,
+
+            :`fly`: orbit around point with dynamic up-vector of camera, wheel on mouse change also target point.
         auto_rendering: `Bool`.
             State of auto rendering.
         fps: `Float`.
@@ -997,6 +1110,7 @@ def plot(height=512,
                 grid_visible=grid_visible,
                 height=height, menu_visibility=menu_visibility,
                 voxel_paint_color=voxel_paint_color, grid=grid,
-                axes=axes, axes_helper=axes_helper, screenshot_scale=screenshot_scale, camera_fov=camera_fov, name=name,
+                axes=axes, axes_helper=axes_helper, screenshot_scale=screenshot_scale, camera_fov=camera_fov,
+                name=name, camera_mode=camera_mode, snapshot_include_js=snapshot_include_js,
                 camera_no_zoom=camera_no_zoom, camera_no_rotate=camera_no_rotate, camera_no_pan=camera_no_pan,
                 auto_rendering=auto_rendering, fps=fps)

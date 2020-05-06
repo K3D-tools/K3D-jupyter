@@ -3,7 +3,8 @@
 var FileSaver = require('file-saver');
 var pako = require('pako');
 var fileLoader = require('./helpers/fileLoader');
-var template = require('raw-loader!./snapshot.txt');
+var templateStandalone = require('raw-loader!./snapshot_standalone.txt');
+var templateOnline = require('raw-loader!./snapshot_online.txt');
 var requireJsSource = require('raw-loader!./../../../node_modules/requirejs/require.js');
 var pakoJsSource = require('raw-loader!./../../../node_modules/pako/dist/pako_inflate.min.js');
 var semverRange = require('./../../version').version;
@@ -38,16 +39,24 @@ if (typeof (sourceCode) === 'undefined') {
 
 function getHTMLSnapshot(K3D, compressionLevel) {
     var data = K3D.getSnapshot(compressionLevel),
-        filecontent = template,
+        filecontent,
         timestamp = new Date().toUTCString();
+
+    if (K3D.parameters.snapshotIncludeJs) {
+        filecontent = templateStandalone;
+        filecontent = filecontent.replace('[REQUIRE_JS]', requireJsSource);
+        filecontent = filecontent.replace('[PAKO_JS]', pakoJsSource);
+        filecontent = filecontent.replace('[K3D_SOURCE]', sourceCode);
+
+    } else {
+        filecontent = templateOnline;
+        filecontent = filecontent.replace('[VERSION]', K3D.parameters.guiVersion);
+    }
 
     filecontent = filecontent.replace('[DATA]', btoa(data));
     filecontent = filecontent.replace('[PARAMS]', JSON.stringify(K3D.parameters));
     filecontent = filecontent.replace('[CAMERA]', JSON.stringify(K3D.getWorld().controls.getCameraArray()));
     filecontent = filecontent.replace('[TIMESTAMP]', timestamp);
-    filecontent = filecontent.replace('[REQUIRE_JS]', requireJsSource);
-    filecontent = filecontent.replace('[PAKO_JS]', pakoJsSource);
-    filecontent = filecontent.replace('[K3D_SOURCE]', sourceCode);
     filecontent = filecontent.replace('[ADDITIONAL]', '//[ADDITIONAL]');
 
     return filecontent;

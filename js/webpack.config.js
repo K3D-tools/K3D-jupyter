@@ -113,7 +113,8 @@ module.exports = [
             rules: rules
         },
         plugins: [new CopyPlugin([
-            {from: './src/core/lib/snapshot.txt', to: __dirname + '/../k3d/static'},
+            {from: './src/core/lib/snapshot_standalone.txt', to: __dirname + '/../k3d/static'},
+            {from: './src/core/lib/snapshot_online.txt', to: __dirname + '/../k3d/static'},
             {from: './node_modules/requirejs/require.js', to: __dirname + '/../k3d/static'},
             {from: './node_modules/pako/dist/pako_inflate.min.js', to: __dirname + '/../k3d/static'}
         ])]

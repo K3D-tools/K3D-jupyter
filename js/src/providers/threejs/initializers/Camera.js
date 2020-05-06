@@ -1,6 +1,7 @@
 'use strict';
 
 var THREE = require('three'),
+    cameraModes = require('./../../../core/lib/cameraMode').cameraModes,
     recalculateFrustum = require('./../helpers/Fn').recalculateFrustum;
 
 /**
@@ -26,8 +27,6 @@ module.exports = function (K3D) {
     this.setupCamera = function (array, fov) {
         if (fov) {
             this.camera.fov = this.axesHelper.camera.fov = fov;
-            this.camera.updateProjectionMatrix();
-            this.axesHelper.camera.updateProjectionMatrix();
         }
 
         if (array) {
@@ -40,6 +39,9 @@ module.exports = function (K3D) {
             this.controls.target.fromArray(array, 3);
             this.controls.update();
         }
+
+        this.camera.updateProjectionMatrix();
+        this.axesHelper.camera.updateProjectionMatrix();
 
         recalculateFrustum(this.camera);
     };
@@ -57,7 +59,7 @@ module.exports = function (K3D) {
             sceneBoundingBox = K3D.getSceneBoundingBox() || sceneBoundingBox;
         }
 
-        if(typeof(factor) === 'undefined') {
+        if (typeof(factor) === 'undefined') {
             factor = 1.5;
         }
 
@@ -120,6 +122,13 @@ module.exports = function (K3D) {
             sceneBoundingSphere.center,
             this.camera.getWorldDirection(new THREE.Vector3()).setLength(camDistance)
         );
-        this.controls.target = sceneBoundingSphere.center;
+
+        if (K3D.parameters.cameraMode === cameraModes.fly) {
+            this.controls.target = this.camera.position.clone().add(
+                this.camera.getWorldDirection(new THREE.Vector3()).setLength(camDistance / 10.0)
+            );
+        } else {
+            this.controls.target = sceneBoundingSphere.center;
+        }
     };
 };

@@ -4,7 +4,8 @@ var THREE = require('three'),
     intersectHelper = require('./../helpers/Intersection'),
     handleColorMap = require('./../helpers/Fn').handleColorMap,
     areAllChangesResolve = require('./../helpers/Fn').areAllChangesResolve,
-    commonUpdate = require('./../helpers/Fn').commonUpdate;
+    commonUpdate = require('./../helpers/Fn').commonUpdate,
+    getSide = require('./../helpers/Fn').getSide;
 
 /**
  * Loader strategy to handle Mesh object
@@ -27,7 +28,7 @@ module.exports = {
                 emissive: 0,
                 shininess: 50,
                 specular: 0x111111,
-                side: THREE.DoubleSide,
+                side: getSide(config),
                 flatShading: config.flat_shading,
                 wireframe: config.wireframe,
                 opacity: config.opacity,
@@ -42,6 +43,8 @@ module.exports = {
             indices = (config.indices && config.indices.data) || null,
             geometry = new THREE.BufferGeometry(),
             object;
+
+        // material.onBeforeCompile = K3D.getWorld().colorOnBeforeCompile;
 
         if (attribute && colorRange && colorMap && attribute.length > 0 && colorRange.length > 0 && colorMap.length > 0) {
             handleColorMap(geometry, colorMap, colorRange, attribute, material);

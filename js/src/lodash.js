@@ -1,4 +1,4 @@
-window._ = {
+module.exports = {
     extend: require('lodash/extend'),
     result: require('lodash/result'),
     pull: require('lodash/pull'),

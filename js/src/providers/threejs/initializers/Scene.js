@@ -1,6 +1,7 @@
 'use strict';
 
 var THREE = require('three'),
+    _ = require('./../../../lodash'),
     Text = require('./../objects/Text'),
     Vectors = require('./../objects/Vectors'),
     MeshLine = require('./../helpers/THREE.MeshLine')(THREE),
@@ -192,6 +193,7 @@ function rebuildSceneData(K3D, grids, axesHelper, force) {
         fullSceneBoundingBox,
         fullSceneDiameter,
         originalEdges,
+        updateAxesHelper,
         extendedEdges,
         size,
         majorScale,
@@ -206,20 +208,30 @@ function rebuildSceneData(K3D, grids, axesHelper, force) {
         };
 
     // axes Helper
-    ['x', 'y', 'z'].forEach(function (axis) {
-        if (axesHelper[axis]) {
-            axesHelper[axis].onRemove();
-            axesHelper.scene.remove(axesHelper[axis]);
-            axesHelper[axis] = null;
-        }
-    });
+    updateAxesHelper = !K3D.parameters.axesHelper || (K3D.parameters.axesHelper && !axesHelper.x);
 
-    if (axesHelper.arrows) {
-        axesHelper.scene.remove(axesHelper.arrows);
-        axesHelper.arrows = null;
+    if (axesHelper.x && !updateAxesHelper) {
+        updateAxesHelper |= K3D.parameters.axes[0] !== axesHelper.x.text ||
+                            K3D.parameters.axes[1] !== axesHelper.y.text ||
+                            K3D.parameters.axes[2] !== axesHelper.z.text;
     }
 
-    if (K3D.parameters.axesHelper) {
+    if (updateAxesHelper) {
+        ['x', 'y', 'z'].forEach(function (axis) {
+            if (axesHelper[axis]) {
+                axesHelper[axis].onRemove();
+                axesHelper.scene.remove(axesHelper[axis]);
+                axesHelper[axis] = null;
+            }
+        });
+
+        if (axesHelper.arrows) {
+            axesHelper.scene.remove(axesHelper.arrows);
+            axesHelper.arrows = null;
+        }
+    }
+
+    if (updateAxesHelper) {
         if (K3D.parameters.axesHelper > 1) {
             axesHelper.width = axesHelper.height = K3D.parameters.axesHelper;
         } else if (K3D.parameters.axesHelper > 0) {

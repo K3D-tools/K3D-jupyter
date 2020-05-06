@@ -96,11 +96,11 @@ function objectGUIProvider(K3D, json, objects, changes) {
 
     var defaultParams = ['visible', 'outlines', 'wireframe', 'flat_shading', 'use_head', 'head_size', 'line_width',
         'scale', 'font_size', 'font_weight', 'size', 'point_size', 'level', 'samples', 'alpha_coef', 'gradient_step',
-        'shadow_delay', 'focal_length', 'focal_plane'];
+        'shadow_delay', 'focal_length', 'focal_plane', 'on_top', 'max_length', 'label_box', 'is_html'];
 
     var availableParams = defaultParams.concat(['color', 'origin_color', 'origin_color', 'head_color', 'outlines_color',
         'text', 'shader', 'shadow_res', 'shadow', 'ray_samples_count', 'width', 'radial_segments', 'mesh_detail',
-        'opacity', 'color_range', 'name', 'color_map']);
+        'opacity', 'color_range', 'name', 'color_map', 'mode']);
 
     ((changes && Object.keys(changes)) || Object.keys(json)).forEach(function (param) {
             var colorMapLegendControllers, controller;
@@ -215,6 +215,12 @@ function objectGUIProvider(K3D, json, objects, changes) {
                         addController(K3D.gui_map[json.id], json, param,
                             ['3dSpecular', '3d', 'flat', 'mesh', 'dot']).onChange(
                             change.bind(this, json, param));
+                    }
+                    break;
+                case 'mode':
+                    if (json.type === 'Label') {
+                        addController(K3D.gui_map[json.id], json, param,
+                            ['dynamic', 'local', 'side']).onChange(change.bind(this, json, param));
                     }
                     break;
                 case 'shadow_res':

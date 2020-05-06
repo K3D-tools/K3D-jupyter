@@ -3,6 +3,7 @@
 'use strict';
 
 var THREE = require('three'),
+    _ = require('./../../../lodash'),
     colorMapHelper = require('./../../../core/lib/helpers/colorMap'),
     closestPowOfTwo = require('./../helpers/Fn').closestPowOfTwo,
     typedArrayToThree = require('./../helpers/Fn').typedArrayToThree,
@@ -90,7 +91,7 @@ module.exports = {
             64, 64, THREE.RedFormat, THREE.UnsignedByteType);
         jitterTexture.minFilter = THREE.LinearFilter;
         jitterTexture.magFilter = THREE.LinearFilter;
-        jitterTexture.wrapS = jitterTexture.wrapT = THREE.RepeatWrapping;
+        jitterTexture.wrapS = jitterTexture.wrapT = THREE.ClampToEdgeWrapping;
         jitterTexture.generateMipmaps = false;
         jitterTexture.needsUpdate = true;
 

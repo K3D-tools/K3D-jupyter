@@ -28,14 +28,28 @@ module.exports = {
             overlayDOMNode = world.overlayDOMNode,
             listenersId;
 
-        domElement.innerHTML = katex.renderToString(text, {displayMode: true});
+        if (config.is_html) {
+            domElement.innerHTML = text;
+            domElement.style.cssText = 'pointer-events: all';
+        } else {
+            domElement.innerHTML = katex.renderToString(text, {displayMode: true});
+        }
+
         domElement.style.position = 'absolute';
         domElement.style.color = colorToHex(color);
         domElement.style.fontSize = size + 'em';
 
+        if (config.label_box) {
+            domElement.style.padding = '5px';
+            domElement.style.background = K3D.getWorld().targetDOMNode.style.backgroundColor;
+            domElement.style.border = '1px solid ' + colorToHex(color);
+            domElement.style.borderRadius = '10px';
+        }
+
         overlayDOMNode.appendChild(domElement);
 
         object.position.set(position[0], position[1], position[2]);
+        object.text = text;
         object.updateMatrixWorld();
 
         function render() {
@@ -88,7 +102,7 @@ module.exports = {
             }
 
             domElement.style.transform = 'translate(' + x + ',' + y + ')';
-            domElement.style.zIndex = 16777271 - Math.round(coord.z * 1e6);
+            domElement.style.zIndex = config.on_top ? 16777271 - Math.round(coord.z * 1e6) : '5';
         }
 
         listenersId = K3D.on(K3D.events.RENDERED, render);
@@ -125,9 +139,9 @@ function toScreenPosition(obj, viewport, camera) {
 
     if (camera.frustum && !camera.frustum.containsPoint(vector)) {
         return {
-            x: -100,
-            y: -100,
-            z: -100
+            x: -1000,
+            y: -1000,
+            z: -1000
         };
     }
 

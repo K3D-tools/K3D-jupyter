@@ -1,6 +1,7 @@
 'use strict';
 
 var colorMapHelper = require('./core/lib/helpers/colorMap'),
+    _ = require('./lodash'),
     semverRange = require('./version').version,
     serialize = require('./core/lib/helpers/serialize'),
     widgets = require('@jupyter-widgets/base');
