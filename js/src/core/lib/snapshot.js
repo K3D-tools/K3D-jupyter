@@ -44,24 +44,20 @@ function getHTMLSnapshot(K3D, compressionLevel) {
 
     if (K3D.parameters.snapshotIncludeJs) {
         filecontent = templateStandalone;
-        filecontent = filecontent.replace('[DATA]', btoa(data));
-        filecontent = filecontent.replace('[PARAMS]', JSON.stringify(K3D.parameters));
-        filecontent = filecontent.replace('[CAMERA]', JSON.stringify(K3D.getWorld().controls.getCameraArray()));
-        filecontent = filecontent.replace('[TIMESTAMP]', timestamp);
         filecontent = filecontent.replace('[REQUIRE_JS]', requireJsSource);
         filecontent = filecontent.replace('[PAKO_JS]', pakoJsSource);
         filecontent = filecontent.replace('[K3D_SOURCE]', sourceCode);
-        filecontent = filecontent.replace('[ADDITIONAL]', '//[ADDITIONAL]');
+
     } else {
         filecontent = templateOnline;
-        filecontent = filecontent.replace('[DATA]', btoa(data));
-        filecontent = filecontent.replace('[PARAMS]', JSON.stringify(K3D.parameters));
-        filecontent = filecontent.replace('[CAMERA]', JSON.stringify(K3D.getWorld().controls.getCameraArray()));
-        filecontent = filecontent.replace('[TIMESTAMP]', timestamp);
         filecontent = filecontent.replace('[VERSION]', K3D.parameters.guiVersion);
-        filecontent = filecontent.replace('[ADDITIONAL]', '//[ADDITIONAL]');
     }
 
+    filecontent = filecontent.replace('[DATA]', btoa(data));
+    filecontent = filecontent.replace('[PARAMS]', JSON.stringify(K3D.parameters));
+    filecontent = filecontent.replace('[CAMERA]', JSON.stringify(K3D.getWorld().controls.getCameraArray()));
+    filecontent = filecontent.replace('[TIMESTAMP]', timestamp);
+    filecontent = filecontent.replace('[ADDITIONAL]', '//[ADDITIONAL]');
 
     return filecontent;
 }
