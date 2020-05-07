@@ -27,6 +27,8 @@ from .factory import (plot,
                       vtk_poly_data,
                       voxel_chunk)
 
+from .plot import Plot
+
 from .transfer_function_editor import transfer_function_editor
 
 from .transform import transform
