@@ -5,7 +5,8 @@ var THREE = require('three'),
     handleColorMap = require('./../helpers/Fn').handleColorMap,
     areAllChangesResolve = require('./../helpers/Fn').areAllChangesResolve,
     commonUpdate = require('./../helpers/Fn').commonUpdate,
-    getSide = require('./../helpers/Fn').getSide;
+    getSide = require('./../helpers/Fn').getSide,
+    buffer = require('./../../../core/lib/helpers/buffer');
 
 /**
  * Loader strategy to handle Mesh object
@@ -16,60 +17,87 @@ var THREE = require('three'),
  */
 module.exports = {
     create: function (config, K3D) {
-        config.color = typeof (config.color) !== 'undefined' ? config.color : 255;
-        config.wireframe = typeof (config.wireframe) !== 'undefined' ? config.wireframe : false;
-        config.flat_shading = typeof (config.flat_shading) !== 'undefined' ? config.flat_shading : true;
-        config.opacity = typeof (config.opacity) !== 'undefined' ? config.opacity : 1.0;
+        return new Promise(function (resolve) {
+            config.color = typeof (config.color) !== 'undefined' ? config.color : 255;
+            config.wireframe = typeof (config.wireframe) !== 'undefined' ? config.wireframe : false;
+            config.flat_shading = typeof (config.flat_shading) !== 'undefined' ? config.flat_shading : true;
+            config.opacity = typeof (config.opacity) !== 'undefined' ? config.opacity : 1.0;
 
-        var modelMatrix = new THREE.Matrix4(),
-            MaterialConstructor = config.wireframe ? THREE.MeshBasicMaterial : THREE.MeshPhongMaterial,
-            material = new MaterialConstructor({
-                color: config.color,
-                emissive: 0,
-                shininess: 50,
-                specular: 0x111111,
-                side: getSide(config),
-                flatShading: config.flat_shading,
-                wireframe: config.wireframe,
-                opacity: config.opacity,
-                depthTest: config.opacity === 1.0,
-                depthWrite: config.opacity === 1.0,
-                transparent: config.opacity !== 1.0
-            }),
-            colorRange = config.color_range,
-            colorMap = (config.color_map && config.color_map.data) || null,
-            attribute = (config.attribute && config.attribute.data) || null,
-            vertices = (config.vertices && config.vertices.data) || null,
-            indices = (config.indices && config.indices.data) || null,
-            geometry = new THREE.BufferGeometry(),
-            object;
+            var modelMatrix = new THREE.Matrix4(),
+                MaterialConstructor = config.wireframe ? THREE.MeshBasicMaterial : THREE.MeshPhongMaterial,
+                material = new MaterialConstructor({
+                    color: config.color,
+                    emissive: 0,
+                    shininess: 50,
+                    specular: 0x111111,
+                    side: getSide(config),
+                    flatShading: config.flat_shading,
+                    wireframe: config.wireframe,
+                    opacity: config.opacity,
+                    depthTest: config.opacity === 1.0,
+                    depthWrite: config.opacity === 1.0,
+                    transparent: config.opacity !== 1.0
+                }),
+                texture = new THREE.Texture(),
+                textureImage = config.texture,
+                textureFileFormat = config.texture_file_format,
+                colorRange = config.color_range,
+                colorMap = (config.color_map && config.color_map.data) || null,
+                attribute = (config.attribute && config.attribute.data) || null,
+                vertices = (config.vertices && config.vertices.data) || null,
+                indices = (config.indices && config.indices.data) || null,
+                uvs = (config.uvs && config.uvs.data) || null,
+                geometry = new THREE.BufferGeometry(),
+                image,
+                object;
 
-        // material.onBeforeCompile = K3D.getWorld().colorOnBeforeCompile;
+            // material.onBeforeCompile = K3D.getWorld().colorOnBeforeCompile;
 
-        if (attribute && colorRange && colorMap && attribute.length > 0 && colorRange.length > 0 && colorMap.length > 0) {
-            handleColorMap(geometry, colorMap, colorRange, attribute, material);
-        }
+            function finish() {
+                geometry.setAttribute('position', new THREE.BufferAttribute(vertices, 3));
+                geometry.setIndex(new THREE.BufferAttribute(indices, 1));
 
-        geometry.setAttribute('position', new THREE.BufferAttribute(vertices, 3));
-        geometry.setIndex(new THREE.BufferAttribute(indices, 1));
+                if (config.flat_shading === false) {
+                    geometry.computeVertexNormals();
+                }
 
-        if (config.flat_shading === false) {
-            geometry.computeVertexNormals();
-        }
+                geometry.computeBoundingSphere();
+                geometry.computeBoundingBox();
 
-        geometry.computeBoundingSphere();
-        geometry.computeBoundingBox();
+                object = new THREE.Mesh(geometry, material);
 
-        object = new THREE.Mesh(geometry, material);
+                intersectHelper.init(config, object, K3D);
 
-        intersectHelper.init(config, object, K3D);
+                modelMatrix.set.apply(modelMatrix, config.model_matrix.data);
+                object.applyMatrix(modelMatrix);
+                object.updateMatrixWorld();
 
-        modelMatrix.set.apply(modelMatrix, config.model_matrix.data);
-        object.applyMatrix(modelMatrix);
+                resolve(object);
+            }
 
-        object.updateMatrixWorld();
+            if (attribute && colorRange && colorMap && attribute.length > 0 && colorRange.length > 0 && colorMap.length > 0) {
+                handleColorMap(geometry, colorMap, colorRange, attribute, material);
+                finish();
+            } else if (textureImage && textureFileFormat && uvs) {
+                image = document.createElement('img');
+                image.src = 'data:image/' + textureFileFormat + ';base64,' +
+                            buffer.bufferToBase64(textureImage.buffer);
 
-        return Promise.resolve(object);
+                geometry.setAttribute('uv', new THREE.BufferAttribute(new Float32Array(uvs), 2));
+
+                image.onload = function () {
+                    material.map = texture;
+                    texture.image = image;
+                    texture.flipY = false;
+                    texture.minFilter = THREE.LinearFilter;
+                    texture.needsUpdate = true;
+                    material.needsUpdate = true;
+                    finish();
+                };
+            } else {
+                finish();
+            }
+        });
     },
 
     update: function (config, changes, obj, K3D) {

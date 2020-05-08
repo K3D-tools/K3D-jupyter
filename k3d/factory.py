@@ -137,8 +137,8 @@ def marching_cubes(scalar_field, level, color=_default_color, wireframe=False, f
 
 def mesh(vertices, indices, color=_default_color, attribute=[], color_map=default_colormap,
          # lgtm [py/similar-function]
-         color_range=[], wireframe=False, flat_shading=True, opacity=1.0,
-         volume=[], volume_bounds=[], opacity_function=[], side='front',
+         color_range=[], wireframe=False, flat_shading=True, opacity=1.0, texture=None, texture_file_format=None,
+         volume=[], volume_bounds=[], opacity_function=[], side='front', uvs=None,
          name=None, compression_level=0, **kwargs):
     """Create a Mesh drawable representing a 3D triangles mesh.
 
@@ -174,10 +174,18 @@ def mesh(vertices, indices, color=_default_color, attribute=[], color_map=defaul
             Control over which side to render for a mesh. Legal values are `front`, `back`, `double`.
         name: `string`.
             A name of a object
+        texture: `bytes`.
+            Image data in a specific format.
+        texture_file_format: `str`.
+            Format of the data, it should be the second part of MIME format of type 'image/',
+            for example 'jpeg', 'png', 'gif', 'tiff'.
+        uvs: `array_like`.
+            Array of float uvs for the texturing, coresponding to each vertex.
         kwargs: `dict`.
             Dictionary arguments to configure transform and model_matrix."""
 
     color_map = np.array(color_map, np.float32) if type(color_map) is not dict else color_map
+    uvs = np.array(uvs, np.float32) if type(uvs) is not dict else color_map
     attribute = np.array(attribute, np.float32) if type(attribute) is not dict else attribute
     volume_bounds = np.array(volume_bounds, np.float32) if type(volume_bounds) is not dict else volume_bounds
 
@@ -202,6 +210,9 @@ def mesh(vertices, indices, color=_default_color, attribute=[], color_map=defaul
              opacity_function=opacity_function,
              side=side,
              name=name,
+             texture=texture,
+             uvs=uvs,
+             texture_file_format=texture_file_format,
              compression_level=compression_level),
         **kwargs
     )
