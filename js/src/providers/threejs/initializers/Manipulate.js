@@ -17,14 +17,14 @@ module.exports = function (K3D) {
                     var control = new THREE.TransformControls(world.camera, world.renderer.domElement);
 
                     control.addEventListener('change', function () {
-                        K3D.dispatch(K3D.events.OBJECT_CHANGE, {
-                            id: obj.K3DIdentifier,
-                            key: 'model_matrix',
-                            value: {
-                                data: new Float32Array(obj.matrixWorld.transpose().elements),
-                                shape: [4, 4]
-                            }
-                        });
+                        // K3D.dispatch(K3D.events.OBJECT_CHANGE, {
+                        //     id: obj.K3DIdentifier,
+                        //     key: 'model_matrix',
+                        //     value: {
+                        //         data: new Float32Array(obj.matrixWorld.elements),
+                        //         shape: [4, 4]
+                        //     }
+                        // });
 
                         world.render();
                     });

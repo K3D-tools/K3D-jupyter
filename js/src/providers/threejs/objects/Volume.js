@@ -81,7 +81,7 @@ module.exports = {
         texture.generateMipmaps = false;
         texture.minFilter = THREE.LinearFilter;
         texture.magFilter = THREE.LinearFilter;
-        texture.wrapS = texture.wrapT = THREE.MirroredRepeatWrapping;
+        texture.wrapS = texture.wrapT = THREE.ClampToEdgeWrapping;
         texture.needsUpdate = true;
 
         jitterTexture = new THREE.DataTexture(
@@ -91,7 +91,7 @@ module.exports = {
             64, 64, THREE.RedFormat, THREE.UnsignedByteType);
         jitterTexture.minFilter = THREE.LinearFilter;
         jitterTexture.magFilter = THREE.LinearFilter;
-        jitterTexture.wrapS = jitterTexture.wrapT = THREE.ClampToEdgeWrapping;
+        jitterTexture.wrapS = jitterTexture.wrapT = THREE.MirroredRepeatWrapping;
         jitterTexture.generateMipmaps = false;
         jitterTexture.needsUpdate = true;
 

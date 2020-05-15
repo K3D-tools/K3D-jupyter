@@ -335,6 +335,13 @@ class Mesh(DrawableWithCallback):
             3D array of `float`
         volume_bounds: `array_like`.
             6-element tuple specifying the bounds of the volume data (x0, x1, y0, y1, z0, z1)
+        texture: `bytes`.
+            Image data in a specific format.
+        texture_file_format: `str`.
+            Format of the data, it should be the second part of MIME format of type 'image/',
+            for example 'jpeg', 'png', 'gif', 'tiff'.
+        uvs: `array_like`.
+            Array of float uvs for the texturing, coresponding to each vertex.
         model_matrix: `array_like`.
             4x4 model transform matrix.
     """
@@ -352,6 +359,9 @@ class Mesh(DrawableWithCallback):
     opacity = TimeSeries(Float(min=0.0, max=1.0, default_value=1.0)).tag(sync=True)
     volume = TimeSeries(Array()).tag(sync=True, **array_serialization_wrap('volume'))
     volume_bounds = TimeSeries(Array(dtype=np.float32)).tag(sync=True, **array_serialization_wrap('volume_bounds'))
+    texture = Bytes(allow_none=True).tag(sync=True)
+    texture_file_format = Unicode(allow_none=True).tag(sync=True)
+    uvs = TimeSeries(Array()).tag(sync=True, **array_serialization_wrap('uvs'))
     opacity_function = TimeSeries(Array(dtype=np.float32)).tag(sync=True,
                                                                **array_serialization_wrap('opacity_function'))
     model_matrix = TimeSeries(Array(dtype=np.float32)).tag(sync=True, **array_serialization_wrap('model_matrix'))

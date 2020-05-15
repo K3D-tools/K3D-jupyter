@@ -31,7 +31,7 @@ function deserializeArray(obj) {
         buffer = new typesToArray[obj.dtype](pako.inflate(obj.compressed_data.buffer).buffer);
 
         console.log('K3D: Receive: ' + buffer.byteLength + ' bytes compressed to ' +
-                    obj.compressed_buffer.byteLength + ' bytes');
+                    obj.compressed_data.byteLength + ' bytes');
 
         return {
             data: buffer,
