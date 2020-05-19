@@ -9,7 +9,7 @@ class PlatonicSolid(object):
     @property
     def mesh(self):
         """Return k3d.mesh object of the solid."""
-        return k3d.mesh(self.vertices, self.indices)
+        return k3d.mesh(self.vertices, self.indices, side='double')
 
     @property
     def points(self):
