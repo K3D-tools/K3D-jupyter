@@ -177,7 +177,7 @@ function K3D(provider, targetDOMNode, parameters) {
     this.autoRendering = false;
 
     this.startAutoPlay = function () {
-        timeSeries.startAutoPlay(self);
+        timeSeries.startAutoPlay(self, changeParameters);
     };
 
     this.stopAutoPlay = function () {
@@ -769,13 +769,15 @@ function K3D(provider, targetDOMNode, parameters) {
      */
     this.reload = function (json, changes, timeSeriesReload) {
         if (json.visible === false) {
+            if (timeSeriesReload !== true) {
+                self.refreshAfterObjectsChange(true);
+                objectGUIProvider(self, json, GUI.objects, changes);
+            }
+
             try {
                 removeObjectFromScene(json.id);
-                if (timeSeriesReload !== true) {
-                    self.refreshAfterObjectsChange(true);
-                }
             } catch (e) {
-                console.log(e);
+
             }
 
             return Promise.resolve(true);
@@ -790,7 +792,7 @@ function K3D(provider, targetDOMNode, parameters) {
         return loader(self, data).then(function (objects) {
             objects.forEach(function (object) {
                 if (timeSeriesReload !== true) {
-                    objectGUIProvider(self, object.json, objects, changes);
+                    objectGUIProvider(self, object.json, GUI.objects, changes);
                 }
 
                 world.ObjectsListJson[object.json.id] = object.json;

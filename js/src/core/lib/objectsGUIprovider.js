@@ -124,7 +124,8 @@ function objectGUIProvider(K3D, json, objects, changes) {
 
                 // handle colorLegend
                 if (K3D.parameters.colorbarObjectId === -1) { //auto
-                    K3D.parameters.colorbarObjectId = json.id;
+                    K3D.setColorMapLegend(json);
+                    json.colorLegend = true;
                 }
 
                 colorMapLegendControllers = findControllers(json, 'colorLegend');

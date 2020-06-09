@@ -148,7 +148,7 @@ function interpolate(a, b, f, property) {
     return interpolated;
 }
 
-function startAutoPlay(K3D) {
+function startAutoPlay(K3D, changeParameters) {
     if (K3D.autoPlayedHandler) {
         return;
     }
@@ -159,7 +159,7 @@ function startAutoPlay(K3D) {
         if (K3D.autoPlayedFps !== K3D.parameters.fps) {
             clearInterval(K3D.autoPlayedHandler);
             K3D.autoPlayedHandler = false;
-            startAutoPlay(K3D);
+            startAutoPlay(K3D, changeParameters);
 
             return;
         }
@@ -171,6 +171,7 @@ function startAutoPlay(K3D) {
         }
 
         K3D.setTime(t);
+        changeParameters('time', t);
     }, 1000.0 / K3D.parameters.fps);
 
     K3D.GUI.controls.controllersMap.autoPlay.name('Stop loop');
@@ -266,7 +267,7 @@ module.exports = {
                 if (K3D.autoPlayedHandler) {
                     stopAutoPlay(K3D);
                 } else {
-                    startAutoPlay(K3D);
+                    startAutoPlay(K3D, changeParameters);
                 }
             }
         };
