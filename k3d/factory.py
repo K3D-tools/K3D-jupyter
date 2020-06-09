@@ -1004,6 +1004,7 @@ def vtk_poly_data(poly_data, color=_default_color, color_attribute=None, color_m
              wireframe=wireframe,
              volume=volume,
              volume_bounds=volume_bounds,
+             texture=None,
              opacity_function=opacity_function,
              side=side,
              name=name,
