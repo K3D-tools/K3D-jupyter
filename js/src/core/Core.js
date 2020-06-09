@@ -177,7 +177,7 @@ function K3D(provider, targetDOMNode, parameters) {
     this.autoRendering = false;
 
     this.startAutoPlay = function () {
-        timeSeries.startAutoPlay(self);
+        timeSeries.startAutoPlay(self, changeParameters);
     };
 
     this.stopAutoPlay = function () {
