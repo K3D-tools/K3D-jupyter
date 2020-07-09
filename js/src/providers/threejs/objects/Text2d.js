@@ -53,8 +53,8 @@ module.exports = {
 
         function render() {
             var x, y, coord = {
-                x: position[0] * world.width,
-                y: position[1] * world.height
+                x: object.position.x * world.width,
+                y: object.position.y * world.height
             };
 
             switch (referencePoint[0]) {
@@ -101,7 +101,13 @@ module.exports = {
         var resolvedChanges = {};
 
         if (typeof(changes.text) !== 'undefined' && !changes.text.timeSeries) {
-            obj.domElement.innerHTML = katex.renderToString(changes.text, {displayMode: true});
+            if (config.is_html) {
+                obj.domElement.innerHTML = changes.text;
+                obj.domElement.style.pointerEvents = 'all';
+            } else {
+                obj.domElement.innerHTML = katex.renderToString(changes.text, {displayMode: true});
+                obj.domElement.style.pointerEvents = 'none';
+            }
 
             resolvedChanges.text = null;
         }
