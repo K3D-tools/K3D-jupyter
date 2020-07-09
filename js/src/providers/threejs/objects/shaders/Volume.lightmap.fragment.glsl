@@ -136,11 +136,12 @@ void main() {
             vec4 plane;
             vec3 pos = -vec3(modelViewMatrix * vec4(textcoord - vec3(0.5), 1.0));
 
-            #pragma unroll_loop
+            #pragma unroll_loop_start
             for ( int i = 0; i < UNION_CLIPPING_PLANES; i ++ ) {
                 plane = clippingPlanes[ i ];
                 if ( dot( pos, plane.xyz ) > plane.w ) continue;
             }
+            #pragma unroll_loop_end
         #endif
 
         float px = texture(volumeTexture, textcoord).x;
@@ -154,7 +155,7 @@ void main() {
             density *= (1.0 - sum_density);
             sum_density += density;
 
-            if(sum_density >= 0.95){
+            if(sum_density >= 0.99){
                 sum_density = 1.0;
                 break;
             }

@@ -87,7 +87,7 @@ module.exports = {
                 object.initialPosition = object.position.clone();
                 object.updateMatrix();
 
-                object.applyMatrix(modelMatrix);
+                object.applyMatrix4(modelMatrix);
                 object.updateMatrixWorld();
 
                 resolve(object);

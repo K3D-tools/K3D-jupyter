@@ -165,7 +165,7 @@ module.exports = {
                 quaternion = new THREE.Quaternion().setFromAxisAngle(axis, Math.acos(direction.y));
             }
 
-            coneGeometry.applyMatrix(new THREE.Matrix4().makeRotationFromQuaternion(quaternion));
+            coneGeometry.applyMatrix4(new THREE.Matrix4().makeRotationFromQuaternion(quaternion));
 
             coneGeometry.translate(destination.x, destination.y, destination.z);
 
@@ -231,7 +231,7 @@ module.exports = {
     },
 
     recalculateFrustum: function (camera) {
-        camera.frustum.setFromMatrix(new THREE.Matrix4().multiplyMatrices(
+        camera.frustum.setFromProjectionMatrix(new THREE.Matrix4().multiplyMatrices(
             camera.projectionMatrix, camera.matrixWorldInverse
         ));
     },
@@ -251,7 +251,7 @@ module.exports = {
             obj.rotation.set(0.0, 0.0, 0.0);
             obj.scale.set(1.0, 1.0, 1.0);
 
-            obj.applyMatrix(modelMatrix);
+            obj.applyMatrix4(modelMatrix);
             obj.updateMatrixWorld();
 
             if (obj.transformControls) {

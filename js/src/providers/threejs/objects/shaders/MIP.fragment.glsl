@@ -115,11 +115,12 @@ void main() {
             vec4 plane;
             vec3 pos = -vec3(modelViewMatrix * vec4(textcoord - vec3(0.5), 1.0));
 
-            #pragma unroll_loop
+            #pragma unroll_loop_start
             for ( int i = 0; i < UNION_CLIPPING_PLANES; i ++ ) {
                 plane = clippingPlanes[ i ];
                 if ( dot( pos, plane.xyz ) > plane.w ) continue;
             }
+            #pragma unroll_loop_end
         #endif
 
         float newPx = texture(volumeTexture, textcoord).x;
@@ -150,7 +151,7 @@ void main() {
         vec3 lightDirection;
         float lightingIntensity;
 
-        #pragma unroll_loop
+        #pragma unroll_loop_start
         for ( int i = 0; i < NUM_DIR_LIGHTS; i ++ ) {
             lightDirection = -directionalLights[ i ].direction;
             lightingIntensity = clamp(dot(-lightDirection, normal), 0.0, 1.0);
@@ -160,6 +161,7 @@ void main() {
             pxColor.rgb += directionalLights[ i ].color * pow(lightingIntensity, 50.0) * pxColor.a;
             #endif
         }
+        #pragma unroll_loop_end
 
         pxColor.rgb *= addedLights.xyz;
     #endif

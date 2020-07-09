@@ -69,7 +69,7 @@ module.exports = {
                 intersectHelper.init(config, object, K3D);
 
                 modelMatrix.set.apply(modelMatrix, config.model_matrix.data);
-                object.applyMatrix(modelMatrix);
+                object.applyMatrix4(modelMatrix);
                 object.updateMatrixWorld();
 
                 resolve(object);

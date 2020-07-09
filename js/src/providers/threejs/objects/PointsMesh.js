@@ -30,7 +30,7 @@ module.exports = {
             material = new THREE.ShaderMaterial({
                 uniforms: THREE.UniformsUtils.merge([phongShader.uniforms, {
                     shininess: {value: 50},
-                    opacity: {value: config.opacity},
+                    opacity: {value: config.opacity}
                 }]),
                 defines: {
                     USE_PER_POINT_OPACITY: (opacities !== null ? 1 : 0)
@@ -43,36 +43,39 @@ module.exports = {
                 clipping: true,
                 vertexColors: THREE.VertexColors
             }),
-            sphereGeometry = new THREE.IcosahedronBufferGeometry(config.point_size * 0.5, meshDetail),
-            instancedGeometry = new THREE.InstancedBufferGeometry().copy(sphereGeometry),
-            geometry = new THREE.BufferGeometry();
+            i,
+            boundingBoxGeometry = new THREE.BufferGeometry(),
+            geometry = new THREE.IcosahedronBufferGeometry(config.point_size * 0.5, meshDetail);
 
         colors = (pointColors && pointColors.length === positions.length / 3 ?
                 colorsToFloat32Array(pointColors) : getColorsArray(color, positions.length / 3)
         );
 
-        instancedGeometry.setAttribute('offset', new THREE.InstancedBufferAttribute(new Float32Array(positions), 3));
-        instancedGeometry.setAttribute('color', new THREE.InstancedBufferAttribute(new Float32Array(colors), 3));
+        geometry.setAttribute('color', new THREE.InstancedBufferAttribute(new Float32Array(colors), 3));
 
         if (opacities) {
-            instancedGeometry.setAttribute('opacities',
-                new THREE.InstancedBufferAttribute(opacities, 1).setUsage(THREE.DynamicDrawUsage));
+            geometry.setAttribute('opacities',
+                new THREE.InstancedBufferAttribute(opacities, 1));
         }
 
         // boundingBox & boundingSphere
-        geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
-        geometry.computeBoundingSphere();
-        instancedGeometry.boundingSphere = geometry.boundingSphere.clone();
-        geometry.computeBoundingBox();
-        instancedGeometry.boundingBox = geometry.boundingBox.clone();
-        Fn.expandBoundingBox(instancedGeometry.boundingBox, config.point_size * 0.5);
+        boundingBoxGeometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+        boundingBoxGeometry.computeBoundingSphere();
+        boundingBoxGeometry.computeBoundingBox();
+        Fn.expandBoundingBox(boundingBoxGeometry.boundingBox, config.point_size * 0.5);
 
-        object = new THREE.Mesh(instancedGeometry, material);
+        geometry.boundingBox = boundingBoxGeometry.boundingBox.clone();
+        object = new THREE.InstancedMesh(geometry, material, positions.length / 3);
+        object.instanceMatrix.setUsage(THREE.DynamicDrawUsage);
 
         modelMatrix.set.apply(modelMatrix, config.model_matrix.data);
-        object.applyMatrix(modelMatrix);
-
+        object.applyMatrix4(modelMatrix);
         object.updateMatrixWorld();
+
+        for (i = 0; i < positions.length / 3; i++) {
+            object.setMatrixAt(i,
+                (new THREE.Matrix4()).setPosition(positions[i * 3], positions[i * 3 + 1], positions[i * 3 + 2]));
+        }
 
         return Promise.resolve(object);
     },

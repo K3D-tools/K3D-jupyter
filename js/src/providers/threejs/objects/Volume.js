@@ -156,7 +156,7 @@ module.exports = {
         geometry.computeBoundingBox();
 
         object = new THREE.Mesh(geometry, material);
-        object.applyMatrix(modelMatrix);
+        object.applyMatrix4(modelMatrix);
         object.updateMatrixWorld();
 
         /*
@@ -185,7 +185,7 @@ module.exports = {
                 }));
 
             // for clipping planes
-            quadRTT.applyMatrix(modelMatrix);
+            quadRTT.applyMatrix4(modelMatrix);
             quadRTT.updateMatrixWorld();
 
             cameraRTT = new THREE.OrthographicCamera(

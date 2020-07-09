@@ -109,7 +109,7 @@ module.exports = {
         geometry.computeBoundingBox();
 
         object = new THREE.Mesh(geometry, material);
-        object.applyMatrix(modelMatrix);
+        object.applyMatrix4(modelMatrix);
         object.updateMatrixWorld();
 
         object.onRemove = function () {
