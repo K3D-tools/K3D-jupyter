@@ -25,19 +25,7 @@ module.exports = {
 
             var modelMatrix = new THREE.Matrix4(),
                 MaterialConstructor = config.wireframe ? THREE.MeshBasicMaterial : THREE.MeshPhongMaterial,
-                material = new MaterialConstructor({
-                    color: config.color,
-                    emissive: 0,
-                    shininess: 50,
-                    specular: 0x111111,
-                    side: getSide(config),
-                    flatShading: config.flat_shading,
-                    wireframe: config.wireframe,
-                    opacity: config.opacity,
-                    depthTest: config.opacity === 1.0,
-                    depthWrite: config.opacity === 1.0,
-                    transparent: config.opacity !== 1.0
-                }),
+                material,
                 texture = new THREE.Texture(),
                 textureImage = config.texture,
                 textureFileFormat = config.texture_file_format,
@@ -48,15 +36,31 @@ module.exports = {
                 indices = (config.indices && config.indices.data) || null,
                 uvs = (config.uvs && config.uvs.data) || null,
                 geometry = new THREE.BufferGeometry(),
+                ObjectConstructor = THREE.Mesh,
                 image,
                 object;
 
             // material.onBeforeCompile = K3D.getWorld().colorOnBeforeCompile;
 
-            function finish() {
-                geometry.setAttribute('position', new THREE.BufferAttribute(vertices, 3));
-                geometry.setIndex(new THREE.BufferAttribute(indices, 1));
+            modelMatrix.set.apply(modelMatrix, config.model_matrix.data);
 
+            geometry.setAttribute('position', new THREE.BufferAttribute(vertices, 3));
+            geometry.setIndex(new THREE.BufferAttribute(indices, 1));
+
+            material = new MaterialConstructor({
+                color: config.color,
+                emissive: 0,
+                shininess: 50,
+                specular: 0x111111,
+                side: getSide(config),
+                flatShading: config.flat_shading,
+                wireframe: config.wireframe,
+                opacity: config.opacity,
+                depthWrite: config.opacity === 1.0,
+                transparent: config.opacity !== 1.0
+            });
+
+            function finish() {
                 if (config.flat_shading === false) {
                     geometry.computeVertexNormals();
                 }
@@ -64,12 +68,11 @@ module.exports = {
                 geometry.computeBoundingSphere();
                 geometry.computeBoundingBox();
 
-                object = new THREE.Mesh(geometry, material);
+                object = new ObjectConstructor(geometry, material);
 
                 intersectHelper.init(config, object, K3D);
 
-                modelMatrix.set.apply(modelMatrix, config.model_matrix.data);
-                object.applyMatrix(modelMatrix);
+                object.applyMatrix4(modelMatrix);
                 object.updateMatrixWorld();
 
                 resolve(object);
@@ -131,7 +134,6 @@ module.exports = {
 
         if (typeof(changes.opacity) !== 'undefined' && !changes.opacity.timeSeries) {
             obj.material.opacity = changes.opacity;
-            obj.material.depthTest = changes.opacity === 1.0;
             obj.material.depthWrite = changes.opacity === 1.0;
             obj.material.transparent = changes.opacity !== 1.0;
             obj.material.needsUpdate = true;

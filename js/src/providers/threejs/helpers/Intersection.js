@@ -2,7 +2,8 @@
 
 var threeMeshBVH = require('three-mesh-bvh'),
     intersectCallback = require('./../interactions/intersectCallback');
-    // viewModes = require('./../../../core/lib/viewMode').viewModes;
+// THREE = require('three'),
+// viewModes = require('./../../../core/lib/viewMode').viewModes;
 
 module.exports = {
     init: function (config, object, K3D) {
@@ -26,13 +27,17 @@ module.exports = {
             object.startInteraction();
         }
 
+        // object.startInteraction();
+        //
         // var o = new THREE.Group(),
         //     helper = new threeMeshBVH.Visualizer(object);
-        // helper.depth = 40;
+        // helper.depth = 7;
         // helper.update();
+        //
         // o.add(object);
         // o.add(helper);
-        // return Promise.resolve(o);
+        //
+        // return o;
     },
 
     update: function (config, changes, resolvedChanges, obj) {

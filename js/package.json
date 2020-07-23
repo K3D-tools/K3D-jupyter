@@ -1,6 +1,6 @@
 {
   "name": "k3d",
-  "version": "2.8.2",
+  "version": "2.9.0",
   "description": "3D visualization library",
   "author": "k3d team",
   "main": "src/index.js",
@@ -82,7 +82,7 @@
     "requirejs": "^2.3.6",
     "screenfull": "^4.2.1",
     "stats.js": "^0.17.0",
-    "three": "^0.112.1",
-    "three-mesh-bvh": "^0.1.4"
+    "three": "^0.118.3",
+    "three-mesh-bvh": "^0.2.0"
   }
 }

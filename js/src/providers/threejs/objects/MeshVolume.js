@@ -82,7 +82,7 @@ module.exports = {
             side: getSide(config),
             vertexShader: require('./shaders/MeshVolume.vertex.glsl'),
             fragmentShader: require('./shaders/MeshVolume.fragment.glsl'),
-            depthTest: (config.opacity === 1.0 && opacityFunction === null),
+            depthWrite: (config.opacity === 1.0 && opacityFunction === null),
             transparent: (config.opacity !== 1.0 || opacityFunction !== null),
             lights: false,
             clipping: true
@@ -100,7 +100,7 @@ module.exports = {
         intersectHelper.init(config, object, K3D);
 
         modelMatrix.set.apply(modelMatrix, config.model_matrix.data);
-        object.applyMatrix(modelMatrix);
+        object.applyMatrix4(modelMatrix);
 
         object.updateMatrixWorld();
 
@@ -111,6 +111,40 @@ module.exports = {
         var resolvedChanges = {};
 
         intersectHelper.update(config, changes, resolvedChanges, obj, K3D);
+
+        if (typeof(changes.volume) !== 'undefined' && !changes.volume.timeSeries) {
+            if (obj.material.uniforms.volumeTexture.value.image.data.constructor === changes.volume.data.constructor) {
+                obj.material.uniforms.volumeTexture.value.image.data = changes.volume.data;
+                obj.material.uniforms.volumeTexture.value.needsUpdate = true;
+
+                resolvedChanges.volume = null;
+            }
+        }
+
+        if (typeof(changes.color_range) !== 'undefined' && !changes.color_range.timeSeries) {
+            obj.material.uniforms.low.value = changes.color_range[0];
+            obj.material.uniforms.high.value = changes.color_range[1];
+
+            resolvedChanges.color_range = null;
+        }
+
+        if ((typeof(changes.color_map) !== 'undefined' && !changes.color_map.timeSeries) ||
+            (typeof(changes.opacity_function) !== 'undefined' && !changes.opacity_function.timeSeries)) {
+
+            if (!(changes.opacity_function && obj.material.transparent === false)) {
+                var canvas = colorMapHelper.createCanvasGradient(
+                    (changes.color_map && changes.color_map.data) || config.color_map.data,
+                    1024,
+                    (changes.opacity_function && changes.opacity_function.data) || config.opacity_function.data
+                );
+
+                obj.material.uniforms.colormap.value.image = canvas;
+                obj.material.uniforms.colormap.value.needsUpdate = true;
+
+                resolvedChanges.color_map = null;
+                resolvedChanges.opacity_function = null;
+            }
+        }
 
         commonUpdate(config, changes, resolvedChanges, obj);
 

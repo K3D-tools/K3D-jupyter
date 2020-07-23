@@ -58,7 +58,7 @@ module.exports = {
         );
 
         modelMatrix.set.apply(modelMatrix, config.model_matrix.data);
-        object.applyMatrix(modelMatrix);
+        object.applyMatrix4(modelMatrix);
 
         object.updateMatrixWorld();
 

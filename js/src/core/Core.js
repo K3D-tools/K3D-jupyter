@@ -283,9 +283,8 @@ function K3D(provider, targetDOMNode, parameters) {
         self.getWorld().changeControls();
         self.getWorld().setCameraToFitScene(true);
 
-        if (dispatch(self.events.CAMERA_MODE_CHANGE, mode)) {
-            self.render();
-        }
+        dispatch(self.events.CAMERA_MODE_CHANGE, mode);
+        self.render();
 
         GUI.controls.__controllers.forEach(function (controller) {
             if (controller.property === 'cameraMode') {
@@ -332,7 +331,12 @@ function K3D(provider, targetDOMNode, parameters) {
     };
 
     this.setClippingPlanes = function (planes) {
-        self.parameters.clippingPlanes = _.cloneDeep(planes);
+        planes = _.cloneDeep(planes);
+        self.parameters.clippingPlanes.length = 0;
+
+        planes.forEach(function (p) {
+            self.parameters.clippingPlanes.push(p);
+        });
 
         clippingPlanesGUIProvider(self, GUI.clippingPlanes);
         self.render();
@@ -653,6 +657,10 @@ function K3D(provider, targetDOMNode, parameters) {
     function removeObjectFromScene(id) {
         var object = self.Provider.Helpers.getObjectById(world, id);
 
+        if (id === self.parameters.colorbarObjectId) {
+            self.setColorMapLegend(-1);
+        }
+
         if (object) {
             world.K3DObjects.remove(object);
 
@@ -681,8 +689,6 @@ function K3D(provider, targetDOMNode, parameters) {
             }
 
             object = undefined;
-        } else {
-            throw new Error('Object with id ' + id + ' dosen\'t exists');
         }
     }
 
@@ -749,7 +755,7 @@ function K3D(provider, targetDOMNode, parameters) {
     this.load = function (json) {
         return loader(self, json).then(function (objects) {
             objects.forEach(function (object) {
-                objectGUIProvider(self, object.json, GUI.objects, null);
+                objectGUIProvider.update(self, object.json, GUI.objects, null);
                 world.ObjectsListJson[object.json.id] = object.json;
             });
 
@@ -771,7 +777,7 @@ function K3D(provider, targetDOMNode, parameters) {
         if (json.visible === false) {
             if (timeSeriesReload !== true) {
                 self.refreshAfterObjectsChange(true);
-                objectGUIProvider(self, json, GUI.objects, changes);
+                objectGUIProvider.update(self, json, GUI.objects, changes);
             }
 
             try {
@@ -792,7 +798,7 @@ function K3D(provider, targetDOMNode, parameters) {
         return loader(self, data).then(function (objects) {
             objects.forEach(function (object) {
                 if (timeSeriesReload !== true) {
-                    objectGUIProvider(self, object.json, GUI.objects, changes);
+                    objectGUIProvider.update(self, object.json, GUI.objects, changes);
                 }
 
                 world.ObjectsListJson[object.json.id] = object.json;

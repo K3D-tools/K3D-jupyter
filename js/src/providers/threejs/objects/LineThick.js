@@ -73,7 +73,7 @@ function create(config, K3D) {
     object.userData.lastColors = colors;
 
     modelMatrix.set.apply(modelMatrix, config.model_matrix.data);
-    object.applyMatrix(modelMatrix);
+    object.applyMatrix4(modelMatrix);
 
     object.updateMatrixWorld();
 

@@ -77,7 +77,7 @@ module.exports = {
             intersectHelper.init(config, object, K3D);
 
             modelMatrix.set.apply(modelMatrix, config.model_matrix.data);
-            object.applyMatrix(modelMatrix);
+            object.applyMatrix4(modelMatrix);
             object.updateMatrixWorld();
 
             object.onRemove = function () {
@@ -95,6 +95,41 @@ module.exports = {
         var resolvedChanges = {};
 
         intersectHelper.update(config, changes, resolvedChanges, obj, K3D);
+
+        if (typeof(changes.color_range) !== 'undefined' && !changes.color_range.timeSeries) {
+            obj.material.uniforms.low.value = changes.color_range[0];
+            obj.material.uniforms.high.value = changes.color_range[1];
+
+            resolvedChanges.color_range = null;
+        }
+
+        if ((typeof(changes.color_map) !== 'undefined' && !changes.color_map.timeSeries) ||
+            (typeof(changes.opacity_function) !== 'undefined' && !changes.opacity_function.timeSeries)) {
+
+            if (!(changes.opacity_function && obj.material.transparent === false)) {
+                var canvas = colorMapHelper.createCanvasGradient(
+                    (changes.color_map && changes.color_map.data) || config.color_map.data,
+                    1024,
+                    (changes.opacity_function && changes.opacity_function.data) || config.opacity_function.data
+                );
+
+                obj.material.uniforms.colormap.value.image = canvas;
+                obj.material.uniforms.colormap.value.needsUpdate = true;
+
+                resolvedChanges.color_map = null;
+                resolvedChanges.opacity_function = null;
+            }
+        }
+
+        if (typeof(changes.attribute) !== 'undefined' && !changes.attribute.timeSeries) {
+            if (obj.material.uniforms.map.value.image.data.constructor === changes.attribute.data.constructor) {
+                obj.material.uniforms.map.value.image.data = changes.attribute.data;
+                obj.material.uniforms.map.value.needsUpdate = true;
+
+                resolvedChanges.attribute = null;
+            }
+        }
+
         commonUpdate(config, changes, resolvedChanges, obj);
 
         if (areAllChangesResolve(changes, resolvedChanges)) {

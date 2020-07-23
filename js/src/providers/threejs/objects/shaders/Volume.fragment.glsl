@@ -180,11 +180,12 @@ void main() {
                 vec4 plane;
                 vec3 pos = -vec3(modelViewMatrix * vec4(textcoord - vec3(0.5), 1.0));
 
-                #pragma unroll_loop
+                #pragma unroll_loop_start
                 for ( int i = 0; i < UNION_CLIPPING_PLANES; i ++ ) {
                     plane = clippingPlanes[ i ];
                     if ( dot( pos, plane.xyz ) > plane.w ) continue;
                 }
+                #pragma unroll_loop_end
             #endif
 
             px = texture(volumeTexture, textcoord).x;
@@ -216,23 +217,34 @@ void main() {
                 // LIGHT
                 #if NUM_DIR_LIGHTS > 0
                     vec4 addedLights = vec4(ambientLightColor, 1.0);
+                    vec3 specularColor = vec3(0.0);
+
                     vec3 normal = worldGetNormal(px, textcoord);
 
                     vec3 lightDirection;
                     float lightingIntensity;
 
-                    #pragma unroll_loop
+//                    vec3 cameraToVertex = normalize( vWorldPosition - cameraPosition );
+                    vec3 lightReflect;
+                    float specularFactor;
+
+                    #pragma unroll_loop_start
                     for ( int i = 0; i < NUM_DIR_LIGHTS; i ++ ) {
-                        lightDirection = -directionalLights[ i ].direction;
-                        lightingIntensity = clamp(dot(-lightDirection, normal), 0.0, 1.0);
-                        addedLights.rgb += directionalLights[ i ].color * (0.05 + 0.95 * lightingIntensity) * (1.0 - shadow);
+                        lightDirection = directionalLights[ i ].direction;
+                        lightingIntensity = clamp(dot(lightDirection, normal), 0.0, 1.0);
+                        addedLights.rgb += directionalLights[ i ].color * (0.2 + 0.8 * lightingIntensity) * (1.0 - shadow);
 
-                        #if (USE_SPECULAR == 1)
-                        pxColor.rgb += directionalLights[ i ].color * pow(lightingIntensity, 50.0) * pxColor.a * (1.0 - shadow);
-                        #endif
+                        lightReflect = normalize(reflect(lightDirection, normal));
+                        specularFactor = dot(direction, lightReflect);
+
+                        if (specularFactor > 0.0)
+                            specularColor += 0.002 * scaled_px * (1.0 / step)  *
+                                             directionalLights[ i ].color * pow(specularFactor, 250.0) *
+                                             pxColor.a * (1.0 - shadow);
                     }
+                    #pragma unroll_loop_end
 
-                    pxColor.rgb *= addedLights.xyz;
+                    pxColor.rgb = pxColor.rgb * addedLights.xyz + specularColor;
                 #endif
 
                 value += pxColor;

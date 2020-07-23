@@ -214,7 +214,7 @@ module.exports = {
                 object.updateMatrix();
 
                 modelMatrix.set.apply(modelMatrix, config.model_matrix.data);
-                object.applyMatrix(modelMatrix);
+                object.applyMatrix4(modelMatrix);
 
                 rollOverMesh.visible = false;
                 rollOverMesh.geometry.computeBoundingSphere();

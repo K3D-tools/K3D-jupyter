@@ -26,7 +26,9 @@ module.exports = function (K3D) {
 
     this.setupCamera = function (array, fov) {
         if (fov) {
-            this.camera.fov = this.axesHelper.camera.fov = fov;
+            if (typeof(this.camera.fov) !== 'undefined' && typeof(this.axesHelper.camera.fov) !== 'undefined') {
+                this.camera.fov = this.axesHelper.camera.fov = fov;
+            }
         }
 
         if (array) {

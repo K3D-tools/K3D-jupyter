@@ -71,11 +71,11 @@ module.exports = {
             coord = toScreenPosition(p, world);
 
             if (!coord.out) {
-                domElement.style.display = 'inline-block';
+                domElement.style.display = 'block';
 
                 if (config.mode === 'dynamic') {
                     var fi = Math.atan2(coord.y - heightHalf, coord.x - widthHalf), dist, fiIsOK,
-                        minDistance = 150;
+                        minDistance = 150, maxIteration = 360, i = 0;
 
                     do {
                         dist = Math.sqrt((coord.x - widthHalf) * (coord.x - widthHalf) +
@@ -95,7 +95,9 @@ module.exports = {
                         if (!fiIsOK) {
                             fi += Math.PI / 180.0 * 0.25;
                         }
-                    } while (!fiIsOK);
+
+                        i++;
+                    } while (!fiIsOK && i < maxIteration);
 
                     coord.x = x;
                     coord.y = y;

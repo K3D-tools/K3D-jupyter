@@ -372,6 +372,7 @@ class Plot(widgets.DOMWidget):
             "clippingPlanes": self.clipping_planes,
             "lighting": self.lighting,
             "time": self.time,
+            "cameraMode": self.camera_mode,
             "colorbarObjectId": self.colorbar_object_id,
             "axes": self.axes,
             "cameraNoRotate": self.camera_no_rotate,

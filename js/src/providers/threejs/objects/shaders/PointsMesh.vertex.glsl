@@ -39,8 +39,8 @@ void main() {
         #include <defaultnormal_vertex>
 
         vNormal = normalize( transformedNormal );
-        vec3 transformed = vec3( position + offset);
 
+	    #include <begin_vertex>
         #include <morphtarget_vertex>
         #include <skinning_vertex>
         #include <displacementmap_vertex>

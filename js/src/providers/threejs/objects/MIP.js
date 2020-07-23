@@ -109,7 +109,7 @@ module.exports = {
         geometry.computeBoundingBox();
 
         object = new THREE.Mesh(geometry, material);
-        object.applyMatrix(modelMatrix);
+        object.applyMatrix4(modelMatrix);
         object.updateMatrixWorld();
 
         object.onRemove = function () {
@@ -135,10 +135,12 @@ module.exports = {
 
 
         if (typeof(changes.volume) !== 'undefined' && !changes.volume.timeSeries) {
-            obj.material.uniforms.volumeTexture.value.image.data = changes.volume.data;
-            obj.material.uniforms.volumeTexture.value.needsUpdate = true;
+            if (obj.material.uniforms.volumeTexture.value.image.data.constructor === changes.volume.data.constructor) {
+                obj.material.uniforms.volumeTexture.value.image.data = changes.volume.data;
+                obj.material.uniforms.volumeTexture.value.needsUpdate = true;
 
-            resolvedChanges.volume = null;
+                resolvedChanges.volume = null;
+            }
         }
 
         if ((typeof(changes.color_map) !== 'undefined' && !changes.color_map.timeSeries) ||
