@@ -71,7 +71,7 @@ module.exports = {
             coord = toScreenPosition(p, world);
 
             if (!coord.out) {
-                domElement.style.display = 'inline-block';
+                domElement.style.display = 'block';
 
                 if (config.mode === 'dynamic') {
                     var fi = Math.atan2(coord.y - heightHalf, coord.x - widthHalf), dist, fiIsOK,

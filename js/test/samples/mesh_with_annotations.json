@@ -75,6 +75,7 @@
     },
     {
       "type": "Mesh",
+      "slice_planes": [],
       "visible": true,
       "model_matrix": [
         0, 0, 1, 0,

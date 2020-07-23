@@ -37,7 +37,7 @@ module.exports = {
                 },
                 vertexShader: require('./shaders/PointsMesh.vertex.glsl'),
                 fragmentShader: require('./shaders/PointsMesh.fragment.glsl'),
-                depthTest: (config.opacity === 1.0 && opacities === null),
+                depthWrite: (config.opacity === 1.0 && opacities === null),
                 transparent: (config.opacity !== 1.0 || opacities !== null),
                 lights: true,
                 clipping: true,

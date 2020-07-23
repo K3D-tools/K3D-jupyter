@@ -349,14 +349,14 @@ PlotView = widgets.DOMWidgetView.extend({
                     change.value.compression_level = objectsList[change.id].attributes.compression_level;
                 }
 
-                objectsList[change.id].set(change.key, change.value);
-                objectsList[change.id].save_changes();
+                // objectsList[change.id].set(change.key, change.value);
+                // objectsList[change.id].save_changes();
+                objectsList[change.id].save(change.key, change.value, {patch: true});
             }
         });
 
         this.GUIParametersChanges = this.K3DInstance.on(this.K3DInstance.events.PARAMETERS_CHANGE, function (change) {
-            self.model.set(change.key, change.value);
-            self.model.save_changes();
+            self.model.save(change.key, change.value, {patch: true});
         });
 
         this.voxelsCallback = this.K3DInstance.on(this.K3DInstance.events.VOXELS_CALLBACK, function (param) {

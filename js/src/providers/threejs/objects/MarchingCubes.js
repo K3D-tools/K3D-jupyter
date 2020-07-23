@@ -39,7 +39,6 @@ module.exports = {
                     flatShading: config.flat_shading,
                     wireframe: config.wireframe,
                     opacity: config.opacity,
-                    depthTest: config.opacity === 1.0,
                     depthWrite: config.opacity === 1.0,
                     transparent: config.opacity !== 1.0
                 }),
@@ -102,7 +101,6 @@ module.exports = {
 
         if (typeof(changes.opacity) !== 'undefined' && !changes.opacity.timeSeries) {
             obj.material.opacity = changes.opacity;
-            obj.material.depthTest = changes.opacity === 1.0;
             obj.material.depthWrite = changes.opacity === 1.0;
             obj.material.transparent = changes.opacity !== 1.0;
             obj.material.needsUpdate = true;

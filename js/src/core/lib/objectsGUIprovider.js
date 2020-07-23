@@ -2,8 +2,23 @@
 
 'use strict';
 
-function objectGUIProvider(K3D, json, objects, changes) {
+function changeParameter(K3D, json, key, value) {
+    var change = {};
 
+    change[key] = value;
+
+    if (key !== 'name') {
+        K3D.reload(json, change);
+    }
+
+    K3D.dispatch(K3D.events.OBJECT_CHANGE, {
+        id: json.id,
+        key: key,
+        value: value
+    });
+}
+
+function update(K3D, json, objects, changes) {
     function addController(folder, obj, param, options1, options2, options3) {
         var controller = folder.add(obj, param, options1, options2, options3);
         folder.controllersMap[param] = controller;
@@ -16,22 +31,6 @@ function objectGUIProvider(K3D, json, objects, changes) {
         folder.controllersMap[param] = controller;
 
         return controller;
-    }
-
-    function change(json, key, value) {
-        var change = {};
-
-        change[key] = value;
-
-        if (key !== 'name') {
-            K3D.reload(json, change);
-        }
-
-        K3D.dispatch(K3D.events.OBJECT_CHANGE, {
-            id: json.id,
-            key: key,
-            value: value
-        });
     }
 
     function findControllers(json, param) {
@@ -112,7 +111,7 @@ function objectGUIProvider(K3D, json, objects, changes) {
             if (param === 'name') {
                 if (json.name === null) {
                     K3D.gui_map[json.id].name = json.name = json.type + ' #' + K3D.gui_counts[json.type];
-                    change(json, 'name', json.name);
+                    changeParameter(K3D, json, 'name', json.name);
                 } else {
                     K3D.gui_map[json.id].name = json.name;
                 }
@@ -131,16 +130,8 @@ function objectGUIProvider(K3D, json, objects, changes) {
                 colorMapLegendControllers = findControllers(json, 'colorLegend');
 
                 if (colorMapLegendControllers.length === 0) {
+                    json.colorLegend = (K3D.parameters.colorbarObjectId === json.id);
                     addController(K3D.gui_map[json.id], json, 'colorLegend').onChange(function (value) {
-                        var objects = K3D.getWorld().ObjectsListJson;
-
-                        Object.keys(objects).forEach(function (id) {
-                            findControllers(objects[id], 'colorLegend').forEach(function (controller) {
-                                objects[id].colorLegend = false;
-                                controller.updateDisplay();
-                            });
-                        });
-
                         json.colorLegend = value;
 
                         if (value) {
@@ -149,10 +140,6 @@ function objectGUIProvider(K3D, json, objects, changes) {
                             K3D.setColorMapLegend(0);
                         }
                     });
-                } else {
-                    if (json.colorLegend) {
-                        K3D.setColorMapLegend(json);
-                    }
                 }
             }
 
@@ -169,19 +156,19 @@ function objectGUIProvider(K3D, json, objects, changes) {
             }
 
             if (defaultParams.indexOf(param) !== -1 && !json[param].timeSeries) {
-                addController(K3D.gui_map[json.id], json, param).onChange(change.bind(this, json, param));
+                addController(K3D.gui_map[json.id], json, param).onChange(changeParameter.bind(this, K3D, json, param));
             }
 
             // special dependencies
             if (param === 'color') {
                 if (['Line', 'Points', 'VectorField', 'Vectors'].indexOf(json.type) === -1) {
                     addColorController(K3D.gui_map[json.id], json, param).onChange(
-                        change.bind(this, json, param));
+                        changeParameter.bind(this, K3D, json, param));
                 } else {
                     if (['Points', 'VectorField', 'Vectors'].indexOf(json.type) !== -1) {
                         if (typeof (json.colors) === 'undefined' || json.colors.length === 0) {
                             addColorController(K3D.gui_map[json.id], json, param).onChange(
-                                change.bind(this, json, param));
+                                changeParameter.bind(this, K3D, json, param));
                         }
                     } else if (json.type === 'Line') {
                         if ((typeof (json.colors) === 'undefined' || json.colors.length === 0) &&
@@ -190,7 +177,7 @@ function objectGUIProvider(K3D, json, objects, changes) {
                             (typeof (json.color_map) === 'undefined' || json.colors.color_map === 0)) {
 
                             addColorController(K3D.gui_map[json.id], json, param).onChange(
-                                change.bind(this, json, param));
+                                changeParameter.bind(this, K3D, json, param));
                         }
                     }
                 }
@@ -200,69 +187,73 @@ function objectGUIProvider(K3D, json, objects, changes) {
                 case 'origin_color':
                 case 'head_color':
                     if (typeof (json.colors) === 'undefined') {
-                        addColorController(K3D.gui_map[json.id], json, param).onChange(change.bind(this, json, param));
+                        addColorController(K3D.gui_map[json.id], json, param).onChange(
+                            changeParameter.bind(this, K3D, json, param));
                     }
                     break;
                 case 'outlines_color':
-                    addColorController(K3D.gui_map[json.id], json, param).onChange(change.bind(this, json, param));
+                    addColorController(K3D.gui_map[json.id], json, param).onChange(
+                        changeParameter.bind(this, K3D, json, param));
                     break;
                 case 'text':
                     if (json.type !== 'STL' && !json[param].timeSeries) {
-                        addController(K3D.gui_map[json.id], json, param).onChange(change.bind(this, json, param));
+                        addController(K3D.gui_map[json.id], json, param).onChange(
+                            changeParameter.bind(this, K3D, json, param));
                     }
                     break;
                 case 'shader':
                     if (json.type === 'Points') {
                         addController(K3D.gui_map[json.id], json, param,
                             ['3dSpecular', '3d', 'flat', 'mesh', 'dot']).onChange(
-                            change.bind(this, json, param));
+                            changeParameter.bind(this, K3D, json, param));
                     }
                     break;
                 case 'mode':
                     if (json.type === 'Label') {
                         addController(K3D.gui_map[json.id], json, param,
-                            ['dynamic', 'local', 'side']).onChange(change.bind(this, json, param));
+                            ['dynamic', 'local', 'side']).onChange(changeParameter.bind(this, K3D, json, param));
                     }
                     break;
                 case 'shadow_res':
                     if (json.type === 'Volume') {
                         addController(K3D.gui_map[json.id], json, param, [32, 64, 128, 256, 512]).onChange(
-                            change.bind(this, json, param));
+                            changeParameter.bind(this, K3D, json, param));
                     }
                     break;
                 case 'shadow':
                     if (json.type === 'Volume') {
                         addController(K3D.gui_map[json.id], json, param, ['off', 'on_demand', 'dynamic']).onChange(
-                            change.bind(this, json, param));
+                            changeParameter.bind(this, K3D, json, param));
                     }
                     break;
                 case 'ray_samples_count':
                     if (json.type === 'Volume') {
                         addController(K3D.gui_map[json.id], json, param, [8, 16, 32, 64]).onChange(
-                            change.bind(this, json, param));
+                            changeParameter.bind(this, K3D, json, param));
                     }
                     break;
                 case 'width':
                     if (json.type === 'Line' && json.shader === 'mesh') {
-                        addController(K3D.gui_map[json.id], json, param).onChange(change.bind(this, json, param));
+                        addController(K3D.gui_map[json.id], json, param).onChange(
+                            changeParameter.bind(this, K3D, json, param));
                     }
                     break;
                 case 'radial_segments':
                     if (json.shader === 'mesh') {
                         addController(K3D.gui_map[json.id], json, param, 0, 64, 1).name('radialSeg').onChange(
-                            change.bind(this, json, param));
+                            changeParameter.bind(this, K3D, json, param));
                     }
                     break;
                 case 'mesh_detail':
                     if (json.shader === 'mesh') {
                         addController(K3D.gui_map[json.id], json, param, 0, 8, 1).name('meshDetail').onChange(
-                            change.bind(this, json, param));
+                            changeParameter.bind(this, K3D, json, param));
                     }
                     break;
                 case 'opacity':
                     if (!json[param].timeSeries) {
                         addController(K3D.gui_map[json.id], json, param, 0, 1.0).name('opacity').onChange(
-                            change.bind(this, json, param));
+                            changeParameter.bind(this, K3D, json, param));
                     }
                     break;
                 case 'color_range':
@@ -270,7 +261,7 @@ function objectGUIProvider(K3D, json, objects, changes) {
                         controller = addController(K3D.gui_map[json.id], json, '_' + param + '_low')
                             .name('vmin').onChange(function (value) {
                                 json.color_range[0] = value;
-                                change(json, 'color_range', json.color_range);
+                                changeParameter(K3D, json, 'color_range', json.color_range);
                             });
 
                         if (controller.__precision === 0 && controller.initialValue < 20) {
@@ -281,7 +272,7 @@ function objectGUIProvider(K3D, json, objects, changes) {
                         controller = addController(K3D.gui_map[json.id], json, '_' + param + '_high')
                             .name('vmax').onChange(function (value) {
                                 json.color_range[1] = value;
-                                change(json, 'color_range', json.color_range);
+                                changeParameter(K3D, json, 'color_range', json.color_range);
                             });
 
                         if (controller.__precision === 0 && controller.initialValue < 20) {
@@ -307,4 +298,7 @@ function objectGUIProvider(K3D, json, objects, changes) {
     }
 }
 
-module.exports = objectGUIProvider;
+module.exports = {
+    update: update,
+    changeParameter: changeParameter
+};

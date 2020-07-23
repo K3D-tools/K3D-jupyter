@@ -57,7 +57,7 @@ module.exports = {
             vertexShader: vertexShader,
             fragmentShader: fragmentShader,
             opacity: config.opacity,
-            depthTest: (config.opacity === 1.0 && opacities === null),
+            depthWrite: (config.opacity === 1.0 && opacities === null),
             transparent: (config.opacity !== 1.0 || opacities !== null),
             lights: true,
             clipping: true,
@@ -100,7 +100,6 @@ module.exports = {
 
         // if (typeof(changes.opacity) !== 'undefined' && !changes.opacity.timeSeries) {
         //     obj.material.uniforms.opacity.value = changes.opacity;
-        //     obj.material.depthTest = config.opacity === 1.0;
         //     obj.material.depthWrite = config.opacity === 1.0;
         //     obj.material.transparent = config.opacity !== 1.0;
         //

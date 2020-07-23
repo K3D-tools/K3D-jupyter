@@ -120,7 +120,7 @@ module.exports = {
         };
 
         object.show = function () {
-            domElement.style.display = 'inline-block';
+            domElement.style.display = 'block';
         };
 
         object.show();

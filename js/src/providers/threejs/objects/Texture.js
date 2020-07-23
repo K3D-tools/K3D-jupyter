@@ -19,5 +19,13 @@ module.exports = {
         } else {
             return new TextureData.create(config, K3D);
         }
+    },
+
+    update: function (config, changes, obj, K3D) {
+        if (config.file_format && config.binary) {
+            return TextureImage.update(config, changes, obj, K3D);
+        } else {
+            return TextureData.update(config, changes, obj, K3D);
+        }
     }
 };
