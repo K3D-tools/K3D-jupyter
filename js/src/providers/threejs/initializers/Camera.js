@@ -28,6 +28,7 @@ module.exports = function (K3D) {
         if (fov) {
             if (typeof(this.camera.fov) !== 'undefined' && typeof(this.axesHelper.camera.fov) !== 'undefined') {
                 this.camera.fov = this.axesHelper.camera.fov = fov;
+                this.controls.dispatchEvent({type: 'change'});
             }
         }
 
@@ -39,13 +40,14 @@ module.exports = function (K3D) {
             }
 
             this.controls.target.fromArray(array, 3);
-            this.controls.update();
         }
 
         this.camera.updateProjectionMatrix();
         this.axesHelper.camera.updateProjectionMatrix();
 
         recalculateFrustum(this.camera);
+
+        this.controls.update();
     };
 
     this.setCameraToFitScene = function (force, factor) {
