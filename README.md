@@ -78,6 +78,8 @@ Then, if required, JupyterLab installation:
 
 Then, if required, JupyterLab installation:
 
+*Note: do not run this command inside K3D-jupyter directory.*
+
     $ jupyter labextension install @jupyter-widgets/jupyterlab-manager
     $ jupyter labextension install k3d
 
