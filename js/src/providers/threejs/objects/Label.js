@@ -128,7 +128,7 @@ module.exports = {
                 if (config.mode === 'local') {
                     referencePoint = 'cb';
 
-                    coord.y -= 0.15 * world.height;
+                    coord.y -= 0.25 * maxLength * world.height;
                 }
 
                 if (config.mode === 'side') {
@@ -178,6 +178,8 @@ module.exports = {
 
                 geometry.attributes.position.array.set([p.position.x, p.position.y, p.position.z, v.x, v.y, v.z]);
                 geometry.attributes.position.needsUpdate = true;
+                geometry.computeBoundingBox();
+
                 line.visible = true;
 
                 domElement.style.transform = 'translate(' + x + ',' + y + ')';
@@ -205,6 +207,8 @@ module.exports = {
         object.add(p);
         object.add(line);
 
+        render();
+
         return Promise.resolve(object);
     },
 
@@ -212,7 +216,11 @@ module.exports = {
         var resolvedChanges = {};
 
         if (typeof(changes.text) !== 'undefined' && !changes.text.timeSeries) {
-            obj.children[0].domElement.innerHTML = katex.renderToString(changes.text, {displayMode: true});
+            if (config.is_html) {
+                obj.children[0].domElement.innerHTML = changes.text;
+            } else {
+                obj.children[0].domElement.innerHTML = katex.renderToString(changes.text, {displayMode: true});
+            }
 
             resolvedChanges.text = null;
         }
@@ -230,7 +238,6 @@ module.exports = {
             return false;
         }
     }
-
 };
 
 function toScreenPosition(obj, world) {

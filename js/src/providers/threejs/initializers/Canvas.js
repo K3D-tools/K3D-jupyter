@@ -16,14 +16,18 @@ function addEvents(self, K3D, controls) {
     };
 
     controls.addEventListener('change', function (event) {
-        var r = event.target.getCameraArray();
+        var camDistance , r = event.target.getCameraArray();
 
         recalculateFrustum(self.camera);
 
         K3D.dispatch(K3D.events.CAMERA_CHANGE, r);
 
+        camDistance = (3.0 * 0.5) / Math.tan(
+            THREE.Math.degToRad(K3D.parameters.camera_fov / 2.0)
+        );
+
         self.axesHelper.camera.position.copy(
-            self.camera.position.clone().sub(self.controls.target).normalize().multiplyScalar(2.5)
+            self.camera.position.clone().sub(self.controls.target).normalize().multiplyScalar(camDistance)
         );
         self.axesHelper.camera.lookAt(0, 0, 0);
         self.axesHelper.camera.up.copy(self.camera.up);

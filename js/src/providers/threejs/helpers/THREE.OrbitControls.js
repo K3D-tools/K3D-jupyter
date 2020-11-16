@@ -5,12 +5,18 @@
 module.exports = function (THREE) {
 
     THREE.OrbitControls = function (object, domElement) {
+        var currentWindow, currentDocument;
 
-        if (domElement === undefined) console.warn('THREE.OrbitControls: The second parameter "domElement" is now mandatory.');
-        if (domElement === document) console.error('THREE.OrbitControls: "document" should not be used as the target "domElement". Please use "renderer.domElement" instead.');
+        if (domElement !== undefined) {
+            currentWindow = domElement.ownerDocument.defaultView || domElement.ownerDocument.parentWindow;
+            this.domElement = domElement;
+            currentDocument = domElement.ownerDocument;
+        } else {
+            currentWindow = window;
+            this.domElement = currentDocument = currentWindow.document;
+        }
 
         this.object = object;
-        this.domElement = domElement;
 
         // Set to false to disable this control
         this.enabled = true;
@@ -245,8 +251,8 @@ module.exports = function (THREE) {
             scope.domElement.removeEventListener('touchend', onTouchEnd, false);
             scope.domElement.removeEventListener('touchmove', onTouchMove, false);
 
-            document.removeEventListener('mousemove', onMouseMove, false);
-            document.removeEventListener('mouseup', onMouseUp, false);
+            currentDocument.removeEventListener('mousemove', onMouseMove, false);
+            currentDocument.removeEventListener('mouseup', onMouseUp, false);
 
             scope.domElement.removeEventListener('keydown', onKeyDown, false);
 
@@ -749,7 +755,7 @@ module.exports = function (THREE) {
             // Manually set the focus since calling preventDefault above
             // prevents the browser from setting it automatically.
 
-            scope.domElement.focus ? scope.domElement.focus() : window.focus();
+            scope.domElement.focus ? scope.domElement.focus() : currentWindow.focus();
 
             switch (event.button) {
 
@@ -869,8 +875,8 @@ module.exports = function (THREE) {
 
             if (state !== STATE.NONE) {
 
-                document.addEventListener('mousemove', onMouseMove, false);
-                document.addEventListener('mouseup', onMouseUp, false);
+                currentDocument.addEventListener('mousemove', onMouseMove, false);
+                currentDocument.addEventListener('mouseup', onMouseUp, false);
 
                 scope.dispatchEvent(startEvent);
 
@@ -920,8 +926,8 @@ module.exports = function (THREE) {
 
             handleMouseUp(event);
 
-            document.removeEventListener('mousemove', onMouseMove, false);
-            document.removeEventListener('mouseup', onMouseUp, false);
+            currentDocument.removeEventListener('mousemove', onMouseMove, false);
+            currentDocument.removeEventListener('mouseup', onMouseUp, false);
 
             scope.dispatchEvent(endEvent);
 

@@ -657,10 +657,6 @@ function K3D(provider, targetDOMNode, parameters) {
     function removeObjectFromScene(id) {
         var object = self.Provider.Helpers.getObjectById(world, id);
 
-        if (id === self.parameters.colorbarObjectId) {
-            self.setColorMapLegend(-1);
-        }
-
         if (object) {
             world.K3DObjects.remove(object);
 
@@ -700,6 +696,11 @@ function K3D(provider, targetDOMNode, parameters) {
     this.removeObject = function (id) {
         removeObjectFromScene(id);
         delete world.ObjectsListJson[id];
+
+        if (id === self.parameters.colorbarObjectId) {
+            self.setColorMapLegend(-1);
+        }
+
         dispatch(self.events.OBJECT_REMOVED, id);
         self.refreshAfterObjectsChange(false);
 

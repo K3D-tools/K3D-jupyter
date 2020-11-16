@@ -4,7 +4,7 @@
     {
       "type": "Label",
       "position" : [0.0, -6.0, 1.0],
-      "max_length": 5.85,
+      "max_length": 1.0,
       "text" : "\\int_{-\\infty}^\\infty \\hat f(\\xi)\\,e^{2 \\pi i \\xi x} \\,d\\xi",
       "size" : 1,
       "color": 255,
