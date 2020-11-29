@@ -1,6 +1,6 @@
 {
   "name": "k3d",
-  "version": "2.9.0",
+  "version": "2.9.1",
   "description": "3D visualization library",
   "author": "k3d team",
   "main": "src/index.js",
@@ -45,7 +45,7 @@
     "grunt-jsdoc": "1.0.0",
     "grunt-karma": "0.12.1",
     "grunt-open": "0.2.3",
-    "grunt-webpack": "^2.0.1",
+    "grunt-webpack": "^4.0.2",
     "jasmine-core": "2.3.4",
     "jshint-stylish": "^2.2.1",
     "json-loader": "^0.5.4",
@@ -82,7 +82,7 @@
     "requirejs": "^2.3.6",
     "screenfull": "^4.2.1",
     "stats.js": "^0.17.0",
-    "three": "^0.118.3",
+    "three": "^0.122.0",
     "three-mesh-bvh": "^0.2.0"
   }
 }
