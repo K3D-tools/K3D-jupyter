@@ -86,18 +86,5 @@ back-end, send by email or embedded in webpages as an :code:`iframe`:
 
     <iframe src="_static/points.html" frameborder="0" height="300px" width="300px"></iframe>
 
-Snapshots can be generated from Menu or programatically:
-
-.. code::
-   
-   plot.fetch_snapshot()
-
-
-In the latter case one has to write HTML code to a file:
-
-   
-.. code::
-   
-   with open('../_static/points.html','w') as fp:
-       fp.write(plot.snapshot)
+Snapshots can be generated from Menu or programatically, see  :ref:`snapshots`.
 

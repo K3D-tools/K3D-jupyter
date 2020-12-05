@@ -18,10 +18,16 @@ side widget with Python kernel by a proven and standardized protocol.
 
    intro
 
+.. toctree::
+   :maxdepth: 2
+   :caption: Getting started
+
+   basic_plotting
+   
    
 .. toctree::
    :maxdepth: 2
-   :caption: K3D in nutshell:
+   :caption: K3D by example:
 
    basic_functionality/index
 
