@@ -896,6 +896,8 @@ class Volume(Drawable):
             Minimum number of miliseconds between shadow map updates.
         shadow_res: `int`.
             Resolution of shadow map.
+        interpolation: `bool`.
+            Whether volume raycasting should interpolate data or not.
         model_matrix: `array_like`.
             4x4 model transform matrix.
     """
@@ -915,6 +917,7 @@ class Volume(Drawable):
     ray_samples_count = TimeSeries(Int(min=1, max=128, default_value=16)).tag(sync=True)
     focal_length = TimeSeries(Float()).tag(sync=True)
     focal_plane = TimeSeries(Float()).tag(sync=True)
+    interpolation = TimeSeries(Bool()).tag(sync=True)
     model_matrix = TimeSeries(Array(dtype=np.float32)).tag(sync=True, **array_serialization_wrap('model_matrix'))
 
     def __init__(self, **kwargs):

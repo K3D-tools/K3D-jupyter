@@ -819,7 +819,7 @@ def voxels_group(space_size, voxels_group=[], chunks_ids=[], color_map=nice_colo
 
 # noinspection PyShadowingNames
 def volume(volume, color_map=default_colormap, opacity_function=None, color_range=[], samples=512.0,
-           alpha_coef=50.0, gradient_step=0.005, shadow='off',
+           alpha_coef=50.0, gradient_step=0.005, shadow='off', interpolation=True,
            shadow_delay=500, shadow_res=128, focal_length=0.0, focal_plane=100.0, ray_samples_count=16, name=None,
            compression_level=0, **kwargs):
     """Create a Volume drawable for 3D volumetric data.
@@ -870,6 +870,8 @@ def volume(volume, color_map=default_colormap, opacity_function=None, color_rang
             Minimum number of miliseconds between shadow map updates.
         shadow_res: `int`.
             Resolution of shadow map.
+        interpolation: `bool`.
+            Whether volume raycasting should interpolate data or not.
         name: `string`.
             A name of a object
         kwargs: `dict`.
@@ -883,7 +885,7 @@ def volume(volume, color_map=default_colormap, opacity_function=None, color_rang
     return process_transform_arguments(
         Volume(volume=volume, color_map=color_map, opacity_function=opacity_function, color_range=color_range,
                compression_level=compression_level, samples=samples, alpha_coef=alpha_coef,
-               gradient_step=gradient_step,
+               gradient_step=gradient_step, interpolation=interpolation,
                shadow=shadow, shadow_delay=shadow_delay, shadow_res=shadow_res, focal_plane=focal_plane,
                focal_length=focal_length, name=name, ray_samples_count=ray_samples_count), **kwargs)
 

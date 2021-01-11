@@ -39,6 +39,8 @@ module.exports = function (K3D) {
         gl, debugInfo;
 
     self.renderer = new THREE.WebGLRenderer({
+        alpha: true,
+        antialias: K3D.parameters.antialias > 0,
         canvas: canvas,
         context: context
     });

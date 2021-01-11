@@ -86,7 +86,7 @@ function K3D(provider, targetDOMNode, parameters) {
         });
     }
 
-    require('style-loader?{attrs:{id: "k3d-style"}}!css-loader!./../k3d.css');
+    require('style-loader?{attributes:{id: "k3d-style"}}!css-loader!./../k3d.css');
 
     if (!(this instanceof (K3D))) {
         return new K3D(provider, targetDOMNode, parameters);

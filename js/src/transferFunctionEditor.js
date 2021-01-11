@@ -22,7 +22,7 @@ function K3DTransferFunctionEditor(targetDOMNode, parameters, onChange) {
         opacityCircles = [],
         colormapCircles = [];
 
-    require('style-loader?{attrs:{id: "k3d-style"}}!css-loader!./k3d.css');
+    require('style-loader?{attributes:{id: "k3d-style"}}!css-loader!./k3d.css');
 
     function removeOpacityCircle(evt) {
         var el = evt.target.parentNode,
