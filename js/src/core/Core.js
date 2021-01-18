@@ -163,6 +163,9 @@ function K3D(provider, targetDOMNode, parameters) {
             cameraNoRotate: false,
             cameraNoZoom: false,
             cameraNoPan: false,
+            cameraRotateSpeed: 1.0,
+            cameraZoomSpeed: 1.2,
+            cameraPanSpeed: 0.3,
             name: null,
             camera_fov: 60.0,
             cameraAnimation: {},
@@ -465,6 +468,19 @@ function K3D(provider, targetDOMNode, parameters) {
         self.parameters.cameraNoRotate = world.controls.noRotate = cameraNoRotate;
         self.parameters.cameraNoZoom = world.controls.noZoom = cameraNoZoom;
         self.parameters.cameraNoPan = world.controls.noPan = cameraNoPan;
+    };
+
+    /**
+     * Set camera speed
+     * @memberof K3D.Core
+     * @param {Boolean} cameraNoRotate
+     * @param {Boolean} cameraNoZoom
+     * @param {Boolean} cameraNoPan
+     */
+    this.setCameraSpeeds = function (rotateSpeed, zoomSpeed, panSpeed) {
+        self.parameters.cameraRotateSpeed = world.controls.rotateSpeed = rotateSpeed;
+        self.parameters.cameraZoomSpeed = world.controls.zoomSpeed = zoomSpeed;
+        self.parameters.cameraPanSpeed = world.controls.panSpeed = panSpeed;
     };
 
     /**
@@ -1041,6 +1057,11 @@ function K3D(provider, targetDOMNode, parameters) {
         self.parameters.cameraNoRotate,
         self.parameters.cameraNoZoom,
         self.parameters.cameraNoPan
+    );
+    self.setCameraSpeeds(
+        self.parameters.cameraRotateSpeed,
+        self.parameters.cameraZoomSpeed,
+        self.parameters.cameraPanSpeed
     );
     self.setCameraFOV(self.parameters.camera_fov);
     self.setFps(self.parameters.fps);

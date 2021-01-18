@@ -44,6 +44,12 @@ class Plot(widgets.DOMWidget):
             Lock for camera zoom.
         camera_no_pan: `Bool`.
             Lock for camera pan.
+        camera_rotate_speed: `Float`.
+            Speed of camera rotation.
+        camera_zoom_speed: `Float`.
+            Speed of camera zoom.
+        camera_pan_speed: `Float`.
+            Speed of camera pan.
         camera_fov: `Float`.
             Camera Field of View.
         snapshot_include_js: `Bool`.
@@ -132,6 +138,9 @@ class Plot(widgets.DOMWidget):
     camera_no_rotate = Bool(False).tag(sync=True)
     camera_no_zoom = Bool(False).tag(sync=True)
     camera_no_pan = Bool(False).tag(sync=True)
+    camera_rotate_speed = Float().tag(sync=True)
+    camera_zoom_speed = Float().tag(sync=True)
+    camera_pan_speed = Float().tag(sync=True)
     clipping_planes = ListOrArray(empty_ok=True).tag(sync=True)
     colorbar_object_id = Int(-1).tag(sync=True)
     colorbar_scientific = Bool(False).tag(sync=True)
@@ -152,7 +161,8 @@ class Plot(widgets.DOMWidget):
                  grid_visible=True, height=512, voxel_paint_color=0, grid=(-1, -1, -1, 1, 1, 1), screenshot_scale=2.0,
                  lighting=1.5, time=0.0, fps_meter=False, menu_visibility=True, colorbar_object_id=-1,
                  rendering_steps=1, axes=['x', 'y', 'z'], camera_no_rotate=False, camera_no_zoom=False,
-                 snapshot_include_js=True, camera_no_pan=False, camera_fov=45.0, axes_helper=1.0, name=None,
+                 snapshot_include_js=True, camera_no_pan=False, camera_rotate_speed=1.0, camera_zoom_speed=1.2,
+                 camera_pan_speed=0.3, camera_fov=45.0, axes_helper=1.0, name=None,
                  mode='view', camera_mode='trackball', manipulate_mode='translate', auto_rendering=True, fps=25.0,
                  *args, **kwargs):
         super(Plot, self).__init__()
@@ -176,6 +186,9 @@ class Plot(widgets.DOMWidget):
         self.camera_no_rotate = camera_no_rotate
         self.camera_no_zoom = camera_no_zoom
         self.camera_no_pan = camera_no_pan
+        self.camera_rotate_speed = camera_rotate_speed
+        self.camera_zoom_speed = camera_zoom_speed
+        self.camera_pan_speed = camera_pan_speed
         self.camera_fov = camera_fov
         self.axes = axes
         self.axes_helper = axes_helper

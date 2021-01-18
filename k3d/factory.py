@@ -1055,6 +1055,9 @@ def plot(height=512,
          camera_no_zoom=False,
          camera_no_rotate=False,
          camera_no_pan=False,
+         camera_rotate_speed=1.0,
+         camera_zoom_speed=1.2,
+         camera_pan_speed=0.3,
          fps=25.0):
     """Create a K3D Plot widget.
 
@@ -1089,6 +1092,12 @@ def plot(height=512,
             Lock for camera zoom.
         camera_no_pan: `Bool`.
             Lock for camera pan.
+        camera_rotate_speed: `Float`.
+            Speed of camera rotation.
+        camera_zoom_speed: `Float`.
+            Speed of camera zoom.
+        camera_pan_speed: `Float`.
+            Speed of camera pan.
         camera_fov: `Float`.
             Camera Field of View.
         snapshot_include_js: `Bool`.
@@ -1127,4 +1136,5 @@ def plot(height=512,
                 axes=axes, axes_helper=axes_helper, screenshot_scale=screenshot_scale, camera_fov=camera_fov,
                 name=name, camera_mode=camera_mode, snapshot_include_js=snapshot_include_js,
                 camera_no_zoom=camera_no_zoom, camera_no_rotate=camera_no_rotate, camera_no_pan=camera_no_pan,
-                auto_rendering=auto_rendering, fps=fps)
+                camera_rotate_speed=camera_rotate_speed, camera_zoom_speed=camera_zoom_speed,
+                camera_pan_speed=camera_pan_speed, auto_rendering=auto_rendering, fps=fps)
