@@ -224,7 +224,6 @@ module.exports = function (K3D) {
                     return [axesHelper, grid, scene];
                 });
             });
-
         });
     };
 };
