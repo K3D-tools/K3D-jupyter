@@ -330,7 +330,7 @@ module.exports = function (THREE) {
 
                 } else {
 
-                    return buffer;
+                    return new Uint8Array(buffer).buffer;
 
                 }
 
