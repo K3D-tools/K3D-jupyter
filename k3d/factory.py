@@ -135,7 +135,7 @@ def marching_cubes(scalar_field, level, color=_default_color, wireframe=False, f
     )
 
 
-def mesh(vertices, indices, color=_default_color, attribute=[], color_map=default_colormap,
+def mesh(vertices, indices, color=_default_color, colors=[], attribute=[], color_map=default_colormap,
          # lgtm [py/similar-function]
          color_range=[], wireframe=False, flat_shading=True, opacity=1.0, texture=None, texture_file_format=None,
          volume=[], volume_bounds=[], opacity_function=[], side='front', uvs=None,
@@ -149,6 +149,8 @@ def mesh(vertices, indices, color=_default_color, attribute=[], color_map=defaul
             Array of vertex indices: int triplets of indices from vertices array.
         color: `int`.
             Packed RGB color of the mesh (0xff0000 is red, 0xff is blue) when not using color maps.
+        colors: `array_like`.
+            Same-length array of `int`-packed RGB color of the points (0xff0000 is red, 0xff is blue).
         attribute: `array_like`.
             Array of float attribute for the color mapping, coresponding to each vertex.
         color_map: `list`.
@@ -199,6 +201,7 @@ def mesh(vertices, indices, color=_default_color, attribute=[], color_map=defaul
         Mesh(vertices=vertices,
              indices=indices,
              color=color,
+             colors=colors,
              attribute=attribute,
              color_map=color_map,
              color_range=color_range,

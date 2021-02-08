@@ -324,6 +324,8 @@ class Mesh(DrawableWithCallback):
             Array of vertex indices: int triplets of indices from vertices array.
         color: `int`.
             Packed RGB color of the mesh (0xff0000 is red, 0xff is blue) when not using color maps.
+        colors: `array_like`.
+            Same-length array of (`int`) packed RGB color of the points (0xff0000 is red, 0xff is blue).
         attribute: `array_like`.
             Array of float attribute for the color mapping, coresponding to each vertex.
         color_map: `list`.
@@ -357,6 +359,7 @@ class Mesh(DrawableWithCallback):
     vertices = TimeSeries(Array(dtype=np.float32)).tag(sync=True, **array_serialization_wrap('vertices'))
     indices = TimeSeries(Array(dtype=np.uint32)).tag(sync=True, **array_serialization_wrap('indices'))
     color = TimeSeries(Int(min=0, max=0xffffff)).tag(sync=True)
+    colors = TimeSeries(Array(dtype=np.uint32)).tag(sync=True, **array_serialization_wrap('colors'))
     attribute = TimeSeries(Array(dtype=np.float32)).tag(sync=True, **array_serialization_wrap('attribute'))
     color_map = TimeSeries(Array(dtype=np.float32)).tag(sync=True, **array_serialization_wrap('color_map'))
     color_range = TimeSeries(ListOrArray(minlen=2, maxlen=2, empty_ok=True)).tag(sync=True)
@@ -377,6 +380,17 @@ class Mesh(DrawableWithCallback):
         super(Mesh, self).__init__(**kwargs)
 
         self.set_trait('type', 'Mesh')
+
+    @validate('colors')
+    def _validate_colors(self, proposal):
+        if type(proposal['value']) is dict or type(self.vertices) is dict:
+            return proposal['value']
+
+        required = self.vertices.size // 3  # (x, y, z) triplet per 1 color
+        actual = proposal['value'].size
+        if actual != 0 and required != actual:
+            raise TraitError('colors has wrong size: %s (%s required)' % (actual, required))
+        return proposal['value']
 
     @validate('volume')
     def _validate_volume(self, proposal):
