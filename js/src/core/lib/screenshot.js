@@ -50,10 +50,6 @@ function getScreenshot(K3D, scale, onlyCanvas) {
                 console.log('K3D: Screenshot [canvas]: ' + (new Date().getTime() - t) / 1000, 's');
                 t = new Date().getTime();
 
-                if (result) {
-                    finalCanvasCtx.drawImage(htmlElementCanvas, 0, 0);
-                }
-
                 finalCanvasCtx.scale(1, -1);
 
                 arrays.forEach(function (array) {
@@ -67,6 +63,11 @@ function getScreenshot(K3D, scale, onlyCanvas) {
 
                     finalCanvasCtx.drawImage(canvas, 0, 0, finalCanvas.width, -finalCanvas.height);
                 });
+
+                if (result) {
+                    finalCanvasCtx.scale(1, -1);
+                    finalCanvasCtx.drawImage(htmlElementCanvas, 0, 0);
+                }
 
                 resolve(finalCanvas);
             });

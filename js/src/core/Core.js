@@ -200,7 +200,11 @@ function K3D(provider, targetDOMNode, parameters) {
     this.setFpsMeter = function (state) {
         var Stats;
 
-        if (self.parameters.fpsMeter === false) {
+        if (self.parameters.fpsMeter) {
+            if (fpsMeter) {
+                return;
+            }
+
             Stats = require('stats.js');
             fpsMeter = new Stats();
 
@@ -213,8 +217,10 @@ function K3D(provider, targetDOMNode, parameters) {
                 }
             });
         } else {
-            fpsMeter.domElement.remove();
-            fpsMeter = null;
+            if (fpsMeter) {
+                fpsMeter.domElement.remove();
+                fpsMeter = null;
+            }
         }
 
         self.parameters.fpsMeter = state;
@@ -985,6 +991,8 @@ function K3D(provider, targetDOMNode, parameters) {
     world.targetDOMNode.appendChild(guiContainer);
     guiContainer.appendChild(this.gui.domElement);
 
+    this.resizeHelper();
+
     GUI.controls = this.gui.addFolder('Controls');
     GUI.objects = this.gui.addFolder('Objects');
     GUI.info = this.gui.addFolder('Info');
@@ -1066,6 +1074,7 @@ function K3D(provider, targetDOMNode, parameters) {
     self.setCameraFOV(self.parameters.camera_fov);
     self.setFps(self.parameters.fps);
     self.setViewMode(self.parameters.viewMode);
+    self.setFpsMeter(self.parameters.fpsMeter);
 
     self.render();
 

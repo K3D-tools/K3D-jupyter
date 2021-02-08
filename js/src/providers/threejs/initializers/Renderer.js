@@ -153,7 +153,7 @@ module.exports = function (K3D) {
     this.render = function (force) {
         K3D.labels = [];
 
-        if ((!K3D.autoRendering && K3D.parameters.autoRendering) || force) {
+        if (!K3D.autoRendering || force) {
             if (renderingPromise === null) {
                 renderingPromise = render().then(function () {
                     renderingPromise = null;
