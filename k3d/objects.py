@@ -6,7 +6,8 @@ from traitlets import validate, TraitError
 from traittypes import Array
 
 from ._version import __version__ as version
-from .helpers import callback_serialization_wrap, array_serialization_wrap, shape_validation, validate_sparse_voxels
+from .helpers import callback_serialization_wrap, array_serialization_wrap, shape_validation, validate_sparse_voxels, \
+    get_bounding_box_points, get_bounding_box, get_bounding_box_point
 from .validation.stl import AsciiStlData, BinaryStlData
 
 EPSILON = np.finfo(np.float32).eps
@@ -255,6 +256,9 @@ class Line(Drawable):
 
         self.set_trait('type', 'Line')
 
+    def get_bounding_box(self):
+        return get_bounding_box_points(self.vertices, self.model_matrix)
+
     @validate('colors')
     def _validate_colors(self, proposal):
         if type(proposal['value']) is dict or type(self.vertices) is dict:
@@ -299,6 +303,9 @@ class MarchingCubes(DrawableWithCallback):
     flat_shading = Bool().tag(sync=True)
     opacity = TimeSeries(Float(min=0.0, max=1.0, default_value=1.0)).tag(sync=True)
     model_matrix = TimeSeries(Array(dtype=np.float32)).tag(sync=True, **array_serialization_wrap('model_matrix'))
+
+    def get_bounding_box(self):
+        return get_bounding_box(self.model_matrix)
 
     def __init__(self, **kwargs):
         super(MarchingCubes, self).__init__(**kwargs)
@@ -392,6 +399,9 @@ class Mesh(DrawableWithCallback):
 
         return proposal['value']
 
+    def get_bounding_box(self):
+        return get_bounding_box_points(self.vertices, self.model_matrix)
+
 
 class Points(Drawable):
     """
@@ -453,6 +463,9 @@ class Points(Drawable):
             raise TraitError('colors has wrong size: %s (%s required)' % (actual, required))
         return proposal['value']
 
+    def get_bounding_box(self):
+        return get_bounding_box_points(self.positions, self.model_matrix)
+
 
 class STL(Drawable):
     """
@@ -488,6 +501,10 @@ class STL(Drawable):
         super(STL, self).__init__(**kwargs)
 
         self.set_trait('type', 'STL')
+
+    def get_bounding_box(self):
+        warnings.warn('STL bounding box is still not supported')
+        return [-1, 1, -1, 1, -1, 1]
 
 
 class Surface(DrawableWithCallback):
@@ -533,6 +550,9 @@ class Surface(DrawableWithCallback):
 
         self.set_trait('type', 'Surface')
 
+    def get_bounding_box(self):
+        return get_bounding_box(self.model_matrix)
+
 
 class Text(Drawable):
     """
@@ -576,6 +596,9 @@ class Text(Drawable):
 
         self.set_trait('type', 'Text')
 
+    def get_bounding_box(self):
+        return get_bounding_box_point(self.position)
+
 
 class Text2d(Drawable):
     """
@@ -615,6 +638,9 @@ class Text2d(Drawable):
         super(Text2d, self).__init__(**kwargs)
 
         self.set_trait('type', 'Text2d')
+
+    def get_bounding_box(self):
+        return get_bounding_box_point(self.position)
 
 
 class Label(Drawable):
@@ -657,6 +683,9 @@ class Label(Drawable):
         super(Label, self).__init__(**kwargs)
 
         self.set_trait('type', 'Label')
+
+    def get_bounding_box(self):
+        return get_bounding_box_point(self.position)
 
 
 class Texture(DrawableWithCallback):
@@ -702,6 +731,9 @@ class Texture(DrawableWithCallback):
 
         self.set_trait('type', 'Texture')
 
+    def get_bounding_box(self):
+        return get_bounding_box(self.model_matrix)
+
 
 class TextureText(Drawable):
     """
@@ -743,6 +775,9 @@ class TextureText(Drawable):
         super(TextureText, self).__init__(**kwargs)
 
         self.set_trait('type', 'TextureText')
+
+    def get_bounding_box(self):
+        return get_bounding_box_point(self.position)
 
 
 class VectorField(Drawable):
@@ -804,6 +839,9 @@ class VectorField(Drawable):
                              'expected (L, H, W, 3) for a 3D or (H, W, 2) for a 2D field'.format(shape))
         return np.array(proposal['value'], np.float32)
 
+    def get_bounding_box(self):
+        return get_bounding_box(self.model_matrix)
+
 
 class Vectors(Drawable):
     """
@@ -857,6 +895,9 @@ class Vectors(Drawable):
         super(Vectors, self).__init__(**kwargs)
 
         self.set_trait('type', 'Vectors')
+
+    def get_bounding_box(self):
+        return get_bounding_box_points(np.stack([self.origins, self.vectors]), self.model_matrix)
 
 
 class Volume(Drawable):
@@ -948,6 +989,9 @@ class Volume(Drawable):
 
         self.send({'msg_type': 'shadow_map_update', 'direction': direction})
 
+    def get_bounding_box(self):
+        return get_bounding_box(self.model_matrix)
+
 
 class MIP(Drawable):
     """
@@ -1009,6 +1053,9 @@ class MIP(Drawable):
 
         return proposal['value']
 
+    def get_bounding_box(self):
+        return get_bounding_box(self.model_matrix)
+
 
 class Voxels(DrawableWithVoxelCallback):
     """
@@ -1059,6 +1106,9 @@ class Voxels(DrawableWithVoxelCallback):
 
         self.set_trait('type', 'Voxels')
 
+    def get_bounding_box(self):
+        return get_bounding_box(self.model_matrix)
+
 
 class SparseVoxels(DrawableWithVoxelCallback):
     """
@@ -1107,6 +1157,9 @@ class SparseVoxels(DrawableWithVoxelCallback):
 
         self.set_trait('type', 'SparseVoxels')
 
+    def get_bounding_box(self):
+        return get_bounding_box(self.model_matrix)
+
 
 class VoxelsGroup(DrawableWithVoxelCallback):
     """
@@ -1154,3 +1207,6 @@ class VoxelsGroup(DrawableWithVoxelCallback):
         super(VoxelsGroup, self).__init__(**kwargs)
 
         self.set_trait('type', 'VoxelsGroup')
+
+    def get_bounding_box(self):
+        return get_bounding_box(self.model_matrix)

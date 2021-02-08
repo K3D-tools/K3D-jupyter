@@ -10,6 +10,8 @@ from traitlets import Unicode, Bool, Int, List, Float
 from ._version import __version__ as version
 from .objects import Drawable, ListOrArray, TimeSeries
 
+import numpy as np
+
 
 class Plot(widgets.DOMWidget):
     """
@@ -264,6 +266,31 @@ class Plot(widgets.DOMWidget):
 
         Useful when self.camera_auto_fit == False."""
         self.send({'msg_type': 'reset_camera', 'factor': factor})
+
+    def get_auto_grid(self):
+        d = np.stack([o.get_bounding_box() for o in self.objects])
+
+        return np.dstack([np.min(d[:, 0::2], axis=0), np.max(d[:, 1::2], axis=0)]).flatten()
+
+    def get_auto_camera(self, factor=1.5, yaw=25, pitch=15):
+        bounds = self.get_auto_grid()
+        center = (bounds[::2] + bounds[1::2]) / 2.0
+        radius = 0.5 * np.sum(np.abs(bounds[::2] - bounds[1::2]) ** 2) ** 0.5
+        cam_distance = radius * factor / np.sin(np.deg2rad(self.camera_fov / 2.0))
+
+        x = np.cos(np.deg2rad(pitch)) * np.cos(np.deg2rad(yaw))
+        y = np.cos(np.deg2rad(pitch)) * np.sin(np.deg2rad(yaw))
+        z = np.sin(np.deg2rad(pitch))
+
+        up = np.cross(np.array([-x, -y, -z]), np.array([0, -1, 0]))
+
+        return [
+            center[0] + x * cam_distance,
+            center[1] + y * cam_distance,
+            center[2] + z * cam_distance,
+            center[0], center[1], center[2],
+            up[0], up[1], up[2]
+        ]
 
     def fetch_screenshot(self, only_canvas=False):
         """Request creating a PNG screenshot on the JS side and saving it in self.screenshot
