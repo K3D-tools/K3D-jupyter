@@ -137,7 +137,7 @@ function K3D(provider, targetDOMNode, parameters) {
     ].join(';');
 
     this.GUI = GUI;
-    this.parameters = _.assign({
+    this.parameters = _.assignWith({
             viewMode: viewModes.view,
             cameraMode: cameraModes.trackball,
             manipulateMode: manipulate.manipulateModes.translate,
@@ -174,7 +174,10 @@ function K3D(provider, targetDOMNode, parameters) {
             depthPeels: 8,
             guiVersion: require('./../../package.json').version
         },
-        parameters || {}
+        parameters || {},
+        function (objValue, srcValue) {
+            return typeof (srcValue) === 'undefined' ? objValue : srcValue;
+        }
     );
 
     this.autoRendering = false;

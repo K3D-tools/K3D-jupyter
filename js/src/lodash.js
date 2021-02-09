@@ -4,6 +4,7 @@ module.exports = {
     pull: require('lodash/pull'),
     difference: require('lodash/difference'),
     assign: require('lodash/assign'),
+    assignWith: require('lodash/assignWith'),
     eq: require('lodash/eq'),
     cloneDeep: require('lodash/cloneDeep'),
     clone: require('lodash/clone'),
