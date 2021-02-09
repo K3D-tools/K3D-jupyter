@@ -574,7 +574,9 @@ PlotView = widgets.DOMWidgetView.extend({
     },
 
     handleResize: function () {
-        this.K3DInstance.resizeHelper();
+        if (this.K3DInstance) {
+            this.K3DInstance.resizeHelper();
+        }
     }
 });
 
