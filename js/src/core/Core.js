@@ -176,7 +176,7 @@ function K3D(provider, targetDOMNode, parameters) {
         },
         parameters || {},
         function (objValue, srcValue) {
-            return typeof (objValue) === 'undefined' ? srcValue : objValue;
+            return typeof (srcValue) === 'undefined' ? objValue : srcValue;
         }
     );
 
