@@ -24,6 +24,7 @@ module.exports = {
         config.alpha_coef = config.alpha_coef || 50.0;
         config.gradient_step = config.gradient_step || 0.005;
         config.shadow = config.shadow || 'off';
+        config.interpolation = typeof (config.interpolation) !== 'undefined' ? config.interpolation : true;
         config.shadow_delay = config.shadow_delay || 500;
         config.shadow_res = closestPowOfTwo(config.shadow_res || 128);
 
@@ -79,8 +80,15 @@ module.exports = {
         texture.type = typedArrayToThree(config.volume.data.constructor);
 
         texture.generateMipmaps = false;
-        texture.minFilter = THREE.LinearFilter;
-        texture.magFilter = THREE.LinearFilter;
+
+        if (config.interpolation) {
+            texture.minFilter = THREE.LinearFilter;
+            texture.magFilter = THREE.LinearFilter;
+        } else {
+            texture.minFilter = THREE.NearestFilter;
+            texture.magFilter = THREE.NearestFilter;
+        }
+
         texture.wrapS = texture.wrapT = THREE.ClampToEdgeWrapping;
         texture.needsUpdate = true;
 

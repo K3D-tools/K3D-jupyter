@@ -29,6 +29,7 @@ module.exports = {
                 texture = new THREE.Texture(),
                 textureImage = config.texture,
                 textureFileFormat = config.texture_file_format,
+                colors = (config.colors && config.colors.data) || null,
                 colorRange = config.color_range,
                 colorMap = (config.color_map && config.color_map.data) || null,
                 attribute = (config.attribute && config.attribute.data) || null,
@@ -39,8 +40,6 @@ module.exports = {
                 ObjectConstructor = THREE.Mesh,
                 image,
                 object;
-
-            // material.onBeforeCompile = K3D.getWorld().colorOnBeforeCompile;
 
             modelMatrix.set.apply(modelMatrix, config.model_matrix.data);
 
@@ -78,13 +77,24 @@ module.exports = {
                 resolve(object);
             }
 
-            if (attribute && colorRange && colorMap && attribute.length > 0 && colorRange.length > 0 && colorMap.length > 0) {
+            if (colors !== null && colors.length > 0) {
+                material.setValues({
+                    color: 0xffffff,
+                    vertexColors: THREE.VertexColors
+                });
+
+                geometry.setAttribute('color', new THREE.BufferAttribute(buffer.colorsToFloat32Array(colors), 3));
+                finish();
+            } else if (
+                attribute && colorRange && colorMap && attribute.length > 0 &&
+                colorRange.length > 0 && colorMap.length > 0
+            ) {
                 handleColorMap(geometry, colorMap, colorRange, attribute, material);
                 finish();
             } else if (textureImage && textureFileFormat && uvs) {
                 image = document.createElement('img');
                 image.src = 'data:image/' + textureFileFormat + ';base64,' +
-                            buffer.bufferToBase64(textureImage.buffer);
+                    buffer.bufferToBase64(textureImage.buffer);
 
                 geometry.setAttribute('uv', new THREE.BufferAttribute(new Float32Array(uvs), 2));
 
@@ -107,24 +117,24 @@ module.exports = {
         var resolvedChanges = {}, data, i;
 
         if (typeof (obj.geometry.attributes.uv) !== 'undefined') {
-            if (typeof(changes.color_range) !== 'undefined' && !changes.color_range.timeSeries) {
+            if (typeof (changes.color_range) !== 'undefined' && !changes.color_range.timeSeries) {
                 data = obj.geometry.attributes.uv.array;
 
                 for (i = 0; i < data.length; i++) {
                     data[i] = (config.attribute.data[i] - config.color_range[0]) /
-                              (config.color_range[1] - config.color_range[0]);
+                        (config.color_range[1] - config.color_range[0]);
                 }
 
                 obj.geometry.attributes.uv.needsUpdate = true;
                 resolvedChanges.color_range = null;
             }
 
-            if (typeof(changes.attribute) !== 'undefined' && !changes.attribute.timeSeries) {
+            if (typeof (changes.attribute) !== 'undefined' && !changes.attribute.timeSeries) {
                 data = obj.geometry.attributes.uv.array;
 
                 for (i = 0; i < data.length; i++) {
                     data[i] = (changes.attribute.data[i] - config.color_range[0]) /
-                              (config.color_range[1] - config.color_range[0]);
+                        (config.color_range[1] - config.color_range[0]);
                 }
 
                 obj.geometry.attributes.uv.needsUpdate = true;
@@ -132,7 +142,7 @@ module.exports = {
             }
         }
 
-        if (typeof(changes.opacity) !== 'undefined' && !changes.opacity.timeSeries) {
+        if (typeof (changes.opacity) !== 'undefined' && !changes.opacity.timeSeries) {
             obj.material.opacity = changes.opacity;
             obj.material.depthWrite = changes.opacity === 1.0;
             obj.material.transparent = changes.opacity !== 1.0;

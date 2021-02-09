@@ -4,7 +4,7 @@
     <meta charset="utf-8">
     <title>K3D</title>
     <script src="node_modules/requirejs/require.js"></script>
-    <script src="dev/index.js?k3d"></script>
+    <script src="dist/standalone.js?k3d"></script>
     <script src="test/utils/globals.js"></script>
     <script src="test/utils/testUtils.js"></script>
     <style>
@@ -56,21 +56,25 @@
         if (K3DInstance) {
             K3DInstance.setClearColor(-1);
             K3DInstance.setScreenshotScale(3.0);
+            //
 
-            jsonLoader('test/samples/simple_text_label.json', function (json) {
+            jsonLoader('test/samples/mesh_with_annotations.json', function (json) {
             // jsonLoader('test/samples/cube_with_labels.json', function (json) {
-            // // jsonLoader('test/samples/voxels.json', function (json) {
+            // jsonLoader('test/samples/voxels.json', function (json) {
             // //     K3DInstance.setClippingPlanes([
-            // //         [-1, -1.5, 0, 0],
-            // //         [0, 0, -1, 0.01]
-            // //     ]);
-                K3DInstance.load(json);
+            // // //         [-1, -1.5, 0, 0],
+            // // //         [0, 0, -1, 0.01]
+            // // //     ]);
+                 K3DInstance.load(json);
+            //
+            //     // K3DInstance.setCameraFOV(10);
             });
+            //
 
-            // fileLoader('heart.html', function (data) {
-            //     var snapshot = K3DInstance.extractSnapshot(data);
-            //     K3DInstance.setSnapshot(atob(snapshot[1]));
-            // });
+//            fileLoader('l.html', function (data) {
+//                var snapshot = K3DInstance.extractSnapshot(data);
+//                K3DInstance.setSnapshot(atob(snapshot[1]));
+//            });
         }
 
         // if (localStorage.getItem('camera') !== null) {
@@ -84,9 +88,8 @@
         // K3DInstance.addFrameUpdateListener('after', function () {
         //
         // }, false);
+
         K3DInstance.setFpsMeter(true);
-
-
     });
 </script>
 </body>

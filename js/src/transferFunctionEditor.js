@@ -22,7 +22,7 @@ function K3DTransferFunctionEditor(targetDOMNode, parameters, onChange) {
         opacityCircles = [],
         colormapCircles = [];
 
-    require('style-loader?{attrs:{id: "k3d-style"}}!css-loader!./k3d.css');
+    require('style-loader?{attributes:{id: "k3d-style"}}!css-loader!./k3d.css');
 
     function removeOpacityCircle(evt) {
         var el = evt.target.parentNode,
@@ -108,7 +108,7 @@ function K3DTransferFunctionEditor(targetDOMNode, parameters, onChange) {
 
                 if (coord.y > topMargin && coord.y < svg.clientHeight - bottomSection) {
                     opacityFunction.push(colorMap[0] + coord.x / svg.clientWidth *
-                                         (colorMap[colorMap.length - 4] - colorMap[0]));
+                        (colorMap[colorMap.length - 4] - colorMap[0]));
                     opacityFunction.push(1.0 - (coord.y - topMargin) / (svg.clientHeight - topMargin - bottomSection));
 
                     opacityFunction = ensureArraySorted(opacityFunction, 1);
@@ -119,7 +119,7 @@ function K3DTransferFunctionEditor(targetDOMNode, parameters, onChange) {
 
                 if (coord.y > svg.clientHeight - bottomSection + bottomSpacing) {
                     var newX = colorMap[0] + coord.x / svg.clientWidth *
-                               (colorMap[colorMap.length - 4] - colorMap[0]), i;
+                        (colorMap[colorMap.length - 4] - colorMap[0]), i;
                     // new point injected
                     var data = colorMapHelper.mergeColorMapWithOpacity(colorMap,
                         [
@@ -169,9 +169,9 @@ function K3DTransferFunctionEditor(targetDOMNode, parameters, onChange) {
                     }
 
                     opacityFunction[index * 2] = colorMap[0] + coord.x / svg.clientWidth *
-                                                 (colorMap[colorMap.length - 4] - colorMap[0]);
+                        (colorMap[colorMap.length - 4] - colorMap[0]);
                     opacityFunction[index * 2 + 1] = 1.0 - (coord.y - topMargin) /
-                                                     (svg.clientHeight - topMargin - bottomSection);
+                        (svg.clientHeight - topMargin - bottomSection);
 
                     onChange({key: 'opacity_function', value: opacityFunction});
                 }
@@ -192,7 +192,7 @@ function K3DTransferFunctionEditor(targetDOMNode, parameters, onChange) {
                     }
 
                     colorMap[index * 4] = colorMap[0] + coord.x / svg.clientWidth *
-                                          (colorMap[colorMap.length - 4] - colorMap[0]);
+                        (colorMap[colorMap.length - 4] - colorMap[0]);
 
                     onChange({key: 'color_map', value: colorMap});
                 }
@@ -517,7 +517,9 @@ var transferFunctionView = widgets.DOMWidgetView.extend({
     },
 
     handleResize: function () {
-        this.K3DTransferFunctionEditorInstance.refresh();
+        if (this.K3DTransferFunctionEditorInstance) {
+            this.K3DTransferFunctionEditorInstance.refresh();
+        }
     }
 });
 

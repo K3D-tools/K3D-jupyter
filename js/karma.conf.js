@@ -12,15 +12,13 @@ module.exports = function (config) {
 
         // frameworks to use
         // available frameworks: https://npmjs.org/browse/keyword/karma-adapter
-        frameworks: ['jasmine'],
+        frameworks: ['jasmine', 'requirejs'],
 
 
         // list of files / patterns to load in the browser
         files: [
-            'node_modules/requirejs/require.js',
-            'node_modules/karma-requirejs/lib/adapter.js',
-            {pattern: 'dev/index.js', included: true},
-            {pattern: 'dev/index.js.map', included: false},
+            {pattern: 'dist/standalone.js', included: true},
+            {pattern: 'dist/standalone.js.map', included: false},
             {pattern: 'node_modules/resemblejs/resemble.js', included: true},
             {pattern: 'test/utils/*.js', included: true},
             {pattern: 'node_modules/components-webfontloader/webfont.js', included: true},
@@ -49,7 +47,7 @@ module.exports = function (config) {
         // level of logging
         // possible values: config.LOG_DISABLE || config.LOG_ERROR || config.LOG_WARN || config.LOG_INFO ||
         // config.LOG_DEBUG
-        logLevel: config.LOG_ERROR,
+        logLevel: config.LOG_INFO,
 
         // enable / disable watching file and executing tests whenever any file changes
         autoWatch: true,
@@ -61,6 +59,7 @@ module.exports = function (config) {
         browserNoActivityTimeout: 30000,
         // Continuous Integration mode
         // if true, Karma captures browsers, runs the tests and exits
-        singleRun: true
+        singleRun: true,
+        concurrency: Infinity
     });
 };

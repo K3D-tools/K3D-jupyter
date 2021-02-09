@@ -207,3 +207,28 @@ def quad(w, h):
     indices = np.array([0, 1, 2, 0, 2, 3], dtype=np.uint32)
 
     return vertices, indices
+
+
+def get_bounding_box(model_matrix, boundary=[-1, 1, -1, 1, -1, 1]):
+    b_min = np.array([boundary[0], boundary[2], boundary[4], 0])
+    b_max = np.array([boundary[1], boundary[3], boundary[5], 0])
+
+    b_min = model_matrix.dot(b_min)
+    b_max = model_matrix.dot(b_max)
+
+    return np.dstack([b_min[0:3], b_max[0:3]]).flatten()
+
+
+def get_bounding_box_points(arr, model_matrix):
+    d = arr.flatten().reshape(-1, 3)
+
+    boundary = np.array([
+        np.min(d[0::3]), np.max(d[0::3]),
+        np.min(d[1::3]), np.max(d[1::3]),
+        np.min(d[2::3]), np.max(d[2::3])
+    ])
+
+    return get_bounding_box(model_matrix, boundary)
+
+def get_bounding_box_point(position):
+    return np.dstack([np.array(position), np.array(position)]).flatten()

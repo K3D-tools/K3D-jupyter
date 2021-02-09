@@ -10,6 +10,8 @@ from traitlets import Unicode, Bool, Int, List, Float
 from ._version import __version__ as version
 from .objects import Drawable, ListOrArray, TimeSeries
 
+import numpy as np
+
 
 class Plot(widgets.DOMWidget):
     """
@@ -44,6 +46,12 @@ class Plot(widgets.DOMWidget):
             Lock for camera zoom.
         camera_no_pan: `Bool`.
             Lock for camera pan.
+        camera_rotate_speed: `Float`.
+            Speed of camera rotation.
+        camera_zoom_speed: `Float`.
+            Speed of camera zoom.
+        camera_pan_speed: `Float`.
+            Speed of camera pan.
         camera_fov: `Float`.
             Camera Field of View.
         snapshot_include_js: `Bool`.
@@ -132,6 +140,9 @@ class Plot(widgets.DOMWidget):
     camera_no_rotate = Bool(False).tag(sync=True)
     camera_no_zoom = Bool(False).tag(sync=True)
     camera_no_pan = Bool(False).tag(sync=True)
+    camera_rotate_speed = Float().tag(sync=True)
+    camera_zoom_speed = Float().tag(sync=True)
+    camera_pan_speed = Float().tag(sync=True)
     clipping_planes = ListOrArray(empty_ok=True).tag(sync=True)
     colorbar_object_id = Int(-1).tag(sync=True)
     colorbar_scientific = Bool(False).tag(sync=True)
@@ -152,7 +163,8 @@ class Plot(widgets.DOMWidget):
                  grid_visible=True, height=512, voxel_paint_color=0, grid=(-1, -1, -1, 1, 1, 1), screenshot_scale=2.0,
                  lighting=1.5, time=0.0, fps_meter=False, menu_visibility=True, colorbar_object_id=-1,
                  rendering_steps=1, axes=['x', 'y', 'z'], camera_no_rotate=False, camera_no_zoom=False,
-                 snapshot_include_js=True, camera_no_pan=False, camera_fov=45.0, axes_helper=1.0, name=None,
+                 snapshot_include_js=True, camera_no_pan=False, camera_rotate_speed=1.0, camera_zoom_speed=1.2,
+                 camera_pan_speed=0.3, camera_fov=45.0, axes_helper=1.0, name=None,
                  mode='view', camera_mode='trackball', manipulate_mode='translate', auto_rendering=True, fps=25.0,
                  *args, **kwargs):
         super(Plot, self).__init__()
@@ -176,6 +188,9 @@ class Plot(widgets.DOMWidget):
         self.camera_no_rotate = camera_no_rotate
         self.camera_no_zoom = camera_no_zoom
         self.camera_no_pan = camera_no_pan
+        self.camera_rotate_speed = camera_rotate_speed
+        self.camera_zoom_speed = camera_zoom_speed
+        self.camera_pan_speed = camera_pan_speed
         self.camera_fov = camera_fov
         self.axes = axes
         self.axes_helper = axes_helper
@@ -252,6 +267,31 @@ class Plot(widgets.DOMWidget):
         Useful when self.camera_auto_fit == False."""
         self.send({'msg_type': 'reset_camera', 'factor': factor})
 
+    def get_auto_grid(self):
+        d = np.stack([o.get_bounding_box() for o in self.objects])
+
+        return np.dstack([np.min(d[:, 0::2], axis=0), np.max(d[:, 1::2], axis=0)]).flatten()
+
+    def get_auto_camera(self, factor=1.5, yaw=25, pitch=15):
+        bounds = self.get_auto_grid()
+        center = (bounds[::2] + bounds[1::2]) / 2.0
+        radius = 0.5 * np.sum(np.abs(bounds[::2] - bounds[1::2]) ** 2) ** 0.5
+        cam_distance = radius * factor / np.sin(np.deg2rad(self.camera_fov / 2.0))
+
+        x = np.cos(np.deg2rad(pitch)) * np.cos(np.deg2rad(yaw))
+        y = np.cos(np.deg2rad(pitch)) * np.sin(np.deg2rad(yaw))
+        z = np.sin(np.deg2rad(pitch))
+
+        up = np.cross(np.array([-x, -y, -z]), np.array([0, -1, 0]))
+
+        return [
+            center[0] + x * cam_distance,
+            center[1] + y * cam_distance,
+            center[2] + z * cam_distance,
+            center[0], center[1], center[2],
+            up[0], up[1], up[2]
+        ]
+
     def fetch_screenshot(self, only_canvas=False):
         """Request creating a PNG screenshot on the JS side and saving it in self.screenshot
 
@@ -306,15 +346,9 @@ class Plot(widgets.DOMWidget):
 
         return inner
 
-    def get_snapshot(self, compression_level=9, additional_js_code=''):
-        """Produce on the Python side a HTML document with the current plot embedded."""
-        import os
-        import io
+    def get_binary_snapshot_objects(self):
         import msgpack
-        import zlib
         from .helpers import to_json
-
-        dir_path = os.path.dirname(os.path.realpath(__file__))
 
         snapshot = {
             "objects": [],
@@ -329,7 +363,49 @@ class Plot(widgets.DOMWidget):
 
             snapshot['objects'].append(obj)
 
-        data = msgpack.packb(snapshot, use_bin_type=True)
+        return msgpack.packb(snapshot, use_bin_type=True)
+
+    def get_snapshot_params(self):
+        return {
+            "cameraAutoFit": self.camera_auto_fit,
+            "menuVisibility": self.menu_visibility,
+            "gridAutoFit": self.grid_auto_fit,
+            "gridVisible": self.grid_visible,
+            "grid": self.grid,
+            "antialias": self.antialias,
+            "screenshotScale": self.screenshot_scale,
+            "clearColor": self.background_color,
+            "clippingPlanes": self.clipping_planes,
+            "lighting": self.lighting,
+            "time": self.time,
+            "fpsMeter": self.fps_meter,
+            "cameraMode": self.camera_mode,
+            "colorbarObjectId": self.colorbar_object_id,
+            "sliceViewerObjectId": self.slice_viewer_object_id,
+            "sliceViewerMaskObjectIds": self.slice_viewer_mask_object_ids,
+            "axes": self.axes,
+            "cameraNoRotate": self.camera_no_rotate,
+            "cameraNoZoom": self.camera_no_zoom,
+            "cameraNoPan": self.camera_no_pan,
+            "cameraRotateSpeed": self.camera_rotate_speed,
+            "cameraZoomSpeed": self.camera_zoom_speed,
+            "cameraPanSpeed": self.camera_pan_speed,
+            "name": self.name,
+            "camera_fov": self.camera_fov,
+            "axesHelper": self.axes_helper,
+            "cameraAnimation": self.camera_animation,
+            "fps": self.fps
+        }
+
+    def get_snapshot(self, compression_level=9, additional_js_code=''):
+        """Produce on the Python side a HTML document with the current plot embedded."""
+        import os
+        import io
+        import zlib
+
+        dir_path = os.path.dirname(os.path.realpath(__file__))
+
+        data = self.get_binary_snapshot_objects()
         data = base64.b64encode(zlib.compress(data, compression_level))
 
         if self.snapshot_include_js:
@@ -360,30 +436,7 @@ class Plot(widgets.DOMWidget):
 
         template = template.replace('[DATA]', data.decode("utf-8"))
 
-        params = {
-            "cameraAutoFit": self.camera_auto_fit,
-            "menuVisibility": self.menu_visibility,
-            "gridAutoFit": self.grid_auto_fit,
-            "gridVisible": self.grid_visible,
-            "grid": self.grid,
-            "antialias": self.antialias,
-            "screenshotScale": self.screenshot_scale,
-            "clearColor": self.background_color,
-            "clippingPlanes": self.clipping_planes,
-            "lighting": self.lighting,
-            "time": self.time,
-            "cameraMode": self.camera_mode,
-            "colorbarObjectId": self.colorbar_object_id,
-            "axes": self.axes,
-            "cameraNoRotate": self.camera_no_rotate,
-            "cameraNoZoom": self.camera_no_zoom,
-            "cameraNoPan": self.camera_no_pan,
-            "name": self.name,
-            "camera_fov": self.camera_fov,
-            "axesHelper": self.axes_helper,
-            "cameraAnimation": self.camera_animation,
-            "fps": self.fps
-        }
+        params = self.get_snapshot_params()
 
         template = template.replace('[PARAMS]', json.dumps(params))
         template = template.replace('[CAMERA]', str(self.camera))

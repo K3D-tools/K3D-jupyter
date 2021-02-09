@@ -68,7 +68,7 @@ function deserialize(obj, manager) {
     } else if (typeof (obj.shape) !== 'undefined') {
         // plain data
         return deserializeArray(obj);
-    } else if (Array.isArray(obj)) {
+    } else if (Array.isArray(obj) || ArrayBuffer.isView(obj)) {
         return obj.reduce(function (p, v) {
             p.push(deserialize(v, manager));
 

@@ -43,9 +43,9 @@ function addEvents(self, K3D, controls) {
 function createTrackballControls(self, K3D) {
     var controls = new THREE.TrackballControls(self.camera, self.renderer.domElement);
 
-    controls.rotateSpeed = 1.0;
-    controls.zoomSpeed = 1.2;
-    controls.panSpeed = 0.8;
+    controls.rotateSpeed = K3D.parameters.cameraRotateSpeed;
+    controls.zoomSpeed = K3D.parameters.cameraZoomSpeed;
+    controls.panSpeed = K3D.parameters.cameraPanSpeed;
     controls.staticMoving = true;
     controls.dynamicDampingFactor = 0.1;
 
@@ -57,9 +57,9 @@ function createTrackballControls(self, K3D) {
 function createOrbitControls(self, K3D) {
     var controls = new THREE.OrbitControls(self.camera, self.renderer.domElement);
 
+    controls.rotateSpeed = K3D.parameters.cameraRotateSpeed;
     controls.enableDamping = false;
     controls.dampingFactor = 0.1;
-    controls.rotateSpeed = 0.5;
     controls.screenSpacePanning = false;
     controls.maxPolarAngle = Math.PI;
     controls.screenSpacePanning = true;
@@ -72,9 +72,9 @@ function createOrbitControls(self, K3D) {
 function createFlyControls(self, K3D) {
     var controls = new THREE.TrackballControls(self.camera, self.renderer.domElement);
 
-    controls.rotateSpeed = 1.0;
-    controls.zoomSpeed = 1.2;
-    controls.panSpeed = 3.0;
+    controls.rotateSpeed = K3D.parameters.cameraRotateSpeed;
+    controls.zoomSpeed = K3D.parameters.cameraZoomSpeed;
+    controls.panSpeed = K3D.parameters.cameraPanSpeed;
     controls.flyMode = true;
     controls.staticMoving = true;
     controls.dynamicDampingFactor = 0.1;

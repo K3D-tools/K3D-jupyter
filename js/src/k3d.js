@@ -284,6 +284,9 @@ PlotView = widgets.DOMWidgetView.extend({
         this.model.on('change:camera_no_rotate', this._setCameraLock, this);
         this.model.on('change:camera_no_zoom', this._setCameraLock, this);
         this.model.on('change:camera_no_pan', this._setCameraLock, this);
+        this.model.on('change:camera_rotate_speed', this._setCameraSpeeds, this);
+        this.model.on('change:camera_zoom_speed', this._setCameraSpeeds, this);
+        this.model.on('change:camera_pan_speed', this._setCameraSpeeds, this);
         this.model.on('change:camera_fov', this._setCameraFOV, this);
         this.model.on('change:axes_helper', this._setAxesHelper, this);
         this.model.on('change:snapshot_include_js', this._setSnapshotIncludeJs, this);
@@ -304,6 +307,9 @@ PlotView = widgets.DOMWidgetView.extend({
                 cameraNoRotate: this.model.get('camera_no_rotate'),
                 cameraNoZoom: this.model.get('camera_no_zoom'),
                 cameraNoPan: this.model.get('camera_no_pan'),
+                cameraRotateSpeed: this.model.get('camera_rotate_speed'),
+                cameraZoomSpeed: this.model.get('camera_zoom_speed'),
+                cameraPanSpeed: this.model.get('camera_pan_speed'),
                 cameraAnimation: this.model.get('camera_animation'),
                 name: this.model.get('name'),
                 axes: this.model.get('axes'),
@@ -498,6 +504,14 @@ PlotView = widgets.DOMWidgetView.extend({
         );
     },
 
+    _setCameraSpeeds: function () {
+        this.K3DInstance.setCameraSpeeds(
+            this.model.get('camera_rotate_speed'),
+            this.model.get('camera_zoom_speed'),
+            this.model.get('camera_pan_speed')
+        );
+    },
+
     _setCameraFOV: function () {
         this.K3DInstance.setCameraFOV(this.model.get('camera_fov'));
     },
@@ -560,7 +574,9 @@ PlotView = widgets.DOMWidgetView.extend({
     },
 
     handleResize: function () {
-        this.K3DInstance.resizeHelper();
+        if (this.K3DInstance) {
+            this.K3DInstance.resizeHelper();
+        }
     }
 });
 

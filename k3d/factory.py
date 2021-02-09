@@ -135,7 +135,7 @@ def marching_cubes(scalar_field, level, color=_default_color, wireframe=False, f
     )
 
 
-def mesh(vertices, indices, color=_default_color, attribute=[], color_map=default_colormap,
+def mesh(vertices, indices, color=_default_color, colors=[], attribute=[], color_map=default_colormap,
          # lgtm [py/similar-function]
          color_range=[], wireframe=False, flat_shading=True, opacity=1.0, texture=None, texture_file_format=None,
          volume=[], volume_bounds=[], opacity_function=[], side='front', uvs=None,
@@ -149,6 +149,8 @@ def mesh(vertices, indices, color=_default_color, attribute=[], color_map=defaul
             Array of vertex indices: int triplets of indices from vertices array.
         color: `int`.
             Packed RGB color of the mesh (0xff0000 is red, 0xff is blue) when not using color maps.
+        colors: `array_like`.
+            Same-length array of `int`-packed RGB color of the points (0xff0000 is red, 0xff is blue).
         attribute: `array_like`.
             Array of float attribute for the color mapping, coresponding to each vertex.
         color_map: `list`.
@@ -199,6 +201,7 @@ def mesh(vertices, indices, color=_default_color, attribute=[], color_map=defaul
         Mesh(vertices=vertices,
              indices=indices,
              color=color,
+             colors=colors,
              attribute=attribute,
              color_map=color_map,
              color_range=color_range,
@@ -819,7 +822,7 @@ def voxels_group(space_size, voxels_group=[], chunks_ids=[], color_map=nice_colo
 
 # noinspection PyShadowingNames
 def volume(volume, color_map=default_colormap, opacity_function=None, color_range=[], samples=512.0,
-           alpha_coef=50.0, gradient_step=0.005, shadow='off',
+           alpha_coef=50.0, gradient_step=0.005, shadow='off', interpolation=True,
            shadow_delay=500, shadow_res=128, focal_length=0.0, focal_plane=100.0, ray_samples_count=16, name=None,
            compression_level=0, **kwargs):
     """Create a Volume drawable for 3D volumetric data.
@@ -870,6 +873,8 @@ def volume(volume, color_map=default_colormap, opacity_function=None, color_rang
             Minimum number of miliseconds between shadow map updates.
         shadow_res: `int`.
             Resolution of shadow map.
+        interpolation: `bool`.
+            Whether volume raycasting should interpolate data or not.
         name: `string`.
             A name of a object
         kwargs: `dict`.
@@ -883,7 +888,7 @@ def volume(volume, color_map=default_colormap, opacity_function=None, color_rang
     return process_transform_arguments(
         Volume(volume=volume, color_map=color_map, opacity_function=opacity_function, color_range=color_range,
                compression_level=compression_level, samples=samples, alpha_coef=alpha_coef,
-               gradient_step=gradient_step,
+               gradient_step=gradient_step, interpolation=interpolation,
                shadow=shadow, shadow_delay=shadow_delay, shadow_res=shadow_res, focal_plane=focal_plane,
                focal_length=focal_length, name=name, ray_samples_count=ray_samples_count), **kwargs)
 
@@ -1053,6 +1058,9 @@ def plot(height=512,
          camera_no_zoom=False,
          camera_no_rotate=False,
          camera_no_pan=False,
+         camera_rotate_speed=1.0,
+         camera_zoom_speed=1.2,
+         camera_pan_speed=0.3,
          fps=25.0):
     """Create a K3D Plot widget.
 
@@ -1087,6 +1095,12 @@ def plot(height=512,
             Lock for camera zoom.
         camera_no_pan: `Bool`.
             Lock for camera pan.
+        camera_rotate_speed: `Float`.
+            Speed of camera rotation.
+        camera_zoom_speed: `Float`.
+            Speed of camera zoom.
+        camera_pan_speed: `Float`.
+            Speed of camera pan.
         camera_fov: `Float`.
             Camera Field of View.
         snapshot_include_js: `Bool`.
@@ -1125,4 +1139,5 @@ def plot(height=512,
                 axes=axes, axes_helper=axes_helper, screenshot_scale=screenshot_scale, camera_fov=camera_fov,
                 name=name, camera_mode=camera_mode, snapshot_include_js=snapshot_include_js,
                 camera_no_zoom=camera_no_zoom, camera_no_rotate=camera_no_rotate, camera_no_pan=camera_no_pan,
-                auto_rendering=auto_rendering, fps=fps)
+                camera_rotate_speed=camera_rotate_speed, camera_zoom_speed=camera_zoom_speed,
+                camera_pan_speed=camera_pan_speed, auto_rendering=auto_rendering, fps=fps)

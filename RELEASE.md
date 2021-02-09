@@ -7,3 +7,5 @@ python setup.py bdist_wheel upload
 cd js
 grunt build
 npm publish
+cd ../docs
+make html

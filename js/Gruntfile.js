@@ -1,16 +1,7 @@
 /* jshint indent: false, quotmark: false */
 'use strict';
 
-var webpackConfig = require('./webpack.config'),
-    webpackConfigDev = require('./webpack.config.dev'),
-    LIVERELOAD_PORT = 35729,
-    lrSnippet = require('connect-livereload')({
-        port: LIVERELOAD_PORT
-    }),
-
-    mountFolder = function (connect, dir) {
-        return connect.static(require('path').resolve(dir));
-    };
+var webpackConfig = require('./webpack.config');
 
 module.exports = function (grunt) {
 
@@ -19,8 +10,7 @@ module.exports = function (grunt) {
 
     grunt.initConfig({
         webpack: {
-            prod: webpackConfig,
-            dev: webpackConfigDev
+            myConfig: webpackConfig,
         },
         jshint: {
             options: {
@@ -39,42 +29,24 @@ module.exports = function (grunt) {
             k3d: ['src/**/*.js']
         },
         watch: {
-            livereload: {
-                options: {
-                    livereload: LIVERELOAD_PORT
-                },
-                files: [
-                    'dev/*.js',
-                    'development.html'
-                ]
-            },
-            // jsdoc: {
-            //     files: ['src/**/*.js'],
-            //     tasks: ['jsdoc']
-            // },
             webpack: {
                 files: [
                     'src/**/*.js',
                     'src/**/*.glsl',
-                    'src/**/*.css'
+                    'src/**/*.css',
+                    'development.html'
                 ],
-                tasks: ['webpack:dev']
+                tasks: ['webpack'],
+                options: {
+                    livereload: true,
+                }
             }
         },
         connect: {
-            options: {
-                port: 9000,
-                // change this to '0.0.0.0' to access the server from outside
-                hostname: '0.0.0.0'
-            },
-            livereload: {
+            server: {
                 options: {
-                    middleware: function (connect) {
-                        return [
-                            lrSnippet,
-                            mountFolder(connect, './')
-                        ];
-                    }
+                    port: 9000,
+                    base: './'
                 }
             }
         },
@@ -94,7 +66,7 @@ module.exports = function (grunt) {
         },
         open: {
             dev: {
-                path: 'http://localhost:<%= connect.options.port %>/development.html'
+                path: 'http://localhost:9000/development.html'
             }
         },
         express: {
@@ -128,7 +100,7 @@ module.exports = function (grunt) {
     grunt.registerTask('test', function () {
         grunt.task.run([
             'clean',
-            'webpack:dev',
+            'webpack',
             'express:test',
             'curl',
             'karma'
@@ -138,17 +110,17 @@ module.exports = function (grunt) {
     grunt.registerTask('build', function () {
         grunt.task.run([
             'clean',
-            'webpack:prod'
+            'webpack'
         ]);
     });
 
     grunt.registerTask('serve', function () {
         grunt.task.run([
             'clean',
-            'webpack:dev',
-            'connect:livereload',
+            'webpack',
+            'connect',
             'open:dev',
-            'watch'
+            'watch:webpack'
         ]);
     });
 };

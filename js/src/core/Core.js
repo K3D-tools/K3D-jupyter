@@ -86,7 +86,7 @@ function K3D(provider, targetDOMNode, parameters) {
         });
     }
 
-    require('style-loader?{attrs:{id: "k3d-style"}}!css-loader!./../k3d.css');
+    require('style-loader?{attributes:{id: "k3d-style"}}!css-loader!./../k3d.css');
 
     if (!(this instanceof (K3D))) {
         return new K3D(provider, targetDOMNode, parameters);
@@ -163,6 +163,9 @@ function K3D(provider, targetDOMNode, parameters) {
             cameraNoRotate: false,
             cameraNoZoom: false,
             cameraNoPan: false,
+            cameraRotateSpeed: 1.0,
+            cameraZoomSpeed: 1.2,
+            cameraPanSpeed: 0.3,
             name: null,
             camera_fov: 60.0,
             cameraAnimation: {},
@@ -197,7 +200,11 @@ function K3D(provider, targetDOMNode, parameters) {
     this.setFpsMeter = function (state) {
         var Stats;
 
-        if (self.parameters.fpsMeter === false) {
+        if (self.parameters.fpsMeter) {
+            if (fpsMeter) {
+                return;
+            }
+
             Stats = require('stats.js');
             fpsMeter = new Stats();
 
@@ -210,8 +217,10 @@ function K3D(provider, targetDOMNode, parameters) {
                 }
             });
         } else {
-            fpsMeter.domElement.remove();
-            fpsMeter = null;
+            if (fpsMeter) {
+                fpsMeter.domElement.remove();
+                fpsMeter = null;
+            }
         }
 
         self.parameters.fpsMeter = state;
@@ -465,6 +474,19 @@ function K3D(provider, targetDOMNode, parameters) {
         self.parameters.cameraNoRotate = world.controls.noRotate = cameraNoRotate;
         self.parameters.cameraNoZoom = world.controls.noZoom = cameraNoZoom;
         self.parameters.cameraNoPan = world.controls.noPan = cameraNoPan;
+    };
+
+    /**
+     * Set camera speed
+     * @memberof K3D.Core
+     * @param {Boolean} cameraNoRotate
+     * @param {Boolean} cameraNoZoom
+     * @param {Boolean} cameraNoPan
+     */
+    this.setCameraSpeeds = function (rotateSpeed, zoomSpeed, panSpeed) {
+        self.parameters.cameraRotateSpeed = world.controls.rotateSpeed = rotateSpeed;
+        self.parameters.cameraZoomSpeed = world.controls.zoomSpeed = zoomSpeed;
+        self.parameters.cameraPanSpeed = world.controls.panSpeed = panSpeed;
     };
 
     /**
@@ -969,6 +991,8 @@ function K3D(provider, targetDOMNode, parameters) {
     world.targetDOMNode.appendChild(guiContainer);
     guiContainer.appendChild(this.gui.domElement);
 
+    this.resizeHelper();
+
     GUI.controls = this.gui.addFolder('Controls');
     GUI.objects = this.gui.addFolder('Objects');
     GUI.info = this.gui.addFolder('Info');
@@ -1042,9 +1066,15 @@ function K3D(provider, targetDOMNode, parameters) {
         self.parameters.cameraNoZoom,
         self.parameters.cameraNoPan
     );
+    self.setCameraSpeeds(
+        self.parameters.cameraRotateSpeed,
+        self.parameters.cameraZoomSpeed,
+        self.parameters.cameraPanSpeed
+    );
     self.setCameraFOV(self.parameters.camera_fov);
     self.setFps(self.parameters.fps);
     self.setViewMode(self.parameters.viewMode);
+    self.setFpsMeter(self.parameters.fpsMeter);
 
     self.render();
 
