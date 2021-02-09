@@ -922,7 +922,7 @@ def mip(volume, color_map=default_colormap, opacity_function=None, color_range=[
             to 0 and 1 in the color map respectively.
         samples: `float`.
             Number of iteration per 1 unit of space.
-        gradient_step: `float`
+        gradient_step: `float`.
             Gradient light step.
        name: `string`.
             A name of a object
