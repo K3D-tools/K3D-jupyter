@@ -1002,6 +1002,7 @@ def vtk_poly_data(poly_data, color=_default_color, color_attribute=None, color_m
         Mesh(vertices=np.array(vertices, np.float32),
              indices=np.array(indices, np.uint32),
              color=color,
+             colors=[],
              opacity=opacity,
              attribute=np.array(attribute, np.float32),
              color_range=color_range,
