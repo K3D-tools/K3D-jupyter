@@ -203,7 +203,7 @@ function K3D(provider, targetDOMNode, parameters) {
     this.setFpsMeter = function (state) {
         var Stats;
 
-        if (self.parameters.fpsMeter) {
+        if (state) {
             if (fpsMeter) {
                 return;
             }

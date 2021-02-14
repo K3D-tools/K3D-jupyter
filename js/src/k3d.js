@@ -310,6 +310,7 @@ PlotView = widgets.DOMWidgetView.extend({
                 cameraRotateSpeed: this.model.get('camera_rotate_speed'),
                 cameraZoomSpeed: this.model.get('camera_zoom_speed'),
                 cameraPanSpeed: this.model.get('camera_pan_speed'),
+                colorbarObjectId: this.model.get('colorbar_object_id'),
                 cameraAnimation: this.model.get('camera_animation'),
                 name: this.model.get('name'),
                 axes: this.model.get('axes'),

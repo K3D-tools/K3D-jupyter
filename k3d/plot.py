@@ -381,8 +381,6 @@ class Plot(widgets.DOMWidget):
             "fpsMeter": self.fps_meter,
             "cameraMode": self.camera_mode,
             "colorbarObjectId": self.colorbar_object_id,
-            "sliceViewerObjectId": self.slice_viewer_object_id,
-            "sliceViewerMaskObjectIds": self.slice_viewer_mask_object_ids,
             "axes": self.axes,
             "cameraNoRotate": self.camera_no_rotate,
             "cameraNoZoom": self.camera_no_zoom,
