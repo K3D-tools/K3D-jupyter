@@ -278,11 +278,14 @@ class Plot(widgets.DOMWidget):
         radius = 0.5 * np.sum(np.abs(bounds[::2] - bounds[1::2]) ** 2) ** 0.5
         cam_distance = radius * factor / np.sin(np.deg2rad(self.camera_fov / 2.0))
 
-        x = np.cos(np.deg2rad(pitch)) * np.cos(np.deg2rad(yaw))
-        y = np.cos(np.deg2rad(pitch)) * np.sin(np.deg2rad(yaw))
-        z = np.sin(np.deg2rad(pitch))
+        x = np.sin(np.deg2rad(pitch)) * np.cos(np.deg2rad(yaw))
+        y = np.sin(np.deg2rad(pitch)) * np.sin(np.deg2rad(yaw))
+        z = np.cos(np.deg2rad(pitch))
 
-        up = np.cross(np.array([-x, -y, -z]), np.array([0, -1, 0]))
+        if pitch not in [0, 180]:
+            up = [0, 0, 1]
+        else:
+            up = [0, 1, 1]
 
         return [
             center[0] + x * cam_distance,

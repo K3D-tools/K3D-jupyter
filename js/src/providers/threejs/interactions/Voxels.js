@@ -19,7 +19,7 @@ module.exports = function (object, mesh, rollOverMesh, K3D) {
     }
 
     function getVoxelCoordinate(intersect, outside) {
-        var matrix = new THREE.Matrix4().getInverse(mesh.matrixWorld),
+        var matrix = (new THREE.Matrix4()).copy(mesh.matrixWorld).invert(),
             normalMatrix = new THREE.Matrix3().getNormalMatrix(matrix),
             x, y, z,
             point = intersect.point.clone().applyMatrix4(matrix),

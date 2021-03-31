@@ -40,12 +40,12 @@ function update(K3D, json, objects, changes) {
             low = folder.controllersMap['_' + param + '_low'];
             high = folder.controllersMap['_' + param + '_high'];
 
-            if (typeof(low) !== 'undefined') {
+            if (typeof (low) !== 'undefined') {
                 return [low, high];
             }
         } else {
             main = folder.controllersMap[param];
-            if (typeof(main) !== 'undefined') {
+            if (typeof (main) !== 'undefined') {
                 return [main];
             }
         }

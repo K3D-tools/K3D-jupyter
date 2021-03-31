@@ -220,7 +220,7 @@ def get_bounding_box(model_matrix, boundary=[-1, 1, -1, 1, -1, 1]):
 
 
 def get_bounding_box_points(arr, model_matrix):
-    d = arr.flatten().reshape(-1, 3)
+    d = arr.flatten()
 
     boundary = np.array([
         np.min(d[0::3]), np.max(d[0::3]),

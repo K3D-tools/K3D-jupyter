@@ -83,7 +83,7 @@ module.exports = function (grunt) {
             dev: 'dev'
         },
         curl: {
-            'test/assets/Lato-Regular.ttf': 'https://github.com/google/fonts/raw/master/ofl/lato/Lato-Regular.ttf'
+            'test/assets/Lato-Regular.ttf': 'https://github.com/google/fonts/raw/main/ofl/lato/Lato-Regular.ttf'
         }
     });
 

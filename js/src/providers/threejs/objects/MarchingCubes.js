@@ -1,6 +1,7 @@
 'use strict';
 
 var THREE = require('three'),
+    BufferGeometryUtils = require('three/examples/jsm/utils/BufferGeometryUtils').BufferGeometryUtils,
     intersectHelper = require('./../helpers/Intersection'),
     marchingCubesPolygonise = require('./../../../core/lib/helpers/marchingCubesPolygonise'),
     yieldingLoop = require('./../../../core/lib/helpers/yieldingLoop'),
@@ -70,10 +71,8 @@ module.exports = {
                 );
 
                 if (config.flat_shading === false) {
-                    var geo = new THREE.Geometry().fromBufferGeometry(geometry);
-                    geo.mergeVertices();
-                    geo.computeVertexNormals();
-                    geometry.fromGeometry(geo);
+                    geometry = BufferGeometryUtils.mergeVertices(geometry);
+                    geometry.computeVertexNormals();
                 }
 
                 object = new THREE.Mesh(geometry, material);

@@ -67,7 +67,6 @@ function init(K3D, gui, obj, prefix, dispatch) {
         }, 'addPlane').name('Add new');
     }
 
-
     while (obj.length < Object.keys(gui[prefix].map).length - 1) {
         var i = Object.keys(gui[prefix].map).length - 1,
             controllers = gui[prefix].map[i - 1].folder.__controllers;

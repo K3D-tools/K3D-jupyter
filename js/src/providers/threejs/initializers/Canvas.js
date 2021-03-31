@@ -16,7 +16,7 @@ function addEvents(self, K3D, controls) {
     };
 
     controls.addEventListener('change', function (event) {
-        var camDistance , r = event.target.getCameraArray();
+        var camDistance, r = event.target.getCameraArray();
 
         recalculateFrustum(self.camera);
 
@@ -105,6 +105,12 @@ module.exports = function (K3D) {
     var self = this, mouseCoordOnDown;
 
     function refresh() {
+        var targetDOMNode = K3D.getWorld().targetDOMNode;
+
+        if (!targetDOMNode.ownerDocument.contains(targetDOMNode)) {
+            K3D.disable();
+        }
+
         if (K3D.disabling) {
             self.renderer.domElement.removeEventListener('mousemove', onDocumentMouseMove);
             self.renderer.domElement.removeEventListener('mousedown', onDocumentMouseDown);
