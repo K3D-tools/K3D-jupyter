@@ -337,6 +337,8 @@ class Mesh(DrawableWithCallback):
             Same-length array of (`int`) packed RGB color of the points (0xff0000 is red, 0xff is blue).
         attribute: `array_like`.
             Array of float attribute for the color mapping, coresponding to each vertex.
+        triangles_attribute: `array_like`.
+            Array of float attribute for the color mapping, coresponding to each triangle.
         color_map: `list`.
             A list of float quadruplets (attribute value, R, G, B), sorted by attribute value. The first
             quadruplet should have value 0.0, the last 1.0; R, G, B are RGB color components in the range 0.0 to 1.0.
@@ -370,6 +372,8 @@ class Mesh(DrawableWithCallback):
     color = TimeSeries(Int(min=0, max=0xffffff)).tag(sync=True)
     colors = TimeSeries(Array(dtype=np.uint32)).tag(sync=True, **array_serialization_wrap('colors'))
     attribute = TimeSeries(Array(dtype=np.float32)).tag(sync=True, **array_serialization_wrap('attribute'))
+    triangles_attribute = TimeSeries(Array(dtype=np.float32)).tag(sync=True,
+                                                                  **array_serialization_wrap('triangles_attribute'))
     color_map = TimeSeries(Array(dtype=np.float32)).tag(sync=True, **array_serialization_wrap('color_map'))
     color_range = TimeSeries(ListOrArray(minlen=2, maxlen=2, empty_ok=True)).tag(sync=True)
     wireframe = TimeSeries(Bool()).tag(sync=True)

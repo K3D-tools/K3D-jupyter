@@ -33,13 +33,15 @@ module.exports = {
                 colorRange = config.color_range,
                 colorMap = (config.color_map && config.color_map.data) || null,
                 attribute = (config.attribute && config.attribute.data) || null,
+                triangleAttribute = (config.triangles_attribute && config.triangles_attribute.data) || null,
                 vertices = (config.vertices && config.vertices.data) || null,
                 indices = (config.indices && config.indices.data) || null,
                 uvs = (config.uvs && config.uvs.data) || null,
                 geometry = new THREE.BufferGeometry(),
                 ObjectConstructor = THREE.Mesh,
                 image,
-                object;
+                object,
+                preparedtriangleAttribute, i;
 
             modelMatrix.set.apply(modelMatrix, config.model_matrix.data);
 
@@ -91,6 +93,19 @@ module.exports = {
             ) {
                 handleColorMap(geometry, colorMap, colorRange, attribute, material);
                 finish();
+            } else if (
+                triangleAttribute && colorRange && colorMap && triangleAttribute.length > 0 &&
+                colorRange.length > 0 && colorMap.length > 0
+            ) {
+                geometry = geometry.toNonIndexed();
+                preparedtriangleAttribute = new Float32Array(triangleAttribute.length * 3);
+
+                for (i = 0; i < preparedtriangleAttribute.length; i++) {
+                    preparedtriangleAttribute[i] = triangleAttribute[Math.floor(i / 3)];
+                }
+
+                handleColorMap(geometry, colorMap, colorRange, preparedtriangleAttribute, material);
+                finish();
             } else if (textureImage && textureFileFormat && uvs) {
                 image = document.createElement('img');
                 image.src = 'data:image/' + textureFileFormat + ';base64,' +
@@ -120,9 +135,18 @@ module.exports = {
             if (typeof (changes.color_range) !== 'undefined' && !changes.color_range.timeSeries) {
                 data = obj.geometry.attributes.uv.array;
 
-                for (i = 0; i < data.length; i++) {
-                    data[i] = (config.attribute.data[i] - config.color_range[0]) /
-                        (config.color_range[1] - config.color_range[0]);
+                if (config.attribute.data.length > 0) {
+                    for (i = 0; i < data.length; i++) {
+                        data[i] = (config.attribute.data[i] - config.color_range[0]) /
+                            (config.color_range[1] - config.color_range[0]);
+                    }
+                }
+
+                if (config.triangles_attribute.data.length > 0) {
+                    for (i = 0; i < data.length; i++) {
+                        data[i] = (config.triangles_attribute.data[Math.floor(i / 3)] - config.color_range[0]) /
+                            (config.color_range[1] - config.color_range[0]);
+                    }
                 }
 
                 obj.geometry.attributes.uv.needsUpdate = true;

@@ -902,6 +902,20 @@ require(['k3d'], function (lib) {
             });
         });
 
+        it('should draw a mesh with face attribues', function (done) {
+            var self = this;
+
+            jsonLoader('http://localhost:9001/samples/mesh_triangles_attribute.json', function (json) {
+
+                self.K3D.addFrameUpdateListener('after', function () {
+                    TestHelpers.compareCanvasWithExpectedImage(self.K3D, 'mesh_triangles_attribute', RESAMBLEThreshold,
+                        true, done);
+                }, true);
+
+                self.K3D.load(json);
+            });
+        });
+
         it('should draw a wireframe marching cubes', function (done) {
             var self = this;
 

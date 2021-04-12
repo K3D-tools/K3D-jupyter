@@ -62,6 +62,7 @@ window.TestHelpers.jsonLoader = function (url, callback) {
             scalar_field: arrayToTypedArray.bind(null, Float32Array),
             color_map: arrayToTypedArray.bind(null, Float32Array),
             attribute: arrayToTypedArray.bind(null, Float32Array),
+            triangles_attribute: arrayToTypedArray.bind(null, Float32Array),
             vertices: arrayToTypedArray.bind(null, Float32Array),
             puv: arrayToTypedArray.bind(null, Float32Array),
             indices: arrayToTypedArray.bind(null, Uint32Array),

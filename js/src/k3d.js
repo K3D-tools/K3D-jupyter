@@ -129,6 +129,7 @@ ObjectModel = widgets.WidgetModel.extend({
         samples: serialize,
         color_range: serialize,
         attribute: serialize,
+        triangles_attribute: serialize,
         vertices: serialize,
         indices: serialize,
         colors: serialize,
