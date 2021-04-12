@@ -13,23 +13,28 @@ function base64ToArrayBuffer(base64) {
     return new DataView(bytes.buffer);
 }
 
-function arrayToTypedArray(typedArray, array, obj) {
+function arrayToTypedArray(typedArray, field, obj) {
     // hack to preserve current samples structure
 
     var shape = null;
 
-    if (typeof(obj.length) !== 'undefined') {
+    if (typeof (obj.length) !== 'undefined') {
         shape = [obj.length, obj.height, obj.width];
-    } else if (typeof(obj.width) !== 'undefined') {
+    } else if (typeof (obj.width) !== 'undefined') {
         shape = [obj.height, obj.width];
     }
 
-    if (typeof(obj.dimensions) !== 'undefined') {
+    if (typeof (obj.dimensions) !== 'undefined') {
         shape.push(obj.dimensions);
     }
 
+    if (field.shape) {
+        shape = field.shape;
+        field = field.array;
+    }
+
     return {
-        data: typedArray.from(array),
+        data: typedArray.from(field),
         shape: shape
     };
 }
@@ -57,6 +62,7 @@ window.TestHelpers.jsonLoader = function (url, callback) {
             scalar_field: arrayToTypedArray.bind(null, Float32Array),
             color_map: arrayToTypedArray.bind(null, Float32Array),
             attribute: arrayToTypedArray.bind(null, Float32Array),
+            triangles_attribute: arrayToTypedArray.bind(null, Float32Array),
             vertices: arrayToTypedArray.bind(null, Float32Array),
             puv: arrayToTypedArray.bind(null, Float32Array),
             indices: arrayToTypedArray.bind(null, Uint32Array),
@@ -67,6 +73,9 @@ window.TestHelpers.jsonLoader = function (url, callback) {
             volume: arrayToTypedArray.bind(null, Float32Array),
             voxels: arrayToTypedArray.bind(null, Uint8Array),
             sparse_voxels: arrayToTypedArray.bind(null, Uint16Array),
+            spacings_x: arrayToTypedArray.bind(null, Float32Array),
+            spacings_y: arrayToTypedArray.bind(null, Float32Array),
+            spacings_z: arrayToTypedArray.bind(null, Float32Array),
             binary: base64ToArrayBuffer
         };
 
@@ -78,7 +87,7 @@ window.TestHelpers.jsonLoader = function (url, callback) {
 
             json.objects.forEach(function (obj) {
                 Object.keys(obj).forEach(function (key) {
-                    if (typeof(converters[key]) !== 'undefined') {
+                    if (typeof (converters[key]) !== 'undefined') {
                         obj[key] = converters[key](obj[key], obj);
                     }
                 });

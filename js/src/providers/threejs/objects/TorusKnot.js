@@ -30,7 +30,7 @@ module.exports = {
         }
 
         object.add(new THREE.LineSegments(
-            new THREE.Geometry(),
+            new THREE.BufferGeometry(),
             new THREE.LineBasicMaterial({
                 color: 0xffffff,
                 transparent: true,
@@ -39,7 +39,7 @@ module.exports = {
         ));
 
         object.add(new THREE.Mesh(
-            new THREE.Geometry(),
+            new THREE.BufferGeometry(),
             new THREE.MeshPhongMaterial({
                 color: config.color,
                 emissive: 0,

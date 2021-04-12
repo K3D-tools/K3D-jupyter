@@ -122,9 +122,9 @@ module.exports = {
     /**
      * generateArrow
      * @memberof K3D.Providers.ThreeJS.Helpers
-     * @param  {THREE.Geometry} coneGeometry
+     * @param  {THREE.BufferGeometry} coneGeometry
      * @param  {Array} lineVertices
-     * @param  {THREE.Geometry} heads
+     * @param  {THREE.BufferGeometry} heads
      * @param  {THREE.Vector3d} origin
      * @param  {THREE.Vector3d} destination
      * @param  {THREE.Color} headColor
@@ -136,6 +136,8 @@ module.exports = {
         var axis = new THREE.Vector3(),
             direction = new THREE.Vector3().subVectors(destination, origin),
             length = direction.length(),
+            colors = [],
+            i,
             quaternion = new THREE.Quaternion(),
             lineDestination;
 
@@ -146,15 +148,21 @@ module.exports = {
 
         // head
         if (coneGeometry !== null) {
+            coneGeometry = coneGeometry.clone();
+
             lineDestination = new THREE.Vector3().copy(origin).add(
                 direction.clone().multiplyScalar(length - headHeight)
             );
 
             lineVertices.push(lineDestination.x, lineDestination.y, lineDestination.z);
 
-            coneGeometry.faces.forEach(function (face) {
-                face.vertexColors.push(headColor, headColor, headColor);
-            });
+            for (i = 0; i < coneGeometry.attributes.position.count; i++) {
+                colors.push(headColor.r);
+                colors.push(headColor.g);
+                colors.push(headColor.b);
+            }
+
+            coneGeometry.setAttribute('color', new THREE.Float32BufferAttribute(colors, 3));
 
             if (direction.y > 0.99999) {
                 quaternion.set(0, 0, 0, 1);
@@ -166,13 +174,12 @@ module.exports = {
             }
 
             coneGeometry.applyMatrix4(new THREE.Matrix4().makeRotationFromQuaternion(quaternion));
-
             coneGeometry.translate(destination.x, destination.y, destination.z);
 
             if (!heads) {
-                heads = coneGeometry;
+                heads = [coneGeometry];
             } else {
-                heads.merge(coneGeometry);
+                heads.push(coneGeometry);
             }
         } else {
             lineVertices.push(destination.x, destination.y, destination.z);
@@ -226,7 +233,7 @@ module.exports = {
 
     areAllChangesResolve: function (changes, resolvedChanges) {
         return Object.keys(changes).every(function (key) {
-            return typeof(resolvedChanges[key]) !== 'undefined';
+            return typeof (resolvedChanges[key]) !== 'undefined';
         });
     },
 
@@ -237,7 +244,7 @@ module.exports = {
     },
 
     commonUpdate: function (config, changes, resolvedChanges, obj) {
-        if (typeof(changes.model_matrix) !== 'undefined' && !changes.model_matrix.timeSeries) {
+        if (typeof (changes.model_matrix) !== 'undefined' && !changes.model_matrix.timeSeries) {
             var modelMatrix = new THREE.Matrix4();
 
             modelMatrix.set.apply(modelMatrix, changes.model_matrix.data);
@@ -261,7 +268,7 @@ module.exports = {
             resolvedChanges.model_matrix = null;
         }
 
-        if (typeof(changes.visible) !== 'undefined' && !changes.visible.timeSeries) {
+        if (typeof (changes.visible) !== 'undefined' && !changes.visible.timeSeries) {
             obj.visible = changes.visible;
 
             resolvedChanges.visible = null;

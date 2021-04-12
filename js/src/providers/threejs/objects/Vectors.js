@@ -1,6 +1,7 @@
 'use strict';
 
 var THREE = require('three'),
+    BufferGeometryUtils = require('three/examples/jsm/utils/BufferGeometryUtils').BufferGeometryUtils,
     buffer = require('./../../../core/lib/helpers/buffer'),
     MeshLine = require('./../helpers/THREE.MeshLine')(THREE),
     getTwoColorsArray = require('./../helpers/Fn').getTwoColorsArray,
@@ -53,7 +54,7 @@ module.exports = {
             throw new Error('there should be 2 colors for each vector');
         }
 
-        singleConeGeometry = new THREE.CylinderBufferGeometry(0, 0.025 * headSize, 0.2 * headSize, 5, 1)
+        singleConeGeometry = new THREE.CylinderGeometry(0, 0.025 * headSize, 0.2 * headSize, 5, 1)
             .translate(0, -0.1 * headSize, 0);
 
         for (i = 0; i < vectors.length; i += 3) {
@@ -61,7 +62,7 @@ module.exports = {
             destination = new THREE.Vector3(vectors[i], vectors[i + 1], vectors[i + 2]).add(origin);
 
             heads = generateArrow(
-                useHead ? new THREE.Geometry().fromBufferGeometry(singleConeGeometry) : null,
+                useHead ? singleConeGeometry : null,
                 lineVertices,
                 heads,
                 origin,
@@ -126,13 +127,13 @@ module.exports = {
 };
 
 function addHeads(heads, object) {
-    var headsGeometry = new THREE.BufferGeometry().fromGeometry(heads);
-    headsGeometry.computeBoundingSphere();
-    headsGeometry.computeBoundingBox();
+    heads = BufferGeometryUtils.mergeBufferGeometries(heads);
+    heads.computeBoundingSphere();
+    heads.computeBoundingBox();
 
     object.add(
         new THREE.Mesh(
-            headsGeometry,
+            heads,
             new THREE.MeshBasicMaterial({vertexColors: THREE.VertexColors})
         )
     );

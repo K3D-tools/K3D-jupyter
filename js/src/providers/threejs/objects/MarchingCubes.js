@@ -1,6 +1,7 @@
 'use strict';
 
 var THREE = require('three'),
+    BufferGeometryUtils = require('three/examples/jsm/utils/BufferGeometryUtils').BufferGeometryUtils,
     intersectHelper = require('./../helpers/Intersection'),
     marchingCubesPolygonise = require('./../../../core/lib/helpers/marchingCubesPolygonise'),
     yieldingLoop = require('./../../../core/lib/helpers/yieldingLoop'),
@@ -27,6 +28,10 @@ module.exports = {
                 width = config.scalar_field.shape[2],
                 height = config.scalar_field.shape[1],
                 length = config.scalar_field.shape[0],
+                spacingsX = config.spacings_x,
+                spacingsY = config.spacings_y,
+                spacingsZ = config.spacings_z,
+                isSpacings = false,
                 level = config.level,
                 modelMatrix = new THREE.Matrix4(),
                 MaterialConstructor = config.wireframe ? THREE.MeshBasicMaterial : THREE.MeshPhongMaterial,
@@ -45,52 +50,106 @@ module.exports = {
                 geometry = new THREE.BufferGeometry(),
                 positions = [],
                 object,
-                x, y,
+                x, y, z = 0,
+                j, k,
                 polygonise = marchingCubesPolygonise;
 
-            yieldingLoop(length - 1, 5, function (z) {
-                for (y = 0; y < height - 1; y++) {
-                    for (x = 0; x < width - 1; x++) {
-                        polygonise(positions, scalarField, width, height, length, level, x, y, z);
+            if (spacingsX && spacingsY && spacingsZ) {
+                isSpacings = spacingsX.shape[0] === width - 1 && spacingsY.shape[0] === height - 1 &&
+                    spacingsZ.shape[0] == length - 1;
+            }
+
+            var withoutSpacings = function (i) {
+                var sx = 1.0 / (width - 1),
+                    sy = 1.0 / (height - 1),
+                    sz = 1.0 / (length - 1);
+
+                y = 0;
+                for (j = 0; j < height - 1; j++) {
+                    x = 0;
+                    for (k = 0; k < width - 1; k++) {
+                        polygonise(positions, scalarField, level,
+                            width, height, length,
+                            k, j, i,
+                            x, y, z,
+                            sx, sy, sz
+                        );
+                        x += sx;
                     }
+                    y += sy;
                 }
-            }, function () {
+                z += sz;
+            };
 
-                positions = new Float32Array(positions);
-                geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+            var withSpacings = function (i) {
+                y = 0;
+                for (j = 0; j < height - 1; j++) {
+                    x = 0;
+                    for (k = 0; k < width - 1; k++) {
+                        polygonise(positions, scalarField, level,
+                            width, height, length,
+                            k, j, i,
+                            x, y, z,
+                            spacingsX.data[k], spacingsY.data[j], spacingsZ.data[i]);
 
-                geometry.boundingSphere = new THREE.Sphere(
-                    new THREE.Vector3(0.5, 0.5, 0.5),
-                    new THREE.Vector3(0.5, 0.5, 0.5).length()
-                );
-
-                geometry.boundingBox = new THREE.Box3(
-                    new THREE.Vector3(0.0, 0.0, 0.0),
-                    new THREE.Vector3(1.0, 1.0, 1.0)
-                );
-
-                if (config.flat_shading === false) {
-                    var geo = new THREE.Geometry().fromBufferGeometry(geometry);
-                    geo.mergeVertices();
-                    geo.computeVertexNormals();
-                    geometry.fromGeometry(geo);
+                        x += spacingsX.data[k];
+                    }
+                    y += spacingsY.data[j];
                 }
 
-                object = new THREE.Mesh(geometry, material);
+                z += spacingsZ.data[i];
+            };
 
-                intersectHelper.init(config, object, K3D);
+            yieldingLoop(length - 1, 5, isSpacings ? withSpacings : withoutSpacings,
+                function () {
+                    var sizeX = 1.0, sizeY = 1.0, sizeZ = 1.0;
 
-                modelMatrix.set.apply(modelMatrix, config.model_matrix.data);
+                    positions = new Float32Array(positions);
+                    geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
 
-                object.position.set(-0.5, -0.5, -0.5);
-                object.initialPosition = object.position.clone();
-                object.updateMatrix();
+                    if (config.flat_shading === false) {
+                        geometry = BufferGeometryUtils.mergeVertices(geometry);
+                        geometry.computeVertexNormals();
+                    }
 
-                object.applyMatrix4(modelMatrix);
-                object.updateMatrixWorld();
+                    if (isSpacings) {
+                        sizeX = spacingsX.data.reduce(function (p, v) {
+                            return p + v;
+                        }, 0);
+                        sizeY = spacingsY.data.reduce(function (p, v) {
+                            return p + v;
+                        }, 0);
+                        sizeZ = spacingsZ.data.reduce(function (p, v) {
+                            return p + v;
+                        }, 0);
+                    }
 
-                resolve(object);
-            });
+                    geometry.boundingSphere = new THREE.Sphere(
+                        new THREE.Vector3(0.5 * sizeX, 0.5 * sizeY, 0.5 * sizeZ),
+                        new THREE.Vector3(0.5 * sizeX, 0.5 * sizeY, 0.5 * sizeZ).length()
+                    );
+
+                    geometry.boundingBox = new THREE.Box3(
+                        new THREE.Vector3(0.0, 0.0, 0.0),
+                        new THREE.Vector3(sizeX, sizeY, sizeZ)
+                    );
+
+                    object = new THREE.Mesh(geometry, material);
+                    object.scale.set(1.0 / sizeX, 1.0 / sizeY, 1.0 / sizeZ);
+
+                    intersectHelper.init(config, object, K3D);
+
+                    modelMatrix.set.apply(modelMatrix, config.model_matrix.data);
+
+                    object.position.set(-0.5, -0.5, -0.5);
+                    object.initialPosition = object.position.clone();
+                    object.updateMatrix();
+
+                    object.applyMatrix4(modelMatrix);
+                    object.updateMatrixWorld();
+
+                    resolve(object);
+                });
         });
     },
 
@@ -99,7 +158,7 @@ module.exports = {
 
         intersectHelper.update(config, changes, obj, K3D);
 
-        if (typeof(changes.opacity) !== 'undefined' && !changes.opacity.timeSeries) {
+        if (typeof (changes.opacity) !== 'undefined' && !changes.opacity.timeSeries) {
             obj.material.opacity = changes.opacity;
             obj.material.depthWrite = changes.opacity === 1.0;
             obj.material.transparent = changes.opacity !== 1.0;

@@ -105,9 +105,9 @@ function K3D(provider, targetDOMNode, parameters) {
             timeSeries.refreshTimeScale(self, GUI);
 
             if (!isUpdate) {
-                self.rebuildSceneData(force).then(self.render.bind(null, true));
+                return self.rebuildSceneData(force).then(self.render.bind(null, true));
             } else {
-                self.render(true);
+                return self.render(true);
             }
         }
     };
@@ -203,7 +203,7 @@ function K3D(provider, targetDOMNode, parameters) {
     this.setFpsMeter = function (state) {
         var Stats;
 
-        if (self.parameters.fpsMeter) {
+        if (state) {
             if (fpsMeter) {
                 return;
             }
@@ -905,7 +905,11 @@ function K3D(provider, targetDOMNode, parameters) {
      * @memberof K3D.Core
      */
     this.setSnapshot = function (data) {
-        data = msgpack.decode(pako.inflate(data), {codec: MsgpackCodec});
+        if (typeof (data) === "string") {
+            data = pako.inflate(data);
+        }
+
+        data = msgpack.decode(data, {codec: MsgpackCodec});
 
         Object.keys(data.chunkList).forEach(function (k) {
             data.chunkList[k] = {attributes: data.chunkList[k]};
@@ -920,7 +924,7 @@ function K3D(provider, targetDOMNode, parameters) {
         });
 
         return self.load({objects: data.objects}).then(function () {
-            self.refreshAfterObjectsChange(false, true);
+            return self.refreshAfterObjectsChange(false, true);
         });
     };
 
@@ -969,12 +973,6 @@ function K3D(provider, targetDOMNode, parameters) {
     this.Provider.Initializers.Canvas.call(world, this);
     this.Provider.Initializers.Scene.call(world, this);
     this.Provider.Initializers.Manipulate.call(world, this);
-
-    world.controls.addEventListener('change', function () {
-        if (self.frameUpdateHandlers.before.length === 0 && self.frameUpdateHandlers.after.length === 0) {
-            self.render();
-        }
-    });
 
     currentWindow.addEventListener('resize', this.resizeHelper, false);
 

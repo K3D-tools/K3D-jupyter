@@ -129,6 +129,7 @@ ObjectModel = widgets.WidgetModel.extend({
         samples: serialize,
         color_range: serialize,
         attribute: serialize,
+        triangles_attribute: serialize,
         vertices: serialize,
         indices: serialize,
         colors: serialize,
@@ -157,7 +158,10 @@ ObjectModel = widgets.WidgetModel.extend({
         puv: serialize,
         visible: serialize,
         uvs: serialize,
-        volume_bounds: serialize
+        volume_bounds: serialize,
+        spacings_x: serialize,
+        spacings_y: serialize,
+        spacings_z: serialize
     }, widgets.WidgetModel.serializers)
 });
 
@@ -310,6 +314,7 @@ PlotView = widgets.DOMWidgetView.extend({
                 cameraRotateSpeed: this.model.get('camera_rotate_speed'),
                 cameraZoomSpeed: this.model.get('camera_zoom_speed'),
                 cameraPanSpeed: this.model.get('camera_pan_speed'),
+                colorbarObjectId: this.model.get('colorbar_object_id'),
                 cameraAnimation: this.model.get('camera_animation'),
                 name: this.model.get('name'),
                 axes: this.model.get('axes'),

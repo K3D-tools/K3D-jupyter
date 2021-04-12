@@ -47,7 +47,7 @@ module.exports = function (K3D) {
 
         recalculateFrustum(this.camera);
 
-        this.controls.update();
+        this.controls.update(true);
     };
 
     this.setCameraToFitScene = function (force, factor) {

@@ -91,7 +91,7 @@ def line(vertices, color=_default_color, colors=[],  # lgtm [py/similar-function
 
 
 def marching_cubes(scalar_field, level, color=_default_color, wireframe=False, flat_shading=True, opacity=1.0,
-                   name=None, compression_level=0, **kwargs):
+                   spacings_x=[], spacings_y=[], spacings_z=[], name=None, compression_level=0, **kwargs):
     """Create a MarchingCubes drawable.
 
     Plot an isosurface of a scalar field obtained through a Marching Cubes algorithm.
@@ -114,6 +114,12 @@ def marching_cubes(scalar_field, level, color=_default_color, wireframe=False, f
             Packed RGB color of the isosurface (0xff0000 is red, 0xff is blue).
         wireframe: `bool`.
             Whether mesh should display as wireframe.
+        spacings_x: `array_like`.
+            A spacings in x axis. Should match to scalar_field shape.
+        spacings_y: `array_like`.
+            A spacings in y axis. Should match to scalar_field shape.
+        spacings_z: `array_like`.
+            A spacings in z axis. Should match to scalar_field shape.
         flat_shading: `bool`.
             Whether mesh should display with flat shading.
         opacity: `float`.
@@ -124,6 +130,9 @@ def marching_cubes(scalar_field, level, color=_default_color, wireframe=False, f
             Dictionary arguments to configure transform and model_matrix."""
     return process_transform_arguments(
         MarchingCubes(scalar_field=scalar_field,
+                      spacings_x=spacings_x,
+                      spacings_y=spacings_y,
+                      spacings_z=spacings_z,
                       color=color,
                       level=level,
                       wireframe=wireframe,
@@ -138,7 +147,7 @@ def marching_cubes(scalar_field, level, color=_default_color, wireframe=False, f
 def mesh(vertices, indices, color=_default_color, colors=[], attribute=[], color_map=default_colormap,
          # lgtm [py/similar-function]
          color_range=[], wireframe=False, flat_shading=True, opacity=1.0, texture=None, texture_file_format=None,
-         volume=[], volume_bounds=[], opacity_function=[], side='front', uvs=None,
+         volume=[], volume_bounds=[], opacity_function=[], side='front', uvs=None, triangles_attribute=[],
          name=None, compression_level=0, **kwargs):
     """Create a Mesh drawable representing a 3D triangles mesh.
 
@@ -153,6 +162,8 @@ def mesh(vertices, indices, color=_default_color, colors=[], attribute=[], color
             Same-length array of `int`-packed RGB color of the points (0xff0000 is red, 0xff is blue).
         attribute: `array_like`.
             Array of float attribute for the color mapping, coresponding to each vertex.
+        triangles_attribute: `array_like`.
+            Array of float attribute for the color mapping, coresponding to each triangle.
         color_map: `list`.
             A list of float quadruplets (attribute value, R, G, B), sorted by attribute value. The first
             quadruplet should have value 0.0, the last 1.0; R, G, B are RGB color components in the range 0.0 to 1.0.
@@ -189,10 +200,15 @@ def mesh(vertices, indices, color=_default_color, colors=[], attribute=[], color
     color_map = np.array(color_map, np.float32) if type(color_map) is not dict else color_map
     uvs = np.array(uvs, np.float32) if type(uvs) is not dict else color_map
     attribute = np.array(attribute, np.float32) if type(attribute) is not dict else attribute
+    triangles_attribute = np.array(triangles_attribute, np.float32) if type(
+        triangles_attribute) is not dict else triangles_attribute
     volume_bounds = np.array(volume_bounds, np.float32) if type(volume_bounds) is not dict else volume_bounds
 
     if len(attribute) > 0:
         color_range = check_attribute_range(attribute, color_range)
+
+    if len(triangles_attribute) > 0:
+        color_range = check_attribute_range(triangles_attribute, color_range)
 
     if len(volume) > 0:
         color_range = check_attribute_range(volume, color_range)
@@ -203,6 +219,7 @@ def mesh(vertices, indices, color=_default_color, colors=[], attribute=[], color
              color=color,
              colors=colors,
              attribute=attribute,
+             triangles_attribute=triangles_attribute,
              color_map=color_map,
              color_range=color_range,
              wireframe=wireframe,
@@ -941,7 +958,7 @@ def mip(volume, color_map=default_colormap, opacity_function=None, color_range=[
 
 def vtk_poly_data(poly_data, color=_default_color, color_attribute=None, color_map=default_colormap, side='front',
                   wireframe=False, opacity=1.0, volume=[], volume_bounds=[], opacity_function=[], name=None,
-                  compression_level=0, **kwargs):
+                  compression_level=0, cell_color_attribute=None, **kwargs):
     """Create a Mesh drawable from given vtkPolyData.
 
     This function requires the vtk module (from package VTK) to be installed.
@@ -952,6 +969,12 @@ def vtk_poly_data(poly_data, color=_default_color, color_attribute=None, color_m
         color: `int`.
             Packed RGB color of the resulting mesh (0xff0000 is red, 0xff is blue) when not using color maps.
         color_attribute: `tuple` of (`str`, `float`, `float`).
+            This determines which scalar should be taken as the
+            attribute for the color_map, and the color_range for the mesh: (attribute_name, min_value, max_value).
+            A VTK mesh can have multiple named attributes in the vertices.
+            min_value is the value mapped to 0 in the color_map.
+            max_value is the value mapped to 1 in the color_map.
+        cell_color_attribute: `tuple` of (`str`, `float`, `float`).
             This determines which scalar should be taken as the
             attribute for the color_map, and the color_range for the mesh: (attribute_name, min_value, max_value).
             A VTK mesh can have multiple named attributes in the vertices.
@@ -987,12 +1010,16 @@ def vtk_poly_data(poly_data, color=_default_color, color_attribute=None, color_m
         cut_triangles.Update()
         poly_data = cut_triangles.GetOutput()
 
+    attribute = []
+    color_range = []
+    triangles_attribute = []
+
     if color_attribute is not None:
         attribute = numpy_support.vtk_to_numpy(poly_data.GetPointData().GetArray(color_attribute[0]))
         color_range = color_attribute[1:3]
-    else:
-        attribute = []
-        color_range = []
+    elif cell_color_attribute is not None:
+        triangles_attribute = numpy_support.vtk_to_numpy(poly_data.GetCellData().GetArray(cell_color_attribute[0]))
+        color_range = cell_color_attribute[1:3]
 
     vertices = numpy_support.vtk_to_numpy(poly_data.GetPoints().GetData())
     indices = numpy_support.vtk_to_numpy(poly_data.GetPolys().GetData()).reshape(-1, 4)[:, 1:4]
@@ -1002,8 +1029,10 @@ def vtk_poly_data(poly_data, color=_default_color, color_attribute=None, color_m
         Mesh(vertices=np.array(vertices, np.float32),
              indices=np.array(indices, np.uint32),
              color=color,
+             colors=[],
              opacity=opacity,
              attribute=np.array(attribute, np.float32),
+             triangles_attribute=np.array(triangles_attribute, np.float32),
              color_range=color_range,
              color_map=np.array(color_map, np.float32),
              wireframe=wireframe,
@@ -1047,6 +1076,7 @@ def plot(height=512,
          lighting=1.5,
          menu_visibility=True,
          voxel_paint_color=0,
+         colorbar_object_id=-1,
          camera_fov=60.0,
          time=0.0,
          axes=['x', 'y', 'z'],
@@ -1131,7 +1161,7 @@ def plot(height=512,
             6-element tuple specifying the bounds of the plot grid (x0, y0, z0, x1, y1, z1)."""
     return Plot(antialias=antialias,
                 background_color=background_color,
-                lighting=lighting, time=time,
+                lighting=lighting, time=time, colorbar_object_id=colorbar_object_id,
                 camera_auto_fit=camera_auto_fit, grid_auto_fit=grid_auto_fit,
                 grid_visible=grid_visible,
                 height=height, menu_visibility=menu_visibility,
