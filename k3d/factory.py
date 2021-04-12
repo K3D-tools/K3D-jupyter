@@ -91,7 +91,7 @@ def line(vertices, color=_default_color, colors=[],  # lgtm [py/similar-function
 
 
 def marching_cubes(scalar_field, level, color=_default_color, wireframe=False, flat_shading=True, opacity=1.0,
-                   name=None, compression_level=0, **kwargs):
+                   spacings_x=[], spacings_y=[], spacings_z=[], name=None, compression_level=0, **kwargs):
     """Create a MarchingCubes drawable.
 
     Plot an isosurface of a scalar field obtained through a Marching Cubes algorithm.
@@ -114,6 +114,12 @@ def marching_cubes(scalar_field, level, color=_default_color, wireframe=False, f
             Packed RGB color of the isosurface (0xff0000 is red, 0xff is blue).
         wireframe: `bool`.
             Whether mesh should display as wireframe.
+        spacings_x: `array_like`.
+            A spacings in x axis. Should match to scalar_field shape.
+        spacings_y: `array_like`.
+            A spacings in y axis. Should match to scalar_field shape.
+        spacings_z: `array_like`.
+            A spacings in z axis. Should match to scalar_field shape.
         flat_shading: `bool`.
             Whether mesh should display with flat shading.
         opacity: `float`.
@@ -124,6 +130,9 @@ def marching_cubes(scalar_field, level, color=_default_color, wireframe=False, f
             Dictionary arguments to configure transform and model_matrix."""
     return process_transform_arguments(
         MarchingCubes(scalar_field=scalar_field,
+                      spacings_x=spacings_x,
+                      spacings_y=spacings_y,
+                      spacings_z=spacings_z,
                       color=color,
                       level=level,
                       wireframe=wireframe,

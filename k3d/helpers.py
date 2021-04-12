@@ -230,5 +230,6 @@ def get_bounding_box_points(arr, model_matrix):
 
     return get_bounding_box(model_matrix, boundary)
 
+
 def get_bounding_box_point(position):
     return np.dstack([np.array(position), np.array(position)]).flatten()

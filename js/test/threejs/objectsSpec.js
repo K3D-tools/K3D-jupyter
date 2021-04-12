@@ -237,6 +237,21 @@ require(['k3d'], function (lib) {
             });
         });
 
+        it('Marching cube with non-uniformly spacing', function (done) {
+
+            var self = this;
+
+            jsonLoader('http://localhost:9001/samples/marching_cubes_non_uniformly_spaced.json', function (json) {
+
+                self.K3D.addFrameUpdateListener('after', function () {
+                    TestHelpers.compareCanvasWithExpectedImage(self.K3D, 'marching_cubes_non_uniformly_spaced', RESAMBLEThreshold,
+                        true, done);
+                }, true);
+
+                self.K3D.load(json);
+            });
+        });
+
         it('Surface from normal array', function (done) {
 
             var self = this;

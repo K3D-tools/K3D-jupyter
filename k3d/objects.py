@@ -283,6 +283,12 @@ class MarchingCubes(DrawableWithCallback):
             A 3D scalar field of values.
         level: `float`.
             Value at the computed isosurface.
+        spacings_x: `array_like`.
+            A spacings in x axis. Should match to scalar_field shape.
+        spacings_y: `array_like`.
+            A spacings in y axis. Should match to scalar_field shape.
+        spacings_z: `array_like`.
+            A spacings in z axis. Should match to scalar_field shape.
         color: `int`.
             Packed RGB color of the isosurface (0xff0000 is red, 0xff is blue).
         wireframe: `bool`.
@@ -297,6 +303,9 @@ class MarchingCubes(DrawableWithCallback):
 
     type = Unicode(read_only=True).tag(sync=True)
     scalar_field = Array(dtype=np.float32).tag(sync=True, **array_serialization_wrap('scalar_field'))
+    spacings_x = Array(dtype=np.float32).tag(sync=True, **array_serialization_wrap('spacings_x'))
+    spacings_y = Array(dtype=np.float32).tag(sync=True, **array_serialization_wrap('spacings_y'))
+    spacings_z = Array(dtype=np.float32).tag(sync=True, **array_serialization_wrap('spacings_z'))
     level = Float().tag(sync=True)
     color = Int(min=0, max=0xffffff).tag(sync=True)
     wireframe = Bool().tag(sync=True)

@@ -157,7 +157,10 @@ ObjectModel = widgets.WidgetModel.extend({
         puv: serialize,
         visible: serialize,
         uvs: serialize,
-        volume_bounds: serialize
+        volume_bounds: serialize,
+        spacings_x: serialize,
+        spacings_y: serialize,
+        spacings_z: serialize
     }, widgets.WidgetModel.serializers)
 });
 
