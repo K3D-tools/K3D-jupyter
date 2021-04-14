@@ -1073,6 +1073,7 @@ def plot(height=512,
          grid_visible=True,
          screenshot_scale=2.0,
          grid=(-1, -1, -1, 1, 1, 1),
+         grid_color=0xe6e6e6,
          lighting=1.5,
          menu_visibility=True,
          voxel_paint_color=0,
@@ -1109,6 +1110,8 @@ def plot(height=512,
             Enable automatic adjustment of the plot grid to contained objects.
         grid_visible: `bool`.
             Enable or disable grid.
+        grid_color: `int`.
+            Packed RGB color of the plot grids (0xff0000 is red, 0xff is blue).
         grid: `array_like`.
             6-element tuple specifying the bounds of the plot grid (x0, y0, z0, x1, y1, z1).
         screenshot_scale: `Float`.
@@ -1163,7 +1166,7 @@ def plot(height=512,
                 background_color=background_color,
                 lighting=lighting, time=time, colorbar_object_id=colorbar_object_id,
                 camera_auto_fit=camera_auto_fit, grid_auto_fit=grid_auto_fit,
-                grid_visible=grid_visible,
+                grid_visible=grid_visible, grid_color=grid_color,
                 height=height, menu_visibility=menu_visibility,
                 voxel_paint_color=voxel_paint_color, grid=grid,
                 axes=axes, axes_helper=axes_helper, screenshot_scale=screenshot_scale, camera_fov=camera_fov,

@@ -28,6 +28,8 @@ class Plot(widgets.DOMWidget):
             Enable automatic camera setting after adding, removing or changing a plot object.
         grid_auto_fit: `bool`.
             Enable automatic adjustment of the plot grid to contained objects.
+        grid_color: `int`.
+            Packed RGB color of the plot grids (0xff0000 is red, 0xff is blue).
         grid_visible: `bool`.
             Enable or disable grid.
         screenshot_scale: `Float`.
