@@ -133,6 +133,7 @@ class Plot(widgets.DOMWidget):
     screenshot_scale = Float().tag(sync=True)
     time = Float().tag(sync=True)
     grid = ListOrArray((-1, -1, -1, 1, 1, 1), minlen=6, maxlen=6).tag(sync=True)
+    grid_color = Int().tag(sync=True)
     background_color = Int().tag(sync=True)
     voxel_paint_color = Int().tag(sync=True)
     camera = ListOrArray(minlen=9, maxlen=9, empty_ok=True).tag(sync=True)
@@ -166,7 +167,7 @@ class Plot(widgets.DOMWidget):
                  snapshot_include_js=True, camera_no_pan=False, camera_rotate_speed=1.0, camera_zoom_speed=1.2,
                  camera_pan_speed=0.3, camera_fov=45.0, axes_helper=1.0, name=None,
                  mode='view', camera_mode='trackball', manipulate_mode='translate', auto_rendering=True, fps=25.0,
-                 *args, **kwargs):
+                 grid_color=0xe6e6e6, *args, **kwargs):
         super(Plot, self).__init__()
 
         self.antialias = antialias
@@ -177,6 +178,7 @@ class Plot(widgets.DOMWidget):
         self.grid = grid
         self.grid_visible = grid_visible
         self.background_color = background_color
+        self.grid_color = grid_color
         self.voxel_paint_color = voxel_paint_color
         self.screenshot_scale = screenshot_scale
         self.height = height
@@ -371,10 +373,12 @@ class Plot(widgets.DOMWidget):
     def get_snapshot_params(self):
         return {
             "cameraAutoFit": self.camera_auto_fit,
+            "viewMode": self.mode,
             "menuVisibility": self.menu_visibility,
             "gridAutoFit": self.grid_auto_fit,
             "gridVisible": self.grid_visible,
             "grid": self.grid,
+            "gridColor": self.grid_color,
             "antialias": self.antialias,
             "screenshotScale": self.screenshot_scale,
             "clearColor": self.background_color,

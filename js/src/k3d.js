@@ -269,6 +269,7 @@ PlotView = widgets.DOMWidgetView.extend({
         this.model.on('change:time', this._setTime, this);
         this.model.on('change:grid_auto_fit', this._setGridAutoFit, this);
         this.model.on('change:grid_visible', this._setGridVisible, this);
+        this.model.on('change:grid_color', this._setGridColor, this);
         this.model.on('change:fps_meter', this._setFpsMeter, this);
         this.model.on('change:fps', this._setFps, this);
         this.model.on('change:screenshot_scale', this._setScreenshotScale, this);
@@ -322,7 +323,8 @@ PlotView = widgets.DOMWidgetView.extend({
                 grid: this.model.get('grid'),
                 fps: this.model.get('fps'),
                 autoRendering: this.model.get('auto_rendering'),
-                gridVisible: this.model.get('grid_visible')
+                gridVisible: this.model.get('grid_visible'),
+                gridColor: this.model.get('grid_color'),
             });
 
             if (this.model.get('camera_auto_fit') === false) {
@@ -419,6 +421,10 @@ PlotView = widgets.DOMWidgetView.extend({
 
     _setGridVisible: function () {
         this.K3DInstance.setGridVisible(this.model.get('grid_visible'));
+    },
+
+    _setGridColor: function () {
+        this.K3DInstance.setGridColor(this.model.get('grid_color'));
     },
 
     _setFps: function () {

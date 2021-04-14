@@ -131,7 +131,11 @@ module.exports = {
     update: function (config, changes, obj, K3D) {
         var resolvedChanges = {}, data, i;
 
-        if (typeof (obj.geometry.attributes.uv) !== 'undefined') {
+        if (!obj) {
+            return false;
+        }
+
+        if (obj.geometry && typeof (obj.geometry.attributes.uv) !== 'undefined') {
             if (typeof (changes.color_range) !== 'undefined' && !changes.color_range.timeSeries) {
                 data = obj.geometry.attributes.uv.array;
 

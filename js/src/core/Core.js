@@ -148,6 +148,7 @@ function K3D(provider, targetDOMNode, parameters) {
             gridAutoFit: true,
             gridVisible: true,
             grid: [-1, -1, -1, 1, 1, 1],
+            gridColor: 0xe6e6e6,
             antialias: 1,
             screenshotScale: 5.0,
             renderingSteps: 1,
@@ -529,6 +530,28 @@ function K3D(provider, targetDOMNode, parameters) {
         self.render();
     };
 
+    /**
+     * Set grid color of K3D
+     * @memberof K3D.Core
+     * @param {Number} color
+     */
+    this.setGridColor = function (color) {
+        self.parameters.gridColor = color;
+        self.rebuildSceneData(true).then(function () {
+            self.render();
+        });
+    };
+    /**
+     * Set grid color of K3D
+     * @memberof K3D.Core
+     * @param {Number} color
+     */
+    this.setGridColor = function (color) {
+        self.parameters.gridColor = color;
+        self.rebuildSceneData(true).then(function () {
+            self.render();
+        });
+    };
     /**
      * Set screenshot scale for K3D
      * @memberof K3D.Core

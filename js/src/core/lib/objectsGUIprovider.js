@@ -183,6 +183,10 @@ function update(K3D, json, objects, changes) {
                 }
             }
 
+            if (json[param].timeSeries) {
+                return;
+            }
+
             switch (param) {
                 case 'origin_color':
                 case 'head_color':
@@ -196,7 +200,7 @@ function update(K3D, json, objects, changes) {
                         changeParameter.bind(this, K3D, json, param));
                     break;
                 case 'text':
-                    if (json.type !== 'STL' && !json[param].timeSeries) {
+                    if (json.type !== 'STL') {
                         addController(K3D.gui_map[json.id], json, param).onChange(
                             changeParameter.bind(this, K3D, json, param));
                     }
