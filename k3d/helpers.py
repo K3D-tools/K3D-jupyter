@@ -2,11 +2,12 @@
 Utilities module.
 """
 
+from typing import Sequence, Tuple
 import itertools
-import numpy as np
 import os
 import zlib
 
+import numpy as np
 
 # import logging
 # from pprint import pprint, pformat
@@ -106,21 +107,14 @@ def callback_serialization_wrap(name):
     }
 
 
-def download(url):
+def download(url) -> str:
     """Retrieve the file at url, save it locally and return the path."""
     basename = os.path.basename(url)
     if os.path.exists(basename):
         return basename
 
+    from urllib.request import urlopen
     print('Downloading: {}'.format(basename))
-
-    # 2/3 compatibility hacks
-    try:
-        from urllib.request import urlopen
-    except ImportError:
-        import urllib2
-        import contextlib
-        urlopen = lambda url_: contextlib.closing(urllib2.urlopen(url_))
 
     with urlopen(url) as response, open(basename, 'wb') as output:
         output.write(response.read())
@@ -136,7 +130,7 @@ def minmax(iterable):
     return [float(np.nanmin(iterable)), float(np.nanmax(iterable))]
 
 
-def check_attribute_range(attribute, color_range=()):
+def check_attribute_range(attribute, color_range=()) -> Tuple[float, float]:
     """Provide color range versus provided attribute, compute color range if necessary.
 
     If the attribute is empty or color_range has 2 elements, returns color_range unchanged.
@@ -150,7 +144,7 @@ def check_attribute_range(attribute, color_range=()):
     return color_range
 
 
-def map_colors(attribute, color_map, color_range=()):
+def map_colors(attribute, color_map, color_range=()) -> Sequence[int]:
     a_min, a_max = check_attribute_range(attribute, color_range)
     map_array = np.asarray(color_map)
     map_array = map_array.reshape((map_array.size // 4, 4))
