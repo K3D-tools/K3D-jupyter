@@ -147,8 +147,8 @@ def marching_cubes(scalar_field, level, color=_default_color, wireframe=False, f
 def mesh(vertices, indices, color=_default_color, colors=[], attribute=[], color_map=default_colormap,
          # lgtm [py/similar-function]
          color_range=[], wireframe=False, flat_shading=True, opacity=1.0, texture=None, texture_file_format=None,
-         volume=[], volume_bounds=[], opacity_function=[], side='front', uvs=None, triangles_attribute=[],
-         name=None, compression_level=0, **kwargs):
+         volume=[], volume_bounds=[], opacity_function=[], side='front', uvs=None, slice_planes=[],
+         name=None, compression_level=0, triangles_attribute=[], **kwargs):
     """Create a Mesh drawable representing a 3D triangles mesh.
 
     Arguments:
@@ -459,7 +459,7 @@ def label(text, position=(0, 0, 0), color=_default_color, on_top=True, size=1.0,
 
 
 def texture(binary=None, file_format=None, color_map=default_colormap, color_range=[], attribute=[], puv=[],
-            name=None, compression_level=0, **kwargs):
+            opacity_function=[], interpolation=True, name=None, compression_level=0, **kwargs):
     """Create a Texture drawable for displaying 2D raster images in common formats.
 
     By default, the texture image is mapped into the square: -0.5 < x, y < 0.5, z = 1.
@@ -487,9 +487,14 @@ def texture(binary=None, file_format=None, color_map=default_colormap, color_ran
         color_map: `list`.
             A list of float quadruplets (attribute value, R, G, B), sorted by attribute value. The first
             quadruplet should have value 0.0, the last 1.0; R, G, B are RGB color components in the range 0.0 to 1.0.
+        opacity_function: `array`.
+            A list of float tuples (attribute value, opacity), sorted by attribute value. The first
+            typles should have value 0.0, the last 1.0; opacity is in the range 0.0 to 1.0.
         color_range: `list`.
             A pair [min_value, max_value], which determines the levels of color attribute mapped
             to 0 and 1 in the color map respectively.
+        interpolation: `bool`.
+            Whether data should be interpolatedor not.
         name: `string`.
             A name of a object
         puv: `list`.
@@ -508,8 +513,10 @@ def texture(binary=None, file_format=None, color_map=default_colormap, color_ran
                 color_map=color_map,
                 color_range=color_range,
                 attribute=attribute,
+                opacity_function=opacity_function,
                 puv=puv,
                 name=name,
+                interpolation=interpolation,
                 compression_level=compression_level),
         **kwargs
     )
@@ -897,7 +904,7 @@ def volume(volume, color_map=default_colormap, opacity_function=None, color_rang
         kwargs: `dict`.
             Dictionary arguments to configure transform and model_matrix."""
 
-    color_range = check_attribute_range(volume, color_range)
+    color_range = check_attribute_range(volume, color_range) if type(color_range) is not dict else color_range
 
     if opacity_function is None:
         opacity_function = [np.min(color_map[::4]), 0.0, np.max(color_map[::4]), 1.0]
@@ -946,7 +953,7 @@ def mip(volume, color_map=default_colormap, opacity_function=None, color_range=[
         kwargs: `dict`.
             Dictionary arguments to configure transform and model_matrix."""
 
-    color_range = check_attribute_range(volume, color_range)
+    color_range = check_attribute_range(volume, color_range) if type(color_range) is not dict else color_range
 
     if opacity_function is None:
         opacity_function = [np.min(color_map[::4]), 0.0, np.max(color_map[::4]), 1.0]
@@ -957,8 +964,8 @@ def mip(volume, color_map=default_colormap, opacity_function=None, color_range=[
 
 
 def vtk_poly_data(poly_data, color=_default_color, color_attribute=None, color_map=default_colormap, side='front',
-                  wireframe=False, opacity=1.0, volume=[], volume_bounds=[], opacity_function=[], name=None,
-                  compression_level=0, cell_color_attribute=None, **kwargs):
+                  wireframe=False, opacity=1.0, volume=[], volume_bounds=[], opacity_function=[],
+                  name=None, compression_level=0, cell_color_attribute=None, **kwargs):
     """Create a Mesh drawable from given vtkPolyData.
 
     This function requires the vtk module (from package VTK) to be installed.

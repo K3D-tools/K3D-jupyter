@@ -45,7 +45,8 @@
                     lighting: 1.5,
                     grid: [
                         -1, -1, -1,
-                        1, 1, 1]
+                        1, 1, 1],
+                    clippingPlanes: [[-0.554, 0.831, -0.055, 0.42]]
                 }
             );
         } catch (e) {
@@ -57,24 +58,26 @@
             K3DInstance.setClearColor(-1);
             K3DInstance.setScreenshotScale(3.0);
             //
-
-            jsonLoader('test/samples/mesh_with_annotations.json', function (json) {
-            // jsonLoader('test/samples/cube_with_labels.json', function (json) {
-            // jsonLoader('test/samples/voxels.json', function (json) {
-            // //     K3DInstance.setClippingPlanes([
-            // // //         [-1, -1.5, 0, 0],
-            // // //         [0, 0, -1, 0.01]
-            // // //     ]);
-                 K3DInstance.load(json);
             //
-            //     // K3DInstance.setCameraFOV(10);
+            // jsonLoader('test/samples/mesh_with_annotations.json', function (json) {
+            // // jsonLoader('test/samples/cube_with_labels.json', function (json) {
+            // // jsonLoader('test/samples/voxels.json', function (json) {
+            // // //     K3DInstance.setClippingPlanes([
+            // // // //         [-1, -1.5, 0, 0],
+            // // // //         [0, 0, -1, 0.01]
+            // // // //     ]);
+            //      K3DInstance.load(json);
+            // //
+            // //     // K3DInstance.setCameraFOV(10);
+            // });
+            // //
+
+            fileLoader('bug.html', function (data) {
+                var snapshot = K3DInstance.extractSnapshot(data);
+                K3DInstance.setSnapshot(atob(snapshot[1])).then(function () {
+                    K3DInstance.resetCamera(0.5);
+                });
             });
-            //
-
-//            fileLoader('l.html', function (data) {
-//                var snapshot = K3DInstance.extractSnapshot(data);
-//                K3DInstance.setSnapshot(atob(snapshot[1]));
-//            });
         }
 
         // if (localStorage.getItem('camera') !== null) {

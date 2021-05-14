@@ -2,13 +2,13 @@
 
 'use strict';
 
-function changeParameter(K3D, json, key, value) {
+function changeParameter(K3D, json, key, value, timeSeriesReload) {
     var change = {};
 
     change[key] = value;
 
     if (key !== 'name') {
-        K3D.reload(json, change);
+        K3D.reload(json, change, timeSeriesReload);
     }
 
     K3D.dispatch(K3D.events.OBJECT_CHANGE, {
@@ -18,7 +18,7 @@ function changeParameter(K3D, json, key, value) {
     });
 }
 
-function update(K3D, json, objects, changes) {
+function update(K3D, json, GUI, changes) {
     function addController(folder, obj, param, options1, options2, options3) {
         var controller = folder.add(obj, param, options1, options2, options3);
         folder.controllersMap[param] = controller;
@@ -64,6 +64,10 @@ function update(K3D, json, objects, changes) {
         return controllers.length > 0;
     }
 
+    if (!GUI) {
+        return;
+    }
+
     if (typeof (K3D.gui_map) === 'undefined') {
         K3D.gui_map = {};
     }
@@ -75,16 +79,16 @@ function update(K3D, json, objects, changes) {
     if (typeof (K3D.gui_map[json.id]) === 'undefined') {
         K3D.gui_counts[json.type] = K3D.gui_counts[json.type] + 1 || 1;
 
-        K3D.gui_map[json.id] = objects.addFolder(json.type + ' #' + K3D.gui_counts[json.type]);
+        K3D.gui_map[json.id] = GUI.addFolder(json.type + ' #' + K3D.gui_counts[json.type]);
         K3D.gui_map[json.id].controllersMap = {};
         K3D.gui_map[json.id].listenersId = K3D.on(K3D.events.OBJECT_REMOVED, function (id) {
             if (id === json.id) {
                 var listenersId = K3D.gui_map[json.id].listenersId;
                 var folder = K3D.gui_map[json.id];
                 folder.close();
-                objects.__ul.removeChild(folder.domElement.parentNode);
-                delete objects.__folders[folder.name];
-                objects.onResize();
+                GUI.__ul.removeChild(folder.domElement.parentNode);
+                delete GUI.__folders[folder.name];
+                GUI.onResize();
 
                 delete K3D.gui_map[json.id];
 
@@ -122,11 +126,6 @@ function update(K3D, json, objects, changes) {
                 json['_' + param + '_high'] = json[param][1];
 
                 // handle colorLegend
-                if (K3D.parameters.colorbarObjectId === -1) { //auto
-                    K3D.setColorMapLegend(json);
-                    json.colorLegend = true;
-                }
-
                 colorMapLegendControllers = findControllers(json, 'colorLegend');
 
                 if (colorMapLegendControllers.length === 0) {

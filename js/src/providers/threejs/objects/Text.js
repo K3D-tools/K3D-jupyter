@@ -102,7 +102,7 @@ module.exports = {
             }
 
             domElement.style.transform = 'translate(' + x + ',' + y + ')';
-            domElement.style.zIndex = config.on_top ? 16777271 - Math.round(coord.z * 1e6) : '5';
+            domElement.style.zIndex = config.on_top ? 16777271 - Math.round(coord.z * 1e6) : '15';
         }
 
         listenersId = K3D.on(K3D.events.RENDERED, render);

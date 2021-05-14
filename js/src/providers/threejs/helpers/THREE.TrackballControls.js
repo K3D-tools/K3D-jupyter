@@ -48,7 +48,7 @@ module.exports = function (THREE) {
         this.minDistance = 0;
         this.maxDistance = Infinity;
 
-        this.keys = [65 /*A*/, 83 /*S*/, 68 /*D*/];
+        this.keys = [17 /*Ctrl*/, 18 /*Alt*/, 16 /*Shift*/];
 
         // internals
 

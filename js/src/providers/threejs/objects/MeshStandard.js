@@ -157,7 +157,7 @@ module.exports = {
                 resolvedChanges.color_range = null;
             }
 
-            if (typeof (changes.attribute) !== 'undefined' && !changes.attribute.timeSeries) {
+            if (obj.geometry && typeof (changes.attribute) !== 'undefined' && !changes.attribute.timeSeries) {
                 data = obj.geometry.attributes.uv.array;
 
                 for (i = 0; i < data.length; i++) {
@@ -171,10 +171,13 @@ module.exports = {
         }
 
         if (typeof (changes.opacity) !== 'undefined' && !changes.opacity.timeSeries) {
-            obj.material.opacity = changes.opacity;
-            obj.material.depthWrite = changes.opacity === 1.0;
-            obj.material.transparent = changes.opacity !== 1.0;
-            obj.material.needsUpdate = true;
+            if (obj.material.uniforms && obj.material.uniforms.opacity) {
+                obj.material.uniforms.opacity.value = changes.opacity;
+            } else {
+                obj.material.opacity = changes.opacity;
+            }
+
+            obj.material.side = changes.opacity < 1.0 ? THREE.DoubleSide : THREE.FrontSide;
 
             resolvedChanges.opacity = null;
         }

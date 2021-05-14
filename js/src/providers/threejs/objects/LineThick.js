@@ -110,7 +110,7 @@ function update(config, changes, obj) {
         }
 
         if (typeof(changes.attribute) !== 'undefined' && !changes.attribute.timeSeries) {
-            if (changes.attribute.data.length !== obj.geometry.attributes.uv.array.length) {
+            if (changes.attribute.data.length  !== obj.geometry.attributes.uv.array.length) {
                 return false;
             }
 

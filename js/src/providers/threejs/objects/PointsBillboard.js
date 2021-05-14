@@ -95,6 +95,9 @@ module.exports = {
             obj.geometry.attributes.position.array.set(changes.positions.data);
             obj.geometry.attributes.position.needsUpdate = true;
 
+            obj.geometry.computeBoundingSphere();
+            obj.geometry.computeBoundingBox();
+
             resolvedChanges.positions = null;
         }
 

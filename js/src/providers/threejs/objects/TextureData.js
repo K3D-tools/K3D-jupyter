@@ -20,21 +20,41 @@ module.exports = {
             var geometry = new THREE.PlaneBufferGeometry(1, 1),
                 modelMatrix = new THREE.Matrix4(),
                 colorMap = (config.color_map && config.color_map.data) || null,
+                opacityFunction = (config.opacity_function && config.opacity_function.data) || null,
                 colorRange = config.color_range,
                 object,
                 texture;
+
+            config.interpolation = typeof (config.interpolation) !== 'undefined' ? config.interpolation : true;
+
+            if (opacityFunction === null) {
+                opacityFunction = [colorMap[0], 1.0, colorMap[colorMap.length - 4], 1.0];
+
+                config.opacity_function = {
+                    data: opacityFunction,
+                    shape: [4]
+                };
+            }
 
             texture = new THREE.DataTexture(config.attribute.data,
                 config.attribute.shape[1], config.attribute.shape[0], THREE.RedFormat,
                 typedArrayToThree(config.attribute.data.constructor));
 
-            texture.minFilter = THREE.LinearFilter;
-            texture.magFilter = THREE.LinearFilter;
+            if (config.interpolation) {
+                texture.minFilter = THREE.LinearFilter;
+                texture.magFilter = THREE.LinearFilter;
+                texture.anisotropy = K3D.getWorld().renderer.capabilities.getMaxAnisotropy();
+            } else {
+                texture.minFilter = THREE.NearestFilter;
+                texture.magFilter = THREE.NearestFilter;
+                texture.anisotropy = 0;
+            }
+
             texture.generateMipmaps = false;
-            texture.anisotropy = K3D.getWorld().renderer.capabilities.getMaxAnisotropy();
+
             texture.needsUpdate = true;
 
-            var canvas = colorMapHelper.createCanvasGradient(colorMap, 1024);
+            var canvas = colorMapHelper.createCanvasGradient(colorMap, 1024, opacityFunction);
             var colormap = new THREE.CanvasTexture(canvas, THREE.UVMapping, THREE.ClampToEdgeWrapping,
                 THREE.ClampToEdgeWrapping, THREE.NearestFilter, THREE.NearestFilter);
             colormap.needsUpdate = true;
@@ -96,15 +116,15 @@ module.exports = {
 
         intersectHelper.update(config, changes, resolvedChanges, obj, K3D);
 
-        if (typeof(changes.color_range) !== 'undefined' && !changes.color_range.timeSeries) {
+        if (typeof (changes.color_range) !== 'undefined' && !changes.color_range.timeSeries) {
             obj.material.uniforms.low.value = changes.color_range[0];
             obj.material.uniforms.high.value = changes.color_range[1];
 
             resolvedChanges.color_range = null;
         }
 
-        if ((typeof(changes.color_map) !== 'undefined' && !changes.color_map.timeSeries) ||
-            (typeof(changes.opacity_function) !== 'undefined' && !changes.opacity_function.timeSeries)) {
+        if ((typeof (changes.color_map) !== 'undefined' && !changes.color_map.timeSeries) ||
+            (typeof (changes.opacity_function) !== 'undefined' && !changes.opacity_function.timeSeries)) {
 
             if (!(changes.opacity_function && obj.material.transparent === false)) {
                 var canvas = colorMapHelper.createCanvasGradient(
@@ -121,7 +141,7 @@ module.exports = {
             }
         }
 
-        if (typeof(changes.attribute) !== 'undefined' && !changes.attribute.timeSeries) {
+        if (typeof (changes.attribute) !== 'undefined' && !changes.attribute.timeSeries) {
             if (obj.material.uniforms.map.value.image.data.constructor === changes.attribute.data.constructor) {
                 obj.material.uniforms.map.value.image.data = changes.attribute.data;
                 obj.material.uniforms.map.value.needsUpdate = true;

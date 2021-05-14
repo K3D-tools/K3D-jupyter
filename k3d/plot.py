@@ -139,7 +139,7 @@ class Plot(widgets.DOMWidget):
     background_color = Int().tag(sync=True)
     voxel_paint_color = Int().tag(sync=True)
     camera = ListOrArray(minlen=9, maxlen=9, empty_ok=True).tag(sync=True)
-    camera_animation = TimeSeries(ListOrArray(minlen=9, maxlen=9, empty_ok=True)).tag(sync=True)
+    camera_animation = TimeSeries(List()).tag(sync=True)
     camera_no_rotate = Bool(False).tag(sync=True)
     camera_no_zoom = Bool(False).tag(sync=True)
     camera_no_pan = Bool(False).tag(sync=True)
@@ -165,10 +165,11 @@ class Plot(widgets.DOMWidget):
     def __init__(self, antialias=3, background_color=0xFFFFFF, camera_auto_fit=True, grid_auto_fit=True,
                  grid_visible=True, height=512, voxel_paint_color=0, grid=(-1, -1, -1, 1, 1, 1), screenshot_scale=2.0,
                  lighting=1.5, time=0.0, fps_meter=False, menu_visibility=True, colorbar_object_id=-1,
-                 rendering_steps=1, axes=['x', 'y', 'z'], camera_no_rotate=False, camera_no_zoom=False,
-                 snapshot_include_js=True, camera_no_pan=False, camera_rotate_speed=1.0, camera_zoom_speed=1.2,
-                 camera_pan_speed=0.3, camera_fov=45.0, axes_helper=1.0, name=None,
-                 mode='view', camera_mode='trackball', manipulate_mode='translate', auto_rendering=True, fps=25.0,
+                 rendering_steps=1, axes=['x', 'y', 'z'], camera_no_rotate=False,
+                 camera_no_zoom=False, camera_rotate_speed=1.0, camera_zoom_speed=1.2, camera_pan_speed=0.3,
+                 snapshot_include_js=True, camera_no_pan=False, camera_fov=45.0, axes_helper=1.0,
+                 name=None, mode='view', camera_mode='trackball', manipulate_mode='translate', auto_rendering=True,
+                 fps=25.0,
                  grid_color=0xe6e6e6, *args, **kwargs):
         super(Plot, self).__init__()
 
@@ -401,7 +402,8 @@ class Plot(widgets.DOMWidget):
             "camera_fov": self.camera_fov,
             "axesHelper": self.axes_helper,
             "cameraAnimation": self.camera_animation,
-            "fps": self.fps
+            "fps": self.fps,
+            "gridColor": self.grid_color
         }
 
     def get_snapshot(self, compression_level=9, additional_js_code=''):

@@ -183,7 +183,7 @@ module.exports = {
                 line.visible = true;
 
                 domElement.style.transform = 'translate(' + x + ',' + y + ')';
-                domElement.style.zIndex = config.on_top ? '1500' : '5';
+                domElement.style.zIndex = config.on_top ? '1500' : '15';
 
                 p.coord = coord;
 

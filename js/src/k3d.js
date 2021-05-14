@@ -229,12 +229,12 @@ PlotView = widgets.DOMWidgetView.extend({
                     .then(function (canvas) {
                         var data = canvas.toDataURL().split(',')[1];
 
-                        model.save('screenshot', data);
+                        model.save('screenshot', data, {patch: true});
                     });
             }
 
             if (obj.msg_type === 'fetch_snapshot') {
-                model.save('snapshot', this.K3DInstance.getHTMLSnapshot(obj.compression_level));
+                model.save('snapshot', this.K3DInstance.getHTMLSnapshot(obj.compression_level), {patch: true});
             }
 
             if (obj.msg_type === 'start_auto_play') {
@@ -270,6 +270,7 @@ PlotView = widgets.DOMWidgetView.extend({
         this.model.on('change:grid_auto_fit', this._setGridAutoFit, this);
         this.model.on('change:grid_visible', this._setGridVisible, this);
         this.model.on('change:grid_color', this._setGridColor, this);
+        this.model.on('change:depth_peels', this._setDepthPeels, this);
         this.model.on('change:fps_meter', this._setFpsMeter, this);
         this.model.on('change:fps', this._setFps, this);
         this.model.on('change:screenshot_scale', this._setScreenshotScale, this);
@@ -385,7 +386,9 @@ PlotView = widgets.DOMWidgetView.extend({
                     position: param.point.toArray(),
                     normal: param.face.normal.toArray(),
                     distance: param.distance,
-                    face_index: param.faceIndex
+                    face_index: param.faceIndex,
+                    face: [param.face.a, param.face.b, param.face.c],
+                    uv: param.uv
                 });
             }
         });
@@ -397,7 +400,9 @@ PlotView = widgets.DOMWidgetView.extend({
                     position: param.point.toArray(),
                     normal: param.face.normal.toArray(),
                     distance: param.distance,
-                    face_index: param.faceIndex
+                    face_index: param.faceIndex,
+                    face: [param.face.a, param.face.b, param.face.c],
+                    uv: param.uv
                 });
             }
         });
@@ -408,7 +413,9 @@ PlotView = widgets.DOMWidgetView.extend({
     },
 
     _setTime: function () {
-        this.renderPromises.push(this.K3DInstance.setTime(this.model.get('time')));
+        if (this.K3DInstance.parameters.time !== this.model.get('time')) {
+            this.renderPromises.push(this.K3DInstance.setTime(this.model.get('time')));
+        }
     },
 
     _setCameraAutoFit: function () {
