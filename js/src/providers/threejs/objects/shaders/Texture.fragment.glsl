@@ -11,8 +11,13 @@ void main() {
     #include <clipping_planes_fragment>
 
     vec4 tcolor = texture2D(map, vUv);
-    float value = ( tcolor.x - low ) / ( high - low);
+    float value = (tcolor.x - low) / (high - low);
 
     vec4 color = texture2D(colormap, vec2(value, 0.5));
-    gl_FragColor = vec4(color.xyz, 1.0);
+
+    if (color.a == 0.0) {
+        discard;
+    }
+
+    gl_FragColor = color;
 }

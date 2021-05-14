@@ -45,7 +45,6 @@ function loader(K3D, data) {
             if (!K3DObjectPromise) {
                 Object.keys(changes).forEach(function (key) {
                     interpolated.json[key] = changes[key];
-                    json[key] = changes[key];
                 });
 
                 K3DObjectPromise = objectProvider.create(interpolated.json, K3D)

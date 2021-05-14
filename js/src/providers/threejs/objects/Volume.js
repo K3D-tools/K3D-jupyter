@@ -21,7 +21,7 @@ var THREE = require('three'),
 module.exports = {
     create: function (config, K3D) {
         config.samples = config.samples || 512.0;
-        config.alpha_coef = config.alpha_coef || 50.0;
+        config.alpha_coef = typeof (config.alpha_coef) !== 'undefined' ? config.alpha_coef : 50.0;
         config.gradient_step = config.gradient_step || 0.005;
         config.shadow = config.shadow || 'off';
         config.interpolation = typeof (config.interpolation) !== 'undefined' ? config.interpolation : true;
@@ -297,14 +297,14 @@ module.exports = {
     update: function (config, changes, obj) {
         var resolvedChanges = {};
 
-        if (typeof(changes.color_range) !== 'undefined' && !changes.color_range.timeSeries) {
+        if (typeof (changes.color_range) !== 'undefined' && !changes.color_range.timeSeries) {
             obj.material.uniforms.low.value = changes.color_range[0];
             obj.material.uniforms.high.value = changes.color_range[1];
 
             resolvedChanges.color_range = null;
         }
 
-        if (typeof(changes.focal_length) !== 'undefined' && !changes.focal_length.timeSeries) {
+        if (typeof (changes.focal_length) !== 'undefined' && !changes.focal_length.timeSeries) {
             if ((obj.material.uniforms.focal_length.value === 0.0 && changes.focal_length !== 0.0) ||
                 changes.focal_length === 0.0) {
 
@@ -313,7 +313,7 @@ module.exports = {
             }
         }
 
-        if (typeof(changes.volume) !== 'undefined' && !changes.volume.timeSeries) {
+        if (typeof (changes.volume) !== 'undefined' && !changes.volume.timeSeries) {
             if (obj.material.uniforms.volumeTexture.value.image.data.constructor === changes.volume.data.constructor) {
                 obj.material.uniforms.volumeTexture.value.image.data = changes.volume.data;
                 obj.material.uniforms.volumeTexture.value.needsUpdate = true;
@@ -322,8 +322,8 @@ module.exports = {
             }
         }
 
-        if ((typeof(changes.color_map) !== 'undefined' && !changes.color_map.timeSeries) ||
-            (typeof(changes.opacity_function) !== 'undefined' && !changes.opacity_function.timeSeries)) {
+        if ((typeof (changes.color_map) !== 'undefined' && !changes.color_map.timeSeries) ||
+            (typeof (changes.opacity_function) !== 'undefined' && !changes.opacity_function.timeSeries)) {
 
             var canvas = colorMapHelper.createCanvasGradient(
                 (changes.color_map && changes.color_map.data) || config.color_map.data,
@@ -344,7 +344,7 @@ module.exports = {
         }
 
         ['samples', 'alpha_coef', 'gradient_step', 'focal_plane', 'focal_length'].forEach(function (key) {
-            if (changes[key] && !changes[key].timeSeries) {
+            if (typeof (changes[key]) !== 'undefined' && !changes[key].timeSeries) {
                 obj.material.uniforms[key].value = changes[key];
                 resolvedChanges[key] = null;
             }

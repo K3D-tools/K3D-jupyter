@@ -43,6 +43,7 @@ function addEvents(self, K3D, controls) {
 function createTrackballControls(self, K3D) {
     var controls = new THREE.TrackballControls(self.camera, self.renderer.domElement);
 
+    controls.type = cameraModes.trackball;
     controls.rotateSpeed = K3D.parameters.cameraRotateSpeed;
     controls.zoomSpeed = K3D.parameters.cameraZoomSpeed;
     controls.panSpeed = K3D.parameters.cameraPanSpeed;
@@ -57,6 +58,7 @@ function createTrackballControls(self, K3D) {
 function createOrbitControls(self, K3D) {
     var controls = new THREE.OrbitControls(self.camera, self.renderer.domElement);
 
+    controls.type = cameraModes.orbit;
     controls.rotateSpeed = K3D.parameters.cameraRotateSpeed;
     controls.enableDamping = false;
     controls.dampingFactor = 0.1;
@@ -72,6 +74,7 @@ function createOrbitControls(self, K3D) {
 function createFlyControls(self, K3D) {
     var controls = new THREE.TrackballControls(self.camera, self.renderer.domElement);
 
+    controls.type = cameraModes.fly;
     controls.rotateSpeed = K3D.parameters.cameraRotateSpeed;
     controls.zoomSpeed = K3D.parameters.cameraZoomSpeed;
     controls.panSpeed = K3D.parameters.cameraPanSpeed;
@@ -167,6 +170,10 @@ module.exports = function (K3D) {
     });
 
     this.changeControls = function () {
+        if (self.controls.type === K3D.parameters.cameraMode) {
+            return;
+        }
+
         if (self.controls) {
             self.controls.dispose();
         }

@@ -23,9 +23,11 @@ module.exports = {
                 material,
                 object;
 
+            config.interpolation = typeof (config.interpolation) !== 'undefined' ? config.interpolation : true;
+
             image = document.createElement('img');
             image.src = 'data:image/' + config.file_format + ';base64,' +
-                        buffer.bufferToBase64(config.binary.buffer);
+                buffer.bufferToBase64(config.binary.buffer);
 
             if (config.puv.data.length === 9) {
                 var positionArray = geometry.attributes.position.array;
@@ -55,6 +57,14 @@ module.exports = {
                 object.applyMatrix4(modelMatrix);
 
                 object.updateMatrixWorld();
+
+                if (config.interpolation) {
+                    texture.minFilter = THREE.LinearFilter;
+                    texture.magFilter = THREE.LinearFilter;
+                } else {
+                    texture.minFilter = THREE.NearestFilter;
+                    texture.magFilter = THREE.NearestFilter;
+                }
 
                 texture.image = image;
                 texture.flipY = false;

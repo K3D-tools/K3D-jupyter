@@ -147,8 +147,8 @@ def marching_cubes(scalar_field, level, color=_default_color, wireframe=False, f
 def mesh(vertices, indices, color=_default_color, colors=[], attribute=[], color_map=default_colormap,
          # lgtm [py/similar-function]
          color_range=[], wireframe=False, flat_shading=True, opacity=1.0, texture=None, texture_file_format=None,
-         volume=[], volume_bounds=[], opacity_function=[], side='front', uvs=None, triangles_attribute=[],
-         name=None, compression_level=0, **kwargs):
+         volume=[], volume_bounds=[], opacity_function=[], side='front', uvs=None,
+         name=None, compression_level=0, triangles_attribute=[], **kwargs):
     """Create a Mesh drawable representing a 3D triangles mesh.
 
     Arguments:
@@ -239,7 +239,8 @@ def mesh(vertices, indices, color=_default_color, colors=[], attribute=[], color
 
 
 def points(positions, colors=[], color=_default_color, point_size=1.0, shader='3dSpecular', opacity=1.0, opacities=[],
-           name=None, compression_level=0, mesh_detail=2, **kwargs):
+           attribute=[], color_map=default_colormap, color_range=[], opacity_function=[], name=None,
+           compression_level=0, mesh_detail=2, **kwargs):
     """Create a Points drawable representing a point cloud.
 
     Arguments:
@@ -272,15 +273,32 @@ def points(positions, colors=[], color=_default_color, point_size=1.0, shader='3
         mesh_detail: `int`.
             Default is 2. Setting this to a value greater than 0 adds more vertices making it no longer an
             icosahedron. When detail is greater than 1, it's effectively a sphere. Only valid if shader='mesh'
+        attribute: `array_like`.
+            Array of float attribute for the color mapping, coresponding to each point.
+        color_map: `list`.
+            A list of float quadruplets (attribute value, R, G, B), sorted by attribute value. The first
+            quadruplet should have value 0.0, the last 1.0; R, G, B are RGB color components in the range 0.0 to 1.0.
+        color_range: `list`.
+            A pair [min_value, max_value], which determines the levels of color attribute mapped
+            to 0 and 1 in the color map respectively.
+        opacity_function: `array`.
+            A list of float tuples (attribute value, opacity), sorted by attribute value. The first
+            tuples should have value 0.0, the last 1.0; opacity is in the range 0.0 to 1.0.
         name: `string`.
             A name of a object
         kwargs: `dict`.
             Dictionary arguments to configure transform and model_matrix."""
+
+    attribute = np.array(attribute, np.float32) if type(attribute) is not dict else attribute
+    color_range = check_attribute_range(attribute, color_range)
+
     return process_transform_arguments(
         Points(positions=positions, colors=colors,
                color=color, point_size=point_size, shader=shader,
                opacity=opacity, opacities=opacities,
                mesh_detail=mesh_detail, name=name,
+               attribute=attribute, color_map=color_map,
+               color_range=color_range, opacity_function=opacity_function,
                compression_level=compression_level),
         **kwargs
     )
@@ -459,7 +477,7 @@ def label(text, position=(0, 0, 0), color=_default_color, on_top=True, size=1.0,
 
 
 def texture(binary=None, file_format=None, color_map=default_colormap, color_range=[], attribute=[], puv=[],
-            name=None, compression_level=0, **kwargs):
+            opacity_function=[], interpolation=True, name=None, compression_level=0, **kwargs):
     """Create a Texture drawable for displaying 2D raster images in common formats.
 
     By default, the texture image is mapped into the square: -0.5 < x, y < 0.5, z = 1.
@@ -487,9 +505,14 @@ def texture(binary=None, file_format=None, color_map=default_colormap, color_ran
         color_map: `list`.
             A list of float quadruplets (attribute value, R, G, B), sorted by attribute value. The first
             quadruplet should have value 0.0, the last 1.0; R, G, B are RGB color components in the range 0.0 to 1.0.
+        opacity_function: `array`.
+            A list of float tuples (attribute value, opacity), sorted by attribute value. The first
+            typles should have value 0.0, the last 1.0; opacity is in the range 0.0 to 1.0.
         color_range: `list`.
             A pair [min_value, max_value], which determines the levels of color attribute mapped
             to 0 and 1 in the color map respectively.
+        interpolation: `bool`.
+            Whether data should be interpolatedor not.
         name: `string`.
             A name of a object
         puv: `list`.
@@ -508,8 +531,10 @@ def texture(binary=None, file_format=None, color_map=default_colormap, color_ran
                 color_map=color_map,
                 color_range=color_range,
                 attribute=attribute,
+                opacity_function=opacity_function,
                 puv=puv,
                 name=name,
+                interpolation=interpolation,
                 compression_level=compression_level),
         **kwargs
     )
@@ -897,7 +922,7 @@ def volume(volume, color_map=default_colormap, opacity_function=None, color_rang
         kwargs: `dict`.
             Dictionary arguments to configure transform and model_matrix."""
 
-    color_range = check_attribute_range(volume, color_range)
+    color_range = check_attribute_range(volume, color_range) if type(color_range) is not dict else color_range
 
     if opacity_function is None:
         opacity_function = [np.min(color_map[::4]), 0.0, np.max(color_map[::4]), 1.0]
@@ -946,7 +971,7 @@ def mip(volume, color_map=default_colormap, opacity_function=None, color_range=[
         kwargs: `dict`.
             Dictionary arguments to configure transform and model_matrix."""
 
-    color_range = check_attribute_range(volume, color_range)
+    color_range = check_attribute_range(volume, color_range) if type(color_range) is not dict else color_range
 
     if opacity_function is None:
         opacity_function = [np.min(color_map[::4]), 0.0, np.max(color_map[::4]), 1.0]
@@ -957,8 +982,8 @@ def mip(volume, color_map=default_colormap, opacity_function=None, color_range=[
 
 
 def vtk_poly_data(poly_data, color=_default_color, color_attribute=None, color_map=default_colormap, side='front',
-                  wireframe=False, opacity=1.0, volume=[], volume_bounds=[], opacity_function=[], name=None,
-                  compression_level=0, cell_color_attribute=None, **kwargs):
+                  wireframe=False, opacity=1.0, volume=[], volume_bounds=[], opacity_function=[],
+                  name=None, compression_level=0, cell_color_attribute=None, **kwargs):
     """Create a Mesh drawable from given vtkPolyData.
 
     This function requires the vtk module (from package VTK) to be installed.
@@ -1073,6 +1098,7 @@ def plot(height=512,
          grid_visible=True,
          screenshot_scale=2.0,
          grid=(-1, -1, -1, 1, 1, 1),
+         grid_color=0xe6e6e6,
          lighting=1.5,
          menu_visibility=True,
          voxel_paint_color=0,
@@ -1109,6 +1135,8 @@ def plot(height=512,
             Enable automatic adjustment of the plot grid to contained objects.
         grid_visible: `bool`.
             Enable or disable grid.
+        grid_color: `int`.
+            Packed RGB color of the plot grids (0xff0000 is red, 0xff is blue).
         grid: `array_like`.
             6-element tuple specifying the bounds of the plot grid (x0, y0, z0, x1, y1, z1).
         screenshot_scale: `Float`.
@@ -1163,7 +1191,7 @@ def plot(height=512,
                 background_color=background_color,
                 lighting=lighting, time=time, colorbar_object_id=colorbar_object_id,
                 camera_auto_fit=camera_auto_fit, grid_auto_fit=grid_auto_fit,
-                grid_visible=grid_visible,
+                grid_visible=grid_visible, grid_color=grid_color,
                 height=height, menu_visibility=menu_visibility,
                 voxel_paint_color=voxel_paint_color, grid=grid,
                 axes=axes, axes_helper=axes_helper, screenshot_scale=screenshot_scale, camera_fov=camera_fov,

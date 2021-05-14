@@ -2,6 +2,7 @@
 
 var THREE = require('three'),
     buffer = require('./../../../core/lib/helpers/buffer'),
+    colorMapHelper = require('./../../../core/lib/helpers/colorMap'),
     Fn = require('./../helpers/Fn'),
     areAllChangesResolve = Fn.areAllChangesResolve,
     commonUpdate = Fn.commonUpdate,
@@ -23,33 +24,52 @@ module.exports = {
             meshDetail = typeof (config.mesh_detail) !== 'undefined' ? config.mesh_detail : 2,
             colors,
             opacities = (config.opacities && config.opacities.data &&
-                         config.opacities.data.length === positions.length / 3) ? config.opacities.data : null,
+                config.opacities.data.length === positions.length / 3) ? config.opacities.data : null,
             object,
             colorsToFloat32Array = buffer.colorsToFloat32Array,
             phongShader = THREE.ShaderLib.phong,
-            material = new THREE.ShaderMaterial({
-                uniforms: THREE.UniformsUtils.merge([phongShader.uniforms, {
-                    shininess: {value: 50},
-                    opacity: {value: config.opacity}
-                }]),
-                defines: {
-                    USE_PER_POINT_OPACITY: (opacities !== null ? 1 : 0)
-                },
-                vertexShader: require('./shaders/PointsMesh.vertex.glsl'),
-                fragmentShader: require('./shaders/PointsMesh.fragment.glsl'),
-                depthWrite: (config.opacity === 1.0 && opacities === null),
-                transparent: (config.opacity !== 1.0 || opacities !== null),
-                lights: true,
-                clipping: true,
-                vertexColors: THREE.VertexColors
-            }),
+            material,
             i,
             boundingBoxGeometry = new THREE.BufferGeometry(),
-            geometry = new THREE.IcosahedronBufferGeometry(config.point_size * 0.5, meshDetail);
+            geometry = new THREE.IcosahedronBufferGeometry(config.point_size * 0.5, meshDetail),
+            colorMap = (config.color_map && config.color_map.data) || null,
+            opacityFunction = (config.opacity_function && config.opacity_function.data) || null,
+            colorRange = config.color_range,
+            attribute = (config.attribute && config.attribute.data) || null,
+            uniforms = {},
+            useColorMap = 0;
 
-        colors = (pointColors && pointColors.length === positions.length / 3 ?
-                colorsToFloat32Array(pointColors) : getColorsArray(color, positions.length / 3)
-        );
+        if (attribute && colorRange && colorMap && attribute.length > 0 &&
+            colorRange.length > 0 && colorMap.length > 0) {
+
+            useColorMap = 1;
+
+            if (opacityFunction === null || opacityFunction.length === 0) {
+                opacityFunction = [colorMap[0], 1.0, colorMap[colorMap.length - 4], 1.0];
+
+                config.opacity_function = {
+                    data: opacityFunction,
+                    shape: [4]
+                };
+            }
+
+            var canvas = colorMapHelper.createCanvasGradient(colorMap, 1024, opacityFunction);
+            var colormap = new THREE.CanvasTexture(canvas, THREE.UVMapping, THREE.ClampToEdgeWrapping,
+                THREE.ClampToEdgeWrapping, THREE.NearestFilter, THREE.NearestFilter);
+            colormap.needsUpdate = true;
+
+            uniforms = {
+                low: {value: colorRange[0]},
+                high: {value: colorRange[1]},
+                colormap: {type: 't', value: colormap}
+            }
+            geometry.setAttribute('attributes',
+                new THREE.InstancedBufferAttribute(attribute, 1).setUsage(THREE.DynamicDrawUsage));
+        } else {
+            colors = (pointColors && pointColors.length === positions.length / 3 ?
+                    colorsToFloat32Array(pointColors) : getColorsArray(color, positions.length / 3)
+            );
+        }
 
         geometry.setAttribute('color', new THREE.InstancedBufferAttribute(new Float32Array(colors), 3));
 
@@ -65,6 +85,25 @@ module.exports = {
         Fn.expandBoundingBox(boundingBoxGeometry.boundingBox, config.point_size * 0.5);
 
         geometry.boundingBox = boundingBoxGeometry.boundingBox.clone();
+
+        material = new THREE.ShaderMaterial({
+            uniforms: THREE.UniformsUtils.merge([phongShader.uniforms, {
+                shininess: {value: 50},
+                opacity: {value: config.opacity}
+            }, uniforms]),
+            defines: {
+                USE_PER_POINT_OPACITY: (opacities !== null ? 1 : 0),
+                USE_COLOR_MAP: useColorMap
+            },
+            vertexShader: require('./shaders/PointsMesh.vertex.glsl'),
+            fragmentShader: require('./shaders/PointsMesh.fragment.glsl'),
+            depthWrite: (config.opacity === 1.0 && opacities === null),
+            transparent: (config.opacity !== 1.0 || opacities !== null),
+            lights: true,
+            clipping: true,
+            vertexColors: THREE.VertexColors
+        })
+
         object = new THREE.InstancedMesh(geometry, material, positions.length / 3);
         object.instanceMatrix.setUsage(THREE.DynamicDrawUsage);
 
@@ -83,11 +122,51 @@ module.exports = {
     update: function (config, changes, obj) {
         var resolvedChanges = {};
 
-        // if (typeof(changes.opacity) !== 'undefined' && !changes.opacity.timeSeries) {
-        //     obj.material.uniforms.opacity.value = changes.opacity;
-        //
-        //     resolvedChanges.opacity = null;
-        // }
+        if (typeof (changes.positions) !== 'undefined' && !changes.positions.timeSeries &&
+            changes.positions.data.length === obj.geometry.attributes.position.array.length) {
+            obj.geometry.attributes.position.array.set(changes.positions.data);
+            obj.geometry.attributes.position.needsUpdate = true;
+
+            obj.geometry.computeBoundingSphere();
+            obj.geometry.computeBoundingBox();
+
+            resolvedChanges.positions = null;
+        }
+
+        if (((typeof (changes.color_map) !== 'undefined' && !changes.color_map.timeSeries) ||
+            (typeof (changes.opacity_function) !== 'undefined' && !changes.opacity_function.timeSeries)) &&
+            obj.geometry.attributes.attributes) {
+
+            var canvas = colorMapHelper.createCanvasGradient(
+                (changes.color_map && changes.color_map.data) || config.color_map.data,
+                1024,
+                (changes.opacity_function && changes.opacity_function.data) || config.opacity_function.data
+            );
+
+            obj.material.uniforms.colormap.value.image = canvas;
+            obj.material.uniforms.colormap.value.needsUpdate = true;
+
+            resolvedChanges.color_map = null;
+            resolvedChanges.opacity_function = null;
+        }
+
+        if (typeof (changes.color_range) !== 'undefined' && !changes.color_range.timeSeries &&
+            obj.geometry.attributes.attributes) {
+            obj.material.uniforms.low.value = changes.color_range[0];
+            obj.material.uniforms.high.value = changes.color_range[1];
+
+            resolvedChanges.color_range = null;
+        }
+
+        if (typeof (changes.attribute) !== 'undefined' && !changes.attribute.timeSeries &&
+            obj.geometry.attributes.attributes &&
+            changes.attribute.data.length === obj.geometry.attributes.attributes.array.length) {
+
+            obj.geometry.attributes.attributes.array.set(changes.attribute.data);
+            obj.geometry.attributes.attributes.needsUpdate = true;
+
+            resolvedChanges.attribute = null;
+        }
 
         commonUpdate(config, changes, resolvedChanges, obj);
 

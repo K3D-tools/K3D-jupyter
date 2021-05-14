@@ -53,7 +53,7 @@ function getArrayFromRenderTarget(renderer, rt) {
     return image;
 }
 
-module.exports = function (renderer, scene, camera, rt, fullWidth, fullHeight, chunk_heights, sampleLevel) {
+module.exports = function (renderer, scene, camera, rt, fullWidth, fullHeight, chunk_heights, sampleLevel, render) {
     return new Promise(function (resolve) {
 
         var jitterOffsets = JitterVectors[Math.max(0, Math.min(sampleLevel, 5))];
@@ -112,10 +112,11 @@ module.exports = function (renderer, scene, camera, rt, fullWidth, fullHeight, c
                     sampleWeight += roundingRange * uniformCenteredDistribution;
 
                     copyUniforms.opacity.value = sampleWeight;
+
                     renderer.setClearColor(0x000000, 0);
                     renderer.setRenderTarget(sampleRenderTarget);
                     renderer.clear();
-                    renderer.render(scene, camera);
+                    render(scene, camera, sampleRenderTarget);
 
                     renderer.setRenderTarget(rt);
 

@@ -28,7 +28,7 @@ module.exports = {
      * @returns {Object}
      */
     getObjectById: function (world, id) {
-        return world.K3DObjects.getObjectByProperty('K3DIdentifier', id);
+        return world.ObjectsById[id];
     },
 
     /**
@@ -47,7 +47,6 @@ module.exports = {
      * @memberof K3D.Providers.ThreeJS.Helpers
      */
     resizeListener: function (world) {
-
         var dimensions = getSpaceDimensionsFromTargetElement(world);
 
         world.width = dimensions[0];

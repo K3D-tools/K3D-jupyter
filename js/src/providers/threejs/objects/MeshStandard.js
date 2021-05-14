@@ -131,7 +131,11 @@ module.exports = {
     update: function (config, changes, obj, K3D) {
         var resolvedChanges = {}, data, i;
 
-        if (typeof (obj.geometry.attributes.uv) !== 'undefined') {
+        if (!obj) {
+            return false;
+        }
+
+        if (obj.geometry && typeof (obj.geometry.attributes.uv) !== 'undefined') {
             if (typeof (changes.color_range) !== 'undefined' && !changes.color_range.timeSeries) {
                 data = obj.geometry.attributes.uv.array;
 
@@ -153,7 +157,7 @@ module.exports = {
                 resolvedChanges.color_range = null;
             }
 
-            if (typeof (changes.attribute) !== 'undefined' && !changes.attribute.timeSeries) {
+            if (obj.geometry && typeof (changes.attribute) !== 'undefined' && !changes.attribute.timeSeries) {
                 data = obj.geometry.attributes.uv.array;
 
                 for (i = 0; i < data.length; i++) {
@@ -167,10 +171,13 @@ module.exports = {
         }
 
         if (typeof (changes.opacity) !== 'undefined' && !changes.opacity.timeSeries) {
-            obj.material.opacity = changes.opacity;
-            obj.material.depthWrite = changes.opacity === 1.0;
-            obj.material.transparent = changes.opacity !== 1.0;
-            obj.material.needsUpdate = true;
+            if (obj.material.uniforms && obj.material.uniforms.opacity) {
+                obj.material.uniforms.opacity.value = changes.opacity;
+            } else {
+                obj.material.opacity = changes.opacity;
+            }
+
+            obj.material.side = changes.opacity < 1.0 ? THREE.DoubleSide : THREE.FrontSide;
 
             resolvedChanges.opacity = null;
         }

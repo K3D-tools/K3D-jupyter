@@ -205,15 +205,16 @@ function rebuildSceneData(K3D, grids, axesHelper, force) {
             'x': new THREE.Vector3(1.0, 0.0, 0.0),
             'y': new THREE.Vector3(0.0, 1.0, 0.0),
             'z': new THREE.Vector3(0.0, 0.0, 1.0)
-        };
+        },
+        gridColor = new THREE.Color(K3D.parameters.gridColor);
 
     // axes Helper
     updateAxesHelper = !K3D.parameters.axesHelper || (K3D.parameters.axesHelper && !axesHelper.x);
 
     if (axesHelper.x && !updateAxesHelper) {
         updateAxesHelper |= K3D.parameters.axes[0] !== axesHelper.x.text ||
-                            K3D.parameters.axes[1] !== axesHelper.y.text ||
-                            K3D.parameters.axes[2] !== axesHelper.z.text;
+            K3D.parameters.axes[1] !== axesHelper.y.text ||
+            K3D.parameters.axes[2] !== axesHelper.z.text;
     }
 
     if (updateAxesHelper) {
@@ -413,12 +414,12 @@ function rebuildSceneData(K3D, grids, axesHelper, force) {
 
                         if (j % 10 === 0) {
                             widths.push(1.5, 1.5);
-                            colors.push(0.65, 0.65, 0.65);
-                            colors.push(0.65, 0.65, 0.65);
+                            colors.push(gridColor.r * 0.72, gridColor.g * 0.72, gridColor.b * 0.72);
+                            colors.push(gridColor.r * 0.72, gridColor.g * 0.72, gridColor.b * 0.72);
                         } else {
                             widths.push(1.0, 1.0);
-                            colors.push(0.9, 0.9, 0.9);
-                            colors.push(0.9, 0.9, 0.9);
+                            colors.push(gridColor.r, gridColor.g, gridColor.b);
+                            colors.push(gridColor.r, gridColor.g, gridColor.b);
                         }
                     }
                 }, this);

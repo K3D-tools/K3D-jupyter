@@ -63,25 +63,26 @@ module.exports = function (K3D) {
     console.log('K3D: (UNMASKED_VENDOR_WEBGL)', gl.getParameter(debugInfo.UNMASKED_VENDOR_WEBGL));
     console.log('K3D: (UNMASKED_RENDERER_WEBGL)', gl.getParameter(debugInfo.UNMASKED_RENDERER_WEBGL));
 
+    function standardRender(scene, camera, rt) {
+        if (typeof (rt) === 'undefined') {
+            rt = null;
+        }
+
+        self.renderer.setRenderTarget(rt);
+        self.renderer.render(scene, camera);
+    }
+
     function render() {
+        var currentRenderMethod = standardRender;
+
         return new Promise(function (resolve) {
             if (K3D.disabling) {
-                return void(0);
+                return void (0);
             }
 
-            var size = new THREE.Vector2(), chunk_widths = [];
+            var size = new THREE.Vector2();
 
             self.renderer.getSize(size);
-
-            if (K3D.parameters.renderingSteps > 1) {
-                var s = size.x / K3D.parameters.renderingSteps;
-
-                for (var i = 0; i < K3D.parameters.renderingSteps; i++) {
-                    var o1 = Math.round(i * s);
-                    var o2 = Math.min(Math.round((i + 1) * s), size.x);
-                    chunk_widths.push([o1, o2 - o1]);
-                }
-            }
 
             K3D.frameUpdateHandlers.before.forEach(handleListeners.bind(null, K3D, 'before'));
 
@@ -90,6 +91,7 @@ module.exports = function (K3D) {
             self.renderer.clippingPlanes = [];
 
             self.camera.updateMatrixWorld();
+
             self.renderer.clear();
 
             self.renderer.render(self.gridScene, self.camera);
@@ -106,27 +108,66 @@ module.exports = function (K3D) {
 
             var p = Promise.resolve(), originalControlsEnabledState = self.controls.enabled;
 
-            if (K3D.parameters.renderingSteps > 1) {
-                self.controls.enabled = false;
+            function renderPass(x, y, width, height) {
+                var chunk_widths = [];
 
-                chunk_widths.forEach(function (c) {
-                    p = p.then(function () {
-                        self.renderer.setViewport(c[0], 0, c[1], size.y);
-                        self.camera.setViewOffset(size.x, size.y, c[0], 0, c[1], size.y);
-                        self.renderer.render(self.scene, self.camera);
-                    });
+                if (K3D.parameters.renderingSteps > 1) {
+                    var s = width / K3D.parameters.renderingSteps;
 
-                    p = p.then(function () {
-                        return new Promise(function (resolve) {
-                            setTimeout(resolve, 50);
+                    for (var i = 0; i < K3D.parameters.renderingSteps; i++) {
+                        var o1 = Math.round(i * s);
+                        var o2 = Math.min(Math.round((i + 1) * s), width);
+                        chunk_widths.push([o1, o2 - o1]);
+                    }
+                }
+
+                if (K3D.parameters.renderingSteps > 1) {
+                    self.controls.enabled = false;
+
+                    if (self.controls.beforeRender) {
+                        p = p.then(function () {
+                            self.controls.beforeRender();
+                        });
+                    }
+
+                    chunk_widths.forEach(function (c) {
+                        p = p.then(function () {
+                            self.renderer.setViewport(x + c[0], y, c[1], height);
+                            self.camera.setViewOffset(size.x, size.y, c[0], 0, c[1], size.y);
+
+                            currentRenderMethod(self.scene, self.camera);
+                        });
+
+                        p = p.then(function () {
+                            return new Promise(function (resolve) {
+                                setTimeout(resolve, 50);
+                            });
                         });
                     });
-                });
-            } else {
-                p = p.then(function () {
-                    self.renderer.render(self.scene, self.camera);
-                });
+
+                    if (self.controls.afterRender) {
+                        p = p.then(function () {
+                            self.controls.afterRender();
+                        });
+                    }
+                } else {
+                    p = p.then(function () {
+                        if (self.controls.beforeRender) {
+                            self.controls.beforeRender();
+                        }
+
+                        self.renderer.setViewport(x, y, width, height);
+                        currentRenderMethod(self.scene, self.camera);
+
+
+                        if (self.controls.afterRender) {
+                            self.controls.afterRender();
+                        }
+                    });
+                }
             }
+
+            renderPass(0, 0, size.x, size.y);
 
             p = p.then(function () {
                 self.controls.enabled = originalControlsEnabledState;
@@ -172,7 +213,8 @@ module.exports = function (K3D) {
         var rt, rtAxesHelper,
             chunk_heights = [],
             chunk_count = Math.max(Math.min(128, K3D.parameters.renderingSteps), 1),
-            aaLevel = Math.max(Math.min(5, K3D.parameters.antialias), 0);
+            aaLevel = Math.max(Math.min(5, K3D.parameters.antialias), 0),
+            currentRenderMethod = standardRender;
 
         var s = height / chunk_count;
 
@@ -199,7 +241,7 @@ module.exports = function (K3D) {
 
         return getSSAAChunkedRender(self.renderer, self.axesHelper.scene, self.axesHelper.camera,
             rtAxesHelper, rtAxesHelper.width, rtAxesHelper.height, [[0, rtAxesHelper.height]],
-            aaLevel).then(function (result) {
+            aaLevel, standardRender).then(function (result) {
 
             var axesHelper = new Uint8ClampedArray(width * height * 4);
 
@@ -212,14 +254,15 @@ module.exports = function (K3D) {
             }
 
             return getSSAAChunkedRender(self.renderer, self.gridScene, self.camera,
-                rt, width, height, [[0, height]], aaLevel).then(function (grid) {
+                rt, width, height, [[0, height]], aaLevel, standardRender).then(function (grid) {
 
                 K3D.parameters.clippingPlanes.forEach(function (plane) {
                     self.renderer.clippingPlanes.push(new THREE.Plane(new THREE.Vector3().fromArray(plane), plane[3]));
                 });
 
                 return getSSAAChunkedRender(self.renderer, self.scene, self.camera,
-                    rt, width, height, chunk_heights, aaLevel).then(function (scene) {
+                    rt, width, height, chunk_heights,
+                    aaLevel, currentRenderMethod).then(function (scene) {
                     rt.dispose();
                     return [axesHelper, grid, scene];
                 });

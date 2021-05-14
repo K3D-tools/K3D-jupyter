@@ -223,9 +223,9 @@ module.exports = {
                 });
 
                 if (time <= keypoints[0].v) {
-                    interpolated_json[property] = clone(json[property][keypoints[0].k]);
+                    interpolated_json[property] = json[property][keypoints[0].k];
                 } else if (time >= keypoints[keypoints.length - 1].v) {
-                    interpolated_json[property] = clone(json[property][keypoints[keypoints.length - 1].k]);
+                    interpolated_json[property] = json[property][keypoints[keypoints.length - 1].k];
                 } else {
                     for (i = 0; i < keypoints.length; i++) {
                         if (Math.abs(keypoints[i].v - time) < 0.001) {
