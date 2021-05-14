@@ -459,6 +459,17 @@ class Points(Drawable):
         mesh_detail: `int`.
             Default is 2. Setting this to a value greater than 0 adds more vertices making it no longer an
             icosahedron. When detail is greater than 1, it's effectively a sphere. Only valid if shader='mesh'
+        attribute: `array_like`.
+            Array of float attribute for the color mapping, coresponding to each point.
+        color_map: `list`.
+            A list of float quadruplets (attribute value, R, G, B), sorted by attribute value. The first
+            quadruplet should have value 0.0, the last 1.0; R, G, B are RGB color components in the range 0.0 to 1.0.
+        color_range: `list`.
+            A pair [min_value, max_value], which determines the levels of color attribute mapped
+            to 0 and 1 in the color map respectively.
+        opacity_function: `array`.
+            A list of float tuples (attribute value, opacity), sorted by attribute value. The first
+            tuples should have value 0.0, the last 1.0; opacity is in the range 0.0 to 1.0.
         model_matrix: `array_like`.
             4x4 model transform matrix.
     """
@@ -472,6 +483,11 @@ class Points(Drawable):
     opacities = TimeSeries(Array(dtype=np.float32)).tag(sync=True, **array_serialization_wrap('opacities'))
     shader = TimeSeries(Unicode()).tag(sync=True)
     mesh_detail = TimeSeries(Int(min=0, max=8)).tag(sync=True)
+    attribute = TimeSeries(Array(dtype=np.float32)).tag(sync=True, **array_serialization_wrap('attribute'))
+    color_map = TimeSeries(Array(dtype=np.float32)).tag(sync=True, **array_serialization_wrap('color_map'))
+    color_range = TimeSeries(ListOrArray(minlen=2, maxlen=2, empty_ok=True)).tag(sync=True)
+    opacity_function = TimeSeries(Array(dtype=np.float32)).tag(sync=True,
+                                                               **array_serialization_wrap('opacity_function'))
     model_matrix = TimeSeries(Array(dtype=np.float32)).tag(sync=True, **array_serialization_wrap('model_matrix'))
 
     def __init__(self, **kwargs):

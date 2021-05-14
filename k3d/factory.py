@@ -147,7 +147,7 @@ def marching_cubes(scalar_field, level, color=_default_color, wireframe=False, f
 def mesh(vertices, indices, color=_default_color, colors=[], attribute=[], color_map=default_colormap,
          # lgtm [py/similar-function]
          color_range=[], wireframe=False, flat_shading=True, opacity=1.0, texture=None, texture_file_format=None,
-         volume=[], volume_bounds=[], opacity_function=[], side='front', uvs=None, slice_planes=[],
+         volume=[], volume_bounds=[], opacity_function=[], side='front', uvs=None,
          name=None, compression_level=0, triangles_attribute=[], **kwargs):
     """Create a Mesh drawable representing a 3D triangles mesh.
 
@@ -239,7 +239,8 @@ def mesh(vertices, indices, color=_default_color, colors=[], attribute=[], color
 
 
 def points(positions, colors=[], color=_default_color, point_size=1.0, shader='3dSpecular', opacity=1.0, opacities=[],
-           name=None, compression_level=0, mesh_detail=2, **kwargs):
+           attribute=[], color_map=default_colormap, color_range=[], opacity_function=[], name=None,
+           compression_level=0, mesh_detail=2, **kwargs):
     """Create a Points drawable representing a point cloud.
 
     Arguments:
@@ -272,15 +273,32 @@ def points(positions, colors=[], color=_default_color, point_size=1.0, shader='3
         mesh_detail: `int`.
             Default is 2. Setting this to a value greater than 0 adds more vertices making it no longer an
             icosahedron. When detail is greater than 1, it's effectively a sphere. Only valid if shader='mesh'
+        attribute: `array_like`.
+            Array of float attribute for the color mapping, coresponding to each point.
+        color_map: `list`.
+            A list of float quadruplets (attribute value, R, G, B), sorted by attribute value. The first
+            quadruplet should have value 0.0, the last 1.0; R, G, B are RGB color components in the range 0.0 to 1.0.
+        color_range: `list`.
+            A pair [min_value, max_value], which determines the levels of color attribute mapped
+            to 0 and 1 in the color map respectively.
+        opacity_function: `array`.
+            A list of float tuples (attribute value, opacity), sorted by attribute value. The first
+            tuples should have value 0.0, the last 1.0; opacity is in the range 0.0 to 1.0.
         name: `string`.
             A name of a object
         kwargs: `dict`.
             Dictionary arguments to configure transform and model_matrix."""
+
+    attribute = np.array(attribute, np.float32) if type(attribute) is not dict else attribute
+    color_range = check_attribute_range(attribute, color_range)
+
     return process_transform_arguments(
         Points(positions=positions, colors=colors,
                color=color, point_size=point_size, shader=shader,
                opacity=opacity, opacities=opacities,
                mesh_detail=mesh_detail, name=name,
+               attribute=attribute, color_map=color_map,
+               color_range=color_range, opacity_function=opacity_function,
                compression_level=compression_level),
         **kwargs
     )

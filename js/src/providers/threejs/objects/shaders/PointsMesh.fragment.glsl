@@ -38,7 +38,7 @@ varying float perPointOpacity;
 void main() {
 
 	#include <clipping_planes_fragment>
-    vec4 diffuseColor = vec4( diffuse, opacity );
+    vec4 diffuseColor = vec4(diffuse, opacity );
 
     #if (USE_PER_POINT_OPACITY == 1)
 	diffuseColor.a *= perPointOpacity;

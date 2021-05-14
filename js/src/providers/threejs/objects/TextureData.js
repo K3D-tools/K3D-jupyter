@@ -27,7 +27,7 @@ module.exports = {
 
             config.interpolation = typeof (config.interpolation) !== 'undefined' ? config.interpolation : true;
 
-            if (opacityFunction === null) {
+            if (opacityFunction === null || opacityFunction.length === 0) {
                 opacityFunction = [colorMap[0], 1.0, colorMap[colorMap.length - 4], 1.0];
 
                 config.opacity_function = {

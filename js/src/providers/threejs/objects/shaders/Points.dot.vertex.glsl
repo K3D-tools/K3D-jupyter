@@ -6,6 +6,13 @@ attribute vec3 color;
 attribute float opacities;
 #endif
 
+#if (USE_COLOR_MAP == 1)
+uniform sampler2D colormap;
+uniform float low;
+uniform float high;
+attribute float attributes;
+#endif
+
 varying vec4 vColor;
 varying vec4 mvPosition;
 
@@ -25,5 +32,13 @@ void main() {
         perPointOpacity = opacities;
     #endif
 
+    #if (USE_COLOR_MAP == 1)
+    float scaled_px = (attributes - low) / (high - low);
+    vec4 finalSphereColor = texture2D(colormap, vec2(scaled_px, 0.5));
+
+    finalSphereColor.a *= perPointOpacity;
+    vColor = finalSphereColor;
+    #else
     vColor = vec4(color, perPointOpacity);
+    #endif
 }

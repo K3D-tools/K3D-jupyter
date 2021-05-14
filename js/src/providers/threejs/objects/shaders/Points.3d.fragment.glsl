@@ -37,7 +37,7 @@ void main (void)
     pos = pos / pos.w;
     float depth = (pos.z + 1.0) / 2.0;
 
-    if(depth < gl_FragDepthEXT) discard;
+    if (depth < gl_FragDepthEXT) discard;
     gl_FragDepthEXT = depth;
     #endif
 
@@ -48,7 +48,7 @@ void main (void)
 
     finalSphereColor.a *= opacity;
 
-    for(int l = 0; l <NUM_DIR_LIGHTS; l++) {
+    for (int l = 0; l <NUM_DIR_LIGHTS; l++) {
         vec3 lightDirection = -directionalLights[l].direction;
         float lightingIntensity = clamp(dot(-lightDirection, normal), 0.0, 1.0);
         addedLights.rgb += directionalLights[l].color * (0.05 + 0.95 * lightingIntensity);
