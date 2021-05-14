@@ -1,7 +1,6 @@
 'use strict';
 
 var THREE = require('three'),
-    cameraModes = require('./../../../core/lib/cameraMode').cameraModes,
     error = require('./../../../core/lib/Error').error,
     getSSAAChunkedRender = require('./../helpers/SSAAChunkedRender');
 

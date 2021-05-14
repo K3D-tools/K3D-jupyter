@@ -402,8 +402,7 @@ class Plot(widgets.DOMWidget):
             "camera_fov": self.camera_fov,
             "axesHelper": self.axes_helper,
             "cameraAnimation": self.camera_animation,
-            "fps": self.fps,
-            "gridColor": self.grid_color
+            "fps": self.fps
         }
 
     def get_snapshot(self, compression_level=9, additional_js_code=''):
