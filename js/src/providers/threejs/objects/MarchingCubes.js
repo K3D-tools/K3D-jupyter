@@ -56,7 +56,7 @@ module.exports = {
 
             if (spacingsX && spacingsY && spacingsZ) {
                 isSpacings = spacingsX.shape[0] === width - 1 && spacingsY.shape[0] === height - 1 &&
-                    spacingsZ.shape[0] == length - 1;
+                    spacingsZ.shape[0] === length - 1;
             }
 
             var withoutSpacings = function (i) {

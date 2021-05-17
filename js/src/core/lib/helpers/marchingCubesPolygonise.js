@@ -32,8 +32,7 @@ module.exports = function (positions, field, iso,
     var index = 0,
         ptr = i * width * height + j * width + k,
         o = 0,
-        bits,
-        k;
+        bits;
 
     fieldNeighbours[0] = field[ptr];
     fieldNeighbours[1] = field[ptr + 1];

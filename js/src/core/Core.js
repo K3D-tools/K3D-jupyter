@@ -1056,7 +1056,7 @@ function K3D(provider, targetDOMNode, parameters) {
      * @memberof K3D.Core
      */
     this.setSnapshot = function (data) {
-        if (typeof (data) === "string") {
+        if (typeof (data) === 'string') {
             data = pako.inflate(data);
         }
 
