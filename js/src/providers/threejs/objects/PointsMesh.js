@@ -62,7 +62,7 @@ module.exports = {
                 low: {value: colorRange[0]},
                 high: {value: colorRange[1]},
                 colormap: {type: 't', value: colormap}
-            }
+            };
             geometry.setAttribute('attributes',
                 new THREE.InstancedBufferAttribute(attribute, 1).setUsage(THREE.DynamicDrawUsage));
         } else {
@@ -102,7 +102,7 @@ module.exports = {
             lights: true,
             clipping: true,
             vertexColors: THREE.VertexColors
-        })
+        });
 
         object = new THREE.InstancedMesh(geometry, material, positions.length / 3);
         object.instanceMatrix.setUsage(THREE.DynamicDrawUsage);

@@ -75,7 +75,7 @@ module.exports = {
                 low: {value: colorRange[0]},
                 high: {value: colorRange[1]},
                 colormap: {type: 't', value: colormap}
-            }
+            };
         } else {
             colors = (pointColors && pointColors.length === pointPositions.length / 3 ?
                     colorsToFloat32Array(pointColors) : getColorsArray(color, pointPositions.length / 3)
