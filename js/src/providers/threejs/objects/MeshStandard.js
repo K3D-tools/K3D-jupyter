@@ -2,6 +2,7 @@
 
 var THREE = require('three'),
     intersectHelper = require('./../helpers/Intersection'),
+    colorMapHelper = require('./../../../core/lib/helpers/colorMap'),
     handleColorMap = require('./../helpers/Fn').handleColorMap,
     areAllChangesResolve = require('./../helpers/Fn').areAllChangesResolve,
     commonUpdate = require('./../helpers/Fn').commonUpdate,
@@ -167,6 +168,20 @@ module.exports = {
 
                 obj.geometry.attributes.uv.needsUpdate = true;
                 resolvedChanges.attribute = null;
+            }
+
+            if (typeof (changes.color_map) !== 'undefined' && !changes.color_map.timeSeries) {
+
+                var canvas = colorMapHelper.createCanvasGradient(
+                    (changes.color_map && changes.color_map.data) || config.color_map.data,
+                    1024
+                );
+
+                obj.material.map.image = canvas;
+                obj.material.map.needsUpdate = true;
+                obj.material.needsUpdate = true;
+
+                resolvedChanges.color_map = null;
             }
         }
 
