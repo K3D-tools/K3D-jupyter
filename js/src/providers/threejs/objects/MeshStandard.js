@@ -177,6 +177,8 @@ module.exports = {
                 obj.material.opacity = changes.opacity;
             }
 
+            obj.material.depthWrite = changes.opacity === 1.0;
+            obj.material.transparent = changes.opacity !== 1.0;
             obj.material.side = changes.opacity < 1.0 ? THREE.DoubleSide : THREE.FrontSide;
 
             resolvedChanges.opacity = null;
