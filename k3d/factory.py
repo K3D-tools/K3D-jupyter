@@ -32,7 +32,7 @@ default_colormap = matplotlib_color_maps.Inferno
 
 
 def line(vertices, color=_default_color, colors=[],  # lgtm [py/similar-function]
-         attribute=[], color_map=default_colormap, color_range=[], width=0.01,
+         attribute=[], color_map=None, color_range=[], width=0.01,
          shader='thick', radial_segments=8, name=None, compression_level=0, **kwargs):
     """Create a Line drawable for plotting segments and polylines.
 
@@ -69,7 +69,8 @@ def line(vertices, color=_default_color, colors=[],  # lgtm [py/similar-function
             A name of a object
         kwargs: `dict`.
             Dictionary arguments to configure transform and model_matrix."""
-
+    if color_map is None:
+        color_map = default_colormap
     color_map = np.array(color_map, np.float32) if type(color_map) is not dict else color_map
     attribute = np.array(attribute, np.float32) if type(attribute) is not dict else attribute
     color_range = check_attribute_range(attribute, color_range)
@@ -144,7 +145,7 @@ def marching_cubes(scalar_field, level, color=_default_color, wireframe=False, f
     )
 
 
-def mesh(vertices, indices, color=_default_color, colors=[], attribute=[], color_map=default_colormap,
+def mesh(vertices, indices, color=_default_color, colors=[], attribute=[], color_map=None,
          # lgtm [py/similar-function]
          color_range=[], wireframe=False, flat_shading=True, opacity=1.0, texture=None, texture_file_format=None,
          volume=[], volume_bounds=[], opacity_function=[], side='front', uvs=None,
@@ -196,7 +197,8 @@ def mesh(vertices, indices, color=_default_color, colors=[], attribute=[], color
             Array of float uvs for the texturing, coresponding to each vertex.
         kwargs: `dict`.
             Dictionary arguments to configure transform and model_matrix."""
-
+    if color_map is None:
+        color_map = default_colormap
     color_map = np.array(color_map, np.float32) if type(color_map) is not dict else color_map
     uvs = np.array(uvs, np.float32) if type(uvs) is not dict else color_map
     attribute = np.array(attribute, np.float32) if type(attribute) is not dict else attribute
@@ -239,7 +241,7 @@ def mesh(vertices, indices, color=_default_color, colors=[], attribute=[], color
 
 
 def points(positions, colors=[], color=_default_color, point_size=1.0, shader='3dSpecular', opacity=1.0, opacities=[],
-           attribute=[], color_map=default_colormap, color_range=[], opacity_function=[], name=None,
+           attribute=[], color_map=None, color_range=[], opacity_function=[], name=None,
            compression_level=0, mesh_detail=2, **kwargs):
     """Create a Points drawable representing a point cloud.
 
@@ -288,6 +290,8 @@ def points(positions, colors=[], color=_default_color, point_size=1.0, shader='3
             A name of a object
         kwargs: `dict`.
             Dictionary arguments to configure transform and model_matrix."""
+    if color_map is None:
+        color_map = default_colormap
 
     attribute = np.array(attribute, np.float32) if type(attribute) is not dict else attribute
     color_range = check_attribute_range(attribute, color_range)
@@ -336,7 +340,7 @@ def stl(stl, color=_default_color, wireframe=False, flat_shading=True, name=None
 
 
 def surface(heights, color=_default_color, wireframe=False, flat_shading=True, attribute=[],
-            color_map=default_colormap, color_range=[], name=None, compression_level=0,
+            color_map=None, color_range=[], name=None, compression_level=0,
             **kwargs):
     """Create a Surface drawable.
 
@@ -371,6 +375,8 @@ def surface(heights, color=_default_color, wireframe=False, flat_shading=True, a
         kwargs: `dict`.
             Dictionary arguments to configure transform and model_matrix."""
 
+    if color_map is None:
+        color_map = default_colormap
     color_map = np.array(color_map, np.float32)
     attribute = np.array(attribute, np.float32)
     color_range = check_attribute_range(attribute, color_range)
@@ -476,7 +482,7 @@ def label(text, position=(0, 0, 0), color=_default_color, on_top=True, size=1.0,
                  mode=mode, is_html=is_html, label_box=label_box, name=name, compression_level=compression_level)
 
 
-def texture(binary=None, file_format=None, color_map=default_colormap, color_range=[], attribute=[], puv=[],
+def texture(binary=None, file_format=None, color_map=None, color_range=[], attribute=[], puv=[],
             opacity_function=[], interpolation=True, name=None, compression_level=0, **kwargs):
     """Create a Texture drawable for displaying 2D raster images in common formats.
 
@@ -520,7 +526,8 @@ def texture(binary=None, file_format=None, color_map=default_colormap, color_ran
             Second and third triplets means a base of coordinate system for texture.
         kwargs: `dict`.
             Dictionary arguments to configure transform and model_matrix."""
-
+    if color_map is None:
+        color_map = default_colormap
     color_map = np.array(color_map, np.float32)
     attribute = np.array(attribute, np.float32)
     color_range = check_attribute_range(attribute, color_range)
@@ -698,7 +705,7 @@ def vectors(origins, vectors=None, colors=[],
 
 
 # noinspection PyShadowingNames
-def voxels(voxels, color_map=nice_colors, wireframe=False, outlines=True, outlines_color=0, opacity=1.0, name=None,
+def voxels(voxels, color_map=None, wireframe=False, outlines=True, outlines_color=0, opacity=1.0, name=None,
            compression_level=0, bounds=None,
            **kwargs):
     """Create a Voxels drawable for 3D volumetric data.
@@ -741,7 +748,8 @@ def voxels(voxels, color_map=nice_colors, wireframe=False, outlines=True, outlin
             A name of a object
         kwargs: `dict`.
             Dictionary arguments to configure transform and model_matrix."""
-
+    if color_map is None:
+        color_map = nice_colors
     if bounds is not None:
         kwargs['bounds'] = bounds
     else:
@@ -757,7 +765,7 @@ def voxels(voxels, color_map=nice_colors, wireframe=False, outlines=True, outlin
 
 
 # noinspection PyShadowingNames
-def sparse_voxels(sparse_voxels, space_size, color_map=nice_colors, wireframe=False, outlines=True,
+def sparse_voxels(sparse_voxels, space_size, color_map=None, wireframe=False, outlines=True,
                   outlines_color=0,
                   opacity=1.0, name=None, compression_level=0, bounds=None, **kwargs):
     """Create a Voxels drawable for 3D volumetric data.
@@ -791,6 +799,8 @@ def sparse_voxels(sparse_voxels, space_size, color_map=nice_colors, wireframe=Fa
             A name of a object
         kwargs: `dict`.
             Dictionary arguments to configure transform and model_matrix."""
+    if color_map is None:
+        color_map = nice_colors
 
     assert isinstance(space_size, (tuple, list, np.ndarray)) and \
            np.shape(space_size) == (3,) and all(d > 0 for d in space_size)
@@ -810,7 +820,7 @@ def sparse_voxels(sparse_voxels, space_size, color_map=nice_colors, wireframe=Fa
 
 
 # noinspection PyShadowingNames
-def voxels_group(space_size, voxels_group=[], chunks_ids=[], color_map=nice_colors, wireframe=False, outlines=True,
+def voxels_group(space_size, voxels_group=[], chunks_ids=[], color_map=None, wireframe=False, outlines=True,
                  outlines_color=0, opacity=1.0, name=None, compression_level=0, **kwargs):
     """Create a Voxels drawable for 3D volumetric data.
 
@@ -845,6 +855,8 @@ def voxels_group(space_size, voxels_group=[], chunks_ids=[], color_map=nice_colo
             A name of a object
         kwargs: `dict`.
             Dictionary arguments to configure transform and model_matrix."""
+    if color_map is None:
+        color_map = nice_colors
 
     for group in voxels_group:
         group['coord'] = np.array(group['coord'])
@@ -863,7 +875,7 @@ def voxels_group(space_size, voxels_group=[], chunks_ids=[], color_map=nice_colo
 
 
 # noinspection PyShadowingNames
-def volume(volume, color_map=default_colormap, opacity_function=None, color_range=[], samples=512.0,
+def volume(volume, color_map=None, opacity_function=None, color_range=[], samples=512.0,
            alpha_coef=50.0, gradient_step=0.005, shadow='off', interpolation=True,
            shadow_delay=500, shadow_res=128, focal_length=0.0, focal_plane=100.0, ray_samples_count=16, name=None,
            compression_level=0, **kwargs):
@@ -922,6 +934,9 @@ def volume(volume, color_map=default_colormap, opacity_function=None, color_rang
         kwargs: `dict`.
             Dictionary arguments to configure transform and model_matrix."""
 
+    if color_map is None:
+        color_map = default_colormap
+
     color_range = check_attribute_range(volume, color_range) if type(color_range) is not dict else color_range
 
     if opacity_function is None:
@@ -936,7 +951,7 @@ def volume(volume, color_map=default_colormap, opacity_function=None, color_rang
 
 
 # noinspection PyShadowingNames
-def mip(volume, color_map=default_colormap, opacity_function=None, color_range=[], samples=512.0, gradient_step=0.005,
+def mip(volume, color_map=None, opacity_function=None, color_range=[], samples=512.0, gradient_step=0.005,
         name=None, compression_level=0, **kwargs):
     """Create a MIP drawable for 3D volumetric data.
 
@@ -970,6 +985,8 @@ def mip(volume, color_map=default_colormap, opacity_function=None, color_range=[
             A name of a object
         kwargs: `dict`.
             Dictionary arguments to configure transform and model_matrix."""
+    if color_map is None:
+        color_map = default_colormap
 
     color_range = check_attribute_range(volume, color_range) if type(color_range) is not dict else color_range
 
@@ -981,7 +998,7 @@ def mip(volume, color_map=default_colormap, opacity_function=None, color_range=[
             compression_level=compression_level, samples=samples, gradient_step=gradient_step, name=name), **kwargs)
 
 
-def vtk_poly_data(poly_data, color=_default_color, color_attribute=None, color_map=default_colormap, side='front',
+def vtk_poly_data(poly_data, color=_default_color, color_attribute=None, color_map=None, side='front',
                   wireframe=False, opacity=1.0, volume=[], volume_bounds=[], opacity_function=[],
                   name=None, compression_level=0, cell_color_attribute=None, **kwargs):
     """Create a Mesh drawable from given vtkPolyData.
@@ -1025,6 +1042,9 @@ def vtk_poly_data(poly_data, color=_default_color, color_attribute=None, color_m
             A name of a object
         kwargs: `dict`.
             Dictionary arguments to configure transform and model_matrix."""
+    if color_map is None:
+        color_map = default_colormap
+
     if vtk is None:
         raise RuntimeError('vtk module is not available')
 
