@@ -28,7 +28,7 @@ function deserializeArray(obj) {
             shape: obj.shape
         };
     } else if (typeof (obj.compressed_data) !== 'undefined') {
-        buffer = new typesToArray[obj.dtype](pako.inflate(obj.compressed_data.buffer).buffer);
+        buffer = new typesToArray[obj.dtype](pako.inflate(obj.compressed_data).buffer);
 
         console.log('K3D: Receive: ' + buffer.byteLength + ' bytes compressed to ' +
                     obj.compressed_data.byteLength + ' bytes');

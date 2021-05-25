@@ -16,7 +16,18 @@ function stringToArrayBuffer(binary_string) {
         bytes[i] = binary_string.charCodeAt(i);
     }
 
-    return bytes.buffer;
+    return bytes;
+}
+
+function arrayBufferToBase64(buffer) {
+    var binary = '';
+    var bytes = new Uint8Array(buffer);
+    var len = bytes.byteLength;
+    for (var i = 0; i < len; i++) {
+        binary += String.fromCharCode(bytes[i]);
+    }
+
+    return window.btoa(binary);
 }
 
 /**
@@ -72,5 +83,6 @@ module.exports = {
     colorsToFloat32Array: colorsToFloat32Array,
     bufferToBase64: bufferToBase64,
     base64ToArrayBuffer: base64ToArrayBuffer,
+    arrayBufferToBase64: arrayBufferToBase64,
     stringToArrayBuffer: stringToArrayBuffer
 };

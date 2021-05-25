@@ -294,6 +294,7 @@ PlotView = widgets.DOMWidgetView.extend({
         this.model.on('change:camera_zoom_speed', this._setCameraSpeeds, this);
         this.model.on('change:camera_pan_speed', this._setCameraSpeeds, this);
         this.model.on('change:camera_fov', this._setCameraFOV, this);
+        this.model.on('change:camera_damping_factor', this._setCameraDampingFactor, this);
         this.model.on('change:axes_helper', this._setAxesHelper, this);
         this.model.on('change:snapshot_include_js', this._setSnapshotIncludeJs, this);
         this.model.on('change:name', this._setName, this);
@@ -316,6 +317,7 @@ PlotView = widgets.DOMWidgetView.extend({
                 cameraRotateSpeed: this.model.get('camera_rotate_speed'),
                 cameraZoomSpeed: this.model.get('camera_zoom_speed'),
                 cameraPanSpeed: this.model.get('camera_pan_speed'),
+                cameraDampingFactor: this.model.get('camera_damping_factor'),
                 colorbarObjectId: this.model.get('colorbar_object_id'),
                 cameraAnimation: this.model.get('camera_animation'),
                 name: this.model.get('name'),
@@ -349,11 +351,9 @@ PlotView = widgets.DOMWidgetView.extend({
         }, this);
 
         this.cameraChangeId = this.K3DInstance.on(this.K3DInstance.events.CAMERA_CHANGE, function (control) {
-            self.model.set('camera', control);
-
             if ((new Date()).getTime() - self.model.lastCameraSync > 200) {
                 self.model.lastCameraSync = (new Date()).getTime();
-                self.model.save_changes();
+                self.model.save('camera', control, {patch: true});
             }
         });
 
@@ -363,8 +363,6 @@ PlotView = widgets.DOMWidgetView.extend({
                     change.value.compression_level = objectsList[change.id].attributes.compression_level;
                 }
 
-                // objectsList[change.id].set(change.key, change.value);
-                // objectsList[change.id].save_changes();
                 objectsList[change.id].save(change.key, change.value, {patch: true});
             }
         });
@@ -532,6 +530,10 @@ PlotView = widgets.DOMWidgetView.extend({
 
     _setCameraFOV: function () {
         this.K3DInstance.setCameraFOV(this.model.get('camera_fov'));
+    },
+
+    _setCameraDampingFactor: function () {
+        this.K3DInstance.setCameraDampingFactor(this.model.get('camera_damping_factor'));
     },
 
     _setClippingPlanes: function () {

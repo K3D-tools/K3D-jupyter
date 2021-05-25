@@ -56,6 +56,8 @@ class Plot(widgets.DOMWidget):
             Speed of camera pan.
         camera_fov: `Float`.
             Camera Field of View.
+        camera_damping_factor: `Float`.
+            Defines the intensity of damping. Default is 0 (disabled).
         snapshot_include_js: `Bool`.
             If it's true snapshot html is standalone.
         axes: `list`.
@@ -146,6 +148,7 @@ class Plot(widgets.DOMWidget):
     camera_rotate_speed = Float().tag(sync=True)
     camera_zoom_speed = Float().tag(sync=True)
     camera_pan_speed = Float().tag(sync=True)
+    camera_damping_factor = Float().tag(sync=True)
     clipping_planes = ListOrArray(empty_ok=True).tag(sync=True)
     colorbar_object_id = Int(-1).tag(sync=True)
     colorbar_scientific = Bool(False).tag(sync=True)
@@ -167,10 +170,9 @@ class Plot(widgets.DOMWidget):
                  lighting=1.5, time=0.0, fps_meter=False, menu_visibility=True, colorbar_object_id=-1,
                  rendering_steps=1, axes=['x', 'y', 'z'], camera_no_rotate=False,
                  camera_no_zoom=False, camera_rotate_speed=1.0, camera_zoom_speed=1.2, camera_pan_speed=0.3,
-                 snapshot_include_js=True, camera_no_pan=False, camera_fov=45.0, axes_helper=1.0,
-                 name=None, mode='view', camera_mode='trackball', manipulate_mode='translate', auto_rendering=True,
-                 fps=25.0,
-                 grid_color=0xe6e6e6, *args, **kwargs):
+                 snapshot_include_js=True, camera_no_pan=False, camera_fov=45.0, camera_damping_factor=0.0,
+                 axes_helper=1.0, name=None, mode='view', camera_mode='trackball', manipulate_mode='translate',
+                 auto_rendering=True, fps=25.0, grid_color=0xe6e6e6, *args, **kwargs):
         super(Plot, self).__init__()
 
         self.antialias = antialias
@@ -196,6 +198,7 @@ class Plot(widgets.DOMWidget):
         self.camera_rotate_speed = camera_rotate_speed
         self.camera_zoom_speed = camera_zoom_speed
         self.camera_pan_speed = camera_pan_speed
+        self.camera_damping_factor = camera_damping_factor
         self.camera_fov = camera_fov
         self.axes = axes
         self.axes_helper = axes_helper
@@ -398,6 +401,7 @@ class Plot(widgets.DOMWidget):
             "cameraRotateSpeed": self.camera_rotate_speed,
             "cameraZoomSpeed": self.camera_zoom_speed,
             "cameraPanSpeed": self.camera_pan_speed,
+            "cameraDampingFactor": self.camera_damping_factor,
             "name": self.name,
             "camera_fov": self.camera_fov,
             "axesHelper": self.axes_helper,

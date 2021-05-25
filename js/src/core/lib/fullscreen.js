@@ -26,7 +26,7 @@ function fullscreenGUI(container, gui, currentWindow) {
 
 module.exports = {
     isAvailable: function () {
-        return screenfull.enabled;
+        return screenfull.isEnabled;
     },
 
     initialize: fullscreenGUI

@@ -18,6 +18,9 @@ function getScreenshot(K3D, scale, onlyCanvas) {
         finalCanvas.width = htmlElementCanvas.width = Math.floor(canvas3d.width * scale);
         finalCanvas.height = htmlElementCanvas.height = Math.floor(canvas3d.height * scale);
 
+        K3D.labels = [];
+        K3D.dispatch(K3D.events.BEFORE_RENDER);
+
         if (clearColor >= 0) {
             finalCanvasCtx.fillStyle = 'rgb(' +
                                        ((clearColor & 0xff0000) >> 16) + ',' +

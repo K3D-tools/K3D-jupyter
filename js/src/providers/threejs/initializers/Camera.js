@@ -129,7 +129,7 @@ module.exports = function (K3D) {
 
         if (K3D.parameters.cameraMode === cameraModes.fly) {
             this.controls.target = this.camera.position.clone().add(
-                this.camera.getWorldDirection(new THREE.Vector3()).setLength(camDistance / 10.0)
+                this.camera.getWorldDirection(new THREE.Vector3()).setLength(camDistance / 2.0)
             );
         } else {
             this.controls.target = sceneBoundingSphere.center;

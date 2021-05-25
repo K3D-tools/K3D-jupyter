@@ -21,7 +21,8 @@ var viewModes = require('./lib/viewMode').viewModes,
     getColorLegend = require('./lib/colorMapLegend').getColorLegend,
     objectsGUIProvider = require('./lib/objectsGUIprovider'),
     clippingPlanesGUIProvider = require('./lib/clippingPlanesGUIProvider'),
-    timeSeries = require('./lib/timeSeries');
+    timeSeries = require('./lib/timeSeries'),
+    base64ToArrayBuffer = require('./lib/helpers/buffer').base64ToArrayBuffer;
 
 window.Float16Array = require('./lib/helpers/float16Array');
 
@@ -240,6 +241,7 @@ function K3D(provider, targetDOMNode, parameters) {
             cameraRotateSpeed: 1.0,
             cameraZoomSpeed: 1.2,
             cameraPanSpeed: 0.3,
+            cameraDampingFactor: 0.0,
             name: null,
             camera_fov: 60.0,
             cameraAnimation: {},
@@ -620,6 +622,25 @@ function K3D(provider, targetDOMNode, parameters) {
         self.rebuildSceneData(false).then(function () {
             self.render();
         });
+    };
+
+    /**
+     * Set camera damping factor
+     * @memberof K3D.Core
+     * @param {Float} factor
+     */
+    this.setCameraDampingFactor = function (factor) {
+        self.parameters.cameraDampingFactor = factor;
+
+        self.getWorld().changeControls(true);
+
+        if (GUI.controls) {
+            GUI.controls.__controllers.forEach(function (controller) {
+                if (controller.property === 'damping_factor') {
+                    controller.updateDisplay();
+                }
+            });
+        }
     };
 
     /**
@@ -1047,7 +1068,7 @@ function K3D(provider, targetDOMNode, parameters) {
                 },
                 {codec: MsgpackCodec}
             ),
-            {to: 'string', level: compressionLevel}
+            {level: compressionLevel}
         );
     };
 
@@ -1057,7 +1078,7 @@ function K3D(provider, targetDOMNode, parameters) {
      */
     this.setSnapshot = function (data) {
         if (typeof (data) === 'string') {
-            data = pako.inflate(data);
+            data = pako.inflate(new Uint8Array(base64ToArrayBuffer(data)));
         }
 
         data = msgpack.decode(data, {codec: MsgpackCodec});
@@ -1067,6 +1088,7 @@ function K3D(provider, targetDOMNode, parameters) {
         });
 
         self.setChunkList(data.chunkList);
+
 
         data.objects.forEach(function (o) {
             Object.keys(o).forEach(function (k) {
@@ -1154,6 +1176,7 @@ function K3D(provider, targetDOMNode, parameters) {
     self.setGridAutoFit(self.parameters.gridAutoFit);
     self.setGridVisible(self.parameters.gridVisible);
     self.setCameraAutoFit(self.parameters.cameraAutoFit);
+    self.setCameraDampingFactor(self.parameters.cameraDampingFactor);
     self.setClippingPlanes(self.parameters.clippingPlanes);
     self.setDirectionalLightingIntensity(self.parameters.lighting);
     self.setColorMapLegend(self.parameters.colorbarObjectId);

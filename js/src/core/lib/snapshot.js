@@ -3,11 +3,12 @@
 var FileSaver = require('file-saver');
 var pako = require('pako');
 var fileLoader = require('./helpers/fileLoader');
-var templateStandalone = require('raw-loader!./snapshot_standalone.txt');
-var templateOnline = require('raw-loader!./snapshot_online.txt');
-var requireJsSource = require('raw-loader!./../../../node_modules/requirejs/require.js');
-var pakoJsSource = require('raw-loader!./../../../node_modules/pako/dist/pako_inflate.min.js');
+var templateStandalone = require('./snapshot_standalone.txt');
+var templateOnline = require('./snapshot_online.txt');
+var requireJsSource = require('./../../../node_modules/requirejs/require.js?raw');
+var pakoJsSource = require('./../../../node_modules/pako/dist/pako_inflate.min.js?raw');
 var semverRange = require('./../../version').version;
+var buffer = require('./helpers/buffer');
 
 var sourceCode = window.k3dCompressed;
 var scripts = document.getElementsByTagName('script');
@@ -33,31 +34,30 @@ if (typeof (sourceCode) === 'undefined') {
     }
 
     fileLoader(path, function (data) {
-        sourceCode = btoa(pako.deflate(data, {to: 'string', level: 9}));
+        sourceCode = buffer.arrayBufferToBase64(pako.deflate(data));
     });
 }
 
 function getHTMLSnapshot(K3D, compressionLevel) {
-    var data = K3D.getSnapshot(compressionLevel),
+    var data = buffer.arrayBufferToBase64(K3D.getSnapshot(compressionLevel)),
         filecontent,
         timestamp = new Date().toUTCString();
 
     if (K3D.parameters.snapshotIncludeJs) {
         filecontent = templateStandalone;
-        filecontent = filecontent.replace('[REQUIRE_JS]', requireJsSource);
-        filecontent = filecontent.replace('[PAKO_JS]', pakoJsSource);
-        filecontent = filecontent.replace('[K3D_SOURCE]', sourceCode);
-
+        filecontent = filecontent.split('[REQUIRE_JS]').join(requireJsSource);
+        filecontent = filecontent.split('[PAKO_JS]').join(pakoJsSource);
+        filecontent = filecontent.split('[K3D_SOURCE]').join(sourceCode);
     } else {
         filecontent = templateOnline;
-        filecontent = filecontent.replace('[VERSION]', K3D.parameters.guiVersion);
+        filecontent = filecontent.split('[VERSION]').join(K3D.parameters.guiVersion);
     }
 
-    filecontent = filecontent.replace('[DATA]', btoa(data));
-    filecontent = filecontent.replace('[PARAMS]', JSON.stringify(K3D.parameters));
-    filecontent = filecontent.replace('[CAMERA]', JSON.stringify(K3D.getWorld().controls.getCameraArray()));
-    filecontent = filecontent.replace('[TIMESTAMP]', timestamp);
-    filecontent = filecontent.replace('[ADDITIONAL]', '//[ADDITIONAL]');
+    filecontent = filecontent.split('[DATA]').join(data);
+    filecontent = filecontent.split('[PARAMS]').join(JSON.stringify(K3D.parameters));
+    filecontent = filecontent.split('[CAMERA]').join(JSON.stringify(K3D.getWorld().controls.getCameraArray()));
+    filecontent = filecontent.split('[TIMESTAMP]').join(timestamp);
+    filecontent = filecontent.split('[ADDITIONAL]').join('//[ADDITIONAL]');
 
     return filecontent;
 }
@@ -74,7 +74,7 @@ function handleFileSelect(K3D, evt) {
         var snapshot = K3D.extractSnapshot(event.target.result);
 
         if (snapshot[1]) {
-            K3D.setSnapshot(atob(snapshot[1]));
+            K3D.setSnapshot(snapshot[1]);
         }
     };
 

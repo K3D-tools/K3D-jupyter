@@ -47,8 +47,13 @@ function createTrackballControls(self, K3D) {
     controls.rotateSpeed = K3D.parameters.cameraRotateSpeed;
     controls.zoomSpeed = K3D.parameters.cameraZoomSpeed;
     controls.panSpeed = K3D.parameters.cameraPanSpeed;
-    controls.staticMoving = true;
-    controls.dynamicDampingFactor = 0.1;
+
+    if (K3D.parameters.cameraDampingFactor > 0.0) {
+        controls.staticMoving = false;
+        controls.dynamicDampingFactor = K3D.parameters.cameraDampingFactor;
+    } else {
+        controls.staticMoving = true;
+    }
 
     addEvents(self, K3D, controls);
 
@@ -60,8 +65,14 @@ function createOrbitControls(self, K3D) {
 
     controls.type = cameraModes.orbit;
     controls.rotateSpeed = K3D.parameters.cameraRotateSpeed;
-    controls.enableDamping = false;
-    controls.dampingFactor = 0.1;
+
+    if (K3D.parameters.cameraDampingFactor > 0.0) {
+        controls.enableDamping = true;
+        controls.dampingFactor = K3D.parameters.cameraDampingFactor;
+    } else {
+        controls.enableDamping = false;
+    }
+
     controls.screenSpacePanning = false;
     controls.maxPolarAngle = Math.PI;
     controls.screenSpacePanning = true;
@@ -79,8 +90,13 @@ function createFlyControls(self, K3D) {
     controls.zoomSpeed = K3D.parameters.cameraZoomSpeed;
     controls.panSpeed = K3D.parameters.cameraPanSpeed;
     controls.flyMode = true;
-    controls.staticMoving = true;
-    controls.dynamicDampingFactor = 0.1;
+
+    if (K3D.parameters.cameraDampingFactor > 0.0) {
+        controls.staticMoving = false;
+        controls.dynamicDampingFactor = K3D.parameters.cameraDampingFactor;
+    } else {
+        controls.staticMoving = true;
+    }
 
     addEvents(self, K3D, controls);
 
@@ -169,8 +185,8 @@ module.exports = function (K3D) {
         }
     });
 
-    this.changeControls = function () {
-        if (self.controls.type === K3D.parameters.cameraMode) {
+    this.changeControls = function (force) {
+        if (self.controls.type === K3D.parameters.cameraMode && !force) {
             return;
         }
 

@@ -85,7 +85,10 @@ module.exports = function (renderer, scene, camera, rt, fullWidth, fullHeight, c
 
         renderer.autoClear = false;
 
-        var oldClearColor = renderer.getClearColor().getHex();
+        var oldClearColor = new THREE.Color();
+        renderer.getClearColor(oldClearColor)
+        oldClearColor = oldClearColor.getHex();
+
         var oldClearAlpha = renderer.getClearAlpha();
 
         var baseSampleWeight = 1.0 / jitterOffsets.length;

@@ -1117,6 +1117,7 @@ def plot(height=512,
          camera_rotate_speed=1.0,
          camera_zoom_speed=1.2,
          camera_pan_speed=0.3,
+         camera_damping_factor=0.0,
          fps=25.0):
     """Create a K3D Plot widget.
 
@@ -1161,6 +1162,8 @@ def plot(height=512,
             Speed of camera pan.
         camera_fov: `Float`.
             Camera Field of View.
+        camera_damping_factor: `Float`.
+            Defines the intensity of damping. Default is 0 (disabled).
         snapshot_include_js: `Bool`.
             If it's true snapshot html is standalone.
         axes: `list`.
@@ -1198,4 +1201,5 @@ def plot(height=512,
                 name=name, camera_mode=camera_mode, snapshot_include_js=snapshot_include_js,
                 camera_no_zoom=camera_no_zoom, camera_no_rotate=camera_no_rotate, camera_no_pan=camera_no_pan,
                 camera_rotate_speed=camera_rotate_speed, camera_zoom_speed=camera_zoom_speed,
-                camera_pan_speed=camera_pan_speed, auto_rendering=auto_rendering, fps=fps)
+                camera_damping_factor=camera_damping_factor, camera_pan_speed=camera_pan_speed,
+                auto_rendering=auto_rendering, fps=fps)
