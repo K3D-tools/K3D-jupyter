@@ -16,5 +16,5 @@ module.exports = {
     range: require('lodash/range'),
     merge: require('lodash/merge'),
     isObject: require('lodash/isObject'),
-    isEmpty: require('lodash/isEmpty')
+    isEmpty: require('lodash/isEmpty'),
 };

@@ -1,12 +1,12 @@
-'use strict';
+const THREE = require('three');
+const Fn = require('../helpers/Fn');
 
-var THREE = require('three'),
-    Fn = require('./../helpers/Fn'),
-    areAllChangesResolve = Fn.areAllChangesResolve,
-    commonUpdate = Fn.commonUpdate,
-    colorsToFloat32Array = require('./../../../core/lib/helpers/buffer').colorsToFloat32Array,
-    streamLine = require('./../helpers/Streamline'),
-    handleColorMap = Fn.handleColorMap;
+const { areAllChangesResolve } = Fn;
+const { commonUpdate } = Fn;
+const { colorsToFloat32Array } = require('../../../core/lib/helpers/buffer');
+const streamLine = require('../helpers/Streamline');
+
+const { handleColorMap } = Fn;
 
 /**
  * Loader strategy to handle Line object
@@ -16,39 +16,38 @@ var THREE = require('three'),
  * @return {Object} 3D object ready to render
  */
 module.exports = {
-    create: function (config) {
+    create(config) {
         config.radial_segments = typeof (config.radial_segments) !== 'undefined' ? config.radial_segments : 8;
         config.width = typeof (config.width) !== 'undefined' ? config.width : 0.1;
 
-        var geometry,
-            material = new THREE.MeshPhongMaterial({
-                emissive: 0,
-                shininess: 50,
-                specular: 0x111111,
-                side: THREE.DoubleSide,
-                wireframe: false
-            }),
-            radialSegments = config.radial_segments,
-            width = config.width,
-            verticesColors = (config.colors && config.colors.data) || null,
-            color = new THREE.Color(config.color),
-            colorRange = config.color_range,
-            colorMap = (config.color_map && config.color_map.data) || null,
-            attribute = (config.attribute && config.attribute.data) || null,
-            object,
-            modelMatrix = new THREE.Matrix4(),
-            position = config.vertices.data;
+        const material = new THREE.MeshPhongMaterial({
+            emissive: 0,
+            shininess: 50,
+            specular: 0x111111,
+            side: THREE.DoubleSide,
+            wireframe: false,
+        });
+        const radialSegments = config.radial_segments;
+        const { width } = config;
+        let verticesColors = (config.colors && config.colors.data) || null;
+        const color = new THREE.Color(config.color);
+        const colorRange = config.color_range;
+        const colorMap = (config.color_map && config.color_map.data) || null;
+        const attribute = (config.attribute && config.attribute.data) || null;
+        const modelMatrix = new THREE.Matrix4();
+        const position = config.vertices.data;
 
         if (verticesColors && verticesColors.length === position.length / 3) {
             verticesColors = colorsToFloat32Array(verticesColors);
         }
 
-        geometry = streamLine(position, attribute, width, radialSegments, color, verticesColors, colorRange);
+        const geometry = streamLine(position, attribute, width, radialSegments, color, verticesColors, colorRange);
 
-        if (attribute && colorRange && colorMap && attribute.length > 0 && colorRange.length > 0 && colorMap.length > 0) {
+        if (attribute && colorRange && colorMap && attribute.length > 0 && colorRange.length > 0
+            && colorMap.length > 0) {
             handleColorMap(geometry, colorMap, colorRange, null, material);
         } else {
-            material.setValues({vertexColors: THREE.VertexColors});
+            material.setValues({ vertexColors: THREE.VertexColors });
         }
 
         geometry.computeBoundingSphere();
@@ -56,7 +55,7 @@ module.exports = {
 
         modelMatrix.set.apply(modelMatrix, config.model_matrix.data);
 
-        object = new THREE.Mesh(geometry, material);
+        const object = new THREE.Mesh(geometry, material);
         object.applyMatrix4(modelMatrix);
 
         object.updateMatrixWorld();
@@ -64,15 +63,14 @@ module.exports = {
         return Promise.resolve(object);
     },
 
-    update: function (config, changes, obj) {
-        var resolvedChanges = {};
+    update(config, changes, obj) {
+        const resolvedChanges = {};
 
         commonUpdate(config, changes, resolvedChanges, obj);
 
         if (areAllChangesResolve(changes, resolvedChanges)) {
-            return Promise.resolve({json: config, obj: obj});
-        } else {
-            return false;
+            return Promise.resolve({ json: config, obj });
         }
-    }
+        return false;
+    },
 };

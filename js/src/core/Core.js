@@ -1,39 +1,32 @@
-//jshint maxstatements:false
+const pako = require('pako');
+const msgpack = require('msgpack-lite');
 
-'use strict';
-var viewModes = require('./lib/viewMode').viewModes,
-    _ = require('./../lodash'),
-    cameraModes = require('./lib/cameraMode').cameraModes,
-    loader = require('./lib/Loader'),
-    msgpack = require('msgpack-lite'),
-    MsgpackCodec = msgpack.createCodec({preset: true}),
-    pako = require('pako'),
-    serialize = require('./lib/helpers/serialize'),
-    screenshot = require('./lib/screenshot'),
-    snapshot = require('./lib/snapshot'),
-    dat = require('dat.gui'),
-    resetCameraGUI = require('./lib/resetCamera'),
-    detachWindowGUI = require('./lib/detachWindow'),
-    fullscreen = require('./lib/fullscreen'),
-    viewModeGUI = require('./lib/viewMode').viewModeGUI,
-    cameraModeGUI = require('./lib/cameraMode').cameraModeGUI,
-    manipulate = require('./lib/manipulate'),
-    getColorLegend = require('./lib/colorMapLegend').getColorLegend,
-    objectsGUIProvider = require('./lib/objectsGUIprovider'),
-    clippingPlanesGUIProvider = require('./lib/clippingPlanesGUIProvider'),
-    timeSeries = require('./lib/timeSeries'),
-    base64ToArrayBuffer = require('./lib/helpers/buffer').base64ToArrayBuffer;
+const dat = require('dat.gui');
+const { viewModes } = require('./lib/viewMode');
+const _ = require('../lodash');
+const { cameraModes } = require('./lib/cameraMode');
+const loader = require('./lib/Loader');
+const serialize = require('./lib/helpers/serialize');
+const screenshot = require('./lib/screenshot');
+const snapshot = require('./lib/snapshot');
+const resetCameraGUI = require('./lib/resetCamera');
+const detachWindowGUI = require('./lib/detachWindow');
+const fullscreen = require('./lib/fullscreen');
+const { viewModeGUI } = require('./lib/viewMode');
+const { cameraModeGUI } = require('./lib/cameraMode');
+const manipulate = require('./lib/manipulate');
+const { getColorLegend } = require('./lib/colorMapLegend');
+const objectsGUIProvider = require('./lib/objectsGUIprovider');
+const clippingPlanesGUIProvider = require('./lib/clippingPlanesGUIProvider');
+const timeSeries = require('./lib/timeSeries');
+const { base64ToArrayBuffer } = require('./lib/helpers/buffer');
+
+const MsgpackCodec = msgpack.createCodec({ preset: true });
 
 window.Float16Array = require('./lib/helpers/float16Array');
 
-MsgpackCodec.addExtPacker(0x20, Float16Array, function (val) {
-    return val;
-});
-
-MsgpackCodec.addExtUnpacker(0x20, function (val) {
-    return Float16Array(val.buffer);
-});
-
+MsgpackCodec.addExtPacker(0x20, Float16Array, (val) => val);
+MsgpackCodec.addExtUnpacker(0x20, (val) => Float16Array(val.buffer));
 
 /**
  * @constructor Core
@@ -52,45 +45,51 @@ function K3D(provider, targetDOMNode, parameters) {
      * @property {Node} targetDOMNode a handler for a target DOM canvas node
      * @property {Object} di an key-value hash of any external dependencies required
      */
-    var self = this,
-        fpsMeter = null,
-        objectIndex = 1,
-        currentWindow = targetDOMNode.ownerDocument.defaultView || targetDOMNode.ownerDocument.parentWindow,
-        world = {
-            ObjectsListJson: {},
-            ObjectsById: {},
-            chunkList: {},
-            targetDOMNode: targetDOMNode,
-            overlayDOMNode: null
-        },
-        listeners = {},
-        listenersIndex = 0,
-        dispatch = function (eventName, data) {
-            if (!listeners[eventName]) {
-                return false;
-            }
+    const self = this;
+    let fpsMeter = null;
+    let objectIndex = 1;
+    const currentWindow = targetDOMNode.ownerDocument.defaultView
+        || targetDOMNode.ownerDocument.parentWindow;
+    const world = {
+        ObjectsListJson: {},
+        ObjectsById: {},
+        chunkList: {},
+        targetDOMNode,
+        overlayDOMNode: null,
+    };
+    let listeners = {};
+    let listenersIndex = 0;
+    const GUI = {
+        controls: null,
+        objects: null,
+    };
+    let guiContainer;
 
-            Object.keys(listeners[eventName]).forEach(function (key) {
-                listeners[eventName][key](data);
-            });
+    require('style-loader?{attributes:{id: "k3d-style"}}!css-loader!./../k3d.css');
 
-            return true;
-        },
-        GUI = {
-            controls: null,
-            objects: null
-        },
-        guiContainer;
+    function dispatch(eventName, data) {
+        if (!listeners[eventName]) {
+            return false;
+        }
+
+        Object.keys(listeners[eventName]).forEach((key) => {
+            listeners[eventName][key](data);
+        });
+
+        return true;
+    }
 
     function changeParameters(key, value) {
         dispatch(self.events.PARAMETERS_CHANGE, {
-            key: key,
-            value: value
+            key,
+            value,
         });
     }
 
     function initializeGUI() {
-        self.gui = new dat.GUI({width: 220, autoPlace: false, scrollable: true, closeOnTop: true});
+        self.gui = new dat.GUI({
+            width: 220, autoPlace: false, scrollable: true, closeOnTop: true,
+        });
 
         guiContainer.appendChild(self.gui.domElement);
 
@@ -110,12 +109,13 @@ function K3D(provider, targetDOMNode, parameters) {
             }
         }
 
-        GUI.controls.add(self.parameters, 'cameraAutoFit').onChange(changeParameters.bind(self, 'camera_auto_fit'));
-        GUI.controls.add(self.parameters, 'gridAutoFit').onChange(function (value) {
+        GUI.controls.add(self.parameters, 'cameraAutoFit').onChange(changeParameters.bind(self,
+            'camera_auto_fit'));
+        GUI.controls.add(self.parameters, 'gridAutoFit').onChange((value) => {
             self.setGridAutoFit(value);
             changeParameters.call(self, 'grid_auto_fit', value);
         });
-        GUI.controls.add(self.parameters, 'gridVisible').onChange(function (value) {
+        GUI.controls.add(self.parameters, 'gridVisible').onChange((value) => {
             self.setGridVisible(value);
             changeParameters.call(self, 'grid_visible', value);
         });
@@ -123,14 +123,20 @@ function K3D(provider, targetDOMNode, parameters) {
         cameraModeGUI(GUI.controls, self);
         manipulate.manipulateGUI(GUI.controls, self, changeParameters);
 
-        GUI.controls.add(self.parameters, 'camera_fov').step(0.1).min(1.0).max(179).name('FOV').onChange(function (value) {
-            self.setCameraFOV(value);
-            changeParameters.call(self, 'camera_fov', value);
-        });
-        GUI.controls.add(self.parameters, 'voxelPaintColor').step(1).min(0).max(255).name('voxelColor').onChange(
-            changeParameters.bind(self, 'voxel_paint_color'));
-        GUI.controls.add(self.parameters, 'lighting').step(0.01).min(0).max(4).name('lighting')
-            .onChange(function (value) {
+        GUI.controls.add(self.parameters, 'camera_fov').step(0.1).min(1.0).max(179)
+            .name('FOV')
+            .onChange((value) => {
+                self.setCameraFOV(value);
+                changeParameters.call(self, 'camera_fov', value);
+            });
+        GUI.controls.add(self.parameters, 'voxelPaintColor').step(1).min(0).max(255)
+            .name('voxelColor')
+            .onChange(
+                changeParameters.bind(self, 'voxel_paint_color'),
+            );
+        GUI.controls.add(self.parameters, 'lighting').step(0.01).min(0).max(4)
+            .name('lighting')
+            .onChange((value) => {
                 self.setDirectionalLightingIntensity(value);
                 changeParameters.call(self, 'lighting', value);
             });
@@ -139,23 +145,56 @@ function K3D(provider, targetDOMNode, parameters) {
 
         GUI.clippingPlanes = GUI.controls.addFolder('Clipping planes');
 
-        //Info box
+        // Info box
         GUI.info.add(self.parameters, 'guiVersion').name('Js version:');
         GUI.info.__controllers[0].__input.readOnly = true;
 
         if (self.parameters.backendVersion) {
             GUI.info.add({
-                version: self.parameters.backendVersion
+                version: self.parameters.backendVersion,
             }, 'version').name('Python version:');
             GUI.info.__controllers[1].__input.readOnly = true;
         }
 
-        Object.keys(world.ObjectsListJson).forEach(function (id) {
+        Object.keys(world.ObjectsListJson).forEach((id) => {
             objectsGUIProvider.update(self, world.ObjectsListJson[id], GUI.objects, null);
         });
     }
 
-    require('style-loader?{attributes:{id: "k3d-style"}}!css-loader!./../k3d.css');
+    function removeObjectFromScene(id) {
+        let object = self.Provider.Helpers.getObjectById(world, id);
+
+        if (object) {
+            world.K3DObjects.remove(object);
+            delete world.ObjectsById[id];
+
+            if (object.onRemove) {
+                object.onRemove();
+            }
+
+            if (object.geometry) {
+                object.geometry.dispose();
+                object.geometry = undefined;
+            }
+
+            if (object.material && object.material.map) {
+                object.material.map.dispose();
+                object.material.map = undefined;
+            }
+
+            if (object.material) {
+                object.material.dispose();
+                object.material = undefined;
+            }
+
+            if (object.mesh) {
+                object.mesh.dispose();
+                object.mesh = undefined;
+            }
+
+            object = undefined;
+        }
+    }
 
     if (!(this instanceof (K3D))) {
         return new K3D(provider, targetDOMNode, parameters);
@@ -177,10 +216,11 @@ function K3D(provider, targetDOMNode, parameters) {
 
             if (!isUpdate) {
                 return self.rebuildSceneData(force).then(self.render.bind(null, true));
-            } else {
-                return self.render(true);
             }
+            return self.render(true);
         }
+
+        return false;
     };
 
     this.render = function (force) {
@@ -190,7 +230,7 @@ function K3D(provider, targetDOMNode, parameters) {
     this.resizeHelper = function () {
         if (!self.disabling) {
             if (self.gui) {
-                self.gui.domElement.parentNode.style['max-height'] = world.targetDOMNode.offsetHeight + 'px';
+                self.gui.domElement.parentNode.style['max-height'] = `${world.targetDOMNode.offsetHeight}px`;
             }
 
             self.Provider.Helpers.resizeListener(world);
@@ -207,53 +247,50 @@ function K3D(provider, targetDOMNode, parameters) {
         'top: 0',
         'right: 0',
         'pointer-events: none',
-        'overflow: hidden'
+        'overflow: hidden',
     ].join(';');
 
     this.GUI = GUI;
     this.parameters = _.assignWith({
-            viewMode: viewModes.view,
-            cameraMode: cameraModes.trackball,
-            manipulateMode: manipulate.manipulateModes.translate,
-            voxelPaintColor: 0,
-            snapshotIncludeJs: true,
-            menuVisibility: true,
-            cameraAutoFit: true,
-            gridAutoFit: true,
-            gridVisible: true,
-            grid: [-1, -1, -1, 1, 1, 1],
-            gridColor: 0xe6e6e6,
-            antialias: 1,
-            screenshotScale: 5.0,
-            renderingSteps: 1,
-            clearColor: 0xffffff,
-            clippingPlanes: [],
-            fpsMeter: false,
-            lighting: 1.5,
-            time: 0.0,
-            colorbarObjectId: -1,
-            colorbarScientific: false,
-            fps: 25.0,
-            axes: ['x', 'y', 'z'],
-            cameraNoRotate: false,
-            cameraNoZoom: false,
-            cameraNoPan: false,
-            cameraRotateSpeed: 1.0,
-            cameraZoomSpeed: 1.2,
-            cameraPanSpeed: 0.3,
-            cameraDampingFactor: 0.0,
-            name: null,
-            camera_fov: 60.0,
-            cameraAnimation: {},
-            autoRendering: true,
-            axesHelper: 1.0,
-            guiVersion: require('./../../package.json').version
-        },
-        parameters || {},
-        function (objValue, srcValue) {
-            return typeof (srcValue) === 'undefined' ? objValue : srcValue;
-        }
-    );
+        viewMode: viewModes.view,
+        cameraMode: cameraModes.trackball,
+        manipulateMode: manipulate.manipulateModes.translate,
+        voxelPaintColor: 0,
+        snapshotIncludeJs: true,
+        menuVisibility: true,
+        cameraAutoFit: true,
+        gridAutoFit: true,
+        gridVisible: true,
+        grid: [-1, -1, -1, 1, 1, 1],
+        gridColor: 0xe6e6e6,
+        antialias: 1,
+        screenshotScale: 5.0,
+        renderingSteps: 1,
+        clearColor: 0xffffff,
+        clippingPlanes: [],
+        fpsMeter: false,
+        lighting: 1.5,
+        time: 0.0,
+        colorbarObjectId: -1,
+        colorbarScientific: false,
+        fps: 25.0,
+        axes: ['x', 'y', 'z'],
+        cameraNoRotate: false,
+        cameraNoZoom: false,
+        cameraNoPan: false,
+        cameraRotateSpeed: 1.0,
+        cameraZoomSpeed: 1.2,
+        cameraPanSpeed: 0.3,
+        cameraDampingFactor: 0.0,
+        name: null,
+        camera_fov: 60.0,
+        cameraAnimation: {},
+        autoRendering: true,
+        axesHelper: 1.0,
+        guiVersion: require('../../package.json').version,
+    },
+    parameters || {},
+    (objValue, srcValue) => (typeof (srcValue) === 'undefined' ? objValue : srcValue));
 
     this.autoRendering = false;
 
@@ -269,7 +306,7 @@ function K3D(provider, targetDOMNode, parameters) {
         self.parameters.fps = fps;
 
         if (GUI.controls) {
-            GUI.controls.__controllers.forEach(function (controller) {
+            GUI.controls.__controllers.forEach((controller) => {
                 if (controller.property === 'fps') {
                     controller.updateDisplay();
                 }
@@ -278,7 +315,7 @@ function K3D(provider, targetDOMNode, parameters) {
     };
 
     this.setFpsMeter = function (state) {
-        var Stats;
+        let Stats;
 
         if (state) {
             if (fpsMeter) {
@@ -296,11 +333,9 @@ function K3D(provider, targetDOMNode, parameters) {
                     requestAnimationFrame(loop);
                 }
             });
-        } else {
-            if (fpsMeter) {
-                fpsMeter.domElement.remove();
-                fpsMeter = null;
-            }
+        } else if (fpsMeter) {
+            fpsMeter.domElement.remove();
+            fpsMeter = null;
         }
 
         self.parameters.fpsMeter = state;
@@ -311,8 +346,8 @@ function K3D(provider, targetDOMNode, parameters) {
      * @memberof K3D.Core
      */
     this.refreshAutoRenderingState = function () {
-        var handlersCount = 0;
-        Object.keys(self.frameUpdateHandlers).forEach(function (when) {
+        let handlersCount = 0;
+        Object.keys(self.frameUpdateHandlers).forEach((when) => {
             handlersCount += self.frameUpdateHandlers[when].length;
         });
 
@@ -334,7 +369,7 @@ function K3D(provider, targetDOMNode, parameters) {
         self.render();
 
         if (GUI.controls) {
-            GUI.controls.__controllers.forEach(function (controller) {
+            GUI.controls.__controllers.forEach((controller) => {
                 if (controller.property === 'lighting') {
                     controller.updateDisplay();
                 }
@@ -355,7 +390,7 @@ function K3D(provider, targetDOMNode, parameters) {
         }
 
         if (GUI.controls) {
-            GUI.controls.__controllers.forEach(function (controller) {
+            GUI.controls.__controllers.forEach((controller) => {
                 if (controller.property === 'viewMode') {
                     controller.updateDisplay();
                 }
@@ -381,7 +416,7 @@ function K3D(provider, targetDOMNode, parameters) {
         self.render();
 
         if (GUI.controls) {
-            GUI.controls.__controllers.forEach(function (controller) {
+            GUI.controls.__controllers.forEach((controller) => {
                 if (controller.property === 'cameraMode') {
                     controller.updateDisplay();
                 }
@@ -401,7 +436,7 @@ function K3D(provider, targetDOMNode, parameters) {
         }
 
         if (GUI.controls) {
-            GUI.controls.__controllers.forEach(function (controller) {
+            GUI.controls.__controllers.forEach((controller) => {
                 if (controller.property === 'manipulateMode') {
                     controller.updateDisplay();
                 }
@@ -430,23 +465,21 @@ function K3D(provider, targetDOMNode, parameters) {
             if (!self.gui) {
                 initializeGUI();
             }
-        } else {
-            if (self.gui) {
-                self.gui_map = {};
-                self.gui_counts = {};
-                self.gui.destroy();
-                self.gui.domElement.remove();
+        } else if (self.gui) {
+            self.gui_map = {};
+            self.gui_counts = {};
+            self.gui.destroy();
+            self.gui.domElement.remove();
 
-                self.gui = null;
-            }
+            self.gui = null;
         }
     };
 
-    this.setClippingPlanes = function (planes) {
-        planes = _.cloneDeep(planes);
+    this.setClippingPlanes = function (newPlanes) {
+        const planes = _.cloneDeep(newPlanes);
         self.parameters.clippingPlanes.length = 0;
 
-        planes.forEach(function (p) {
+        planes.forEach((p) => {
             self.parameters.clippingPlanes.push(p);
         });
 
@@ -463,13 +496,13 @@ function K3D(provider, targetDOMNode, parameters) {
     };
 
     this.setColorMapLegend = function (v) {
-        var newValue = v.id || v;
+        const newValue = v.id || v;
 
         if (self.parameters.colorbarObjectId !== newValue) {
             self.parameters.colorbarObjectId = newValue;
             changeParameters('colorbar_object_id', self.parameters.colorbarObjectId);
 
-            Object.keys(world.ObjectsListJson).forEach(function (id) {
+            Object.keys(world.ObjectsListJson).forEach((id) => {
                 if (world.ObjectsListJson[id].colorLegend) {
                     world.ObjectsListJson[id].colorLegend = false;
                 }
@@ -480,8 +513,8 @@ function K3D(provider, targetDOMNode, parameters) {
             }
 
             if (GUI.objects) {
-                Object.keys(GUI.objects.__folders).forEach(function (k) {
-                    GUI.objects.__folders[k].__controllers.forEach(function (controller) {
+                Object.keys(GUI.objects.__folders).forEach((k) => {
+                    GUI.objects.__folders[k].__controllers.forEach((controller) => {
                         if (controller.property === 'colorLegend') {
                             controller.updateDisplay();
                         }
@@ -502,7 +535,7 @@ function K3D(provider, targetDOMNode, parameters) {
         self.parameters.cameraAutoFit = state;
 
         if (GUI.controls) {
-            GUI.controls.__controllers.forEach(function (controller) {
+            GUI.controls.__controllers.forEach((controller) => {
                 if (controller.property === 'cameraAutoFit') {
                     controller.updateDisplay();
                 }
@@ -531,7 +564,7 @@ function K3D(provider, targetDOMNode, parameters) {
     this.setAxes = function (axesLabel) {
         self.parameters.axes = axesLabel;
 
-        self.rebuildSceneData(true).then(function () {
+        self.rebuildSceneData(true).then(() => {
             self.render();
         });
     };
@@ -553,11 +586,10 @@ function K3D(provider, targetDOMNode, parameters) {
     this.setAxesHelper = function (size) {
         self.parameters.axesHelper = size;
 
-        self.rebuildSceneData(true).then(function () {
+        self.rebuildSceneData(true).then(() => {
             self.render();
         });
     };
-
 
     /**
      * Set grid auto fit mode of K3D
@@ -568,7 +600,7 @@ function K3D(provider, targetDOMNode, parameters) {
         self.parameters.gridAutoFit = state;
 
         if (GUI.controls) {
-            GUI.controls.__controllers.forEach(function (controller) {
+            GUI.controls.__controllers.forEach((controller) => {
                 if (controller.property === 'gridAutoFit') {
                     controller.updateDisplay();
                 }
@@ -584,9 +616,13 @@ function K3D(provider, targetDOMNode, parameters) {
      * @param {Boolean} cameraNoPan
      */
     this.setCameraLock = function (cameraNoRotate, cameraNoZoom, cameraNoPan) {
-        self.parameters.cameraNoRotate = world.controls.noRotate = cameraNoRotate;
-        self.parameters.cameraNoZoom = world.controls.noZoom = cameraNoZoom;
-        self.parameters.cameraNoPan = world.controls.noPan = cameraNoPan;
+        self.parameters.cameraNoRotate = cameraNoRotate;
+        self.parameters.cameraNoZoom = cameraNoZoom;
+        self.parameters.cameraNoPan = cameraNoPan;
+
+        world.controls.noRotate = cameraNoRotate;
+        world.controls.noZoom = cameraNoZoom;
+        world.controls.noPan = cameraNoPan;
     };
 
     /**
@@ -597,9 +633,13 @@ function K3D(provider, targetDOMNode, parameters) {
      * @param {Boolean} cameraNoPan
      */
     this.setCameraSpeeds = function (rotateSpeed, zoomSpeed, panSpeed) {
-        self.parameters.cameraRotateSpeed = world.controls.rotateSpeed = rotateSpeed;
-        self.parameters.cameraZoomSpeed = world.controls.zoomSpeed = zoomSpeed;
-        self.parameters.cameraPanSpeed = world.controls.panSpeed = panSpeed;
+        self.parameters.cameraRotateSpeed = rotateSpeed;
+        self.parameters.cameraZoomSpeed = zoomSpeed;
+        self.parameters.cameraPanSpeed = panSpeed;
+
+        world.controls.rotateSpeed = rotateSpeed;
+        world.controls.zoomSpeed = zoomSpeed;
+        world.controls.panSpeed = panSpeed;
     };
 
     /**
@@ -612,14 +652,14 @@ function K3D(provider, targetDOMNode, parameters) {
         world.setupCamera(null, angle);
 
         if (GUI.controls) {
-            GUI.controls.__controllers.forEach(function (controller) {
+            GUI.controls.__controllers.forEach((controller) => {
                 if (controller.property === 'camera_fov') {
                     controller.updateDisplay();
                 }
             });
         }
 
-        self.rebuildSceneData(false).then(function () {
+        self.rebuildSceneData(false).then(() => {
             self.render();
         });
     };
@@ -635,7 +675,7 @@ function K3D(provider, targetDOMNode, parameters) {
         self.getWorld().changeControls(true);
 
         if (GUI.controls) {
-            GUI.controls.__controllers.forEach(function (controller) {
+            GUI.controls.__controllers.forEach((controller) => {
                 if (controller.property === 'damping_factor') {
                     controller.updateDisplay();
                 }
@@ -652,7 +692,7 @@ function K3D(provider, targetDOMNode, parameters) {
         self.parameters.gridVisible = state;
 
         if (GUI.controls) {
-            GUI.controls.__controllers.forEach(function (controller) {
+            GUI.controls.__controllers.forEach((controller) => {
                 if (controller.property === 'gridVisible') {
                     controller.updateDisplay();
                 }
@@ -670,7 +710,7 @@ function K3D(provider, targetDOMNode, parameters) {
      */
     this.setGridColor = function (color) {
         self.parameters.gridColor = color;
-        self.rebuildSceneData(true).then(function () {
+        self.rebuildSceneData(true).then(() => {
             self.render();
         });
     };
@@ -701,7 +741,7 @@ function K3D(provider, targetDOMNode, parameters) {
     this.setGrid = function (vectors) {
         self.parameters.grid = vectors;
 
-        self.rebuildSceneData(true).then(function () {
+        self.rebuildSceneData(true).then(() => {
             self.refreshGrid();
             self.render();
         });
@@ -747,7 +787,7 @@ function K3D(provider, targetDOMNode, parameters) {
         self.parameters.voxelPaintColor = color;
 
         if (GUI.controls) {
-            GUI.controls.__controllers.forEach(function (controller) {
+            GUI.controls.__controllers.forEach((controller) => {
                 if (controller.property === 'voxelPaintColor') {
                     controller.updateDisplay();
                 }
@@ -764,8 +804,8 @@ function K3D(provider, targetDOMNode, parameters) {
         self.parameters.clearColor = color;
 
         if (color >= 0) {
-            color = parseInt(color, 10) + 0x1000000;
-            world.targetDOMNode.style.backgroundColor = '#' + color.toString(16).substr(1);
+            const newColor = parseInt(color, 10) + 0x1000000;
+            world.targetDOMNode.style.backgroundColor = `#${newColor.toString(16).substr(1)}`;
         } else {
             world.targetDOMNode.style.backgroundColor = '#fff';
         }
@@ -775,7 +815,7 @@ function K3D(provider, targetDOMNode, parameters) {
         listeners[eventName] = listeners[eventName] || {};
         listeners[eventName][listenersIndex] = listener;
 
-        listenersIndex++;
+        listenersIndex += 1;
         return listenersIndex - 1;
     };
 
@@ -803,14 +843,16 @@ function K3D(provider, targetDOMNode, parameters) {
         try {
             removeObjectFromScene(object.id);
         } catch (e) {
-
+            // nothing
         }
 
         if (object.visible !== false) {
             world.K3DObjects.add(K3DObject);
         }
 
-        return objectIndex++;
+        objectIndex += 1;
+
+        return objectIndex;
     };
 
     /**
@@ -830,41 +872,6 @@ function K3D(provider, targetDOMNode, parameters) {
     this.setChunkList = function (json) {
         world.chunkList = json;
     };
-
-    function removeObjectFromScene(id) {
-        var object = self.Provider.Helpers.getObjectById(world, id);
-
-        if (object) {
-            world.K3DObjects.remove(object);
-            delete world.ObjectsById[id];
-
-            if (object.onRemove) {
-                object.onRemove();
-            }
-
-            if (object.geometry) {
-                object.geometry.dispose();
-                object.geometry = undefined;
-            }
-
-            if (object.material && object.material.map) {
-                object.material.map.dispose();
-                object.material.map = undefined;
-            }
-
-            if (object.material) {
-                object.material.dispose();
-                object.material = undefined;
-            }
-
-            if (object.mesh) {
-                object.mesh.dispose();
-                object.mesh = undefined;
-            }
-
-            object = undefined;
-        }
-    }
 
     /**
      * Remove object from current world
@@ -892,36 +899,36 @@ function K3D(provider, targetDOMNode, parameters) {
      * @param {Number} time time in seconds
      */
     this.setTime = function (time) {
-        var timeSeriesInfo = timeSeries.getObjectsWithTimeSeriesAndMinMax(self);
+        const timeSeriesInfo = timeSeries.getObjectsWithTimeSeriesAndMinMax(self);
 
         self.parameters.time = Math.min(Math.max(time, timeSeriesInfo.min), timeSeriesInfo.max);
 
-        var promises = timeSeriesInfo.objects.reduce(function (previousValue, obj) {
+        const promises = timeSeriesInfo.objects.reduce((previousValue, obj) => {
             previousValue.push(self.reload(obj, null, true));
 
             return previousValue;
         }, []);
 
         if (Object.keys(self.parameters.cameraAnimation).length > 0) {
-            var json = {
-                camera: self.parameters.cameraAnimation
+            const json = {
+                camera: self.parameters.cameraAnimation,
             };
             json.camera.timeSeries = true;
 
-            var newCamera = timeSeries.interpolateTimeSeries(json, time);
+            const newCamera = timeSeries.interpolateTimeSeries(json, time);
 
             world.setupCamera(newCamera.json.camera);
         }
 
         if (GUI.controls) {
-            GUI.controls.__controllers.forEach(function (controller) {
+            GUI.controls.__controllers.forEach((controller) => {
                 if (controller.property === 'time') {
                     controller.updateDisplay();
                 }
             });
         }
 
-        return Promise.all(promises).then(function () {
+        return Promise.all(promises).then(() => {
             self.refreshAfterObjectsChange(true);
         });
     };
@@ -934,17 +941,17 @@ function K3D(provider, targetDOMNode, parameters) {
      * @throws {Error} If Loader fails
      */
     this.load = function (json) {
-        return loader(self, json).then(function (objects) {
-            objects.forEach(function (object) {
+        return loader(self, json).then((objects) => {
+            objects.forEach((object) => {
                 objectsGUIProvider.update(self, object.json, GUI.objects, null);
 
                 world.ObjectsListJson[object.json.id] = object.json;
                 world.ObjectsById[object.json.id] = object.obj;
 
-                if ((self.parameters.colorbarObjectId === -1 &&
-                    object.json.color_range &&
-                    object.json.color_range.length === 2) ||
-                    self.parameters.colorbarObjectId === object.json.id) { //auto
+                if ((self.parameters.colorbarObjectId === -1
+                    && object.json.color_range
+                    && object.json.color_range.length === 2)
+                    || self.parameters.colorbarObjectId === object.json.id) { // auto
                     self.setColorMapLegend(object.json);
                 }
             });
@@ -973,20 +980,20 @@ function K3D(provider, targetDOMNode, parameters) {
             try {
                 removeObjectFromScene(json.id);
             } catch (e) {
-
+                // nothing
             }
 
             return Promise.resolve(true);
         }
 
-        var data = {objects: [json]};
+        const data = { objects: [json] };
 
         if (changes !== null) {
             data.changes = [changes];
         }
 
-        return loader(self, data).then(function (objects) {
-            objects.forEach(function (object) {
+        return loader(self, data).then((objects) => {
+            objects.forEach((object) => {
                 if (timeSeriesReload !== true) {
                     objectsGUIProvider.update(self, object.json, GUI.objects, changes);
                 }
@@ -994,10 +1001,10 @@ function K3D(provider, targetDOMNode, parameters) {
                 world.ObjectsListJson[object.json.id] = object.json;
                 world.ObjectsById[object.json.id] = object.obj;
 
-                if ((self.parameters.colorbarObjectId === -1 &&
-                    object.json.color_range &&
-                    object.json.color_range.length === 2) ||
-                    self.parameters.colorbarObjectId === object.json.id) { //auto
+                if ((self.parameters.colorbarObjectId === -1
+                    && object.json.color_range
+                    && object.json.color_range.length === 2)
+                    || self.parameters.colorbarObjectId === object.json.id) { // auto
                     self.setColorMapLegend(object.json);
                 }
             });
@@ -1037,8 +1044,8 @@ function K3D(provider, targetDOMNode, parameters) {
      * @memberof K3D.Core
      * @returns {String|undefined}
      */
-    this.getHTMLSnapshot = function (compression_level) {
-        return snapshot.getHTMLSnapshot(this, compression_level);
+    this.getHTMLSnapshot = function (compressionLevel) {
+        return snapshot.getHTMLSnapshot(this, compressionLevel);
     };
 
     /**
@@ -1047,28 +1054,27 @@ function K3D(provider, targetDOMNode, parameters) {
      * @returns {String|undefined}
      */
     this.getSnapshot = function (compressionLevel) {
-        var chunkList = Object.keys(world.chunkList).reduce(function (p, k) {
+        const chunkList = Object.keys(world.chunkList).reduce((p, k) => {
             p[k] = world.chunkList[k].attributes;
             return p;
         }, {});
 
-        var serializedObjects = _.values(world.ObjectsListJson).map(function (o) {
-            return Object.keys(o).reduce(function (p, k) {
+        const serializedObjects = _.values(world.ObjectsListJson).map((o) => Object.keys(o)
+            .reduce((p, k) => {
                 p[k] = serialize.serialize(o[k]);
 
                 return p;
-            }, {});
-        });
+            }, {}));
 
         return pako.deflate(
             msgpack.encode(
                 {
                     objects: serializedObjects,
-                    chunkList: chunkList
+                    chunkList,
                 },
-                {codec: MsgpackCodec}
+                { codec: MsgpackCodec },
             ),
-            {level: compressionLevel}
+            { level: compressionLevel },
         );
     };
 
@@ -1081,24 +1087,22 @@ function K3D(provider, targetDOMNode, parameters) {
             data = pako.inflate(new Uint8Array(base64ToArrayBuffer(data)));
         }
 
-        data = msgpack.decode(data, {codec: MsgpackCodec});
+        data = msgpack.decode(data, { codec: MsgpackCodec });
 
-        Object.keys(data.chunkList).forEach(function (k) {
-            data.chunkList[k] = {attributes: data.chunkList[k]};
+        Object.keys(data.chunkList).forEach((k) => {
+            data.chunkList[k] = { attributes: data.chunkList[k] };
         });
 
         self.setChunkList(data.chunkList);
 
-
-        data.objects.forEach(function (o) {
-            Object.keys(o).forEach(function (k) {
+        data.objects.forEach((o) => {
+            Object.keys(o).forEach((k) => {
                 o[k] = serialize.deserialize(o[k]);
             });
         });
 
-        return self.load({objects: data.objects}).then(function () {
-            return self.refreshAfterObjectsChange(false, true);
-        });
+        return self.load({ objects: data.objects }).then(() => self.refreshAfterObjectsChange(false,
+            true));
     };
 
     /**
@@ -1124,7 +1128,7 @@ function K3D(provider, targetDOMNode, parameters) {
         }
         this.autoRendering = false;
 
-        world.K3DObjects.children.forEach(function (obj) {
+        world.K3DObjects.children.forEach((obj) => {
             removeObjectFromScene(obj.K3DIdentifier);
             delete world.ObjectsListJson[obj.K3DIdentifier];
         });
@@ -1160,7 +1164,7 @@ function K3D(provider, targetDOMNode, parameters) {
         'top: 0',
         'right: 0',
         'z-index: 16777271',
-        'max-height: ' + targetDOMNode.clientHeight + 'px'
+        `max-height: ${targetDOMNode.clientHeight}px`,
     ].join(';');
     world.targetDOMNode.appendChild(guiContainer);
 
@@ -1185,12 +1189,12 @@ function K3D(provider, targetDOMNode, parameters) {
     self.setCameraLock(
         self.parameters.cameraNoRotate,
         self.parameters.cameraNoZoom,
-        self.parameters.cameraNoPan
+        self.parameters.cameraNoPan,
     );
     self.setCameraSpeeds(
         self.parameters.cameraRotateSpeed,
         self.parameters.cameraZoomSpeed,
-        self.parameters.cameraPanSpeed
+        self.parameters.cameraPanSpeed,
     );
     self.setCameraFOV(self.parameters.camera_fov);
     self.setFps(self.parameters.fps);
@@ -1205,7 +1209,7 @@ function K3D(provider, targetDOMNode, parameters) {
 function isSupportedUpdateListener(when) {
     return (when in {
         before: !0,
-        after: !0
+        after: !0,
     });
 }
 
@@ -1219,7 +1223,7 @@ function isSupportedUpdateListener(when) {
  */
 K3D.prototype.frameUpdateHandlers = {
     before: [],
-    after: []
+    after: [],
 };
 
 K3D.prototype.events = {
@@ -1238,7 +1242,7 @@ K3D.prototype.events = {
     PARAMETERS_CHANGE: 'parametersChange',
     VOXELS_CALLBACK: 'voxelsCallback',
     MOUSE_MOVE: 'mouseMove',
-    MOUSE_CLICK: 'mouseClick'
+    MOUSE_CLICK: 'mouseClick',
 };
 
 /**
@@ -1267,10 +1271,11 @@ K3D.prototype.addFrameUpdateListener = function (when, listener, callOnce) {
 K3D.prototype.removeFrameUpdateListener = function (when, listener) {
     when = isSupportedUpdateListener(when) ? when : 'before';
 
-    this.frameUpdateHandlers[when] = this.frameUpdateHandlers[when].filter(function (fn) {
+    this.frameUpdateHandlers[when] = this.frameUpdateHandlers[when].filter((fn) => {
         if (fn !== listener) {
             return fn;
         }
+        return false;
     });
 
     this.refreshAutoRenderingState();

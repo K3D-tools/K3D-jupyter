@@ -1,5 +1,3 @@
-'use strict';
-
 /**
  * Decodes provided binary string into a ArrayBuffer
  * @method base64ToArrayBuffer
@@ -7,23 +5,23 @@
  * @param  {String} base64 BASE64 encoded string
  * @return {ArrayBuffer} from Uint8Array created from decoding base64
  */
-function stringToArrayBuffer(binary_string) {
-    var len = binary_string.length,
-        bytes = new Uint8Array(len),
-        i;
+function stringToArrayBuffer(binaryString) {
+    const len = binaryString.length;
+    const bytes = new Uint8Array(len);
+    let i;
 
     for (i = 0; i < len; i++) {
-        bytes[i] = binary_string.charCodeAt(i);
+        bytes[i] = binaryString.charCodeAt(i);
     }
 
     return bytes;
 }
 
 function arrayBufferToBase64(buffer) {
-    var binary = '';
-    var bytes = new Uint8Array(buffer);
-    var len = bytes.byteLength;
-    for (var i = 0; i < len; i++) {
+    let binary = '';
+    const bytes = new Uint8Array(buffer);
+    const len = bytes.byteLength;
+    for (let i = 0; i < len; i++) {
         binary += String.fromCharCode(bytes[i]);
     }
 
@@ -49,13 +47,11 @@ function base64ToArrayBuffer(base64) {
  * @return {Float32Array}
  */
 function colorsToFloat32Array(array) {
-    var colorsArray;
+    const colorsArray = new Float32Array(array.length * 3);
 
-    colorsArray = new Float32Array(array.length * 3);
-
-    array.forEach(function (color, i) {
-        colorsArray[i * 3] = (color >> 16 & 255) / 255;
-        colorsArray[i * 3 + 1] = (color >> 8 & 255) / 255;
+    array.forEach((color, i) => {
+        colorsArray[i * 3] = ((color >> 16) & 255) / 255;
+        colorsArray[i * 3 + 1] = ((color >> 8) & 255) / 255;
         colorsArray[i * 3 + 2] = (color & 255) / 255;
     });
 
@@ -70,7 +66,10 @@ function colorsToFloat32Array(array) {
  * @return {String}
  */
 function bufferToBase64(array) {
-    var bytes = new Uint8Array(array), i, string = '';
+    const bytes = new Uint8Array(array);
+    let i;
+    let
+        string = '';
 
     for (i = 0; i < bytes.length; i++) {
         string += String.fromCharCode(bytes[i]);
@@ -80,9 +79,9 @@ function bufferToBase64(array) {
 }
 
 module.exports = {
-    colorsToFloat32Array: colorsToFloat32Array,
-    bufferToBase64: bufferToBase64,
-    base64ToArrayBuffer: base64ToArrayBuffer,
-    arrayBufferToBase64: arrayBufferToBase64,
-    stringToArrayBuffer: stringToArrayBuffer
+    colorsToFloat32Array,
+    bufferToBase64,
+    base64ToArrayBuffer,
+    arrayBufferToBase64,
+    stringToArrayBuffer,
 };

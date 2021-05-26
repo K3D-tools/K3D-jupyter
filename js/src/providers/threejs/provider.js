@@ -1,7 +1,5 @@
-'use strict';
-
-var THREE = require('three'),
-    threeMeshBVH = require('three-mesh-bvh');
+const THREE = require('three');
+const threeMeshBVH = require('three-mesh-bvh');
 
 require('./helpers/THREE.STLLoader')(THREE);
 require('./helpers/THREE.CopyShader')(THREE);
@@ -39,7 +37,7 @@ module.exports = {
         Renderer: require('./initializers/Renderer'),
         Scene: require('./initializers/Scene').Init,
         Setup: require('./initializers/Setup'),
-        Manipulate: require('./initializers/Manipulate')
+        Manipulate: require('./initializers/Manipulate'),
     },
     /**
      * @namespace Objects
@@ -65,7 +63,7 @@ module.exports = {
         VoxelsGroup: require('./objects/VoxelsGroup'),
         Volume: require('./objects/Volume'),
         MIP: require('./objects/MIP'),
-        Label: require('./objects/Label')
+        Label: require('./objects/Label'),
     },
     /**
      * @namespace Interactions
@@ -74,6 +72,6 @@ module.exports = {
      */
     Interactions: {
         Voxels: require('./interactions/Voxels'),
-        intersectCallback: require('./interactions/intersectCallback')
-    }
+        intersectCallback: require('./interactions/intersectCallback'),
+    },
 };

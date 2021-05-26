@@ -1,12 +1,10 @@
-'use strict';
-
-var THREE = require('three'),
-    cameraModes = require('./../../../core/lib/cameraMode').cameraModes,
-    recalculateFrustum = require('./../helpers/Fn').recalculateFrustum;
+const THREE = require('three');
+const { cameraModes } = require('../../../core/lib/cameraMode');
+const { recalculateFrustum } = require('../helpers/Fn');
 
 function addEvents(self, K3D, controls) {
     controls.getCameraArray = function () {
-        var r = [];
+        const r = [];
 
         self.controls.object.position.toArray(r);
         self.controls.target.toArray(r, 3);
@@ -15,25 +13,25 @@ function addEvents(self, K3D, controls) {
         return r;
     };
 
-    controls.addEventListener('change', function (event) {
-        var camDistance, r = event.target.getCameraArray();
+    controls.addEventListener('change', (event) => {
+        const r = event.target.getCameraArray();
 
         recalculateFrustum(self.camera);
 
         K3D.dispatch(K3D.events.CAMERA_CHANGE, r);
 
-        camDistance = (3.0 * 0.5) / Math.tan(
-            THREE.Math.degToRad(K3D.parameters.camera_fov / 2.0)
+        const camDistance = (3.0 * 0.5) / Math.tan(
+            THREE.Math.degToRad(K3D.parameters.camera_fov / 2.0),
         );
 
         self.axesHelper.camera.position.copy(
-            self.camera.position.clone().sub(self.controls.target).normalize().multiplyScalar(camDistance)
+            self.camera.position.clone().sub(self.controls.target).normalize().multiplyScalar(camDistance),
         );
         self.axesHelper.camera.lookAt(0, 0, 0);
         self.axesHelper.camera.up.copy(self.camera.up);
     });
 
-    controls.addEventListener('change', function () {
+    controls.addEventListener('change', () => {
         if (K3D.frameUpdateHandlers.before.length === 0 && K3D.frameUpdateHandlers.after.length === 0) {
             self.render();
         }
@@ -41,7 +39,7 @@ function addEvents(self, K3D, controls) {
 }
 
 function createTrackballControls(self, K3D) {
-    var controls = new THREE.TrackballControls(self.camera, self.renderer.domElement);
+    const controls = new THREE.TrackballControls(self.camera, self.renderer.domElement);
 
     controls.type = cameraModes.trackball;
     controls.rotateSpeed = K3D.parameters.cameraRotateSpeed;
@@ -61,7 +59,7 @@ function createTrackballControls(self, K3D) {
 }
 
 function createOrbitControls(self, K3D) {
-    var controls = new THREE.OrbitControls(self.camera, self.renderer.domElement);
+    const controls = new THREE.OrbitControls(self.camera, self.renderer.domElement);
 
     controls.type = cameraModes.orbit;
     controls.rotateSpeed = K3D.parameters.cameraRotateSpeed;
@@ -83,7 +81,7 @@ function createOrbitControls(self, K3D) {
 }
 
 function createFlyControls(self, K3D) {
-    var controls = new THREE.TrackballControls(self.camera, self.renderer.domElement);
+    const controls = new THREE.TrackballControls(self.camera, self.renderer.domElement);
 
     controls.type = cameraModes.fly;
     controls.rotateSpeed = K3D.parameters.cameraRotateSpeed;
@@ -106,11 +104,15 @@ function createFlyControls(self, K3D) {
 function createControls(self, K3D) {
     if (K3D.parameters.cameraMode === cameraModes.trackball) {
         return createTrackballControls(self, K3D);
-    } else if (K3D.parameters.cameraMode === cameraModes.orbit) {
+    }
+    if (K3D.parameters.cameraMode === cameraModes.orbit) {
         return createOrbitControls(self, K3D);
-    } else if (K3D.parameters.cameraMode === cameraModes.fly) {
+    }
+    if (K3D.parameters.cameraMode === cameraModes.fly) {
         return createFlyControls(self, K3D);
     }
+
+    return null;
 }
 
 /**
@@ -120,11 +122,12 @@ function createControls(self, K3D) {
  * @memberof K3D.Providers.ThreeJS.Initializers
  */
 module.exports = function (K3D) {
-
-    var self = this, mouseCoordOnDown;
+    const self = this;
+    let
+        mouseCoordOnDown;
 
     function refresh() {
-        var targetDOMNode = K3D.getWorld().targetDOMNode;
+        const { targetDOMNode } = K3D.getWorld();
 
         if (!targetDOMNode.ownerDocument.contains(targetDOMNode)) {
             K3D.disable();
@@ -145,8 +148,8 @@ module.exports = function (K3D) {
 
     function getCoordinate(event) {
         return {
-            x: event.offsetX / K3D.getWorld().targetDOMNode.offsetWidth * 2 - 1,
-            y: -event.offsetY / K3D.getWorld().targetDOMNode.offsetHeight * 2 + 1
+            x: (event.offsetX / K3D.getWorld().targetDOMNode.offsetWidth) * 2 - 1,
+            y: (-event.offsetY / K3D.getWorld().targetDOMNode.offsetHeight) * 2 + 1,
         };
     }
 
@@ -155,9 +158,7 @@ module.exports = function (K3D) {
     }
 
     function onDocumentMouseUp(event) {
-        var coordinate;
-
-        coordinate = getCoordinate(event);
+        const coordinate = getCoordinate(event);
 
         if (mouseCoordOnDown.x === coordinate.x && mouseCoordOnDown.y === coordinate.y) {
             K3D.dispatch(K3D.events.MOUSE_CLICK, coordinate);
@@ -179,7 +180,7 @@ module.exports = function (K3D) {
 
     this.controls = createControls(self, K3D);
 
-    K3D.on(K3D.events.RESIZED, function () {
+    K3D.on(K3D.events.RESIZED, () => {
         if (self.controls.handleResize) {
             self.controls.handleResize();
         }

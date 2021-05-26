@@ -1,74 +1,45 @@
-'use strict';
-
-function createSVGGradient(svg, id, colormap, opacity, horizontal) {
-    var svgNS = svg.namespaceURI,
-        data,
-        grad = document.createElementNS(svgNS, 'linearGradient'),
-        min, max;
-
-    if (svg.getElementById(id)) {
-        svg.getElementById(id).remove();
+function toColor(val) {
+    if (val > 1.0) {
+        val = 1.0;
     }
 
-    grad.setAttribute('id', id);
-
-    if (horizontal) {
-        grad.setAttribute('x1', '0');
-        grad.setAttribute('x2', '1');
-        grad.setAttribute('y1', '0');
-        grad.setAttribute('y2', '0');
-    } else {
-        grad.setAttribute('x1', '0');
-        grad.setAttribute('x2', '0');
-        grad.setAttribute('y1', '1');
-        grad.setAttribute('y2', '0');
+    if (val < 0.0) {
+        val = 0.0;
     }
 
-    data = mergeColorMapWithOpacity(colormap, opacity);
-
-    min = data[0];
-    max = data[data.length - 5];
-
-    for (var i = 0; i < data.length; i += 5) {
-        var stop = document.createElementNS(svgNS, 'stop'),
-            segment = data.slice(i, i + 5);
-
-        stop.setAttribute('offset', ((segment[0] - min) / (max - min)).toString(10));
-        stop.setAttribute('stop-color', 'rgb(' +
-            toColor(segment[1]) + ',' +
-            toColor(segment[2]) + ',' +
-            toColor(segment[3]) + ')');
-        stop.setAttribute('stop-opacity', segment[4]);
-        grad.appendChild(stop);
-    }
-
-    var defs = svg.querySelector('defs') ||
-        svg.insertBefore(document.createElementNS(svgNS, 'defs'), svg.firstChild);
-
-    return defs.appendChild(grad);
+    return Math.round((val * 255));
 }
 
 function mergeColorMapWithOpacity(colormap, opacity) {
-    var merged = {}, sortedKeys, i;
+    const merged = {};
+    let sortedKeys;
+    let
+        i;
 
     function findNeighbors(key, property) {
-        var startKeyIndex = sortedKeys.indexOf(key), leftIndex = startKeyIndex, rightIndex = startKeyIndex;
+        const startKeyIndex = sortedKeys.indexOf(key);
+        let leftIndex = startKeyIndex;
+        let
+            rightIndex = startKeyIndex;
 
         while (typeof (merged[sortedKeys[leftIndex]][property]) === 'undefined' && leftIndex > 0) {
-            leftIndex--;
+            leftIndex -= 1;
         }
 
-        while (typeof (merged[sortedKeys[rightIndex]][property]) === 'undefined' && rightIndex < sortedKeys.length - 1) {
-            rightIndex++;
+        while (typeof (merged[sortedKeys[rightIndex]][property]) === 'undefined'
+        && rightIndex < sortedKeys.length - 1) {
+            rightIndex += 1;
         }
 
         return [sortedKeys[leftIndex], sortedKeys[rightIndex]];
     }
 
     function interpolate(key, property) {
-        var neighbors = findNeighbors(key, property),
-            t = (key - neighbors[0]) / (neighbors[1] - neighbors[0]),
-            a, b;
+        const neighbors = findNeighbors(key, property);
+        const t = (key - neighbors[0]) / (neighbors[1] - neighbors[0]);
+        let a;
+        let
+            b;
 
         if (typeof (merged[neighbors[0]][property]) !== 'undefined') {
             a = merged[neighbors[0]][property];
@@ -89,14 +60,12 @@ function mergeColorMapWithOpacity(colormap, opacity) {
         merged[colormap[i]] = {
             r: colormap[i + 1],
             g: colormap[i + 2],
-            b: colormap[i + 3]
+            b: colormap[i + 3],
         };
     }
 
     if (!opacity) {
-        sortedKeys = Object.keys(merged).map(parseFloat).sort(function (a, b) {
-            return a - b;
-        });
+        sortedKeys = Object.keys(merged).map(parseFloat).sort((a, b) => a - b);
         opacity = [sortedKeys[0], 1.0, sortedKeys[sortedKeys.length - 1], 1.0];
     }
 
@@ -108,11 +77,9 @@ function mergeColorMapWithOpacity(colormap, opacity) {
         merged[opacity[i]].a = opacity[i + 1];
     }
 
-    sortedKeys = Object.keys(merged).map(parseFloat).sort(function (a, b) {
-        return a - b;
-    });
+    sortedKeys = Object.keys(merged).map(parseFloat).sort((a, b) => a - b);
 
-    sortedKeys.forEach(function (key) {
+    sortedKeys.forEach((key) => {
         if (typeof (merged[key].a) === 'undefined') {
             merged[key].a = interpolate(key, 'a');
         }
@@ -124,52 +91,83 @@ function mergeColorMapWithOpacity(colormap, opacity) {
         }
     });
 
-    return sortedKeys.reduce(function (prev, key) {
-        return prev.concat([parseFloat(key), merged[key].r, merged[key].g, merged[key].b, merged[key].a]);
-    }, []);
+    return sortedKeys.reduce((prev, key) => prev.concat(
+        [
+            parseFloat(key), merged[key].r, merged[key].g, merged[key].b, merged[key].a,
+        ],
+    ), []);
 }
 
+function createSVGGradient(svg, id, colormap, opacity, horizontal) {
+    const svgNS = svg.namespaceURI;
+    const grad = document.createElementNS(svgNS, 'linearGradient');
 
-function toColor(val) {
-    if (val > 1.0) {
-        val = 1.0;
+    if (svg.getElementById(id)) {
+        svg.getElementById(id).remove();
     }
 
-    if (val < 0.0) {
-        val = 0.0;
+    grad.setAttribute('id', id);
+
+    if (horizontal) {
+        grad.setAttribute('x1', '0');
+        grad.setAttribute('x2', '1');
+        grad.setAttribute('y1', '0');
+        grad.setAttribute('y2', '0');
+    } else {
+        grad.setAttribute('x1', '0');
+        grad.setAttribute('x2', '0');
+        grad.setAttribute('y1', '1');
+        grad.setAttribute('y2', '0');
     }
 
-    return Math.round((val * 255));
+    const data = mergeColorMapWithOpacity(colormap, opacity);
+
+    const min = data[0];
+    const max = data[data.length - 5];
+
+    for (let i = 0; i < data.length; i += 5) {
+        const stop = document.createElementNS(svgNS, 'stop');
+        const segment = data.slice(i, i + 5);
+
+        stop.setAttribute('offset', ((segment[0] - min) / (max - min)).toString(10));
+        stop.setAttribute('stop-color', `rgb(${
+            toColor(segment[1])},${
+            toColor(segment[2])},${
+            toColor(segment[3])})`);
+        stop.setAttribute('stop-opacity', segment[4]);
+        grad.appendChild(stop);
+    }
+
+    const defs = svg.querySelector('defs')
+        || svg.insertBefore(document.createElementNS(svgNS, 'defs'), svg.firstChild);
+
+    return defs.appendChild(grad);
 }
 
 function createCanvasGradient(colorMap, size, opacityFunction) {
-    var canvas = document.createElement('canvas'),
-        ctx = canvas.getContext('2d'),
-        grd,
-        segment,
-        merged,
-        i,
-        min, max;
+    const canvas = document.createElement('canvas');
+    const ctx = canvas.getContext('2d');
+    let segment;
+    let i;
 
-    merged = mergeColorMapWithOpacity(colorMap, opacityFunction);
+    const merged = mergeColorMapWithOpacity(colorMap, opacityFunction);
     canvas.height = 1;
     canvas.width = size;
 
-    grd = ctx.createLinearGradient(0, 0, canvas.width, canvas.height);
-
-    min = merged[0];
-    max = merged[merged.length - 5];
+    const grd = ctx.createLinearGradient(0, 0, canvas.width, canvas.height);
+    const min = merged[0];
+    const max = merged[merged.length - 5];
 
     for (i = 0; i < merged.length / 5; i++) {
         segment = merged.slice(i * 5, i * 5 + 5);
 
         grd.addColorStop((segment[0] - min) / (max - min),
-            'rgba(' +
-            toColor(segment[1]) + ', ' +
-            toColor(segment[2]) + ', ' +
-            toColor(segment[3]) + ', ' +
-            segment[4] +
-            ')');
+            `rgba(${
+                toColor(segment[1])}, ${
+                toColor(segment[2])}, ${
+                toColor(segment[3])}, ${
+                segment[4]
+            })`);
     }
 
     ctx.fillStyle = grd;
@@ -179,9 +177,9 @@ function createCanvasGradient(colorMap, size, opacityFunction) {
 }
 
 function createCanvasColorList(values) {
-    var canvas = document.createElement('canvas'),
-        ctx = canvas.getContext('2d'),
-        i;
+    const canvas = document.createElement('canvas');
+    const ctx = canvas.getContext('2d');
+    let i;
 
     canvas.height = 1;
     canvas.width = 256;
@@ -201,9 +199,8 @@ function createCanvasColorList(values) {
 }
 
 module.exports = {
-    createCanvasGradient: createCanvasGradient,
-    createCanvasColorList: createCanvasColorList,
-    createSVGGradient: createSVGGradient,
-    mergeColorMapWithOpacity: mergeColorMapWithOpacity
+    createCanvasGradient,
+    createCanvasColorList,
+    createSVGGradient,
+    mergeColorMapWithOpacity,
 };
-

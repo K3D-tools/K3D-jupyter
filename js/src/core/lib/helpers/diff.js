@@ -1,15 +1,13 @@
-'use strict';
-
 module.exports = {
-    diff: function (config, prevConfig) {
-        var diff = {};
+    diff(config, prevConfig) {
+        const diff = {};
 
-        Object.keys(config).forEach(function (key) {
+        Object.keys(config).forEach((key) => {
             if (config[key] !== prevConfig[key]) {
                 diff[key] = true;
             }
         });
 
         return diff;
-    }
+    },
 };

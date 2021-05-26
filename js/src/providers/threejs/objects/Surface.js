@@ -1,10 +1,8 @@
-'use strict';
-
-var THREE = require('three'),
-    intersectHelper = require('./../helpers/Intersection'),
-    handleColorMap = require('./../helpers/Fn').handleColorMap,
-    areAllChangesResolve = require('./../helpers/Fn').areAllChangesResolve,
-    commonUpdate = require('./../helpers/Fn').commonUpdate;
+const THREE = require('three');
+const intersectHelper = require('../helpers/Intersection');
+const { handleColorMap } = require('../helpers/Fn');
+const { areAllChangesResolve } = require('../helpers/Fn');
+const { commonUpdate } = require('../helpers/Fn');
 
 /**
  * Loader strategy to handle Surface object
@@ -14,34 +12,36 @@ var THREE = require('three'),
  * @return {Object} 3D object ready to render
  */
 module.exports = {
-    create: function (config, K3D) {
+    create(config, K3D) {
         config.visible = typeof (config.visible) !== 'undefined' ? config.visible : true;
         config.color = typeof (config.color) !== 'undefined' ? config.color : 255;
         config.wireframe = typeof (config.wireframe) !== 'undefined' ? config.wireframe : false;
         config.flat_shading = typeof (config.flat_shading) !== 'undefined' ? config.flat_shading : true;
 
-        var heights = config.heights.data,
-            width = config.heights.shape[1],
-            height = config.heights.shape[0],
-            modelMatrix = new THREE.Matrix4(),
-            MaterialConstructor = config.wireframe ? THREE.MeshBasicMaterial : THREE.MeshPhongMaterial,
-            colorRange = config.color_range,
-            colorMap = (config.color_map && config.color_map.data) || null,
-            attribute = (config.attribute && config.attribute.data) || null,
-            material = new MaterialConstructor({
-                color: config.color,
-                emissive: 0,
-                shininess: 50,
-                specular: 0x111111,
-                side: THREE.DoubleSide,
-                flatShading: config.flat_shading,
-                wireframe: config.wireframe
-            }),
-            geometry = new THREE.BufferGeometry(),
-            vertices = new Float32Array(width * height * 3),
-            indices = [],
-            object,
-            x, y, i, p;
+        const heights = config.heights.data;
+        const width = config.heights.shape[1];
+        const height = config.heights.shape[0];
+        const modelMatrix = new THREE.Matrix4();
+        const MaterialConstructor = config.wireframe ? THREE.MeshBasicMaterial : THREE.MeshPhongMaterial;
+        const colorRange = config.color_range;
+        const colorMap = (config.color_map && config.color_map.data) || null;
+        const attribute = (config.attribute && config.attribute.data) || null;
+        const material = new MaterialConstructor({
+            color: config.color,
+            emissive: 0,
+            shininess: 50,
+            specular: 0x111111,
+            side: THREE.DoubleSide,
+            flatShading: config.flat_shading,
+            wireframe: config.wireframe,
+        });
+        const geometry = new THREE.BufferGeometry();
+        const vertices = new Float32Array(width * height * 3);
+        const indices = [];
+        let x;
+        let y;
+        let i;
+        let p;
 
         for (y = 0, i = 0, p = 0; y < height; y++) {
             for (x = 0; x < width; x++, p++, i += 3) {
@@ -54,8 +54,10 @@ module.exports = {
         for (y = 0, i = 0; y < height - 1; y++) {
             for (x = 0; x < width - 1; x++, i += 6) {
                 indices[i] = x + y * width;
-                indices[i + 1] = indices[i + 3] = x + 1 + y * width;
-                indices[i + 2] = indices[i + 5] = x + (y + 1) * width;
+                indices[i + 1] = x + 1 + y * width;
+                indices[i + 3] = indices[i + 1];
+                indices[i + 2] = x + (y + 1) * width;
+                indices[i + 5] = indices[i + 2];
                 indices[i + 4] = x + 1 + (y + 1) * width;
             }
         }
@@ -67,14 +69,15 @@ module.exports = {
             geometry.computeVertexNormals();
         }
 
-        if (attribute && colorRange && colorMap && attribute.length > 0 && colorRange.length > 0 && colorMap.length > 0) {
+        if (attribute && colorRange && colorMap && attribute.length > 0
+            && colorRange.length > 0 && colorMap.length > 0) {
             handleColorMap(geometry, colorMap, colorRange, attribute, material);
         }
 
         geometry.computeBoundingSphere();
         geometry.computeBoundingBox();
 
-        object = new THREE.Mesh(geometry, material);
+        const object = new THREE.Mesh(geometry, material);
 
         intersectHelper.init(config, object, K3D);
 
@@ -91,16 +94,15 @@ module.exports = {
         return Promise.resolve(object);
     },
 
-    update: function (config, changes, obj, K3D) {
-        var resolvedChanges = {};
+    update(config, changes, obj, K3D) {
+        const resolvedChanges = {};
 
         intersectHelper.update(config, changes, resolvedChanges, obj, K3D);
         commonUpdate(config, changes, resolvedChanges, obj);
 
         if (areAllChangesResolve(changes, resolvedChanges)) {
-            return Promise.resolve({json: config, obj: obj});
-        } else {
-            return false;
+            return Promise.resolve({ json: config, obj });
         }
-    }
+        return false;
+    },
 };

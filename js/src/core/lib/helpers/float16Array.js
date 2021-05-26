@@ -1,7 +1,5 @@
-'use strict';
-
 function Float16Array(array) {
-    var d = new Uint16Array(array);
+    const d = new Uint16Array(array);
 
     d.constructor = Float16Array;
 

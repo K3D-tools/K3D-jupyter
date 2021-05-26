@@ -1,8 +1,6 @@
-'use strict';
-
-var THREE = require('three'),
-    closestPowOfTwo = require('./../helpers/Fn').closestPowOfTwo,
-    areAllChangesResolve = require('./../helpers/Fn').areAllChangesResolve;
+const THREE = require('three');
+const { closestPowOfTwo } = require('../helpers/Fn');
+const { areAllChangesResolve } = require('../helpers/Fn');
 
 /**
  * Loader strategy to handle Text object
@@ -12,34 +10,32 @@ var THREE = require('three'),
  * @return {Object} 3D object ready to render
  */
 module.exports = {
-    create: function (config) {
+    create(config) {
         config.visible = typeof (config.visible) !== 'undefined' ? config.visible : true;
         config.color = typeof (config.color) !== 'undefined' ? config.color : 0xFFFFFF;
         config.font_size = typeof (config.font_size) !== 'undefined' ? config.font_size : 68;
         config.font_weight = typeof (config.font_weight) !== 'undefined' ? config.font_weight : 700;
 
-        var text = config.text.split('\n'),
-            color = config.color,
-            position = config.position,
-            size = config.size || 1.0,
+        const text = config.text.split('\n');
+        const { color } = config;
+        const { position } = config;
+        const size = config.size || 1.0;
 
-            // Setup font
-            fontFace = config.font_face || 'Courier New',
-            fontSize = config.font_size,
-            fontWeight = config.font_weight,
-            fontSpec = fontWeight + ' ' + fontSize + 'px ' + fontFace,
+        // Setup font
+        const fontFace = config.font_face || 'Courier New';
+        const fontSize = config.font_size;
+        const fontWeight = config.font_weight;
+        const fontSpec = `${fontWeight} ${fontSize}px ${fontFace}`;
 
-            // Helper canvas
-            canvas = document.createElement('canvas'),
-            context = canvas.getContext('2d'),
-            // Helpers
-            isMultiline = text.length > 1,
-            longestLineWidth,
-            object;
+        // Helper canvas
+        const canvas = document.createElement('canvas');
+        const context = canvas.getContext('2d');
+        // Helpers
+        const isMultiline = text.length > 1;
 
         context.font = fontSpec;
 
-        longestLineWidth = getLongestLineWidth(text, context);
+        const longestLineWidth = getLongestLineWidth(text, context);
 
         canvas.width = closestPowOfTwo(longestLineWidth);
         canvas.height = ~~canvas.width;
@@ -49,42 +45,38 @@ module.exports = {
         context.fillStyle = colorToHex(color);
         context.lineWidth = 5;
 
-        text.forEach(function (line, index) {
-            var x = (canvas.width - longestLineWidth) / 2,
-                y = canvas.height / 2 - (isMultiline ? fontSize : fontSize / 2) + (fontSize * index);
+        text.forEach((line, index) => {
+            const x = (canvas.width - longestLineWidth) / 2;
+            const y = canvas.height / 2 - (isMultiline ? fontSize : fontSize / 2) + (fontSize * index);
 
             context.strokeText(line, x, y);
             context.fillText(line, x, y);
         });
 
-        object = getSprite(canvas, position, size);
+        const object = getSprite(canvas, position, size);
 
         return Promise.resolve(object);
     },
 
-    update: function (config, changes, obj) {
-        var resolvedChanges = {};
+    update(config, changes, obj) {
+        const resolvedChanges = {};
 
-        if (typeof(changes.position) !== 'undefined' && !changes.position.timeSeries) {
-
+        if (typeof (changes.position) !== 'undefined' && !changes.position.timeSeries) {
             obj.position.set(changes.position[0], changes.position[1], changes.position[2]);
             resolvedChanges.position = null;
         }
 
-        if (typeof(changes.size) !== 'undefined' && !changes.size.timeSeries) {
-
+        if (typeof (changes.size) !== 'undefined' && !changes.size.timeSeries) {
             obj.scale.set(changes.size, changes.size, changes.size);
             resolvedChanges.size = null;
         }
 
         if (areAllChangesResolve(changes, resolvedChanges)) {
-            return Promise.resolve({json: config, obj: obj});
-        } else {
-            return false;
+            return Promise.resolve({ json: config, obj });
         }
-    }
+        return false;
+    },
 };
-
 
 /**
  * Gets the longest line
@@ -95,8 +87,9 @@ module.exports = {
  * @returns {*}
  */
 function getLongestLineWidth(lines, context) {
-    return lines.reduce(function (longest, text) {
-        var metric = context.measureText(text), height = 0;
+    return lines.reduce((longest, text) => {
+        const metric = context.measureText(text);
+        let height = 0;
 
         if (metric.actualBoundingBoxAscent && metric.actualBoundingBoxDescent) {
             height = metric.actualBoundingBoxAscent + metric.actualBoundingBoxDescent;
@@ -116,9 +109,9 @@ function getLongestLineWidth(lines, context) {
  * @returns {THREE.Sprite}
  */
 function getSprite(canvas, position, size) {
-    var texture = new THREE.Texture(canvas),
-        material = new THREE.SpriteMaterial({map: texture}),
-        sprite = new THREE.Sprite(material);
+    const texture = new THREE.Texture(canvas);
+    const material = new THREE.SpriteMaterial({ map: texture });
+    const sprite = new THREE.Sprite(material);
 
     texture.needsUpdate = true;
 
@@ -126,7 +119,7 @@ function getSprite(canvas, position, size) {
     sprite.scale.set(size, size, size);
     sprite.boundingBox = new THREE.Box3().setFromCenterAndSize(
         new THREE.Vector3(),
-        new THREE.Vector3(size, size, size)
+        new THREE.Vector3(size, size, size),
     );
     sprite.updateMatrixWorld();
 
@@ -136,5 +129,5 @@ function getSprite(canvas, position, size) {
 function colorToHex(color) {
     color = parseInt(color, 10) + 0x1000000;
 
-    return '#' + color.toString(16).substr(1);
+    return `#${color.toString(16).substr(1)}`;
 }
