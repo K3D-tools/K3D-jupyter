@@ -123,8 +123,7 @@ function createControls(self, K3D) {
  */
 module.exports = function (K3D) {
     const self = this;
-    let
-        mouseCoordOnDown;
+    let mouseCoordOnDown;
 
     function refresh() {
         const { targetDOMNode } = K3D.getWorld();
@@ -166,8 +165,6 @@ module.exports = function (K3D) {
     }
 
     function onDocumentMouseMove(event) {
-        event.preventDefault();
-
         K3D.dispatch(K3D.events.MOUSE_MOVE, getCoordinate(event));
     }
 

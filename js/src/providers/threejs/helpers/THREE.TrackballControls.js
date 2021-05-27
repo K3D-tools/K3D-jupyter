@@ -421,8 +421,6 @@ module.exports = function (THREE) {
         }
 
         function onMouseDown(event) {
-            event.preventDefault();
-
             if (_state === STATE.NONE) {
                 switch (event.button) {
                     case scope.mouseButtons.LEFT:
@@ -464,8 +462,6 @@ module.exports = function (THREE) {
         function onMouseMove(event) {
             if (scope.enabled === false) return;
 
-            event.preventDefault();
-
             const state = (_keyState !== STATE.NONE) ? _keyState : _state;
 
             if (state === STATE.ROTATE && !scope.noRotate) {
@@ -480,8 +476,6 @@ module.exports = function (THREE) {
 
         function onMouseUp(event) {
             if (scope.enabled === false) return;
-
-            event.preventDefault();
 
             _state = STATE.NONE;
 
