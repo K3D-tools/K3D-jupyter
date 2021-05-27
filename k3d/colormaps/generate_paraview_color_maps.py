@@ -16,7 +16,8 @@ for item in data:
         list_ = [item['RGBPoints'][i:i + 4] for i in range(0, len(item['RGBPoints']), 4)]
 
         for p in list_:
-            file.write('        ' + str(p[0]) + ', ' + str(p[1]) + ', ' + str(p[2]) + ', ' + str(p[3]) + ',\n')
+            x, r, g, b = p
+            file.write('    {x:.4f}, {r:.4f}, {g:.4f}, {b:.4f},\n'.format(**locals()))
 
         file.write(']\n\n')
 
