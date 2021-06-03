@@ -133,9 +133,9 @@ module.exports = function (K3D) {
         }
 
         if (K3D.disabling) {
-            self.renderer.domElement.removeEventListener('mousemove', onDocumentMouseMove);
-            self.renderer.domElement.removeEventListener('mousedown', onDocumentMouseDown);
-            self.renderer.domElement.removeEventListener('mouseup', onDocumentMouseUp);
+            self.renderer.domElement.removeEventListener('pointermove', onDocumentMouseMove);
+            self.renderer.domElement.removeEventListener('pointerdown', onDocumentMouseDown);
+            self.renderer.domElement.removeEventListener('pointerup', onDocumentMouseUp);
             self.controls.dispose();
 
             return;
@@ -171,9 +171,9 @@ module.exports = function (K3D) {
     this.renderer.setSize(this.width, this.height);
     this.targetDOMNode.appendChild(this.renderer.domElement);
 
-    this.renderer.domElement.addEventListener('mousemove', onDocumentMouseMove, false);
-    this.renderer.domElement.addEventListener('mousedown', onDocumentMouseDown, false);
-    this.renderer.domElement.addEventListener('mouseup', onDocumentMouseUp, false);
+    this.renderer.domElement.addEventListener('pointermove', onDocumentMouseMove, false);
+    this.renderer.domElement.addEventListener('pointerdown', onDocumentMouseDown, false);
+    this.renderer.domElement.addEventListener('pointerup', onDocumentMouseUp, false);
 
     this.controls = createControls(self, K3D);
 

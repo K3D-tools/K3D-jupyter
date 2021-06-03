@@ -252,45 +252,45 @@ function K3D(provider, targetDOMNode, parameters) {
 
     this.GUI = GUI;
     this.parameters = _.assignWith({
-        viewMode: viewModes.view,
-        cameraMode: cameraModes.trackball,
-        manipulateMode: manipulate.manipulateModes.translate,
-        voxelPaintColor: 0,
-        snapshotIncludeJs: true,
-        menuVisibility: true,
-        cameraAutoFit: true,
-        gridAutoFit: true,
-        gridVisible: true,
-        grid: [-1, -1, -1, 1, 1, 1],
-        gridColor: 0xe6e6e6,
-        antialias: 1,
-        screenshotScale: 5.0,
-        renderingSteps: 1,
-        clearColor: 0xffffff,
-        clippingPlanes: [],
-        fpsMeter: false,
-        lighting: 1.5,
-        time: 0.0,
-        colorbarObjectId: -1,
-        colorbarScientific: false,
-        fps: 25.0,
-        axes: ['x', 'y', 'z'],
-        cameraNoRotate: false,
-        cameraNoZoom: false,
-        cameraNoPan: false,
-        cameraRotateSpeed: 1.0,
-        cameraZoomSpeed: 1.2,
-        cameraPanSpeed: 0.3,
-        cameraDampingFactor: 0.0,
-        name: null,
-        camera_fov: 60.0,
-        cameraAnimation: {},
-        autoRendering: true,
-        axesHelper: 1.0,
-        guiVersion: require('../../package.json').version,
-    },
-    parameters || {},
-    (objValue, srcValue) => (typeof (srcValue) === 'undefined' ? objValue : srcValue));
+            viewMode: viewModes.view,
+            cameraMode: cameraModes.trackball,
+            manipulateMode: manipulate.manipulateModes.translate,
+            voxelPaintColor: 0,
+            snapshotIncludeJs: true,
+            menuVisibility: true,
+            cameraAutoFit: true,
+            gridAutoFit: true,
+            gridVisible: true,
+            grid: [-1, -1, -1, 1, 1, 1],
+            gridColor: 0xe6e6e6,
+            antialias: 1,
+            screenshotScale: 5.0,
+            renderingSteps: 1,
+            clearColor: 0xffffff,
+            clippingPlanes: [],
+            fpsMeter: false,
+            lighting: 1.5,
+            time: 0.0,
+            colorbarObjectId: -1,
+            colorbarScientific: false,
+            fps: 25.0,
+            axes: ['x', 'y', 'z'],
+            cameraNoRotate: false,
+            cameraNoZoom: false,
+            cameraNoPan: false,
+            cameraRotateSpeed: 1.0,
+            cameraZoomSpeed: 1.2,
+            cameraPanSpeed: 0.3,
+            cameraDampingFactor: 0.0,
+            name: null,
+            camera_fov: 60.0,
+            cameraAnimation: {},
+            autoRendering: true,
+            axesHelper: 1.0,
+            guiVersion: require('../../package.json').version,
+        },
+        parameters || {},
+        (objValue, srcValue) => (typeof (srcValue) === 'undefined' ? objValue : srcValue));
 
     this.autoRendering = false;
 
@@ -1200,6 +1200,10 @@ function K3D(provider, targetDOMNode, parameters) {
     self.setFps(self.parameters.fps);
     self.setViewMode(self.parameters.viewMode);
     self.setFpsMeter(self.parameters.fpsMeter);
+
+    self.MsgpackCodec = MsgpackCodec;
+    self.msgpack = msgpack;
+    self.serialize = serialize;
 
     self.render();
 
