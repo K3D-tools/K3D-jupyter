@@ -277,8 +277,13 @@ class Plot(widgets.DOMWidget):
 
         return np.dstack([np.min(d[:, 0::2], axis=0), np.max(d[:, 1::2], axis=0)]).flatten()
 
-    def get_auto_camera(self, factor=1.5, yaw=25, pitch=15):
-        bounds = self.get_auto_grid()
+    def get_auto_camera(self, factor=1.5, yaw=25, pitch=15, bounds=None):
+        """ Compute the camera vector from the specified parameters. If `bounds`
+        is not provided, then the algorithm will obtain it from the available
+        meshes.
+        """
+        if bounds is None:
+            bounds = self.get_auto_grid()
         center = (bounds[::2] + bounds[1::2]) / 2.0
         radius = 0.5 * np.sum(np.abs(bounds[::2] - bounds[1::2]) ** 2) ** 0.5
         cam_distance = radius * factor / np.sin(np.deg2rad(self.camera_fov / 2.0))
