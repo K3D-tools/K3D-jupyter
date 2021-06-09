@@ -36,6 +36,8 @@ class Plot(widgets.DOMWidget):
             Multipiler to screenshot resolution.
         voxel_paint_color: `int`.
             The (initial) int value to be inserted when editing voxels.
+        label_color: `int`.
+            Packed RGB color of the labels (0xff0000 is red, 0xff is blue).
         lighting: `Float`.
             Lighting factor.
         grid: `array_like`.
@@ -136,6 +138,7 @@ class Plot(widgets.DOMWidget):
     time = Float().tag(sync=True)
     grid = ListOrArray((-1, -1, -1, 1, 1, 1), minlen=6, maxlen=6).tag(sync=True)
     grid_color = Int().tag(sync=True)
+    label_color = Int().tag(sync=True)
     background_color = Int().tag(sync=True)
     voxel_paint_color = Int().tag(sync=True)
     camera = ListOrArray(minlen=9, maxlen=9, empty_ok=True).tag(sync=True)
@@ -170,7 +173,7 @@ class Plot(widgets.DOMWidget):
                  snapshot_include_js=True, camera_no_pan=False, camera_fov=45.0, axes_helper=1.0,
                  name=None, mode='view', camera_mode='trackball', manipulate_mode='translate', auto_rendering=True,
                  fps=25.0,
-                 grid_color=0xe6e6e6, *args, **kwargs):
+                 grid_color=0xe6e6e6, label_color=0x444444, *args, **kwargs):
         super(Plot, self).__init__()
 
         self.antialias = antialias
@@ -182,6 +185,7 @@ class Plot(widgets.DOMWidget):
         self.grid_visible = grid_visible
         self.background_color = background_color
         self.grid_color = grid_color
+        self.label_color = label_color
         self.voxel_paint_color = voxel_paint_color
         self.screenshot_scale = screenshot_scale
         self.height = height
@@ -382,6 +386,7 @@ class Plot(widgets.DOMWidget):
             "gridVisible": self.grid_visible,
             "grid": self.grid,
             "gridColor": self.grid_color,
+            "labelColor": self.label_color,
             "antialias": self.antialias,
             "screenshotScale": self.screenshot_scale,
             "clearColor": self.background_color,

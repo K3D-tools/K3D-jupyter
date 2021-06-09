@@ -270,6 +270,7 @@ PlotView = widgets.DOMWidgetView.extend({
         this.model.on('change:grid_auto_fit', this._setGridAutoFit, this);
         this.model.on('change:grid_visible', this._setGridVisible, this);
         this.model.on('change:grid_color', this._setGridColor, this);
+        this.model.on('change:label_color', this._setLabelColor, this);
         this.model.on('change:depth_peels', this._setDepthPeels, this);
         this.model.on('change:fps_meter', this._setFpsMeter, this);
         this.model.on('change:fps', this._setFps, this);
@@ -326,6 +327,7 @@ PlotView = widgets.DOMWidgetView.extend({
                 autoRendering: this.model.get('auto_rendering'),
                 gridVisible: this.model.get('grid_visible'),
                 gridColor: this.model.get('grid_color'),
+                labelColor: this.model.get('label_color'),
             });
 
             if (this.model.get('camera_auto_fit') === false) {
@@ -432,6 +434,10 @@ PlotView = widgets.DOMWidgetView.extend({
 
     _setGridColor: function () {
         this.K3DInstance.setGridColor(this.model.get('grid_color'));
+    },
+
+    _setLabelColor: function () {
+        this.K3DInstance.setLabelColor(this.model.get('label_color'));
     },
 
     _setFps: function () {

@@ -158,7 +158,5 @@ function toScreenPosition(obj, viewport, camera) {
 }
 
 function colorToHex(color) {
-    color = parseInt(color, 10) + 0x1000000;
-
-    return '#' + color.toString(16).substr(1);
+    return '#' + color.getHexString();
 }

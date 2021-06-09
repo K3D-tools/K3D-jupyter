@@ -1099,6 +1099,7 @@ def plot(height=512,
          screenshot_scale=2.0,
          grid=(-1, -1, -1, 1, 1, 1),
          grid_color=0xe6e6e6,
+         label_color=0x444444,
          lighting=1.5,
          menu_visibility=True,
          voxel_paint_color=0,
@@ -1141,6 +1142,8 @@ def plot(height=512,
             6-element tuple specifying the bounds of the plot grid (x0, y0, z0, x1, y1, z1).
         screenshot_scale: `Float`.
             Multipiler to screenshot resolution.
+        label_color: `int`.
+            Packed RGB color of the labels (0xff0000 is red, 0xff is blue).
         lighting: `Float`.
             Lighting factor.
         menu_visibility: `bool`.
@@ -1191,7 +1194,7 @@ def plot(height=512,
                 background_color=background_color,
                 lighting=lighting, time=time, colorbar_object_id=colorbar_object_id,
                 camera_auto_fit=camera_auto_fit, grid_auto_fit=grid_auto_fit,
-                grid_visible=grid_visible, grid_color=grid_color,
+                grid_visible=grid_visible, grid_color=grid_color, label_color=label_color,
                 height=height, menu_visibility=menu_visibility,
                 voxel_paint_color=voxel_paint_color, grid=grid,
                 axes=axes, axes_helper=axes_helper, screenshot_scale=screenshot_scale, camera_fov=camera_fov,

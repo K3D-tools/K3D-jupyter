@@ -25,13 +25,14 @@ function generateAxesHelper(K3D, axesHelper) {
             'x': 0,
             'y': 1,
             'z': 2
-        };
+        },
+        labelColor = new THREE.Color(K3D.parameters.labelColor);
 
     ['x', 'y', 'z'].forEach(function (axis) {
         var label = new Text.create({
             'position': new THREE.Vector3().fromArray(directions[axis]).multiplyScalar(1.1).toArray(),
             'reference_point': 'cc',
-            'color': 0x444444,
+            'color': labelColor,
             'text': K3D.parameters.axes[order[axis]],
             'size': 0.75
         }, K3D, axesHelper);
@@ -206,7 +207,8 @@ function rebuildSceneData(K3D, grids, axesHelper, force) {
             'y': new THREE.Vector3(0.0, 1.0, 0.0),
             'z': new THREE.Vector3(0.0, 0.0, 1.0)
         },
-        gridColor = new THREE.Color(K3D.parameters.gridColor);
+        gridColor = new THREE.Color(K3D.parameters.gridColor),
+        labelColor = new THREE.Color(K3D.parameters.labelColor);
 
     // axes Helper
     updateAxesHelper = !K3D.parameters.axesHelper || (K3D.parameters.axesHelper && !axesHelper.x);
@@ -343,7 +345,7 @@ function rebuildSceneData(K3D, grids, axesHelper, force) {
                 label = new Text.create({
                     'position': p.toArray(),
                     'reference_point': 'cc',
-                    'color': 0x444444,
+                    'color': labelColor,
                     'text': parseFloat((v[iterateAxis]).toFixed(15)).toString(),
                     'size': 0.75
                 }, K3D);
@@ -373,7 +375,7 @@ function rebuildSceneData(K3D, grids, axesHelper, force) {
             axisLabel = new Text.create({
                 'position': middle.toArray(),
                 'reference_point': 'cc',
-                'color': 0x444444,
+                'color': labelColor,
                 'text': K3D.parameters.axes[['x', 'y', 'z'].indexOf(iterateAxis)],
                 'size': 1.0
             }, K3D);
