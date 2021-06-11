@@ -192,14 +192,12 @@ function rebuildSceneData(K3D, grids, axesHelper, force) {
     }
 
     var promises = [],
-        fullSceneDiameter,
         originalEdges,
         updateAxesHelper,
         extendedEdges,
         size,
         majorScale,
         minorScale,
-        camDistance,
         sceneBoundingBox = new THREE.Box3().setFromArray(K3D.parameters.grid),
         extendedSceneBoundingBox,
         unitVectors = {
