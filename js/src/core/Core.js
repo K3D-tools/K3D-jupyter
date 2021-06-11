@@ -263,6 +263,7 @@ function K3D(provider, targetDOMNode, parameters) {
             gridVisible: true,
             grid: [-1, -1, -1, 1, 1, 1],
             gridColor: 0xe6e6e6,
+            labelColor: 0x444444,
             antialias: 1,
             screenshotScale: 5.0,
             renderingSteps: 1,
@@ -711,6 +712,18 @@ function K3D(provider, targetDOMNode, parameters) {
     this.setGridColor = function (color) {
         self.parameters.gridColor = color;
         self.rebuildSceneData(true).then(() => {
+            self.render();
+        });
+    };
+
+    /**
+     * Set labels color of K3D
+     * @memberof K3D.Core
+     * @param {Number} color
+     */
+    this.setLabelColor = function (color) {
+        self.parameters.labelColor = color;
+        self.rebuildSceneData(true).then(function () {
             self.render();
         });
     };
