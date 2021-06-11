@@ -28,7 +28,7 @@ function generateAxesHelper(K3D, axesHelper) {
         labelColor = new THREE.Color(K3D.parameters.labelColor);
 
     ['x', 'y', 'z'].forEach(function (axis) {
-        var label = new Text.create({
+        var label = Text.create({
             'position': new THREE.Vector3().fromArray(directions[axis]).multiplyScalar(1.1).toArray(),
             'reference_point': 'cc',
             'color': labelColor,
@@ -343,7 +343,7 @@ function rebuildSceneData(K3D, grids, axesHelper, force) {
                 v = grids.labelsOnEdges[key].v[0].clone().add(deltaValue.clone().multiplyScalar(j));
                 p = grids.labelsOnEdges[key].p[0].clone().add(deltaPosition.clone().multiplyScalar(j));
 
-                label = new Text.create({
+                label = Text.create({
                     'position': p.toArray(),
                     'reference_point': 'cc',
                     'color': labelColor,
@@ -374,7 +374,7 @@ function rebuildSceneData(K3D, grids, axesHelper, force) {
                 (new THREE.Vector3()).subVectors(middlePosition, middleValue).multiplyScalar(2.0),
             );
 
-            axisLabel = new Text.create({
+            axisLabel = Text.create({
                 'position': middle.toArray(),
                 'reference_point': 'cc',
                 'color': labelColor,
