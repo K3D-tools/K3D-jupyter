@@ -192,7 +192,6 @@ function rebuildSceneData(K3D, grids, axesHelper, force) {
     }
 
     var promises = [],
-        fullSceneBoundingBox,
         fullSceneDiameter,
         originalEdges,
         updateAxesHelper,
