@@ -23,7 +23,7 @@ import numpy as np
 # noinspection PyUnusedLocal
 def array_to_binary(ar, compression_level=0, force_contiguous=True):
     """Pre-process numpy array for serialization in traittypes.Array."""
-    if ar.dtype.kind not in ['u', 'i', 'f']:  # ints and floats
+    if ar.dtype.kind not in ["u", "i", "f"]:  # ints and floats
         raise ValueError("unsupported dtype: %s" % ar.dtype)
 
     if ar.dtype == np.float64:  # WebGL does not support float64
@@ -35,26 +35,36 @@ def array_to_binary(ar, compression_level=0, force_contiguous=True):
         ar = np.ascontiguousarray(ar)
 
     if compression_level > 0:
-        return {'compressed_data': zlib.compress(ar.flatten(), compression_level), 'dtype': str(ar.dtype),
-                'shape': ar.shape}
+        return {
+            "compressed_data": zlib.compress(ar.flatten(), compression_level),
+            "dtype": str(ar.dtype),
+            "shape": ar.shape,
+        }
     else:
-        return {'data': memoryview(ar.flatten()), 'dtype': str(ar.dtype), 'shape': ar.shape}
+        return {
+            "data": memoryview(ar.flatten()),
+            "dtype": str(ar.dtype),
+            "shape": ar.shape,
+        }
 
 
 # noinspection PyUnusedLocal
 def from_json_to_array(value, obj=None):
     """Post-process traittypes.Array after deserialization to numpy array."""
     if value:
-        if 'data' in value:
-            return np.frombuffer(value['data'], dtype=value['dtype']).reshape(value['shape'])
+        if "data" in value:
+            return np.frombuffer(value["data"], dtype=value["dtype"]).reshape(
+                value["shape"]
+            )
         else:
-            return np.frombuffer(zlib.decompress(value['compressed_data']),
-                                 dtype=value['dtype']).reshape(value['shape'])
+            return np.frombuffer(
+                zlib.decompress(value["compressed_data"]), dtype=value["dtype"]
+            ).reshape(value["shape"])
     return None
 
 
 def to_json(name, input, obj=None, compression_level=0):
-    if hasattr(obj, 'compression_level'):
+    if hasattr(obj, "compression_level"):
         compression_level = obj.compression_level
 
     if isinstance(input, dict):
@@ -68,7 +78,9 @@ def to_json(name, input, obj=None, compression_level=0):
         return to_json(name, input.tolist(), obj, compression_level)
     elif isinstance(input, list):
         property = obj[name]
-        return [to_json(idx, v, property, compression_level) for idx, v in enumerate(input)]
+        return [
+            to_json(idx, v, property, compression_level) for idx, v in enumerate(input)
+        ]
     elif isinstance(input, np.ndarray):
         return array_to_binary(input, compression_level)
     else:
@@ -78,8 +90,12 @@ def to_json(name, input, obj=None, compression_level=0):
 def from_json(input, obj=None):
     # logger.info('from_json:' + pformat(input))
 
-    if isinstance(input, dict) and 'dtype' in input and ('data' in input or 'compressed_data' in input) \
-            and 'shape' in input:
+    if (
+        isinstance(input, dict)
+        and "dtype" in input
+        and ("data" in input or "compressed_data" in input)
+        and "shape" in input
+    ):
         return from_json_to_array(input, obj)
     elif isinstance(input, list):
         return [from_json(i, obj) for i in input]
@@ -95,15 +111,15 @@ def from_json(input, obj=None):
 
 def array_serialization_wrap(name):
     return {
-        'to_json': (lambda input, obj: to_json(name, input, obj)),
-        'from_json': from_json,
+        "to_json": (lambda input, obj: to_json(name, input, obj)),
+        "from_json": from_json,
     }
 
 
 def callback_serialization_wrap(name):
     return {
-        'to_json': (lambda input, obj: obj[name] is not None),
-        'from_json': from_json,
+        "to_json": (lambda input, obj: obj[name] is not None),
+        "from_json": from_json,
     }
 
 
@@ -114,9 +130,10 @@ def download(url) -> str:
         return basename
 
     from urllib.request import urlopen
-    print('Downloading: {}'.format(basename))
 
-    with urlopen(url) as response, open(basename, 'wb') as output:
+    print("Downloading: {}".format(basename))
+
+    with urlopen(url) as response, open(basename, "wb") as output:
         output.write(response.read())
 
     return basename
@@ -148,16 +165,25 @@ def map_colors(attribute, color_map, color_range=()) -> Sequence[int]:
     a_min, a_max = check_attribute_range(attribute, color_range)
     map_array = np.asarray(color_map)
     map_array = map_array.reshape((map_array.size // 4, 4))
-    attribute = (attribute - a_min) / (a_max - a_min)  # normalizing attribute for range lookup
-    red, green, blue = [np.array(255 * np.interp(attribute, xp=map_array[:, 0], fp=map_array[:, i + 1]), dtype=np.int32)
-                        for i in range(3)]
+    attribute = (attribute - a_min) / (
+        a_max - a_min
+    )  # normalizing attribute for range lookup
+    red, green, blue = [
+        np.array(
+            255 * np.interp(attribute, xp=map_array[:, 0], fp=map_array[:, i + 1]),
+            dtype=np.int32,
+        )
+        for i in range(3)
+    ]
     colors = (red << 16) + (green << 8) + blue
     return colors
 
 
-def bounding_corners(bounds, z_bounds=(0., 1)):
+def bounding_corners(bounds, z_bounds=(0.0, 1)):
     """Return corner point coordinates for bounds array."""
-    return np.array(list(itertools.product(bounds[:2], bounds[2:4], bounds[4:] or z_bounds)))
+    return np.array(
+        list(itertools.product(bounds[:2], bounds[2:4], bounds[4:] or z_bounds))
+    )
 
 
 def min_bounding_dimension(bounds):
@@ -171,7 +197,9 @@ def shape_validation(*dimensions):
 
     def validator(trait, value):
         if np.shape(value) != dimensions:
-            raise TraitError('Expected an array of shape %s and got %s' % (dimensions, value.shape))
+            raise TraitError(
+                "Expected an array of shape %s and got %s" % (dimensions, value.shape)
+            )
 
         return value
 
@@ -183,10 +211,12 @@ def validate_sparse_voxels(trait, value):
     from traitlets import TraitError
 
     if len(value.shape) != 2 or value.shape[1] != 4:
-        raise TraitError('Expected an array of shape (N, 4) and got %s' % (value.shape,))
+        raise TraitError(
+            "Expected an array of shape (N, 4) and got %s" % (value.shape,)
+        )
 
     if (value.astype(np.int16) < 0).any():
-        raise TraitError('Voxel coordinates and values must be non-negative')
+        raise TraitError("Voxel coordinates and values must be non-negative")
 
     return value
 
@@ -194,10 +224,7 @@ def validate_sparse_voxels(trait, value):
 def quad(w, h):
     w /= 2
     h /= 2
-    vertices = np.array([-w, -h, -0,
-                         w, -h, 0,
-                         w, h, 0,
-                         -w, h, 0], dtype=np.float32)
+    vertices = np.array([-w, -h, -0, w, -h, 0, w, h, 0, -w, h, 0], dtype=np.float32)
     indices = np.array([0, 1, 2, 0, 2, 3], dtype=np.uint32)
 
     return vertices, indices
@@ -216,11 +243,13 @@ def get_bounding_box(model_matrix, boundary=[-1, 1, -1, 1, -1, 1]):
 def get_bounding_box_points(arr, model_matrix):
     d = arr.flatten()
 
+    # fmt: off
     boundary = np.array([
         np.min(d[0::3]), np.max(d[0::3]),
         np.min(d[1::3]), np.max(d[1::3]),
-        np.min(d[2::3]), np.max(d[2::3])
+        np.min(d[2::3]), np.max(d[2::3]),
     ])
+    # fmt: on
 
     return get_bounding_box(model_matrix, boundary)
 

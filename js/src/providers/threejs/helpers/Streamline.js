@@ -1,29 +1,38 @@
-'use strict';
-//jshint maxstatements:false
+// jshint maxstatements:false
 
-var THREE = require('three');
+const THREE = require('three');
 
 module.exports = function (points, attributes, radius, radialSegments, color, verticesColors, colorRange) {
-
-    var geometry = new THREE.BufferGeometry(),
-        i, j,
-        vertices = [],
-        normals = [],
-        uvs = [],
-        colors = [],
-        indices = [],
-        last_tangent = null,
-        N = null,
-        vertex = new THREE.Vector3(),
-        P1, P2, tangent, mat,
-        vec2, r, theta,
-        offset, originalP1, originalP2,
-        start, newRingCount = 0;
+    const geometry = new THREE.BufferGeometry();
+    const vertices = [];
+    const normals = [];
+    const uvs = [];
+    const colors = [];
+    const indices = [];
+    let lastTangent = null;
+    let N = null;
+    const vertex = new THREE.Vector3();
+    let P1;
+    let P2;
+    let tangent;
+    let mat;
+    let vec2;
+    let r;
+    let theta;
+    let offset;
+    let originalP1;
+    let originalP2;
+    let start;
+    let newRingCount = 0;
 
     function connectRings(from) {
-        var a, b, c, d, k;
+        let a;
+        let b;
+        let c;
+        let d;
+        let k;
 
-        for (j = from; j < from + newRingCount - 1; j++) {
+        for (let j = from; j < from + newRingCount - 1; j++) {
             for (k = 0; k < radialSegments; k++) {
                 a = radialSegments * j + k;
                 b = radialSegments * (j + 1) + k;
@@ -37,19 +46,24 @@ module.exports = function (points, attributes, radius, radialSegments, color, ve
         }
     }
 
-    function makeRing(P1, P2, i, mat) {
-        var normal = new THREE.Vector3(),
-            vec = new THREE.Vector3(),
-            B = new THREE.Vector3(),
-            tangent = P2.clone().sub(P1).normalize(),
-            min, tx, ty, tz,
-            v, sin, cos;
+    function makeRing(point1, point2, i, matrix) {
+        const normal = new THREE.Vector3();
+        const vec = new THREE.Vector3();
+        const B = new THREE.Vector3();
+        const ringTangent = point2.clone().sub(point1).normalize();
+        let min;
+        let tx;
+        let ty;
+        let tz;
+        let v;
+        let sin;
+        let cos;
 
         if (N === null) {
             min = Number.MAX_VALUE;
-            tx = Math.abs(tangent.x);
-            ty = Math.abs(tangent.y);
-            tz = Math.abs(tangent.z);
+            tx = Math.abs(ringTangent.x);
+            ty = Math.abs(ringTangent.y);
+            tz = Math.abs(ringTangent.z);
 
             if (tx <= min) {
                 min = tx;
@@ -65,19 +79,19 @@ module.exports = function (points, attributes, radius, radialSegments, color, ve
                 normal.set(0, 0, 1);
             }
 
-            vec.crossVectors(tangent, normal).normalize();
+            vec.crossVectors(ringTangent, normal).normalize();
 
             N = new THREE.Vector3();
-            N.crossVectors(tangent, vec);
-        } else if (mat) {
-            N.applyMatrix4(mat);
+            N.crossVectors(ringTangent, vec);
+        } else if (matrix) {
+            N.applyMatrix4(matrix);
         }
 
-        B.crossVectors(tangent, N);
+        B.crossVectors(ringTangent, N);
 
         // generate normals and vertices for the current segment
-        for (j = 0; j < radialSegments; j++) {
-            v = j / radialSegments * Math.PI * 2;
+        for (let j = 0; j < radialSegments; j++) {
+            v = (j / radialSegments) * (Math.PI * 2);
             sin = Math.sin(v);
             cos = -Math.cos(v);
 
@@ -89,9 +103,9 @@ module.exports = function (points, attributes, radius, radialSegments, color, ve
             normals.push(normal.x, normal.y, normal.z);
 
             // vertex
-            vertex.x = P1.x + radius * normal.x;
-            vertex.y = P1.y + radius * normal.y;
-            vertex.z = P1.z + radius * normal.z;
+            vertex.x = point1.x + radius * normal.x;
+            vertex.y = point1.y + radius * normal.y;
+            vertex.z = point1.z + radius * normal.z;
             vertices.push(vertex.x, vertex.y, vertex.z);
 
             if (attributes !== null && attributes.length > 0) {
@@ -108,7 +122,7 @@ module.exports = function (points, attributes, radius, radialSegments, color, ve
 
     start = 0;
 
-    for (i = 0; i < points.length / 3; i++) {
+    for (let i = 0; i < points.length / 3; i++) {
         mat = null;
 
         if (i !== points.length / 3 - 1) {
@@ -121,10 +135,10 @@ module.exports = function (points, attributes, radius, radialSegments, color, ve
             P2.add(P1.clone().sub(P2).multiplyScalar(2.0));
         }
 
-        if (isNaN(P1.x) || isNaN(P1.y) || isNaN(P1.z) ||
-            isNaN(P2.x) || isNaN(P2.y) || isNaN(P2.z)) {
+        if (Number.isNaN(P1.x) || Number.isNaN(P1.y) || Number.isNaN(P1.z)
+            || Number.isNaN(P2.x) || Number.isNaN(P2.y) || Number.isNaN(P2.z)) {
             connectRings(start);
-            last_tangent = null;
+            lastTangent = null;
             N = null;
             start += newRingCount;
             newRingCount = 0;
@@ -132,8 +146,8 @@ module.exports = function (points, attributes, radius, radialSegments, color, ve
             continue;
         }
 
-        if (last_tangent && tangent) {
-            vec2 = new THREE.Vector3().crossVectors(last_tangent, tangent);
+        if (lastTangent && tangent) {
+            vec2 = new THREE.Vector3().crossVectors(lastTangent, tangent);
             r = vec2.length();
 
             if (r > Number.EPSILON) {
@@ -142,8 +156,8 @@ module.exports = function (points, attributes, radius, radialSegments, color, ve
                     originalP1 = P1.clone();
                     originalP2 = P2.clone();
 
-                    P1.sub(last_tangent.clone().multiplyScalar(offset));
-                    P2.copy(originalP1).add(last_tangent.clone().multiplyScalar(offset));
+                    P1.sub(lastTangent.clone().multiplyScalar(offset));
+                    P2.copy(originalP1).add(lastTangent.clone().multiplyScalar(offset));
                     makeRing(P1, P2, i);
 
                     P1.copy(originalP1).add(tangent.clone().multiplyScalar(offset));
@@ -152,13 +166,13 @@ module.exports = function (points, attributes, radius, radialSegments, color, ve
 
                 vec2 = vec2.divideScalar(r);
 
-                theta = Math.acos(THREE.Math.clamp(last_tangent.clone().dot(tangent), -1, 1));
+                theta = Math.acos(THREE.Math.clamp(lastTangent.clone().dot(tangent), -1, 1));
                 mat = new THREE.Matrix4().makeRotationAxis(vec2, theta);
             }
         }
 
         makeRing(P1, P2, i, mat);
-        last_tangent = tangent.clone();
+        lastTangent = tangent.clone();
     }
 
     connectRings(start);

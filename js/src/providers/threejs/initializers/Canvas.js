@@ -1,12 +1,10 @@
-'use strict';
-
-var THREE = require('three'),
-    cameraModes = require('./../../../core/lib/cameraMode').cameraModes,
-    recalculateFrustum = require('./../helpers/Fn').recalculateFrustum;
+const THREE = require('three');
+const { cameraModes } = require('../../../core/lib/cameraMode');
+const { recalculateFrustum } = require('../helpers/Fn');
 
 function addEvents(self, K3D, controls) {
     controls.getCameraArray = function () {
-        var r = [];
+        const r = [];
 
         self.controls.object.position.toArray(r);
         self.controls.target.toArray(r, 3);
@@ -15,25 +13,25 @@ function addEvents(self, K3D, controls) {
         return r;
     };
 
-    controls.addEventListener('change', function (event) {
-        var camDistance, r = event.target.getCameraArray();
+    controls.addEventListener('change', (event) => {
+        const r = event.target.getCameraArray();
 
         recalculateFrustum(self.camera);
 
         K3D.dispatch(K3D.events.CAMERA_CHANGE, r);
 
-        camDistance = (3.0 * 0.5) / Math.tan(
-            THREE.Math.degToRad(K3D.parameters.camera_fov / 2.0)
+        const camDistance = (3.0 * 0.5) / Math.tan(
+            THREE.Math.degToRad(K3D.parameters.camera_fov / 2.0),
         );
 
         self.axesHelper.camera.position.copy(
-            self.camera.position.clone().sub(self.controls.target).normalize().multiplyScalar(camDistance)
+            self.camera.position.clone().sub(self.controls.target).normalize().multiplyScalar(camDistance),
         );
         self.axesHelper.camera.lookAt(0, 0, 0);
         self.axesHelper.camera.up.copy(self.camera.up);
     });
 
-    controls.addEventListener('change', function () {
+    controls.addEventListener('change', () => {
         if (K3D.frameUpdateHandlers.before.length === 0 && K3D.frameUpdateHandlers.after.length === 0) {
             self.render();
         }
@@ -41,14 +39,19 @@ function addEvents(self, K3D, controls) {
 }
 
 function createTrackballControls(self, K3D) {
-    var controls = new THREE.TrackballControls(self.camera, self.renderer.domElement);
+    const controls = new THREE.TrackballControls(self.camera, self.renderer.domElement);
 
     controls.type = cameraModes.trackball;
     controls.rotateSpeed = K3D.parameters.cameraRotateSpeed;
     controls.zoomSpeed = K3D.parameters.cameraZoomSpeed;
     controls.panSpeed = K3D.parameters.cameraPanSpeed;
-    controls.staticMoving = true;
-    controls.dynamicDampingFactor = 0.1;
+
+    if (K3D.parameters.cameraDampingFactor > 0.0) {
+        controls.staticMoving = false;
+        controls.dynamicDampingFactor = K3D.parameters.cameraDampingFactor;
+    } else {
+        controls.staticMoving = true;
+    }
 
     addEvents(self, K3D, controls);
 
@@ -56,12 +59,18 @@ function createTrackballControls(self, K3D) {
 }
 
 function createOrbitControls(self, K3D) {
-    var controls = new THREE.OrbitControls(self.camera, self.renderer.domElement);
+    const controls = new THREE.OrbitControls(self.camera, self.renderer.domElement);
 
     controls.type = cameraModes.orbit;
     controls.rotateSpeed = K3D.parameters.cameraRotateSpeed;
-    controls.enableDamping = false;
-    controls.dampingFactor = 0.1;
+
+    if (K3D.parameters.cameraDampingFactor > 0.0) {
+        controls.enableDamping = true;
+        controls.dampingFactor = K3D.parameters.cameraDampingFactor;
+    } else {
+        controls.enableDamping = false;
+    }
+
     controls.screenSpacePanning = false;
     controls.maxPolarAngle = Math.PI;
     controls.screenSpacePanning = true;
@@ -72,15 +81,20 @@ function createOrbitControls(self, K3D) {
 }
 
 function createFlyControls(self, K3D) {
-    var controls = new THREE.TrackballControls(self.camera, self.renderer.domElement);
+    const controls = new THREE.TrackballControls(self.camera, self.renderer.domElement);
 
     controls.type = cameraModes.fly;
     controls.rotateSpeed = K3D.parameters.cameraRotateSpeed;
     controls.zoomSpeed = K3D.parameters.cameraZoomSpeed;
     controls.panSpeed = K3D.parameters.cameraPanSpeed;
     controls.flyMode = true;
-    controls.staticMoving = true;
-    controls.dynamicDampingFactor = 0.1;
+
+    if (K3D.parameters.cameraDampingFactor > 0.0) {
+        controls.staticMoving = false;
+        controls.dynamicDampingFactor = K3D.parameters.cameraDampingFactor;
+    } else {
+        controls.staticMoving = true;
+    }
 
     addEvents(self, K3D, controls);
 
@@ -90,11 +104,15 @@ function createFlyControls(self, K3D) {
 function createControls(self, K3D) {
     if (K3D.parameters.cameraMode === cameraModes.trackball) {
         return createTrackballControls(self, K3D);
-    } else if (K3D.parameters.cameraMode === cameraModes.orbit) {
+    }
+    if (K3D.parameters.cameraMode === cameraModes.orbit) {
         return createOrbitControls(self, K3D);
-    } else if (K3D.parameters.cameraMode === cameraModes.fly) {
+    }
+    if (K3D.parameters.cameraMode === cameraModes.fly) {
         return createFlyControls(self, K3D);
     }
+
+    return null;
 }
 
 /**
@@ -104,20 +122,20 @@ function createControls(self, K3D) {
  * @memberof K3D.Providers.ThreeJS.Initializers
  */
 module.exports = function (K3D) {
-
-    var self = this, mouseCoordOnDown;
+    const self = this;
+    let mouseCoordOnDown;
 
     function refresh() {
-        var targetDOMNode = K3D.getWorld().targetDOMNode;
+        const { targetDOMNode } = K3D.getWorld();
 
         if (!targetDOMNode.ownerDocument.contains(targetDOMNode)) {
             K3D.disable();
         }
 
         if (K3D.disabling) {
-            self.renderer.domElement.removeEventListener('mousemove', onDocumentMouseMove);
-            self.renderer.domElement.removeEventListener('mousedown', onDocumentMouseDown);
-            self.renderer.domElement.removeEventListener('mouseup', onDocumentMouseUp);
+            self.renderer.domElement.removeEventListener('pointermove', onDocumentMouseMove);
+            self.renderer.domElement.removeEventListener('pointerdown', onDocumentMouseDown);
+            self.renderer.domElement.removeEventListener('pointerup', onDocumentMouseUp);
             self.controls.dispose();
 
             return;
@@ -129,8 +147,8 @@ module.exports = function (K3D) {
 
     function getCoordinate(event) {
         return {
-            x: event.offsetX / K3D.getWorld().targetDOMNode.offsetWidth * 2 - 1,
-            y: -event.offsetY / K3D.getWorld().targetDOMNode.offsetHeight * 2 + 1
+            x: (event.offsetX / K3D.getWorld().targetDOMNode.offsetWidth) * 2 - 1,
+            y: (-event.offsetY / K3D.getWorld().targetDOMNode.offsetHeight) * 2 + 1,
         };
     }
 
@@ -139,9 +157,7 @@ module.exports = function (K3D) {
     }
 
     function onDocumentMouseUp(event) {
-        var coordinate;
-
-        coordinate = getCoordinate(event);
+        const coordinate = getCoordinate(event);
 
         if (mouseCoordOnDown.x === coordinate.x && mouseCoordOnDown.y === coordinate.y) {
             K3D.dispatch(K3D.events.MOUSE_CLICK, coordinate);
@@ -149,28 +165,26 @@ module.exports = function (K3D) {
     }
 
     function onDocumentMouseMove(event) {
-        event.preventDefault();
-
         K3D.dispatch(K3D.events.MOUSE_MOVE, getCoordinate(event));
     }
 
     this.renderer.setSize(this.width, this.height);
     this.targetDOMNode.appendChild(this.renderer.domElement);
 
-    this.renderer.domElement.addEventListener('mousemove', onDocumentMouseMove, false);
-    this.renderer.domElement.addEventListener('mousedown', onDocumentMouseDown, false);
-    this.renderer.domElement.addEventListener('mouseup', onDocumentMouseUp, false);
+    this.renderer.domElement.addEventListener('pointermove', onDocumentMouseMove, false);
+    this.renderer.domElement.addEventListener('pointerdown', onDocumentMouseDown, false);
+    this.renderer.domElement.addEventListener('pointerup', onDocumentMouseUp, false);
 
     this.controls = createControls(self, K3D);
 
-    K3D.on(K3D.events.RESIZED, function () {
+    K3D.on(K3D.events.RESIZED, () => {
         if (self.controls.handleResize) {
             self.controls.handleResize();
         }
     });
 
-    this.changeControls = function () {
-        if (self.controls.type === K3D.parameters.cameraMode) {
+    this.changeControls = function (force) {
+        if (self.controls.type === K3D.parameters.cameraMode && !force) {
             return;
         }
 

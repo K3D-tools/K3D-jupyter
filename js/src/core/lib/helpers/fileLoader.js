@@ -1,7 +1,5 @@
-'use strict';
-
 module.exports = function (url, callback) {
-    var xhrLoad = new XMLHttpRequest();
+    const xhrLoad = new XMLHttpRequest();
 
     xhrLoad.open('GET', url, true);
 

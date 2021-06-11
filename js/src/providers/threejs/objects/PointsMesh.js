@@ -1,12 +1,11 @@
-'use strict';
+const THREE = require('three');
+const buffer = require('../../../core/lib/helpers/buffer');
+const colorMapHelper = require('../../../core/lib/helpers/colorMap');
+const Fn = require('../helpers/Fn');
 
-var THREE = require('three'),
-    buffer = require('./../../../core/lib/helpers/buffer'),
-    colorMapHelper = require('./../../../core/lib/helpers/colorMap'),
-    Fn = require('./../helpers/Fn'),
-    areAllChangesResolve = Fn.areAllChangesResolve,
-    commonUpdate = Fn.commonUpdate,
-    getColorsArray = Fn.getColorsArray;
+const { areAllChangesResolve } = Fn;
+const { commonUpdate } = Fn;
+const { getColorsArray } = Fn;
 
 /**
  * Loader strategy to handle Points object
@@ -16,32 +15,29 @@ var THREE = require('three'),
  * @return {Object} 3D object ready to render
  */
 module.exports = {
-    create: function (config) {
-        var modelMatrix = new THREE.Matrix4(),
-            color = new THREE.Color(config.color),
-            positions = config.positions.data,
-            pointColors = (config.colors && config.colors.data) || null,
-            meshDetail = typeof (config.mesh_detail) !== 'undefined' ? config.mesh_detail : 2,
-            colors,
-            opacities = (config.opacities && config.opacities.data &&
-                config.opacities.data.length === positions.length / 3) ? config.opacities.data : null,
-            object,
-            colorsToFloat32Array = buffer.colorsToFloat32Array,
-            phongShader = THREE.ShaderLib.phong,
-            material,
-            i,
-            boundingBoxGeometry = new THREE.BufferGeometry(),
-            geometry = new THREE.IcosahedronBufferGeometry(config.point_size * 0.5, meshDetail),
-            colorMap = (config.color_map && config.color_map.data) || null,
-            opacityFunction = (config.opacity_function && config.opacity_function.data) || null,
-            colorRange = config.color_range,
-            attribute = (config.attribute && config.attribute.data) || null,
-            uniforms = {},
-            useColorMap = 0;
+    create(config) {
+        const modelMatrix = new THREE.Matrix4();
+        const color = new THREE.Color(config.color);
+        const positions = config.positions.data;
+        const pointColors = (config.colors && config.colors.data) || null;
+        const meshDetail = typeof (config.mesh_detail) !== 'undefined' ? config.mesh_detail : 2;
+        let colors;
+        const opacities = (config.opacities && config.opacities.data
+            && config.opacities.data.length === positions.length / 3) ? config.opacities.data : null;
+        const { colorsToFloat32Array } = buffer;
+        const phongShader = THREE.ShaderLib.phong;
+        let i;
+        const boundingBoxGeometry = new THREE.BufferGeometry();
+        const geometry = new THREE.IcosahedronBufferGeometry(config.point_size * 0.5, meshDetail);
+        const colorMap = (config.color_map && config.color_map.data) || null;
+        let opacityFunction = (config.opacity_function && config.opacity_function.data) || null;
+        const colorRange = config.color_range;
+        const attribute = (config.attribute && config.attribute.data) || null;
+        let uniforms = {};
+        let useColorMap = 0;
 
-        if (attribute && colorRange && colorMap && attribute.length > 0 &&
-            colorRange.length > 0 && colorMap.length > 0) {
-
+        if (attribute && colorRange && colorMap && attribute.length > 0
+            && colorRange.length > 0 && colorMap.length > 0) {
             useColorMap = 1;
 
             if (opacityFunction === null || opacityFunction.length === 0) {
@@ -49,25 +45,25 @@ module.exports = {
 
                 config.opacity_function = {
                     data: opacityFunction,
-                    shape: [4]
+                    shape: [4],
                 };
             }
 
-            var canvas = colorMapHelper.createCanvasGradient(colorMap, 1024, opacityFunction);
-            var colormap = new THREE.CanvasTexture(canvas, THREE.UVMapping, THREE.ClampToEdgeWrapping,
+            const canvas = colorMapHelper.createCanvasGradient(colorMap, 1024, opacityFunction);
+            const colormap = new THREE.CanvasTexture(canvas, THREE.UVMapping, THREE.ClampToEdgeWrapping,
                 THREE.ClampToEdgeWrapping, THREE.NearestFilter, THREE.NearestFilter);
             colormap.needsUpdate = true;
 
             uniforms = {
-                low: {value: colorRange[0]},
-                high: {value: colorRange[1]},
-                colormap: {type: 't', value: colormap}
+                low: { value: colorRange[0] },
+                high: { value: colorRange[1] },
+                colormap: { type: 't', value: colormap },
             };
             geometry.setAttribute('attributes',
                 new THREE.InstancedBufferAttribute(attribute, 1).setUsage(THREE.DynamicDrawUsage));
         } else {
-            colors = (pointColors && pointColors.length === positions.length / 3 ?
-                    colorsToFloat32Array(pointColors) : getColorsArray(color, positions.length / 3)
+            colors = (pointColors && pointColors.length === positions.length / 3
+                ? colorsToFloat32Array(pointColors) : getColorsArray(color, positions.length / 3)
             );
         }
 
@@ -86,14 +82,14 @@ module.exports = {
 
         geometry.boundingBox = boundingBoxGeometry.boundingBox.clone();
 
-        material = new THREE.ShaderMaterial({
+        const material = new THREE.ShaderMaterial({
             uniforms: THREE.UniformsUtils.merge([phongShader.uniforms, {
-                shininess: {value: 50},
-                opacity: {value: config.opacity}
+                shininess: { value: 50 },
+                opacity: { value: config.opacity },
             }, uniforms]),
             defines: {
                 USE_PER_POINT_OPACITY: (opacities !== null ? 1 : 0),
-                USE_COLOR_MAP: useColorMap
+                USE_COLOR_MAP: useColorMap,
             },
             vertexShader: require('./shaders/PointsMesh.vertex.glsl'),
             fragmentShader: require('./shaders/PointsMesh.fragment.glsl'),
@@ -101,10 +97,10 @@ module.exports = {
             transparent: (config.opacity !== 1.0 || opacities !== null),
             lights: true,
             clipping: true,
-            vertexColors: THREE.VertexColors
+            vertexColors: THREE.VertexColors,
         });
 
-        object = new THREE.InstancedMesh(geometry, material, positions.length / 3);
+        const object = new THREE.InstancedMesh(geometry, material, positions.length / 3);
         object.instanceMatrix.setUsage(THREE.DynamicDrawUsage);
 
         modelMatrix.set.apply(modelMatrix, config.model_matrix.data);
@@ -119,11 +115,11 @@ module.exports = {
         return Promise.resolve(object);
     },
 
-    update: function (config, changes, obj) {
-        var resolvedChanges = {};
+    update(config, changes, obj) {
+        const resolvedChanges = {};
 
-        if (typeof (changes.positions) !== 'undefined' && !changes.positions.timeSeries &&
-            changes.positions.data.length === obj.geometry.attributes.position.array.length) {
+        if (typeof (changes.positions) !== 'undefined' && !changes.positions.timeSeries
+            && changes.positions.data.length === obj.geometry.attributes.position.array.length) {
             obj.geometry.attributes.position.array.set(changes.positions.data);
             obj.geometry.attributes.position.needsUpdate = true;
 
@@ -133,14 +129,13 @@ module.exports = {
             resolvedChanges.positions = null;
         }
 
-        if (((typeof (changes.color_map) !== 'undefined' && !changes.color_map.timeSeries) ||
-            (typeof (changes.opacity_function) !== 'undefined' && !changes.opacity_function.timeSeries)) &&
-            obj.geometry.attributes.attributes) {
-
-            var canvas = colorMapHelper.createCanvasGradient(
+        if (((typeof (changes.color_map) !== 'undefined' && !changes.color_map.timeSeries)
+            || (typeof (changes.opacity_function) !== 'undefined' && !changes.opacity_function.timeSeries))
+            && obj.geometry.attributes.attributes) {
+            const canvas = colorMapHelper.createCanvasGradient(
                 (changes.color_map && changes.color_map.data) || config.color_map.data,
                 1024,
-                (changes.opacity_function && changes.opacity_function.data) || config.opacity_function.data
+                (changes.opacity_function && changes.opacity_function.data) || config.opacity_function.data,
             );
 
             obj.material.uniforms.colormap.value.image = canvas;
@@ -150,18 +145,17 @@ module.exports = {
             resolvedChanges.opacity_function = null;
         }
 
-        if (typeof (changes.color_range) !== 'undefined' && !changes.color_range.timeSeries &&
-            obj.geometry.attributes.attributes) {
+        if (typeof (changes.color_range) !== 'undefined' && !changes.color_range.timeSeries
+            && obj.geometry.attributes.attributes) {
             obj.material.uniforms.low.value = changes.color_range[0];
             obj.material.uniforms.high.value = changes.color_range[1];
 
             resolvedChanges.color_range = null;
         }
 
-        if (typeof (changes.attribute) !== 'undefined' && !changes.attribute.timeSeries &&
-            obj.geometry.attributes.attributes &&
-            changes.attribute.data.length === obj.geometry.attributes.attributes.array.length) {
-
+        if (typeof (changes.attribute) !== 'undefined' && !changes.attribute.timeSeries
+            && obj.geometry.attributes.attributes
+            && changes.attribute.data.length === obj.geometry.attributes.attributes.array.length) {
             obj.geometry.attributes.attributes.array.set(changes.attribute.data);
             obj.geometry.attributes.attributes.needsUpdate = true;
 
@@ -171,9 +165,8 @@ module.exports = {
         commonUpdate(config, changes, resolvedChanges, obj);
 
         if (areAllChangesResolve(changes, resolvedChanges)) {
-            return Promise.resolve({json: config, obj: obj});
-        } else {
-            return false;
+            return Promise.resolve({ json: config, obj });
         }
-    }
+        return false;
+    },
 };

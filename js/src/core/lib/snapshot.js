@@ -1,26 +1,25 @@
-'use strict';
+const FileSaver = require('file-saver');
+const pako = require('pako');
+const fileLoader = require('./helpers/fileLoader');
+const templateStandalone = require('./snapshot_standalone.txt');
+const templateOnline = require('./snapshot_online.txt');
+const requireJsSource = require('../../../node_modules/requirejs/require?raw');
+const pakoJsSource = require('../../../node_modules/pako/dist/pako_inflate.min?raw');
+const semverRange = require('../../version').version;
+const buffer = require('./helpers/buffer');
 
-var FileSaver = require('file-saver');
-var pako = require('pako');
-var fileLoader = require('./helpers/fileLoader');
-var templateStandalone = require('raw-loader!./snapshot_standalone.txt');
-var templateOnline = require('raw-loader!./snapshot_online.txt');
-var requireJsSource = require('raw-loader!./../../../node_modules/requirejs/require.js');
-var pakoJsSource = require('raw-loader!./../../../node_modules/pako/dist/pako_inflate.min.js');
-var semverRange = require('./../../version').version;
-
-var sourceCode = window.k3dCompressed;
-var scripts = document.getElementsByTagName('script');
-var path;
+let sourceCode = window.k3dCompressed;
+const scripts = document.getElementsByTagName('script');
+let path;
 
 if (typeof (sourceCode) === 'undefined') {
     sourceCode = '';
 
-    for (var i = 0; i < scripts.length; i++) {
+    for (let i = 0; i < scripts.length; i++) {
         // working in jupyter notebooks
-        if (scripts[i].getAttribute('src') &&
-            scripts[i].getAttribute('src').includes('k3d') &&
-            scripts[i].getAttribute('src').includes('.js')) {
+        if (scripts[i].getAttribute('src')
+            && scripts[i].getAttribute('src').includes('k3d')
+            && scripts[i].getAttribute('src').includes('.js')) {
             path = scripts[i].getAttribute('src');
         }
     }
@@ -29,57 +28,56 @@ if (typeof (sourceCode) === 'undefined') {
         path = path.replace('k3d.js', 'standalone.js').replace('index.js', 'standalone.js');
     } else {
         // use npm repository
-        path = 'https://unpkg.com/k3d@' + semverRange + '/dist/standalone.js';
+        path = `https://unpkg.com/k3d@${semverRange}/dist/standalone.js`;
     }
 
-    fileLoader(path, function (data) {
-        sourceCode = btoa(pako.deflate(data, {to: 'string', level: 9}));
+    fileLoader(path, (data) => {
+        sourceCode = buffer.arrayBufferToBase64(pako.deflate(data));
     });
 }
 
 function getHTMLSnapshot(K3D, compressionLevel) {
-    var data = K3D.getSnapshot(compressionLevel),
-        filecontent,
-        timestamp = new Date().toUTCString();
+    const data = buffer.arrayBufferToBase64(K3D.getSnapshot(compressionLevel));
+    let filecontent;
+    const timestamp = new Date().toUTCString();
 
     if (K3D.parameters.snapshotIncludeJs) {
         filecontent = templateStandalone;
-        filecontent = filecontent.replace('[REQUIRE_JS]', requireJsSource);
-        filecontent = filecontent.replace('[PAKO_JS]', pakoJsSource);
-        filecontent = filecontent.replace('[K3D_SOURCE]', sourceCode);
-
+        filecontent = filecontent.split('[REQUIRE_JS]').join(requireJsSource);
+        filecontent = filecontent.split('[PAKO_JS]').join(pakoJsSource);
+        filecontent = filecontent.split('[K3D_SOURCE]').join(sourceCode);
     } else {
         filecontent = templateOnline;
-        filecontent = filecontent.replace('[VERSION]', K3D.parameters.guiVersion);
+        filecontent = filecontent.split('[VERSION]').join(K3D.parameters.guiVersion);
     }
 
-    filecontent = filecontent.replace('[DATA]', btoa(data));
-    filecontent = filecontent.replace('[PARAMS]', JSON.stringify(K3D.parameters));
-    filecontent = filecontent.replace('[CAMERA]', JSON.stringify(K3D.getWorld().controls.getCameraArray()));
-    filecontent = filecontent.replace('[TIMESTAMP]', timestamp);
-    filecontent = filecontent.replace('[ADDITIONAL]', '//[ADDITIONAL]');
+    filecontent = filecontent.split('[DATA]').join(data);
+    filecontent = filecontent.split('[PARAMS]').join(JSON.stringify(K3D.parameters));
+    filecontent = filecontent.split('[CAMERA]').join(JSON.stringify(K3D.getWorld().controls.getCameraArray()));
+    filecontent = filecontent.split('[TIMESTAMP]').join(timestamp);
+    filecontent = filecontent.split('[ADDITIONAL]').join('//[ADDITIONAL]');
 
     return filecontent;
 }
 
 function handleFileSelect(K3D, evt) {
-    var files = evt.dataTransfer.files,
-        snapshotReader = new FileReader(),
-        STLReader = new FileReader();
+    const { files } = evt.dataTransfer;
+    const snapshotReader = new FileReader();
+    const STLReader = new FileReader();
 
     evt.stopPropagation();
     evt.preventDefault();
 
     snapshotReader.onload = function (event) {
-        var snapshot = K3D.extractSnapshot(event.target.result);
+        const snapshot = K3D.extractSnapshot(event.target.result);
 
         if (snapshot[1]) {
-            K3D.setSnapshot(atob(snapshot[1]));
+            K3D.setSnapshot(snapshot[1]);
         }
     };
 
     STLReader.onload = function (event) {
-        var stl = event.target.result;
+        const stl = event.target.result;
 
         K3D.load({
             objects: [{
@@ -89,14 +87,14 @@ function handleFileSelect(K3D, evt) {
                         1, 0, 0, 0,
                         0, 1, 0, 0,
                         0, 0, 1, 0,
-                        0, 0, 0, 1]
+                        0, 0, 0, 1],
                 },
                 binary: stl,
                 visible: true,
                 color: 0x0000ff,
                 wireframe: false,
-                flat_shading: false
-            }]
+                flat_shading: false,
+            }],
         });
     };
 
@@ -118,31 +116,29 @@ function handleDragOver(evt) {
 }
 
 function snapshotGUI(gui, K3D) {
-    var obj = {
-            snapshot: function () {
-                var data = getHTMLSnapshot(K3D, 9),
-                    filename = 'K3D-snapshot-' + Date.now() + '.html';
+    const obj = {
+        snapshot() {
+            let data = getHTMLSnapshot(K3D, 9);
+            let filename = `K3D-snapshot-${Date.now()}.html`;
 
-                if (K3D.parameters.name) {
-                    filename = K3D.parameters.name + '.html';
-                }
-
-                data = new Blob([data], {type: 'text/plain;charset=utf-8'});
-                FileSaver.saveAs(data, filename);
+            if (K3D.parameters.name) {
+                filename = `${K3D.parameters.name}.html`;
             }
-        },
-        targetDomNode;
 
+            data = new Blob([data], { type: 'text/plain;charset=utf-8' });
+            FileSaver.saveAs(data, filename);
+        },
+    };
     gui.add(obj, 'snapshot').name('Snapshot HTML');
 
     // Setup the dnd listeners.
-    targetDomNode = K3D.getWorld().targetDOMNode;
+    const targetDomNode = K3D.getWorld().targetDOMNode;
 
     targetDomNode.addEventListener('dragover', handleDragOver, false);
     targetDomNode.addEventListener('drop', handleFileSelect.bind(null, K3D), false);
 }
 
 module.exports = {
-    snapshotGUI: snapshotGUI,
-    getHTMLSnapshot: getHTMLSnapshot
+    snapshotGUI,
+    getHTMLSnapshot,
 };
