@@ -161,5 +161,5 @@ function toScreenPosition(obj, viewport, camera) {
 }
 
 function colorToHex(color) {
-    return '#' + color.getHexString();
+    return '#' + new THREE.Color(color).getHexString();
 }
