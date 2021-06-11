@@ -1,13 +1,10 @@
-'use strict';
-
-var threeMeshBVH = require('three-mesh-bvh'),
-    intersectCallback = require('./../interactions/intersectCallback');
+const threeMeshBVH = require('three-mesh-bvh');
+const intersectCallback = require('../interactions/intersectCallback');
 // THREE = require('three'),
 // viewModes = require('./../../../core/lib/viewMode').viewModes;
 
 module.exports = {
-    init: function (config, object, K3D) {
-
+    init(config, object, K3D) {
         object.startInteraction = function () {
             if (!object.interactions) {
                 object.geometry.boundsTree = new threeMeshBVH.MeshBVH(object.geometry);
@@ -40,8 +37,8 @@ module.exports = {
         // return o;
     },
 
-    update: function (config, changes, resolvedChanges, obj) {
-        if (typeof(changes.click_callback) !== 'undefined' || typeof(changes.hover_callback) !== 'undefined') {
+    update(config, changes, resolvedChanges, obj) {
+        if (typeof (changes.click_callback) !== 'undefined' || typeof (changes.hover_callback) !== 'undefined') {
             if ((changes.click_callback || changes.hover_callback)) {
                 obj.startInteraction();
             }
@@ -53,5 +50,5 @@ module.exports = {
             resolvedChanges.click_callback = null;
             resolvedChanges.hover_callback = null;
         }
-    }
+    },
 };

@@ -1,21 +1,19 @@
-'use strict';
-
-var VoxelsHelper = require('./../helpers/Voxels'),
-    areAllChangesResolve = require('./../helpers/Fn').areAllChangesResolve,
-    commonUpdate = require('./../helpers/Fn').commonUpdate;
+const VoxelsHelper = require('../helpers/Voxels');
+const { areAllChangesResolve } = require('../helpers/Fn');
+const { commonUpdate } = require('../helpers/Fn');
 
 function K3DVoxelsMap(config) {
-    var newArray;
+    let newArray;
 
     this._map = new Map();
 
     this.set = function (x, y, z, value, updateSparseVoxels) {
-        var v = config.sparse_voxels.data;
+        const v = config.sparse_voxels.data;
 
         this._map.set((z * config.space_size.data[0] + y) * config.space_size.data[1] + x, value);
 
         if (updateSparseVoxels) {
-            for (var i = 0; i < v.length; i += 4) {
+            for (let i = 0; i < v.length; i += 4) {
                 if (v[i] === x && v[i + 1] === y && v[i + 2] === z) {
                     if (value === 0) {
                         // Remove
@@ -59,10 +57,10 @@ function K3DVoxelsMap(config) {
  * @param {Object} K3D
  */
 module.exports = {
-    create: function (config, K3D) {
-        var v = config.sparse_voxels.data,
-            voxels = new K3DVoxelsMap(config),
-            i;
+    create(config, K3D) {
+        const v = config.sparse_voxels.data;
+        const voxels = new K3DVoxelsMap(config);
+        let i;
 
         for (i = 0; i < v.length; i += 4) {
             voxels.set(v[i], v[i + 1], v[i + 2], v[i + 3], false);
@@ -71,22 +69,21 @@ module.exports = {
         return VoxelsHelper.create(
             config,
             VoxelsHelper.generateRegularChunks(
-                32, [config.space_size.data[2], config.space_size.data[1], config.space_size.data[0]], voxels
+                32, [config.space_size.data[2], config.space_size.data[1], config.space_size.data[0]], voxels,
             ),
             config.space_size.data,
-            K3D
+            K3D,
         );
     },
 
-    update: function (config, changes, obj) {
-        var resolvedChanges = {};
+    update(config, changes, obj) {
+        const resolvedChanges = {};
 
         commonUpdate(config, changes, resolvedChanges, obj);
 
         if (areAllChangesResolve(changes, resolvedChanges)) {
-            return Promise.resolve({json: config, obj: obj});
-        } else {
-            return false;
+            return Promise.resolve({ json: config, obj });
         }
-    }
+        return false;
+    },
 };

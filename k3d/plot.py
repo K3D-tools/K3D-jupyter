@@ -36,6 +36,8 @@ class Plot(widgets.DOMWidget):
             Multipiler to screenshot resolution.
         voxel_paint_color: `int`.
             The (initial) int value to be inserted when editing voxels.
+        label_color: `int`.
+            Packed RGB color of the labels (0xff0000 is red, 0xff is blue).
         lighting: `Float`.
             Lighting factor.
         grid: `array_like`.
@@ -56,6 +58,8 @@ class Plot(widgets.DOMWidget):
             Speed of camera pan.
         camera_fov: `Float`.
             Camera Field of View.
+        camera_damping_factor: `Float`.
+            Defines the intensity of damping. Default is 0 (disabled).
         snapshot_include_js: `Bool`.
             If it's true snapshot html is standalone.
         axes: `list`.
@@ -106,10 +110,10 @@ class Plot(widgets.DOMWidget):
             List of `k3d.objects.Drawable` currently included in the plot, not to be changed directly.
     """
 
-    _view_name = Unicode('PlotView').tag(sync=True)
-    _model_name = Unicode('PlotModel').tag(sync=True)
-    _view_module = Unicode('k3d').tag(sync=True)
-    _model_module = Unicode('k3d').tag(sync=True)
+    _view_name = Unicode("PlotView").tag(sync=True)
+    _model_name = Unicode("PlotModel").tag(sync=True)
+    _view_module = Unicode("k3d").tag(sync=True)
+    _model_module = Unicode("k3d").tag(sync=True)
 
     _view_module_version = Unicode(version).tag(sync=True)
     _model_module_version = Unicode(version).tag(sync=True)
@@ -136,6 +140,7 @@ class Plot(widgets.DOMWidget):
     time = Float().tag(sync=True)
     grid = ListOrArray((-1, -1, -1, 1, 1, 1), minlen=6, maxlen=6).tag(sync=True)
     grid_color = Int().tag(sync=True)
+    label_color = Int().tag(sync=True)
     background_color = Int().tag(sync=True)
     voxel_paint_color = Int().tag(sync=True)
     camera = ListOrArray(minlen=9, maxlen=9, empty_ok=True).tag(sync=True)
@@ -146,6 +151,7 @@ class Plot(widgets.DOMWidget):
     camera_rotate_speed = Float().tag(sync=True)
     camera_zoom_speed = Float().tag(sync=True)
     camera_pan_speed = Float().tag(sync=True)
+    camera_damping_factor = Float().tag(sync=True)
     clipping_planes = ListOrArray(empty_ok=True).tag(sync=True)
     colorbar_object_id = Int(-1).tag(sync=True)
     colorbar_scientific = Bool(False).tag(sync=True)
@@ -154,7 +160,7 @@ class Plot(widgets.DOMWidget):
     snapshot = Unicode().tag(sync=True)
     camera_fov = Float().tag(sync=True)
     name = Unicode(default_value=None, allow_none=True).tag(sync=True)
-    axes = List(minlen=3, maxlen=3, default_value=['x', 'y', 'z']).tag(sync=True)
+    axes = List(minlen=3, maxlen=3, default_value=["x", "y", "z"]).tag(sync=True)
     axes_helper = Float().tag(sync=True)
     mode = Unicode().tag(sync=True)
     camera_mode = Unicode().tag(sync=True)
@@ -162,15 +168,45 @@ class Plot(widgets.DOMWidget):
 
     objects = []
 
-    def __init__(self, antialias=3, background_color=0xFFFFFF, camera_auto_fit=True, grid_auto_fit=True,
-                 grid_visible=True, height=512, voxel_paint_color=0, grid=(-1, -1, -1, 1, 1, 1), screenshot_scale=2.0,
-                 lighting=1.5, time=0.0, fps_meter=False, menu_visibility=True, colorbar_object_id=-1,
-                 rendering_steps=1, axes=['x', 'y', 'z'], camera_no_rotate=False,
-                 camera_no_zoom=False, camera_rotate_speed=1.0, camera_zoom_speed=1.2, camera_pan_speed=0.3,
-                 snapshot_include_js=True, camera_no_pan=False, camera_fov=45.0, axes_helper=1.0,
-                 name=None, mode='view', camera_mode='trackball', manipulate_mode='translate', auto_rendering=True,
-                 fps=25.0,
-                 grid_color=0xe6e6e6, *args, **kwargs):
+    def __init__(
+        self,
+        antialias=3,
+        background_color=0xFFFFFF,
+        camera_auto_fit=True,
+        grid_auto_fit=True,
+        grid_visible=True,
+        height=512,
+        voxel_paint_color=0,
+        grid=(-1, -1, -1, 1, 1, 1),
+        screenshot_scale=2.0,
+        lighting=1.5,
+        time=0.0,
+        fps_meter=False,
+        menu_visibility=True,
+        colorbar_object_id=-1,
+        rendering_steps=1,
+        axes=["x", "y", "z"],
+        camera_no_rotate=False,
+        camera_no_zoom=False,
+        camera_rotate_speed=1.0,
+        camera_zoom_speed=1.2,
+        camera_pan_speed=0.3,
+        snapshot_include_js=True,
+        camera_no_pan=False,
+        camera_fov=45.0,
+        camera_damping_factor=0.0,
+        axes_helper=1.0,
+        name=None,
+        mode="view",
+        camera_mode="trackball",
+        manipulate_mode="translate",
+        auto_rendering=True,
+        fps=25.0,
+        grid_color=0xE6E6E6,
+        label_color=0x444444,
+        *args,
+        **kwargs
+    ):
         super(Plot, self).__init__()
 
         self.antialias = antialias
@@ -182,6 +218,7 @@ class Plot(widgets.DOMWidget):
         self.grid_visible = grid_visible
         self.background_color = background_color
         self.grid_color = grid_color
+        self.label_color = label_color
         self.voxel_paint_color = voxel_paint_color
         self.screenshot_scale = screenshot_scale
         self.height = height
@@ -196,6 +233,7 @@ class Plot(widgets.DOMWidget):
         self.camera_rotate_speed = camera_rotate_speed
         self.camera_zoom_speed = camera_zoom_speed
         self.camera_pan_speed = camera_pan_speed
+        self.camera_damping_factor = camera_damping_factor
         self.camera_fov = camera_fov
         self.axes = axes
         self.axes_helper = axes_helper
@@ -249,15 +287,15 @@ class Plot(widgets.DOMWidget):
         """Trigger rendering on demand.
 
         Useful when self.auto_rendering == False."""
-        self.send({'msg_type': 'render'})
+        self.send({"msg_type": "render"})
 
     def start_auto_play(self):
         """Start animation of plot with objects using TimeSeries."""
-        self.send({'msg_type': 'start_auto_play'})
+        self.send({"msg_type": "start_auto_play"})
 
     def stop_auto_play(self):
         """Stop animation of plot with objects using TimeSeries."""
-        self.send({'msg_type': 'stop_auto_play'})
+        self.send({"msg_type": "stop_auto_play"})
 
     def close(self):
         """Remove plot from all its ipywidgets.Output()-s."""
@@ -270,15 +308,22 @@ class Plot(widgets.DOMWidget):
         """Trigger auto-adjustment of camera.
 
         Useful when self.camera_auto_fit == False."""
-        self.send({'msg_type': 'reset_camera', 'factor': factor})
+        self.send({"msg_type": "reset_camera", "factor": factor})
 
     def get_auto_grid(self):
         d = np.stack([o.get_bounding_box() for o in self.objects])
 
-        return np.dstack([np.min(d[:, 0::2], axis=0), np.max(d[:, 1::2], axis=0)]).flatten()
+        return np.dstack(
+            [np.min(d[:, 0::2], axis=0), np.max(d[:, 1::2], axis=0)]
+        ).flatten()
 
-    def get_auto_camera(self, factor=1.5, yaw=25, pitch=15):
-        bounds = self.get_auto_grid()
+    def get_auto_camera(self, factor=1.5, yaw=25, pitch=15, bounds=None):
+        """ Compute the camera vector from the specified parameters. If `bounds`
+        is not provided, then the algorithm will obtain it from the available
+        meshes.
+        """
+        if bounds is None:
+            bounds = self.get_auto_grid()
         center = (bounds[::2] + bounds[1::2]) / 2.0
         radius = 0.5 * np.sum(np.abs(bounds[::2] - bounds[1::2]) ** 2) ** 0.5
         cam_distance = radius * factor / np.sin(np.deg2rad(self.camera_fov / 2.0))
@@ -296,8 +341,12 @@ class Plot(widgets.DOMWidget):
             center[0] + x * cam_distance,
             center[1] + y * cam_distance,
             center[2] + z * cam_distance,
-            center[0], center[1], center[2],
-            up[0], up[1], up[2]
+            center[0],
+            center[1],
+            center[2],
+            up[0],
+            up[1],
+            up[2],
         ]
 
     def fetch_screenshot(self, only_canvas=False):
@@ -306,7 +355,7 @@ class Plot(widgets.DOMWidget):
         The result is a string of a PNG file in base64 encoding.
         This function requires a round-trip of websocket messages. The result will
         be available after the current cell finishes execution."""
-        self.send({'msg_type': 'fetch_screenshot', 'only_canvas': only_canvas})
+        self.send({"msg_type": "fetch_screenshot", "only_canvas": only_canvas})
 
     def yield_screenshots(self, generator_function):
         """Decorator for a generator function receiving screenshots via yield."""
@@ -319,9 +368,9 @@ class Plot(widgets.DOMWidget):
                 try:
                     generator.send(base64.b64decode(change.new))
                 except StopIteration:
-                    self.unobserve(send_new_value, 'screenshot')
+                    self.unobserve(send_new_value, "screenshot")
 
-            self.observe(send_new_value, 'screenshot')
+            self.observe(send_new_value, "screenshot")
             # start the decorated generator
             generator.send(None)
 
@@ -333,7 +382,9 @@ class Plot(widgets.DOMWidget):
         The result is a string: a HTML document with this plot embedded.
         This function requires a round-trip of websocket messages. The result will
         be available after the current cell finishes execution."""
-        self.send({'msg_type': 'fetch_snapshot', 'compression_level': compression_level})
+        self.send(
+            {"msg_type": "fetch_snapshot", "compression_level": compression_level}
+        )
 
     def yield_snapshots(self, generator_function):
         """Decorator for a generator function receiving snapshots via yield."""
@@ -346,9 +397,9 @@ class Plot(widgets.DOMWidget):
                 try:
                     generator.send(base64.b64decode(change.new))
                 except StopIteration:
-                    self.unobserve(send_new_value, 'snapshot')
+                    self.unobserve(send_new_value, "snapshot")
 
-            self.observe(send_new_value, 'snapshot')
+            self.observe(send_new_value, "snapshot")
             # start the decorated generator
             generator.send(None)
 
@@ -358,18 +409,15 @@ class Plot(widgets.DOMWidget):
         import msgpack
         from .helpers import to_json
 
-        snapshot = {
-            "objects": [],
-            "chunkList": []
-        }
+        snapshot = {"objects": [], "chunkList": []}
 
         for o in self.objects:
             obj = {}
             for k, v in o.traits().items():
-                if 'sync' in v.metadata:
-                    obj[k] = to_json(k, o[k], o, o['compression_level'])
+                if "sync" in v.metadata:
+                    obj[k] = to_json(k, o[k], o, o["compression_level"])
 
-            snapshot['objects'].append(obj)
+            snapshot["objects"].append(obj)
 
         return msgpack.packb(snapshot, use_bin_type=True)
 
@@ -382,6 +430,7 @@ class Plot(widgets.DOMWidget):
             "gridVisible": self.grid_visible,
             "grid": self.grid,
             "gridColor": self.grid_color,
+            "labelColor": self.label_color,
             "antialias": self.antialias,
             "screenshotScale": self.screenshot_scale,
             "clearColor": self.background_color,
@@ -398,14 +447,15 @@ class Plot(widgets.DOMWidget):
             "cameraRotateSpeed": self.camera_rotate_speed,
             "cameraZoomSpeed": self.camera_zoom_speed,
             "cameraPanSpeed": self.camera_pan_speed,
+            "cameraDampingFactor": self.camera_damping_factor,
             "name": self.name,
             "camera_fov": self.camera_fov,
             "axesHelper": self.axes_helper,
             "cameraAnimation": self.camera_animation,
-            "fps": self.fps
+            "fps": self.fps,
         }
 
-    def get_snapshot(self, compression_level=9, additional_js_code=''):
+    def get_snapshot(self, compression_level=9, additional_js_code=""):
         """Produce on the Python side a HTML document with the current plot embedded."""
         import os
         import io
@@ -417,37 +467,59 @@ class Plot(widgets.DOMWidget):
         data = base64.b64encode(zlib.compress(data, compression_level))
 
         if self.snapshot_include_js:
-            f = io.open(os.path.join(dir_path, 'static', 'snapshot_standalone.txt'), mode="r", encoding="utf-8")
+            f = io.open(
+                os.path.join(dir_path, "static", "snapshot_standalone.txt"),
+                mode="r",
+                encoding="utf-8",
+            )
             template = f.read()
             f.close()
 
-            f = io.open(os.path.join(dir_path, 'static', 'standalone.js'), mode="r", encoding="utf-8")
-            template = template.replace('[K3D_SOURCE]',
-                                        base64.b64encode(zlib.compress(f.read().encode(), compression_level)).decode(
-                                            "utf-8")
-                                        )
+            f = io.open(
+                os.path.join(dir_path, "static", "standalone.js"),
+                mode="r",
+                encoding="utf-8",
+            )
+            template = template.replace(
+                "[K3D_SOURCE]",
+                base64.b64encode(
+                    zlib.compress(f.read().encode(), compression_level)
+                ).decode("utf-8"),
+            )
             f.close()
 
-            f = io.open(os.path.join(dir_path, 'static', 'require.js'), mode="r", encoding="utf-8")
-            template = template.replace('[REQUIRE_JS]', f.read())
+            f = io.open(
+                os.path.join(dir_path, "static", "require.js"),
+                mode="r",
+                encoding="utf-8",
+            )
+            template = template.replace("[REQUIRE_JS]", f.read())
             f.close()
 
-            f = io.open(os.path.join(dir_path, 'static', 'pako_inflate.min.js'), mode="r", encoding="utf-8")
-            template = template.replace('[PAKO_JS]', f.read())
+            f = io.open(
+                os.path.join(dir_path, "static", "pako_inflate.min.js"),
+                mode="r",
+                encoding="utf-8",
+            )
+            template = template.replace("[PAKO_JS]", f.read())
             f.close()
         else:
-            f = io.open(os.path.join(dir_path, 'static', 'snapshot_online.txt'), mode="r", encoding="utf-8")
+            f = io.open(
+                os.path.join(dir_path, "static", "snapshot_online.txt"),
+                mode="r",
+                encoding="utf-8",
+            )
             template = f.read()
             f.close()
 
-            template = template.replace('[VERSION]', self._view_module_version)
+            template = template.replace("[VERSION]", self._view_module_version)
 
-        template = template.replace('[DATA]', data.decode("utf-8"))
+        template = template.replace("[DATA]", data.decode("utf-8"))
 
         params = self.get_snapshot_params()
 
-        template = template.replace('[PARAMS]', json.dumps(params))
-        template = template.replace('[CAMERA]', str(self.camera))
-        template = template.replace('[ADDITIONAL]', additional_js_code)
+        template = template.replace("[PARAMS]", json.dumps(params))
+        template = template.replace("[CAMERA]", str(self.camera))
+        template = template.replace("[ADDITIONAL]", additional_js_code)
 
         return template

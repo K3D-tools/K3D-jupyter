@@ -1,5 +1,3 @@
-'use strict';
-
 /**
  * Validates and setups the defaults for given object assuming it's an object of given K3D type for further drawing
  * @method validateAndPrepareObject
@@ -10,18 +8,17 @@
  */
 
 module.exports = function (K3D, object) {
-
-    var isObject = typeof (object) === 'object',
-        hasType = isObject && object.hasOwnProperty('type'),
-        hasValidType = hasType && K3D.Provider.hasOwnProperty('Objects') &&
-            K3D.Provider.Objects.hasOwnProperty(object.type);
+    const isObject = typeof (object) === 'object';
+    const hasType = isObject && object.hasOwnProperty('type');
+    const hasValidType = hasType && K3D.Provider.hasOwnProperty('Objects')
+            && K3D.Provider.Objects.hasOwnProperty(object.type);
 
     if (!isObject) {
         throw new Error('Object definition should be a valid javascript object!');
     } else if (!hasType) {
         throw new Error('Object definition should have a `type` attribute set!');
     } else if (!hasValidType) {
-        throw new Error('Unknown object type (' + object.type + ') passed, no loader supporting it found!');
+        throw new Error(`Unknown object type (${object.type}) passed, no loader supporting it found!`);
     }
 
     return object;

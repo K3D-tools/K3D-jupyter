@@ -1,7 +1,6 @@
-'use strict';
-var THREE = require('three'),
-    createCanvasGradient = require('./../../../core/lib/helpers/colorMap').createCanvasGradient,
-    Float16Array = require('./../../../core/lib/helpers/float16Array');
+const THREE = require('three');
+const { createCanvasGradient } = require('../../../core/lib/helpers/colorMap');
+const Float16Array = require('../../../core/lib/helpers/float16Array');
 
 function getSpaceDimensionsFromTargetElement(world) {
     return [world.targetDOMNode.offsetWidth, world.targetDOMNode.offsetHeight];
@@ -15,7 +14,7 @@ module.exports = {
      * @param {Number} x
      * @returns {Number}
      */
-    closestPowOfTwo: function (x) {
+    closestPowOfTwo(x) {
         return Math.pow(2, Math.ceil(Math.log(x) / Math.log(2)));
     },
 
@@ -27,7 +26,7 @@ module.exports = {
      * @memberof K3D.Providers.ThreeJS.Helpers
      * @returns {Object}
      */
-    getObjectById: function (world, id) {
+    getObjectById(world, id) {
         return world.ObjectsById[id];
     },
 
@@ -38,7 +37,7 @@ module.exports = {
      * @memberof K3D.Providers.ThreeJS.Helpers
      * @returns {Array.<Number,Number>}
      */
-    getSpaceDimensionsFromTargetElement: getSpaceDimensionsFromTargetElement,
+    getSpaceDimensionsFromTargetElement,
 
     /**
      * Window resize listener
@@ -46,8 +45,8 @@ module.exports = {
      * @method resizeListener
      * @memberof K3D.Providers.ThreeJS.Helpers
      */
-    resizeListener: function (world) {
-        var dimensions = getSpaceDimensionsFromTargetElement(world);
+    resizeListener(world) {
+        const dimensions = getSpaceDimensionsFromTargetElement(world);
 
         world.width = dimensions[0];
         world.height = dimensions[1];
@@ -65,9 +64,9 @@ module.exports = {
      * @param  {Number} size
      * @return {Float32Array}
      */
-    getColorsArray: function (color, size) {
-        var colors = new Float32Array(size * 3),
-            i;
+    getColorsArray(color, size) {
+        const colors = new Float32Array(size * 3);
+        let i;
 
         for (i = 0; i < colors.length; i += 3) {
             colors[i] = color.r;
@@ -86,9 +85,9 @@ module.exports = {
      * @param  {Number} size
      * @return {Float32Array}
      */
-    getTwoColorsArray: function (color1, color2, size) {
-        var colors = new Float32Array(size * 3),
-            i;
+    getTwoColorsArray(color1, color2, size) {
+        const colors = new Float32Array(size * 3);
+        let i;
 
         for (i = 0; i < colors.length; i += 6) {
             colors[i] = color1.r;
@@ -109,7 +108,7 @@ module.exports = {
      * @param  {Box3} bbox
      * @param  {Number} delta
      */
-    expandBoundingBox: function (bbox, delta) {
+    expandBoundingBox(bbox, delta) {
         bbox.min.x -= delta;
         bbox.max.x += delta;
         bbox.min.y -= delta;
@@ -129,16 +128,15 @@ module.exports = {
      * @param  {THREE.Color} headColor
      * @param  {Number} headHeight
      */
-    generateArrow: function (coneGeometry, lineVertices, heads, origin,
-                             destination, headColor, headHeight) {
-
-        var axis = new THREE.Vector3(),
-            direction = new THREE.Vector3().subVectors(destination, origin),
-            length = direction.length(),
-            colors = [],
-            i,
-            quaternion = new THREE.Quaternion(),
-            lineDestination;
+    generateArrow(coneGeometry, lineVertices, heads, origin,
+        destination, headColor, headHeight) {
+        const axis = new THREE.Vector3();
+        const direction = new THREE.Vector3().subVectors(destination, origin);
+        const length = direction.length();
+        const colors = [];
+        let i;
+        let quaternion = new THREE.Quaternion();
+        let lineDestination;
 
         direction.normalize();
 
@@ -150,7 +148,7 @@ module.exports = {
             coneGeometry = coneGeometry.clone();
 
             lineDestination = new THREE.Vector3().copy(origin).add(
-                direction.clone().multiplyScalar(length - headHeight)
+                direction.clone().multiplyScalar(length - headHeight),
             );
 
             lineVertices.push(lineDestination.x, lineDestination.y, lineDestination.z);
@@ -187,18 +185,19 @@ module.exports = {
         return heads;
     },
 
-    handleColorMap: function (geometry, colorMap, colorRange, attributes, material) {
-        var canvas, texture, uvs, i;
+    handleColorMap(geometry, colorMap, colorRange, attributes, material) {
+        let uvs;
+        let i;
 
-        canvas = createCanvasGradient(colorMap, 1024);
+        const canvas = createCanvasGradient(colorMap, 1024);
 
-        texture = new THREE.CanvasTexture(canvas, THREE.UVMapping, THREE.ClampToEdgeWrapping,
+        const texture = new THREE.CanvasTexture(canvas, THREE.UVMapping, THREE.ClampToEdgeWrapping,
             THREE.ClampToEdgeWrapping, THREE.NearestFilter, THREE.NearestFilter);
         texture.needsUpdate = true;
 
         material.setValues({
             map: texture,
-            color: 0xffffff
+            color: 0xffffff,
         });
 
         if (attributes) {
@@ -212,7 +211,7 @@ module.exports = {
         }
     },
 
-    typedArrayToThree: function (creator) {
+    typedArrayToThree(creator) {
         if (creator === Int16Array) {
             return THREE.ShortType;
         }
@@ -228,23 +227,23 @@ module.exports = {
         if (creator === Float32Array) {
             return THREE.FloatType;
         }
+
+        return null;
     },
 
-    areAllChangesResolve: function (changes, resolvedChanges) {
-        return Object.keys(changes).every(function (key) {
-            return typeof (resolvedChanges[key]) !== 'undefined';
-        });
+    areAllChangesResolve(changes, resolvedChanges) {
+        return Object.keys(changes).every((key) => typeof (resolvedChanges[key]) !== 'undefined');
     },
 
-    recalculateFrustum: function (camera) {
+    recalculateFrustum(camera) {
         camera.frustum.setFromProjectionMatrix(new THREE.Matrix4().multiplyMatrices(
-            camera.projectionMatrix, camera.matrixWorldInverse
+            camera.projectionMatrix, camera.matrixWorldInverse,
         ));
     },
 
-    commonUpdate: function (config, changes, resolvedChanges, obj) {
+    commonUpdate(config, changes, resolvedChanges, obj) {
         if (typeof (changes.model_matrix) !== 'undefined' && !changes.model_matrix.timeSeries) {
-            var modelMatrix = new THREE.Matrix4();
+            const modelMatrix = new THREE.Matrix4();
 
             modelMatrix.set.apply(modelMatrix, changes.model_matrix.data);
 
@@ -274,11 +273,11 @@ module.exports = {
         }
     },
 
-    getSide: function (config) {
-        var map = {
-            'front': THREE.FrontSide,
-            'back': THREE.BackSide,
-            'double': THREE.DoubleSide
+    getSide(config) {
+        const map = {
+            front: THREE.FrontSide,
+            back: THREE.BackSide,
+            double: THREE.DoubleSide,
         };
 
         if (config.opacity < 1.0) {
@@ -290,5 +289,5 @@ module.exports = {
         }
 
         return map[config.side] || map.front;
-    }
+    },
 };

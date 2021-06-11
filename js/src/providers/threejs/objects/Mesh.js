@@ -1,7 +1,5 @@
-'use strict';
-
-var MeshStandard = require('./MeshStandard'),
-    MeshVolume = require('./MeshVolume');
+const MeshStandard = require('./MeshStandard');
+const MeshVolume = require('./MeshVolume');
 
 /**
  * Loader strategy to handle Mesh object
@@ -12,28 +10,26 @@ var MeshStandard = require('./MeshStandard'),
  */
 
 function isMeshVolume(config) {
-    return config.volume && config.volume.data && config.volume.data.length > 0 &&
-           config.volume_bounds && config.volume_bounds.data && config.volume_bounds.data.length > 0 &&
-           config.color_range && config.color_range.length > 0 &&
-           config.color_map && config.color_map.data && config.color_map.data.length > 0;
+    return config.volume && config.volume.data && config.volume.data.length > 0
+        && config.volume_bounds && config.volume_bounds.data && config.volume_bounds.data.length > 0
+        && config.color_range && config.color_range.length > 0
+        && config.color_map && config.color_map.data && config.color_map.data.length > 0;
 }
 
 module.exports = {
-    create: function (config, K3D) {
+    create(config, K3D) {
         config.visible = typeof (config.visible) !== 'undefined' ? config.visible : true;
 
         if (isMeshVolume(config)) {
-            return new MeshVolume.create(config, K3D);
-        } else {
-            return new MeshStandard.create(config, K3D);
+            return MeshVolume.create(config, K3D);
         }
+        return MeshStandard.create(config, K3D);
     },
 
-    update: function (config, changes, obj, K3D) {
+    update(config, changes, obj, K3D) {
         if (isMeshVolume(config)) {
             return MeshVolume.update(config, changes, obj, K3D);
-        } else {
-            return MeshStandard.update(config, changes, obj, K3D);
         }
-    }
+        return MeshStandard.update(config, changes, obj, K3D);
+    },
 };

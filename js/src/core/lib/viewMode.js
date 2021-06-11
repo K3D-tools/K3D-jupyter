@@ -1,11 +1,9 @@
-'use strict';
-
-var viewModes = {
+const viewModes = {
     view: 'view',
     add: 'add',
     change: 'change',
     callback: 'callback',
-    manipulate: 'manipulate'
+    manipulate: 'manipulate',
 };
 
 function viewModeGUI(gui, K3D) {
@@ -14,19 +12,20 @@ function viewModeGUI(gui, K3D) {
         Add: viewModes.add,
         Change: viewModes.change,
         Callback: viewModes.callback,
-        Manipulate: viewModes.manipulate
+        Manipulate: viewModes.manipulate,
     }).name('Mode').onChange(
-        function (mode) {
+        (mode) => {
             K3D.setViewMode(mode);
 
             K3D.dispatch(K3D.events.PARAMETERS_CHANGE, {
                 key: 'mode',
-                value: mode
+                value: mode,
             });
-        });
+        },
+    );
 }
 
 module.exports = {
-    viewModeGUI: viewModeGUI,
-    viewModes: viewModes
+    viewModeGUI,
+    viewModes,
 };

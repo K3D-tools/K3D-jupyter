@@ -1,7 +1,5 @@
-'use strict';
-
-var TextureImage = require('./TextureImage'),
-    TextureData = require('./TextureData');
+const TextureImage = require('./TextureImage');
+const TextureData = require('./TextureData');
 
 /**
  * Loader strategy to handle Texture object
@@ -11,21 +9,19 @@ var TextureImage = require('./TextureImage'),
  * @return {Object} 3D object ready to render
  */
 module.exports = {
-    create: function (config, K3D) {
+    create(config, K3D) {
         config.visible = typeof (config.visible) !== 'undefined' ? config.visible : true;
 
         if (config.file_format && config.binary) {
-            return new TextureImage.create(config, K3D);
-        } else {
-            return new TextureData.create(config, K3D);
+            return TextureImage.create(config, K3D);
         }
+        return TextureData.create(config, K3D);
     },
 
-    update: function (config, changes, obj, K3D) {
+    update(config, changes, obj, K3D) {
         if (config.file_format && config.binary) {
             return TextureImage.update(config, changes, obj, K3D);
-        } else {
-            return TextureData.update(config, changes, obj, K3D);
         }
-    }
+        return TextureData.update(config, changes, obj, K3D);
+    },
 };

@@ -1,6 +1,4 @@
-'use strict';
-
-var THREE = require('three');
+const THREE = require('three');
 
 /**
  * Loader strategy to handle TorusKnot object
@@ -10,10 +8,9 @@ var THREE = require('three');
  * @return {Object} 3D object ready to render
  */
 module.exports = {
-    create: function (config) {
-
-        var object = new THREE.Object3D(),
-            modelMatrix = new THREE.Matrix4();
+    create(config) {
+        const object = new THREE.Object3D();
+        const modelMatrix = new THREE.Matrix4();
 
         function updateGroupGeometry(mesh, geometry) {
             mesh.children[0].geometry.dispose();
@@ -34,8 +31,8 @@ module.exports = {
             new THREE.LineBasicMaterial({
                 color: 0xffffff,
                 transparent: true,
-                opacity: 0.5
-            })
+                opacity: 0.5,
+            }),
         ));
 
         object.add(new THREE.Mesh(
@@ -44,8 +41,8 @@ module.exports = {
                 color: config.color,
                 emissive: 0,
                 side: THREE.DoubleSide,
-                flatShading: true
-            })
+                flatShading: true,
+            }),
         ));
 
         updateGroupGeometry(object,
@@ -54,8 +51,8 @@ module.exports = {
                 config.tube,
                 64,
                 config.knotsNumber,
-                2, 3)
-        );
+                2, 3,
+            ));
 
         modelMatrix.set.apply(modelMatrix, config.model_matrix.data);
         object.applyMatrix4(modelMatrix);
@@ -63,5 +60,5 @@ module.exports = {
         object.updateMatrixWorld();
 
         return Promise.resolve(object);
-    }
+    },
 };
