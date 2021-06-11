@@ -324,6 +324,7 @@ const PlotView = widgets.DOMWidgetView.extend({
                 autoRendering: this.model.get('auto_rendering'),
                 gridVisible: this.model.get('grid_visible'),
                 gridColor: this.model.get('grid_color'),
+                clippingPlanes: this.model.get('clipping_planes'),
                 labelColor: this.model.get('label_color'),
             });
 
