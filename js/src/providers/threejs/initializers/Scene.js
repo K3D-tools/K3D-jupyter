@@ -9,31 +9,31 @@ const { pow10ceil } = require('../../../core/lib/helpers/math');
 let rebuildSceneDataPromises = null;
 
 function generateAxesHelper(K3D, axesHelper) {
-    var promises = [],
-        colors = {
-            'x': 0xff0000,
-            'y': 0x0000ff,
-            'z': 0x00ff00
-        },
-        directions = {
-            'x': [1, 0, 0],
-            'y': [0, 1, 0],
-            'z': [0, 0, 1]
-        },
-        order = {
-            'x': 0,
-            'y': 1,
-            'z': 2
-        },
-        labelColor = new THREE.Color(K3D.parameters.labelColor);
+    const promises = [];
+    const colors = {
+        x: 0xff0000,
+        y: 0x0000ff,
+        z: 0x00ff00,
+    };
+    const directions = {
+        x: [1, 0, 0],
+        y: [0, 1, 0],
+        z: [0, 0, 1],
+    };
+    const order = {
+        x: 0,
+        y: 1,
+        z: 2,
+    };
+    const labelColor = new THREE.Color(K3D.parameters.labelColor);
 
-    ['x', 'y', 'z'].forEach(function (axis) {
-        var label = Text.create({
-            'position': new THREE.Vector3().fromArray(directions[axis]).multiplyScalar(1.1).toArray(),
-            'reference_point': 'cc',
-            'color': labelColor,
-            'text': K3D.parameters.axes[order[axis]],
-            'size': 0.75
+    ['x', 'y', 'z'].forEach((axis) => {
+        const label = Text.create({
+            position: new THREE.Vector3().fromArray(directions[axis]).multiplyScalar(1.1).toArray(),
+            reference_point: 'cc',
+            color: labelColor,
+            text: K3D.parameters.axes[order[axis]],
+            size: 0.75,
         }, K3D, axesHelper);
 
         promises.push(label.then((obj) => {
@@ -191,22 +191,22 @@ function rebuildSceneData(K3D, grids, axesHelper, force) {
         ));
     }
 
-    var promises = [],
-        originalEdges,
-        updateAxesHelper,
-        extendedEdges,
-        size,
-        majorScale,
-        minorScale,
-        sceneBoundingBox = new THREE.Box3().setFromArray(K3D.parameters.grid),
-        extendedSceneBoundingBox,
-        unitVectors = {
-            'x': new THREE.Vector3(1.0, 0.0, 0.0),
-            'y': new THREE.Vector3(0.0, 1.0, 0.0),
-            'z': new THREE.Vector3(0.0, 0.0, 1.0)
-        },
-        gridColor = new THREE.Color(K3D.parameters.gridColor),
-        labelColor = new THREE.Color(K3D.parameters.labelColor);
+    const promises = [];
+    let originalEdges;
+    let updateAxesHelper;
+    let extendedEdges;
+    let size;
+    let majorScale;
+    let minorScale;
+    let sceneBoundingBox = new THREE.Box3().setFromArray(K3D.parameters.grid);
+    let extendedSceneBoundingBox;
+    const unitVectors = {
+        x: new THREE.Vector3(1.0, 0.0, 0.0),
+        y: new THREE.Vector3(0.0, 1.0, 0.0),
+        z: new THREE.Vector3(0.0, 0.0, 1.0),
+    };
+    const gridColor = new THREE.Color(K3D.parameters.gridColor);
+    const labelColor = new THREE.Color(K3D.parameters.labelColor);
 
     // axes Helper
     updateAxesHelper = !K3D.parameters.axesHelper || (K3D.parameters.axesHelper && !axesHelper.x);
@@ -344,12 +344,11 @@ function rebuildSceneData(K3D, grids, axesHelper, force) {
                 p = grids.labelsOnEdges[key].p[0].clone().add(deltaPosition.clone().multiplyScalar(j));
 
                 label = Text.create({
-                    'position': p.toArray(),
-                    'reference_point': 'cc',
-                    'color': labelColor,
-                    'text': parseFloat((v[iterateAxis]).toFixed(15)).toString(),
-                    'size': 0.75
-
+                    position: p.toArray(),
+                    reference_point: 'cc',
+                    color: labelColor,
+                    text: parseFloat((v[iterateAxis]).toFixed(15)).toString(),
+                    size: 0.75,
                 }, K3D);
 
                 /* jshint loopfunc: true */
@@ -374,13 +373,12 @@ function rebuildSceneData(K3D, grids, axesHelper, force) {
                 (new THREE.Vector3()).subVectors(middlePosition, middleValue).multiplyScalar(2.0),
             );
 
-            axisLabel = Text.create({
-                'position': middle.toArray(),
-                'reference_point': 'cc',
-                'color': labelColor,
-                'text': K3D.parameters.axes[['x', 'y', 'z'].indexOf(iterateAxis)],
-                'size': 1.0
-
+            const axisLabel = Text.create({
+                position: middle.toArray(),
+                reference_point: 'cc',
+                color: labelColor,
+                text: K3D.parameters.axes[['x', 'y', 'z'].indexOf(iterateAxis)],
+                size: 1.0,
             }, K3D);
 
             axisLabel.then((obj) => {
