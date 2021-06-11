@@ -326,6 +326,7 @@ PlotView = widgets.DOMWidgetView.extend({
                 autoRendering: this.model.get('auto_rendering'),
                 gridVisible: this.model.get('grid_visible'),
                 gridColor: this.model.get('grid_color'),
+                clippingPlanes: this.model.get('clipping_planes'),
             });
 
             if (this.model.get('camera_auto_fit') === false) {
