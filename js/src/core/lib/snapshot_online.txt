@@ -43,8 +43,10 @@
         if (K3DInstance) {
             var data = '[DATA]';
 
+            K3DInstance.setCamera(k3dCamera);
+
             K3DInstance.setSnapshot(data).then(function() {
-                K3DInstance.setCamera(k3dCamera);
+                setTimeout(K3DInstance.setCamera(k3dCamera), 10);
             });
 
             [ADDITIONAL]

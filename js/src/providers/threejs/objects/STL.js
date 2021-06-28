@@ -34,11 +34,7 @@ module.exports = {
         let geometry;
 
         if (text === null || typeof (text) === 'undefined') {
-            if (typeof (binary.buffer) !== 'undefined') {
-                geometry = loader.parse(binary.buffer);
-            } else {
-                geometry = loader.parse(binary);
-            }
+            geometry = loader.parse(binary.data.buffer);
         } else {
             geometry = loader.parse(text);
         }

@@ -24,7 +24,7 @@ module.exports = {
 
             const image = document.createElement('img');
             image.src = `data:image/${config.file_format};base64,${
-                buffer.bufferToBase64(config.binary.buffer)}`;
+                buffer.bufferToBase64(config.binary.data.buffer)}`;
 
             if (config.puv.data.length === 9) {
                 const positionArray = geometry.attributes.position.array;

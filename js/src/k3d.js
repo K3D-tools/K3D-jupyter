@@ -149,6 +149,8 @@ const ObjectModel = widgets.WidgetModel.extend({
         volume: serialize,
         opacity_function: serialize,
         text: serialize,
+        texture: serialize,
+        binary: serialize,
         size: serialize,
         position: serialize,
         puv: serialize,

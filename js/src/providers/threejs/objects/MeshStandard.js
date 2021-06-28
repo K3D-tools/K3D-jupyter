@@ -108,7 +108,7 @@ module.exports = {
             } else if (textureImage && textureFileFormat && uvs) {
                 image = document.createElement('img');
                 image.src = `data:image/${textureFileFormat};base64,${
-                    buffer.bufferToBase64(textureImage.buffer)}`;
+                    buffer.bufferToBase64(textureImage.data.buffer)}`;
 
                 geometry.setAttribute('uv', new THREE.BufferAttribute(new Float32Array(uvs), 2));
 

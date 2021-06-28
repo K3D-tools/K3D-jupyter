@@ -21,14 +21,14 @@ module.exports = function (THREE) {
      * Usage:
      *  var loader = new THREE.STLLoader();
      *  loader.load( './models/stl/slotted_disk.stl', function ( geometry ) {
- *    scene.add( new THREE.Mesh( geometry ) );
- *  });
+     *    scene.add( new THREE.Mesh( geometry ) );
+     *  });
      *
      * For binary STLs geometry might contain colors for vertices. To use it:
      *  // use the same code to load STL as above
      *  if (geometry.hasColors) {
- *    material = new THREE.MeshPhongMaterial({ opacity: geometry.alpha, vertexColors: THREE.VertexColors });
- *  } else { .... }
+     *    material = new THREE.MeshPhongMaterial({ opacity: geometry.alpha, vertexColors: THREE.VertexColors });
+     *  } else { .... }
      *  var mesh = new THREE.Mesh( geometry, material );
      */
 
@@ -64,7 +64,10 @@ module.exports = function (THREE) {
 
         parse(data) {
             function isBinary(data) {
-                let expect; let face_size; let n_faces; let
+                let expect;
+                let face_size;
+                let n_faces;
+                let
                     reader;
                 reader = new DataView(data);
                 face_size = (32 / 8 * 3) + ((32 / 8 * 3) * 3) + (16 / 8);
@@ -112,10 +115,15 @@ module.exports = function (THREE) {
                 const reader = new DataView(data);
                 const faces = reader.getUint32(80, true);
 
-                let r; let g; let b; let hasColors = false; let
-                    colors;
-                let defaultR; let defaultG; let defaultB; let
-                    alpha;
+                let r;
+                let g;
+                let b;
+                let hasColors = false;
+                let colors;
+                let defaultR;
+                let defaultG;
+                let defaultB;
+                let alpha;
 
                 // process STL header
                 // check for default color in header ("COLOR=rgba" sequence).
@@ -264,7 +272,7 @@ module.exports = function (THREE) {
                     return array_buffer.buffer || array_buffer;
                 }
 
-                return new Uint8Array(buffer).buffer;
+                return buffer;
             }
 
             // start

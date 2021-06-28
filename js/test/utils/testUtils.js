@@ -10,7 +10,10 @@ function base64ToArrayBuffer(base64) {
         bytes[i] = binary_string.charCodeAt(i);
     }
 
-    return new DataView(bytes.buffer);
+    return {
+        data: new Uint8Array(bytes.buffer),
+        shape: len
+    };
 }
 
 function arrayToTypedArray(typedArray, field, obj) {
@@ -123,7 +126,8 @@ window.TestHelpers.compareCanvasWithExpectedImage =
                         saveDiff = function (data) {
                             var xhrSaveDiff = new XMLHttpRequest();
 
-                            xhrSaveDiff.open('POST', 'http://localhost:9001/screenshots/' + expectedImagePath + '_diff.png',
+                            xhrSaveDiff.open('POST',
+                                'http://localhost:9001/screenshots/' + expectedImagePath + '_diff.png',
                                 true);
                             xhrSaveDiff.send(data.getImageDataUrl().replace(header, ''));
 

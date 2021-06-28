@@ -188,7 +188,7 @@ function update(K3D, json, GUI, changes) {
             }
         }
 
-        if (json[param].timeSeries) {
+        if (json[param] !== null && json[param].timeSeries) {
             return;
         }
 

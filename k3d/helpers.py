@@ -81,6 +81,8 @@ def to_json(name, input, obj=None, compression_level=0):
         return [
             to_json(idx, v, property, compression_level) for idx, v in enumerate(input)
         ]
+    elif isinstance(input, bytes):
+        return array_to_binary(np.frombuffer(input, dtype=np.uint8), compression_level)
     elif isinstance(input, np.ndarray):
         return array_to_binary(input, compression_level)
     else:
@@ -91,10 +93,10 @@ def from_json(input, obj=None):
     # logger.info('from_json:' + pformat(input))
 
     if (
-        isinstance(input, dict)
-        and "dtype" in input
-        and ("data" in input or "compressed_data" in input)
-        and "shape" in input
+            isinstance(input, dict)
+            and "dtype" in input
+            and ("data" in input or "compressed_data" in input)
+            and "shape" in input
     ):
         return from_json_to_array(input, obj)
     elif isinstance(input, list):
@@ -166,7 +168,7 @@ def map_colors(attribute, color_map, color_range=()) -> Sequence[int]:
     map_array = np.asarray(color_map)
     map_array = map_array.reshape((map_array.size // 4, 4))
     attribute = (attribute - a_min) / (
-        a_max - a_min
+            a_max - a_min
     )  # normalizing attribute for range lookup
     red, green, blue = [
         np.array(
@@ -230,7 +232,7 @@ def quad(w, h):
     return vertices, indices
 
 
-def get_bounding_box(model_matrix, boundary=[-1, 1, -1, 1, -1, 1]):
+def get_bounding_box(model_matrix, boundary=[-0.5, 0.5, -0.5, 0.5, -0.5, 0.5]):
     b_min = np.array([boundary[0], boundary[2], boundary[4], 0])
     b_max = np.array([boundary[1], boundary[3], boundary[5], 0])
 

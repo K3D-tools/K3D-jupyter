@@ -70,7 +70,7 @@ function deserialize(obj, manager) {
         // plain data
         return deserializeArray(obj);
     }
-    if (Array.isArray(obj) || ArrayBuffer.isView(obj)) {
+    if (Array.isArray(obj)) {
         return obj.reduce((p, v) => {
             p.push(deserialize(v, manager));
 
@@ -106,7 +106,7 @@ function serialize(obj) {
 
     if (obj !== null) {
         if (typeof (obj.data) !== 'undefined' && typeof (obj.shape) !== 'undefined'
-                && typeof (obj.data) !== 'undefined') {
+            && typeof (obj.data) !== 'undefined') {
             // plain data
             return serializeArray(obj);
         }

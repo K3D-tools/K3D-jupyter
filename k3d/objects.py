@@ -452,7 +452,7 @@ class Mesh(DrawableWithCallback):
     volume_bounds = TimeSeries(Array(dtype=np.float32)).tag(
         sync=True, **array_serialization_wrap("volume_bounds")
     )
-    texture = Bytes(allow_none=True).tag(sync=True)
+    texture = Bytes(allow_none=True).tag(sync=True, **array_serialization_wrap("texture"))
     texture_file_format = Unicode(allow_none=True).tag(sync=True)
     uvs = TimeSeries(Array()).tag(sync=True, **array_serialization_wrap("uvs"))
     opacity_function = TimeSeries(Array(dtype=np.float32)).tag(
@@ -628,7 +628,8 @@ class STL(Drawable):
 
     type = Unicode(read_only=True).tag(sync=True)
     text = AsciiStlData(allow_none=True, default_value=None).tag(sync=True)
-    binary = BinaryStlData(allow_none=True, default_value=None).tag(sync=True)
+    binary = BinaryStlData(allow_none=True,
+                           default_value=None).tag(sync=True, **array_serialization_wrap("binary"))
     color = Int(min=0, max=0xFFFFFF).tag(sync=True)
     wireframe = Bool().tag(sync=True)
     flat_shading = Bool().tag(sync=True)
@@ -872,7 +873,7 @@ class Texture(DrawableWithCallback):
     """
 
     type = Unicode(read_only=True).tag(sync=True)
-    binary = Bytes(allow_none=True).tag(sync=True)
+    binary = Bytes(allow_none=True).tag(sync=True, **array_serialization_wrap("binary"))
     file_format = Unicode(allow_none=True).tag(sync=True)
     attribute = Array().tag(sync=True, **array_serialization_wrap("attribute"))
     puv = Array(dtype=np.float32).tag(sync=True, **array_serialization_wrap("puv"))
@@ -1341,13 +1342,13 @@ class SparseVoxels(DrawableWithVoxelCallback):
     type = Unicode(read_only=True).tag(sync=True)
     sparse_voxels = (
         Array(dtype=np.uint16)
-        .tag(sync=True, **array_serialization_wrap("sparse_voxels"))
-        .valid(validate_sparse_voxels)
+            .tag(sync=True, **array_serialization_wrap("sparse_voxels"))
+            .valid(validate_sparse_voxels)
     )
     space_size = (
         Array(dtype=np.uint32)
-        .tag(sync=True, **array_serialization_wrap("space_size"))
-        .valid(shape_validation(3))
+            .tag(sync=True, **array_serialization_wrap("space_size"))
+            .valid(shape_validation(3))
     )
     color_map = Array(dtype=np.uint32).tag(
         sync=True, **array_serialization_wrap("color_map")
