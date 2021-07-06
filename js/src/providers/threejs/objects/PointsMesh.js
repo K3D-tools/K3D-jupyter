@@ -110,11 +110,13 @@ module.exports = {
         object.updateMatrixWorld();
 
         for (i = 0; i < positions.length / 3; i++) {
+            let s = (sizes && sizes[i]) || 1.0;
+
             object.setMatrixAt(i,
                 (new THREE.Matrix4())
                     .identity()
                     .setPosition(positions[i * 3], positions[i * 3 + 1], positions[i * 3 + 2])
-                    .scale(new THREE.Vector3(sizes[i] || 1.0, sizes[i] || 1.0, sizes[i] || 1.0))
+                    .scale(new THREE.Vector3(s, s, s))
             );
         }
 
