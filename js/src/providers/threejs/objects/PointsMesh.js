@@ -24,6 +24,8 @@ module.exports = {
         let colors;
         const opacities = (config.opacities && config.opacities.data
             && config.opacities.data.length === positions.length / 3) ? config.opacities.data : null;
+        const sizes = (config.point_sizes && config.point_sizes.data
+            && config.point_sizes.data.length === positions.length / 3) ? config.point_sizes.data : null;
         const { colorsToFloat32Array } = buffer;
         const phongShader = THREE.ShaderLib.phong;
         let i;
@@ -63,7 +65,7 @@ module.exports = {
                 new THREE.InstancedBufferAttribute(attribute, 1).setUsage(THREE.DynamicDrawUsage));
         } else {
             colors = (pointColors && pointColors.length === positions.length / 3
-                ? colorsToFloat32Array(pointColors) : getColorsArray(color, positions.length / 3)
+                    ? colorsToFloat32Array(pointColors) : getColorsArray(color, positions.length / 3)
             );
         }
 
@@ -109,7 +111,11 @@ module.exports = {
 
         for (i = 0; i < positions.length / 3; i++) {
             object.setMatrixAt(i,
-                (new THREE.Matrix4()).setPosition(positions[i * 3], positions[i * 3 + 1], positions[i * 3 + 2]));
+                (new THREE.Matrix4())
+                    .identity()
+                    .setPosition(positions[i * 3], positions[i * 3 + 1], positions[i * 3 + 2])
+                    .scale(new THREE.Vector3(sizes[i] || 1.0, sizes[i] || 1.0, sizes[i] || 1.0))
+            );
         }
 
         return Promise.resolve(object);

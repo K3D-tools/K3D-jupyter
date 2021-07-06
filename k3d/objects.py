@@ -520,6 +520,8 @@ class Points(Drawable):
             Packed RGB color of the points (0xff0000 is red, 0xff is blue) when `colors` is empty.
         point_size: `float`.
             Diameter of the balls representing the points in 3D space.
+        point_sizes: `array_like`.
+            Same-length array of `float` sizes of the points.
         shader: `str`.
             Display style (name of the shader used) of the points.
             Legal values are:
@@ -560,6 +562,9 @@ class Points(Drawable):
     )
     color = TimeSeries(Int(min=0, max=0xFFFFFF)).tag(sync=True)
     point_size = TimeSeries(Float(min=EPSILON, default_value=1.0)).tag(sync=True)
+    point_sizes = TimeSeries(Array(dtype=np.float32)).tag(
+        sync=True, **array_serialization_wrap("point_sizes")
+    )
     opacity = TimeSeries(Float(min=0.0, max=1.0, default_value=1.0)).tag(sync=True)
     opacities = TimeSeries(Array(dtype=np.float32)).tag(
         sync=True, **array_serialization_wrap("opacities")

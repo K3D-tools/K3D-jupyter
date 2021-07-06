@@ -2,8 +2,13 @@ uniform float size;
 uniform float scale;
 
 attribute vec3 color;
+
 #if (USE_PER_POINT_OPACITY == 1)
 attribute float opacities;
+#endif
+
+#if (USE_PER_POINT_SIZE == 1)
+attribute float sizes;
 #endif
 
 #if (USE_COLOR_MAP == 1)
@@ -22,7 +27,12 @@ void main() {
     float perPointOpacity = 1.0;
 
     mvPosition = modelViewMatrix * vec4(position, 1.0);
+
+    #if (USE_PER_POINT_SIZE == 1)
+    gl_PointSize = 2.0 * sizes * (scale / - mvPosition.z);
+    #else
     gl_PointSize = 2.0 * size * (scale / - mvPosition.z);
+    #endif
 
     #include <clipping_planes_vertex>
 

@@ -24,6 +24,8 @@ module.exports = {
         let colors = null;
         const opacities = (config.opacities && config.opacities.data
             && config.opacities.data.length === pointPositions.length / 3) ? config.opacities.data : null;
+        const sizes = (config.point_sizes && config.point_sizes.data
+            && config.point_sizes.data.length === pointPositions.length / 3) ? config.point_sizes.data : null;
         const { colorsToFloat32Array } = buffer;
         const fragmentShaderMap = {
             dot: require('./shaders/Points.dot.fragment.glsl'),
@@ -86,6 +88,7 @@ module.exports = {
                 USE_SPECULAR: (shader === '3dSpecular' ? 1 : 0),
                 USE_COLOR_MAP: useColorMap,
                 USE_PER_POINT_OPACITY: (opacities !== null ? 1 : 0),
+                USE_PER_POINT_SIZE: (sizes !== null ? 1 : 0),
             },
             vertexShader,
             fragmentShader,
@@ -106,7 +109,7 @@ module.exports = {
         material.isPointsMaterial = true;
 
         const object = new THREE.Points(
-            getGeometry(pointPositions, colors, opacities, useColorMap ? attribute : null),
+            getGeometry(pointPositions, colors, opacities, sizes, useColorMap ? attribute : null),
             material,
         );
 
@@ -182,10 +185,11 @@ module.exports = {
  * @param  {Float32Array} positions
  * @param  {Float32Array} colors
  * @param  {Float32Array} opacities
+ * @param  {Float32Array} sizes
  * @param  {Float32Array} attribute
  * @return {THREE.BufferGeometry}
  */
-function getGeometry(positions, colors, opacities, attribute) {
+function getGeometry(positions, colors, opacities, sizes, attribute) {
     const geometry = new THREE.BufferGeometry();
 
     geometry.setAttribute('position', new THREE.BufferAttribute(new Float32Array(positions), 3));
@@ -196,6 +200,10 @@ function getGeometry(positions, colors, opacities, attribute) {
 
     if (opacities && opacities.length > 0) {
         geometry.setAttribute('opacities', new THREE.BufferAttribute(opacities, 1).setUsage(THREE.DynamicDrawUsage));
+    }
+
+    if (sizes && sizes.length > 0) {
+        geometry.setAttribute('sizes', new THREE.BufferAttribute(sizes, 1).setUsage(THREE.DynamicDrawUsage));
     }
 
     if (attribute && attribute.length > 0) {

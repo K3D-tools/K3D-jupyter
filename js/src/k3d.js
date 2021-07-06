@@ -133,6 +133,7 @@ const ObjectModel = widgets.WidgetModel.extend({
         vectors: serialize,
         opacity: serialize,
         opacities: serialize,
+        point_sizes: serialize,
         point_size: serialize,
         width: serialize,
         shader: serialize,

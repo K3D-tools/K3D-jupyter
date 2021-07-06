@@ -344,6 +344,7 @@ def points(
     colors=[],
     color=_default_color,
     point_size=1.0,
+    point_sizes=[],
     shader="3dSpecular",
     opacity=1.0,
     opacities=[],
@@ -371,6 +372,8 @@ def points(
             Same-length array of `float` opacity of the points.
         point_size: `float`.
             Diameter of the balls representing the points in 3D space.
+        point_sizes: `array_like`.
+            Same-length array of `float` sizes of the points.
         shader: `str`.
             Display style (name of the shader used) of the points.
             Legal values are:
@@ -417,6 +420,7 @@ def points(
             colors=colors,
             color=color,
             point_size=point_size,
+            point_sizes=point_sizes,
             shader=shader,
             opacity=opacity,
             opacities=opacities,
@@ -1093,9 +1097,9 @@ def sparse_voxels(
         color_map = nice_colors
 
     assert (
-        isinstance(space_size, (tuple, list, np.ndarray))
-        and np.shape(space_size) == (3,)
-        and all(d > 0 for d in space_size)
+            isinstance(space_size, (tuple, list, np.ndarray))
+            and np.shape(space_size) == (3,)
+            and all(d > 0 for d in space_size)
     )
 
     if bounds is not None:
@@ -1438,13 +1442,7 @@ def vtk_poly_data(
     if vtk is None:
         raise RuntimeError("vtk module is not available")
 
-    if (
-        max(
-            poly_data.GetPolys().GetMaxCellSize(),
-            poly_data.GetStrips().GetMaxCellSize(),
-        )
-        > 3
-    ):
+    if (max(poly_data.GetPolys().GetMaxCellSize(), poly_data.GetStrips().GetMaxCellSize())> 3):
         cut_triangles = vtk.vtkTriangleFilter()
         cut_triangles.SetInputData(poly_data)
         cut_triangles.Update()
@@ -1622,7 +1620,7 @@ def plot(
             Fps of animation.
         grid: `array_like`.
             6-element tuple specifying the bounds of the plot grid (x0, y0, z0, x1, y1, z1)."""
-    
+
     return Plot(
         antialias=antialias,
         background_color=background_color,
