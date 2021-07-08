@@ -238,7 +238,10 @@ def add_scripts(app):
 
 def setup(app):
 #    app.setup_extension('jupyter_sphinx.execute')
-    app.add_stylesheet('style.css')
+    try:
+        app.add_stylesheet('style.css')
+    except AttributeError:
+        app.add_css_file('style.css')
 #    app.connect('builder-inited', add_scripts)
 
 
