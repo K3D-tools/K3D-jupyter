@@ -1,9 +1,7 @@
-'use strict';
-
-var validateAndPrepareObject = require('./helpers/objectValidator'),
-    _ = require('./../../lodash'),
-    timeSeries = require('./timeSeries'),
-    error = require('./Error').error;
+const validateAndPrepareObject = require('./helpers/objectValidator');
+const _ = require('../../lodash');
+const timeSeries = require('./timeSeries');
+const { error } = require('./Error');
 
 /**
  * @method K3D.Loader
@@ -13,11 +11,11 @@ var validateAndPrepareObject = require('./helpers/objectValidator'),
  * @param {Object} data K3D JSON with objects
  */
 function loader(K3D, data) {
-
-    var objectProvider, startTime, objectsPromieses = [], K3DObjectPromise;
+    let objectProvider; let startTime; const objectsPromieses = []; let
+        K3DObjectPromise;
 
     try {
-        data.objects.forEach(function (json, i) {
+        data.objects.forEach((json, i) => {
             K3DObjectPromise = false;
 
             validateAndPrepareObject(K3D, json);
@@ -25,17 +23,17 @@ function loader(K3D, data) {
             objectProvider = json && K3D.Provider.Objects[json.type];
 
             if (typeof (objectProvider) === 'undefined') {
-                error('Loader Error', 'Unsupported object type ' + json.type);
+                error('Loader Error', `Unsupported object type ${json.type}`);
                 return;
             }
 
             startTime = new Date().getTime();
 
-            var interpolated = timeSeries.interpolateTimeSeries(json, K3D.parameters.time);
-            var changes = (data.changes && data.changes[i]) || interpolated.changes || {};
+            const interpolated = timeSeries.interpolateTimeSeries(json, K3D.parameters.time);
+            const changes = (data.changes && data.changes[i]) || interpolated.changes || {};
 
             if (objectProvider.update && !_.isEmpty(changes)) {
-                var obj = K3D.getObjectById(interpolated.json.id);
+                const obj = K3D.getObjectById(interpolated.json.id);
 
                 if (typeof (obj) !== 'undefined') {
                     K3DObjectPromise = objectProvider.update(json, changes, obj, K3D);
@@ -43,27 +41,25 @@ function loader(K3D, data) {
             }
 
             if (!K3DObjectPromise) {
-                Object.keys(changes).forEach(function (key) {
+                Object.keys(changes).forEach((key) => {
                     interpolated.json[key] = changes[key];
                 });
 
                 K3DObjectPromise = objectProvider.create(interpolated.json, K3D)
-                    .then(function (K3DObject) {
-                        var objectNumber;
+                    .then((K3DObject) => {
+                        const objectNumber = K3D.addOrUpdateObject(json, K3DObject);
 
-                        objectNumber = K3D.addOrUpdateObject(json, K3DObject);
-
-                        K3DObject.K3DIdentifier = json.id || ('K3DAutoIncrement_' + objectNumber);
+                        K3DObject.K3DIdentifier = json.id || (`K3DAutoIncrement_${objectNumber}`);
                         json.id = K3DObject.K3DIdentifier;
 
-                        console.log('K3D: Object type "' + json.type + '" loaded in: ',
+                        console.log(`K3D: Object type "${json.type}" loaded in: `,
                             (new Date().getTime() - startTime) / 1000, 's');
 
-                        return {json: json, obj: K3DObject};
+                        return { json, obj: K3DObject };
                     })
-                    .catch(function (err) {
+                    .catch((err) => {
                         console.error(err);
-                        error('Loader Error', 'Object of type "' + json.type + '" was not loaded.');
+                        error('Loader Error', `Object of type "${json.type}" was not loaded.`);
                     });
             }
 

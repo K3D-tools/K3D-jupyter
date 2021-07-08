@@ -20,7 +20,18 @@
     <script id='pakojs'>[PAKO_JS]</script>
     <script>
         window.k3dCompressed = '[K3D_SOURCE]';
-        var k3dSource = pako.inflate(atob(window.k3dCompressed), {'to': 'string'});
+
+        function _base64ToArrayBuffer(base64) {
+            var binary_string = window.atob(base64);
+            var len = binary_string.length;
+            var bytes = new Uint8Array(len);
+            for (var i = 0; i < len; i++) {
+                bytes[i] = binary_string.charCodeAt(i);
+            }
+            return bytes;
+        }
+
+        var k3dSource = pako.inflate(_base64ToArrayBuffer(window.k3dCompressed), {'to': 'string'});
     </script>
     <script id='requirejs'>[REQUIRE_JS]</script>
 </head>
@@ -49,8 +60,10 @@
         if (K3DInstance) {
             var data = '[DATA]';
 
-            K3DInstance.setSnapshot(atob(data)).then(function() {
-                K3DInstance.setCamera(k3dCamera);
+            K3DInstance.setCamera(k3dCamera);
+
+            K3DInstance.setSnapshot(data).then(function() {
+                setTimeout(K3DInstance.setCamera(k3dCamera), 10);
             });
 
             [ADDITIONAL]

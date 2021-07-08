@@ -1,14 +1,12 @@
-'use strict';
-var THREE = require('three');
+const THREE = require('three');
 
 function init(K3D, gui, obj, prefix, dispatch) {
-
     function change(render) {
         obj.length = 0;
 
-        Object.keys(gui[prefix].map).forEach(function (key) {
+        Object.keys(gui[prefix].map).forEach((key) => {
             if (key !== 'addNew') {
-                var data = gui[prefix].map[key].obj;
+                const data = gui[prefix].map[key].obj;
 
                 obj.push([data.x, data.y, data.z, data.constant]);
             }
@@ -22,14 +20,12 @@ function init(K3D, gui, obj, prefix, dispatch) {
     }
 
     function refresh(current, render) {
-        var camera = K3D.getWorld().camera,
-            plane;
-
+        const { camera } = K3D.getWorld();
         camera.updateMatrixWorld();
-        plane = new THREE.Plane().setFromCoplanarPoints(
+        const plane = new THREE.Plane().setFromCoplanarPoints(
             new THREE.Vector3(-1, -1, -1).unproject(camera),
             new THREE.Vector3(1, 1, -1).unproject(camera),
-            new THREE.Vector3(1, -1, -1).unproject(camera)
+            new THREE.Vector3(1, -1, -1).unproject(camera),
         );
 
         plane.constant -= current.obj.camDist;
@@ -39,7 +35,7 @@ function init(K3D, gui, obj, prefix, dispatch) {
         current.obj.z = plane.normal.z;
         current.obj.constant = plane.constant;
 
-        current.folder.__controllers.forEach(function (controller) {
+        current.folder.__controllers.forEach((controller) => {
             controller.updateDisplay();
         });
 
@@ -58,52 +54,54 @@ function init(K3D, gui, obj, prefix, dispatch) {
         gui[prefix].map = {};
 
         gui[prefix].map.addNew = gui.add({
-            addPlane: function () {
+            addPlane() {
                 obj.push([1, 0, 0, 0]);
                 init(K3D, gui, obj, prefix, dispatch);
                 K3D.render();
                 dispatch(obj);
-            }
+            },
         }, 'addPlane').name('Add new');
     }
 
     while (obj.length < Object.keys(gui[prefix].map).length - 1) {
-        var i = Object.keys(gui[prefix].map).length - 1,
-            controllers = gui[prefix].map[i - 1].folder.__controllers;
+        const i = Object.keys(gui[prefix].map).length - 1;
+        const controllers = gui[prefix].map[i - 1].folder.__controllers;
 
         controllers[controllers.length - 1].object.delete(true);
     }
 
-    var index = 0;
-    Object.keys(gui[prefix].map).sort().forEach(function (key) {
+    let index = 0;
+    Object.keys(gui[prefix].map).sort().forEach((key) => {
         if (key !== 'addNew') {
-            if (parseInt(key) !== index) {
+            if (parseInt(key, 10) !== index) {
                 gui[prefix].map[index] = gui[prefix].map[key];
                 delete gui[prefix].map[key];
             }
-            index++;
+            index += 1;
         }
     });
 
     obj.forEach(function (plane, i) {
         if (typeof (gui[prefix].map[i]) === 'undefined') {
-            var current = gui[prefix].map[i] = {
-                folder: gui.addFolder('Plane #' + (gui[prefix].count++)),
+            const current = {
+                folder: gui.addFolder(`Plane #${gui[prefix].count++}`),
                 obj: {
                     x: plane[0],
                     y: plane[1],
                     z: plane[2],
                     camDist: K3D.getWorld().camera.near * 5000.0,
-                    constant: plane[3]
-                }
+                    constant: plane[3],
+                },
             };
+
+            gui[prefix].map[i] = current;
 
             current.folder.add(current.obj, 'x').step(0.001).onChange(change.bind(this, true));
             current.folder.add(current.obj, 'y').step(0.001).onChange(change.bind(this, true));
             current.folder.add(current.obj, 'z').step(0.001).onChange(change.bind(this, true));
             current.folder.add(current.obj, 'constant').step(0.001).onChange(change.bind(this, true));
             current.folder.add({
-                fromCamera: function () {
+                fromCamera() {
                     if (current.eventId) {
                         current.folder.__controllers[4].name('From camera [start]');
                         K3D.off(K3D.events.CAMERA_CHANGE, current.eventId);
@@ -113,9 +111,9 @@ function init(K3D, gui, obj, prefix, dispatch) {
                         current.eventId = K3D.on(K3D.events.CAMERA_CHANGE, refresh.bind(this, current));
                         refresh(current, true);
                     }
-                }
+                },
             }, 'fromCamera').name('From camera [start]');
-            current.folder.add(current.obj, 'camDist').name('Distance').onChange(function () {
+            current.folder.add(current.obj, 'camDist').name('Distance').onChange(() => {
                 if (current.eventId) {
                     refresh(current, true);
                 }
@@ -124,10 +122,10 @@ function init(K3D, gui, obj, prefix, dispatch) {
             current.folder.__controllers[4].domElement.previousSibling.style.width = '100%';
 
             current.folder.add({
-                delete: function (withoutFireChange) {
-                    Object.keys(gui[prefix].map).forEach(function (key) {
+                delete(withoutFireChange) {
+                    Object.keys(gui[prefix].map).forEach((key) => {
                         if (current.obj === gui[prefix].map[key].obj) {
-                            var folder = gui[prefix].map[key].folder;
+                            const { folder } = gui[prefix].map[key];
 
                             folder.close();
                             gui.__ul.removeChild(folder.domElement.parentNode);
@@ -146,7 +144,7 @@ function init(K3D, gui, obj, prefix, dispatch) {
                     if (!withoutFireChange) {
                         change(true);
                     }
-                }
+                },
             }, 'delete').name('Delete');
         } else {
             gui[prefix].map[i].obj.x = plane[0];
@@ -154,7 +152,7 @@ function init(K3D, gui, obj, prefix, dispatch) {
             gui[prefix].map[i].obj.z = plane[2];
             gui[prefix].map[i].obj.constant = plane[3];
 
-            gui[prefix].map[i].folder.__controllers.forEach(function (controller) {
+            gui[prefix].map[i].folder.__controllers.forEach((controller) => {
                 controller.updateDisplay();
             });
         }
@@ -162,5 +160,5 @@ function init(K3D, gui, obj, prefix, dispatch) {
 }
 
 module.exports = {
-    init: init
+    init,
 };

@@ -1,27 +1,28 @@
 var version = require('./package.json').version;
-var webpack = require('webpack');
 var nodeExternals = require('webpack-node-externals');
 var CopyPlugin = require('copy-webpack-plugin');
-// var Visualizer = require('webpack-visualizer-plugin');
+// var Visualizer = require('webpack-visualizer-plugin2');
 
 // Custom webpack loaders are generally the same for all webpack bundles, hence
 // stored in a separate local variable.
 var rules = [
     {
         test: /\.(png|jpg|gif|svg|eot|ttf|woff|woff2)$/,
-        use: 'url-loader'
+        type: 'asset/inline'
     },
     {
-        test: /\.glsl/,
-        use: 'raw-loader'
+        test: /\.(glsl|txt)/,
+        type: 'asset/source',
+    },
+    {
+        resourceQuery: /raw/,
+        type: 'asset/source',
     }
 ];
 
-var mode = 'production';
+var mode = 'development';
 
 var plugins = [];
-
-plugins.push(new webpack.optimize.AggressiveMergingPlugin());
 
 // plugins.push(new Visualizer({
 //     filename: './webpack-statistics.html'

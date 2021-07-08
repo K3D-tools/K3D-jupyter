@@ -12,21 +12,11 @@ module.exports = function (grunt) {
         webpack: {
             myConfig: webpackConfig,
         },
-        jshint: {
+        eslint: {
             options: {
-                jshintrc: '.jshintrc',
-                reporter: require('jshint-stylish'),
-                reporterOutput: ''
+                config: '.eslintrc.js'
             },
-            tools: ['Gruntfile.js', 'expressTestHelper.js'],
-            k3d: ['src/**/*.js']
-        },
-        jscs: {
-            options: {
-                config: '.jscsrc'
-            },
-            tools: ['Gruntfile.js', 'expressTestHelper.js'],
-            k3d: ['src/**/*.js']
+            target: ['src/core/*.js']
         },
         watch: {
             webpack: {
@@ -88,8 +78,7 @@ module.exports = function (grunt) {
     });
 
     grunt.registerTask('codeStyle', [
-        'jshint',
-        'jscs'
+        'eslint'
     ]);
 
     grunt.registerTask('doc', [

@@ -1,9 +1,7 @@
-'use strict';
-
-var THREE = require('three'),
-    BufferGeometryUtils = require('three/examples/jsm/utils/BufferGeometryUtils').BufferGeometryUtils,
-    areAllChangesResolve = require('./../helpers/Fn').areAllChangesResolve,
-    commonUpdate = require('./../helpers/Fn').commonUpdate;
+const THREE = require('three');
+const { BufferGeometryUtils } = require('three/examples/jsm/utils/BufferGeometryUtils');
+const { areAllChangesResolve } = require('../helpers/Fn');
+const { commonUpdate } = require('../helpers/Fn');
 
 /**
  * Loader strategy to handle STL object
@@ -13,35 +11,30 @@ var THREE = require('three'),
  * @return {Object} 3D object ready to render
  */
 module.exports = {
-    create: function (config) {
+    create(config) {
         config.visible = typeof (config.visible) !== 'undefined' ? config.visible : true;
         config.color = typeof (config.color) !== 'undefined' ? config.color : 255;
         config.wireframe = typeof (config.wireframe) !== 'undefined' ? config.wireframe : false;
         config.flat_shading = typeof (config.flat_shading) !== 'undefined' ? config.flat_shading : true;
 
-        var loader = new THREE.STLLoader(),
-            modelMatrix = new THREE.Matrix4(),
-            MaterialConstructor = config.wireframe ? THREE.MeshBasicMaterial : THREE.MeshPhongMaterial,
-            material = new MaterialConstructor({
-                color: config.color,
-                emissive: 0,
-                shininess: 50,
-                specular: 0x111111,
-                flatShading: config.flat_shading,
-                side: THREE.DoubleSide,
-                wireframe: config.wireframe
-            }),
-            text = config.text,
-            binary = config.binary,
-            geometry,
-            object;
+        const loader = new THREE.STLLoader();
+        const modelMatrix = new THREE.Matrix4();
+        const MaterialConstructor = config.wireframe ? THREE.MeshBasicMaterial : THREE.MeshPhongMaterial;
+        let material = new MaterialConstructor({
+            color: config.color,
+            emissive: 0,
+            shininess: 50,
+            specular: 0x111111,
+            flatShading: config.flat_shading,
+            side: THREE.DoubleSide,
+            wireframe: config.wireframe,
+        });
+        const { text } = config;
+        const { binary } = config;
+        let geometry;
 
         if (text === null || typeof (text) === 'undefined') {
-            if (typeof (binary.buffer) !== 'undefined') {
-                geometry = loader.parse(binary.buffer);
-            } else {
-                geometry = loader.parse(binary);
-            }
+            geometry = loader.parse(binary.data.buffer);
         } else {
             geometry = loader.parse(text);
         }
@@ -50,7 +43,7 @@ module.exports = {
             material = new THREE.MeshPhongMaterial({
                 opacity: geometry.alpha,
                 vertexColors: THREE.VertexColors,
-                wireframe: config.wireframe
+                wireframe: config.wireframe,
             });
         }
 
@@ -59,7 +52,7 @@ module.exports = {
             geometry.computeVertexNormals();
         }
 
-        object = new THREE.Mesh(geometry, material);
+        const object = new THREE.Mesh(geometry, material);
 
         geometry.computeBoundingSphere();
         geometry.computeBoundingBox();
@@ -72,15 +65,14 @@ module.exports = {
         return Promise.resolve(object);
     },
 
-    update: function (config, changes, obj) {
-        var resolvedChanges = {};
+    update(config, changes, obj) {
+        const resolvedChanges = {};
 
         commonUpdate(config, changes, resolvedChanges, obj);
 
         if (areAllChangesResolve(changes, resolvedChanges)) {
-            return Promise.resolve({json: config, obj: obj});
-        } else {
-            return false;
+            return Promise.resolve({ json: config, obj });
         }
-    }
+        return false;
+    },
 };

@@ -1,7 +1,5 @@
-'use strict';
-
-var PointsMesh = require('./PointsMesh'),
-    PointsBillboard = require('./PointsBillboard');
+const PointsMesh = require('./PointsMesh');
+const PointsBillboard = require('./PointsBillboard');
 
 /**
  * Loader strategy to handle Points object
@@ -11,7 +9,7 @@ var PointsMesh = require('./PointsMesh'),
  * @return {Object} 3D object ready to render
  */
 module.exports = {
-    create: function (config) {
+    create(config) {
         config.visible = typeof (config.visible) !== 'undefined' ? config.visible : true;
         config.color = typeof (config.color) !== 'undefined' ? config.color : 0xff00;
         config.opacity = typeof (config.opacity) !== 'undefined' ? config.opacity : 1.0;
@@ -21,17 +19,15 @@ module.exports = {
         config.opacity = Math.max(Math.min(config.opacity, 1.0), 0.0);
 
         if (config.shader === 'mesh') {
-            return new PointsMesh.create(config);
-        } else {
-            return new PointsBillboard.create(config);
+            return PointsMesh.create(config);
         }
+        return PointsBillboard.create(config);
     },
 
-    update: function (config, changes, obj, K3D) {
+    update(config, changes, obj, K3D) {
         if (config.shader === 'mesh') {
             return PointsMesh.update(config, changes, obj, K3D);
-        } else {
-            return PointsBillboard.update(config, changes, obj, K3D);
         }
-    }
+        return PointsBillboard.update(config, changes, obj, K3D);
+    },
 };

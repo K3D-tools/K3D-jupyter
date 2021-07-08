@@ -1,41 +1,37 @@
-'use strict';
-//jshint maxstatements:false
+// jshint maxstatements:false
 
-var widgets = require('@jupyter-widgets/base'),
-    _ = require('./lodash'),
-    K3D = require('./core/Core'),
-    TFEdit = require('./transferFunctionEditor'),
-    serialize = require('./core/lib/helpers/serialize'),
-    ThreeJsProvider = require('./providers/threejs/provider'),
-    PlotModel,
-    PlotView,
-    ChunkModel,
-    ObjectModel,
-    ObjectView,
-    semverRange = require('./version').version,
-    objectsList = {},
-    chunkList = {},
-    plotsList = [];
+const widgets = require('@jupyter-widgets/base');
+const _ = require('./lodash');
+const K3D = require('./core/Core');
+const TFEdit = require('./transferFunctionEditor');
+const serialize = require('./core/lib/helpers/serialize');
+const ThreeJsProvider = require('./providers/threejs/provider');
+
+const semverRange = require('./version').version;
+
+const objectsList = {};
+const chunkList = {};
+const plotsList = [];
 
 require('es6-promise');
 
 function runOnEveryPlot(id, cb) {
-    plotsList.forEach(function (plot) {
+    plotsList.forEach((plot) => {
         if (plot.model.get('object_ids').indexOf(id) !== -1) {
             cb(plot, plot.K3DInstance.getObjectById(id));
         }
     });
 }
 
-ChunkModel = widgets.WidgetModel.extend({
+const ChunkModel = widgets.WidgetModel.extend({
     defaults: _.extend(_.result({}, 'widgets.WidgetModel.prototype.defaults'), {
         _model_name: 'ChunkModel',
         _model_module: 'k3d',
-        _model_module_version: semverRange
+        _model_module_version: semverRange,
     }),
 
-    initialize: function () {
-        var chunk = arguments[0];
+    initialize() {
+        const chunk = arguments[0];
 
         widgets.WidgetModel.prototype.initialize.apply(this, arguments);
 
@@ -44,60 +40,60 @@ ChunkModel = widgets.WidgetModel.extend({
         chunkList[chunk.id] = this;
     },
 
-    _change: function () {
-        var chunk = this.attributes;
+    _change() {
+        const chunk = this.attributes;
 
-        Object.keys(objectsList).forEach(function (id) {
+        Object.keys(objectsList).forEach((id) => {
             if (objectsList[id].attributes.type === 'VoxelsGroup') {
-                runOnEveryPlot(objectsList[id].attributes.id, function (plot, objInstance) {
+                runOnEveryPlot(objectsList[id].attributes.id, (plot, objInstance) => {
                     objInstance.updateChunk(chunk);
                 });
             }
         });
-    }
+    },
 }, {
     serializers: _.extend({
         voxels: serialize,
-        coord: serialize
-    }, widgets.WidgetModel.serializers)
+        coord: serialize,
+    }, widgets.WidgetModel.serializers),
 });
 
-ObjectModel = widgets.WidgetModel.extend({
+const ObjectModel = widgets.WidgetModel.extend({
     defaults: _.extend(_.result({}, 'widgets.WidgetModel.prototype.defaults'), {
         _model_name: 'ObjectModel',
         _view_name: 'ObjectView',
         _model_module: 'k3d',
         _view_module: 'k3d',
         _model_module_version: semverRange,
-        _view_module_version: semverRange
+        _view_module_version: semverRange,
     }),
 
-    initialize: function () {
-        var obj = arguments[0];
+    initialize() {
+        const obj = arguments[0];
 
         widgets.WidgetModel.prototype.initialize.apply(this, arguments);
 
         this.on('change', this._change, this);
         this.on('msg:custom', function (msg) {
-            var obj;
+            let property;
 
             if (msg.msg_type === 'fetch') {
-                obj = this.get(msg.field);
+                property = this.get(msg.field);
 
                 // hack because of https://github.com/jashkenas/underscore/issues/2692
-                if (_.isObject(obj)) {
-                    obj.t = Math.random();
+                if (_.isObject(property)) {
+                    property.t = Math.random();
                 }
 
-                if (obj.data && obj.shape) {
-                    obj.compression_level = this.attributes.compression_level;
+                if (property.data && property.shape) {
+                    property.compression_level = this.attributes.compression_level;
                 }
 
-                this.save(msg.field, obj);
+                this.save(msg.field, property);
             }
 
             if (msg.msg_type === 'shadow_map_update' && this.get('type') === 'Volume') {
-                runOnEveryPlot(this.get('id'), function (plot, objInstance) {
+                runOnEveryPlot(this.get('id'), (plot, objInstance) => {
                     objInstance.refreshLightMap(msg.direction);
                     plot.K3DInstance.render();
                 });
@@ -107,11 +103,11 @@ ObjectModel = widgets.WidgetModel.extend({
         objectsList[obj.id] = this;
     },
 
-    _change: function (c) {
+    _change(c) {
         plotsList.forEach(function (plot) {
             plot.refreshObject(this, c.changed);
         }, this);
-    }
+    },
 }, {
     serializers: _.extend({
         model_matrix: serialize,
@@ -137,6 +133,7 @@ ObjectModel = widgets.WidgetModel.extend({
         vectors: serialize,
         opacity: serialize,
         opacities: serialize,
+        point_sizes: serialize,
         point_size: serialize,
         width: serialize,
         shader: serialize,
@@ -153,6 +150,8 @@ ObjectModel = widgets.WidgetModel.extend({
         volume: serialize,
         opacity_function: serialize,
         text: serialize,
+        texture: serialize,
+        binary: serialize,
         size: serialize,
         position: serialize,
         puv: serialize,
@@ -161,38 +160,38 @@ ObjectModel = widgets.WidgetModel.extend({
         volume_bounds: serialize,
         spacings_x: serialize,
         spacings_y: serialize,
-        spacings_z: serialize
-    }, widgets.WidgetModel.serializers)
+        spacings_z: serialize,
+    }, widgets.WidgetModel.serializers),
 });
 
-ObjectView = widgets.WidgetView.extend({});
+const ObjectView = widgets.WidgetView.extend({});
 
-PlotModel = widgets.DOMWidgetModel.extend({
+const PlotModel = widgets.DOMWidgetModel.extend({
     defaults: _.extend(_.result({}, 'widgets.DOMWidgetModel.prototype.defaults'), {
         _model_name: 'PlotModel',
         _view_name: 'PlotView',
         _model_module: 'k3d',
         _view_module: 'k3d',
         _model_module_version: semverRange,
-        _view_module_version: semverRange
-    })
+        _view_module_version: semverRange,
+    }),
 });
 
 // Custom View. Renders the widget model.
-PlotView = widgets.DOMWidgetView.extend({
-    render: function () {
-        var containerEnvelope = window.document.createElement('div'),
-            container = window.document.createElement('div');
+const PlotView = widgets.DOMWidgetView.extend({
+    render() {
+        const containerEnvelope = window.document.createElement('div');
+        const container = window.document.createElement('div');
 
         containerEnvelope.style.cssText = [
-            'height:' + this.model.get('height') + 'px',
-            'position: relative'
+            `height:${this.model.get('height')}px`,
+            'position: relative',
         ].join(';');
 
         container.style.cssText = [
             'width: 100%',
             'height: 100%',
-            'position: relative'
+            'position: relative',
         ].join(';');
 
         containerEnvelope.appendChild(container);
@@ -202,7 +201,7 @@ PlotView = widgets.DOMWidgetView.extend({
         this.on('displayed', this._init, this);
     },
 
-    remove: function () {
+    remove() {
         _.pull(plotsList, this);
         this.K3DInstance.off(this.K3DInstance.events.CAMERA_CHANGE, this.cameraChangeId);
         this.K3DInstance.off(this.K3DInstance.events.OBJECT_CHANGE, this.GUIObjectChanges);
@@ -212,8 +211,8 @@ PlotView = widgets.DOMWidgetView.extend({
         this.K3DInstance.off(this.K3DInstance.events.OBJECT_CLICKED, this.objectClickCallback);
     },
 
-    _init: function () {
-        var self = this;
+    _init() {
+        const self = this;
 
         this.renderPromises = [];
 
@@ -222,19 +221,19 @@ PlotView = widgets.DOMWidgetView.extend({
         this.model.lastCameraSync = (new Date()).getTime();
 
         this.model.on('msg:custom', function (obj) {
-            var model = this.model;
+            const { model } = this;
 
             if (obj.msg_type === 'fetch_screenshot') {
                 this.K3DInstance.getScreenshot(this.K3DInstance.parameters.screenshotScale, obj.only_canvas)
-                    .then(function (canvas) {
-                        var data = canvas.toDataURL().split(',')[1];
+                    .then((canvas) => {
+                        const data = canvas.toDataURL().split(',')[1];
 
-                        model.save('screenshot', data, {patch: true});
+                        model.save('screenshot', data, { patch: true });
                     });
             }
 
             if (obj.msg_type === 'fetch_snapshot') {
-                model.save('snapshot', this.K3DInstance.getHTMLSnapshot(obj.compression_level), {patch: true});
+                model.save('snapshot', this.K3DInstance.getHTMLSnapshot(obj.compression_level), { patch: true });
             }
 
             if (obj.msg_type === 'start_auto_play') {
@@ -253,7 +252,7 @@ PlotView = widgets.DOMWidgetView.extend({
                 if (self.renderPromises.length === 0) {
                     self.K3DInstance.refreshAfterObjectsChange(false, true);
                 } else {
-                    Promise.all(self.renderPromises).then(function (values) {
+                    Promise.all(self.renderPromises).then((values) => {
                         self.K3DInstance.refreshAfterObjectsChange(false, true);
 
                         if (values.length === self.renderPromises.length) {
@@ -270,7 +269,7 @@ PlotView = widgets.DOMWidgetView.extend({
         this.model.on('change:grid_auto_fit', this._setGridAutoFit, this);
         this.model.on('change:grid_visible', this._setGridVisible, this);
         this.model.on('change:grid_color', this._setGridColor, this);
-        this.model.on('change:depth_peels', this._setDepthPeels, this);
+        this.model.on('change:label_color', this._setLabelColor, this);
         this.model.on('change:fps_meter', this._setFpsMeter, this);
         this.model.on('change:fps', this._setFps, this);
         this.model.on('change:screenshot_scale', this._setScreenshotScale, this);
@@ -294,6 +293,7 @@ PlotView = widgets.DOMWidgetView.extend({
         this.model.on('change:camera_zoom_speed', this._setCameraSpeeds, this);
         this.model.on('change:camera_pan_speed', this._setCameraSpeeds, this);
         this.model.on('change:camera_fov', this._setCameraFOV, this);
+        this.model.on('change:camera_damping_factor', this._setCameraDampingFactor, this);
         this.model.on('change:axes_helper', this._setAxesHelper, this);
         this.model.on('change:snapshot_include_js', this._setSnapshotIncludeJs, this);
         this.model.on('change:name', this._setName, this);
@@ -316,6 +316,7 @@ PlotView = widgets.DOMWidgetView.extend({
                 cameraRotateSpeed: this.model.get('camera_rotate_speed'),
                 cameraZoomSpeed: this.model.get('camera_zoom_speed'),
                 cameraPanSpeed: this.model.get('camera_pan_speed'),
+                cameraDampingFactor: this.model.get('camera_damping_factor'),
                 colorbarObjectId: this.model.get('colorbar_object_id'),
                 cameraAnimation: this.model.get('camera_animation'),
                 name: this.model.get('name'),
@@ -326,6 +327,8 @@ PlotView = widgets.DOMWidgetView.extend({
                 autoRendering: this.model.get('auto_rendering'),
                 gridVisible: this.model.get('grid_visible'),
                 gridColor: this.model.get('grid_color'),
+                clippingPlanes: this.model.get('clipping_planes'),
+                labelColor: this.model.get('label_color'),
             });
 
             if (this.model.get('camera_auto_fit') === false) {
@@ -345,41 +348,37 @@ PlotView = widgets.DOMWidgetView.extend({
         this._setVoxelPaintColor();
 
         this.model.get('object_ids').forEach(function (id) {
-            this.renderPromises.push(this.K3DInstance.load({objects: [objectsList[id].attributes]}));
+            this.renderPromises.push(this.K3DInstance.load({ objects: [objectsList[id].attributes] }));
         }, this);
 
-        this.cameraChangeId = this.K3DInstance.on(this.K3DInstance.events.CAMERA_CHANGE, function (control) {
-            self.model.set('camera', control);
-
+        this.cameraChangeId = this.K3DInstance.on(this.K3DInstance.events.CAMERA_CHANGE, (control) => {
             if ((new Date()).getTime() - self.model.lastCameraSync > 200) {
                 self.model.lastCameraSync = (new Date()).getTime();
-                self.model.save_changes();
+                self.model.save('camera', control, { patch: true });
             }
         });
 
-        this.GUIObjectChanges = this.K3DInstance.on(this.K3DInstance.events.OBJECT_CHANGE, function (change) {
+        this.GUIObjectChanges = this.K3DInstance.on(this.K3DInstance.events.OBJECT_CHANGE, (change) => {
             if (self.model._comm_live) {
                 if (change.value.data && change.value.shape) {
                     change.value.compression_level = objectsList[change.id].attributes.compression_level;
                 }
 
-                // objectsList[change.id].set(change.key, change.value);
-                // objectsList[change.id].save_changes();
-                objectsList[change.id].save(change.key, change.value, {patch: true});
+                objectsList[change.id].save(change.key, change.value, { patch: true });
             }
         });
 
-        this.GUIParametersChanges = this.K3DInstance.on(this.K3DInstance.events.PARAMETERS_CHANGE, function (change) {
-            self.model.save(change.key, change.value, {patch: true});
+        this.GUIParametersChanges = this.K3DInstance.on(this.K3DInstance.events.PARAMETERS_CHANGE, (change) => {
+            self.model.save(change.key, change.value, { patch: true });
         });
 
-        this.voxelsCallback = this.K3DInstance.on(this.K3DInstance.events.VOXELS_CALLBACK, function (param) {
+        this.voxelsCallback = this.K3DInstance.on(this.K3DInstance.events.VOXELS_CALLBACK, (param) => {
             if (objectsList[param.object.K3DIdentifier]) {
-                objectsList[param.object.K3DIdentifier].send({msg_type: 'click_callback', coord: param.coord});
+                objectsList[param.object.K3DIdentifier].send({ msg_type: 'click_callback', coord: param.coord });
             }
         });
 
-        this.objectHoverCallback = this.K3DInstance.on(this.K3DInstance.events.OBJECT_HOVERED, function (param) {
+        this.objectHoverCallback = this.K3DInstance.on(this.K3DInstance.events.OBJECT_HOVERED, (param) => {
             if (objectsList[param.object.K3DIdentifier]) {
                 objectsList[param.object.K3DIdentifier].send({
                     msg_type: 'hover_callback',
@@ -388,12 +387,12 @@ PlotView = widgets.DOMWidgetView.extend({
                     distance: param.distance,
                     face_index: param.faceIndex,
                     face: [param.face.a, param.face.b, param.face.c],
-                    uv: param.uv
+                    uv: param.uv,
                 });
             }
         });
 
-        this.objectClickCallback = this.K3DInstance.on(this.K3DInstance.events.OBJECT_CLICKED, function (param) {
+        this.objectClickCallback = this.K3DInstance.on(this.K3DInstance.events.OBJECT_CLICKED, (param) => {
             if (objectsList[param.object.K3DIdentifier]) {
                 objectsList[param.object.K3DIdentifier].send({
                     msg_type: 'click_callback',
@@ -402,163 +401,172 @@ PlotView = widgets.DOMWidgetView.extend({
                     distance: param.distance,
                     face_index: param.faceIndex,
                     face: [param.face.a, param.face.b, param.face.c],
-                    uv: param.uv
+                    uv: param.uv,
                 });
             }
         });
     },
 
-    _setDirectionalLightingIntensity: function () {
+    _setDirectionalLightingIntensity() {
         this.K3DInstance.setDirectionalLightingIntensity(this.model.get('lighting'));
     },
 
-    _setTime: function () {
+    _setTime() {
         if (this.K3DInstance.parameters.time !== this.model.get('time')) {
             this.renderPromises.push(this.K3DInstance.setTime(this.model.get('time')));
         }
     },
 
-    _setCameraAutoFit: function () {
+    _setCameraAutoFit() {
         this.K3DInstance.setCameraAutoFit(this.model.get('camera_auto_fit'));
     },
 
-    _setGridAutoFit: function () {
+    _setGridAutoFit() {
         this.K3DInstance.setGridAutoFit(this.model.get('grid_auto_fit'));
     },
 
-    _setGridVisible: function () {
+    _setGridVisible() {
         this.K3DInstance.setGridVisible(this.model.get('grid_visible'));
     },
 
-    _setGridColor: function () {
+    _setGridColor() {
         this.K3DInstance.setGridColor(this.model.get('grid_color'));
     },
 
-    _setFps: function () {
+    _setLabelColor() {
+        this.K3DInstance.setLabelColor(this.model.get('label_color'));
+    },
+
+    _setFps() {
         this.K3DInstance.setFps(this.model.get('fps'));
     },
 
-    _setFpsMeter: function () {
+    _setFpsMeter() {
         this.K3DInstance.setFpsMeter(this.model.get('fps_meter'));
     },
 
-    _setScreenshotScale: function () {
+    _setScreenshotScale() {
         this.K3DInstance.setScreenshotScale(this.model.get('screenshot_scale'));
     },
 
-    _setVoxelPaintColor: function () {
+    _setVoxelPaintColor() {
         this.K3DInstance.setVoxelPaint(this.model.get('voxel_paint_color'));
     },
 
-    _setBackgroundColor: function () {
+    _setBackgroundColor() {
         this.K3DInstance.setClearColor(this.model.get('background_color'));
     },
 
-    _setGrid: function () {
+    _setGrid() {
         this.K3DInstance.setGrid(this.model.get('grid'));
     },
 
-    _setAutoRendering: function () {
+    _setAutoRendering() {
         this.K3DInstance.setAutoRendering(this.model.get('auto_rendering'));
     },
 
-    _setMenuVisibility: function () {
+    _setMenuVisibility() {
         this.K3DInstance.setMenuVisibility(this.model.get('menu_visibility'));
     },
 
-    _setColorMapLegend: function () {
+    _setColorMapLegend() {
         this.K3DInstance.setColorMapLegend(this.model.get('colorbar_object_id'));
     },
 
-    _setColorbarScientific: function () {
+    _setColorbarScientific() {
         this.K3DInstance.setColorbarScientific(this.model.get('colorbar_scientific'));
     },
 
-    _setCamera: function () {
+    _setCamera() {
         this.K3DInstance.setCamera(this.model.get('camera'));
     },
 
-    _setCameraAnimation: function () {
+    _setCameraAnimation() {
         this.K3DInstance.setCameraAnimation(this.model.get('camera_animation'));
     },
 
-    _setRenderingSteps: function () {
+    _setRenderingSteps() {
         this.K3DInstance.setRenderingSteps(this.model.get('rendering_steps'));
     },
 
-    _setAxes: function () {
+    _setAxes() {
         this.K3DInstance.setAxes(this.model.get('axes'));
     },
 
-    _setName: function () {
+    _setName() {
         this.K3DInstance.setName(this.model.get('name'));
     },
 
-    _setViewMode: function () {
+    _setViewMode() {
         this.K3DInstance.setViewMode(this.model.get('mode'));
     },
 
-    _setCameraMode: function () {
+    _setCameraMode() {
         this.K3DInstance.setCameraMode(this.model.get('camera_mode'));
     },
 
-    _setManipulateMode: function () {
+    _setManipulateMode() {
         this.K3DInstance.setManipulateMode(this.model.get('manipulate_mode'));
     },
 
-    _setAxesHelper: function () {
+    _setAxesHelper() {
         this.K3DInstance.setAxesHelper(this.model.get('axes_helper'));
     },
 
-    _setSnapshotIncludeJs: function () {
+    _setSnapshotIncludeJs() {
         this.K3DInstance.setSnapshotIncludeJs(this.model.get('snapshot_include_js'));
     },
 
-    _setCameraLock: function () {
+    _setCameraLock() {
         this.K3DInstance.setCameraLock(
             this.model.get('camera_no_rotate'),
             this.model.get('camera_no_zoom'),
-            this.model.get('camera_no_pan')
+            this.model.get('camera_no_pan'),
         );
     },
 
-    _setCameraSpeeds: function () {
+    _setCameraSpeeds() {
         this.K3DInstance.setCameraSpeeds(
             this.model.get('camera_rotate_speed'),
             this.model.get('camera_zoom_speed'),
-            this.model.get('camera_pan_speed')
+            this.model.get('camera_pan_speed'),
         );
     },
 
-    _setCameraFOV: function () {
+    _setCameraFOV() {
         this.K3DInstance.setCameraFOV(this.model.get('camera_fov'));
     },
 
-    _setClippingPlanes: function () {
+    _setCameraDampingFactor() {
+        this.K3DInstance.setCameraDampingFactor(this.model.get('camera_damping_factor'));
+    },
+
+    _setClippingPlanes() {
         this.K3DInstance.setClippingPlanes(this.model.get('clipping_planes'));
     },
 
-    _onObjectsListChange: function () {
-        var old_object_ids = this.model.previous('object_ids'),
-            new_object_ids = this.model.get('object_ids');
+    _onObjectsListChange() {
+        const oldObjectId = this.model.previous('object_ids');
+        const newObjectId = this.model.get('object_ids');
 
-        _.difference(old_object_ids, new_object_ids).forEach(function (id) {
+        _.difference(oldObjectId, newObjectId).forEach(function (id) {
             this.renderPromises.push(this.K3DInstance.removeObject(id));
         }, this);
 
-        _.difference(new_object_ids, old_object_ids).forEach(function (id) {
-            this.renderPromises.push(this.K3DInstance.load({objects: [objectsList[id].attributes]}));
+        _.difference(newObjectId, oldObjectId).forEach(function (id) {
+            this.renderPromises.push(this.K3DInstance.load({ objects: [objectsList[id].attributes] }));
         }, this);
     },
 
-    refreshObject: function (obj, changed) {
+    refreshObject(obj, changed) {
         if (this.model.get('object_ids').indexOf(obj.get('id')) !== -1) {
             this.renderPromises.push(this.K3DInstance.reload(objectsList[obj.get('id')].attributes, changed));
         }
     },
 
-    processPhosphorMessage: function (msg) {
+    processPhosphorMessage(msg) {
         widgets.DOMWidgetView.prototype.processPhosphorMessage.call(this, msg);
+
         switch (msg.type) {
             case 'after-attach':
                 this.el.addEventListener('contextmenu', this, true);
@@ -569,10 +577,12 @@ PlotView = widgets.DOMWidgetView.extend({
             case 'resize':
                 this.handleResize(msg);
                 break;
+            default:
+                break;
         }
     },
 
-    handleEvent: function (event) {
+    handleEvent(event) {
         switch (event.type) {
             case 'contextmenu':
                 this.handleContextMenu(event);
@@ -583,7 +593,7 @@ PlotView = widgets.DOMWidgetView.extend({
         }
     },
 
-    handleContextMenu: function (event) {
+    handleContextMenu(event) {
         // Cancel context menu if on renderer:
         if (this.container.contains(event.target)) {
             event.preventDefault();
@@ -591,22 +601,22 @@ PlotView = widgets.DOMWidgetView.extend({
         }
     },
 
-    handleResize: function () {
+    handleResize() {
         if (this.K3DInstance) {
             this.K3DInstance.resizeHelper();
         }
-    }
+    },
 });
 
 module.exports = {
-    ChunkModel: ChunkModel,
-    PlotModel: PlotModel,
-    PlotView: PlotView,
-    ObjectModel: ObjectModel,
-    ObjectView: ObjectView,
-    ThreeJsProvider: ThreeJsProvider,
+    ChunkModel,
+    PlotModel,
+    PlotView,
+    ObjectModel,
+    ObjectView,
+    ThreeJsProvider,
     TransferFunctionEditor: TFEdit.transferFunctionEditor,
     TransferFunctionModel: TFEdit.transferFunctionModel,
     TransferFunctionView: TFEdit.transferFunctionView,
-    K3D: K3D
+    K3D,
 };

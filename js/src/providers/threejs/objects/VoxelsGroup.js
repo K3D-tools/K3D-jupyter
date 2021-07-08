@@ -1,22 +1,21 @@
-'use strict';
-var VoxelsHelper = require('./../helpers/Voxels'),
-    _ = require('./../../../lodash'),
-    areAllChangesResolve = require('./../helpers/Fn').areAllChangesResolve,
-    commonUpdate = require('./../helpers/Fn').commonUpdate;
+const VoxelsHelper = require('../helpers/Voxels');
+const _ = require('../../../lodash');
+const { areAllChangesResolve } = require('../helpers/Fn');
+const { commonUpdate } = require('../helpers/Fn');
 
 function K3DVoxelsMap(group) {
-    var cx = group.coord.data[0],
-        cy = group.coord.data[1],
-        cz = group.coord.data[2],
-        sx = group.voxels.shape[2],
-        sy = group.voxels.shape[1],
-        sz = group.voxels.shape[0],
-        data = group.voxels.data;
+    const cx = group.coord.data[0];
+    const cy = group.coord.data[1];
+    const cz = group.coord.data[2];
+    const sx = group.voxels.shape[2];
+    const sy = group.voxels.shape[1];
+    const sz = group.voxels.shape[0];
+    const { data } = group.voxels;
 
     function dist(a) {
-        var dx = group.coord.data[0] - a.offset[0],
-            dy = group.coord.data[1] - a.offset[1],
-            dz = group.coord.data[2] - a.offset[2];
+        let dx = group.coord.data[0] - a.offset[0];
+        let dy = group.coord.data[1] - a.offset[1];
+        let dz = group.coord.data[2] - a.offset[2];
 
         dx = (dx < 0 ? 1000 : dx);
         dy = (dy < 0 ? 1000 : dy);
@@ -29,16 +28,16 @@ function K3DVoxelsMap(group) {
     this.data = data;
 
     this.set = function (x, y, z, value, skipSearchingNeighbours) {
-        var lx = x - cx,
-            ly = y - cy,
-            lz = z - cz;
+        const lx = x - cx;
+        const ly = y - cy;
+        const lz = z - cz;
 
-        if (lx >= 0 && lx < sx &&
-            ly >= 0 && ly < sy &&
-            lz >= 0 && lz < sz) {
+        if (lx >= 0 && lx < sx
+            && ly >= 0 && ly < sy
+            && lz >= 0 && lz < sz) {
             this.data[(lz * sy + ly) * sx + lx] = value;
         } else if (!skipSearchingNeighbours) {
-            for (var i = 0; i < this.neighbours.length; i++) {
+            for (let i = 0; i < this.neighbours.length; i++) {
                 if (this.neighbours[i].voxels.set(x, y, z, value, true)) {
                     return true;
                 }
@@ -49,17 +48,18 @@ function K3DVoxelsMap(group) {
     };
 
     this.get = function (x, y, z, skipSearchingNeighbours) {
-        var lx = x - cx,
-            ly = y - cy,
-            lz = z - cz;
+        const lx = x - cx;
+        const ly = y - cy;
+        const lz = z - cz;
 
-        if (lx >= 0 && lx < sx &&
-            ly >= 0 && ly < sy &&
-            lz >= 0 && lz < sz) {
+        if (lx >= 0 && lx < sx
+            && ly >= 0 && ly < sy
+            && lz >= 0 && lz < sz) {
             return this.data[(lz * sy + ly) * sx + lx];
-        } else if (!skipSearchingNeighbours) {
-            for (var i = 0; i < this.neighbours.length; i++) {
-                var v = this.neighbours[i].voxels.get(x, y, z, true);
+        }
+        if (!skipSearchingNeighbours) {
+            for (let i = 0; i < this.neighbours.length; i++) {
+                const v = this.neighbours[i].voxels.get(x, y, z, true);
 
                 if (v !== -1) {
                     return v;
@@ -71,23 +71,23 @@ function K3DVoxelsMap(group) {
     };
 
     this.setNeighbours = function (list, chunk) {
-        this.neighbours = list.reduce(function (p, v) {
+        this.neighbours = list.reduce((p, v) => {
             if (v.id === chunk.id) {
                 return p;
             }
 
-            var wx = Math.max(group.coord.data[0] + group.voxels.shape[2], v.offset[0] + v.size[0]) -
-                     Math.min(group.coord.data[0], v.offset[0]),
+            const wx = Math.max(group.coord.data[0] + group.voxels.shape[2], v.offset[0] + v.size[0])
+                - Math.min(group.coord.data[0], v.offset[0]);
 
-                wy = Math.max(group.coord.data[1] + group.voxels.shape[1], v.offset[1] + v.size[1]) -
-                     Math.min(group.coord.data[1], v.offset[1]),
+            const wy = Math.max(group.coord.data[1] + group.voxels.shape[1], v.offset[1] + v.size[1])
+                - Math.min(group.coord.data[1], v.offset[1]);
 
-                wz = Math.max(group.coord.data[2] + group.voxels.shape[0], v.offset[2] + v.size[2]) -
-                     Math.min(group.coord.data[2], v.offset[2]),
+            const wz = Math.max(group.coord.data[2] + group.voxels.shape[0], v.offset[2] + v.size[2])
+                - Math.min(group.coord.data[2], v.offset[2]);
 
-                rx = group.voxels.shape[2] + v.size[0],
-                ry = group.voxels.shape[1] + v.size[1],
-                rz = group.voxels.shape[0] + v.size[2];
+            const rx = group.voxels.shape[2] + v.size[0];
+            const ry = group.voxels.shape[1] + v.size[1];
+            const rz = group.voxels.shape[0] + v.size[2];
 
             if (wx <= rx && wy <= ry && wz <= rz) {
                 if ((wx === rx) && (wy === ry) && (wz === rz)) {
@@ -100,9 +100,7 @@ function K3DVoxelsMap(group) {
             return p;
         }, []);
 
-        this.neighbours.sort(function (a, b) {
-            return dist(a) - dist(b);
-        });
+        this.neighbours.sort((a, b) => dist(a) - dist(b));
     };
 }
 
@@ -113,7 +111,7 @@ function prepareChunk(group, idx) {
         offset: group.coord.data,
         multiple: group.multiple,
         id: group.id || idx,
-        idx: idx
+        idx,
     };
 }
 
@@ -125,22 +123,22 @@ function prepareChunk(group, idx) {
  * @param {Object} K3D
  */
 module.exports = {
-    create: function (config, K3D) {
-        var chunkList = [];
+    create(config, K3D) {
+        const chunkList = [];
 
         if (typeof (config.voxels_group) !== 'undefined') {
-            config.voxels_group.forEach(function (group, idx) {
+            config.voxels_group.forEach((group, idx) => {
                 chunkList.push(prepareChunk(group, idx));
             });
         }
 
         if (typeof (config.chunks_ids) !== 'undefined') {
-            config.chunks_ids.forEach(function (chunkId, idx) {
+            config.chunks_ids.forEach((chunkId, idx) => {
                 chunkList.push(prepareChunk(K3D.getWorld().chunkList[chunkId].attributes, idx));
             });
         }
 
-        chunkList.forEach(function (chunk) {
+        chunkList.forEach((chunk) => {
             chunk.voxels.setNeighbours(chunkList, chunk);
         });
 
@@ -148,18 +146,19 @@ module.exports = {
             config,
             chunkList,
             config.space_size.data,
-            K3D
+            K3D,
         );
     },
 
-    update: function (config, changes, obj, K3D) {
-        var resolvedChanges = {};
+    update(config, changes, obj, K3D) {
+        const resolvedChanges = {};
 
-        if (typeof(changes.opacity) !== 'undefined' && !changes.opacity.timeSeries) {
-            obj.traverse(function (object) {
+        if (typeof (changes.opacity) !== 'undefined' && !changes.opacity.timeSeries) {
+            obj.traverse((object) => {
                 if (object.material) {
                     if (object.material.userData.outline) {
-                        object.material.opacity = object.material.uniforms.opacity.value = config.opacity * 0.75;
+                        object.material.uniforms.opacity.value = config.opacity * 0.75;
+                        object.material.opacity = object.material.uniforms.opacity.value;
                     } else {
                         object.material.opacity = config.opacity;
                         object.material.depthWrite = config.opacity === 1.0;
@@ -171,32 +170,31 @@ module.exports = {
             resolvedChanges.opacity = null;
         }
 
-        if (typeof(changes.chunks_ids) !== 'undefined' && !changes.chunks_ids.timeSeries) {
-            var idsMap = {}, affectedIds = new Set();
+        if (typeof (changes.chunks_ids) !== 'undefined' && !changes.chunks_ids.timeSeries) {
+            const idsMap = {};
+            const affectedIds = new Set();
 
-            obj.children.forEach(function (g) {
+            obj.children.forEach((g) => {
                 if (g.voxel) {
                     idsMap[g.voxel.chunk.id] = g;
                 }
             });
 
-            var ids = Object.keys(idsMap).reduce(function (p, v) {
-                p.push(parseInt(v));
+            const ids = Object.keys(idsMap).reduce((p, v) => {
+                p.push(parseInt(v, 10));
                 return p;
             }, []);
 
             // Remove
-            _.difference(ids, changes.chunks_ids).forEach(function (id) {
-                idsMap[id].voxel.chunk.voxels.neighbours.forEach(function (value) {
+            _.difference(ids, changes.chunks_ids).forEach((id) => {
+                idsMap[id].voxel.chunk.voxels.neighbours.forEach((value) => {
                     affectedIds.add(value.id);
                 });
 
                 obj.remove(idsMap[id]);
-                obj.voxelsChunks = obj.voxelsChunks.filter(function (v) {
-                    return v.id !== id;
-                });
+                obj.voxelsChunks = obj.voxelsChunks.filter((v) => v.id !== id);
 
-                idsMap[id].children.forEach(function (mesh) {
+                idsMap[id].children.forEach((mesh) => {
                     mesh.geometry.dispose();
                     mesh.material.dispose();
                 });
@@ -204,38 +202,38 @@ module.exports = {
             });
 
             // Add new
-            _.difference(changes.chunks_ids, ids).forEach(function (id) {
-                var chunk = prepareChunk(K3D.getWorld().chunkList[id].attributes, obj.voxelsChunks.length),
-                    mesh = obj.addChunk(chunk);
+            _.difference(changes.chunks_ids, ids).forEach((id) => {
+                const chunk = prepareChunk(K3D.getWorld().chunkList[id].attributes, obj.voxelsChunks.length);
+                const mesh = obj.addChunk(chunk);
 
                 obj.voxelsChunks.push(chunk);
                 idsMap[id] = mesh;
             });
 
-            obj.voxelsChunks.forEach(function (chunk) {
+            obj.voxelsChunks.forEach((chunk) => {
                 chunk.voxels.setNeighbours(obj.voxelsChunks, chunk);
             });
 
-            _.difference(changes.chunks_ids, ids).forEach(function (id) {
-                var chunk = idsMap[id].voxel.chunk;
+            _.difference(changes.chunks_ids, ids).forEach((id) => {
+                const { chunk } = idsMap[id].voxel;
 
                 affectedIds.add(chunk.id);
-                chunk.voxels.neighbours.forEach(function (value) {
+                chunk.voxels.neighbours.forEach((value) => {
                     affectedIds.add(value.id);
                 });
             });
 
             // Update
-            for (var id of affectedIds.values()) {
+            affectedIds.forEach((id) => {
                 if (idsMap[id]) {
                     obj.updateChunk(idsMap[id].voxel.chunk, true);
                 }
-            }
+            });
 
             resolvedChanges.chunks_ids = null;
         }
 
-        if (typeof(changes._hold_remeshing) !== 'undefined' && !changes._hold_remeshing.timeSeries) {
+        if (typeof (changes._hold_remeshing) !== 'undefined' && !changes._hold_remeshing.timeSeries) {
             obj.holdRemeshing = config._hold_remeshing;
 
             if (!config._hold_remeshing) {
@@ -248,9 +246,8 @@ module.exports = {
         commonUpdate(config, changes, resolvedChanges, obj);
 
         if (areAllChangesResolve(changes, resolvedChanges)) {
-            return Promise.resolve({json: config, obj: obj});
-        } else {
-            return false;
+            return Promise.resolve({ json: config, obj });
         }
-    }
+        return false;
+    },
 };

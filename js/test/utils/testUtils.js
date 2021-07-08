@@ -10,7 +10,10 @@ function base64ToArrayBuffer(base64) {
         bytes[i] = binary_string.charCodeAt(i);
     }
 
-    return new DataView(bytes.buffer);
+    return {
+        data: new Uint8Array(bytes.buffer),
+        shape: len
+    };
 }
 
 function arrayToTypedArray(typedArray, field, obj) {
@@ -61,6 +64,7 @@ window.TestHelpers.jsonLoader = function (url, callback) {
             positions: arrayToTypedArray.bind(null, Float32Array),
             scalar_field: arrayToTypedArray.bind(null, Float32Array),
             color_map: arrayToTypedArray.bind(null, Float32Array),
+            point_sizes: arrayToTypedArray.bind(null, Float32Array),
             attribute: arrayToTypedArray.bind(null, Float32Array),
             triangles_attribute: arrayToTypedArray.bind(null, Float32Array),
             vertices: arrayToTypedArray.bind(null, Float32Array),
@@ -123,7 +127,8 @@ window.TestHelpers.compareCanvasWithExpectedImage =
                         saveDiff = function (data) {
                             var xhrSaveDiff = new XMLHttpRequest();
 
-                            xhrSaveDiff.open('POST', 'http://localhost:9001/screenshots/' + expectedImagePath + '_diff.png',
+                            xhrSaveDiff.open('POST',
+                                'http://localhost:9001/screenshots/' + expectedImagePath + '_diff.png',
                                 true);
                             xhrSaveDiff.send(data.getImageDataUrl().replace(header, ''));
 

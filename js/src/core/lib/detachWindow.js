@@ -1,16 +1,14 @@
-'use strict';
-var _ = require('./../../lodash');
+const _ = require('../../lodash');
 
 function detachWindowGUI(gui, K3D) {
-    var newWindow,
-        intervalID,
-        originalDom = K3D.getWorld().targetDOMNode,
-        detachedDom = document.createElement('div'),
-        detachedDomText = 'K3D works in detached mode. Please close window or click on this text to attach it here.',
-        obj;
+    let newWindow;
+    let intervalID;
+    const originalDom = K3D.getWorld().targetDOMNode;
+    const detachedDom = document.createElement('div');
+    const detachedDomText = 'K3D works in detached mode. Please close window or click on this text to attach it here.';
 
     function removeByTagName(DOM, tag) {
-        var elements = DOM.getElementsByTagName(tag);
+        const elements = DOM.getElementsByTagName(tag);
 
         while (elements[0]) {
             elements[0].parentNode.removeChild(elements[0]);
@@ -18,27 +16,19 @@ function detachWindowGUI(gui, K3D) {
     }
 
     function reinitializeK3D(DOM) {
-        var newK3D, objects, world = K3D.getWorld();
-        newK3D = new K3D.constructor(K3D.Provider, DOM, K3D.parameters);
-
-        objects = world.K3DObjects.children.reduce(function (prev, object) {
+        const world = K3D.getWorld();
+        const newK3D = new K3D.constructor(K3D.Provider, DOM, K3D.parameters);
+        const objects = world.K3DObjects.children.reduce((prev, object) => {
             prev.push(world.ObjectsListJson[object.K3DIdentifier]);
 
             return prev;
         }, []);
 
         K3D.disable();
-        newK3D.load({objects: objects});
+        newK3D.load({ objects });
         newK3D.setCamera(K3D.getWorld().controls.getCameraArray());
 
         _.assign(K3D, newK3D);
-    }
-
-    function checkWindow() {
-        if (newWindow && newWindow.closed) {
-            clearInterval(intervalID);
-            attach();
-        }
     }
 
     function attach() {
@@ -50,27 +40,34 @@ function detachWindowGUI(gui, K3D) {
         }
     }
 
+    function checkWindow() {
+        if (newWindow && newWindow.closed) {
+            clearInterval(intervalID);
+            attach();
+        }
+    }
+
     detachedDom.className = 'detachedInfo';
     detachedDom.innerHTML = detachedDomText;
 
     detachedDom.style.cssText = [
         'cursor: pointer',
-        'padding: 2em'
+        'padding: 2em',
     ].join(';');
 
-    obj = {
-        detachWidget: function () {
+    const obj = {
+        detachWidget() {
             newWindow = window.open('', '_blank', 'width=800,height=600,resizable=1');
             newWindow.document.body.innerHTML = require('./helpers/detachedWindowHtml');
 
             // copy css
-            ['k3d-katex', 'k3d-style', 'k3d-dat.gui'].forEach(function (id) {
+            ['k3d-katex', 'k3d-style', 'k3d-dat.gui'].forEach((id) => {
                 newWindow.document.body.appendChild(
-                    window.document.getElementById(id).cloneNode(true)
+                    window.document.getElementById(id).cloneNode(true),
                 );
             });
 
-            setTimeout(function () {
+            setTimeout(() => {
                 reinitializeK3D(newWindow.document.getElementById('canvasTarget'));
 
                 removeByTagName(originalDom, 'canvas');
@@ -80,19 +77,19 @@ function detachWindowGUI(gui, K3D) {
                 originalDom.appendChild(detachedDom);
             }, 100);
 
-            newWindow.opener.addEventListener('unload', function () {
+            newWindow.opener.addEventListener('unload', () => {
                 if (newWindow) {
                     newWindow.close();
                 }
             }, false);
 
             intervalID = setInterval(checkWindow, 500);
-        }
+        },
     };
 
     gui.add(obj, 'detachWidget').name('Detach widget');
 
-    detachedDom.addEventListener('click', function () {
+    detachedDom.addEventListener('click', () => {
         attach();
     }, false);
 }

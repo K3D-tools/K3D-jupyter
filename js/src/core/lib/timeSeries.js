@@ -1,41 +1,38 @@
 // jshint maxdepth:5
 
-'use strict';
-
-var THREE = require('three'),
-    _ = require('./../../lodash'),
-    pow10ceil = require('./helpers/math').pow10ceil;
+const THREE = require('three');
+const _ = require('../../lodash');
+const { pow10ceil } = require('./helpers/math');
 
 function clone(val) {
-    if (typeof(val) === 'object') {
+    if (typeof (val) === 'object') {
         if (val.data) {
             return {
                 data: val.data.slice(0),
-                shape: val.shape
+                shape: val.shape,
             };
-        } else {
-            return _.cloneDeep(val);
         }
+        return _.cloneDeep(val);
     }
 
     return val;
 }
 
 function getObjectsWithTimeSeriesAndMinMax(K3D) {
-    var min = 0.0, max = 0.0,
-        world = K3D.getWorld(),
-        objects = [];
+    let min = 0.0; let max = 0.0;
+    const world = K3D.getWorld();
+    const objects = [];
 
-    Object.keys(world.ObjectsListJson).forEach(function (id) {
-        var obj = world.ObjectsListJson[id],
-            hasTimeSeries = false;
+    Object.keys(world.ObjectsListJson).forEach((id) => {
+        const obj = world.ObjectsListJson[id];
+        let hasTimeSeries = false;
 
-        Object.keys(obj).forEach(function (property) {
+        Object.keys(obj).forEach((property) => {
             if (obj[property] && typeof (obj[property].timeSeries) !== 'undefined') {
                 hasTimeSeries = true;
 
-                Object.keys(obj[property]).forEach(function (t) {
-                    if (!isNaN(parseFloat(t))) {
+                Object.keys(obj[property]).forEach((t) => {
+                    if (!Number.isNaN(parseFloat(t))) {
                         min = Math.min(min, parseFloat(t));
                         max = Math.max(max, parseFloat(t));
                     }
@@ -48,32 +45,32 @@ function getObjectsWithTimeSeriesAndMinMax(K3D) {
         }
     });
 
-    Object.keys(K3D.parameters.cameraAnimation).forEach(function (t) {
-        if (!isNaN(parseFloat(t))) {
+    Object.keys(K3D.parameters.cameraAnimation).forEach((t) => {
+        if (!Number.isNaN(parseFloat(t))) {
             min = Math.min(min, parseFloat(t));
             max = Math.max(max, parseFloat(t));
         }
     });
 
     return {
-        min: min,
-        max: max,
-        objects: objects
+        min,
+        max,
+        objects,
     };
 }
 
 function interpolate(a, b, f, property) {
-    var i, interpolated, minLength, maxLength;
+    let i; let interpolated; let minLength; let
+        maxLength;
 
     if (property === 'model_matrix') {
-        var matrix = new THREE.Matrix4(),
-            translationA = new THREE.Vector3(),
-            rotationA = new THREE.Quaternion(),
-            scaleA = new THREE.Vector3(),
-            translationB = new THREE.Vector3(),
-            rotationB = new THREE.Quaternion(),
-            scaleB = new THREE.Vector3(),
-            d;
+        const matrix = new THREE.Matrix4();
+        const translationA = new THREE.Vector3();
+        const rotationA = new THREE.Quaternion();
+        const scaleA = new THREE.Vector3();
+        const translationB = new THREE.Vector3();
+        const rotationB = new THREE.Quaternion();
+        const scaleB = new THREE.Vector3();
 
         matrix.set.apply(matrix, a.data);
         matrix.decompose(translationA, rotationA, scaleA);
@@ -85,16 +82,16 @@ function interpolate(a, b, f, property) {
         scaleA.lerp(scaleB, f);
 
         matrix.compose(translationA, rotationA, scaleA);
-        d = matrix.toArray();
+        const d = matrix.toArray();
 
         return {
             data: new Float32Array([
                 d[0], d[4], d[8], d[12],
                 d[1], d[5], d[9], d[13],
                 d[2], d[6], d[10], d[14],
-                d[3], d[7], d[11], d[15]
+                d[3], d[7], d[11], d[15],
             ]),
-            shape: a.shape
+            shape: a.shape,
         };
     }
 
@@ -127,7 +124,7 @@ function interpolate(a, b, f, property) {
 
         return {
             data: interpolated,
-            shape: a.shape
+            shape: a.shape,
         };
     }
 
@@ -155,7 +152,7 @@ function startAutoPlay(K3D, changeParameters) {
 
     K3D.autoPlayedFps = K3D.parameters.fps;
 
-    K3D.autoPlayedHandler = setInterval(function () {
+    K3D.autoPlayedHandler = setInterval(() => {
         if (K3D.autoPlayedFps !== K3D.parameters.fps) {
             clearInterval(K3D.autoPlayedHandler);
             K3D.autoPlayedHandler = false;
@@ -164,10 +161,10 @@ function startAutoPlay(K3D, changeParameters) {
             return;
         }
 
-        var t = K3D.parameters.time + 1.0 / K3D.parameters.fps;
+        let t = K3D.parameters.time + 1.0 / K3D.parameters.fps;
 
         if (t > K3D.GUI.controls.controllersMap.time.__max) {
-            t = t - K3D.GUI.controls.controllersMap.time.__max;
+            t -= K3D.GUI.controls.controllersMap.time.__max;
         }
 
         K3D.setTime(t);
@@ -188,10 +185,10 @@ function stopAutoPlay(K3D) {
 }
 
 module.exports = {
-    refreshTimeScale: function (K3D, GUI) {
-        var timeSeriesInfo = getObjectsWithTimeSeriesAndMinMax(K3D);
+    refreshTimeScale(K3D, GUI) {
+        const timeSeriesInfo = getObjectsWithTimeSeriesAndMinMax(K3D);
 
-        GUI.controls.__controllers.forEach(function (controller) {
+        GUI.controls.__controllers.forEach((controller) => {
             if (controller.property === 'time') {
                 controller.min(timeSeriesInfo.min).max(timeSeriesInfo.max)
                     .step(pow10ceil(timeSeriesInfo.max - timeSeriesInfo.min) / 10000.0);
@@ -204,32 +201,32 @@ module.exports = {
         });
     },
 
-    interpolateTimeSeries: function (json, time) {
-        var interpolated_json = {}, changes = {};
+    interpolateTimeSeries(json, time) {
+        const interpolatedJson = {}; const
+            changes = {};
 
-        Object.keys(json).forEach(function (property) {
-            var keypoints,
-                a, b, i, f;
+        Object.keys(json).forEach((property) => {
+            let keypoints;
+            let a; let b; let i; let
+                f;
 
             if (json[property] && typeof (json[property].timeSeries) !== 'undefined') {
-                keypoints = Object.keys(json[property]).reduce(function (p, k) {
-                    if (!isNaN(parseFloat(k))) {
-                        p.push({v: parseFloat(k), k: k});
+                keypoints = Object.keys(json[property]).reduce((p, k) => {
+                    if (!Number.isNaN(parseFloat(k))) {
+                        p.push({ v: parseFloat(k), k });
                     }
 
                     return p;
-                }, []).sort(function (a, b) {
-                    return a.v - b.v;
-                });
+                }, []).sort((q, w) => q.v - w.v);
 
                 if (time <= keypoints[0].v) {
-                    interpolated_json[property] = json[property][keypoints[0].k];
+                    interpolatedJson[property] = json[property][keypoints[0].k];
                 } else if (time >= keypoints[keypoints.length - 1].v) {
-                    interpolated_json[property] = json[property][keypoints[keypoints.length - 1].k];
+                    interpolatedJson[property] = json[property][keypoints[keypoints.length - 1].k];
                 } else {
                     for (i = 0; i < keypoints.length; i++) {
                         if (Math.abs(keypoints[i].v - time) < 0.001) {
-                            interpolated_json[property] = clone(json[property][keypoints[i].k]);
+                            interpolatedJson[property] = clone(json[property][keypoints[i].k]);
 
                             break;
                         }
@@ -239,55 +236,56 @@ module.exports = {
                             b = keypoints[i].v;
                             f = (time - a) / (b - a);
 
-                            interpolated_json[property] = interpolate(
+                            interpolatedJson[property] = interpolate(
                                 json[property][keypoints[i - 1].k],
                                 json[property][keypoints[i].k],
                                 f,
-                                property);
+                                property,
+                            );
 
                             break;
                         }
                     }
                 }
 
-                changes[property] = interpolated_json[property];
+                changes[property] = interpolatedJson[property];
             } else {
-                interpolated_json[property] = json[property];
+                interpolatedJson[property] = json[property];
             }
         });
 
-        return {json: interpolated_json, changes: changes};
+        return { json: interpolatedJson, changes };
     },
 
-    getObjectsWithTimeSeriesAndMinMax: getObjectsWithTimeSeriesAndMinMax,
+    getObjectsWithTimeSeriesAndMinMax,
 
-    timeSeriesGUI: function (gui, K3D, changeParameters) {
-        var obj = {
-            togglePlay: function () {
+    timeSeriesGUI(gui, K3D, changeParameters) {
+        const obj = {
+            togglePlay() {
                 if (K3D.autoPlayedHandler) {
                     stopAutoPlay(K3D);
                 } else {
                     startAutoPlay(K3D, changeParameters);
                 }
-            }
+            },
         };
 
         gui.controllersMap = gui.controllersMap || {};
 
         gui.controllersMap.time = gui.add(K3D.parameters, 'time').min(0).max(1).name('time')
-            .onChange(function (value) {
+            .onChange((value) => {
                 K3D.setTime(value);
                 changeParameters('time', value);
             });
 
         gui.controllersMap.fps = gui.add(K3D.parameters, 'fps').min(0).max(120).name('fps')
-            .onChange(function (value) {
+            .onChange((value) => {
                 changeParameters('fps', value);
             });
 
         gui.controllersMap.autoPlay = gui.add(obj, 'togglePlay').name('Play loop');
     },
 
-    startAutoPlay: startAutoPlay,
-    stopAutoPlay: stopAutoPlay
+    startAutoPlay,
+    stopAutoPlay,
 };
