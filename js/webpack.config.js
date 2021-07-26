@@ -20,7 +20,7 @@ var rules = [
     }
 ];
 
-var mode = 'development';
+var mode = 'production';
 
 var plugins = [];
 
@@ -115,6 +115,7 @@ module.exports = [
         },
         plugins: [new CopyPlugin({
             patterns: [
+                {from: './src/core/lib/headless.html', to: __dirname + '/../k3d/static'},
                 {from: './src/core/lib/snapshot_standalone.txt', to: __dirname + '/../k3d/static'},
                 {from: './src/core/lib/snapshot_online.txt', to: __dirname + '/../k3d/static'},
                 {from: './node_modules/requirejs/require.js', to: __dirname + '/../k3d/static'},

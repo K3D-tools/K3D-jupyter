@@ -441,6 +441,7 @@ class Plot(widgets.DOMWidget):
             "cameraMode": self.camera_mode,
             "colorbarObjectId": self.colorbar_object_id,
             "axes": self.axes,
+            "camera": self.camera,
             "cameraNoRotate": self.camera_no_rotate,
             "cameraNoZoom": self.camera_no_zoom,
             "cameraNoPan": self.camera_no_pan,
@@ -449,7 +450,7 @@ class Plot(widgets.DOMWidget):
             "cameraPanSpeed": self.camera_pan_speed,
             "cameraDampingFactor": self.camera_damping_factor,
             "name": self.name,
-            "camera_fov": self.camera_fov,
+            "cameraFov": self.camera_fov,
             "axesHelper": self.axes_helper,
             "cameraAnimation": self.camera_animation,
             "fps": self.fps,
@@ -523,3 +524,10 @@ class Plot(widgets.DOMWidget):
         template = template.replace("[ADDITIONAL]", additional_js_code)
 
         return template
+
+    def get_static_path(self):
+        import os
+
+        dir_path = os.path.dirname(os.path.realpath(__file__))
+
+        return os.path.join(dir_path, "static")

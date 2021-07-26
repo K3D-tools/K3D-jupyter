@@ -1187,6 +1187,7 @@ function K3D(provider, targetDOMNode, parameters) {
 
     this.resizeHelper();
 
+    self.setScreenshotScale(self.parameters.screenshotScale);
     self.setClearColor(self.parameters.clearColor);
     self.setMenuVisibility(self.parameters.menuVisibility);
     self.setTime(self.parameters.time);
