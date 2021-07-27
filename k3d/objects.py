@@ -67,6 +67,7 @@ class VoxelChunk(widgets.Widget):
     voxels = Array(dtype=np.uint8).tag(sync=True, **array_serialization_wrap("voxels"))
     coord = Array(dtype=np.uint32).tag(sync=True, **array_serialization_wrap("coord"))
     multiple = Int().tag(sync=True)
+    compression_level = Integer().tag(sync=True)
 
     def push_data(self, field):
         self.notify_change({"name": field, "type": "change"})

@@ -30,7 +30,7 @@ class k3d_remote:
         thread.deamon = True
         thread.start()
 
-        self.synced_plot = {k: None for k in k3d_plot.get_snapshot_params().keys()}
+        self.synced_plot = {k: None for k in k3d_plot.get_plot_params().keys()}
         self.synced_objects = {}
 
         @self.api.route('/stop', methods=['GET'])
@@ -53,7 +53,7 @@ class k3d_remote:
 
         @self.api.route('/', methods=['POST'])
         def generate():
-            current_plot_params = self.k3d_plot.get_snapshot_params()
+            current_plot_params = self.k3d_plot.get_plot_params()
             plot_diff = {k: current_plot_params[k] for k in current_plot_params.keys()
                          if current_plot_params[k] != self.synced_plot[k]}
 

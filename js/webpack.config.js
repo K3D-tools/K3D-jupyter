@@ -20,7 +20,7 @@ var rules = [
     }
 ];
 
-var mode = 'production';
+var mode = 'development';
 
 var plugins = [];
 

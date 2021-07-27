@@ -24,32 +24,32 @@
 <div id="canvasTarget"></div>
 
 <script>
-    var K3DInstance,
-        k3dParams = [PARAMS],
-        k3dCamera = [CAMERA];
+    var K3DInstance;
+    var data = '[DATA]';
+
+    function _base64ToArrayBuffer(base64) {
+        var binary_string = window.atob(base64);
+        var len = binary_string.length;
+        var bytes = new Uint8Array(len);
+        for (var i = 0; i < len; i++) {
+            bytes[i] = binary_string.charCodeAt(i);
+        }
+        return bytes;
+    }
 
     require(['k3d'], function (lib) {
         try {
-            K3DInstance = new lib.K3D(
-                lib.ThreeJsProvider,
+            K3DInstance = new lib.CreateK3DAndLoadBinarySnapshot(
+                _base64ToArrayBuffer(data),
                 document.getElementById('canvasTarget'),
-                k3dParams
             );
+
+            K3DInstance.then(function(K3DInstance) {
+                [ADDITIONAL]
+            });
         } catch (e) {
             console.log(e);
             return;
-        }
-
-        if (K3DInstance) {
-            var data = '[DATA]';
-
-            K3DInstance.setCamera(k3dCamera);
-
-            K3DInstance.setSnapshot(data).then(function() {
-                setTimeout(K3DInstance.setCamera(k3dCamera), 10);
-            });
-
-            [ADDITIONAL]
         }
     });
 </script>

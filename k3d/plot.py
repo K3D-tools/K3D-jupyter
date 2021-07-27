@@ -8,8 +8,28 @@ from functools import wraps
 from traitlets import Unicode, Bool, Int, List, Float
 
 from ._version import __version__ as version
-from .objects import Drawable, ListOrArray, TimeSeries
+from .objects import *
 
+objects_map = {
+    'Line': Line,
+    'Label': Label,
+    'MIP': MIP,
+    'Marchingcubes': MarchingCubes,
+    'Mesh': Mesh,
+    'Points': Points,
+    'STL': STL,
+    'SparseVoxels': SparseVoxels,
+    'Surface': Surface,
+    'Text': Text,
+    'Text2d': Text2d,
+    'Texture': Texture,
+    'TextureText': TextureText,
+    'VectorField': VectorField,
+    'Vectors': Vectors,
+    'Volume': Volume,
+    'Voxels': Voxels,
+    'VoxelsGroup': VoxelsGroup
+}
 import numpy as np
 
 
@@ -169,43 +189,43 @@ class Plot(widgets.DOMWidget):
     objects = []
 
     def __init__(
-        self,
-        antialias=3,
-        background_color=0xFFFFFF,
-        camera_auto_fit=True,
-        grid_auto_fit=True,
-        grid_visible=True,
-        height=512,
-        voxel_paint_color=0,
-        grid=(-1, -1, -1, 1, 1, 1),
-        screenshot_scale=2.0,
-        lighting=1.5,
-        time=0.0,
-        fps_meter=False,
-        menu_visibility=True,
-        colorbar_object_id=-1,
-        rendering_steps=1,
-        axes=["x", "y", "z"],
-        camera_no_rotate=False,
-        camera_no_zoom=False,
-        camera_rotate_speed=1.0,
-        camera_zoom_speed=1.2,
-        camera_pan_speed=0.3,
-        snapshot_include_js=True,
-        camera_no_pan=False,
-        camera_fov=45.0,
-        camera_damping_factor=0.0,
-        axes_helper=1.0,
-        name=None,
-        mode="view",
-        camera_mode="trackball",
-        manipulate_mode="translate",
-        auto_rendering=True,
-        fps=25.0,
-        grid_color=0xE6E6E6,
-        label_color=0x444444,
-        *args,
-        **kwargs
+            self,
+            antialias=3,
+            background_color=0xFFFFFF,
+            camera_auto_fit=True,
+            grid_auto_fit=True,
+            grid_visible=True,
+            height=512,
+            voxel_paint_color=0,
+            grid=(-1, -1, -1, 1, 1, 1),
+            screenshot_scale=2.0,
+            lighting=1.5,
+            time=0.0,
+            fps_meter=False,
+            menu_visibility=True,
+            colorbar_object_id=-1,
+            rendering_steps=1,
+            axes=["x", "y", "z"],
+            camera_no_rotate=False,
+            camera_no_zoom=False,
+            camera_rotate_speed=1.0,
+            camera_zoom_speed=1.2,
+            camera_pan_speed=0.3,
+            snapshot_include_js=True,
+            camera_no_pan=False,
+            camera_fov=45.0,
+            camera_damping_factor=0.0,
+            axes_helper=1.0,
+            name=None,
+            mode="view",
+            camera_mode="trackball",
+            manipulate_mode="translate",
+            auto_rendering=True,
+            fps=25.0,
+            grid_color=0xE6E6E6,
+            label_color=0x444444,
+            *args,
+            **kwargs
     ):
         super(Plot, self).__init__()
 
@@ -405,23 +425,57 @@ class Plot(widgets.DOMWidget):
 
         return inner
 
-    def get_binary_snapshot_objects(self):
+    def get_binary_snapshot(self, compression_level=9, voxel_chunks=[]):
+        import zlib
         import msgpack
+
+        snapshot = self.get_binary_snapshot_objects(voxel_chunks)
+        snapshot['plot'] = self.get_plot_params()
+
+        data = msgpack.packb(snapshot, use_bin_type=True)
+
+        return zlib.compress(data, compression_level)
+
+    def load_binary_snapshot(self, data):
+        import zlib
+        import msgpack
+        from .helpers import from_json
+
+        data = msgpack.unpackb(zlib.decompress(data))
+        self.voxel_chunks = []
+
+        for name in ['objects', 'chunkList']:
+            if name in data.keys():
+                for o in data[name]:
+                    attributes = {
+                        k: from_json(o[k]) for k in o.keys() if k != 'type'
+                    }
+
+                    if name == 'objects':
+                        o = objects_map[o['type']](**attributes)
+                        self += o
+                    else:
+                        self.voxel_chunks.append(VoxelChunk(**attributes))
+
+        return self.voxel_chunks
+
+    def get_binary_snapshot_objects(self, voxel_chunks=[]):
         from .helpers import to_json
 
         snapshot = {"objects": [], "chunkList": []}
 
-        for o in self.objects:
-            obj = {}
-            for k, v in o.traits().items():
-                if "sync" in v.metadata:
-                    obj[k] = to_json(k, o[k], o, o["compression_level"])
+        for name, l in [('objects', self.objects), ('chunkList', voxel_chunks)]:
+            for o in l:
+                obj = {}
+                for k, v in o.traits().items():
+                    if "sync" in v.metadata:
+                        obj[k] = to_json(k, o[k], o, o["compression_level"])
 
-            snapshot["objects"].append(obj)
+                snapshot[name].append(obj)
 
-        return msgpack.packb(snapshot, use_bin_type=True)
+        return snapshot
 
-    def get_snapshot_params(self):
+    def get_plot_params(self):
         return {
             "cameraAutoFit": self.camera_auto_fit,
             "viewMode": self.mode,
@@ -456,7 +510,7 @@ class Plot(widgets.DOMWidget):
             "fps": self.fps,
         }
 
-    def get_snapshot(self, compression_level=9, additional_js_code=""):
+    def get_snapshot(self, compression_level=9, voxel_chunks=[], additional_js_code=""):
         """Produce on the Python side a HTML document with the current plot embedded."""
         import os
         import io
@@ -464,8 +518,7 @@ class Plot(widgets.DOMWidget):
 
         dir_path = os.path.dirname(os.path.realpath(__file__))
 
-        data = self.get_binary_snapshot_objects()
-        data = base64.b64encode(zlib.compress(data, compression_level))
+        data = self.get_binary_snapshot(compression_level, voxel_chunks)
 
         if self.snapshot_include_js:
             f = io.open(
@@ -515,12 +568,7 @@ class Plot(widgets.DOMWidget):
 
             template = template.replace("[VERSION]", self._view_module_version)
 
-        template = template.replace("[DATA]", data.decode("utf-8"))
-
-        params = self.get_snapshot_params()
-
-        template = template.replace("[PARAMS]", json.dumps(params))
-        template = template.replace("[CAMERA]", str(self.camera))
+        template = template.replace("[DATA]", base64.b64encode(data).decode("utf-8"))
         template = template.replace("[ADDITIONAL]", additional_js_code)
 
         return template

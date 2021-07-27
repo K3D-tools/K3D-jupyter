@@ -364,7 +364,9 @@ const PlotView = widgets.DOMWidgetView.extend({
                     change.value.compression_level = objectsList[change.id].attributes.compression_level;
                 }
 
-                objectsList[change.id].save(change.key, change.value, { patch: true });
+                if (objectsList[change.id]) {
+                    objectsList[change.id].save(change.key, change.value, { patch: true });
+                }
             }
         });
 
