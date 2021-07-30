@@ -3,6 +3,8 @@ from PIL import Image
 from pixelmatch.contrib.PIL import pixelmatch
 from io import BytesIO
 import os
+import sys
+from base64 import b64encode
 
 
 def prepare():
@@ -17,16 +19,23 @@ def prepare():
 def compare(name, only_canvas=True, threshold=0.1, camera_factor=1.0):
     pytest.headless.sync(hold_until_refreshed=True)
     pytest.headless.camera_reset(camera_factor)
-    # refresh dom elements
-    pytest.headless.browser.execute_script("K3DInstance.dispatch(K3DInstance.events.RENDERED)")
     screenshot = pytest.headless.get_screenshot(only_canvas)
 
     result = Image.open(BytesIO(screenshot))
     img_diff = Image.new("RGBA", result.size)
+    reference = None
 
     if os.path.isfile('./test/references/' + name + '.png'):
         reference = Image.open('./test/references/' + name + '.png')
     else:
+        if sys.platform == 'win32':
+            if os.path.isfile('./test/references/win32/' + name + '.png'):
+                reference = Image.open('./test/references/win32/' + name + '.png')
+        else:
+            if os.path.isfile('./test/references/linux/' + name + '.png'):
+                reference = Image.open('./test/references/linux/' + name + '.png')
+
+    if reference is None:
         reference = Image.new("RGBA", result.size)
 
     mismatch = pixelmatch(result, reference, img_diff, threshold=threshold, includeAA=True)
@@ -37,5 +46,11 @@ def compare(name, only_canvas=True, threshold=0.1, camera_factor=1.0):
         result.save('./test/results/' + name + '.png')
         reference.save('./test/results/' + name + '_reference.png')
         img_diff.save('./test/results/' + name + '_diff.png')
+
+        print(name, mismatch, threshold)
+
+        if 'CI' in os.environ and os.environ['CI'] == 'true':
+            print(name)
+            print(b64encode(open('./test/results/' + name + '.png', 'rb').read()))
 
     assert mismatch < threshold

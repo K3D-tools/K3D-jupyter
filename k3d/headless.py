@@ -118,6 +118,9 @@ class k3d_remote:
 
     def camera_reset(self, factor=1.5):
         self.browser.execute_script("K3DInstance.resetCamera(%f)" % factor)
+        # refresh dom elements
+        self.browser.execute_script("K3DInstance.refreshGrid()")
+        self.browser.execute_script("K3DInstance.dispatch(K3DInstance.events.RENDERED)")
 
     def get_screenshot(self, only_canvas=False):
         screenshot = self.browser.execute_script("""

@@ -8,13 +8,13 @@ module.exports = function (grunt) {
 
     grunt.initConfig({
         webpack: {
-            myConfig: webpackConfig,
+            myConfig: webpackConfig
         },
         eslint: {
             options: {
-                config: '.eslintrc.js',
+                config: '.eslintrc.js'
             },
-            target: ['src/core/*.js'],
+            target: ['src/core/*.js']
         },
         watch: {
             webpack: {
@@ -22,66 +22,66 @@ module.exports = function (grunt) {
                     'src/**/*.js',
                     'src/**/*.glsl',
                     'src/**/*.css',
-                    'development.html',
+                    'development.html'
                 ],
                 tasks: ['webpack'],
                 options: {
-                    livereload: true,
-                },
-            },
+                    livereload: true
+                }
+            }
         },
         connect: {
             server: {
                 options: {
                     port: 9000,
-                    base: './',
-                },
-            },
+                    base: './'
+                }
+            }
         },
         jsdoc: {
             dist: {
                 src: ['src/providers/**/*.js', 'src/core/**/*.js'],
                 options: {
                     destination: 'doc',
-                    readme: 'README.md',
-                },
-            },
+                    readme: 'README.md'
+                }
+            }
         },
         karma: {
             unit: {
-                configFile: 'karma.conf.js',
-            },
+                configFile: 'karma.conf.js'
+            }
         },
         open: {
             dev: {
-                path: 'http://localhost:9000/development.html',
-            },
+                path: 'http://localhost:9000/development.html'
+            }
         },
         express: {
             test: {
                 options: {
-                    script: 'expressTestHelper.js',
-                },
-            },
+                    script: 'expressTestHelper.js'
+                }
+            }
         },
         clean: {
             test: 'src/test/results/*.png',
             doc: 'doc',
             dist: 'dist',
-            dev: 'dev',
+            dev: 'dev'
         },
         curl: {
-            'test/assets/Lato-Regular.ttf': 'https://github.com/google/fonts/raw/main/ofl/lato/Lato-Regular.ttf',
-        },
+            'test/assets/Lato-Regular.ttf': 'https://github.com/google/fonts/raw/main/ofl/lato/Lato-Regular.ttf'
+        }
     });
 
     grunt.registerTask('codeStyle', [
-        'eslint',
+        'eslint'
     ]);
 
     grunt.registerTask('doc', [
         'clean:doc',
-        'jsdoc',
+        'jsdoc'
     ]);
 
     grunt.registerTask('test', () => {
@@ -90,14 +90,14 @@ module.exports = function (grunt) {
             'webpack',
             'express:test',
             'curl',
-            'karma',
+            'karma'
         ]);
     });
 
     grunt.registerTask('build', () => {
         grunt.task.run([
             'clean',
-            'webpack',
+            'webpack'
         ]);
     });
 
@@ -107,7 +107,7 @@ module.exports = function (grunt) {
             'webpack',
             'connect',
             'open:dev',
-            'watch:webpack',
+            'watch:webpack'
         ]);
     });
 };

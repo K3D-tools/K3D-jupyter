@@ -21,7 +21,7 @@ def test_mip():
         vti.GetPointData().GetArray(0)
     ).reshape(-1, y, x).astype(np.float32)
 
-    volume = k3d.mip(volume_data, samples=128)
+    volume = k3d.mip(volume_data, samples=512)
 
     pytest.plot += volume
 
@@ -42,7 +42,7 @@ def test_mip_opacity_function():
         vti.GetPointData().GetArray(0)
     ).reshape(-1, y, x).astype(np.float32)
 
-    volume = k3d.mip(volume_data, opacity_function=[0, 0.0, 0.2, 0.5, 1, 1.0], samples=128)
+    volume = k3d.mip(volume_data, opacity_function=[0, 0.0, 0.2, 0.5, 1, 1.0], samples=512)
 
     pytest.plot += volume
 

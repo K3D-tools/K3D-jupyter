@@ -4,41 +4,31 @@ import pytest
 from .plot_compare import *
 import math
 
-a = 1.5
-b = -1.8
-c = 1.6
-d = 0.9
+v = []
+s = []
+o = []
 
-N = int(1e4)
+for i in range(10):
+    for fi in np.arange(0, 2 * math.pi, 0.1):
+        v.append([
+            math.sin(fi * 4 + i),
+            math.cos(fi * 7 + i),
+            math.cos(fi * 3) + fi * 1.5
+        ])
+        s.append(math.sin(fi * i))
+        o.append(abs(math.cos(fi * i)))
 
-positions = np.zeros(N * 3, dtype=np.float32)
-opacities = np.zeros(N, dtype=np.float32)
-
-x = 0
-y = 0
-z = 0
-
-for i in range(N):
-    xn = math.sin(a * y) + c * math.cos(a * x)
-    yn = math.sin(b * x) + d * math.cos(b * y)
-    zn = math.sin(1.4 * (x + z))
-
-    positions[i * 3] = xn
-    positions[i * 3 + 1] = yn
-    positions[i * 3 + 2] = zn
-    opacities[i] = math.sqrt(xn ** 2 + yn ** 2 + zn ** 2) / 2.0
-
-    x = xn
-    y = yn
-    z = zn
+v = np.array(v, dtype=np.float32)
+s = np.array(s, dtype=np.float32)
+o = np.array(o, dtype=np.float32)
 
 
 def test_points_flat():
-    global positions, opacities
+    global v, s, o
 
     prepare()
 
-    points = k3d.points(positions, shader='flat', point_size=0.05, opacities=opacities,
+    points = k3d.points(v, shader='flat', point_size=0.1, opacities=o,
                         color=0xff0000)
 
     pytest.plot += points
@@ -47,11 +37,11 @@ def test_points_flat():
 
 
 def test_points_3d():
-    global positions, opacities
+    global v, s, o
 
     prepare()
 
-    points = k3d.points(positions, shader='3d', point_size=0.1, opacities=opacities,
+    points = k3d.points(v, shader='3d', point_size=0.2, opacities=o,
                         color=0xff0000)
 
     pytest.plot += points
@@ -60,11 +50,11 @@ def test_points_3d():
 
 
 def test_points_3d_clipping_plane():
-    global positions, opacities
+    global v, s, o
 
     prepare()
 
-    points = k3d.points(positions, shader='3d', point_size=0.1, opacities=opacities,
+    points = k3d.points(v, shader='3d', point_size=0.2, opacities=o,
                         color=0xff0000)
     pytest.plot.clipping_planes = [
         [1, 1, 0, 0]
@@ -75,11 +65,11 @@ def test_points_3d_clipping_plane():
 
 
 def test_points_3dSpecular():
-    global positions, opacities
+    global v, s, o
 
     prepare()
 
-    points = k3d.points(positions, shader='3dSpecular', point_size=0.1, opacities=opacities,
+    points = k3d.points(v, shader='3dSpecular', point_size=0.2, opacities=o,
                         color=0xff0000)
 
     pytest.plot += points
@@ -88,12 +78,12 @@ def test_points_3dSpecular():
 
 
 def test_points_3dSpecular_sizes():
-    global positions, opacities
+    global v, s, o
 
     prepare()
 
-    points = k3d.points(positions, shader='3dSpecular', opacities=opacities,
-                        point_sizes=np.linspace(0, 0.1, N), color=0xff0000)
+    points = k3d.points(v, shader='3dSpecular', opacities=o,
+                        point_sizes=np.linspace(0, 0.2, v.shape[0]), color=0xff0000)
 
     pytest.plot += points
 
@@ -101,12 +91,12 @@ def test_points_3dSpecular_sizes():
 
 
 def test_points_mesh_sizes():
-    global positions, opacities
+    global v, s, o
 
     prepare()
 
-    points = k3d.points(positions, shader='mesh', opacities=opacities,
-                        point_sizes=np.linspace(0, 0.1, N), color=0xff0000)
+    points = k3d.points(v, shader='mesh', opacities=o,
+                        point_sizes=np.linspace(0, 0.2, v.shape[0]), color=0xff0000)
 
     pytest.plot += points
 
@@ -114,11 +104,11 @@ def test_points_mesh_sizes():
 
 
 def test_points_mesh():
-    global positions, opacities
+    global v, s, o
 
     prepare()
 
-    points = k3d.points(positions, shader='mesh', point_size=0.1, opacities=opacities,
+    points = k3d.points(v, shader='mesh', point_size=0.2, opacities=o,
                         color=0xff0000)
 
     pytest.plot += points
@@ -127,11 +117,11 @@ def test_points_mesh():
 
 
 def test_points_mesh_clipping_plane():
-    global positions, opacities
+    global v, s, o
 
     prepare()
 
-    points = k3d.points(positions, shader='mesh', point_size=0.1, opacities=opacities,
+    points = k3d.points(v, shader='mesh', point_size=0.2, opacities=o,
                         color=0xff0000)
     pytest.plot.clipping_planes = [
         [1, 1, 0, 0]
@@ -142,12 +132,9 @@ def test_points_mesh_clipping_plane():
 
 
 def test_points_mesh_low_detail():
-    global positions, opacities
-
     prepare()
 
     points = k3d.points(np.array([[0, 0, 0], [1, 0, 0]]), shader='mesh', point_size=0.3,
-                        opacities=opacities,
                         mesh_detail=1, color=0xff0000)
 
     pytest.plot += points
@@ -156,12 +143,9 @@ def test_points_mesh_low_detail():
 
 
 def test_points_mesh_high_detail():
-    global positions, opacities
-
     prepare()
 
     points = k3d.points(np.array([[0, 0, 0], [1, 0, 0]]), shader='mesh', point_size=0.3,
-                        opacities=opacities,
                         mesh_detail=8, color=0xff0000)
 
     pytest.plot += points
@@ -170,11 +154,11 @@ def test_points_mesh_high_detail():
 
 
 def test_points_dot():
-    global positions, opacities
+    global v, s
 
     prepare()
 
-    points = k3d.points(positions, shader='dot', point_size=3, opacities=opacities,
+    points = k3d.points(v, shader='dot', point_size=3, opacities=o,
                         color=0xff0000)
 
     pytest.plot += points
