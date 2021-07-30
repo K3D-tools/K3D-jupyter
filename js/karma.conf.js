@@ -2,35 +2,31 @@
 // Generated on Fri Oct 02 2015 12:10:30 GMT+0200 (CEST)
 
 module.exports = function (config) {
-    'use strict';
-
     config.set({
 
         // base path that will be used to resolve all patterns (eg. files, exclude)
         basePath: './',
 
-
         // frameworks to use
         // available frameworks: https://npmjs.org/browse/keyword/karma-adapter
         frameworks: ['jasmine', 'requirejs'],
 
-
         // list of files / patterns to load in the browser
         files: [
-            {pattern: 'dist/standalone.js', included: true},
-            {pattern: 'dist/standalone.js.map', included: false},
-            {pattern: 'node_modules/resemblejs/resemble.js', included: true},
-            {pattern: 'test/utils/*.js', included: true},
-            {pattern: 'node_modules/components-webfontloader/webfont.js', included: true},
-            {pattern: 'test/assets/lato.css', included: true},
-            {pattern: 'test/assets/style.css', included: true},
-            {pattern: 'test/assets/Lato-Regular.ttf', included: false},
-            {pattern: 'test/test-main.js', included: true},
-            {pattern: 'test/**/*Spec.js', included: false}
+            { pattern: 'dist/standalone.js', included: true },
+            { pattern: 'dist/standalone.js.map', included: false },
+            { pattern: 'node_modules/resemblejs/resemble.js', included: true },
+            { pattern: 'test/utils/*.js', included: true },
+            { pattern: 'node_modules/components-webfontloader/webfont.js', included: true },
+            { pattern: 'test/assets/lato.css', included: true },
+            { pattern: 'test/assets/style.css', included: true },
+            { pattern: 'test/assets/Lato-Regular.ttf', included: false },
+            { pattern: 'test/test-main.js', included: true },
+            { pattern: 'test/**/*Spec.js', included: false },
         ],
 
         exclude: [
-            'require.js'
+            'require.js',
         ],
 
         // test results reporter to use
@@ -63,8 +59,8 @@ module.exports = function (config) {
         concurrency: Infinity,
         client: {
             jasmine: {
-                random: false
-            }
-        }
+                random: false,
+            },
+        },
     });
 };

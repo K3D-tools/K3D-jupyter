@@ -20,6 +20,7 @@ module.exports = {
         config.samples = config.samples || 512.0;
         config.gradient_step = config.gradient_step || 0.005;
 
+        const randomMul = typeof (window.randomMul) !== 'undefined' ? window.randomMul : 255.0;
         const geometry = new THREE.BoxBufferGeometry(1, 1, 1);
         const modelMatrix = new THREE.Matrix4();
         const translation = new THREE.Vector3();
@@ -56,7 +57,7 @@ module.exports = {
         texture.needsUpdate = true;
 
         jitterTexture = new THREE.DataTexture(
-            new Uint8Array(_.range(64 * 64).map(() => 255.0 * Math.random())),
+            new Uint8Array(_.range(64 * 64).map(() => randomMul * Math.random())),
             64, 64, THREE.RedFormat, THREE.UnsignedByteType,
         );
         jitterTexture.minFilter = THREE.LinearFilter;

@@ -45,6 +45,7 @@ function arrayToTypedArray(typedArray, field, obj) {
 window.TestHelpers.fileLoader = function (url, callback) {
     var xhrLoad = new XMLHttpRequest();
 
+    xhrLoad.responseType = "arraybuffer";
     xhrLoad.open('GET', url, true);
 
     xhrLoad.onreadystatechange = function () {

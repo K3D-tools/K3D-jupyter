@@ -68,18 +68,18 @@ default_colormap = matplotlib_color_maps.Inferno
 
 
 def line(
-    vertices,
-    color=_default_color,
-    colors=[],  # lgtm [py/similar-function]
-    attribute=[],
-    color_map=None,
-    color_range=[],
-    width=0.01,
-    shader="thick",
-    radial_segments=8,
-    name=None,
-    compression_level=0,
-    **kwargs
+        vertices,
+        color=_default_color,
+        colors=[],  # lgtm [py/similar-function]
+        attribute=[],
+        color_map=None,
+        color_range=[],
+        width=0.01,
+        shader="thick",
+        radial_segments=8,
+        name=None,
+        compression_level=0,
+        **kwargs
 ):
     """Create a Line drawable for plotting segments and polylines.
 
@@ -145,18 +145,18 @@ def line(
 
 
 def marching_cubes(
-    scalar_field,
-    level,
-    color=_default_color,
-    wireframe=False,
-    flat_shading=True,
-    opacity=1.0,
-    spacings_x=[],
-    spacings_y=[],
-    spacings_z=[],
-    name=None,
-    compression_level=0,
-    **kwargs
+        scalar_field,
+        level,
+        color=_default_color,
+        wireframe=False,
+        flat_shading=True,
+        opacity=1.0,
+        spacings_x=[],
+        spacings_y=[],
+        spacings_z=[],
+        name=None,
+        compression_level=0,
+        **kwargs
 ):
     """Create a MarchingCubes drawable.
 
@@ -213,28 +213,28 @@ def marching_cubes(
 
 
 def mesh(
-    vertices,
-    indices,
-    color=_default_color,
-    colors=[],
-    attribute=[],
-    color_map=None,
-    # lgtm [py/similar-function]
-    color_range=[],
-    wireframe=False,
-    flat_shading=True,
-    opacity=1.0,
-    texture=None,
-    texture_file_format=None,
-    volume=[],
-    volume_bounds=[],
-    opacity_function=[],
-    side="front",
-    uvs=None,
-    name=None,
-    compression_level=0,
-    triangles_attribute=[],
-    **kwargs
+        vertices,
+        indices,
+        color=_default_color,
+        colors=[],
+        attribute=[],
+        color_map=None,
+        # lgtm [py/similar-function]
+        color_range=[],
+        wireframe=False,
+        flat_shading=True,
+        opacity=1.0,
+        texture=None,
+        texture_file_format=None,
+        volume=[],
+        volume_bounds=[],
+        opacity_function=[],
+        side="front",
+        uvs=None,
+        name=None,
+        compression_level=0,
+        triangles_attribute=[],
+        **kwargs
 ):
     """Create a Mesh drawable representing a 3D triangles mesh.
 
@@ -340,22 +340,22 @@ def mesh(
 
 
 def points(
-    positions,
-    colors=[],
-    color=_default_color,
-    point_size=1.0,
-    point_sizes=[],
-    shader="3dSpecular",
-    opacity=1.0,
-    opacities=[],
-    attribute=[],
-    color_map=None,
-    color_range=[],
-    opacity_function=[],
-    name=None,
-    compression_level=0,
-    mesh_detail=2,
-    **kwargs
+        positions,
+        colors=[],
+        color=_default_color,
+        point_size=1.0,
+        point_sizes=[],
+        shader="3dSpecular",
+        opacity=1.0,
+        opacities=[],
+        attribute=[],
+        color_map=None,
+        color_range=[],
+        opacity_function=[],
+        name=None,
+        compression_level=0,
+        mesh_detail=2,
+        **kwargs
 ):
     """Create a Points drawable representing a point cloud.
 
@@ -438,13 +438,13 @@ def points(
 
 # noinspection PyShadowingNames
 def stl(
-    stl,
-    color=_default_color,
-    wireframe=False,
-    flat_shading=True,
-    name=None,
-    compression_level=0,
-    **kwargs
+        stl,
+        color=_default_color,
+        wireframe=False,
+        flat_shading=True,
+        name=None,
+        compression_level=0,
+        **kwargs
 ):
     """Create an STL drawable for data in STereoLitograpy format.
 
@@ -478,16 +478,16 @@ def stl(
 
 
 def surface(
-    heights,
-    color=_default_color,
-    wireframe=False,
-    flat_shading=True,
-    attribute=[],
-    color_map=None,
-    color_range=[],
-    name=None,
-    compression_level=0,
-    **kwargs
+        heights,
+        color=_default_color,
+        wireframe=False,
+        flat_shading=True,
+        attribute=[],
+        color_map=None,
+        color_range=[],
+        name=None,
+        compression_level=0,
+        **kwargs
 ):
     """Create a Surface drawable.
 
@@ -546,16 +546,16 @@ def surface(
 
 # noinspection PyShadowingNames
 def text(
-    text,
-    position=(0, 0, 0),
-    color=_default_color,
-    reference_point="lb",
-    on_top=True,
-    size=1.0,
-    label_box=True,
-    is_html=False,
-    name=None,
-    compression_level=0,
+        text,
+        position=(0, 0, 0),
+        color=_default_color,
+        reference_point="lb",
+        on_top=True,
+        size=1.0,
+        label_box=True,
+        is_html=False,
+        name=None,
+        compression_level=0,
 ):
     """Create a Text drawable for 3D-positioned text labels.
 
@@ -598,15 +598,15 @@ def text(
 
 # noinspection PyShadowingNames
 def text2d(
-    text,
-    position=(0, 0),
-    color=_default_color,
-    size=1.0,
-    reference_point="lt",
-    label_box=True,
-    name=None,
-    is_html=False,
-    compression_level=0,
+        text,
+        position=(0, 0),
+        color=_default_color,
+        size=1.0,
+        reference_point="lt",
+        label_box=True,
+        name=None,
+        is_html=False,
+        compression_level=0,
 ):
     """Create a Text2d drawable for 2D-positioned (viewport bound, OSD) labels.
 
@@ -647,17 +647,17 @@ def text2d(
 
 # noinspection PyShadowingNames
 def label(
-    text,
-    position=(0, 0, 0),
-    color=_default_color,
-    on_top=True,
-    size=1.0,
-    name=None,
-    max_length=0.8,
-    mode="dynamic",
-    is_html=False,
-    label_box=True,
-    compression_level=0,
+        text,
+        position=(0, 0, 0),
+        color=_default_color,
+        on_top=True,
+        size=1.0,
+        name=None,
+        max_length=0.8,
+        mode="dynamic",
+        is_html=False,
+        label_box=True,
+        compression_level=0,
 ):
     """Create a Text drawable for 3D-positioned text labels.
 
@@ -699,17 +699,17 @@ def label(
 
 
 def texture(
-    binary=None,
-    file_format=None,
-    color_map=None,
-    color_range=[],
-    attribute=[],
-    puv=[],
-    opacity_function=[],
-    interpolation=True,
-    name=None,
-    compression_level=0,
-    **kwargs
+        binary=None,
+        file_format=None,
+        color_map=None,
+        color_range=[],
+        attribute=[],
+        puv=[],
+        opacity_function=[],
+        interpolation=True,
+        name=None,
+        compression_level=0,
+        **kwargs
 ):
     """Create a Texture drawable for displaying 2D raster images in common formats.
 
@@ -778,15 +778,15 @@ def texture(
 
 # noinspection PyShadowingNames
 def texture_text(
-    text,
-    position=(0, 0, 0),
-    color=_default_color,
-    font_weight=400,
-    font_face="Courier New",
-    font_size=68,
-    size=1.0,
-    name=None,
-    compression_level=0,
+        text,
+        position=(0, 0, 0),
+        color=_default_color,
+        font_weight=400,
+        font_face="Courier New",
+        font_size=68,
+        size=1.0,
+        name=None,
+        compression_level=0,
 ):
     """Create a TextureText drawable.
 
@@ -828,18 +828,18 @@ def texture_text(
 
 # noinspection PyShadowingNames
 def vector_field(
-    vectors,
-    colors=[],
-    origin_color=None,
-    head_color=None,
-    color=_default_color,
-    use_head=True,
-    head_size=1.0,
-    scale=1.0,
-    line_width=0.01,
-    name=None,
-    compression_level=0,
-    **kwargs
+        vectors,
+        colors=[],
+        origin_color=None,
+        head_color=None,
+        color=_default_color,
+        use_head=True,
+        head_size=1.0,
+        scale=1.0,
+        line_width=0.01,
+        name=None,
+        compression_level=0,
+        **kwargs
 ):
     """Create a VectorField drawable for displaying dense 2D or 3D grids of vectors of same dimensionality.
 
@@ -900,20 +900,20 @@ def vector_field(
 
 # noinspection PyShadowingNames
 def vectors(
-    origins,
-    vectors=None,
-    colors=[],
-    origin_color=None,
-    head_color=None,
-    color=_default_color,
-    use_head=True,
-    head_size=1.0,
-    labels=[],
-    label_size=1.0,
-    line_width=0.01,
-    name=None,
-    compression_level=0,
-    **kwargs
+        origins,
+        vectors=None,
+        colors=[],
+        origin_color=None,
+        head_color=None,
+        color=_default_color,
+        use_head=True,
+        head_size=1.0,
+        labels=[],
+        label_size=1.0,
+        line_width=0.01,
+        name=None,
+        compression_level=0,
+        **kwargs
 ):
     """Create a Vectors drawable representing individual 3D vectors.
 
@@ -974,16 +974,16 @@ def vectors(
 
 # noinspection PyShadowingNames
 def voxels(
-    voxels,
-    color_map=None,
-    wireframe=False,
-    outlines=True,
-    outlines_color=0,
-    opacity=1.0,
-    name=None,
-    compression_level=0,
-    bounds=None,
-    **kwargs
+        voxels,
+        color_map=None,
+        wireframe=False,
+        outlines=True,
+        outlines_color=0,
+        opacity=1.0,
+        name=None,
+        compression_level=0,
+        bounds=None,
+        **kwargs
 ):
     """Create a Voxels drawable for 3D volumetric data.
 
@@ -1050,17 +1050,17 @@ def voxels(
 
 # noinspection PyShadowingNames
 def sparse_voxels(
-    sparse_voxels,
-    space_size,
-    color_map=None,
-    wireframe=False,
-    outlines=True,
-    outlines_color=0,
-    opacity=1.0,
-    name=None,
-    compression_level=0,
-    bounds=None,
-    **kwargs
+        sparse_voxels,
+        space_size,
+        color_map=None,
+        wireframe=False,
+        outlines=True,
+        outlines_color=0,
+        opacity=1.0,
+        name=None,
+        compression_level=0,
+        bounds=None,
+        **kwargs
 ):
     """Create a Voxels drawable for 3D volumetric data.
 
@@ -1126,17 +1126,17 @@ def sparse_voxels(
 
 # noinspection PyShadowingNames
 def voxels_group(
-    space_size,
-    voxels_group=[],
-    chunks_ids=[],
-    color_map=None,
-    wireframe=False,
-    outlines=True,
-    outlines_color=0,
-    opacity=1.0,
-    name=None,
-    compression_level=0,
-    **kwargs
+        space_size,
+        voxels_group=[],
+        chunks_ids=[],
+        color_map=None,
+        wireframe=False,
+        outlines=True,
+        outlines_color=0,
+        opacity=1.0,
+        name=None,
+        compression_level=0,
+        **kwargs
 ):
     """Create a Voxels drawable for 3D volumetric data.
 
@@ -1200,23 +1200,23 @@ def voxels_group(
 
 # noinspection PyShadowingNames
 def volume(
-    volume,
-    color_map=None,
-    opacity_function=None,
-    color_range=[],
-    samples=512.0,
-    alpha_coef=50.0,
-    gradient_step=0.005,
-    shadow="off",
-    interpolation=True,
-    shadow_delay=500,
-    shadow_res=128,
-    focal_length=0.0,
-    focal_plane=100.0,
-    ray_samples_count=16,
-    name=None,
-    compression_level=0,
-    **kwargs
+        volume,
+        color_map=None,
+        opacity_function=None,
+        color_range=[],
+        samples=512.0,
+        alpha_coef=50.0,
+        gradient_step=0.005,
+        shadow="off",
+        interpolation=True,
+        shadow_delay=500,
+        shadow_res=128,
+        focal_length=0.0,
+        focal_plane=100.0,
+        ray_samples_count=16,
+        name=None,
+        compression_level=0,
+        **kwargs
 ):
     """Create a Volume drawable for 3D volumetric data.
 
@@ -1310,15 +1310,15 @@ def volume(
 
 # noinspection PyShadowingNames
 def mip(
-    volume,
-    color_map=None,
-    opacity_function=None,
-    color_range=[],
-    samples=512.0,
-    gradient_step=0.005,
-    name=None,
-    compression_level=0,
-    **kwargs
+        volume,
+        color_map=None,
+        opacity_function=None,
+        color_range=[],
+        samples=512.0,
+        gradient_step=0.005,
+        name=None,
+        compression_level=0,
+        **kwargs
 ):
     """Create a MIP drawable for 3D volumetric data.
 
@@ -1380,20 +1380,22 @@ def mip(
 
 
 def vtk_poly_data(
-    poly_data,
-    color=_default_color,
-    color_attribute=None,
-    color_map=None,
-    side="front",
-    wireframe=False,
-    opacity=1.0,
-    volume=[],
-    volume_bounds=[],
-    opacity_function=[],
-    name=None,
-    compression_level=0,
-    cell_color_attribute=None,
-    **kwargs
+        poly_data,
+        color=_default_color,
+        color_attribute=None,
+        color_map=None,
+        side="front",
+        wireframe=False,
+        opacity=1.0,
+        volume=[],
+        flat_shading=True,
+        volume_bounds=[],
+        opacity_function=[],
+        name=None,
+        color_range=[],
+        compression_level=0,
+        cell_color_attribute=None,
+        **kwargs
 ):
     """Create a Mesh drawable from given vtkPolyData.
 
@@ -1419,10 +1421,15 @@ def vtk_poly_data(
         color_map: `list`.
             A list of float quadruplets (attribute value, R, G, B), sorted by attribute value. The first
             quadruplet should have value 0.0, the last 1.0; R, G, B are RGB color components in the range 0.0 to 1.0.
+        color_range: `list`.
+            A pair [min_value, max_value], which determines the levels of color attribute mapped
+            to 0 and 1 in the color map respectively.
         wireframe: `bool`.
             Whether mesh should display as wireframe.
         opacity: `float`.
             Opacity of mesh.
+        flat_shading: `bool`.
+            Whether mesh should display with flat shading.
         volume: `array_like`.
             3D array of `float`
         volume_bounds: `array_like`.
@@ -1442,7 +1449,7 @@ def vtk_poly_data(
     if vtk is None:
         raise RuntimeError("vtk module is not available")
 
-    if (max(poly_data.GetPolys().GetMaxCellSize(), poly_data.GetStrips().GetMaxCellSize())> 3):
+    if (max(poly_data.GetPolys().GetMaxCellSize(), poly_data.GetStrips().GetMaxCellSize()) > 3):
         cut_triangles = vtk.vtkTriangleFilter()
         cut_triangles.SetInputData(poly_data)
         cut_triangles.Update()
@@ -1462,6 +1469,8 @@ def vtk_poly_data(
             poly_data.GetCellData().GetArray(cell_color_attribute[0])
         )
         color_range = cell_color_attribute[1:3]
+    elif volume != []:
+        color_range = check_attribute_range(volume, color_range)
 
     vertices = nps.vtk_to_numpy(poly_data.GetPoints().GetData())
     indices = nps.vtk_to_numpy(poly_data.GetPolys().GetData()).reshape(-1, 4)[:, 1:4]
@@ -1489,6 +1498,7 @@ def vtk_poly_data(
             opacity_function=opacity_function,
             side=side,
             name=name,
+            flat_shading=flat_shading,
             compression_level=compression_level,
         ),
         **kwargs
@@ -1516,36 +1526,36 @@ def voxel_chunk(voxels, coord, multiple=1, compression_level=0):
 
 
 def plot(
-    height=512,
-    antialias=3,
-    background_color=0xFFFFFF,
-    camera_auto_fit=True,
-    grid_auto_fit=True,
-    grid_visible=True,
-    screenshot_scale=2.0,
-    grid=(-1, -1, -1, 1, 1, 1),
-    grid_color=0xE6E6E6,
-    label_color=0x444444,
-    lighting=1.5,
-    menu_visibility=True,
-    voxel_paint_color=0,
-    colorbar_object_id=-1,
-    camera_fov=60.0,
-    time=0.0,
-    axes=["x", "y", "z"],
-    axes_helper=1.0,
-    name=None,
-    camera_mode="trackball",
-    snapshot_include_js=True,
-    auto_rendering=True,
-    camera_no_zoom=False,
-    camera_no_rotate=False,
-    camera_no_pan=False,
-    camera_rotate_speed=1.0,
-    camera_zoom_speed=1.2,
-    camera_pan_speed=0.3,
-    camera_damping_factor=0.0,
-    fps=25.0,
+        height=512,
+        antialias=3,
+        background_color=0xFFFFFF,
+        camera_auto_fit=True,
+        grid_auto_fit=True,
+        grid_visible=True,
+        screenshot_scale=2.0,
+        grid=(-1, -1, -1, 1, 1, 1),
+        grid_color=0xE6E6E6,
+        label_color=0x444444,
+        lighting=1.5,
+        menu_visibility=True,
+        voxel_paint_color=0,
+        colorbar_object_id=-1,
+        camera_fov=60.0,
+        time=0.0,
+        axes=["x", "y", "z"],
+        axes_helper=1.0,
+        name=None,
+        camera_mode="trackball",
+        snapshot_include_js=True,
+        auto_rendering=True,
+        camera_no_zoom=False,
+        camera_no_rotate=False,
+        camera_no_pan=False,
+        camera_rotate_speed=1.0,
+        camera_zoom_speed=1.2,
+        camera_pan_speed=0.3,
+        camera_damping_factor=0.0,
+        fps=25.0,
 ):
     """Create a K3D Plot widget.
 

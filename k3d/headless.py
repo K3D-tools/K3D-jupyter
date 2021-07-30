@@ -7,11 +7,15 @@ from base64 import b64decode
 import logging
 import atexit
 import urllib.request
+import time
 
 from .helpers import to_json
 
 log = logging.getLogger('werkzeug')
 log.setLevel(logging.ERROR)
+
+
+# logging.basicConfig(filename='test.log', level=logging.DEBUG)
 
 
 class k3d_remote:
@@ -61,7 +65,7 @@ class k3d_remote:
 
             for o in self.k3d_plot.objects:
                 if o.id not in self.synced_objects:
-                    objects_diff[o.id] = {k: to_json(k, o[k]) for k in o.keys if
+                    objects_diff[o.id] = {k: to_json(k, o[k], o) for k in o.keys if
                                           not k.startswith('_')}
                 else:
                     for p in o.keys:
@@ -79,7 +83,11 @@ class k3d_remote:
                             if o.id not in objects_diff.keys():
                                 objects_diff[o.id] = {"id": o.id, "type": o.type}
 
-                            objects_diff[o.id][p] = to_json(p, o[p])
+                            objects_diff[o.id][p] = to_json(p, o[p], o)
+
+            for k in self.synced_objects.keys():
+                if k not in self.k3d_plot.object_ids:
+                    objects_diff[k] = None  # to remove from plot
 
             diff = {
                 "plot_diff": plot_diff,
@@ -90,18 +98,26 @@ class k3d_remote:
                                    self.k3d_plot.objects}
             self.synced_plot = current_plot_params
 
-            return (msgpack.packb(diff, use_bin_type=True), 200)
+            return Response(msgpack.packb(diff, use_bin_type=True),
+                            mimetype='application/octet-stream')
 
         self.browser.implicitly_wait(5)
         self.browser.get(url="http://localhost:" + str(port) + "/headless.html")
 
         atexit.register(self.close)
 
-    def sync(self):
+    def sync(self, hold_until_refreshed=False):
         self.browser.execute_script("k3dRefresh()")
+
+        if hold_until_refreshed:
+            while self.browser.execute_script("return window.refreshed") == False:
+                time.sleep(0.1)
 
     def get_browser_screenshot(self):
         return self.browser.get_screenshot_as_png()
+
+    def camera_reset(self, factor=1.5):
+        self.browser.execute_script("K3DInstance.resetCamera(%f)" % factor)
 
     def get_screenshot(self, only_canvas=False):
         screenshot = self.browser.execute_script("""
@@ -113,11 +129,16 @@ class k3d_remote:
         return b64decode(screenshot)
 
     def close(self):
-        urllib.request.urlopen("http://localhost:" + str(self.port) + "/stop")
-        self.browser.close()
+        if self.api is not None:
+            urllib.request.urlopen("http://localhost:" + str(self.port) + "/stop")
+            self.api = None
+
+        if self.browser is not None:
+            self.browser.close()
+            self.browser = None
 
 
-def get_headless_driver(no_headless = False):
+def get_headless_driver(no_headless=False):
     from selenium.webdriver.chrome.options import Options
     from selenium import webdriver
     from webdriver_manager.chrome import ChromeDriverManager

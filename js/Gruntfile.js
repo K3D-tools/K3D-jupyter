@@ -1,10 +1,8 @@
 /* jshint indent: false, quotmark: false */
-'use strict';
 
-var webpackConfig = require('./webpack.config');
+const webpackConfig = require('./webpack.config');
 
 module.exports = function (grunt) {
-
     require('time-grunt')(grunt);
     require('load-grunt-tasks')(grunt);
 
@@ -14,9 +12,9 @@ module.exports = function (grunt) {
         },
         eslint: {
             options: {
-                config: '.eslintrc.js'
+                config: '.eslintrc.js',
             },
-            target: ['src/core/*.js']
+            target: ['src/core/*.js'],
         },
         watch: {
             webpack: {
@@ -24,92 +22,92 @@ module.exports = function (grunt) {
                     'src/**/*.js',
                     'src/**/*.glsl',
                     'src/**/*.css',
-                    'development.html'
+                    'development.html',
                 ],
                 tasks: ['webpack'],
                 options: {
                     livereload: true,
-                }
-            }
+                },
+            },
         },
         connect: {
             server: {
                 options: {
                     port: 9000,
-                    base: './'
-                }
-            }
+                    base: './',
+                },
+            },
         },
         jsdoc: {
             dist: {
                 src: ['src/providers/**/*.js', 'src/core/**/*.js'],
                 options: {
                     destination: 'doc',
-                    readme: 'README.md'
-                }
-            }
+                    readme: 'README.md',
+                },
+            },
         },
         karma: {
             unit: {
-                configFile: 'karma.conf.js'
-            }
+                configFile: 'karma.conf.js',
+            },
         },
         open: {
             dev: {
-                path: 'http://localhost:9000/development.html'
-            }
+                path: 'http://localhost:9000/development.html',
+            },
         },
         express: {
             test: {
                 options: {
-                    script: 'expressTestHelper.js'
-                }
-            }
+                    script: 'expressTestHelper.js',
+                },
+            },
         },
         clean: {
             test: 'src/test/results/*.png',
             doc: 'doc',
             dist: 'dist',
-            dev: 'dev'
+            dev: 'dev',
         },
         curl: {
-            'test/assets/Lato-Regular.ttf': 'https://github.com/google/fonts/raw/main/ofl/lato/Lato-Regular.ttf'
-        }
+            'test/assets/Lato-Regular.ttf': 'https://github.com/google/fonts/raw/main/ofl/lato/Lato-Regular.ttf',
+        },
     });
 
     grunt.registerTask('codeStyle', [
-        'eslint'
+        'eslint',
     ]);
 
     grunt.registerTask('doc', [
         'clean:doc',
-        'jsdoc'
+        'jsdoc',
     ]);
 
-    grunt.registerTask('test', function () {
+    grunt.registerTask('test', () => {
         grunt.task.run([
             'clean',
             'webpack',
             'express:test',
             'curl',
-            'karma'
+            'karma',
         ]);
     });
 
-    grunt.registerTask('build', function () {
+    grunt.registerTask('build', () => {
         grunt.task.run([
             'clean',
-            'webpack'
+            'webpack',
         ]);
     });
 
-    grunt.registerTask('serve', function () {
+    grunt.registerTask('serve', () => {
         grunt.task.run([
             'clean',
             'webpack',
             'connect',
             'open:dev',
-            'watch:webpack'
+            'watch:webpack',
         ]);
     });
 };
