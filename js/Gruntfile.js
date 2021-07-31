@@ -47,31 +47,15 @@ module.exports = function (grunt) {
                 }
             }
         },
-        karma: {
-            unit: {
-                configFile: 'karma.conf.js'
-            }
-        },
         open: {
             dev: {
                 path: 'http://localhost:9000/development.html'
             }
         },
-        express: {
-            test: {
-                options: {
-                    script: 'expressTestHelper.js'
-                }
-            }
-        },
         clean: {
-            test: 'src/test/results/*.png',
             doc: 'doc',
             dist: 'dist',
             dev: 'dev'
-        },
-        curl: {
-            'test/assets/Lato-Regular.ttf': 'https://github.com/google/fonts/raw/main/ofl/lato/Lato-Regular.ttf'
         }
     });
 
@@ -83,16 +67,6 @@ module.exports = function (grunt) {
         'clean:doc',
         'jsdoc'
     ]);
-
-    grunt.registerTask('test', () => {
-        grunt.task.run([
-            'clean',
-            'webpack',
-            'express:test',
-            'curl',
-            'karma'
-        ]);
-    });
 
     grunt.registerTask('build', () => {
         grunt.task.run([

@@ -1,14 +1,15 @@
 from __future__ import print_function
 
 import base64
-import json
 import ipywidgets as widgets
 from IPython.display import display
 from functools import wraps
 from traitlets import Unicode, Bool, Int, List, Float
 
 from ._version import __version__ as version
-from .objects import *
+from .objects import (Line, Label, MIP, MarchingCubes, Mesh, Points, STL, SparseVoxels, Surface,
+                      Text, Text2d, Texture, TextureText, VectorField, Vectors, Volume, Voxels,
+                      VoxelsGroup)
 
 objects_map = {
     'Line': Line,

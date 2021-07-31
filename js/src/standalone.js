@@ -25,16 +25,14 @@ function CreateK3DAndLoadBinarySnapshot(data, targetDOMNode) {
         return;
     }
 
-    if (K3DInstance) {
-        return K3DInstance.setSnapshot(data).then(function () {
-            setTimeout(function () {
-                K3DInstance.setCamera(data.plot.camera);
-                K3DInstance.render();
-            }, 10);
+    return K3DInstance.setSnapshot(data).then(function () {
+        setTimeout(function () {
+            K3DInstance.setCamera(data.plot.camera);
+            K3DInstance.render();
+        }, 10);
 
-            return K3DInstance;
-        });
-    }
+        return K3DInstance;
+    });
 }
 
 module.exports = {
