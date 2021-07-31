@@ -9,7 +9,7 @@ from traitlets import Unicode, Bool, Int, List, Float
 from ._version import __version__ as version
 from .objects import (Line, Label, MIP, MarchingCubes, Mesh, Points, STL, SparseVoxels, Surface,
                       Text, Text2d, Texture, TextureText, VectorField, Vectors, Volume, Voxels,
-                      VoxelsGroup)
+                      VoxelsGroup, ListOrArray, Drawable, TimeSeries)
 
 objects_map = {
     'Line': Line,
