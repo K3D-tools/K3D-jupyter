@@ -42,7 +42,6 @@
     "grunt-eslint": "^23.0.0",
     "grunt-express-server": "0.5.4",
     "grunt-jsdoc": "2.4.1",
-    "grunt-karma": "^4.0.2",
     "grunt-open": "^0.2.4",
     "grunt-webpack": "^4.0.3",
     "jshint-stylish": "^2.2.1",

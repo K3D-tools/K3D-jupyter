@@ -2,7 +2,6 @@ import k3d
 import numpy as np
 import pytest
 from .plot_compare import *
-from k3d.helpers import download
 import vtk
 from vtk.util import numpy_support
 
@@ -10,9 +9,8 @@ from vtk.util import numpy_support
 def test_volume():
     prepare()
 
-    filename = download('https://vedo.embl.es/examples/data/embryo.slc')
-    reader = vtk.vtkSLCReader()
-    reader.SetFileName(filename)
+    reader = vtk.vtkXMLImageDataReader()
+    reader.SetFileName('./test/assets/volume.vti')
     reader.Update()
     vti = reader.GetOutput()
 
@@ -31,9 +29,8 @@ def test_volume():
 def test_volume_opacity_function():
     prepare()
 
-    filename = download('https://vedo.embl.es/examples/data/embryo.slc')
-    reader = vtk.vtkSLCReader()
-    reader.SetFileName(filename)
+    reader = vtk.vtkXMLImageDataReader()
+    reader.SetFileName('./test/assets/volume.vti')
     reader.Update()
     vti = reader.GetOutput()
 
@@ -52,9 +49,8 @@ def test_volume_opacity_function():
 def test_volume_alpha_coef():
     prepare()
 
-    filename = download('https://vedo.embl.es/examples/data/embryo.slc')
-    reader = vtk.vtkSLCReader()
-    reader.SetFileName(filename)
+    reader = vtk.vtkXMLImageDataReader()
+    reader.SetFileName('./test/assets/volume.vti')
     reader.Update()
     vti = reader.GetOutput()
 

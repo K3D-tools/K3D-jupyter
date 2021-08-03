@@ -43,7 +43,7 @@ module.exports = {
             config.volume.data,
             config.volume.shape[2],
             config.volume.shape[1],
-            config.volume.shape[0],
+            config.volume.shape[0]
         );
 
         texture.format = THREE.RedFormat;
@@ -54,6 +54,7 @@ module.exports = {
         texture.magFilter = THREE.LinearFilter;
         texture.wrapS = THREE.ClampToEdgeWrapping;
         texture.wrapT = THREE.ClampToEdgeWrapping;
+        texture.wrapR = THREE.ClampToEdgeWrapping;
         texture.needsUpdate = true;
 
         jitterTexture = new THREE.DataTexture(
