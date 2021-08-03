@@ -26,3 +26,8 @@
 .dg .cr.color {
     display: block;
 }
+
+.k3d_plot {
+  width: 100%;
+  height: 400px;
+}

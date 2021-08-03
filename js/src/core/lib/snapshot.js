@@ -3,6 +3,7 @@ const pako = require('pako');
 const fileLoader = require('./helpers/fileLoader');
 const templateStandalone = require('./snapshot_standalone.txt');
 const templateOnline = require('./snapshot_online.txt');
+const templateInline = require('./snapshot_inline.txt');
 const requireJsSource = require('../../../node_modules/requirejs/require?raw');
 const pakoJsSource = require('../../../node_modules/pako/dist/pako_inflate.min?raw');
 const semverRange = require('../../version').version;
@@ -41,13 +42,16 @@ function getHTMLSnapshot(K3D, compressionLevel) {
     let filecontent;
     const timestamp = new Date().toUTCString();
 
-    if (K3D.parameters.snapshotIncludeJs) {
+    if (K3D.parameters.snapshotType === 'all') {
         filecontent = templateStandalone;
         filecontent = filecontent.split('[REQUIRE_JS]').join(requireJsSource);
         filecontent = filecontent.split('[PAKO_JS]').join(pakoJsSource);
         filecontent = filecontent.split('[K3D_SOURCE]').join(sourceCode);
-    } else {
+    } else if (K3D.parameters.snapshotType === 'online'){
         filecontent = templateOnline;
+        filecontent = filecontent.split('[VERSION]').join(K3D.parameters.guiVersion);
+    } if (K3D.parameters.snapshotType === 'inline'){
+        filecontent = templateInline;
         filecontent = filecontent.split('[VERSION]').join(K3D.parameters.guiVersion);
     }
 

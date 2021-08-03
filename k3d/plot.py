@@ -81,8 +81,8 @@ class Plot(widgets.DOMWidget):
             Camera Field of View.
         camera_damping_factor: `Float`.
             Defines the intensity of damping. Default is 0 (disabled).
-        snapshot_include_js: `Bool`.
-            If it's true snapshot html is standalone.
+        snapshot_type: `string`.
+            Can be 'full', 'online' or 'inline'.
         axes: `list`.
             Axes labels for plot.
         time: `list`.
@@ -150,7 +150,6 @@ class Plot(widgets.DOMWidget):
     # read-write
     camera_auto_fit = Bool(True).tag(sync=True)
     auto_rendering = Bool(True).tag(sync=True)
-    snapshot_include_js = Bool(True).tag(sync=True)
     lighting = Float().tag(sync=True)
     fps = Float().tag(sync=True)
     grid_auto_fit = Bool(True).tag(sync=True)
@@ -179,6 +178,7 @@ class Plot(widgets.DOMWidget):
     rendering_steps = Int(1).tag(sync=True)
     screenshot = Unicode().tag(sync=True)
     snapshot = Unicode().tag(sync=True)
+    snapshot_type = Unicode().tag(sync=True)
     camera_fov = Float().tag(sync=True)
     name = Unicode(default_value=None, allow_none=True).tag(sync=True)
     axes = List(minlen=3, maxlen=3, default_value=["x", "y", "z"]).tag(sync=True)
@@ -212,7 +212,7 @@ class Plot(widgets.DOMWidget):
             camera_rotate_speed=1.0,
             camera_zoom_speed=1.2,
             camera_pan_speed=0.3,
-            snapshot_include_js=True,
+            snapshot_type='full',
             camera_no_pan=False,
             camera_fov=45.0,
             camera_damping_factor=0.0,
@@ -260,7 +260,7 @@ class Plot(widgets.DOMWidget):
         self.axes_helper = axes_helper
         self.name = name
         self.mode = mode
-        self.snapshot_include_js = snapshot_include_js
+        self.snapshot_type = snapshot_type
         self.camera_mode = camera_mode
         self.manipulate_mode = manipulate_mode
         self.auto_rendering = auto_rendering
@@ -521,7 +521,7 @@ class Plot(widgets.DOMWidget):
 
         data = self.get_binary_snapshot(compression_level, voxel_chunks)
 
-        if self.snapshot_include_js:
+        if self.snapshot_type == 'full':
             f = io.open(
                 os.path.join(dir_path, "static", "snapshot_standalone.txt"),
                 mode="r",
@@ -559,8 +559,15 @@ class Plot(widgets.DOMWidget):
             template = template.replace("[PAKO_JS]", f.read())
             f.close()
         else:
+            if self.snapshot_type == 'online':
+                template_file = 'snapshot_online.txt'
+            elif self.snapshot_type == 'inline':
+                template_file = 'snapshot_inline.txt'
+            else:
+                raise Exception('Unknown snapshot_type')
+
             f = io.open(
-                os.path.join(dir_path, "static", "snapshot_online.txt"),
+                os.path.join(dir_path, "static", template_file),
                 mode="r",
                 encoding="utf-8",
             )
@@ -568,6 +575,7 @@ class Plot(widgets.DOMWidget):
             f.close()
 
             template = template.replace("[VERSION]", self._view_module_version)
+            template = template.replace("[ID]", str(id(self)))
 
         template = template.replace("[DATA]", base64.b64encode(data).decode("utf-8"))
         template = template.replace("[ADDITIONAL]", additional_js_code)

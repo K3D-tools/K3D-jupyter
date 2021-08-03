@@ -1,0 +1,49 @@
+<div id="canvasTarget_[ID]" class="k3d_plot" style="position: relative;"></div>
+
+<script>
+  var K3DInstance;
+  var data = '[DATA]';
+
+  function loadScript(path, cb) {
+    var script = document.createElement('script');
+    script.src = path;
+    script.onload = cb;
+    document.head.appendChild(script);
+  }
+
+  function loadK3D() {
+    loadScript('https://unpkg.com/k3d@[VERSION]/dist/standalone.js', function () {
+      require(['k3d'], function (lib) {
+        function _base64ToArrayBuffer(base64) {
+          var binary_string = window.atob(base64);
+          var len = binary_string.length;
+          var bytes = new Uint8Array(len);
+          for (var i = 0; i < len; i++) {
+            bytes[i] = binary_string.charCodeAt(i);
+          }
+          return bytes;
+        }
+
+        try {
+          K3DInstance = new lib.CreateK3DAndLoadBinarySnapshot(
+            _base64ToArrayBuffer(data),
+            document.getElementById('canvasTarget_[ID]'),
+          );
+
+          K3DInstance.then(function (K3DInstance) {
+            [ADDITIONAL]
+          });
+        } catch (e) {
+          console.log(e);
+          return;
+        }
+      });
+    });
+  }
+
+  if (typeof (require) === 'undefined') {
+    loadScript('https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.6/require.min.js', loadK3D);
+  } else {
+    loadK3D();
+  }
+</script>

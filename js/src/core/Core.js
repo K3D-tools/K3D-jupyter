@@ -741,10 +741,10 @@ function K3D(provider, targetDOMNode, parameters) {
     /**
      * Set snapshot include param for K3D
      * @memberof K3D.Core
-     * @param {Number} state
+     * @param {String} state
      */
-    this.setSnapshotIncludeJs = function (state) {
-        self.parameters.snapshotIncludeJs = state;
+    this.setSnapshotType = function (state) {
+        self.parameters.snapshotType = state;
     };
 
     /**

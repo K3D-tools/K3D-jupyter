@@ -1546,7 +1546,7 @@ def plot(
         axes_helper=1.0,
         name=None,
         camera_mode="trackball",
-        snapshot_include_js=True,
+        snapshot_type='full',
         auto_rendering=True,
         camera_no_zoom=False,
         camera_no_rotate=False,
@@ -1604,8 +1604,8 @@ def plot(
             Camera Field of View.
         camera_damping_factor: `Float`.
             Defines the intensity of damping. Default is 0 (disabled).
-        snapshot_include_js: `Bool`.
-            If it's true snapshot html is standalone.
+        snapshot_type: `string`.
+            Can be 'full', 'online' or 'inline'.
         axes: `list`.
             Axes labels for plot.
         axes_helper: `Float`.
@@ -1652,7 +1652,7 @@ def plot(
         camera_fov=camera_fov,
         name=name,
         camera_mode=camera_mode,
-        snapshot_include_js=snapshot_include_js,
+        snapshot_type=snapshot_type,
         camera_no_zoom=camera_no_zoom,
         camera_no_rotate=camera_no_rotate,
         camera_no_pan=camera_no_pan,
