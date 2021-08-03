@@ -182,9 +182,8 @@ def test_mesh_volume_data():
     reader.Update()
     poly = reader.GetOutput()
 
-    filename = download('https://vedo.embl.es/examples/data/embryo.slc')
-    reader = vtk.vtkSLCReader()
-    reader.SetFileName(filename)
+    reader = vtk.vtkXMLImageDataReader()
+    reader.SetFileName('./test/assets/volume.vti')
     reader.Update()
     vti = reader.GetOutput()
 
