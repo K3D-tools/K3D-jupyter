@@ -1,54 +1,70 @@
 .katex-display {
-    margin: 0.25em 0;
+  margin: 0.25em 0 !important;
 }
 
 .dg input, .dg select {
-    color: black;
-    line-height: normal;
-}
-
-.dg.a {
-    margin-right: 0;
+  color: black;
+  line-height: normal !important;
 }
 
 .dg li {
-    margin: 0;
+  list-style: none !important;
+}
+
+.dg li > * {
+  margin-bottom: 0 !important;
+}
+
+.dg input, .dg select {
+  padding: 3px !important;
+  display: block !important;
+  box-shadow: none !important;
+  font-size: 100% !important;
+}
+
+.dg.a {
+  margin-right: 0 !important;
+}
+
+.dg li {
+  margin: 0 !important;
 }
 
 .dg.main {
-    max-height: inherit;
+  max-height: inherit !important;;
 }
 
 .dg.main .close-button.close-bottom {
-    position: relative !important;
+  position: relative !important;
 }
 
 .dg.main.taller-than-window .close-button.close-bottom {
-    position: absolute;
-    bottom: 0;
+  position: absolute !important;
+  bottom: 0 !important;
 }
 
 .dg.main.taller-than-window > ul > li:last-child {
-    margin-bottom: 20px;
+  margin-bottom: 20px !important;
 }
 
 .k3d-target canvas {
-    position: relative;
-    z-index: 10;
+  position: relative;
+  z-index: 10;
 }
 
 .k3d-transfer-function {
-    height: 100% !important;
+  height: 100% !important;
 }
 
 .k3d-transfer-function circle {
-    cursor: move;
+  cursor: move;
 }
 
 .k3d-transfer-function circle.selected {
-    /*stroke: red;*/
+  /*stroke: red;*/
 }
 
 .k3d-color-picker {
-    display: none;
+  display: none;
 }
+

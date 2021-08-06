@@ -47,10 +47,7 @@ extensions = ['sphinx.ext.autodoc',
               'sphinx.ext.mathjax',
               'sphinx.ext.ifconfig',
               'sphinx.ext.viewcode',
-              'sphinx.ext.githubpages',
-              'nbsphinx',
-              'nbsphinx_link',
-#              'jupyter_sphinx.execute'
+              'sphinx.ext.githubpages'
 ]
 
 autodoc_dumb_docstring = True
@@ -71,8 +68,8 @@ master_doc = 'index'
 
 # General information about the project.
 project = 'K3D-jupyter'
-copyright = time.strftime('%Y') + u' Marcin Kostur, Artur Trzęsiok, Tomasz Gandor, Filip Kaśkosz'
-author = u'Marcin Kostur, Artur Trzęsiok, Tomasz Gandor, Filip Kaśkosz'
+copyright = time.strftime('%Y') + u' Marcin Kostur, Artur Trzęsiok, Tomasz Gandor'
+author = u'Marcin Kostur, Artur Trzęsiok, Tomasz Gandor'
 
 # The version info for the project you're documenting, acts as replacement for
 # |version| and |release|, also used in various other places throughout the
@@ -210,31 +207,6 @@ intersphinx_mapping = {'https://docs.python.org/': None}
 # on_rtd is whether we are on readthedocs.org, this line of code grabbed from
 # docs.readthedocs.org
 on_rtd = os.environ.get('READTHEDOCS', None) == 'True'
-
-
-def add_scripts(app):
-    from shutil import copyfile, move
-
-    app.add_javascript('require_config.js')
-
-    if not on_rtd:
-        src = os.path.join(here, '..', '..', 'js', 'dist', 'index.js')
-        dst = os.path.join(here, '_static', 'k3d.js')
-        copyfile(src, dst)
-
-        src = os.path.join(here, '..', '..', 'js', 'dist', 'standalone.js')
-        dst = os.path.join(here, '_static', 'standalone.js')
-        copyfile(src, dst)
-    else:
-        sys.path.append(os.path.abspath('./../../'))
-        from k3d.helpers import download
-
-        filename = download('https://unpkg.com/k3d/dist/index.js')
-        move(filename, os.path.join(here, '_static', 'k3d.js'))
-
-        filename = download('https://unpkg.com/k3d/dist/standalone.js')
-        move(filename, os.path.join(here, '_static', filename))
-
 
 def setup(app):
 #    app.setup_extension('jupyter_sphinx.execute')
