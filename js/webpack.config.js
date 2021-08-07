@@ -20,7 +20,7 @@ const rules = [
     },
 ];
 
-const mode = 'production';
+const mode = 'development';
 
 const plugins = [];
 
