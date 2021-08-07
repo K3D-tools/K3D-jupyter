@@ -2,12 +2,13 @@
 
 <script>
   var K3DInstance;
-  var data = '[DATA]';
+  var data_[ID] = '[DATA]';
 
   function loadScript(path, cb) {
     var script = document.createElement('script');
     script.src = path;
     script.onload = cb;
+    script.onerror = cb;
     document.head.appendChild(script);
   }
 
@@ -26,7 +27,7 @@
 
         try {
           K3DInstance = new lib.CreateK3DAndLoadBinarySnapshot(
-            _base64ToArrayBuffer(data),
+            _base64ToArrayBuffer(data_[ID]),
             document.getElementById('canvasTarget_[ID]'),
           );
 

@@ -20,6 +20,7 @@
   display: block !important;
   box-shadow: none !important;
   font-size: 100% !important;
+  border: 0 !important;
 }
 
 .dg.a {

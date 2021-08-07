@@ -27,8 +27,10 @@ function CreateK3DAndLoadBinarySnapshot(data, targetDOMNode) {
 
     return K3DInstance.setSnapshot(data).then(function () {
         setTimeout(function () {
-            K3DInstance.setCamera(data.plot.camera);
-            K3DInstance.render();
+            if (data.plot.camera.length > 0) {
+                K3DInstance.setCamera(data.plot.camera);
+                K3DInstance.render();
+            }
         }, 10);
 
         return K3DInstance;

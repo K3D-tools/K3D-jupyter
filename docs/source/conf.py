@@ -24,13 +24,14 @@ import sys
 import time
 import sphinx_rtd_theme
 from os.path import dirname
+from source.k3d_directives.plot import K3D_Plot
 
 here = os.path.dirname(__file__)
 docs = dirname(dirname(__file__))
 root = dirname(docs)
 sys.path.insert(0, root)
 
-# -- General configuration ------------------------------------------------
+# -- General configuration -------------------------------------------------
 
 # If your documentation needs a minimal Sphinx version, state it here.
 #
@@ -48,10 +49,9 @@ extensions = ['sphinx.ext.autodoc',
               'sphinx.ext.ifconfig',
               'sphinx.ext.viewcode',
               'sphinx.ext.githubpages'
-]
+              ]
 
 autodoc_dumb_docstring = True
-
 
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ['_templates']
@@ -61,7 +61,6 @@ templates_path = ['_templates']
 #
 # source_suffix = ['.rst', '.md']
 source_suffix = '.rst'
-
 
 # The master toctree document.
 master_doc = 'index'
@@ -80,7 +79,7 @@ repo = os.path.join(here, '..', '..')
 _version_py = os.path.join(repo, 'k3d', '_version.py')
 version_ns = {}
 with open(_version_py) as f:
-    exec (f.read(), version_ns)
+    exec(f.read(), version_ns)
 
 # The short X.Y version.
 version = '%i.%i' % version_ns['version_info'][:2]
@@ -113,6 +112,8 @@ todo_include_todos = True
 #
 html_theme = 'sphinx_rtd_theme'
 html_theme_path = [sphinx_rtd_theme.get_html_theme_path()]
+# html_js_files = ['https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.6/require.min.js',
+#                  './k3d.js']
 
 # Theme options are theme-specific and customize the look and feel of a theme
 # further.  For a list of options available for each theme, see the
@@ -208,12 +209,11 @@ intersphinx_mapping = {'https://docs.python.org/': None}
 # docs.readthedocs.org
 on_rtd = os.environ.get('READTHEDOCS', None) == 'True'
 
+
 def setup(app):
-#    app.setup_extension('jupyter_sphinx.execute')
     try:
         app.add_stylesheet('style.css')
     except AttributeError:
         app.add_css_file('style.css')
-#    app.connect('builder-inited', add_scripts)
 
-
+    app.add_directive('k3d_plot', K3D_Plot)

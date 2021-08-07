@@ -767,7 +767,9 @@ function K3D(provider, targetDOMNode, parameters) {
      * @param {Object} camera
      */
     this.setCamera = function (camera) {
-        world.setupCamera(camera);
+        if (camera.length > 0) {
+            world.setupCamera(camera);
+        }
     };
 
     /**

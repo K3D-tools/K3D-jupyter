@@ -5,6 +5,4 @@ traittypes
 traitlets
 numpy
 jupyter_sphinx
-nbsphinx
-nbsphinx_link
 sphinx_rtd_theme

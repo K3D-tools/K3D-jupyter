@@ -264,7 +264,7 @@ class Plot(widgets.DOMWidget):
         self.camera_mode = camera_mode
         self.manipulate_mode = manipulate_mode
         self.auto_rendering = auto_rendering
-        self.camera = [2, -3, 0.2, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0]
+        self.camera = []
 
         self.object_ids = []
         self.objects = []
