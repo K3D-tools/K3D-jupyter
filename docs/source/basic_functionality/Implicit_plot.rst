@@ -4,11 +4,12 @@ Implicit plot
 Marching cubes is an example of using frontend (client side) for doing computations.
 In this case a function of three variables is sampled on 3d equidistant grid and send to
 an `k3d.marching_cubes` object which will do the visualization.
+
 Note that:
- - data exchanged between frontend and backend is big
- - browser javascript does mesh computation
- - `level` is a single scalar parameter which can be passed to the frontend for data exploration
- - it is possible to use [jslink](https://ipywidgets.readthedocs.io/en/latest/examples/Widget%20Events.html#Linking-widgets-attributes-from-the-client-side) for interaction without a Python kernel].
+    - data exchanged between frontend and backend is big
+    - browser javascript does mesh computation
+    - `level` is a single scalar parameter which can be passed to the frontend for data exploration
+    - it is possible to use [jslink](https://ipywidgets.readthedocs.io/en/latest/examples/Widget%20Events.html#Linking-widgets-attributes-from-the-client-side) for interaction without a Python kernel].
 
 .. code::
 

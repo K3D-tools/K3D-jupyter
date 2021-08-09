@@ -85,7 +85,7 @@ back-end, send by email or embedded in webpages:
    :filename: screenshot.py
    :screenshot:
 
-.. figure:: _static/screenshot.png
+.. figure:: screenshot.png
    :alt: Dynamic screenshot of K3D plot
    :width: 540px
    :align: center

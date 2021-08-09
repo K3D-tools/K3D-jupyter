@@ -34,7 +34,7 @@ class K3D_Plot(SphinxDirective):
         output = []
 
         if 'screenshot' in self.options:
-            image_filepath = os.path.join('./source/_static',
+            image_filepath = os.path.join(os.path.dirname(path),
                                           os.path.splitext(os.path.basename(filename))[0] + '.png')
             with open(image_filepath, 'wb') as  image:
                 image.write(code_results)

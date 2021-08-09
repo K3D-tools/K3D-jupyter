@@ -1348,7 +1348,7 @@ def mip(
             Number of iteration per 1 unit of space.
         gradient_step: `float`.
             Gradient light step.
-       name: `string`.
+        name: `string`.
             A name of a object
         kwargs: `dict`.
             Dictionary arguments to configure transform and model_matrix."""

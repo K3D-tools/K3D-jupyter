@@ -1,8 +1,24 @@
 Gallery
 =======
 
-.. image:: lines3d.png
-   :target: lines3d.html
+.. k3d_plot ::
+   :filename: lines.py
+   :screenshot:
+
+.. k3d_plot ::
+   :filename: lorenz_attractor.py
+   :screenshot:
+
+.. k3d_plot ::
+   :filename: platonic.py
+   :screenshot:
+
+.. k3d_plot ::
+   :filename: points_cloud.py
+   :screenshot:
+
+.. image:: lines.png
+   :target: lines.html
 
 .. image:: lorenz_attractor.png
    :target: lorenz_attractor.html
@@ -41,7 +57,7 @@ Gallery
    :glob:
    :hidden:
 
-   lines3d
+   lines
    lorenz_attractor
    platonic
    points_cloud

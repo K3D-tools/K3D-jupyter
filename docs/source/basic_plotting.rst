@@ -28,7 +28,7 @@ should see something like this:
    :filename: basic_plotting/empty_plot.py
    :screenshot:
 
-.. figure:: _static/empty_plot.png
+.. figure:: empty_plot.png
    :alt: Empty K3D plot
    :width: 540px
    :align: center
@@ -85,7 +85,7 @@ K3D ``Plot``.
    :filename: basic_plotting/basic_plotting_plot01.py
    :screenshot:
 
-.. figure:: _static/basic_plotting_plot01.png
+.. figure:: basic_plotting_plot01.png
    :alt: An isosceles triangle in the y=0 plane
    :width: 540px
    :align: center
@@ -119,7 +119,7 @@ variables:
    :filename: basic_plotting/basic_plotting_plot02.py
    :screenshot:
 
-.. figure:: _static/basic_plotting_plot02.png
+.. figure:: basic_plotting_plot02.png
    :alt: An isosceles triangle in the y=0 plane
    :width: 540px
    :align: center
