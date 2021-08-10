@@ -120,6 +120,11 @@ function K3D(provider, targetDOMNode, parameters) {
             self.setGridVisible(value);
             changeParameters.call(self, 'grid_visible', value);
         });
+        GUI.controls.add(self.parameters, 'fpsMeter').onChange((value) => {
+            self.setFpsMeter(value);
+            changeParameters.call(self, 'fps_meter', value);
+        });
+
         viewModeGUI(GUI.controls, self);
         cameraModeGUI(GUI.controls, self);
         manipulate.manipulateGUI(GUI.controls, self, changeParameters);
@@ -341,6 +346,14 @@ function K3D(provider, targetDOMNode, parameters) {
         }
 
         self.parameters.fpsMeter = state;
+
+        if (GUI.controls) {
+            GUI.controls.__controllers.forEach((controller) => {
+                if (controller.property === 'fpsMeter') {
+                    controller.updateDisplay();
+                }
+            });
+        }
     };
 
     /**
