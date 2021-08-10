@@ -17,7 +17,7 @@ Volume rendering
     volume = k3d.volume(
         img.astype(np.float32),
         alpha_coef=1000,
-        shadow='dynamic',
+        shadow='off', #dynamic is a fancy option but require a good GPU
         samples=600,
         shadow_res=128,
         shadow_delay=50,
@@ -33,3 +33,5 @@ Volume rendering
 
 .. k3d_plot ::
    :filename: volume_plot.py
+
+You can enable a shadow: Menu->Objects->Volume #1->shadow->dynamic

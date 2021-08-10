@@ -17,10 +17,10 @@ def generate():
     volume = k3d.volume(
         img.astype(np.float32),
         alpha_coef=1000,
-        shadow='dynamic',
+        shadow='off',
         samples=600,
         shadow_res=128,
-        shadow_delay=250,
+        shadow_delay=1000,
         color_range=[150, 750],
         color_map=(np.array(k3d.colormaps.matplotlib_color_maps.Gist_heat).reshape(-1, 4)
                    * np.array([1, 1.75, 1.75, 1.75])).astype(np.float32)
