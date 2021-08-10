@@ -37,7 +37,7 @@ def generate():
     plot += line
 
     headless.sync(hold_until_refreshed=True)
-    headless.camera_reset(1.0)
+    headless.camera_reset(0.5)
 
     screenshot = headless.get_screenshot()
     headless.close()

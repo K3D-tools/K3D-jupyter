@@ -26,6 +26,12 @@ class K3D_Plot(SphinxDirective):
         path = self.env.doc2path(self.env.docname)
         code_path = os.path.join(os.path.dirname(path), filename)
 
+        if 'screenshot' in self.options:
+            image_filepath = os.path.join(os.path.dirname(path),
+                                          os.path.splitext(os.path.basename(filename))[0] + '.png')
+            if os.path.isfile(image_filepath):
+                return []
+
         spec = importlib.util.spec_from_file_location("module.name", code_path)
         foo = importlib.util.module_from_spec(spec)
         spec.loader.exec_module(foo)
@@ -34,8 +40,6 @@ class K3D_Plot(SphinxDirective):
         output = []
 
         if 'screenshot' in self.options:
-            image_filepath = os.path.join(os.path.dirname(path),
-                                          os.path.splitext(os.path.basename(filename))[0] + '.png')
             with open(image_filepath, 'wb') as  image:
                 image.write(code_results)
         else:

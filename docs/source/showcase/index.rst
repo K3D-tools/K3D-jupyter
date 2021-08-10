@@ -17,6 +17,38 @@ Gallery
    :filename: points_cloud.py
    :screenshot:
 
+.. k3d_plot ::
+   :filename: sierpinski3d.py
+   :screenshot:
+
+.. k3d_plot ::
+   :filename: VTK_polydata.py
+   :screenshot:
+
+.. k3d_plot ::
+   :filename: volume.py
+   :screenshot:
+
+.. k3d_plot ::
+   :filename: gray_scott.py
+   :screenshot:
+
+.. k3d_plot ::
+   :filename: streamlines.py
+   :screenshot:
+
+.. k3d_plot ::
+   :filename: VTK_cutter.py
+   :screenshot:
+
+.. k3d_plot ::
+   :filename: segmentation_preview.py
+   :screenshot:
+
+.. k3d_plot ::
+   :filename: nbody.py
+   :screenshot:
+
 .. image:: lines.png
    :target: lines.html
 
