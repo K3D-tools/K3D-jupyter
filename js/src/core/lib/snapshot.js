@@ -47,11 +47,13 @@ function getHTMLSnapshot(K3D, compressionLevel) {
         filecontent = filecontent.split('[REQUIRE_JS]').join(requireJsSource);
         filecontent = filecontent.split('[PAKO_JS]').join(pakoJsSource);
         filecontent = filecontent.split('[K3D_SOURCE]').join(sourceCode);
-    } else if (K3D.parameters.snapshotType === 'online'){
+    } else if (K3D.parameters.snapshotType === 'online') {
         filecontent = templateOnline;
         filecontent = filecontent.split('[VERSION]').join(K3D.parameters.guiVersion);
-    } if (K3D.parameters.snapshotType === 'inline'){
+    } else if (K3D.parameters.snapshotType === 'inline') {
         filecontent = templateInline;
+        filecontent = filecontent.split('[ID]').join(Math.floor(Math.random() * 1e9));
+        filecontent = filecontent.split('[HEIGHT]').join(K3D.parameters.height || 512);
         filecontent = filecontent.split('[VERSION]').join(K3D.parameters.guiVersion);
     }
 

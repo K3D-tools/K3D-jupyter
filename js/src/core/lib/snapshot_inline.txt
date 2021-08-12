@@ -26,6 +26,11 @@
         }
 
         try {
+          document.getElementById('canvasTarget_[ID]').style.cssText = [
+              `height:[HEIGHT]px`,
+              'position: relative',
+          ].join(';');
+
           K3DInstance = new lib.CreateK3DAndLoadBinarySnapshot(
             _base64ToArrayBuffer(data_[ID]),
             document.getElementById('canvasTarget_[ID]'),

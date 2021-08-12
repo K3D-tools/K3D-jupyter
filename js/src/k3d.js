@@ -6,6 +6,7 @@ const K3D = require('./core/Core');
 const TFEdit = require('./transferFunctionEditor');
 const serialize = require('./core/lib/helpers/serialize');
 const ThreeJsProvider = require('./providers/threejs/provider');
+const CreateK3DAndLoadBinarySnapshot = require('./standalone').CreateK3DAndLoadBinarySnapshot;
 
 const semverRange = require('./version').version;
 
@@ -617,6 +618,7 @@ module.exports = {
     ObjectModel,
     ObjectView,
     ThreeJsProvider,
+    CreateK3DAndLoadBinarySnapshot: CreateK3DAndLoadBinarySnapshot,
     TransferFunctionEditor: TFEdit.transferFunctionEditor,
     TransferFunctionModel: TFEdit.transferFunctionModel,
     TransferFunctionView: TFEdit.transferFunctionView,

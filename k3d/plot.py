@@ -505,6 +505,7 @@ class Plot(widgets.DOMWidget):
             "cameraPanSpeed": self.camera_pan_speed,
             "cameraDampingFactor": self.camera_damping_factor,
             "name": self.name,
+            "height": self.height,
             "cameraFov": self.camera_fov,
             "axesHelper": self.axes_helper,
             "cameraAnimation": self.camera_animation,
@@ -575,6 +576,7 @@ class Plot(widgets.DOMWidget):
             f.close()
 
             template = template.replace("[VERSION]", self._view_module_version)
+            template = template.replace("[HEIGHT]", str(self.height))
             template = template.replace("[ID]", str(id(self)))
 
         template = template.replace("[DATA]", base64.b64encode(data).decode("utf-8"))
