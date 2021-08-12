@@ -4,7 +4,7 @@ from traitlets import TraitError
 import numpy as np
 
 from ..objects import Drawable
-from ..k3d import text
+from ..factory import text
 
 
 class TestDrawable(unittest.TestCase):

@@ -295,7 +295,7 @@ const PlotView = widgets.DOMWidgetView.extend({
         this.model.on('change:camera_fov', this._setCameraFOV, this);
         this.model.on('change:camera_damping_factor', this._setCameraDampingFactor, this);
         this.model.on('change:axes_helper', this._setAxesHelper, this);
-        this.model.on('change:snapshot_include_js', this._setSnapshotIncludeJs, this);
+        this.model.on('change:snapshot_type', this._setSnapshotType, this);
         this.model.on('change:name', this._setName, this);
         this.model.on('change:mode', this._setViewMode, this);
         this.model.on('change:camera_mode', this._setCameraMode, this);
@@ -306,7 +306,7 @@ const PlotView = widgets.DOMWidgetView.extend({
                 antialias: this.model.get('antialias'),
                 lighting: this.model.get('lighting'),
                 cameraMode: this.model.get('camera_mode'),
-                snapshotIncludeJs: this.model.get('snapshot_include_js'),
+                snapshotType: this.model.get('snapshot_type'),
                 backendVersion: this.model.get('_backend_version'),
                 screenshotScale: this.model.get('screenshot_scale'),
                 menuVisibility: this.model.get('menu_visibility'),
@@ -364,7 +364,9 @@ const PlotView = widgets.DOMWidgetView.extend({
                     change.value.compression_level = objectsList[change.id].attributes.compression_level;
                 }
 
-                objectsList[change.id].save(change.key, change.value, { patch: true });
+                if (objectsList[change.id]) {
+                    objectsList[change.id].save(change.key, change.value, { patch: true });
+                }
             }
         });
 
@@ -513,8 +515,8 @@ const PlotView = widgets.DOMWidgetView.extend({
         this.K3DInstance.setAxesHelper(this.model.get('axes_helper'));
     },
 
-    _setSnapshotIncludeJs() {
-        this.K3DInstance.setSnapshotIncludeJs(this.model.get('snapshot_include_js'));
+    _setSnapshotType() {
+        this.K3DInstance.setSnapshotType(this.model.get('snapshot_type'));
     },
 
     _setCameraLock() {

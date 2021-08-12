@@ -14,4 +14,3 @@ Elementary examples
    Platonic_solids
    Interaction_and_timeseries
    Camera
-   Mesh_callback

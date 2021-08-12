@@ -6,8 +6,9 @@ varying vec3 vNormal;
 
 #if (USE_PER_POINT_OPACITY == 1)
 attribute float opacities;
-varying float perPointOpacity;
 #endif
+
+varying float perPointOpacity;
 
 #if (USE_COLOR_MAP == 1)
 uniform sampler2D colormap;
@@ -27,13 +28,13 @@ attribute float attributes;
 #include <skinning_pars_vertex>
 #include <shadowmap_pars_vertex>
 #include <logdepthbuf_pars_vertex>
-//#include <clipping_planes_pars_vertex>
+#include <clipping_planes_pars_vertex>
 
 void main() {
     #include <uv_vertex>
     #include <uv2_vertex>
 
-    float perPointOpacity = 1.0;
+    perPointOpacity = 1.0;
 
     #if (USE_PER_POINT_OPACITY == 1)
     perPointOpacity = opacities;
@@ -47,10 +48,6 @@ void main() {
     vColor = finalSphereColor.rgb;
     #else
     vColor = color.rgb;
-    #endif
-
-    #if (USE_PER_POINT_OPACITY == 1)
-    perPointOpacity = opacities;
     #endif
 
     #include <beginnormal_vertex>

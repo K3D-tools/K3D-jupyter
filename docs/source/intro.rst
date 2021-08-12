@@ -79,12 +79,24 @@ Interactive snapshots
 Plots can be saved as both PNG screenshots and interactive HTML
 snapshots, which contain the front-end JavaScript 3D application
 bundles with the data. They can be used independently on the Python
-back-end, send by email or embedded in webpages as an :code:`iframe`:
+back-end, send by email or embedded in webpages:
 
+.. k3d_plot ::
+   :filename: screenshot.py
+   :screenshot:
 
-.. raw:: html
+.. figure:: screenshot.png
+   :alt: Dynamic screenshot of K3D plot
+   :width: 540px
+   :align: center
+   :figclass: align-center
 
-    <iframe src="_static/points.html" frameborder="0" height="300px" width="300px"></iframe>
+   Dynamic screenshot of K3D plot
 
-Snapshots can be generated from Menu or programatically, see  :ref:`snapshots`.
+.. k3d_plot ::
+   :filename: snapshot_inline.py
+
+.. centered:: Interactive snapshots
+
+Snapshots and screenshoots can be generated from Menu or programatically, see  :ref:`snapshots`.
 

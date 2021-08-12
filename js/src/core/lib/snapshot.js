@@ -3,6 +3,7 @@ const pako = require('pako');
 const fileLoader = require('./helpers/fileLoader');
 const templateStandalone = require('./snapshot_standalone.txt');
 const templateOnline = require('./snapshot_online.txt');
+const templateInline = require('./snapshot_inline.txt');
 const requireJsSource = require('../../../node_modules/requirejs/require?raw');
 const pakoJsSource = require('../../../node_modules/pako/dist/pako_inflate.min?raw');
 const semverRange = require('../../version').version;
@@ -41,19 +42,20 @@ function getHTMLSnapshot(K3D, compressionLevel) {
     let filecontent;
     const timestamp = new Date().toUTCString();
 
-    if (K3D.parameters.snapshotIncludeJs) {
+    if (K3D.parameters.snapshotType === 'all') {
         filecontent = templateStandalone;
         filecontent = filecontent.split('[REQUIRE_JS]').join(requireJsSource);
         filecontent = filecontent.split('[PAKO_JS]').join(pakoJsSource);
         filecontent = filecontent.split('[K3D_SOURCE]').join(sourceCode);
-    } else {
+    } else if (K3D.parameters.snapshotType === 'online'){
         filecontent = templateOnline;
+        filecontent = filecontent.split('[VERSION]').join(K3D.parameters.guiVersion);
+    } if (K3D.parameters.snapshotType === 'inline'){
+        filecontent = templateInline;
         filecontent = filecontent.split('[VERSION]').join(K3D.parameters.guiVersion);
     }
 
     filecontent = filecontent.split('[DATA]').join(data);
-    filecontent = filecontent.split('[PARAMS]').join(JSON.stringify(K3D.parameters));
-    filecontent = filecontent.split('[CAMERA]').join(JSON.stringify(K3D.getWorld().controls.getCameraArray()));
     filecontent = filecontent.split('[TIMESTAMP]').join(timestamp);
     filecontent = filecontent.split('[ADDITIONAL]').join('//[ADDITIONAL]');
 
@@ -62,18 +64,23 @@ function getHTMLSnapshot(K3D, compressionLevel) {
 
 function handleFileSelect(K3D, evt) {
     const { files } = evt.dataTransfer;
-    const snapshotReader = new FileReader();
+    const HTMLSnapshotReader = new FileReader();
+    const BinarySnapshotReader = new FileReader();
     const STLReader = new FileReader();
 
     evt.stopPropagation();
     evt.preventDefault();
 
-    snapshotReader.onload = function (event) {
+    HTMLSnapshotReader.onload = function (event) {
         const snapshot = K3D.extractSnapshot(event.target.result);
 
         if (snapshot[1]) {
             K3D.setSnapshot(snapshot[1]);
         }
+    };
+
+    BinarySnapshotReader.onload = function (event) {
+        K3D.setSnapshot(pako.inflate(event.target.result));
     };
 
     STLReader.onload = function (event) {
@@ -100,12 +107,16 @@ function handleFileSelect(K3D, evt) {
 
     if (files.length > 0) {
         if (files[0].name.substr(-4).toLowerCase() === 'html') {
-            snapshotReader.readAsText(files[0]);
+            HTMLSnapshotReader.readAsText(files[0]);
+            return;
         }
 
         if (files[0].name.substr(-3).toLowerCase() === 'stl') {
             STLReader.readAsArrayBuffer(files[0]);
+            return;
         }
+
+        BinarySnapshotReader.readAsArrayBuffer(files[0]);
     }
 }
 

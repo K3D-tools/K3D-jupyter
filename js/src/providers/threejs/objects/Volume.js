@@ -30,6 +30,7 @@ module.exports = {
         config.focal_plane = config.focal_plane || 512.0;
         config.focal_length = typeof (config.focal_length) !== 'undefined' ? config.focal_length : 0.0;
 
+        const randomMul = typeof (window.randomMul) !== 'undefined' ? window.randomMul : 255.0;
         const gl = K3D.getWorld().renderer.getContext();
         const geometry = new THREE.BoxBufferGeometry(1, 1, 1);
         const modelMatrix = new THREE.Matrix4();
@@ -87,11 +88,12 @@ module.exports = {
 
         texture.wrapS = THREE.ClampToEdgeWrapping;
         texture.wrapT = THREE.ClampToEdgeWrapping;
+        texture.wrapR = THREE.ClampToEdgeWrapping;
 
         texture.needsUpdate = true;
 
         jitterTexture = new THREE.DataTexture(
-            new Uint8Array(_.range(64 * 64).map(() => 255.0 * Math.random())),
+            new Uint8Array(_.range(64 * 64).map(() => randomMul * Math.random())),
             64, 64, THREE.RedFormat, THREE.UnsignedByteType,
         );
         jitterTexture.minFilter = THREE.LinearFilter;

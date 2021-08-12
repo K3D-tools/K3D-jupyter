@@ -24,7 +24,11 @@ To show the plot below a Jupyter cell, we call its ``display()`` method.
 If K3D-jupyter is installed properly, after executing the above snippet you
 should see something like this:
 
-.. figure:: figs/empty_plot.png
+.. k3d_plot ::
+   :filename: basic_plotting/empty_plot.py
+   :screenshot:
+
+.. figure:: empty_plot.png
    :alt: Empty K3D plot
    :width: 540px
    :align: center
@@ -77,8 +81,11 @@ K3D ``Plot``.
     
     plot.display()
 
+.. k3d_plot ::
+   :filename: basic_plotting/basic_plotting_plot01.py
+   :screenshot:
 
-.. figure:: figs/plot01.png
+.. figure:: basic_plotting_plot01.png
    :alt: An isosceles triangle in the y=0 plane
    :width: 540px
    :align: center
@@ -108,8 +115,11 @@ variables:
     
     plot
 
+.. k3d_plot ::
+   :filename: basic_plotting/basic_plotting_plot02.py
+   :screenshot:
 
-.. figure:: figs/plot02.png
+.. figure:: basic_plotting_plot02.png
    :alt: An isosceles triangle in the y=0 plane
    :width: 540px
    :align: center

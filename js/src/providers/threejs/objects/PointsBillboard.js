@@ -74,7 +74,7 @@ module.exports = {
             };
         } else {
             colors = (pointColors && pointColors.length === pointPositions.length / 3
-                ? colorsToFloat32Array(pointColors) : getColorsArray(color, pointPositions.length / 3)
+                    ? colorsToFloat32Array(pointColors) : getColorsArray(color, pointPositions.length / 3)
             );
         }
 
@@ -113,7 +113,9 @@ module.exports = {
             material,
         );
 
-        Fn.expandBoundingBox(object.geometry.boundingBox, config.point_size * 0.5);
+        if (config.shader !== 'dot') {
+            Fn.expandBoundingBox(object.geometry.boundingBox, config.point_size * 0.5);
+        }
 
         modelMatrix.set.apply(modelMatrix, config.model_matrix.data);
         object.applyMatrix4(modelMatrix);

@@ -131,5 +131,7 @@ module.exports = function (K3D) {
         } else {
             this.controls.target = sceneBoundingSphere.center;
         }
+
+        this.controls.update(true);
     };
 };

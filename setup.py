@@ -25,6 +25,8 @@ targets = [
     os.path.join(here, 'k3d', 'static', 'standalone.js'),
     os.path.join(here, 'k3d', 'static', 'snapshot_standalone.txt'),
     os.path.join(here, 'k3d', 'static', 'snapshot_online.txt'),
+    os.path.join(here, 'k3d', 'static', 'snapshot_inline.txt'),
+    os.path.join(here, 'k3d', 'static', 'headless.html'),
     os.path.join(here, 'k3d', 'static', 'extension.js'),
     os.path.join(here, 'k3d', 'static', 'index.js')
 ]
@@ -56,6 +58,8 @@ setup_args = {
                 'k3d/static/extension.js',
                 'k3d/static/snapshot_standalone.txt',
                 'k3d/static/snapshot_online.txt',
+                'k3d/static/snapshot_inline.txt',
+                'k3d/static/headless.html',
                 'k3d/static/standalone.js',
                 'k3d/static/index.js',
                 'k3d/static/index.js.map',
@@ -73,7 +77,8 @@ setup_args = {
         'ipydatawidgets',
         'traittypes',
         'traitlets',
-        'numpy>=1.11.0'
+        'numpy>=1.11.0',
+        'msgpack'
     ],
     'packages': find_packages(),
     'zip_safe': False,

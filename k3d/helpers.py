@@ -245,6 +245,9 @@ def get_bounding_box(model_matrix, boundary=[-0.5, 0.5, -0.5, 0.5, -0.5, 0.5]):
 def get_bounding_box_points(arr, model_matrix):
     d = arr.flatten()
 
+    if d.shape[0] < 3:
+        d = np.array([0, 0, 0])
+
     # fmt: off
     boundary = np.array([
         np.min(d[0::3]), np.max(d[0::3]),

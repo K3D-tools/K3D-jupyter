@@ -33,6 +33,7 @@ MsgpackCodec.addExtUnpacker(0x20, (val) => Float16Array(val.buffer));
  * @memberof K3D
  * @param {Object} provider provider that will be used by current instance
  * @param {Node} targetDOMNode a handler for a target DOM canvas node
+ * @param {Object} parameters of plot
  */
 function K3D(provider, targetDOMNode, parameters) {
     /**
@@ -119,6 +120,11 @@ function K3D(provider, targetDOMNode, parameters) {
             self.setGridVisible(value);
             changeParameters.call(self, 'grid_visible', value);
         });
+        GUI.controls.add(self.parameters, 'fpsMeter').onChange((value) => {
+            self.setFpsMeter(value);
+            changeParameters.call(self, 'fps_meter', value);
+        });
+
         viewModeGUI(GUI.controls, self);
         cameraModeGUI(GUI.controls, self);
         manipulate.manipulateGUI(GUI.controls, self, changeParameters);
@@ -252,46 +258,46 @@ function K3D(provider, targetDOMNode, parameters) {
 
     this.GUI = GUI;
     this.parameters = _.assignWith({
-        viewMode: viewModes.view,
-        cameraMode: cameraModes.trackball,
-        manipulateMode: manipulate.manipulateModes.translate,
-        voxelPaintColor: 0,
-        snapshotIncludeJs: true,
-        menuVisibility: true,
-        cameraAutoFit: true,
-        gridAutoFit: true,
-        gridVisible: true,
-        grid: [-1, -1, -1, 1, 1, 1],
-        gridColor: 0xe6e6e6,
-        labelColor: 0x444444,
-        antialias: 1,
-        screenshotScale: 5.0,
-        renderingSteps: 1,
-        clearColor: 0xffffff,
-        clippingPlanes: [],
-        fpsMeter: false,
-        lighting: 1.5,
-        time: 0.0,
-        colorbarObjectId: -1,
-        colorbarScientific: false,
-        fps: 25.0,
-        axes: ['x', 'y', 'z'],
-        cameraNoRotate: false,
-        cameraNoZoom: false,
-        cameraNoPan: false,
-        cameraRotateSpeed: 1.0,
-        cameraZoomSpeed: 1.2,
-        cameraPanSpeed: 0.3,
-        cameraDampingFactor: 0.0,
-        name: null,
-        camera_fov: 60.0,
-        cameraAnimation: {},
-        autoRendering: true,
-        axesHelper: 1.0,
-        guiVersion: require('../../package.json').version,
-    },
-    parameters || {},
-    (objValue, srcValue) => (typeof (srcValue) === 'undefined' ? objValue : srcValue));
+            viewMode: viewModes.view,
+            cameraMode: cameraModes.trackball,
+            manipulateMode: manipulate.manipulateModes.translate,
+            voxelPaintColor: 0,
+            snapshotIncludeJs: true,
+            menuVisibility: true,
+            cameraAutoFit: true,
+            gridAutoFit: true,
+            gridVisible: true,
+            grid: [-1, -1, -1, 1, 1, 1],
+            gridColor: 0xe6e6e6,
+            labelColor: 0x444444,
+            antialias: 1,
+            screenshotScale: 5.0,
+            renderingSteps: 1,
+            clearColor: 0xffffff,
+            clippingPlanes: [],
+            fpsMeter: false,
+            lighting: 1.5,
+            time: 0.0,
+            colorbarObjectId: -1,
+            colorbarScientific: false,
+            fps: 25.0,
+            axes: ['x', 'y', 'z'],
+            cameraNoRotate: false,
+            cameraNoZoom: false,
+            cameraNoPan: false,
+            cameraRotateSpeed: 1.0,
+            cameraZoomSpeed: 1.2,
+            cameraPanSpeed: 0.3,
+            cameraDampingFactor: 0.0,
+            name: null,
+            camera_fov: 60.0,
+            cameraAnimation: {},
+            autoRendering: true,
+            axesHelper: 1.0,
+            guiVersion: require('../../package.json').version,
+        },
+        parameters || {},
+        (objValue, srcValue) => (typeof (srcValue) === 'undefined' ? objValue : srcValue));
 
     this.autoRendering = false;
 
@@ -340,6 +346,14 @@ function K3D(provider, targetDOMNode, parameters) {
         }
 
         self.parameters.fpsMeter = state;
+
+        if (GUI.controls) {
+            GUI.controls.__controllers.forEach((controller) => {
+                if (controller.property === 'fpsMeter') {
+                    controller.updateDisplay();
+                }
+            });
+        }
     };
 
     /**
@@ -530,7 +544,7 @@ function K3D(provider, targetDOMNode, parameters) {
     /**
      * Set camera auto fit mode of K3D
      * @memberof K3D.Core
-     * @param {String} mode
+     * @param {String} state
      */
     this.setCameraAutoFit = function (state) {
         self.parameters.cameraAutoFit = state;
@@ -551,7 +565,7 @@ function K3D(provider, targetDOMNode, parameters) {
     /**
      * Set rendering steps of K3D
      * @memberof K3D.Core
-     * @param {String} mode
+     * @param {String} steps
      */
     this.setRenderingSteps = function (steps) {
         self.parameters.renderingSteps = steps;
@@ -560,7 +574,7 @@ function K3D(provider, targetDOMNode, parameters) {
     /**
      * Set axes labels of plot
      * @memberof K3D.Core
-     * @param {String} mode
+     * @param {String} axesLabel
      */
     this.setAxes = function (axesLabel) {
         self.parameters.axes = axesLabel;
@@ -595,7 +609,7 @@ function K3D(provider, targetDOMNode, parameters) {
     /**
      * Set grid auto fit mode of K3D
      * @memberof K3D.Core
-     * @param {String} mode
+     * @param {String} state
      */
     this.setGridAutoFit = function (state) {
         self.parameters.gridAutoFit = state;
@@ -629,9 +643,9 @@ function K3D(provider, targetDOMNode, parameters) {
     /**
      * Set camera speed
      * @memberof K3D.Core
-     * @param {Boolean} cameraNoRotate
-     * @param {Boolean} cameraNoZoom
-     * @param {Boolean} cameraNoPan
+     * @param {Number} rotateSpeed
+     * @param {Number} zoomSpeed
+     * @param {Number} panSpeed
      */
     this.setCameraSpeeds = function (rotateSpeed, zoomSpeed, panSpeed) {
         self.parameters.cameraRotateSpeed = rotateSpeed;
@@ -646,7 +660,7 @@ function K3D(provider, targetDOMNode, parameters) {
     /**
      * Set camera field of view
      * @memberof K3D.Core
-     * @param {Float} angle
+     * @param {Number} angle
      */
     this.setCameraFOV = function (angle) {
         self.parameters.camera_fov = angle;
@@ -687,7 +701,7 @@ function K3D(provider, targetDOMNode, parameters) {
     /**
      * Set grid auto fit mode of K3D
      * @memberof K3D.Core
-     * @param {String} mode
+     * @param {String} state
      */
     this.setGridVisible = function (state) {
         self.parameters.gridVisible = state;
@@ -740,10 +754,10 @@ function K3D(provider, targetDOMNode, parameters) {
     /**
      * Set snapshot include param for K3D
      * @memberof K3D.Core
-     * @param {Number} state
+     * @param {String} state
      */
-    this.setSnapshotIncludeJs = function (state) {
-        self.parameters.snapshotIncludeJs = state;
+    this.setSnapshotType = function (state) {
+        self.parameters.snapshotType = state;
     };
 
     /**
@@ -763,16 +777,18 @@ function K3D(provider, targetDOMNode, parameters) {
     /**
      * Set camera of K3D
      * @memberof K3D.Core
-     * @param {Object} mode
+     * @param {Object} camera
      */
     this.setCamera = function (camera) {
-        world.setupCamera(camera);
+        if (camera.length > 0) {
+            world.setupCamera(camera);
+        }
     };
 
     /**
      * Set camera animation of K3D
      * @memberof K3D.Core
-     * @param {Object} mode
+     * @param {Object} config
      */
     this.setCameraAnimation = function (config) {
         self.parameters.cameraAnimation = config;
@@ -880,7 +896,7 @@ function K3D(provider, targetDOMNode, parameters) {
     /**
      * Set ChunkList
      * @memberof K3D.Core
-     * @param {Object} chunkList
+     * @param {Object} json
      */
     this.setChunkList = function (json) {
         world.chunkList = json;
@@ -1044,8 +1060,8 @@ function K3D(provider, targetDOMNode, parameters) {
     /**
      * Get Screenshot
      * @memberof K3D.Core
-     * @param {Object} scale
-     * @param {Object} onlyCanvas
+     * @param {Number} scale
+     * @param {boolean} onlyCanvas
      * @returns {Canvas|undefined}
      */
     this.getScreenshot = function (scale, onlyCanvas) {
@@ -1068,7 +1084,14 @@ function K3D(provider, targetDOMNode, parameters) {
      */
     this.getSnapshot = function (compressionLevel) {
         const chunkList = Object.keys(world.chunkList).reduce((p, k) => {
-            p[k] = world.chunkList[k].attributes;
+            let attributes = world.chunkList[k].attributes;
+
+            p[k] = Object.keys(attributes).reduce((prev, k) => {
+                prev[k] = serialize.serialize(attributes[k]);
+
+                return prev;
+            }, {});
+
             return p;
         }, {});
 
@@ -1079,11 +1102,15 @@ function K3D(provider, targetDOMNode, parameters) {
                 return p;
             }, {}));
 
+        let plot = _.cloneDeep(self.parameters);
+        plot.camera = self.getWorld().controls.getCameraArray();
+
         return pako.deflate(
             msgpack.encode(
                 {
                     objects: serializedObjects,
-                    chunkList,
+                    chunkList: chunkList,
+                    plot: plot
                 },
                 { codec: MsgpackCodec },
             ),
@@ -1100,13 +1127,19 @@ function K3D(provider, targetDOMNode, parameters) {
             data = pako.inflate(new Uint8Array(base64ToArrayBuffer(data)));
         }
 
-        data = msgpack.decode(data, { codec: MsgpackCodec });
+        if (data instanceof Uint8Array) {
+            data = msgpack.decode(data, { codec: MsgpackCodec });
+        }
 
         Object.keys(data.chunkList).forEach((k) => {
-            data.chunkList[k] = { attributes: data.chunkList[k] };
+            let chunk = data.chunkList[k];
+            world.chunkList[chunk.id] = {
+                attributes: Object.keys(chunk).reduce(function (prev, p) {
+                    prev[p] = serialize.deserialize(chunk[p]);
+                    return prev;
+                }, {})
+            };
         });
-
-        self.setChunkList(data.chunkList);
 
         data.objects.forEach((o) => {
             Object.keys(o).forEach((k) => {
@@ -1187,6 +1220,7 @@ function K3D(provider, targetDOMNode, parameters) {
 
     this.resizeHelper();
 
+    self.setScreenshotScale(self.parameters.screenshotScale);
     self.setClearColor(self.parameters.clearColor);
     self.setMenuVisibility(self.parameters.menuVisibility);
     self.setTime(self.parameters.time);

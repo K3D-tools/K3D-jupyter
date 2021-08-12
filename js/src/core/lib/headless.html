@@ -1,0 +1,171 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>K3D headless engine</title>
+  <style>
+    body, html {
+      margin: 0;
+      padding: 0;
+      overflow: hidden;
+    }
+
+    #canvasTarget {
+      width: 100%;
+      height: 100%;
+      position: absolute;
+    }
+  </style>
+  <script id='requirejs' src="require.js"></script>
+  <script id='k3d' src="standalone.js"></script>
+</head>
+<body>
+<div id="canvasTarget"></div>
+
+<script>
+  function stringToArrayBuffer(str) {
+    var buf = new ArrayBuffer(str.length);
+    var bufView = new Uint8Array(buf);
+
+    for (var i = 0, strLen = str.length; i < strLen; i++) {
+      bufView[i] = str.charCodeAt(i);
+    }
+
+    return buf;
+  }
+
+  var K3DInstance, pingFailed = 0;
+
+  window.refreshed = false;
+
+  require(['k3d'], function (lib) {
+    try {
+      K3DInstance = new lib.K3D(
+        lib.ThreeJsProvider,
+        document.getElementById('canvasTarget'),
+        {}
+      );
+    } catch (e) {
+      console.log(e);
+      return;
+    }
+
+    setInterval(function () {
+      var req = new XMLHttpRequest();
+      req.open('GET', '/ping', true);
+
+      req.onerror = function (e) {
+        pingFailed++;
+
+        if (pingFailed > 5) {
+          window.close();
+        }
+      };
+
+      req.onload = function (e) {
+        pingFailed = 0;
+      };
+      req.send(null);
+    }, 5000);
+
+    window.k3dRefresh = function () {
+      var req = new XMLHttpRequest();
+
+      window.refreshed = false;
+
+      req.overrideMimeType('text/plain; charset=x-user-defined');
+      req.open('POST', '/', false); //synchronous
+      req.send(null);
+
+      if (req.status == 200) {
+
+        var data = K3DInstance.msgpack.decode(
+          new Uint8Array(stringToArrayBuffer(req.response)),
+          { codec: K3DInstance.MsgpackCodec }
+        );
+
+        var map = {
+          cameraAutoFit: "setCameraAutoFit",
+          lighting: "setDirectionalLightingIntensity",
+          time: "setTime",
+          gridAutoFit: "setGridAutoFit",
+          gridVisible: "setGridVisible",
+          gridColor: "setGridColor",
+          depthPeels: "setDepthPeels",
+          fpsMeter: "setFpsMeter",
+          fps: "setFps",
+          screenshotScale: "setScreenshotScale",
+          // voxel_paint_color: "setVoxelPaintColor",
+          clearColor: "setClearColor",
+          grid: "setGrid",
+          auto_rendering: "setAutoRendering",
+          camera: "setCamera",
+          cameraAnimation: "setCameraAnimation",
+          clippingPlanes: "setClippingPlanes",
+          // object_ids: "onObjectsListChange",
+          menuVisibility: "setMenuVisibility",
+          colorbarObjectId: "setColorMapLegend",
+          // colorbar_scientific: "setColorbarScientific",
+          // rendering_steps: "setRenderingSteps",
+          axes: "setAxes",
+          cameraNoRotate: "setCameraLock",
+          cameraNoZoom: "setCameraLock",
+          cameraNoPan: "setCameraLock",
+          cameraRotateSpeed: "setCameraSpeeds",
+          cameraZoomSpeed: "setCameraSpeeds",
+          cameraPanSpeed: "setCameraSpeeds",
+          cameraFov: "setCameraFOV",
+          cameraDampingFactor: "setCameraDampingFactor",
+          axesHelper: "setAxesHelper",
+          snapshot_type: "setSnapshotType",
+          name: "setName",
+          mode: "setViewMode",
+          cameraMode: "setCameraMode",
+          // manipulate_mode: "setManipulateMode"
+        };
+
+        Object.keys(data.plot_diff).forEach(function (k) {
+          if (map[k]) {
+            K3DInstance[map[k]](data.plot_diff[k]);
+          } else {
+            K3DInstance.parameters[k] = data.plot_diff[k];
+          }
+        });
+
+        let promises = [];
+
+        Object.keys(data.objects_diff).forEach(function (k) {
+          let diff = data.objects_diff[k];
+
+          if (diff === null) {
+            K3DInstance.removeObject(k);
+            return;
+          }
+
+          let json = K3DInstance.getWorld().ObjectsListJson[diff.id] || {};
+          let load = Object.keys(json).length === 0;
+
+          Object.keys(diff).forEach((k) => {
+            json[k] = K3DInstance.serialize.deserialize(diff[k]);
+          });
+
+          if (load) {
+            promises.push(K3DInstance.load({ objects: [json] }));
+          } else {
+            promises.push(K3DInstance.reload(json, diff));
+          }
+        });
+
+        if (promises.length > 0) {
+          Promise.all(promises).then(function () {
+            window.refreshed = true;
+          });
+        } else {
+          window.refreshed = true;
+        }
+      }
+    }
+  });
+</script>
+</body>
+</html>

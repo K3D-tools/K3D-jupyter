@@ -24,13 +24,14 @@ import sys
 import time
 import sphinx_rtd_theme
 from os.path import dirname
+from source.k3d_directives.plot import K3D_Plot
 
 here = os.path.dirname(__file__)
 docs = dirname(dirname(__file__))
 root = dirname(docs)
 sys.path.insert(0, root)
 
-# -- General configuration ------------------------------------------------
+# -- General configuration -------------------------------------------------
 
 # If your documentation needs a minimal Sphinx version, state it here.
 #
@@ -47,14 +48,10 @@ extensions = ['sphinx.ext.autodoc',
               'sphinx.ext.mathjax',
               'sphinx.ext.ifconfig',
               'sphinx.ext.viewcode',
-              'sphinx.ext.githubpages',
-              'nbsphinx',
-              'nbsphinx_link',
-#              'jupyter_sphinx.execute'
-]
+              'sphinx.ext.githubpages'
+              ]
 
 autodoc_dumb_docstring = True
-
 
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ['_templates']
@@ -65,14 +62,13 @@ templates_path = ['_templates']
 # source_suffix = ['.rst', '.md']
 source_suffix = '.rst'
 
-
 # The master toctree document.
 master_doc = 'index'
 
 # General information about the project.
 project = 'K3D-jupyter'
-copyright = time.strftime('%Y') + u' Marcin Kostur, Artur Trzęsiok, Tomasz Gandor, Filip Kaśkosz'
-author = u'Marcin Kostur, Artur Trzęsiok, Tomasz Gandor, Filip Kaśkosz'
+copyright = time.strftime('%Y') + u' Marcin Kostur, Artur Trzęsiok, Tomasz Gandor'
+author = u'Marcin Kostur, Artur Trzęsiok, Tomasz Gandor'
 
 # The version info for the project you're documenting, acts as replacement for
 # |version| and |release|, also used in various other places throughout the
@@ -83,7 +79,7 @@ repo = os.path.join(here, '..', '..')
 _version_py = os.path.join(repo, 'k3d', '_version.py')
 version_ns = {}
 with open(_version_py) as f:
-    exec (f.read(), version_ns)
+    exec(f.read(), version_ns)
 
 # The short X.Y version.
 version = '%i.%i' % version_ns['version_info'][:2]
@@ -116,6 +112,8 @@ todo_include_todos = True
 #
 html_theme = 'sphinx_rtd_theme'
 html_theme_path = [sphinx_rtd_theme.get_html_theme_path()]
+# html_js_files = ['https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.6/require.min.js',
+#                  './k3d.js']
 
 # Theme options are theme-specific and customize the look and feel of a theme
 # further.  For a list of options available for each theme, see the
@@ -212,33 +210,10 @@ intersphinx_mapping = {'https://docs.python.org/': None}
 on_rtd = os.environ.get('READTHEDOCS', None) == 'True'
 
 
-def add_scripts(app):
-    from shutil import copyfile, move
-
-    app.add_javascript('require_config.js')
-
-    if not on_rtd:
-        src = os.path.join(here, '..', '..', 'js', 'dist', 'index.js')
-        dst = os.path.join(here, '_static', 'k3d.js')
-        copyfile(src, dst)
-
-        src = os.path.join(here, '..', '..', 'js', 'dist', 'standalone.js')
-        dst = os.path.join(here, '_static', 'standalone.js')
-        copyfile(src, dst)
-    else:
-        sys.path.append(os.path.abspath('./../../'))
-        from k3d.helpers import download
-
-        filename = download('https://unpkg.com/k3d/dist/index.js')
-        move(filename, os.path.join(here, '_static', 'k3d.js'))
-
-        filename = download('https://unpkg.com/k3d/dist/standalone.js')
-        move(filename, os.path.join(here, '_static', filename))
-
-
 def setup(app):
-#    app.setup_extension('jupyter_sphinx.execute')
-    app.add_stylesheet('style.css')
-#    app.connect('builder-inited', add_scripts)
+    try:
+        app.add_stylesheet('style.css')
+    except AttributeError:
+        app.add_css_file('style.css')
 
-
+    app.add_directive('k3d_plot', K3D_Plot)

@@ -1,94 +1,58 @@
 <!doctype html>
 <html>
 <head>
-    <meta charset="utf-8">
-    <title>K3D</title>
-    <script src="node_modules/requirejs/require.js"></script>
-    <script src="dist/standalone.js?k3d"></script>
-    <script src="test/utils/globals.js"></script>
-    <script src="test/utils/testUtils.js"></script>
-    <style>
-        body, html {
-            background-color: #F5F5F5;
-            margin: 0;
-            padding: 0;
-            overflow: hidden;
-        }
+  <meta charset="utf-8">
+  <title>K3D</title>
+  <script src="node_modules/requirejs/require.js"></script>
+  <script src="dist/standalone.js?k3d"></script>
+  <style>
+    body, html {
+      background-color: #F5F5F5;
+      margin: 0;
+      padding: 0;
+      overflow: hidden;
+    }
 
-        #canvasTarget {
-            width: 100%;
-            height: 100%;
-            position: absolute;
-        }
-    </style>
+    #canvasTarget {
+      width: 100%;
+      height: 100%;
+      position: absolute;
+    }
+  </style>
 </head>
 <body>
 <div id="canvasTarget"></div>
 <script>
-    var K3DInstance;
-    var jsonLoader = TestHelpers.jsonLoader;
-    var fileLoader = TestHelpers.fileLoader;
+  var K3DInstance;
 
-    require(['k3d'], function (lib) {
-        try {
-            K3DInstance = new lib.K3D(
-                lib.ThreeJsProvider,
-                document.getElementById('canvasTarget'),
-                {
-                    menuVisibility: true,
-                    cameraAutoFit: true,
-                    gridAutoFit: true,
-                    gridVisible: true,
-                    axesHelper: 1,
-                    colorbarObjectId: 2524948058800,
-                    renderingSteps: 1,
-                    lighting: 1.5
-                }
-            );
-        } catch (e) {
-            console.log(e);
-            return;
-        }
+  function fileLoader(url, callback) {
+    var xhrLoad = new XMLHttpRequest();
+    xhrLoad.responseType = "arraybuffer";
+    xhrLoad.open('GET', url, true);
 
-        if (K3DInstance) {
-            K3DInstance.setClearColor(-1);
-            K3DInstance.setScreenshotScale(1.0);
+    xhrLoad.onreadystatechange = function () {
+      if (xhrLoad.readyState === 4) {
+        callback(xhrLoad.response);
+      }
+    };
 
-            jsonLoader('test/samples/voxels.json', function (json) {
-            // jsonLoader('test/samples/cube_with_labels.json', function (json) {
-            // jsonLoader('test/samples/voxels.json', function (json) {
-            // //     K3DInstance.setClippingPlanes([
-            // // //         [-1, -1.5, 0, 0],
-            // // //         [0, 0, -1, 0.01]
-            // // //     ]);
-                 K3DInstance.load(json);
-            //
-            //     // K3DInstance.setCameraFOV(10);
-            });
-            //
+    xhrLoad.send(null);
+  }
 
-            // fileLoader('bug.html', function (data) {
-            //     var snapshot = K3DInstance.extractSnapshot(data);
-            //     K3DInstance.setSnapshot(snapshot[1]).then(function () {
-            //         K3DInstance.resetCamera(0.5);
-            //     });
-            // });
-        }
+  require(['k3d'], function (lib) {
 
-        // if (localStorage.getItem('camera') !== null) {
-        //     K3DInstance.setCamera(JSON.parse(localStorage.getItem('camera')));
-        // }
-        //
-        // K3DInstance.on(K3DInstance.events.CAMERA_CHANGE, function (control) {
-        //     localStorage.setItem('camera', JSON.stringify(control));
-        // });
-
-        // K3DInstance.addFrameUpdateListener('after', function () {
-        //
-        // }, false);
-
-        K3DInstance.setFpsMeter(true);
+    fileLoader('mip_opacity_function.k3d', function (data) {
+      K3DInstance = lib.CreateK3DAndLoadBinarySnapshot(
+        data,
+        document.getElementById('canvasTarget')
+      ).then(function (ret) {
+        K3DInstance = ret;
+        setTimeout(function () {
+          K3DInstance.resetCamera(0.5);
+        }, 250);
+      });
     });
+  });
 </script>
 </body>
 </html>

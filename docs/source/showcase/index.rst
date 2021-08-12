@@ -1,8 +1,56 @@
 Gallery
 =======
 
-.. image:: lines3d.png
-   :target: lines3d.html
+.. k3d_plot ::
+   :filename: lines.py
+   :screenshot:
+
+.. k3d_plot ::
+   :filename: lorenz_attractor.py
+   :screenshot:
+
+.. k3d_plot ::
+   :filename: platonic.py
+   :screenshot:
+
+.. k3d_plot ::
+   :filename: points_cloud.py
+   :screenshot:
+
+.. k3d_plot ::
+   :filename: sierpinski3d.py
+   :screenshot:
+
+.. k3d_plot ::
+   :filename: VTK_polydata.py
+   :screenshot:
+
+.. k3d_plot ::
+   :filename: volume.py
+   :screenshot:
+
+.. k3d_plot ::
+   :filename: gray_scott.py
+   :screenshot:
+
+.. k3d_plot ::
+   :filename: streamlines.py
+   :screenshot:
+
+.. k3d_plot ::
+   :filename: VTK_cutter.py
+   :screenshot:
+
+.. k3d_plot ::
+   :filename: segmentation_preview.py
+   :screenshot:
+
+.. k3d_plot ::
+   :filename: nbody.py
+   :screenshot:
+
+.. image:: lines.png
+   :target: lines.html
 
 .. image:: lorenz_attractor.png
    :target: lorenz_attractor.html
@@ -41,7 +89,7 @@ Gallery
    :glob:
    :hidden:
 
-   lines3d
+   lines
    lorenz_attractor
    platonic
    points_cloud

@@ -1,14 +1,15 @@
 sudo: required
 dist: xenial
-language: node_js
-node_js:
-  - "10.8"
-addons:
-  firefox: "70.0.1"
+language: python
 services:
   - xvfb
+before_install:
+  - nvm install 10.8
 before_script:
+  - pip install vtk pixelmatch flask msgpack webdriver_manager selenium scikit-image
   - cd js
-  - npm install grunt-cli -g
+  - npm install webpack webpack-cli -g
   - npm install
-script: grunt test
+  - cd ..
+  - cd k3d
+script: pytest

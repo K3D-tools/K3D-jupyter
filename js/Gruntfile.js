@@ -1,16 +1,14 @@
 /* jshint indent: false, quotmark: false */
-'use strict';
 
-var webpackConfig = require('./webpack.config');
+const webpackConfig = require('./webpack.config');
 
 module.exports = function (grunt) {
-
     require('time-grunt')(grunt);
     require('load-grunt-tasks')(grunt);
 
     grunt.initConfig({
         webpack: {
-            myConfig: webpackConfig,
+            myConfig: webpackConfig
         },
         eslint: {
             options: {
@@ -28,7 +26,7 @@ module.exports = function (grunt) {
                 ],
                 tasks: ['webpack'],
                 options: {
-                    livereload: true,
+                    livereload: true
                 }
             }
         },
@@ -49,31 +47,15 @@ module.exports = function (grunt) {
                 }
             }
         },
-        karma: {
-            unit: {
-                configFile: 'karma.conf.js'
-            }
-        },
         open: {
             dev: {
                 path: 'http://localhost:9000/development.html'
             }
         },
-        express: {
-            test: {
-                options: {
-                    script: 'expressTestHelper.js'
-                }
-            }
-        },
         clean: {
-            test: 'src/test/results/*.png',
             doc: 'doc',
             dist: 'dist',
             dev: 'dev'
-        },
-        curl: {
-            'test/assets/Lato-Regular.ttf': 'https://github.com/google/fonts/raw/main/ofl/lato/Lato-Regular.ttf'
         }
     });
 
@@ -86,24 +68,14 @@ module.exports = function (grunt) {
         'jsdoc'
     ]);
 
-    grunt.registerTask('test', function () {
-        grunt.task.run([
-            'clean',
-            'webpack',
-            'express:test',
-            'curl',
-            'karma'
-        ]);
-    });
-
-    grunt.registerTask('build', function () {
+    grunt.registerTask('build', () => {
         grunt.task.run([
             'clean',
             'webpack'
         ]);
     });
 
-    grunt.registerTask('serve', function () {
+    grunt.registerTask('serve', () => {
         grunt.task.run([
             'clean',
             'webpack',
