@@ -141,18 +141,18 @@ module.exports = [
         },
         plugins,
     },
-    { // Lab extension is just our JS source + shaders
-        entry: './src/labplugin.js',
-        output: {
-            filename: 'labplugin.js',
-            path: `${__dirname}/dist/`,
-            libraryTarget: 'amd',
-        },
-        mode,
-        devtool: 'source-map',
-        module: {
-            rules,
-        },
-        externals: [nodeExternals()],
-    },
+    // { // Lab extension is just our JS source + shaders
+    //     entry: './src/labplugin.js',
+    //     output: {
+    //         filename: 'labplugin.js',
+    //         path: `${__dirname}/dist/`,
+    //         libraryTarget: 'amd',
+    //     },
+    //     mode,
+    //     devtool: 'source-map',
+    //     module: {
+    //         rules,
+    //     },
+    //     externals: [nodeExternals()],
+    // },
 ];
