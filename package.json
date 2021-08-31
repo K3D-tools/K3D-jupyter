@@ -1,0 +1,57 @@
+{
+  "name": "k3d",
+  "version": "0.1.0",
+  "description": "3D visualization library",
+  "keywords": [
+    "jupyter",
+    "jupyterlab",
+    "jupyterlab-extension"
+  ],
+  "homepage": "https://github.com/K3D-tools/K3D-jupyter.git",
+  "bugs": {
+    "url": "https://github.com/K3D-tools/K3D-jupyter.git/issues"
+  },
+  "license": "BSD-3-Clause",
+  "author": {
+    "name": "k3d team",
+    "email": ""
+  },
+  "files": [
+    "lib/**/*.{d.ts,eot,gif,html,jpg,js,js.map,json,png,svg,woff2,ttf}",
+    "style/**/*.{css,.js,eot,gif,html,jpg,json,png,svg,woff2,ttf}"
+  ],
+  "main": "lib/index.js",
+  "style": "style/index.css",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/K3D-tools/K3D-jupyter.git.git"
+  },
+  "scripts": {
+    "build": "jlpm run build:labextension:dev",
+    "build:prod": "jlpm run build:labextension",
+    "build:labextension": "jupyter labextension build .",
+    "build:labextension:dev": "jupyter labextension build --development True .",
+    "clean:labextension": "rimraf k3d/labextension",
+    "clean:all": "jlpm run clean:labextension",
+    "install:extension": "jupyter labextension develop --overwrite .",
+    "prepare": "jlpm run build:prod",
+    "prettier": "prettier --write \"**/*{.js,.jsx,.css,.json,.md}\"",
+    "watch": "watch:labextension",
+    "watch:labextension": "jupyter labextension watch ."
+  },
+  "dependencies": {},
+  "devDependencies": {
+    "@jupyterlab/builder": "^3.0.0",
+    "prettier": "^2.1.1",
+    "rimraf": "^3.0.2"
+  },
+  "sideEffects": [
+    "style/*.css",
+    "style/index.js"
+  ],
+  "styleModule": "style/index.js",
+  "jupyterlab": {
+    "extension": true,
+    "outputDir": "k3d/labextension"
+  }
+}
