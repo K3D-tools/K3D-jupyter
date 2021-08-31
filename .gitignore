@@ -23,3 +23,5 @@ docs/source/_static/k3d.js
 docs/source/_static/standalone.js
 k3d/test/results/*
 node_modules
+yarn.lock
+k3d/labextension/
