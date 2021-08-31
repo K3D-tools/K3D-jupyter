@@ -16,8 +16,11 @@ if (window.require) {
 
 window.__webpack_public_path__ = `${document.querySelector('body').getAttribute('data-base-url')}nbextensions/k3d/`;
 
-require('style-loader?{attributes:{id: "k3d-katex"}}!css-loader!../node_modules/katex/dist/katex.min.css');
-require('style-loader?{attributes:{id: "k3d-dat.gui"}}!css-loader!../node_modules/dat.gui/build/dat.gui.css');
+// require('style-loader?{attributes:{id: "k3d-katex"}}!css-loader!katex/dist/katex.min.css');
+// require('style-loader?{attributes:{id: "k3d-dat.gui"}}!css-loader!dat.gui/build/dat.gui.css');
+
+require('katex/dist/katex.min.css');
+require('dat.gui/build/dat.gui.css');
 
 // Export the required load_ipython_extention
 module.exports = {
