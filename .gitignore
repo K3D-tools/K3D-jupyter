@@ -4,7 +4,7 @@
 *.egg-info/
 js/dist/
 js/build/
-js/node_modules/
+node_modules/
 k3d/static/
 .DS_Store
 .pypirc
@@ -22,3 +22,4 @@ examples/*.gz
 docs/source/_static/k3d.js
 docs/source/_static/standalone.js
 k3d/test/results/*
+node_modules
