@@ -29,11 +29,20 @@ package_data_spec = {
     name: ["*"],
 }
 
+node_root = HERE / 'js'
+
 labext_name = "k3d"
 
 data_files_spec = [
     ("share/jupyter/labextensions/%s" % labext_name, str(lab_path), "**"),
-    ("share/jupyter/labextensions/%s" % labext_name, str(HERE), "install.json")
+    ("share/jupyter/labextensions/%s" % labext_name, str(HERE), "install.json"),
+    ("k3d/static/%s" % labext_name,str(HERE / 'k3d' / 'static'), 'standalone.js'),
+    ("k3d/static/%s" % labext_name,str(HERE / 'k3d' / 'static'), 'snapshot_standalone.txt'),
+    ("k3d/static/%s" % labext_name,str(HERE / 'k3d' / 'static'), 'snapshot_online.txt'),
+    ("k3d/static/%s" % labext_name,str(HERE / 'k3d' / 'static'), 'snapshot_inline.txt'),
+    ("k3d/static/%s" % labext_name,str(HERE / 'k3d' / 'static'), 'headless.html'),
+    ("k3d/static/%s" % labext_name,str(HERE / 'k3d' / 'static'), 'extension.js'),
+    ("k3d/static/%s" % labext_name,str(HERE / 'k3d' / 'static'), 'index.js')
 ]
 
 cmdclass = create_cmdclass("jsdeps",
@@ -41,7 +50,11 @@ cmdclass = create_cmdclass("jsdeps",
     data_files_spec=data_files_spec
 )
 
+print('PATH')
+print(node_root)
+
 js_command = combine_commands(
+    install_npm(path=node_root,build_dir=node_root, build_cmd="build"),
     install_npm(HERE, build_cmd="build:prod", npm=["jlpm"]),
     ensure_targets(jstargets),
 )
