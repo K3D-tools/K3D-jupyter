@@ -5,9 +5,6 @@ const msgpack = require('msgpack-lite');
 const pako = require('pako');
 const MsgpackCodec = msgpack.createCodec({ preset: true });
 
-// require('style-loader?{attributes:{id: "k3d-katex"}}!css-loader!katex/dist/katex.min.css');
-// require('style-loader?{attributes:{id: "k3d-dat.gui"}}!css-loader!dat.gui/build/dat.gui.css');
-
 require('katex/dist/katex.min.css');
 require('dat.gui/build/dat.gui.css');
 

@@ -33,12 +33,18 @@ function getScreenshot(K3D, scale, onlyCanvas) {
         if (onlyCanvas) {
             renderPromise = Promise.resolve();
         } else {
+            let styles = document.getElementsByTagName('style');
+            let style = '';
+
+            for (let i = 0; i < styles.length; i++) {
+                style += styles[i].outerHTML;
+            }
+
             renderPromise = rasterizeHTML.drawHTML(
-                `<style>body{margin:0;}</style>${
-                    document.getElementById('k3d-katex').outerHTML
-                }${document.getElementById('k3d-style').outerHTML
-                }${world.overlayDOMNode.outerHTML
-                }${K3D.colorMapNode ? K3D.colorMapNode.outerHTML : ''}`,
+                `<style>body{margin:0;}</style>
+                ${style}
+                ${world.overlayDOMNode.outerHTML}
+                ${K3D.colorMapNode ? K3D.colorMapNode.outerHTML : ''}`,
                 htmlElementCanvas,
                 {
                     zoom: scale,
