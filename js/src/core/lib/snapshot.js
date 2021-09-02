@@ -4,8 +4,8 @@ const fileLoader = require('./helpers/fileLoader');
 const templateStandalone = require('./snapshot_standalone.txt');
 const templateOnline = require('./snapshot_online.txt');
 const templateInline = require('./snapshot_inline.txt');
-const requireJsSource = require('../../../node_modules/requirejs/require?raw');
-const pakoJsSource = require('../../../node_modules/pako/dist/pako_inflate.min?raw');
+const requireJsSource = require('requirejs/require?raw');
+const pakoJsSource = require('pako/dist/pako_inflate.min?raw');
 const semverRange = require('../../version').version;
 const buffer = require('./helpers/buffer');
 
