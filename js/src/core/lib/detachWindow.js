@@ -61,11 +61,13 @@ function detachWindowGUI(gui, K3D) {
             newWindow.document.body.innerHTML = require('./helpers/detachedWindowHtml');
 
             // copy css
-            ['k3d-katex', 'k3d-style', 'k3d-dat.gui'].forEach((id) => {
+            let styles = document.getElementsByTagName('style');
+
+            for (let i = 0; i < styles.length; i++) {
                 newWindow.document.body.appendChild(
-                    window.document.getElementById(id).cloneNode(true),
+                    styles[i].cloneNode(true),
                 );
-            });
+            }
 
             setTimeout(() => {
                 reinitializeK3D(newWindow.document.getElementById('canvasTarget'));

@@ -64,12 +64,10 @@ function K3D(provider, targetDOMNode, parameters) {
         controls: null,
         objects: null,
     };
+
     let guiContainer;
 
-
     require('./../k3d.css');
-    //TODO
-    // require('style-loader?{attributes:{id: "k3d-style"}}!css-loader!./../k3d.css');
 
     function dispatch(eventName, data) {
         if (!listeners[eventName]) {
