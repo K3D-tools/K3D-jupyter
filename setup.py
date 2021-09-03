@@ -84,6 +84,10 @@ setup_args = dict(
     packages=setuptools.find_packages(),
     install_requires=[
         "jupyterlab~=3.0",
+        "traittypes",
+        "ipywidgets",
+        "traitlets",
+        "numpy"
     ],
     zip_safe=False,
     include_package_data=True,

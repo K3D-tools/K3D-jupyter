@@ -1,4 +1,3 @@
-const nodeExternals = require('webpack-node-externals');
 const CopyPlugin = require('copy-webpack-plugin');
 const version = require('./package.json').version;
 // var Visualizer = require('webpack-visualizer-plugin2');

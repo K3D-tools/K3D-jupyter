@@ -1,5 +1,3 @@
-const version = require('./package.json').version;
-
 const rules = [
     {
         test: /\.(glsl|txt)/,
@@ -11,10 +9,6 @@ const rules = [
         type: 'asset/source',
     },
 ];
-
-const plugins = [];
-
-
 
 module.exports = {
     module: {

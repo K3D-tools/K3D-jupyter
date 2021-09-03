@@ -3,7 +3,6 @@ import numpy as np
 import pytest
 from .plot_compare import *
 import math
-from k3d.helpers import download
 import vtk
 from vtk.util import numpy_support
 
