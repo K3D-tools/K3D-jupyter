@@ -36,13 +36,13 @@ labext_name = "k3d"
 data_files_spec = [
     ("share/jupyter/labextensions/%s" % labext_name, str(lab_path), "**"),
     ("share/jupyter/labextensions/%s" % labext_name, str(HERE), "install.json"),
-    ("k3d/static/%s" % labext_name,str(HERE / 'k3d' / 'static'), 'standalone.js'),
-    ("k3d/static/%s" % labext_name,str(HERE / 'k3d' / 'static'), 'snapshot_standalone.txt'),
-    ("k3d/static/%s" % labext_name,str(HERE / 'k3d' / 'static'), 'snapshot_online.txt'),
-    ("k3d/static/%s" % labext_name,str(HERE / 'k3d' / 'static'), 'snapshot_inline.txt'),
-    ("k3d/static/%s" % labext_name,str(HERE / 'k3d' / 'static'), 'headless.html'),
-    ("k3d/static/%s" % labext_name,str(HERE / 'k3d' / 'static'), 'extension.js'),
-    ("k3d/static/%s" % labext_name,str(HERE / 'k3d' / 'static'), 'index.js')
+    ("k3d/static/%s" % labext_name, str(HERE / 'k3d' / 'static'), 'standalone.js'),
+    ("k3d/static/%s" % labext_name, str(HERE / 'k3d' / 'static'), 'snapshot_standalone.txt'),
+    ("k3d/static/%s" % labext_name, str(HERE / 'k3d' / 'static'), 'snapshot_online.txt'),
+    ("k3d/static/%s" % labext_name, str(HERE / 'k3d' / 'static'), 'snapshot_inline.txt'),
+    ("k3d/static/%s" % labext_name, str(HERE / 'k3d' / 'static'), 'headless.html'),
+    ("k3d/static/%s" % labext_name, str(HERE / 'k3d' / 'static'), 'extension.js'),
+    ("k3d/static/%s" % labext_name, str(HERE / 'k3d' / 'static'), 'index.js')
 ]
 
 cmdclass = create_cmdclass("jsdeps",
@@ -50,11 +50,8 @@ cmdclass = create_cmdclass("jsdeps",
     data_files_spec=data_files_spec
 )
 
-print('PATH')
-print(node_root)
-
 js_command = combine_commands(
-    install_npm(path=node_root,build_dir=node_root, build_cmd="build"),
+    install_npm(path=node_root, build_dir=node_root, build_cmd="build"),
     install_npm(HERE, build_cmd="build:prod", npm=["jlpm"]),
     ensure_targets(jstargets),
 )
@@ -95,7 +92,7 @@ setup_args = dict(
     platforms="Linux, Mac OS X, Windows",
     keywords=["Jupyter", "JupyterLab", "JupyterLab3"],
     classifiers=[
-        "License :: OSI Approved :: BSD License",
+        "License :: OSI Approved :: MIT License",
         "Programming Language :: Python",
         "Programming Language :: Python :: 3",
         "Programming Language :: Python :: 3.6",
@@ -105,7 +102,6 @@ setup_args = dict(
         "Framework :: Jupyter",
     ],
 )
-
 
 if __name__ == "__main__":
     setuptools.setup(**setup_args)
