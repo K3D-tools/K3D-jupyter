@@ -84,7 +84,8 @@ setup_args = dict(
         "traittypes",
         "ipywidgets",
         "traitlets",
-        "numpy"
+        "numpy",
+        "msgpack"
     ],
     zip_safe=False,
     include_package_data=True,
