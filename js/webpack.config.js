@@ -1,4 +1,3 @@
-const nodeExternals = require('webpack-node-externals');
 const CopyPlugin = require('copy-webpack-plugin');
 const version = require('./package.json').version;
 // var Visualizer = require('webpack-visualizer-plugin2');
@@ -18,6 +17,8 @@ const rules = [
         resourceQuery: /raw/,
         type: 'asset/source',
     },
+    // same as for jupyterlab packer https://github.com/jupyterlab/jupyterlab/blob/3.1.x/builder/src/webpack.config.base.ts
+    { test: /\.css$/, use: ['style-loader', 'css-loader'] }
 ];
 
 const mode = 'production';
@@ -101,13 +102,13 @@ module.exports = [
     {
         entry: './src/standalone.js',
         output:
-            {
-                filename: 'standalone.js',
-                path: `${__dirname}/../k3d/static`,
-                library: 'k3d',
-                libraryTarget: 'amd',
-                publicPath: `https://unpkg.com/k3d@${version}/dist/`,
-            },
+        {
+            filename: 'standalone.js',
+            path: `${__dirname}/../k3d/static`,
+            library: 'k3d',
+            libraryTarget: 'amd',
+            publicPath: `https://unpkg.com/k3d@${version}/dist/`,
+        },
         mode,
         devtool: 'source-map',
         module: {
@@ -127,32 +128,18 @@ module.exports = [
     {
         entry: './src/standalone.js',
         output:
-            {
-                filename: 'standalone.js',
-                path: `${__dirname}/dist/`,
-                library: 'k3d',
-                libraryTarget: 'amd',
-                publicPath: `https://unpkg.com/k3d@${version}/dist/`,
-            },
+        {
+            filename: 'standalone.js',
+            path: `${__dirname}/dist/`,
+            library: 'k3d',
+            libraryTarget: 'amd',
+            publicPath: `https://unpkg.com/k3d@${version}/dist/`,
+        },
         mode,
         devtool: 'source-map',
         module: {
             rules,
         },
         plugins,
-    },
-    { // Lab extension is just our JS source + shaders
-        entry: './src/labplugin.js',
-        output: {
-            filename: 'labplugin.js',
-            path: `${__dirname}/dist/`,
-            libraryTarget: 'amd',
-        },
-        mode,
-        devtool: 'source-map',
-        module: {
-            rules,
-        },
-        externals: [nodeExternals()],
     },
 ];

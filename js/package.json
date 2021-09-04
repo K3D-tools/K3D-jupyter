@@ -1,6 +1,6 @@
 {
   "name": "k3d",
-  "version": "2.10.0",
+  "version": "2.11.0",
   "description": "3D visualization library",
   "author": "k3d team",
   "main": "src/index.js",
@@ -57,7 +57,6 @@
   "dependencies": {
     "@jupyter-widgets/base": "^4.0.0",
     "dat.gui": "git+https://github.com/K3D-tools/dat.gui.git#b4123f5acf201be4275924ea89c96b9326653f49",
-    "style-loader": "^2.0.0",
     "es6-promise": "^4.2.8",
     "file-saver": "^2.0.5",
     "katex": "^0.13.11",
@@ -68,6 +67,7 @@
     "requirejs": "^2.3.6",
     "screenfull": "^5.1.0",
     "stats.js": "^0.17.0",
+    "style-loader": "^2.0.0",
     "three": "^0.128.0",
     "three-mesh-bvh": "^0.3.7"
   }

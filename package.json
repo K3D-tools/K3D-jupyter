@@ -1,0 +1,93 @@
+{
+  "name": "k3d",
+  "version": "2.11.0",
+  "description": "3D visualization library",
+  "keywords": [
+    "jupyter",
+    "jupyterlab",
+    "jupyterlab-extension",
+    "widgets"
+  ],
+  "homepage": "https://github.com/K3D-tools/K3D-jupyter.git",
+  "bugs": {
+    "url": "https://github.com/K3D-tools/K3D-jupyter.git/issues"
+  },
+  "license": "BSD-3-Clause",
+  "author": {
+    "name": "k3d team",
+    "email": ""
+  },
+  "files": [
+    "js/src/**/*.{d.ts,eot,gif,html,jpg,js,js.map,json,png,svg,woff2,ttf}"
+  ],
+  "main": "js/src/labplugin.js",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/K3D-tools/K3D-jupyter.git.git"
+  },
+  "scripts": {
+    "build": "jlpm run build:labextension:dev",
+    "build:prod": "jlpm run build:labextension",
+    "build:labextension": "jupyter labextension build .",
+    "build:labextension:dev": "jupyter labextension build --development True .",
+    "clean:labextension": "rimraf k3d/labextension",
+    "clean:all": "jlpm run clean:labextension",
+    "install:extension": "jupyter labextension develop --overwrite .",
+    "prepare": "jlpm run build:prod",
+    "prettier": "prettier --write \"**/*{.js,.jsx,.css,.json,.md}\"",
+    "watch": "watch:labextension",
+    "watch:labextension": "jupyter labextension watch ."
+  },
+  "dependencies": {
+    "@jupyter-widgets/base": "^4.0.0",
+    "dat.gui": "git+https://github.com/K3D-tools/dat.gui.git#b4123f5acf201be4275924ea89c96b9326653f49",
+    "style-loader": "^2.0.0",
+    "es6-promise": "^4.2.8",
+    "file-saver": "^2.0.5",
+    "katex": "^0.13.11",
+    "lodash": "^4.17.21",
+    "msgpack-lite": "^0.1.26",
+    "pako": "^2.0.3",
+    "rasterizehtml": "^1.3.0",
+    "requirejs": "^2.3.6",
+    "screenfull": "^5.1.0",
+    "stats.js": "^0.17.0",
+    "three": "^0.128.0",
+    "three-mesh-bvh": "^0.3.7"
+  },
+  "devDependencies": {
+    "@jupyterlab/builder": "^3.0.0",
+    "prettier": "^2.1.1",
+    "rimraf": "^3.0.2"
+  },
+  "jupyterlab": {
+    "extension": true,
+    "outputDir": "k3d/labextension",
+    "webpackConfig": "./lab-webpack.config.js",
+    "discovery": {
+      "kernel": [
+        {
+          "kernel_spec": {
+            "language": "^python"
+          },
+          "base": {
+            "name": "k3d"
+          },
+          "managers": [
+            "pip",
+            "conda"
+          ]
+        }
+      ]
+    }
+  },
+  "externalExtensions": {
+    "@jupyter-widgets/jupyterlab-manager": "2.0.0"
+  },
+  "sharedPackages": {
+    "@jupyter-widgets/base": {
+      "bundled": false,
+      "singleton": true
+    }
+  }
+}

@@ -1,109 +1,107 @@
-from __future__ import print_function
+"""
+k3d setup
+"""
+import json
+from pathlib import Path
 
-import os
-
-from setuptools import setup, find_packages
-
-from distutils import log
-
-from setupbase import (
-    create_cmdclass, install_npm, combine_commands,
-    ensure_targets, skip_npm
+from jupyter_packaging import (
+    create_cmdclass,
+    install_npm,
+    ensure_targets,
+    combine_commands,
+    skip_if_exists
 )
+import setuptools
 
-here = os.path.dirname(os.path.abspath(__file__))
-node_root = os.path.join(here, 'js')
+HERE = Path(__file__).parent.resolve()
 
-log.set_verbosity(log.DEBUG)
-log.info('setup.py entered')
-log.info('$PATH=%s' % os.environ['PATH'])
+# The name of the project
+name = "k3d"
 
-LONG_DESCRIPTION = 'Jupyter notebook extension for 3D visualization.'
+lab_path = (HERE / name / "labextension")
 
 # Representative files that should exist after a successful build
-targets = [
-    os.path.join(here, 'k3d', 'static', 'standalone.js'),
-    os.path.join(here, 'k3d', 'static', 'snapshot_standalone.txt'),
-    os.path.join(here, 'k3d', 'static', 'snapshot_online.txt'),
-    os.path.join(here, 'k3d', 'static', 'snapshot_inline.txt'),
-    os.path.join(here, 'k3d', 'static', 'headless.html'),
-    os.path.join(here, 'k3d', 'static', 'extension.js'),
-    os.path.join(here, 'k3d', 'static', 'index.js')
+jstargets = [
+    str(lab_path / "package.json"),
 ]
 
-cmdclass = create_cmdclass(
-    wrappers=[] if skip_npm else ['jsdeps'],
-    data_dirs=[]
-)
-cmdclass['jsdeps'] = combine_commands(
-    install_npm(node_root),
-    ensure_targets(targets)
-)
-
-version_ns = {}
-with open(os.path.join(here, 'k3d', '_version.py')) as f:
-    exec (f.read(), {}, version_ns)
-
-setup_args = {
-    'name': 'K3D',
-    'version': version_ns['__version__'],
-    'license': 'MIT',
-    'description': 'Jupyter notebook extension for 3D visualization.',
-    'long_description': LONG_DESCRIPTION,
-    'include_package_data': True,
-    'data_files': [
-        (
-            'share/jupyter/nbextensions/k3d',
-            [
-                'k3d/static/extension.js',
-                'k3d/static/snapshot_standalone.txt',
-                'k3d/static/snapshot_online.txt',
-                'k3d/static/snapshot_inline.txt',
-                'k3d/static/headless.html',
-                'k3d/static/standalone.js',
-                'k3d/static/index.js',
-                'k3d/static/index.js.map',
-            ]
-        ),
-        (
-            'etc/jupyter/nbconfig/notebook.d',
-            [
-                'k3d/k3d_extension.json',
-            ]
-        ),
-    ],
-    'install_requires': [
-        'ipywidgets>=7.0.1',
-        'ipydatawidgets',
-        'traittypes',
-        'traitlets',
-        'numpy>=1.11.0',
-        'msgpack'
-    ],
-    'packages': find_packages(),
-    'zip_safe': False,
-    'cmdclass': cmdclass,
-    'author': 'k3d team',
-    'author_email': 'artur.trzesiok@gmail.com',
-    'url': 'http://jupyter.org',
-    'keywords': [
-        'ipython',
-        'jupyter',
-        'widgets',
-    ],
-    'classifiers': [
-        'Development Status :: 4 - Beta',
-        'Framework :: IPython',
-        'Intended Audience :: Developers',
-        'Intended Audience :: Science/Research',
-        'Topic :: Multimedia :: Graphics',
-        'Programming Language :: Python :: 3',
-        'Programming Language :: Python :: 3.6',
-        'Programming Language :: Python :: 3.7',
-        'Programming Language :: Python :: 3.8',
-        'Programming Language :: Python :: 3.9',
-    ],
+package_data_spec = {
+    name: ["*"],
 }
 
-if __name__ == '__main__':
-    setup(**setup_args)
+node_root = HERE / 'js'
+
+labext_name = "k3d"
+
+data_files_spec = [
+    ("share/jupyter/labextensions/%s" % labext_name, str(lab_path), "**"),
+    ("share/jupyter/labextensions/%s" % labext_name, str(HERE), "install.json"),
+    ("k3d/static/%s" % labext_name, str(HERE / 'k3d' / 'static'), 'standalone.js'),
+    ("k3d/static/%s" % labext_name, str(HERE / 'k3d' / 'static'), 'snapshot_standalone.txt'),
+    ("k3d/static/%s" % labext_name, str(HERE / 'k3d' / 'static'), 'snapshot_online.txt'),
+    ("k3d/static/%s" % labext_name, str(HERE / 'k3d' / 'static'), 'snapshot_inline.txt'),
+    ("k3d/static/%s" % labext_name, str(HERE / 'k3d' / 'static'), 'headless.html'),
+    ("k3d/static/%s" % labext_name, str(HERE / 'k3d' / 'static'), 'extension.js'),
+    ("k3d/static/%s" % labext_name, str(HERE / 'k3d' / 'static'), 'index.js')
+]
+
+cmdclass = create_cmdclass("jsdeps",
+    package_data_spec=package_data_spec,
+    data_files_spec=data_files_spec
+)
+
+js_command = combine_commands(
+    install_npm(path=node_root, build_dir=node_root, build_cmd="build"),
+    install_npm(HERE, build_cmd="build:prod", npm=["jlpm"]),
+    ensure_targets(jstargets),
+)
+
+is_repo = (HERE / ".git").exists()
+if is_repo:
+    cmdclass["jsdeps"] = js_command
+else:
+    cmdclass["jsdeps"] = skip_if_exists(jstargets, js_command)
+
+long_description = (HERE / "README.md").read_text()
+
+# Get the package info from package.json
+pkg_json = json.loads((HERE / "package.json").read_bytes())
+
+setup_args = dict(
+    name=name,
+    version=pkg_json["version"],
+    url=pkg_json["homepage"],
+    author=pkg_json["author"]["name"],
+    author_email=pkg_json["author"]["email"],
+    description=pkg_json["description"],
+    license=pkg_json["license"],
+    long_description=long_description,
+    long_description_content_type="text/markdown",
+    cmdclass=cmdclass,
+    packages=setuptools.find_packages(),
+    install_requires=[
+        "jupyterlab~=3.0",
+        "traittypes",
+        "ipywidgets",
+        "traitlets",
+        "numpy"
+    ],
+    zip_safe=False,
+    include_package_data=True,
+    python_requires=">=3.6",
+    platforms="Linux, Mac OS X, Windows",
+    keywords=["Jupyter", "JupyterLab", "JupyterLab3"],
+    classifiers=[
+        "License :: OSI Approved :: MIT License",
+        "Programming Language :: Python",
+        "Programming Language :: Python :: 3",
+        "Programming Language :: Python :: 3.6",
+        "Programming Language :: Python :: 3.7",
+        "Programming Language :: Python :: 3.8",
+        "Programming Language :: Python :: 3.9",
+        "Framework :: Jupyter",
+    ],
+)
+
+if __name__ == "__main__":
+    setuptools.setup(**setup_args)

@@ -1456,7 +1456,6 @@ def vtk_poly_data(
         poly_data = cut_triangles.GetOutput()
 
     attribute = []
-    color_range = []
     triangles_attribute = []
 
     if color_attribute is not None:
