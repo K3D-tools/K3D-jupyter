@@ -28,6 +28,7 @@ def pytest_sessionstart(session):
     """
     pytest.plot = k3d.plot(screenshot_scale=1.0, antialias=2, camera_auto_fit=False,
                            colorbar_object_id=0)
+    print(pytest.plot.get_static_path())
     pytest.headless = k3d_remote(pytest.plot, get_headless_driver())
     pytest.headless.browser.execute_script("window.randomMul = 0.0;")
 
