@@ -1,8 +1,9 @@
+const msgpack = require('msgpack-lite');
+const pako = require('pako');
 const TFEdit = require('./transferFunctionEditor');
 const K3D = require('./core/Core');
 const ThreeJsProvider = require('./providers/threejs/provider');
-const msgpack = require('msgpack-lite');
-const pako = require('pako');
+
 const MsgpackCodec = msgpack.createCodec({ preset: true });
 
 require('katex/dist/katex.min.css');
@@ -18,15 +19,15 @@ function CreateK3DAndLoadBinarySnapshot(data, targetDOMNode) {
         K3DInstance = new K3D(
             ThreeJsProvider,
             targetDOMNode,
-            data.plot
+            data.plot,
         );
     } catch (e) {
         console.log(e);
-        return;
+        return null;
     }
 
-    return K3DInstance.setSnapshot(data).then(function () {
-        setTimeout(function () {
+    return K3DInstance.setSnapshot(data).then(() => {
+        setTimeout(() => {
             if (data.plot.camera.length > 0) {
                 K3DInstance.setCamera(data.plot.camera);
                 K3DInstance.render();
@@ -38,11 +39,11 @@ function CreateK3DAndLoadBinarySnapshot(data, targetDOMNode) {
 }
 
 module.exports = {
-    K3D: K3D,
-    CreateK3DAndLoadBinarySnapshot: CreateK3DAndLoadBinarySnapshot,
+    K3D,
+    CreateK3DAndLoadBinarySnapshot,
     TransferFunctionEditor: TFEdit.transferFunctionEditor,
     TransferFunctionModel: TFEdit.transferFunctionModel,
     TransferFunctionView: TFEdit.transferFunctionView,
-    ThreeJsProvider: ThreeJsProvider,
-    version: require('./version').version
+    ThreeJsProvider,
+    version: require('./version').version,
 };

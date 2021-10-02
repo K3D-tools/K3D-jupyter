@@ -618,7 +618,7 @@ module.exports = {
     ObjectModel,
     ObjectView,
     ThreeJsProvider,
-    CreateK3DAndLoadBinarySnapshot: CreateK3DAndLoadBinarySnapshot,
+    CreateK3DAndLoadBinarySnapshot,
     TransferFunctionEditor: TFEdit.transferFunctionEditor,
     TransferFunctionModel: TFEdit.transferFunctionModel,
     TransferFunctionView: TFEdit.transferFunctionView,

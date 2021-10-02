@@ -15,6 +15,7 @@ module.exports = {
         config.color = typeof (config.color) !== 'undefined' ? config.color : 0;
         config.text = typeof (config.text) !== 'undefined' ? config.text : '\\KaTeX';
 
+        const modelMatrix = new THREE.Matrix4();
         const { text } = config;
         const { color } = config;
         const referencePoint = config.reference_point || 'lb';
@@ -47,6 +48,12 @@ module.exports = {
 
         object.position.set(position[0], position[1], position[2]);
         object.text = text;
+
+        if (config.model_matrix) {
+            modelMatrix.set.apply(modelMatrix, config.model_matrix.data);
+            object.applyMatrix4(modelMatrix);
+        }
+
         object.updateMatrixWorld();
 
         function render() {

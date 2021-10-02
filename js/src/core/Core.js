@@ -67,7 +67,7 @@ function K3D(provider, targetDOMNode, parameters) {
 
     let guiContainer;
 
-    require('./../k3d.css');
+    require('../k3d.css');
 
     function dispatch(eventName, data) {
         if (!listeners[eventName]) {
@@ -297,8 +297,8 @@ function K3D(provider, targetDOMNode, parameters) {
         axesHelper: 1.0,
         guiVersion: require('../../package.json').version,
     },
-        parameters || {},
-        (objValue, srcValue) => (typeof (srcValue) === 'undefined' ? objValue : srcValue));
+    parameters || {},
+    (objValue, srcValue) => (typeof (srcValue) === 'undefined' ? objValue : srcValue));
 
     this.autoRendering = false;
 
@@ -1085,10 +1085,10 @@ function K3D(provider, targetDOMNode, parameters) {
      */
     this.getSnapshot = function (compressionLevel) {
         const chunkList = Object.keys(world.chunkList).reduce((p, k) => {
-            let attributes = world.chunkList[k].attributes;
+            const attributes = world.chunkList[k].attributes;
 
-            p[k] = Object.keys(attributes).reduce((prev, k) => {
-                prev[k] = serialize.serialize(attributes[k]);
+            p[k] = Object.keys(attributes).reduce((prev, key) => {
+                prev[key] = serialize.serialize(attributes[key]);
 
                 return prev;
             }, {});
@@ -1103,15 +1103,15 @@ function K3D(provider, targetDOMNode, parameters) {
                 return p;
             }, {}));
 
-        let plot = _.cloneDeep(self.parameters);
+        const plot = _.cloneDeep(self.parameters);
         plot.camera = self.getWorld().controls.getCameraArray();
 
         return pako.deflate(
             msgpack.encode(
                 {
                     objects: serializedObjects,
-                    chunkList: chunkList,
-                    plot: plot
+                    chunkList,
+                    plot,
                 },
                 { codec: MsgpackCodec },
             ),
@@ -1133,12 +1133,12 @@ function K3D(provider, targetDOMNode, parameters) {
         }
 
         Object.keys(data.chunkList).forEach((k) => {
-            let chunk = data.chunkList[k];
+            const chunk = data.chunkList[k];
             world.chunkList[chunk.id] = {
-                attributes: Object.keys(chunk).reduce(function (prev, p) {
+                attributes: Object.keys(chunk).reduce((prev, p) => {
                     prev[p] = serialize.deserialize(chunk[p]);
                     return prev;
-                }, {})
+                }, {}),
             };
         });
 

@@ -43,7 +43,7 @@ module.exports = {
             config.volume.data,
             config.volume.shape[2],
             config.volume.shape[1],
-            config.volume.shape[0]
+            config.volume.shape[0],
         );
 
         texture.format = THREE.RedFormat;

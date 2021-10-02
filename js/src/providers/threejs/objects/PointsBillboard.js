@@ -74,7 +74,7 @@ module.exports = {
             };
         } else {
             colors = (pointColors && pointColors.length === pointPositions.length / 3
-                    ? colorsToFloat32Array(pointColors) : getColorsArray(color, pointPositions.length / 3)
+                ? colorsToFloat32Array(pointColors) : getColorsArray(color, pointPositions.length / 3)
             );
         }
 

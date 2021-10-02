@@ -113,9 +113,7 @@ def line(
         width: `float`.
             Thickness of the lines.
         name: `string`.
-            A name of a object
-        kwargs: `dict`.
-            Dictionary arguments to configure transform and model_matrix."""
+            A name of a object"""
     if color_map is None:
         color_map = default_colormap
     color_map = (
@@ -403,9 +401,7 @@ def points(
             A list of float tuples (attribute value, opacity), sorted by attribute value. The first
             tuples should have value 0.0, the last 1.0; opacity is in the range 0.0 to 1.0.
         name: `string`.
-            A name of a object
-        kwargs: `dict`.
-            Dictionary arguments to configure transform and model_matrix."""
+            A name of a object"""
     if color_map is None:
         color_map = default_colormap
 
@@ -458,9 +454,7 @@ def stl(
         flat_shading: `bool`.
             Whether mesh should display with flat shading.
         name: `string`.
-            A name of a object
-        kwargs: `dict`.
-            Dictionary arguments to configure transform and model_matrix."""
+            A name of a object"""
     plain = isinstance(stl, six.string_types)
 
     return process_transform_arguments(
@@ -556,6 +550,7 @@ def text(
         is_html=False,
         name=None,
         compression_level=0,
+        **kwargs
 ):
     """Create a Text drawable for 3D-positioned text labels.
 
@@ -580,19 +575,24 @@ def text(
         name: `string`.
             A name of a object
         size: `float`.
-            Font size in 'em' HTML units."""
+            Font size in 'em' HTML units.
+        kwargs: `dict`.
+            Dictionary arguments to configure transform and model_matrix."""
 
-    return Text(
-        position=position,
-        reference_point=reference_point,
-        text=text,
-        size=size,
-        color=color,
-        on_top=on_top,
-        is_html=is_html,
-        label_box=label_box,
-        name=name,
-        compression_level=compression_level,
+    return process_transform_arguments(
+        Text(
+            position=position,
+            reference_point=reference_point,
+            text=text,
+            size=size,
+            color=color,
+            on_top=on_top,
+            is_html=is_html,
+            label_box=label_box,
+            name=name,
+            compression_level=compression_level,
+        ),
+        **kwargs
     )
 
 
@@ -658,6 +658,7 @@ def label(
         is_html=False,
         label_box=True,
         compression_level=0,
+        **kwargs
 ):
     """Create a Text drawable for 3D-positioned text labels.
 
@@ -681,20 +682,25 @@ def label(
         is_html: `Boolean`.
             Whether text should be interpreted as HTML insted of KaTeX.
         size: `float`.
-            Font size in 'em' HTML units."""
+            Font size in 'em' HTML units.
+        kwargs: `dict`.
+            Dictionary arguments to configure transform and model_matrix."""
 
-    return Label(
-        position=position,
-        text=text,
-        size=size,
-        color=color,
-        on_top=on_top,
-        max_length=max_length,
-        mode=mode,
-        is_html=is_html,
-        label_box=label_box,
-        name=name,
-        compression_level=compression_level,
+    return process_transform_arguments(
+        Label(
+            position=position,
+            text=text,
+            size=size,
+            color=color,
+            on_top=on_top,
+            max_length=max_length,
+            mode=mode,
+            is_html=is_html,
+            label_box=label_box,
+            name=name,
+            compression_level=compression_level,
+        ),
+        **kwargs
     )
 
 
@@ -787,6 +793,7 @@ def texture_text(
         size=1.0,
         name=None,
         compression_level=0,
+        **kwargs
 ):
     """Create a TextureText drawable.
 
@@ -813,16 +820,19 @@ def texture_text(
         font_size: `int`.
             The font size inside the sprite texture in px units. This does not affect the size of the
             text in the scene, only the accuracy and raster size of the texture."""
-    return TextureText(
-        text=text,
-        position=position,
-        color=color,
-        size=size,
-        font_face=font_face,
-        font_size=font_size,
-        font_weight=font_weight,
-        name=name,
-        compression_level=compression_level,
+    return process_transform_arguments(
+        TextureText(
+            text=text,
+            position=position,
+            color=color,
+            size=size,
+            font_face=font_face,
+            font_size=font_size,
+            font_weight=font_weight,
+            name=name,
+            compression_level=compression_level,
+        ),
+        **kwargs
     )
 
 
@@ -950,9 +960,7 @@ def vectors(
         line_width: `float`.
             Width of the vector segments.
         name: `string`.
-            A name of a object
-        kwargs: `dict`.
-            Dictionary arguments to configure transform and model_matrix."""
+            A name of a object"""
     return process_transform_arguments(
         Vectors(
             vectors=vectors if vectors is not None else origins,

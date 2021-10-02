@@ -17,6 +17,7 @@ module.exports = {
         'no-plusplus': 0,
         'no-bitwise': 0,
         'no-continue': 0,
+        'no-console': 0,
         'prefer-destructuring': 0,
         'no-prototype-builtins': 0,
         'no-restricted-properties': 0,

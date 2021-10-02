@@ -15,6 +15,7 @@ module.exports = {
         config.visible = typeof (config.visible) !== 'undefined' ? config.visible : true;
         config.color = typeof (config.color) !== 'undefined' ? config.color : 0;
 
+        const modelMatrix = new THREE.Matrix4();
         const geometry = new THREE.BufferGeometry();
         const material = new THREE.MeshBasicMaterial({
             color: config.color,
@@ -52,6 +53,12 @@ module.exports = {
         overlayDOMNode.appendChild(domElement);
 
         p.position.set(position[0], position[1], position[2]);
+
+        if (config.model_matrix) {
+            modelMatrix.set.apply(modelMatrix, config.model_matrix.data);
+            p.applyMatrix4(modelMatrix);
+        }
+
         p.updateMatrixWorld();
 
         line.frustumCulled = false;
