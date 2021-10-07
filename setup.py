@@ -80,7 +80,6 @@ setup_args = dict(
     cmdclass=cmdclass,
     packages=setuptools.find_packages(),
     install_requires=[
-        "jupyterlab~=3.0",
         "traittypes",
         "ipywidgets",
         "traitlets",
