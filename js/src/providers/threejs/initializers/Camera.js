@@ -11,12 +11,12 @@ const { recalculateFrustum } = require('../helpers/Fn');
 module.exports = function (K3D) {
     const currentFar = 1000;
 
-    this.camera = new THREE.PerspectiveCamera(K3D.parameters.camera_fov, this.width / this.height, 0.1, currentFar);
+    this.camera = new THREE.PerspectiveCamera(K3D.parameters.cameraFov, this.width / this.height, 0.1, currentFar);
     this.camera.position.set(2, -3, 0.2);
     this.camera.up.set(0, 0, 1);
     this.camera.frustum = new THREE.Frustum();
 
-    this.axesHelper.camera = new THREE.PerspectiveCamera(K3D.parameters.camera_fov,
+    this.axesHelper.camera = new THREE.PerspectiveCamera(K3D.parameters.cameraFov,
         this.axesHelper.width / this.axesHelper.height, 0.1, 1000);
     this.axesHelper.camera.position.set(2, 0.5, 0.5);
     this.axesHelper.camera.lookAt(0.5, 0.5, 0.5);
@@ -116,7 +116,7 @@ module.exports = function (K3D) {
         const sceneBoundingSphere = sceneBoundingBox.getBoundingSphere(new THREE.Sphere());
 
         const camDistance = (sceneBoundingSphere.radius * factor) / Math.sin(
-            THREE.Math.degToRad(K3D.parameters.camera_fov / 2.0),
+            THREE.Math.degToRad(K3D.parameters.cameraFov / 2.0),
         );
 
         this.camera.position.subVectors(

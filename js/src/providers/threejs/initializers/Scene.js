@@ -451,7 +451,7 @@ function rebuildSceneData(K3D, grids, axesHelper, force) {
 
     const fullSceneDiameter = fullSceneBoundingBox.getSize(new THREE.Vector3()).length();
 
-    const camDistance = (fullSceneDiameter / 2.0) / Math.sin(THREE.Math.degToRad(K3D.parameters.camera_fov / 2.0));
+    const camDistance = (fullSceneDiameter / 2.0) / Math.sin(THREE.Math.degToRad(K3D.parameters.cameraFov / 2.0));
 
     this.camera.far = (camDistance + fullSceneDiameter / 2) * 5.0;
     this.camera.near = fullSceneDiameter * 0.0001;

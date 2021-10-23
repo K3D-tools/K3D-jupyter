@@ -130,7 +130,7 @@ function K3D(provider, targetDOMNode, parameters) {
         cameraModeGUI(GUI.controls, self);
         manipulate.manipulateGUI(GUI.controls, self, changeParameters);
 
-        GUI.controls.add(self.parameters, 'camera_fov').step(0.1).min(1.0).max(179)
+        GUI.controls.add(self.parameters, 'cameraFov').step(0.1).min(1.0).max(179)
             .name('FOV')
             .onChange((value) => {
                 self.setCameraFOV(value);
@@ -291,7 +291,7 @@ function K3D(provider, targetDOMNode, parameters) {
         cameraPanSpeed: 0.3,
         cameraDampingFactor: 0.0,
         name: null,
-        camera_fov: 60.0,
+        cameraFov: 60.0,
         cameraAnimation: {},
         autoRendering: true,
         axesHelper: 1.0,
@@ -664,12 +664,12 @@ function K3D(provider, targetDOMNode, parameters) {
      * @param {Number} angle
      */
     this.setCameraFOV = function (angle) {
-        self.parameters.camera_fov = angle;
+        self.parameters.cameraFov = angle;
         world.setupCamera(null, angle);
 
         if (GUI.controls) {
             GUI.controls.__controllers.forEach((controller) => {
-                if (controller.property === 'camera_fov') {
+                if (controller.property === 'cameraFov') {
                     controller.updateDisplay();
                 }
             });
@@ -726,7 +726,7 @@ function K3D(provider, targetDOMNode, parameters) {
      */
     this.setGridColor = function (color) {
         self.parameters.gridColor = color;
-        self.rebuildSceneData(true).then(() => {
+        self.rebuildSceneData().then(() => {
             self.render();
         });
     };
@@ -1244,7 +1244,7 @@ function K3D(provider, targetDOMNode, parameters) {
         self.parameters.cameraZoomSpeed,
         self.parameters.cameraPanSpeed,
     );
-    self.setCameraFOV(self.parameters.camera_fov);
+    self.setCameraFOV(self.parameters.cameraFov);
     self.setFps(self.parameters.fps);
     self.setViewMode(self.parameters.viewMode);
     self.setFpsMeter(self.parameters.fpsMeter);

@@ -318,6 +318,7 @@ const PlotView = widgets.DOMWidgetView.extend({
                 cameraZoomSpeed: this.model.get('camera_zoom_speed'),
                 cameraPanSpeed: this.model.get('camera_pan_speed'),
                 cameraDampingFactor: this.model.get('camera_damping_factor'),
+                cameraFov: this.model.get('camera_fov'),
                 colorbarObjectId: this.model.get('colorbar_object_id'),
                 cameraAnimation: this.model.get('camera_animation'),
                 name: this.model.get('name'),

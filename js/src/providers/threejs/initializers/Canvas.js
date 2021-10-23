@@ -21,7 +21,7 @@ function addEvents(self, K3D, controls) {
         K3D.dispatch(K3D.events.CAMERA_CHANGE, r);
 
         const camDistance = (3.0 * 0.5) / Math.tan(
-            THREE.Math.degToRad(K3D.parameters.camera_fov / 2.0),
+            THREE.Math.degToRad(K3D.parameters.cameraFov / 2.0),
         );
 
         self.axesHelper.camera.position.copy(
