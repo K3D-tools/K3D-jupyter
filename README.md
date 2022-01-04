@@ -44,6 +44,19 @@ To install from PyPI use pip:
 
     $ pip install k3d
 
+When using Jupyter Notebook, remember to install and enable the `k3d` extension:
+
+    $ jupyter nbextension install --py --user k3d
+    $ jupyter nbextension enable --py --user k3d
+
+When upgrading from an earlier version, use the following commands:
+
+    $ pip install -U k3d
+    $ jupyter nbextension install --py --user k3d
+    $ jupyter nbextension enable --py --user k3d
+
+See below for instructions about JupyterLab installation.
+
 ### Conda/Anaconda
 
 To install from conda-forge use:
