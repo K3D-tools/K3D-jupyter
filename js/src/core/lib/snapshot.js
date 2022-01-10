@@ -42,7 +42,7 @@ function getHTMLSnapshot(K3D, compressionLevel) {
     let filecontent;
     const timestamp = new Date().toUTCString();
 
-    if (K3D.parameters.snapshotType === 'all') {
+    if (K3D.parameters.snapshotType === 'full') {
         filecontent = templateStandalone;
         filecontent = filecontent.split('[REQUIRE_JS]').join(requireJsSource);
         filecontent = filecontent.split('[PAKO_JS]').join(pakoJsSource);

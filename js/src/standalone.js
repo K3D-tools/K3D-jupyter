@@ -9,11 +9,15 @@ const MsgpackCodec = msgpack.createCodec({ preset: true });
 require('katex/dist/katex.min.css');
 require('dat.gui/build/dat.gui.css');
 
+function msgpackDecode(data) {
+    return msgpack.decode(data, { codec: MsgpackCodec });
+}
+
 function CreateK3DAndLoadBinarySnapshot(data, targetDOMNode) {
     let K3DInstance;
 
     data = pako.inflate(data);
-    data = msgpack.decode(data, { codec: MsgpackCodec });
+    data = msgpackDecode(data);
 
     try {
         K3DInstance = new K3D(
@@ -40,6 +44,7 @@ function CreateK3DAndLoadBinarySnapshot(data, targetDOMNode) {
 
 module.exports = {
     K3D,
+    msgpackDecode,
     CreateK3DAndLoadBinarySnapshot,
     TransferFunctionEditor: TFEdit.transferFunctionEditor,
     TransferFunctionModel: TFEdit.transferFunctionModel,
