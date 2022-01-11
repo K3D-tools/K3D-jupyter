@@ -73,6 +73,7 @@ module.exports = function (renderer, scene, camera, rt, fullWidth, fullHeight, c
             minFilter: THREE.LinearFilter,
             magFilter: THREE.LinearFilter,
             format: THREE.RGBAFormat,
+            stencilBuffer: true,
         });
 
         const camera2 = new THREE.OrthographicCamera(-1, 1, 1, -1, 0, 1);

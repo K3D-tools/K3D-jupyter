@@ -37,6 +37,7 @@ module.exports = function (K3D) {
 
     self.renderer = new THREE.WebGLRenderer({
         alpha: true,
+        precision: "highp",
         antialias: K3D.parameters.antialias > 0,
         canvas,
         context,
@@ -59,6 +60,7 @@ module.exports = function (K3D) {
     const debugInfo = gl.getExtension('WEBGL_debug_renderer_info');
     console.log('K3D: (UNMASKED_VENDOR_WEBGL)', gl.getParameter(debugInfo.UNMASKED_VENDOR_WEBGL));
     console.log('K3D: (UNMASKED_RENDERER_WEBGL)', gl.getParameter(debugInfo.UNMASKED_RENDERER_WEBGL));
+    console.log('K3D: (depth bits)', gl.getParameter(gl.DEPTH_BITS));
 
     function standardRender(scene, camera, rt) {
         if (typeof (rt) === 'undefined') {

@@ -15,7 +15,7 @@ objects_map = {
     'Line': Line,
     'Label': Label,
     'MIP': MIP,
-    'Marchingcubes': MarchingCubes,
+    'MarchingCubes': MarchingCubes,
     'Mesh': Mesh,
     'Points': Points,
     'STL': STL,
