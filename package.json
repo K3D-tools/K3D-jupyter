@@ -12,10 +12,10 @@
   "bugs": {
     "url": "https://github.com/K3D-tools/K3D-jupyter.git/issues"
   },
-  "license": "BSD-3-Clause",
+  "license": "MIT",
   "author": {
     "name": "k3d team",
-    "email": ""
+    "email": "artur.trzesiok@gmail.com"
   },
   "files": [
     "js/src/**/*.{d.ts,eot,gif,html,jpg,js,js.map,json,png,svg,woff2,ttf}"
