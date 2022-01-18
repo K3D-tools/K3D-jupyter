@@ -36,11 +36,9 @@ module.exports = {
             const indices = (config.indices && config.indices.data) || null;
             const uvs = (config.uvs && config.uvs.data) || null;
             let geometry = new THREE.BufferGeometry();
-            const ObjectConstructor = THREE.Mesh;
             let image;
             let object;
             let preparedtriangleAttribute;
-            let i;
 
             modelMatrix.set.apply(modelMatrix, config.model_matrix.data);
 
@@ -68,7 +66,8 @@ module.exports = {
                 geometry.computeBoundingSphere();
                 geometry.computeBoundingBox();
 
-                object = new ObjectConstructor(geometry, material);
+                object = new THREE.Mesh(geometry, material);
+
 
                 intersectHelper.init(config, object, K3D);
 
@@ -99,7 +98,7 @@ module.exports = {
                 geometry = geometry.toNonIndexed();
                 preparedtriangleAttribute = new Float32Array(triangleAttribute.length * 3);
 
-                for (i = 0; i < preparedtriangleAttribute.length; i++) {
+                for (let i = 0; i < preparedtriangleAttribute.length; i++) {
                     preparedtriangleAttribute[i] = triangleAttribute[Math.floor(i / 3)];
                 }
 

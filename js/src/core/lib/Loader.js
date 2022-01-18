@@ -11,8 +11,10 @@ const { error } = require('./Error');
  * @param {Object} data K3D JSON with objects
  */
 function loader(K3D, data) {
-    let objectProvider; let startTime; const objectsPromieses = []; let
-        K3DObjectPromise;
+    let objectProvider;
+    let startTime;
+    const objectsPromieses = [];
+    let K3DObjectPromise;
 
     try {
         data.objects.forEach((json, i) => {
@@ -42,7 +44,9 @@ function loader(K3D, data) {
 
             if (!K3DObjectPromise) {
                 Object.keys(changes).forEach((key) => {
-                    interpolated.json[key] = changes[key];
+                    if (!changes[key].timeSeries) {
+                        interpolated.json[key] = changes[key];
+                    }
                 });
 
                 K3DObjectPromise = objectProvider.create(interpolated.json, K3D)

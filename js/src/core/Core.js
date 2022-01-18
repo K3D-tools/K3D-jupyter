@@ -1,4 +1,4 @@
-const pako = require('pako');
+const fflate = require('fflate');
 const msgpack = require('msgpack-lite');
 
 const dat = require('dat.gui');
@@ -380,6 +380,18 @@ function K3D(provider, targetDOMNode, parameters) {
      */
     this.Provider = provider;
 
+    this.setFullscreen = function (state) {
+        if (state) {
+            fullscreen.screenfull.request(world.targetDOMNode);
+        } else {
+            fullscreen.screenfull.exit();
+        }
+    };
+
+    this.getFullscreen = function () {
+        return fullscreen.screenfull.isFullscreen;
+    }
+
     this.setDirectionalLightingIntensity = function (value) {
         self.parameters.lighting = Math.min(Math.max(value, 0.0), 4.0);
         self.getWorld().recalculateLights(self.parameters.lighting);
@@ -425,6 +437,10 @@ function K3D(provider, targetDOMNode, parameters) {
      * @param {String} mode
      */
     this.setCameraMode = function (mode) {
+        if (typeof (_.invert(cameraModes)[mode]) === 'undefined') {
+            mode = cameraModes.trackball;
+        }
+
         self.parameters.cameraMode = mode;
         self.getWorld().changeControls();
         self.getWorld().setCameraToFitScene(true);
@@ -1107,7 +1123,7 @@ function K3D(provider, targetDOMNode, parameters) {
         const plot = _.cloneDeep(self.parameters);
         plot.camera = self.getWorld().controls.getCameraArray();
 
-        return pako.deflate(
+        return fflate.zlibSync(
             msgpack.encode(
                 {
                     objects: serializedObjects,
@@ -1126,7 +1142,7 @@ function K3D(provider, targetDOMNode, parameters) {
      */
     this.setSnapshot = function (data) {
         if (typeof (data) === 'string') {
-            data = pako.inflate(new Uint8Array(base64ToArrayBuffer(data)));
+            data = fflate.unzlibSync(new Uint8Array(base64ToArrayBuffer(data)));
         }
 
         if (data instanceof Uint8Array) {

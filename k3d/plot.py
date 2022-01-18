@@ -553,11 +553,11 @@ class Plot(widgets.DOMWidget):
             f.close()
 
             f = io.open(
-                os.path.join(dir_path, "static", "pako_inflate.min.js"),
+                os.path.join(dir_path, "static", "fflate.js"),
                 mode="r",
                 encoding="utf-8",
             )
-            template = template.replace("[PAKO_JS]", f.read())
+            template = template.replace("[FFLATE_JS]", f.read())
             f.close()
         else:
             if self.snapshot_type == 'online':

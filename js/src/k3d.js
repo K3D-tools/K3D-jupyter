@@ -95,8 +95,10 @@ const ObjectModel = widgets.WidgetModel.extend({
 
             if (msg.msg_type === 'shadow_map_update' && this.get('type') === 'Volume') {
                 runOnEveryPlot(this.get('id'), (plot, objInstance) => {
-                    objInstance.refreshLightMap(msg.direction);
-                    plot.K3DInstance.render();
+                    if (objInstance && objInstance.refreshLightMap) {
+                        objInstance.refreshLightMap(msg.direction);
+                        plot.K3DInstance.render();
+                    }
                 });
             }
         }, this);

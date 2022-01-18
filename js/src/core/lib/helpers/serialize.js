@@ -1,4 +1,4 @@
-const pako = require('pako');
+const fflate = require('fflate');
 const _ = require('../../../lodash');
 const Float16Array = require('./float16Array');
 
@@ -28,7 +28,7 @@ function deserializeArray(obj) {
         };
     }
     if (typeof (obj.compressed_data) !== 'undefined') {
-        buffer = new typesToArray[obj.dtype](pako.inflate(new Uint8Array(obj.compressed_data.buffer)).buffer);
+        buffer = new typesToArray[obj.dtype](fflate.unzlibSync(new Uint8Array(obj.compressed_data.buffer)).buffer);
 
         console.log(`K3D: Receive: ${buffer.byteLength} bytes compressed to ${
             obj.compressed_data.byteLength} bytes`);
@@ -45,7 +45,7 @@ function serializeArray(obj) {
     if (obj.compression_level && obj.compression_level > 0) {
         return {
             dtype: _.invert(typesToArray)[obj.data.constructor],
-            compressed_data: pako.deflate(obj.data.buffer, { level: obj.compression_level }),
+            compressed_data: fflate.zlibSync(obj.data.buffer, { level: obj.compression_level }),
             shape: obj.shape,
         };
     }

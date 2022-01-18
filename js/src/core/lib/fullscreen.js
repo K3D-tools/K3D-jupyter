@@ -27,4 +27,5 @@ module.exports = {
     },
 
     initialize: fullscreenGUI,
+    screenfull: screenfull
 };

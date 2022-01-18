@@ -43,6 +43,19 @@ module.exports = function (K3D) {
         context,
     });
 
+    if (!context) {
+        if (typeof WebGL2RenderingContext !== 'undefined') {
+            error(
+                'Your browser appears to support WebGL2 but it might ' +
+                'be disabled. Try updating your OS and/or video card driver.',
+                true);
+        } else {
+            error(
+                "It's look like your browser has no WebGL2 support.",
+                true);
+        }
+    }
+
     function handleContextLoss(event) {
         event.preventDefault();
         K3D.disable();

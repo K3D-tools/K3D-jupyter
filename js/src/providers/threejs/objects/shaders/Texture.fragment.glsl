@@ -15,7 +15,7 @@ void main() {
 
     vec4 color = texture2D(colormap, vec2(value, 0.5));
 
-    if (color.a == 0.0) {
+    if (color.a <= 0.01) {
         discard;
     }
 
