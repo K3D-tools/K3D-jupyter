@@ -8,10 +8,10 @@ before_install:
 before_script:
   - pip install vtk pixelmatch flask msgpack webdriver_manager selenium scikit-image jupyterlab
   - npm install webpack webpack-cli -g
-  - npm install
   - cd js
   - npm install
   - cd ..
+  - npm install
   - pip install -e .
   - cd k3d
 script: pytest

@@ -17,10 +17,6 @@ const rules = [
         resourceQuery: /raw/,
         type: 'asset/source',
     },
-    {
-        test: /fflate\/umd\/index\.js/,
-        type: 'asset/source',
-    },
     // same as for jupyterlab packer https://github.com/jupyterlab/jupyterlab/blob/3.1.x/builder/src/webpack.config.base.ts
     { test: /\.css$/, use: ['style-loader', 'css-loader'] }
 ];

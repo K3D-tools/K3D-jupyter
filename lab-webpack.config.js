@@ -8,10 +8,6 @@ const rules = [
         resourceQuery: /raw/,
         type: 'asset/source',
     },
-    {
-        test: /fflate\/umd\/index\.js/,
-        type: 'asset/source',
-    },
 ];
 
 module.exports = {
