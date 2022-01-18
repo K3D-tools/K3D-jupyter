@@ -115,14 +115,14 @@ module.exports = {
             domElement.style.zIndex = config.on_top ? 16777271 - Math.round(coord.z * 1e6) : '15';
         }
 
-        const listenersId = K3D.on(K3D.events.RENDERED, render);
+        const listenersId = K3D.on(K3D.events.BEFORE_RENDER, render);
 
         object.onRemove = function () {
             if (overlayDOMNode.contains(domElement)) {
                 overlayDOMNode.removeChild(domElement);
             }
 
-            K3D.off(K3D.events.RENDERED, listenersId);
+            K3D.off(K3D.events.BEFORE_RENDER, listenersId);
         };
 
         object.hide = function () {
