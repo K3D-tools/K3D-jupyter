@@ -14,8 +14,9 @@ module.exports = function (THREE) {
     }
 
     MeshLine.prototype.setGeometry = function (g, segments, widths, colors, uvs) {
-        let j; let c; let
-            l;
+        let j;
+        let c;
+        let l;
 
         if (g instanceof Float32Array || g instanceof Array) {
             this.positions = new Float32Array(g.length * 2);
@@ -80,8 +81,12 @@ module.exports = function (THREE) {
     };
 
     MeshLine.prototype.process = function (segments) {
-        const l = this.positions.length / 6; let j; let n; let k; let v; let
-            o;
+        const l = this.positions.length / 6;
+        let j;
+        let n;
+        let k;
+        let v;
+        let o;
 
         this.previous = new Float32Array(12 * l / 2);
         this.next = new Float32Array(12 * l / 2);
@@ -235,6 +240,8 @@ module.exports = function (THREE) {
             'varying vec4 vColor;',
             'varying float vCounters;',
             '',
+            '#include <common>',
+            '#include <logdepthbuf_pars_vertex>',
             '#include <clipping_planes_pars_vertex>',
             '',
             'vec2 fix( vec4 i, float aspect ) {',
@@ -297,6 +304,7 @@ module.exports = function (THREE) {
             '',
             '',
             '    gl_Position = finalPosition;',
+            '    #include <logdepthbuf_vertex>',
             '',
             '}'];
         const fragmentShaderSource = [
@@ -310,11 +318,13 @@ module.exports = function (THREE) {
             'varying vec4 vColor;',
             'varying float vCounters;',
             '',
+            '#include <logdepthbuf_pars_fragment>',
             '#include <clipping_planes_pars_fragment>',
             '',
             'void main() {',
             '',
             ' #include <clipping_planes_fragment>',
+            ' #include <logdepthbuf_fragment>',
             '',
             '    vec4 c = vColor;',
             '    if( useMap == 1. ) c *= texture2D( map, vUV);',
