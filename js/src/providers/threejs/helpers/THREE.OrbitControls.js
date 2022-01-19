@@ -9,7 +9,7 @@ module.exports = function(THREE) {
             this.domElement = domElement;
             // currentDocument = domElement.ownerDocument;
         } else {
-            currentWindow = window;
+            // currentWindow = window;
             // this.domElement = currentDocument;
             this.domElement = currentWindow.document;
         }
