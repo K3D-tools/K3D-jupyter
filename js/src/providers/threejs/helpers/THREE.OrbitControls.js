@@ -1,16 +1,17 @@
 /* eslint-disable */
 module.exports = function(THREE) {
     THREE.OrbitControls = function(object, domElement) {
-        let currentWindow;
-        let currentDocument;
+        // let currentWindow;
+        // let currentDocument;
 
         if (domElement !== undefined) {
-            currentWindow = domElement.ownerDocument.defaultView || domElement.ownerDocument.parentWindow;
+            // currentWindow = domElement.ownerDocument.defaultView || domElement.ownerDocument.parentWindow;
             this.domElement = domElement;
-            currentDocument = domElement.ownerDocument;
+            // currentDocument = domElement.ownerDocument;
         } else {
             currentWindow = window;
-            this.domElement = currentDocument = currentWindow.document;
+            // this.domElement = currentDocument;
+            this.domElement = currentWindow.document;
         }
 
         this.object = object;
