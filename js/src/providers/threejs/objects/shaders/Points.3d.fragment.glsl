@@ -15,6 +15,7 @@ struct DirectionalLight {
 uniform DirectionalLight directionalLights[NUM_DIR_LIGHTS];
 
 #include <clipping_planes_pars_fragment>
+#include <logdepthbuf_pars_fragment>
 
 void main (void)
 {
@@ -26,20 +27,21 @@ void main (void)
     if (distanceFromCenter > 1.0) discard;
 
     float normalizedDepth = sqrt(1.0 - distanceFromCenter * distanceFromCenter);
-
-    #if defined(GL_EXT_frag_depth)
     float depthOfFragment = normalizedDepth * size * 0.5;
 
     vec4 pos = vec4(mvPosition.xyz, 1.0);
     pos.z += depthOfFragment;
-
     pos = projectionMatrix * pos;
+
+    #ifdef USE_LOGDEPTHBUF_EXT
+    float depth = log2(1.0 + pos.w) * logDepthBufFC * 0.5;
+    #else
     pos = pos / pos.w;
-    float depth = (pos.z + 1.0) / 2.0;
+    float depth  = ((gl_DepthRange.diff * pos.z) + gl_DepthRange.near + gl_DepthRange.far) / 2.0;
+    #endif
 
     if (depth < gl_FragDepthEXT) discard;
     gl_FragDepthEXT = depth;
-    #endif
 
     vec3 normal = vec3(impostorSpaceCoordinate, normalizedDepth);
 

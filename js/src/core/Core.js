@@ -272,6 +272,7 @@ function K3D(provider, targetDOMNode, parameters) {
             gridColor: 0xe6e6e6,
             labelColor: 0x444444,
             antialias: 1,
+            logarithmicDepthBuffer: true,
             screenshotScale: 5.0,
             renderingSteps: 1,
             clearColor: 0xffffff,

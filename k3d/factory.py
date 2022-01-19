@@ -1535,6 +1535,7 @@ def voxel_chunk(voxels, coord, multiple=1, compression_level=0):
 def plot(
         height=512,
         antialias=3,
+        logarithmic_depth_buffer=True,
         background_color=0xFFFFFF,
         camera_auto_fit=True,
         grid_auto_fit=True,
@@ -1573,6 +1574,8 @@ def plot(
             Height of the widget in pixels.
         antialias: `bool`.
             Enable antialiasing in WebGL renderer.
+        logarithmic_depth_buffer: `bool`.
+            Enables logarithmic_depth_buffer in WebGL renderer.
         background_color: `int`.
             Packed RGB color of the plot background (0xff0000 is red, 0xff is blue).
         camera_auto_fit: `bool`.
@@ -1640,6 +1643,7 @@ def plot(
 
     return Plot(
         antialias=antialias,
+        logarithmic_depth_buffer=logarithmic_depth_buffer,
         background_color=background_color,
         lighting=lighting,
         time=time,

@@ -307,6 +307,7 @@ const PlotView = widgets.DOMWidgetView.extend({
         try {
             this.K3DInstance = new K3D(ThreeJsProvider, this.container, {
                 antialias: this.model.get('antialias'),
+                logarithmicDepthBuffer: this.model.get('logarithmic_depth_buffer'),
                 lighting: this.model.get('lighting'),
                 cameraMode: this.model.get('camera_mode'),
                 snapshotType: this.model.get('snapshot_type'),

@@ -41,6 +41,8 @@ class Plot(widgets.DOMWidget):
     Attributes:
         antialias: `int`:
             Enable antialiasing in WebGL renderer, changes have no effect after displaying.
+        logarithmic_depth_buffer: `bool`.
+            Enables logarithmic_depth_buffer in WebGL renderer.
         height: `int`:
             Height of the Widget in pixels, changes have no effect after displaying.
         background_color: `int`.
@@ -142,6 +144,7 @@ class Plot(widgets.DOMWidget):
 
     # readonly (specified at creation)
     antialias = Int(min=0, max=5).tag(sync=True)
+    logarithmic_depth_buffer = Bool(True).tag(sync=True)
     height = Int().tag(sync=True)
 
     # readonly (not to be modified directly)
@@ -192,6 +195,7 @@ class Plot(widgets.DOMWidget):
     def __init__(
             self,
             antialias=3,
+            logarithmic_depth_buffer=True,
             background_color=0xFFFFFF,
             camera_auto_fit=True,
             grid_auto_fit=True,
@@ -231,6 +235,7 @@ class Plot(widgets.DOMWidget):
         super(Plot, self).__init__()
 
         self.antialias = antialias
+        self.logarithmic_depth_buffer = logarithmic_depth_buffer
         self.camera_auto_fit = camera_auto_fit
         self.grid_auto_fit = grid_auto_fit
         self.fps_meter = fps_meter
@@ -487,6 +492,7 @@ class Plot(widgets.DOMWidget):
             "gridColor": self.grid_color,
             "labelColor": self.label_color,
             "antialias": self.antialias,
+            "logarithmicDepthBuffer": self.logarithmic_depth_buffer,
             "screenshotScale": self.screenshot_scale,
             "clearColor": self.background_color,
             "clippingPlanes": self.clipping_planes,

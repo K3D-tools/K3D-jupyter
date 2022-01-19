@@ -39,6 +39,7 @@ module.exports = function (K3D) {
         alpha: true,
         precision: "highp",
         antialias: K3D.parameters.antialias > 0,
+        logarithmicDepthBuffer: K3D.parameters.logarithmicDepthBuffer,
         canvas,
         context,
     });
