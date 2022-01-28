@@ -150,7 +150,6 @@ module.exports = {
                 THREE.UniformsLib.lights,
             ),
             defines: {
-                USE_SPECULAR: 1,
                 USE_SHADOW: (config.shadow !== 'off' ? 1 : 0),
                 RAY_SAMPLES_COUNT: config.focal_length !== 0.0 ? config.ray_samples_count : 0,
             },

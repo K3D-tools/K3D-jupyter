@@ -32,6 +32,7 @@ uniform float opacity;
 #include <clipping_planes_pars_fragment>
 
 varying float perPointOpacity;
+varying vec3 vNormal;
 
 void main() {
 

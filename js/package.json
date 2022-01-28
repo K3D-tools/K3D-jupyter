@@ -68,7 +68,7 @@
     "screenfull": "^5.1.0",
     "stats.js": "^0.17.0",
     "style-loader": "^2.0.0",
-    "three": "^0.128.0",
+    "three": "^0.137.4",
     "three-mesh-bvh": "^0.3.7"
   }
 }

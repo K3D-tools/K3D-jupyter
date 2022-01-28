@@ -341,8 +341,6 @@ module.exports = function (THREE) {
             return v;
         }
 
-        THREE.Material.call(this);
-
         parameters = parameters || {};
 
         this.lineWidth = check(parameters.lineWidth, 1);
@@ -393,6 +391,7 @@ module.exports = function (THREE) {
 
     MeshLineMaterial.prototype = Object.create(THREE.Material.prototype);
     MeshLineMaterial.prototype.constructor = MeshLineMaterial;
+    MeshLineMaterial.prototype.isMeshLineMaterial = true;
 
     MeshLineMaterial.prototype.copy = function (source) {
         THREE.Material.prototype.copy.call(this, source);

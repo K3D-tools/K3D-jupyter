@@ -1,21 +1,15 @@
+#include <common>
+#include <clipping_planes_pars_fragment>
+#include <logdepthbuf_pars_fragment>
+#include <lights_pars_begin>
+
 uniform float size;
 uniform float specular;
 uniform float opacity;
 uniform mat4 projectionMatrix;
-uniform vec3 ambientLightColor;
 
 varying vec4 vColor;
 varying vec4 mvPosition;
-
-struct DirectionalLight {
-    vec3 direction;
-    vec3 color;
-};
-
-uniform DirectionalLight directionalLights[NUM_DIR_LIGHTS];
-
-#include <clipping_planes_pars_fragment>
-#include <logdepthbuf_pars_fragment>
 
 void main (void)
 {
@@ -45,7 +39,7 @@ void main (void)
 
     vec3 normal = vec3(impostorSpaceCoordinate, normalizedDepth);
 
-    vec4 addedLights = vec4(ambientLightColor, 1.0);
+    vec4 addedLights = vec4(ambientLightColor / PI, 1.0);
     vec4 finalSphereColor = vColor;
 
     finalSphereColor.a *= opacity;
@@ -53,10 +47,10 @@ void main (void)
     for (int l = 0; l <NUM_DIR_LIGHTS; l++) {
         vec3 lightDirection = -directionalLights[l].direction;
         float lightingIntensity = clamp(dot(-lightDirection, normal), 0.0, 1.0);
-        addedLights.rgb += directionalLights[l].color * (0.05 + 0.95 * lightingIntensity);
+        addedLights.rgb += directionalLights[l].color / PI * (0.05 + 0.95 * lightingIntensity);
 
         #if (USE_SPECULAR == 1)
-        finalSphereColor.rgb += directionalLights[l].color * pow(lightingIntensity, 80.0);
+        finalSphereColor.rgb += directionalLights[l].color / PI * pow(lightingIntensity, 80.0);
         #endif
     }
 

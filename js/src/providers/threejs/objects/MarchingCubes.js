@@ -1,5 +1,5 @@
 const THREE = require('three');
-const { BufferGeometryUtils } = require('three/examples/jsm/utils/BufferGeometryUtils');
+const BufferGeometryUtils = require('three/examples/jsm/utils/BufferGeometryUtils');
 const intersectHelper = require('../helpers/Intersection');
 const marchingCubesPolygonise = require('../../../core/lib/helpers/marchingCubesPolygonise');
 const yieldingLoop = require('../../../core/lib/helpers/yieldingLoop');
@@ -38,7 +38,7 @@ module.exports = {
                 emissive: 0,
                 shininess: 50,
                 specular: 0x111111,
-                side: THREE.DoubleSide,
+                side: config.wireframe ? THREE.FrontSide : THREE.DoubleSide,
                 flatShading: config.flat_shading,
                 wireframe: config.wireframe,
                 opacity: config.opacity,

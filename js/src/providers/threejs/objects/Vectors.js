@@ -1,5 +1,5 @@
 const THREE = require('three');
-const { BufferGeometryUtils } = require('three/examples/jsm/utils/BufferGeometryUtils');
+const BufferGeometryUtils = require('three/examples/jsm/utils/BufferGeometryUtils');
 const buffer = require('../../../core/lib/helpers/buffer');
 const MeshLine = require('../helpers/THREE.MeshLine')(THREE);
 const { getTwoColorsArray } = require('../helpers/Fn');
