@@ -21,7 +21,9 @@ attribute float attributes;
 varying vec4 vColor;
 varying vec4 mvPosition;
 
+#include <common>
 #include <clipping_planes_pars_vertex>
+#include <logdepthbuf_pars_vertex>
 
 void main() {
     float perPointOpacity = 1.0;
@@ -34,6 +36,7 @@ void main() {
     gl_PointSize = 2.0 * size * (scale / - mvPosition.z);
     #endif
 
+    #include <logdepthbuf_vertex>
     #include <clipping_planes_vertex>
 
     gl_Position = projectionMatrix * mvPosition;

@@ -501,6 +501,7 @@ function K3D(provider, targetDOMNode, parameters) {
             }
         } else if (self.gui) {
             self.gui_map = {};
+            self.gui_groups = {};
             self.gui_counts = {};
             self.gui.destroy();
             self.gui.domElement.remove();
@@ -1226,6 +1227,7 @@ function K3D(provider, targetDOMNode, parameters) {
     guiContainer.style.cssText = [
         'position: absolute',
         'top: 0',
+        'color: black',
         'right: 0',
         'z-index: 16777271',
         `max-height: ${targetDOMNode.clientHeight}px`,

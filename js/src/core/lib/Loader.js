@@ -44,7 +44,7 @@ function loader(K3D, data) {
 
             if (!K3DObjectPromise) {
                 Object.keys(changes).forEach((key) => {
-                    if (!changes[key].timeSeries) {
+                    if (changes[key] === null || !changes[key].timeSeries) {
                         interpolated.json[key] = changes[key];
                     }
                 });

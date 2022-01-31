@@ -78,6 +78,7 @@ def line(
         shader="thick",
         radial_segments=8,
         name=None,
+        group=None,
         compression_level=0,
         **kwargs
 ):
@@ -113,7 +114,9 @@ def line(
         width: `float`.
             Thickness of the lines.
         name: `string`.
-            A name of a object"""
+            A name of a object
+        group: `string`.
+            A name of a group"""
     if color_map is None:
         color_map = default_colormap
     color_map = (
@@ -136,6 +139,7 @@ def line(
             color_map=color_map,
             color_range=color_range,
             name=name,
+            group=group,
             compression_level=compression_level,
         ),
         **kwargs
@@ -153,6 +157,7 @@ def marching_cubes(
         spacings_y=[],
         spacings_z=[],
         name=None,
+        group=None,
         compression_level=0,
         **kwargs
 ):
@@ -190,6 +195,8 @@ def marching_cubes(
             Opacity of mesh.
         name: `string`.
             A name of a object
+        group: `string`.
+            A name of a group            
         kwargs: `dict`.
             Dictionary arguments to configure transform and model_matrix."""
     return process_transform_arguments(
@@ -204,6 +211,7 @@ def marching_cubes(
             flat_shading=flat_shading,
             opacity=opacity,
             name=name,
+            group=group,
             compression_level=compression_level,
         ),
         **kwargs
@@ -230,6 +238,7 @@ def mesh(
         side="front",
         uvs=None,
         name=None,
+        group=None,
         compression_level=0,
         triangles_attribute=[],
         **kwargs
@@ -272,6 +281,8 @@ def mesh(
             Control over which side to render for a mesh. Legal values are `front`, `back`, `double`.
         name: `string`.
             A name of a object
+        group: `string`.
+            A name of a group            
         texture: `bytes`.
             Image data in a specific format.
         texture_file_format: `str`.
@@ -328,6 +339,7 @@ def mesh(
             opacity_function=opacity_function,
             side=side,
             name=name,
+            group=group,
             texture=texture,
             uvs=uvs,
             texture_file_format=texture_file_format,
@@ -351,6 +363,7 @@ def points(
         color_range=[],
         opacity_function=[],
         name=None,
+        group=None,
         compression_level=0,
         mesh_detail=2,
         **kwargs
@@ -401,7 +414,9 @@ def points(
             A list of float tuples (attribute value, opacity), sorted by attribute value. The first
             tuples should have value 0.0, the last 1.0; opacity is in the range 0.0 to 1.0.
         name: `string`.
-            A name of a object"""
+            A name of a object
+        group: `string`.
+            A name of a group"""
     if color_map is None:
         color_map = default_colormap
 
@@ -422,6 +437,7 @@ def points(
             opacities=opacities,
             mesh_detail=mesh_detail,
             name=name,
+            group=group,
             attribute=attribute,
             color_map=color_map,
             color_range=color_range,
@@ -439,6 +455,7 @@ def stl(
         wireframe=False,
         flat_shading=True,
         name=None,
+        group=None,
         compression_level=0,
         **kwargs
 ):
@@ -454,7 +471,9 @@ def stl(
         flat_shading: `bool`.
             Whether mesh should display with flat shading.
         name: `string`.
-            A name of a object"""
+            A name of a object
+        group: `string`.
+            A name of a group"""
     plain = isinstance(stl, six.string_types)
 
     return process_transform_arguments(
@@ -465,6 +484,7 @@ def stl(
             wireframe=wireframe,
             flat_shading=flat_shading,
             name=name,
+            group=group,
             compression_level=compression_level,
         ),
         **kwargs
@@ -480,6 +500,7 @@ def surface(
         color_map=None,
         color_range=[],
         name=None,
+        group=None,
         compression_level=0,
         **kwargs
 ):
@@ -513,6 +534,8 @@ def surface(
             to 0 and 1 in the color map respectively.
         name: `string`.
             A name of a object
+        group: `string`.
+            A name of a group            
         kwargs: `dict`.
             Dictionary arguments to configure transform and model_matrix."""
 
@@ -532,6 +555,7 @@ def surface(
             color_map=color_map,
             color_range=color_range,
             name=name,
+            group=group,
             compression_level=compression_level,
         ),
         **kwargs
@@ -549,6 +573,7 @@ def text(
         label_box=True,
         is_html=False,
         name=None,
+        group=None,
         compression_level=0,
         **kwargs
 ):
@@ -574,6 +599,8 @@ def text(
             Second letter: 't', 'c' or 'b': top, center or bottom.
         name: `string`.
             A name of a object
+        group: `string`.
+            A name of a group            
         size: `float`.
             Font size in 'em' HTML units.
         kwargs: `dict`.
@@ -590,6 +617,7 @@ def text(
             is_html=is_html,
             label_box=label_box,
             name=name,
+            group=group,
             compression_level=compression_level,
         ),
         **kwargs
@@ -605,6 +633,7 @@ def text2d(
         reference_point="lt",
         label_box=True,
         name=None,
+        group=None,
         is_html=False,
         compression_level=0,
 ):
@@ -629,6 +658,8 @@ def text2d(
             Label background box.
         name: `string`.
             A name of a object
+        group: `string`.
+            A name of a group            
         size: `float`.
             Font size in 'em' HTML units."""
 
@@ -641,6 +672,7 @@ def text2d(
         is_html=is_html,
         label_box=label_box,
         name=name,
+        group=group,
         compression_level=compression_level,
     )
 
@@ -653,6 +685,7 @@ def label(
         on_top=True,
         size=1.0,
         name=None,
+        group=None,
         max_length=0.8,
         mode="dynamic",
         is_html=False,
@@ -679,6 +712,8 @@ def label(
             Label node. Can be 'dynamic', 'local' or 'side'.
         name: `string`.
             A name of a object
+        group: `string`.
+            A name of a group            
         is_html: `Boolean`.
             Whether text should be interpreted as HTML insted of KaTeX.
         size: `float`.
@@ -698,6 +733,7 @@ def label(
             is_html=is_html,
             label_box=label_box,
             name=name,
+            group=group,
             compression_level=compression_level,
         ),
         **kwargs
@@ -714,6 +750,7 @@ def texture(
         opacity_function=[],
         interpolation=True,
         name=None,
+        group=None,
         compression_level=0,
         **kwargs
 ):
@@ -754,6 +791,8 @@ def texture(
             Whether data should be interpolatedor not.
         name: `string`.
             A name of a object
+        group: `string`.
+            A name of a group            
         puv: `list`.
             A list of float triplets (x,y,z). The first triplet mean a position of left-bottom corner of texture.
             Second and third triplets means a base of coordinate system for texture.
@@ -775,6 +814,7 @@ def texture(
             opacity_function=opacity_function,
             puv=puv,
             name=name,
+            group=group,
             interpolation=interpolation,
             compression_level=compression_level,
         ),
@@ -792,6 +832,7 @@ def texture_text(
         font_size=68,
         size=1.0,
         name=None,
+        group=None,
         compression_level=0,
         **kwargs
 ):
@@ -817,6 +858,8 @@ def texture_text(
             400 is normal and 600 is bold font.
         name: `string`.
             A name of a object
+        group: `string`.
+            A name of a group            
         font_size: `int`.
             The font size inside the sprite texture in px units. This does not affect the size of the
             text in the scene, only the accuracy and raster size of the texture."""
@@ -830,6 +873,7 @@ def texture_text(
             font_size=font_size,
             font_weight=font_weight,
             name=name,
+            group=group,
             compression_level=compression_level,
         ),
         **kwargs
@@ -848,6 +892,7 @@ def vector_field(
         scale=1.0,
         line_width=0.01,
         name=None,
+        group=None,
         compression_level=0,
         **kwargs
 ):
@@ -889,6 +934,8 @@ def vector_field(
             Width of the vector segments.
         name: `string`.
             A name of a object
+        group: `string`.
+            A name of a group            
         kwargs: `dict`.
             Dictionary arguments to configure transform and model_matrix."""
     return process_transform_arguments(
@@ -902,6 +949,7 @@ def vector_field(
             origin_color=origin_color if origin_color is not None else color,
             scale=scale,
             name=name,
+            group=group,
             compression_level=compression_level,
         ),
         **kwargs
@@ -922,6 +970,7 @@ def vectors(
         label_size=1.0,
         line_width=0.01,
         name=None,
+        group=None,
         compression_level=0,
         **kwargs
 ):
@@ -960,7 +1009,11 @@ def vectors(
         line_width: `float`.
             Width of the vector segments.
         name: `string`.
-            A name of a object"""
+            A name of a object
+        group: `string`.
+            A name of a group            
+        group: `string`.
+            A name of a group"""
     return process_transform_arguments(
         Vectors(
             vectors=vectors if vectors is not None else origins,
@@ -974,6 +1027,7 @@ def vectors(
             label_size=label_size,
             line_width=line_width,
             name=name,
+            group=group,
             compression_level=compression_level,
         ),
         **kwargs
@@ -989,6 +1043,7 @@ def voxels(
         outlines_color=0,
         opacity=1.0,
         name=None,
+        group=None,
         compression_level=0,
         bounds=None,
         **kwargs
@@ -1031,6 +1086,8 @@ def voxels(
             Packed RGB color of the resulting outlines (0xff0000 is red, 0xff is blue)
         name: `string`.
             A name of a object
+        group: `string`.
+            A name of a group            
         kwargs: `dict`.
             Dictionary arguments to configure transform and model_matrix."""
     if color_map is None:
@@ -1050,6 +1107,7 @@ def voxels(
             outlines_color=outlines_color,
             opacity=opacity,
             name=name,
+            group=group,
             compression_level=compression_level,
         ),
         **kwargs
@@ -1066,6 +1124,7 @@ def sparse_voxels(
         outlines_color=0,
         opacity=1.0,
         name=None,
+        group=None,
         compression_level=0,
         bounds=None,
         **kwargs
@@ -1099,6 +1158,8 @@ def sparse_voxels(
             Packed RGB color of the resulting outlines (0xff0000 is red, 0xff is blue)
         name: `string`.
             A name of a object
+        group: `string`.
+            A name of a group            
         kwargs: `dict`.
             Dictionary arguments to configure transform and model_matrix."""
     if color_map is None:
@@ -1126,6 +1187,7 @@ def sparse_voxels(
             outlines_color=outlines_color,
             opacity=opacity,
             name=name,
+            group=group,
             compression_level=compression_level,
         ),
         **kwargs
@@ -1143,6 +1205,7 @@ def voxels_group(
         outlines_color=0,
         opacity=1.0,
         name=None,
+        group=None,
         compression_level=0,
         **kwargs
 ):
@@ -1177,6 +1240,8 @@ def voxels_group(
             Packed RGB color of the resulting outlines (0xff0000 is red, 0xff is blue)
         name: `string`.
             A name of a object
+        group: `string`.
+            A name of a group            
         kwargs: `dict`.
             Dictionary arguments to configure transform and model_matrix."""
     if color_map is None:
@@ -1200,6 +1265,7 @@ def voxels_group(
             outlines_color=outlines_color,
             opacity=opacity,
             name=name,
+            group=group,
             compression_level=compression_level,
         ),
         **kwargs
@@ -1223,6 +1289,7 @@ def volume(
         focal_plane=100.0,
         ray_samples_count=16,
         name=None,
+        group=None,
         compression_level=0,
         **kwargs
 ):
@@ -1278,6 +1345,8 @@ def volume(
             Whether volume raycasting should interpolate data or not.
         name: `string`.
             A name of a object
+        group: `string`.
+            A name of a group            
         kwargs: `dict`.
             Dictionary arguments to configure transform and model_matrix."""
 
@@ -1310,6 +1379,7 @@ def volume(
             focal_plane=focal_plane,
             focal_length=focal_length,
             name=name,
+            group=group,
             ray_samples_count=ray_samples_count,
         ),
         **kwargs
@@ -1325,6 +1395,7 @@ def mip(
         samples=512.0,
         gradient_step=0.005,
         name=None,
+        group=None,
         compression_level=0,
         **kwargs
 ):
@@ -1358,6 +1429,8 @@ def mip(
             Gradient light step.
         name: `string`.
             A name of a object
+        group: `string`.
+            A name of a group            
         kwargs: `dict`.
             Dictionary arguments to configure transform and model_matrix."""
     if color_map is None:
@@ -1382,6 +1455,7 @@ def mip(
             samples=samples,
             gradient_step=gradient_step,
             name=name,
+            group=group,
         ),
         **kwargs
     )
@@ -1400,6 +1474,7 @@ def vtk_poly_data(
         volume_bounds=[],
         opacity_function=[],
         name=None,
+        group=None,
         color_range=[],
         compression_level=0,
         cell_color_attribute=None,
@@ -1449,6 +1524,8 @@ def vtk_poly_data(
             Control over which side to render for a mesh. Legal values are `front`, `back`, `double`.
         name: `string`.
             A name of a object
+        group: `string`.
+            A name of a group            
         kwargs: `dict`.
             Dictionary arguments to configure transform and model_matrix."""
     if color_map is None:
@@ -1505,6 +1582,7 @@ def vtk_poly_data(
             opacity_function=opacity_function,
             side=side,
             name=name,
+            group=group,
             flat_shading=flat_shading,
             compression_level=compression_level,
         ),
@@ -1553,6 +1631,7 @@ def plot(
         axes=["x", "y", "z"],
         axes_helper=1.0,
         name=None,
+        group=None,
         camera_mode="trackball",
         snapshot_type='full',
         auto_rendering=True,
@@ -1624,6 +1703,8 @@ def plot(
             Time value (used in TimeSeries)
         name: `string`.
             Name of the plot. Used to filenames of snapshot/screenshot etc.
+        group: `string`.
+            A name of a group            
         camera_mode: `str`.
             Mode of camera.
 
@@ -1662,6 +1743,7 @@ def plot(
         screenshot_scale=screenshot_scale,
         camera_fov=camera_fov,
         name=name,
+        group=group,
         camera_mode=camera_mode,
         snapshot_type=snapshot_type,
         camera_no_zoom=camera_no_zoom,
