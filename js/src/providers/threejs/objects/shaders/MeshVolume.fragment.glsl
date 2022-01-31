@@ -13,10 +13,12 @@ varying vec4 worldPosition;
 #include <common>
 #include <dithering_pars_fragment>
 #include <clipping_planes_pars_fragment>
+#include <logdepthbuf_pars_fragment>
 
 void main() {
 
 	#include <clipping_planes_fragment>
+    #include <logdepthbuf_fragment>
 
     vec3 coord = (worldPosition.xyz - b1) / (b2 - b1);
     float inv_range = 1.0 / (high - low);

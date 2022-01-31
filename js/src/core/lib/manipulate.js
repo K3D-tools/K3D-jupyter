@@ -8,9 +8,9 @@ const manipulateModes = {
 
 module.exports = {
     refreshManipulateGUI(K3D, GUI) {
-        GUI.controls.__controllers.forEach((controller) => {
+        GUI.controls.controllers.forEach((controller) => {
             if (controller.property === 'manipulateMode') {
-                controller.__li.hidden = K3D.parameters.viewMode !== viewModes.manipulate;
+                controller.domElement.hidden = K3D.parameters.viewMode !== viewModes.manipulate;
                 controller.updateDisplay();
             }
         });

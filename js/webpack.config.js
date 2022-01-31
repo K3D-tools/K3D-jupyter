@@ -21,7 +21,7 @@ const rules = [
     { test: /\.css$/, use: ['style-loader', 'css-loader'] }
 ];
 
-const mode = 'production';
+const mode = 'development';
 
 const plugins = [];
 

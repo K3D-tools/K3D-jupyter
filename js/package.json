@@ -56,7 +56,7 @@
   },
   "dependencies": {
     "@jupyter-widgets/base": "^4.0.0",
-    "dat.gui": "git+https://github.com/K3D-tools/dat.gui.git#b4123f5acf201be4275924ea89c96b9326653f49",
+    "lil-gui": "^0.16.0",
     "es6-promise": "^4.2.8",
     "fflate": "^0.7.1",
     "file-saver": "^2.0.5",

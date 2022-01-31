@@ -81,16 +81,14 @@ function update(K3D, json, GUI, changes) {
     if (typeof (K3D.gui_map[json.id]) === 'undefined') {
         K3D.gui_counts[json.type] = K3D.gui_counts[json.type] + 1 || 1;
 
-        K3D.gui_map[json.id] = GUI.addFolder(`${json.type} #${K3D.gui_counts[json.type]}`);
+        K3D.gui_map[json.id] = GUI.addFolder(`${json.type} #${K3D.gui_counts[json.type]}`).close();
         K3D.gui_map[json.id].controllersMap = {};
         K3D.gui_map[json.id].listenersId = K3D.on(K3D.events.OBJECT_REMOVED, (id) => {
             if (id === json.id) {
                 const { listenersId } = K3D.gui_map[json.id];
                 const folder = K3D.gui_map[json.id];
-                folder.close();
-                GUI.__ul.removeChild(folder.domElement.parentNode);
-                delete GUI.__folders[folder.name];
-                GUI.onResize();
+
+                folder.destroy();
 
                 delete K3D.gui_map[json.id];
 
@@ -284,9 +282,8 @@ function update(K3D, json, GUI, changes) {
                             changeParameter(K3D, json, 'color_range', json.color_range);
                         });
 
-                    if (controller.__precision === 0 && controller.initialValue < 20) {
-                        controller.__precision = 2;
-                        controller.__impliedStep = 0.1;
+                    if (controller.initialValue < 20) {
+                        controller._step = 0.1;
                     }
 
                     controller = addController(K3D.gui_map[json.id], json, `_${param}_high`)
@@ -295,9 +292,8 @@ function update(K3D, json, GUI, changes) {
                             changeParameter(K3D, json, 'color_range', json.color_range);
                         });
 
-                    if (controller.__precision === 0 && controller.initialValue < 20) {
-                        controller.__precision = 2;
-                        controller.__impliedStep = 0.1;
+                    if (controller.initialValue < 20) {
+                        controller._step = 0.1;
                     }
                 }
                 break;
