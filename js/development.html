@@ -41,15 +41,32 @@
 
   require(['k3d'], function (lib) {
 
-    fileLoader('points_3d_no_opacity_with_plane.k3d', function (data) {
+    // try {
+    //   K3DInstance = new lib.K3D(
+    //     lib.ThreeJsProvider,
+    //     document.getElementById('canvasTarget'),
+    //   );
+    // } catch (e) {
+    //   console.log(e);
+    //   return reject(e);
+    // }
+
+    fileLoader('binary_snapshot.k3d', function (data) {
       K3DInstance = lib.CreateK3DAndLoadBinarySnapshot(
         data,
         document.getElementById('canvasTarget')
       ).then(function (ret) {
         K3DInstance = ret;
-        setTimeout(function () {
-          K3DInstance.resetCamera(0.5);
-        }, 250);
+
+        K3DInstance.resetCamera(0.7);
+        // setTimeout(function () {
+        //   let jsons = ret.getWorld().ObjectsListJson;
+        //
+        //   Object.keys(jsons).forEach(function(id) {
+        //     jsons[id].group = null;
+        //     K3DInstance.reload(jsons[id], {group: null});
+        //   });
+        // }, 5000);
       });
     });
   });

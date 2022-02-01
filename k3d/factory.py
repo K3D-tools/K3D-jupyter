@@ -1247,12 +1247,12 @@ def voxels_group(
     if color_map is None:
         color_map = nice_colors
 
-    for group in voxels_group:
-        group["coord"] = np.array(group["coord"])
-        group["voxels"] = np.array(group["voxels"])
+    for g in voxels_group:
+        g["coord"] = np.array(g["coord"])
+        g["voxels"] = np.array(g["voxels"])
 
-        if "multiple" not in group:
-            group["multiple"] = 1
+        if "multiple" not in g:
+            g["multiple"] = 1
 
     return process_transform_arguments(
         VoxelsGroup(

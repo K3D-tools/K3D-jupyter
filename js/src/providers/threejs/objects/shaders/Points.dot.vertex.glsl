@@ -35,10 +35,10 @@ void main() {
     gl_PointSize = 2.0 * size;
     #endif
 
+    gl_Position = projectionMatrix * mvPosition;
+
     #include <logdepthbuf_vertex>
     #include <clipping_planes_vertex>
-
-    gl_Position = projectionMatrix * mvPosition;
 
     #if (USE_PER_POINT_OPACITY == 1)
         perPointOpacity = opacities;
