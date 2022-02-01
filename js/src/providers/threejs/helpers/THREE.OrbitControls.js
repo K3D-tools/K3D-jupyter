@@ -1,17 +1,11 @@
 /* eslint-disable */
-module.exports = function(THREE) {
-    THREE.OrbitControls = function(object, domElement) {
-        let currentWindow;
-        // let currentDocument;
+module.exports = function (THREE) {
+    THREE.OrbitControls = function (object, domElement) {
 
         if (domElement !== undefined) {
-            currentWindow = domElement.ownerDocument.defaultView || domElement.ownerDocument.parentWindow;
             this.domElement = domElement;
-            // currentDocument = domElement.ownerDocument;
         } else {
-            currentWindow = window;
-            // this.domElement = currentDocument;
-            this.domElement = currentWindow.document;
+            this.domElement = window.document;
         }
 
         this.object = object;
@@ -100,32 +94,32 @@ module.exports = function(THREE) {
         // public methods
         //
 
-        this.getPolarAngle = function() {
+        this.getPolarAngle = function () {
 
             return spherical.phi;
 
         };
 
-        this.getAzimuthalAngle = function() {
+        this.getAzimuthalAngle = function () {
 
             return spherical.theta;
 
         };
 
-        this.getDistance = function() {
+        this.getDistance = function () {
 
             return this.object.position.distanceTo(this.target);
 
         };
 
-        this.listenToKeyEvents = function(domElement) {
+        this.listenToKeyEvents = function (domElement) {
 
             domElement.addEventListener('keydown', onKeyDown);
             this._domElementKeyEvents = domElement;
 
         };
 
-        this.saveState = function() {
+        this.saveState = function () {
 
             scope.target0.copy(scope.target);
             scope.position0.copy(scope.object.position);
@@ -133,7 +127,7 @@ module.exports = function(THREE) {
 
         };
 
-        this.reset = function() {
+        this.reset = function () {
 
             scope.target.copy(scope.target0);
             scope.object.position.copy(scope.position0);
@@ -149,7 +143,7 @@ module.exports = function(THREE) {
         };
 
         // this method is exposed, but perhaps it would be better if we can make it private...
-        this.update = function() {
+        this.update = function () {
 
             const offset = new THREE.Vector3();
 
@@ -269,7 +263,7 @@ module.exports = function(THREE) {
 
         }();
 
-        this.dispose = function() {
+        this.dispose = function () {
 
             scope.domElement.removeEventListener('contextmenu', onContextMenu);
 
@@ -369,7 +363,7 @@ module.exports = function(THREE) {
 
         }
 
-        const panLeft = function() {
+        const panLeft = function () {
 
             const v = new THREE.Vector3();
 
@@ -384,7 +378,7 @@ module.exports = function(THREE) {
 
         }();
 
-        const panUp = function() {
+        const panUp = function () {
 
             const v = new THREE.Vector3();
 
@@ -410,7 +404,7 @@ module.exports = function(THREE) {
         }();
 
         // deltaX and deltaY are in pixels; right and down are positive
-        const pan = function() {
+        const pan = function () {
 
             const offset = new THREE.Vector3();
 
@@ -570,7 +564,7 @@ module.exports = function(THREE) {
 
         }
 
-        function handleMouseUp( /*event*/ ) {
+        function handleMouseUp( /*event*/) {
 
             // no-op
 
@@ -782,7 +776,7 @@ module.exports = function(THREE) {
 
         }
 
-        function handleTouchEnd( /*event*/ ) {
+        function handleTouchEnd( /*event*/) {
 
             // no-op
 
