@@ -126,7 +126,7 @@ module.exports = {
         });
     },
 
-    update(config, changes, obj, K3D) {
+    update(config, changes, obj) {
         const resolvedChanges = {};
         let data;
         let
@@ -198,7 +198,7 @@ module.exports = {
             resolvedChanges.opacity = null;
         }
 
-        intersectHelper.update(config, changes, resolvedChanges, obj, K3D);
+        intersectHelper.update(config, changes, resolvedChanges, obj);
 
         commonUpdate(config, changes, resolvedChanges, obj);
 

@@ -32,7 +32,11 @@
 /*}*/
 
 .lil-gui {
-  max-height: inherit !important;;
+  max-height: inherit !important;
+}
+
+.lil-gui select {
+  color: black;
 }
 
 /*.dg.main .close-button.close-bottom {*/

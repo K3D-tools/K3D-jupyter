@@ -73,10 +73,10 @@ module.exports = {
         });
     },
 
-    update(config, changes, obj, K3D) {
+    update(config, changes, obj) {
         const resolvedChanges = {};
 
-        intersectHelper.update(config, changes, resolvedChanges, obj, K3D);
+        intersectHelper.update(config, changes, resolvedChanges, obj);
         commonUpdate(config, changes, resolvedChanges, obj);
 
         if (areAllChangesResolve(changes, resolvedChanges)) {

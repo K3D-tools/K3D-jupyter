@@ -145,10 +145,10 @@ module.exports = {
         });
     },
 
-    update(config, changes, obj, K3D) {
+    update(config, changes, obj) {
         const resolvedChanges = {};
 
-        intersectHelper.update(config, changes, obj, K3D);
+        intersectHelper.update(config, changes, resolvedChanges, obj);
 
         if (typeof (changes.opacity) !== 'undefined' && !changes.opacity.timeSeries) {
             obj.material.opacity = changes.opacity;

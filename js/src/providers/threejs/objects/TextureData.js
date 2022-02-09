@@ -107,10 +107,10 @@ module.exports = {
         });
     },
 
-    update(config, changes, obj, K3D) {
+    update(config, changes, obj) {
         const resolvedChanges = {};
 
-        intersectHelper.update(config, changes, resolvedChanges, obj, K3D);
+        intersectHelper.update(config, changes, resolvedChanges, obj);
 
         if (typeof (changes.color_range) !== 'undefined' && !changes.color_range.timeSeries) {
             obj.material.uniforms.low.value = changes.color_range[0];

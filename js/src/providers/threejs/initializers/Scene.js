@@ -232,15 +232,15 @@ function rebuildSceneData(K3D, grids, axesHelper, force) {
         }
     }
 
+    if (K3D.parameters.axesHelper > 1) {
+        axesHelper.width = K3D.parameters.axesHelper;
+        axesHelper.height = K3D.parameters.axesHelper;
+    } else if (K3D.parameters.axesHelper > 0) {
+        axesHelper.width = 100;
+        axesHelper.height = 100;
+    }
+    
     if (updateAxesHelper) {
-        if (K3D.parameters.axesHelper > 1) {
-            axesHelper.width = K3D.parameters.axesHelper;
-            axesHelper.height = K3D.parameters.axesHelper;
-        } else if (K3D.parameters.axesHelper > 0) {
-            axesHelper.width = 100;
-            axesHelper.height = 100;
-        }
-
         if (K3D.parameters.axesHelper > 0) {
             generateAxesHelper(K3D, axesHelper).forEach((p) => {
                 promises.push(p);

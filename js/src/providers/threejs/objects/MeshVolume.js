@@ -106,10 +106,10 @@ module.exports = {
         return Promise.resolve(object);
     },
 
-    update(config, changes, obj, K3D) {
+    update(config, changes, obj) {
         const resolvedChanges = {};
 
-        intersectHelper.update(config, changes, resolvedChanges, obj, K3D);
+        intersectHelper.update(config, changes, resolvedChanges, obj);
 
         if (typeof (changes.volume) !== 'undefined' && !changes.volume.timeSeries) {
             if (obj.material.uniforms.volumeTexture.value.image.data.constructor === changes.volume.data.constructor
