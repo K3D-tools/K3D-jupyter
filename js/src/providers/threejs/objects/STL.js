@@ -1,5 +1,5 @@
 const THREE = require('three');
-const { BufferGeometryUtils } = require('three/examples/jsm/utils/BufferGeometryUtils');
+const BufferGeometryUtils = require('three/examples/jsm/utils/BufferGeometryUtils');
 const { areAllChangesResolve } = require('../helpers/Fn');
 const { commonUpdate } = require('../helpers/Fn');
 

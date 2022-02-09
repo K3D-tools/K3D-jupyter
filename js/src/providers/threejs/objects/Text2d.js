@@ -88,13 +88,13 @@ module.exports = {
             domElement.style.zIndex = 16777271;
         }
 
-        const listenersId = K3D.on(K3D.events.RENDERED, render);
+        const listenersId = K3D.on(K3D.events.BEFORE_RENDER, render);
         object.domElement = domElement;
 
         object.onRemove = function () {
             overlayDOMNode.removeChild(domElement);
             object.domElement = null;
-            K3D.off(K3D.events.RENDERED, listenersId);
+            K3D.off(K3D.events.BEFORE_RENDER, listenersId);
         };
 
         return Promise.resolve(object);

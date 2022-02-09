@@ -49,6 +49,38 @@ def test_points_3d():
     compare('points_3d')
 
 
+def test_points_3d_no_opacity():
+    global v, s, o
+
+    prepare()
+
+    points = k3d.points(v, shader='3d', point_size=0.4, color=0xff0000)
+
+    pytest.plot += points
+
+    compare('points_3d_no_opacity')
+
+
+def test_points_3d_no_opacity_with_plane():
+    global v, s, o
+
+    prepare()
+
+    points = k3d.points(v, shader='3d', point_size=0.4, color=0xff0000)
+    plane = k3d.mesh([-1, 0, -2,
+                      1, 0, -2,
+                      1, 0, 12,
+                      -1, 0, 12
+                      ],
+                     [0, 1, 2,
+                      2, 3, 0], color=0x00ff00)
+
+    pytest.plot += points
+    pytest.plot += plane
+
+    compare('points_3d_no_opacity_with_plane')
+
+
 def test_points_3d_clipping_plane():
     global v, s, o
 

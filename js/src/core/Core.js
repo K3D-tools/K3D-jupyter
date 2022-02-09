@@ -1,7 +1,7 @@
-const pako = require('pako');
+const fflate = require('fflate');
 const msgpack = require('msgpack-lite');
 
-const dat = require('dat.gui');
+const LilGUI = require('lil-gui').GUI;
 const { viewModes } = require('./lib/viewMode');
 const _ = require('../lodash');
 const { cameraModes } = require('./lib/cameraMode');
@@ -67,7 +67,7 @@ function K3D(provider, targetDOMNode, parameters) {
 
     let guiContainer;
 
-    require('./../k3d.css');
+    require('../k3d.css');
 
     function dispatch(eventName, data) {
         if (!listeners[eventName]) {
@@ -89,15 +89,15 @@ function K3D(provider, targetDOMNode, parameters) {
     }
 
     function initializeGUI() {
-        self.gui = new dat.GUI({
-            width: 220, autoPlace: false, scrollable: true, closeOnTop: true,
+        self.gui = new LilGUI({
+            width: 220, autoPlace: false, title: 'K3D panel'
         });
 
         guiContainer.appendChild(self.gui.domElement);
 
-        GUI.controls = self.gui.addFolder('Controls');
-        GUI.objects = self.gui.addFolder('Objects');
-        GUI.info = self.gui.addFolder('Info');
+        GUI.controls = self.gui.addFolder('Controls').close();
+        GUI.objects = self.gui.addFolder('Objects').close();
+        GUI.info = self.gui.addFolder('Info').close();
 
         screenshot.screenshotGUI(GUI.controls, self);
         snapshot.snapshotGUI(GUI.controls, self);
@@ -130,7 +130,7 @@ function K3D(provider, targetDOMNode, parameters) {
         cameraModeGUI(GUI.controls, self);
         manipulate.manipulateGUI(GUI.controls, self, changeParameters);
 
-        GUI.controls.add(self.parameters, 'camera_fov').step(0.1).min(1.0).max(179)
+        GUI.controls.add(self.parameters, 'cameraFov').step(0.1).min(1.0).max(179)
             .name('FOV')
             .onChange((value) => {
                 self.setCameraFOV(value);
@@ -150,17 +150,17 @@ function K3D(provider, targetDOMNode, parameters) {
 
         timeSeries.timeSeriesGUI(GUI.controls, self, changeParameters);
 
-        GUI.clippingPlanes = GUI.controls.addFolder('Clipping planes');
+        GUI.clippingPlanes = GUI.controls.addFolder('Clipping planes').close();
 
         // Info box
         GUI.info.add(self.parameters, 'guiVersion').name('Js version:');
-        GUI.info.__controllers[0].__input.readOnly = true;
+        GUI.info.controllers[0].$input.readOnly = true;
 
         if (self.parameters.backendVersion) {
             GUI.info.add({
                 version: self.parameters.backendVersion,
             }, 'version').name('Python version:');
-            GUI.info.__controllers[1].__input.readOnly = true;
+            GUI.info.controllers[1].$input.readOnly = true;
         }
 
         Object.keys(world.ObjectsListJson).forEach((id) => {
@@ -222,7 +222,7 @@ function K3D(provider, targetDOMNode, parameters) {
             }
 
             if (!isUpdate) {
-                return self.rebuildSceneData(force).then(self.render.bind(null, true));
+                return self.rebuildSceneData().then(self.render.bind(null, true));
             }
             return self.render(true);
         }
@@ -259,44 +259,46 @@ function K3D(provider, targetDOMNode, parameters) {
 
     this.GUI = GUI;
     this.parameters = _.assignWith({
-        viewMode: viewModes.view,
-        cameraMode: cameraModes.trackball,
-        manipulateMode: manipulate.manipulateModes.translate,
-        voxelPaintColor: 0,
-        snapshotIncludeJs: true,
-        menuVisibility: true,
-        cameraAutoFit: true,
-        gridAutoFit: true,
-        gridVisible: true,
-        grid: [-1, -1, -1, 1, 1, 1],
-        gridColor: 0xe6e6e6,
-        labelColor: 0x444444,
-        antialias: 1,
-        screenshotScale: 5.0,
-        renderingSteps: 1,
-        clearColor: 0xffffff,
-        clippingPlanes: [],
-        fpsMeter: false,
-        lighting: 1.5,
-        time: 0.0,
-        colorbarObjectId: -1,
-        colorbarScientific: false,
-        fps: 25.0,
-        axes: ['x', 'y', 'z'],
-        cameraNoRotate: false,
-        cameraNoZoom: false,
-        cameraNoPan: false,
-        cameraRotateSpeed: 1.0,
-        cameraZoomSpeed: 1.2,
-        cameraPanSpeed: 0.3,
-        cameraDampingFactor: 0.0,
-        name: null,
-        camera_fov: 60.0,
-        cameraAnimation: {},
-        autoRendering: true,
-        axesHelper: 1.0,
-        guiVersion: require('../../package.json').version,
-    },
+            viewMode: viewModes.view,
+            cameraMode: cameraModes.trackball,
+            manipulateMode: manipulate.manipulateModes.translate,
+            voxelPaintColor: 0,
+            snapshotIncludeJs: true,
+            menuVisibility: true,
+            cameraAutoFit: true,
+            gridAutoFit: true,
+            gridVisible: true,
+            grid: [-1, -1, -1, 1, 1, 1],
+            gridColor: 0xe6e6e6,
+            labelColor: 0x444444,
+            antialias: 1,
+            logarithmicDepthBuffer: true,
+            screenshotScale: 5.0,
+            renderingSteps: 1,
+            clearColor: 0xffffff,
+            clippingPlanes: [],
+            fpsMeter: false,
+            lighting: 1.5,
+            time: 0.0,
+            colorbarObjectId: -1,
+            colorbarScientific: false,
+            fps: 25.0,
+            axes: ['x', 'y', 'z'],
+            cameraNoRotate: false,
+            cameraNoZoom: false,
+            cameraNoPan: false,
+            cameraRotateSpeed: 1.0,
+            cameraZoomSpeed: 1.2,
+            cameraPanSpeed: 0.3,
+            cameraDampingFactor: 0.0,
+            name: null,
+            cameraFov: 60.0,
+            cameraAnimation: {},
+            autoRendering: true,
+            axesHelper: 1.0,
+            snapshotType: 'full',
+            guiVersion: require('../../package.json').version,
+        },
         parameters || {},
         (objValue, srcValue) => (typeof (srcValue) === 'undefined' ? objValue : srcValue));
 
@@ -314,7 +316,7 @@ function K3D(provider, targetDOMNode, parameters) {
         self.parameters.fps = fps;
 
         if (GUI.controls) {
-            GUI.controls.__controllers.forEach((controller) => {
+            GUI.controls.controllers.forEach((controller) => {
                 if (controller.property === 'fps') {
                     controller.updateDisplay();
                 }
@@ -349,7 +351,7 @@ function K3D(provider, targetDOMNode, parameters) {
         self.parameters.fpsMeter = state;
 
         if (GUI.controls) {
-            GUI.controls.__controllers.forEach((controller) => {
+            GUI.controls.controllers.forEach((controller) => {
                 if (controller.property === 'fpsMeter') {
                     controller.updateDisplay();
                 }
@@ -379,13 +381,25 @@ function K3D(provider, targetDOMNode, parameters) {
      */
     this.Provider = provider;
 
+    this.setFullscreen = function (state) {
+        if (state) {
+            fullscreen.screenfull.request(world.targetDOMNode);
+        } else {
+            fullscreen.screenfull.exit();
+        }
+    };
+
+    this.getFullscreen = function () {
+        return fullscreen.screenfull.isFullscreen;
+    }
+
     this.setDirectionalLightingIntensity = function (value) {
         self.parameters.lighting = Math.min(Math.max(value, 0.0), 4.0);
         self.getWorld().recalculateLights(self.parameters.lighting);
         self.render();
 
         if (GUI.controls) {
-            GUI.controls.__controllers.forEach((controller) => {
+            GUI.controls.controllers.forEach((controller) => {
                 if (controller.property === 'lighting') {
                     controller.updateDisplay();
                 }
@@ -406,7 +420,7 @@ function K3D(provider, targetDOMNode, parameters) {
         }
 
         if (GUI.controls) {
-            GUI.controls.__controllers.forEach((controller) => {
+            GUI.controls.controllers.forEach((controller) => {
                 if (controller.property === 'viewMode') {
                     controller.updateDisplay();
                 }
@@ -424,6 +438,10 @@ function K3D(provider, targetDOMNode, parameters) {
      * @param {String} mode
      */
     this.setCameraMode = function (mode) {
+        if (typeof (_.invert(cameraModes)[mode]) === 'undefined') {
+            mode = cameraModes.trackball;
+        }
+
         self.parameters.cameraMode = mode;
         self.getWorld().changeControls();
         self.getWorld().setCameraToFitScene(true);
@@ -432,7 +450,7 @@ function K3D(provider, targetDOMNode, parameters) {
         self.render();
 
         if (GUI.controls) {
-            GUI.controls.__controllers.forEach((controller) => {
+            GUI.controls.controllers.forEach((controller) => {
                 if (controller.property === 'cameraMode') {
                     controller.updateDisplay();
                 }
@@ -452,7 +470,7 @@ function K3D(provider, targetDOMNode, parameters) {
         }
 
         if (GUI.controls) {
-            GUI.controls.__controllers.forEach((controller) => {
+            GUI.controls.controllers.forEach((controller) => {
                 if (controller.property === 'manipulateMode') {
                     controller.updateDisplay();
                 }
@@ -483,6 +501,7 @@ function K3D(provider, targetDOMNode, parameters) {
             }
         } else if (self.gui) {
             self.gui_map = {};
+            self.gui_groups = {};
             self.gui_counts = {};
             self.gui.destroy();
             self.gui.domElement.remove();
@@ -529,8 +548,8 @@ function K3D(provider, targetDOMNode, parameters) {
             }
 
             if (GUI.objects) {
-                Object.keys(GUI.objects.__folders).forEach((k) => {
-                    GUI.objects.__folders[k].__controllers.forEach((controller) => {
+                Object.keys(GUI.objects.folders).forEach((k) => {
+                    GUI.objects.folders[k].controllers.forEach((controller) => {
                         if (controller.property === 'colorLegend') {
                             controller.updateDisplay();
                         }
@@ -551,7 +570,7 @@ function K3D(provider, targetDOMNode, parameters) {
         self.parameters.cameraAutoFit = state;
 
         if (GUI.controls) {
-            GUI.controls.__controllers.forEach((controller) => {
+            GUI.controls.controllers.forEach((controller) => {
                 if (controller.property === 'cameraAutoFit') {
                     controller.updateDisplay();
                 }
@@ -616,7 +635,7 @@ function K3D(provider, targetDOMNode, parameters) {
         self.parameters.gridAutoFit = state;
 
         if (GUI.controls) {
-            GUI.controls.__controllers.forEach((controller) => {
+            GUI.controls.controllers.forEach((controller) => {
                 if (controller.property === 'gridAutoFit') {
                     controller.updateDisplay();
                 }
@@ -664,12 +683,12 @@ function K3D(provider, targetDOMNode, parameters) {
      * @param {Number} angle
      */
     this.setCameraFOV = function (angle) {
-        self.parameters.camera_fov = angle;
+        self.parameters.cameraFov = angle;
         world.setupCamera(null, angle);
 
         if (GUI.controls) {
-            GUI.controls.__controllers.forEach((controller) => {
-                if (controller.property === 'camera_fov') {
+            GUI.controls.controllers.forEach((controller) => {
+                if (controller.property === 'cameraFov') {
                     controller.updateDisplay();
                 }
             });
@@ -691,7 +710,7 @@ function K3D(provider, targetDOMNode, parameters) {
         self.getWorld().changeControls(true);
 
         if (GUI.controls) {
-            GUI.controls.__controllers.forEach((controller) => {
+            GUI.controls.controllers.forEach((controller) => {
                 if (controller.property === 'damping_factor') {
                     controller.updateDisplay();
                 }
@@ -708,7 +727,7 @@ function K3D(provider, targetDOMNode, parameters) {
         self.parameters.gridVisible = state;
 
         if (GUI.controls) {
-            GUI.controls.__controllers.forEach((controller) => {
+            GUI.controls.controllers.forEach((controller) => {
                 if (controller.property === 'gridVisible') {
                     controller.updateDisplay();
                 }
@@ -726,7 +745,7 @@ function K3D(provider, targetDOMNode, parameters) {
      */
     this.setGridColor = function (color) {
         self.parameters.gridColor = color;
-        self.rebuildSceneData(true).then(() => {
+        self.rebuildSceneData().then(() => {
             self.render();
         });
     };
@@ -817,7 +836,7 @@ function K3D(provider, targetDOMNode, parameters) {
         self.parameters.voxelPaintColor = color;
 
         if (GUI.controls) {
-            GUI.controls.__controllers.forEach((controller) => {
+            GUI.controls.controllers.forEach((controller) => {
                 if (controller.property === 'voxelPaintColor') {
                     controller.updateDisplay();
                 }
@@ -951,7 +970,7 @@ function K3D(provider, targetDOMNode, parameters) {
         }
 
         if (GUI.controls) {
-            GUI.controls.__controllers.forEach((controller) => {
+            GUI.controls.controllers.forEach((controller) => {
                 if (controller.property === 'time') {
                     controller.updateDisplay();
                 }
@@ -979,8 +998,8 @@ function K3D(provider, targetDOMNode, parameters) {
                 world.ObjectsById[object.json.id] = object.obj;
 
                 if ((self.parameters.colorbarObjectId === -1
-                    && object.json.color_range
-                    && object.json.color_range.length === 2)
+                        && object.json.color_range
+                        && object.json.color_range.length === 2)
                     || self.parameters.colorbarObjectId === object.json.id) { // auto
                     self.setColorMapLegend(object.json);
                 }
@@ -1032,8 +1051,8 @@ function K3D(provider, targetDOMNode, parameters) {
                 world.ObjectsById[object.json.id] = object.obj;
 
                 if ((self.parameters.colorbarObjectId === -1
-                    && object.json.color_range
-                    && object.json.color_range.length === 2)
+                        && object.json.color_range
+                        && object.json.color_range.length === 2)
                     || self.parameters.colorbarObjectId === object.json.id) { // auto
                     self.setColorMapLegend(object.json);
                 }
@@ -1085,10 +1104,10 @@ function K3D(provider, targetDOMNode, parameters) {
      */
     this.getSnapshot = function (compressionLevel) {
         const chunkList = Object.keys(world.chunkList).reduce((p, k) => {
-            let attributes = world.chunkList[k].attributes;
+            const attributes = world.chunkList[k].attributes;
 
-            p[k] = Object.keys(attributes).reduce((prev, k) => {
-                prev[k] = serialize.serialize(attributes[k]);
+            p[k] = Object.keys(attributes).reduce((prev, key) => {
+                prev[key] = serialize.serialize(attributes[key]);
 
                 return prev;
             }, {});
@@ -1103,15 +1122,15 @@ function K3D(provider, targetDOMNode, parameters) {
                 return p;
             }, {}));
 
-        let plot = _.cloneDeep(self.parameters);
+        const plot = _.cloneDeep(self.parameters);
         plot.camera = self.getWorld().controls.getCameraArray();
 
-        return pako.deflate(
+        return fflate.zlibSync(
             msgpack.encode(
                 {
                     objects: serializedObjects,
-                    chunkList: chunkList,
-                    plot: plot
+                    chunkList,
+                    plot,
                 },
                 { codec: MsgpackCodec },
             ),
@@ -1125,7 +1144,7 @@ function K3D(provider, targetDOMNode, parameters) {
      */
     this.setSnapshot = function (data) {
         if (typeof (data) === 'string') {
-            data = pako.inflate(new Uint8Array(base64ToArrayBuffer(data)));
+            data = fflate.unzlibSync(new Uint8Array(base64ToArrayBuffer(data)));
         }
 
         if (data instanceof Uint8Array) {
@@ -1133,12 +1152,12 @@ function K3D(provider, targetDOMNode, parameters) {
         }
 
         Object.keys(data.chunkList).forEach((k) => {
-            let chunk = data.chunkList[k];
+            const chunk = data.chunkList[k];
             world.chunkList[chunk.id] = {
-                attributes: Object.keys(chunk).reduce(function (prev, p) {
+                attributes: Object.keys(chunk).reduce((prev, p) => {
                     prev[p] = serialize.deserialize(chunk[p]);
                     return prev;
-                }, {})
+                }, {}),
             };
         });
 
@@ -1207,8 +1226,8 @@ function K3D(provider, targetDOMNode, parameters) {
     guiContainer.className = 'dg';
     guiContainer.style.cssText = [
         'position: absolute',
-        'color: black',
         'top: 0',
+        'color: black',
         'right: 0',
         'z-index: 16777271',
         `max-height: ${targetDOMNode.clientHeight}px`,
@@ -1244,7 +1263,7 @@ function K3D(provider, targetDOMNode, parameters) {
         self.parameters.cameraZoomSpeed,
         self.parameters.cameraPanSpeed,
     );
-    self.setCameraFOV(self.parameters.camera_fov);
+    self.setCameraFOV(self.parameters.cameraFov);
     self.setFps(self.parameters.fps);
     self.setViewMode(self.parameters.viewMode);
     self.setFpsMeter(self.parameters.fpsMeter);

@@ -1,11 +1,14 @@
 varying vec4 vColor;
 uniform float opacity;
 
+#include <common>
 #include <clipping_planes_pars_fragment>
+#include <logdepthbuf_pars_fragment>
 
 void main (void)
 {
     #include <clipping_planes_fragment>
+    #include <logdepthbuf_fragment>
 
     vec2 impostorSpaceCoordinate = (gl_PointCoord.xy - vec2(0.5, 0.5));
     float distanceFromCenter = length(impostorSpaceCoordinate);

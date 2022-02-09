@@ -9,7 +9,7 @@ module.exports = {
     requires: [base.IJupyterWidgetRegistry],
     activate(app, widgets) {
         require('katex/dist/katex.min.css');
-        require('dat.gui/build/dat.gui.css');
+        require('lil-gui/dist/lil-gui.css');
 
         widgets.registerWidget({
             name: 'k3d',

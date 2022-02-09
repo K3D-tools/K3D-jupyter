@@ -91,6 +91,7 @@ class Drawable(widgets.Widget):
 
     id = Integer().tag(sync=True)
     name = Unicode(default_value=None, allow_none=True).tag(sync=True)
+    group = Unicode(default_value=None, allow_none=True).tag(sync=True)
     visible = TimeSeries(Bool(True)).tag(sync=True)
     compression_level = Integer().tag(sync=True)
 
@@ -735,6 +736,8 @@ class Text(Drawable):
             Font size in 'em' HTML units.
         label_box: `Boolean`.
             Label background box.
+        model_matrix: `array_like`.
+            4x4 model transform matrix.
     """
 
     type = Unicode(read_only=True).tag(sync=True)
@@ -746,6 +749,9 @@ class Text(Drawable):
     size = TimeSeries(Float(min=EPSILON, default_value=1.0)).tag(sync=True)
     on_top = Bool().tag(sync=True)
     label_box = Bool().tag(sync=True)
+    model_matrix = TimeSeries(Array(dtype=np.float32)).tag(
+        sync=True, **array_serialization_wrap("model_matrix")
+    )
 
     def __init__(self, **kwargs):
         super(Text, self).__init__(**kwargs)
@@ -822,6 +828,8 @@ class Label(Drawable):
             Maximum length of line in % of half screen size.
         size: `float`.
             Font size in 'em' HTML units.
+        model_matrix: `array_like`.
+            4x4 model transform matrix.
     """
 
     type = Unicode(read_only=True).tag(sync=True)
@@ -834,6 +842,9 @@ class Label(Drawable):
     size = TimeSeries(Float(min=EPSILON, default_value=1.0)).tag(sync=True)
     on_top = Bool().tag(sync=True)
     label_box = Bool().tag(sync=True)
+    model_matrix = TimeSeries(Array(dtype=np.float32)).tag(
+        sync=True, **array_serialization_wrap("model_matrix")
+    )
 
     def __init__(self, **kwargs):
         super(Label, self).__init__(**kwargs)
@@ -929,6 +940,8 @@ class TextureText(Drawable):
         font_size: `int`.
             The font size inside the sprite texture in px units. This does not affect the size of the
             text in the scene, only the accuracy and raster size of the texture.
+        model_matrix: `array_like`.
+            4x4 model transform matrix.
     """
 
     type = Unicode(read_only=True).tag(sync=True)
@@ -939,6 +952,9 @@ class TextureText(Drawable):
     font_face = Unicode().tag(sync=True)
     font_weight = Int().tag(sync=True)
     font_size = Int().tag(sync=True)
+    model_matrix = TimeSeries(Array(dtype=np.float32)).tag(
+        sync=True, **array_serialization_wrap("model_matrix")
+    )
 
     def __init__(self, **kwargs):
         super(TextureText, self).__init__(**kwargs)

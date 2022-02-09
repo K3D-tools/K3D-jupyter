@@ -17,7 +17,7 @@
             position: absolute;
         }
     </style>
-    <script id='pakojs'>[PAKO_JS]</script>
+    <script id='fflatejs'>[FFLATE_JS]</script>
     <script>
         window.k3dCompressed = '[K3D_SOURCE]';
 
@@ -31,7 +31,9 @@
             return bytes;
         }
 
-        var k3dSource = pako.inflate(_base64ToArrayBuffer(window.k3dCompressed), {'to': 'string'});
+        var k3dSource = fflate.strFromU8(
+            fflate.unzlibSync(_base64ToArrayBuffer(window.k3dCompressed))
+        );
     </script>
     <script id='requirejs'>[REQUIRE_JS]</script>
 </head>

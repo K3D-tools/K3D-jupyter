@@ -44,6 +44,19 @@ To install from PyPI use pip:
 
     $ pip install k3d
 
+When using Jupyter Notebook, remember to install and enable the `k3d` extension:
+
+    $ jupyter nbextension install --py --user k3d
+    $ jupyter nbextension enable --py --user k3d
+
+When upgrading from an earlier version, use the following commands:
+
+    $ pip install -U k3d
+    $ jupyter nbextension install --py --user k3d
+    $ jupyter nbextension enable --py --user k3d
+
+See below for instructions about JupyterLab installation.
+
 ### Conda/Anaconda
 
 To install from conda-forge use:
@@ -99,13 +112,14 @@ K3D-jupyter follows the Python Software Foundation Code of Conduct in everything
 <table class="none">
 <tr>
 <td>
-  <img src="http://opendreamkit.org/public/logos/Flag_of_Europe.svg" width="128">
+<img src="http://opendreamkit.org/public/logos/Flag_of_Europe.svg" width="128">
 </td>
 <td>
-  This package was created as part of the Horizon 2020 European
-  Research Infrastructure project
-  <a href="https://opendreamkit.org/">OpenDreamKit</a>
-  (grant agreement <a href="https://opendreamkit.org/">#676541</a>).
+Research Infrastructure project
+This package was created as part of the Horizon 2020 European
+<a href="https://opendreamkit.org/">OpenDreamKit</a>
+(grant agreement <a href="https://opendreamkit.org/">#676541</a>).
 </td>
 </tr>
 </table>
+

@@ -232,15 +232,15 @@ function rebuildSceneData(K3D, grids, axesHelper, force) {
         }
     }
 
+    if (K3D.parameters.axesHelper > 1) {
+        axesHelper.width = K3D.parameters.axesHelper;
+        axesHelper.height = K3D.parameters.axesHelper;
+    } else if (K3D.parameters.axesHelper > 0) {
+        axesHelper.width = 100;
+        axesHelper.height = 100;
+    }
+    
     if (updateAxesHelper) {
-        if (K3D.parameters.axesHelper > 1) {
-            axesHelper.width = K3D.parameters.axesHelper;
-            axesHelper.height = K3D.parameters.axesHelper;
-        } else if (K3D.parameters.axesHelper > 0) {
-            axesHelper.width = 100;
-            axesHelper.height = 100;
-        }
-
         if (K3D.parameters.axesHelper > 0) {
             generateAxesHelper(K3D, axesHelper).forEach((p) => {
                 promises.push(p);
@@ -451,7 +451,7 @@ function rebuildSceneData(K3D, grids, axesHelper, force) {
 
     const fullSceneDiameter = fullSceneBoundingBox.getSize(new THREE.Vector3()).length();
 
-    const camDistance = (fullSceneDiameter / 2.0) / Math.sin(THREE.Math.degToRad(K3D.parameters.camera_fov / 2.0));
+    const camDistance = (fullSceneDiameter / 2.0) / Math.sin(THREE.Math.degToRad(K3D.parameters.cameraFov / 2.0));
 
     this.camera.far = (camDistance + fullSceneDiameter / 2) * 5.0;
     this.camera.near = fullSceneDiameter * 0.0001;

@@ -16,7 +16,7 @@ def prepare():
     pytest.headless.sync()
 
 
-def compare(name, only_canvas=True, threshold=0.1, camera_factor=1.0):
+def compare(name, only_canvas=True, threshold=0.2, camera_factor=1.0):
     pytest.headless.sync(hold_until_refreshed=True)
     pytest.headless.camera_reset(camera_factor)
     screenshot = pytest.headless.get_screenshot(only_canvas)

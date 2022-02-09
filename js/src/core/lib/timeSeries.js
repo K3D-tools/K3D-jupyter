@@ -163,8 +163,8 @@ function startAutoPlay(K3D, changeParameters) {
 
         let t = K3D.parameters.time + 1.0 / K3D.parameters.fps;
 
-        if (t > K3D.GUI.controls.controllersMap.time.__max) {
-            t -= K3D.GUI.controls.controllersMap.time.__max;
+        if (t > K3D.GUI.controls.controllersMap.time._max) {
+            t -= K3D.GUI.controls.controllersMap.time._max;
         }
 
         K3D.setTime(t);
@@ -188,14 +188,14 @@ module.exports = {
     refreshTimeScale(K3D, GUI) {
         const timeSeriesInfo = getObjectsWithTimeSeriesAndMinMax(K3D);
 
-        GUI.controls.__controllers.forEach((controller) => {
+        GUI.controls.controllers.forEach((controller) => {
             if (controller.property === 'time') {
                 controller.min(timeSeriesInfo.min).max(timeSeriesInfo.max)
                     .step(pow10ceil(timeSeriesInfo.max - timeSeriesInfo.min) / 10000.0);
             }
 
             if (['togglePlay', 'fps', 'time'].indexOf(controller.property) !== -1) {
-                controller.__li.hidden = timeSeriesInfo.min === timeSeriesInfo.max;
+                controller.domElement.hidden = timeSeriesInfo.min === timeSeriesInfo.max;
                 controller.updateDisplay();
             }
         });

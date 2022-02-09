@@ -1,10 +1,14 @@
 const THREE = require('three');
-const { BufferGeometryUtils } = require('three/examples/jsm/utils/BufferGeometryUtils');
+const BufferGeometryUtils = require('three/examples/jsm/utils/BufferGeometryUtils');
 const buffer = require('../../../core/lib/helpers/buffer');
 const MeshLine = require('../helpers/THREE.MeshLine')(THREE);
 const { getTwoColorsArray } = require('../helpers/Fn');
 const { generateArrow } = require('../helpers/Fn');
 const Text = require('./Text');
+const Fn = require('../helpers/Fn');
+
+const { commonUpdate } = Fn;
+const { areAllChangesResolve } = Fn;
 
 /**
  * Loader strategy to handle Vectors  object
@@ -22,6 +26,7 @@ module.exports = {
         config.head_size = config.head_size || 1.0;
         config.line_width = config.line_width || 0.01;
 
+        const modelMatrix = new THREE.Matrix4();
         const originColor = new THREE.Color(config.origin_color);
         const headColor = new THREE.Color(config.head_color);
         const vectors = config.vectors.data;
@@ -97,6 +102,12 @@ module.exports = {
 
         line = new THREE.Mesh(line.geometry, material);
         object.add(line);
+
+        if (config.model_matrix) {
+            modelMatrix.set.apply(modelMatrix, config.model_matrix.data);
+            object.applyMatrix4(modelMatrix);
+        }
+
         object.updateMatrixWorld();
 
         const resizelistenerId = K3D.on(K3D.events.RESIZED, () => {
@@ -119,6 +130,17 @@ module.exports = {
 
             return object;
         });
+    },
+
+    update(config, changes, obj) {
+        const resolvedChanges = {};
+
+        commonUpdate(config, changes, resolvedChanges, obj);
+
+        if (areAllChangesResolve(changes, resolvedChanges)) {
+            return Promise.resolve({ json: config, obj });
+        }
+        return false;
     },
 };
 

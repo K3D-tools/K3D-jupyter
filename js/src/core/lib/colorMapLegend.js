@@ -32,6 +32,7 @@ function getColorLegend(K3D, object) {
     const svgNS = svg.namespaceURI;
     const rect = document.createElementNS(svgNS, 'rect');
 
+    svg.setAttribute('class', 'colorMapLegend');
     svg.setAttribute('viewBox', '0 0 100 100');
     svg.style.cssText = [
         'position: absolute',

@@ -15,6 +15,7 @@ module.exports = {
         config.color = typeof (config.color) !== 'undefined' ? config.color : 0;
         config.text = typeof (config.text) !== 'undefined' ? config.text : '\\KaTeX';
 
+        const modelMatrix = new THREE.Matrix4();
         const { text } = config;
         const { color } = config;
         const referencePoint = config.reference_point || 'lb';
@@ -47,6 +48,12 @@ module.exports = {
 
         object.position.set(position[0], position[1], position[2]);
         object.text = text;
+
+        if (config.model_matrix) {
+            modelMatrix.set.apply(modelMatrix, config.model_matrix.data);
+            object.applyMatrix4(modelMatrix);
+        }
+
         object.updateMatrixWorld();
 
         function render() {
@@ -108,14 +115,14 @@ module.exports = {
             domElement.style.zIndex = config.on_top ? 16777271 - Math.round(coord.z * 1e6) : '15';
         }
 
-        const listenersId = K3D.on(K3D.events.RENDERED, render);
+        const listenersId = K3D.on(K3D.events.BEFORE_RENDER, render);
 
         object.onRemove = function () {
             if (overlayDOMNode.contains(domElement)) {
                 overlayDOMNode.removeChild(domElement);
             }
 
-            K3D.off(K3D.events.RENDERED, listenersId);
+            K3D.off(K3D.events.BEFORE_RENDER, listenersId);
         };
 
         object.hide = function () {

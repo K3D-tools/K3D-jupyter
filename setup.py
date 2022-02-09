@@ -80,11 +80,11 @@ setup_args = dict(
     cmdclass=cmdclass,
     packages=setuptools.find_packages(),
     install_requires=[
-        "jupyterlab~=3.0",
         "traittypes",
         "ipywidgets",
         "traitlets",
-        "numpy"
+        "numpy",
+        "msgpack"
     ],
     zip_safe=False,
     include_package_data=True,

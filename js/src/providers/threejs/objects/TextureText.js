@@ -53,7 +53,7 @@ module.exports = {
             context.fillText(line, x, y);
         });
 
-        const object = getSprite(canvas, position, size);
+        const object = getSprite(canvas, position, size, config);
 
         return Promise.resolve(object);
     },
@@ -108,10 +108,11 @@ function getLongestLineWidth(lines, context) {
  *
  * @returns {THREE.Sprite}
  */
-function getSprite(canvas, position, size) {
+function getSprite(canvas, position, size, config) {
     const texture = new THREE.Texture(canvas);
     const material = new THREE.SpriteMaterial({ map: texture });
     const sprite = new THREE.Sprite(material);
+    const modelMatrix = new THREE.Matrix4();
 
     texture.needsUpdate = true;
 
@@ -121,6 +122,11 @@ function getSprite(canvas, position, size) {
         new THREE.Vector3(),
         new THREE.Vector3(size, size, size),
     );
+    if (config.model_matrix) {
+        modelMatrix.set.apply(modelMatrix, config.model_matrix.data);
+        sprite.applyMatrix4(modelMatrix);
+    }
+
     sprite.updateMatrixWorld();
 
     return sprite;

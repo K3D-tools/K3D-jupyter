@@ -121,7 +121,7 @@ module.exports = [
                 { from: './src/core/lib/snapshot_online.txt', to: `${__dirname}/../k3d/static` },
                 { from: './src/core/lib/snapshot_inline.txt', to: `${__dirname}/../k3d/static` },
                 { from: './node_modules/requirejs/require.js', to: `${__dirname}/../k3d/static` },
-                { from: './node_modules/pako/dist/pako_inflate.min.js', to: `${__dirname}/../k3d/static` },
+                { from: './node_modules/fflate/umd/index.js', to: `${__dirname}/../k3d/static/fflate.js` },
             ],
         })],
     },

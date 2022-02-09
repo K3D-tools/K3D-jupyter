@@ -61,7 +61,7 @@ function detachWindowGUI(gui, K3D) {
             newWindow.document.body.innerHTML = require('./helpers/detachedWindowHtml');
 
             // copy css
-            let styles = document.getElementsByTagName('style');
+            const styles = document.getElementsByTagName('style');
 
             for (let i = 0; i < styles.length; i++) {
                 newWindow.document.body.appendChild(

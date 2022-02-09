@@ -95,8 +95,10 @@ const ObjectModel = widgets.WidgetModel.extend({
 
             if (msg.msg_type === 'shadow_map_update' && this.get('type') === 'Volume') {
                 runOnEveryPlot(this.get('id'), (plot, objInstance) => {
-                    objInstance.refreshLightMap(msg.direction);
-                    plot.K3DInstance.render();
+                    if (objInstance && objInstance.refreshLightMap) {
+                        objInstance.refreshLightMap(msg.direction);
+                        plot.K3DInstance.render();
+                    }
                 });
             }
         }, this);
@@ -222,19 +224,19 @@ const PlotView = widgets.DOMWidgetView.extend({
         this.model.lastCameraSync = (new Date()).getTime();
 
         this.model.on('msg:custom', function (obj) {
-            const { model } = this;
+            const {model} = this;
 
             if (obj.msg_type === 'fetch_screenshot') {
                 this.K3DInstance.getScreenshot(this.K3DInstance.parameters.screenshotScale, obj.only_canvas)
                     .then((canvas) => {
                         const data = canvas.toDataURL().split(',')[1];
 
-                        model.save('screenshot', data, { patch: true });
+                        model.save('screenshot', data, {patch: true});
                     });
             }
 
             if (obj.msg_type === 'fetch_snapshot') {
-                model.save('snapshot', this.K3DInstance.getHTMLSnapshot(obj.compression_level), { patch: true });
+                model.save('snapshot', this.K3DInstance.getHTMLSnapshot(obj.compression_level), {patch: true});
             }
 
             if (obj.msg_type === 'start_auto_play') {
@@ -305,6 +307,7 @@ const PlotView = widgets.DOMWidgetView.extend({
         try {
             this.K3DInstance = new K3D(ThreeJsProvider, this.container, {
                 antialias: this.model.get('antialias'),
+                logarithmicDepthBuffer: this.model.get('logarithmic_depth_buffer'),
                 lighting: this.model.get('lighting'),
                 cameraMode: this.model.get('camera_mode'),
                 snapshotType: this.model.get('snapshot_type'),
@@ -318,6 +321,7 @@ const PlotView = widgets.DOMWidgetView.extend({
                 cameraZoomSpeed: this.model.get('camera_zoom_speed'),
                 cameraPanSpeed: this.model.get('camera_pan_speed'),
                 cameraDampingFactor: this.model.get('camera_damping_factor'),
+                cameraFov: this.model.get('camera_fov'),
                 colorbarObjectId: this.model.get('colorbar_object_id'),
                 cameraAnimation: this.model.get('camera_animation'),
                 name: this.model.get('name'),
@@ -349,13 +353,15 @@ const PlotView = widgets.DOMWidgetView.extend({
         this._setVoxelPaintColor();
 
         this.model.get('object_ids').forEach(function (id) {
-            this.renderPromises.push(this.K3DInstance.load({ objects: [objectsList[id].attributes] }));
+            this.renderPromises.push(this.K3DInstance.load({objects: [objectsList[id].attributes]}));
         }, this);
 
         this.cameraChangeId = this.K3DInstance.on(this.K3DInstance.events.CAMERA_CHANGE, (control) => {
-            if ((new Date()).getTime() - self.model.lastCameraSync > 200) {
-                self.model.lastCameraSync = (new Date()).getTime();
-                self.model.save('camera', control, { patch: true });
+            if (self.model._comm_live) {
+                if ((new Date()).getTime() - self.model.lastCameraSync > 200) {
+                    self.model.lastCameraSync = (new Date()).getTime();
+                    self.model.save('camera', control, {patch: true});
+                }
             }
         });
 
@@ -366,18 +372,18 @@ const PlotView = widgets.DOMWidgetView.extend({
                 }
 
                 if (objectsList[change.id]) {
-                    objectsList[change.id].save(change.key, change.value, { patch: true });
+                    objectsList[change.id].save(change.key, change.value, {patch: true});
                 }
             }
         });
 
         this.GUIParametersChanges = this.K3DInstance.on(this.K3DInstance.events.PARAMETERS_CHANGE, (change) => {
-            self.model.save(change.key, change.value, { patch: true });
+            self.model.save(change.key, change.value, {patch: true});
         });
 
         this.voxelsCallback = this.K3DInstance.on(this.K3DInstance.events.VOXELS_CALLBACK, (param) => {
             if (objectsList[param.object.K3DIdentifier]) {
-                objectsList[param.object.K3DIdentifier].send({ msg_type: 'click_callback', coord: param.coord });
+                objectsList[param.object.K3DIdentifier].send({msg_type: 'click_callback', coord: param.coord});
             }
         });
 
@@ -557,7 +563,7 @@ const PlotView = widgets.DOMWidgetView.extend({
         }, this);
 
         _.difference(newObjectId, oldObjectId).forEach(function (id) {
-            this.renderPromises.push(this.K3DInstance.load({ objects: [objectsList[id].attributes] }));
+            this.renderPromises.push(this.K3DInstance.load({objects: [objectsList[id].attributes]}));
         }, this);
     },
 
@@ -618,7 +624,7 @@ module.exports = {
     ObjectModel,
     ObjectView,
     ThreeJsProvider,
-    CreateK3DAndLoadBinarySnapshot: CreateK3DAndLoadBinarySnapshot,
+    CreateK3DAndLoadBinarySnapshot,
     TransferFunctionEditor: TFEdit.transferFunctionEditor,
     TransferFunctionModel: TFEdit.transferFunctionModel,
     TransferFunctionView: TFEdit.transferFunctionView,

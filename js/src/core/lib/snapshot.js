@@ -1,11 +1,11 @@
 const FileSaver = require('file-saver');
-const pako = require('pako');
+const fflate = require('fflate');
+const requireJsSource = require('requirejs/require?raw');
+const fflateJsSource = require('./../../../node_modules/fflate/umd/index?raw');
 const fileLoader = require('./helpers/fileLoader');
 const templateStandalone = require('./snapshot_standalone.txt');
 const templateOnline = require('./snapshot_online.txt');
 const templateInline = require('./snapshot_inline.txt');
-const requireJsSource = require('requirejs/require?raw');
-const pakoJsSource = require('pako/dist/pako_inflate.min?raw');
 const semverRange = require('../../version').version;
 const buffer = require('./helpers/buffer');
 
@@ -33,7 +33,8 @@ if (typeof (sourceCode) === 'undefined') {
     }
 
     fileLoader(path, (data) => {
-        sourceCode = buffer.arrayBufferToBase64(pako.deflate(data));
+        data = fflate.strToU8(data);
+        sourceCode = buffer.arrayBufferToBase64(fflate.zlibSync(data));
     });
 }
 
@@ -42,10 +43,10 @@ function getHTMLSnapshot(K3D, compressionLevel) {
     let filecontent;
     const timestamp = new Date().toUTCString();
 
-    if (K3D.parameters.snapshotType === 'all') {
+    if (K3D.parameters.snapshotType === 'full') {
         filecontent = templateStandalone;
         filecontent = filecontent.split('[REQUIRE_JS]').join(requireJsSource);
-        filecontent = filecontent.split('[PAKO_JS]').join(pakoJsSource);
+        filecontent = filecontent.split('[FFLATE_JS]').join(fflateJsSource);
         filecontent = filecontent.split('[K3D_SOURCE]').join(sourceCode);
     } else if (K3D.parameters.snapshotType === 'online') {
         filecontent = templateOnline;
@@ -82,7 +83,7 @@ function handleFileSelect(K3D, evt) {
     };
 
     BinarySnapshotReader.onload = function (event) {
-        K3D.setSnapshot(pako.inflate(event.target.result));
+        K3D.setSnapshot(fflate.unzlibSync(event.target.result));
     };
 
     STLReader.onload = function (event) {

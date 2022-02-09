@@ -145,7 +145,7 @@ void main() {
 
     // LIGHT
     #if NUM_DIR_LIGHTS > 0
-        vec4 addedLights = vec4(ambientLightColor, 1.0);
+        vec4 addedLights = vec4(ambientLightColor / PI, 1.0);
         vec3 normal = worldGetNormal(px, maxTextcoord);
 
         vec3 lightDirection;
@@ -155,10 +155,10 @@ void main() {
         for ( int i = 0; i < NUM_DIR_LIGHTS; i ++ ) {
             lightDirection = -directionalLights[ i ].direction;
             lightingIntensity = clamp(dot(-lightDirection, normal), 0.0, 1.0);
-            addedLights.rgb += directionalLights[ i ].color * (0.05 + 0.95 * lightingIntensity);
+            addedLights.rgb += directionalLights[ i ].color / PI * (0.05 + 0.95 * lightingIntensity);
 
             #if (USE_SPECULAR == 1)
-            pxColor.rgb += directionalLights[ i ].color * pow(lightingIntensity, 50.0) * pxColor.a;
+            pxColor.rgb += directionalLights[ i ].color / PI * pow(lightingIntensity, 50.0) * pxColor.a;
             #endif
         }
         #pragma unroll_loop_end

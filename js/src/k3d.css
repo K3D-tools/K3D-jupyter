@@ -2,50 +2,62 @@
   margin: 0.25em 0 !important;
 }
 
-.dg input, .dg select {
+/*.dg input, .dg select {*/
+/*  color: black;*/
+/*  line-height: normal !important;*/
+/*}*/
+
+/*.dg li {*/
+/*  list-style: none !important;*/
+/*}*/
+
+/*.dg li > * {*/
+/*  margin-bottom: 0 !important;*/
+/*}*/
+
+/*.dg input, .dg select {*/
+/*  padding: 3px !important;*/
+/*  display: block !important;*/
+/*  box-shadow: none !important;*/
+/*  font-size: 100% !important;*/
+/*  border: 0 !important;*/
+/*}*/
+
+/*.dg.a {*/
+/*  margin-right: 0 !important;*/
+/*}*/
+
+/*.dg li {*/
+/*  margin: 0 !important;*/
+/*}*/
+
+.lil-gui {
+  max-height: inherit !important;
+}
+
+.lil-gui select {
   color: black;
-  line-height: normal !important;
 }
 
-.dg li {
-  list-style: none !important;
+/*.dg.main .close-button.close-bottom {*/
+/*  position: relative !important;*/
+/*}*/
+
+/*.dg.main.taller-than-window .close-button.close-bottom {*/
+/*  position: absolute !important;*/
+/*  bottom: 0 !important;*/
+/*}*/
+
+/*.dg.main.taller-than-window > ul > li:last-child {*/
+/*  margin-bottom: 20px !important;*/
+/*}*/
+
+.dg .controller[hidden] {
+  display: none;
 }
 
-.dg li > * {
-  margin-bottom: 0 !important;
-}
-
-.dg input, .dg select {
-  padding: 3px !important;
-  display: block !important;
-  box-shadow: none !important;
-  font-size: 100% !important;
-  border: 0 !important;
-}
-
-.dg.a {
-  margin-right: 0 !important;
-}
-
-.dg li {
-  margin: 0 !important;
-}
-
-.dg.main {
-  max-height: inherit !important;;
-}
-
-.dg.main .close-button.close-bottom {
-  position: relative !important;
-}
-
-.dg.main.taller-than-window .close-button.close-bottom {
-  position: absolute !important;
-  bottom: 0 !important;
-}
-
-.dg.main.taller-than-window > ul > li:last-child {
-  margin-bottom: 20px !important;
+.dg .controller:not([hidden]) {
+  display: flex
 }
 
 .k3d-target canvas {

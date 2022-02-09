@@ -33,7 +33,7 @@ function getScreenshot(K3D, scale, onlyCanvas) {
         if (onlyCanvas) {
             renderPromise = Promise.resolve();
         } else {
-            let styles = document.getElementsByTagName('style');
+            const styles = document.getElementsByTagName('style');
             let style = '';
 
             for (let i = 0; i < styles.length; i++) {

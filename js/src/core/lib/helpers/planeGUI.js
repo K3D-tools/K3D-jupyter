@@ -35,7 +35,7 @@ function init(K3D, gui, obj, prefix, dispatch) {
         current.obj.z = plane.normal.z;
         current.obj.constant = plane.constant;
 
-        current.folder.__controllers.forEach((controller) => {
+        current.folder.controllers.forEach((controller) => {
             controller.updateDisplay();
         });
 
@@ -65,7 +65,7 @@ function init(K3D, gui, obj, prefix, dispatch) {
 
     while (obj.length < Object.keys(gui[prefix].map).length - 1) {
         const i = Object.keys(gui[prefix].map).length - 1;
-        const controllers = gui[prefix].map[i - 1].folder.__controllers;
+        const controllers = gui[prefix].map[i - 1].folder.controllers;
 
         controllers[controllers.length - 1].object.delete(true);
     }
@@ -103,11 +103,11 @@ function init(K3D, gui, obj, prefix, dispatch) {
             current.folder.add({
                 fromCamera() {
                     if (current.eventId) {
-                        current.folder.__controllers[4].name('From camera [start]');
+                        current.folder.controllers[4].name('From camera [start]');
                         K3D.off(K3D.events.CAMERA_CHANGE, current.eventId);
                         current.eventId = null;
                     } else {
-                        current.folder.__controllers[4].name('From camera [stop]');
+                        current.folder.controllers[4].name('From camera [stop]');
                         current.eventId = K3D.on(K3D.events.CAMERA_CHANGE, refresh.bind(this, current));
                         refresh(current, true);
                     }
@@ -119,7 +119,7 @@ function init(K3D, gui, obj, prefix, dispatch) {
                 }
             });
 
-            current.folder.__controllers[4].domElement.previousSibling.style.width = '100%';
+            current.folder.controllers[4].domElement.previousSibling.style.width = '100%';
 
             current.folder.add({
                 delete(withoutFireChange) {
@@ -127,10 +127,7 @@ function init(K3D, gui, obj, prefix, dispatch) {
                         if (current.obj === gui[prefix].map[key].obj) {
                             const { folder } = gui[prefix].map[key];
 
-                            folder.close();
-                            gui.__ul.removeChild(folder.domElement.parentNode);
-                            delete gui.__folders[folder.name];
-                            gui.onResize();
+                            folder.destroy();
 
                             if (current.eventId) {
                                 K3D.off(K3D.events.CAMERA_CHANGE, current.eventId);
@@ -152,7 +149,7 @@ function init(K3D, gui, obj, prefix, dispatch) {
             gui[prefix].map[i].obj.z = plane[2];
             gui[prefix].map[i].obj.constant = plane[3];
 
-            gui[prefix].map[i].folder.__controllers.forEach((controller) => {
+            gui[prefix].map[i].folder.controllers.forEach((controller) => {
                 controller.updateDisplay();
             });
         }
