@@ -222,7 +222,7 @@ function K3D(provider, targetDOMNode, parameters) {
             }
 
             if (!isUpdate) {
-                return self.rebuildSceneData(force).then(self.render.bind(null, true));
+                return self.rebuildSceneData().then(self.render.bind(null, true));
             }
             return self.render(true);
         }
