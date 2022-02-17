@@ -34,7 +34,7 @@ Watch: [Interactive showcase gallery](https://k3d-jupyter.org/showcase/index.htm
 
 Documentation: [https://k3d-jupyter.org](https://k3d-jupyter.org)
 
-Jupyter version: [![Binder](https://mybinder.org/badge.svg)](https://mybinder.org/v2/gh/K3D-tools/K3D-jupyter/master?filepath=index.ipynb)
+Jupyter version: [![Binder](https://mybinder.org/badge.svg)](https://mybinder.org/v2/gh/K3D-tools/K3D-jupyter/main?filepath=index.ipynb)
 
 ## Installation
 
