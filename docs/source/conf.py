@@ -13,6 +13,8 @@
 import os
 import sys
 import time
+from source.k3d_directives.plot import K3D_Plot
+
 sys.path.insert(0, os.path.abspath('.'))
 
 
@@ -41,7 +43,8 @@ extensions = [
     'sphinx.ext.mathjax',
     'sphinx.ext.ifconfig',
     'sphinx.ext.viewcode',
-    'sphinx.ext.githubpages'
+    'sphinx.ext.githubpages',
+    'sphinx_copybutton'
 ]
 
 # Add any paths that contain templates here, relative to this directory.
@@ -67,3 +70,12 @@ html_theme = 'sphinx_rtd_theme'
 # relative to this directory. They are copied after the builtin static files,
 # so a file named "default.css" will overwrite the builtin "default.css".
 html_static_path = ['_static']
+
+
+def setup(app):
+    try:
+        app.add_css_file('style.css')
+    except AttributeError:
+        app.add_css_file('style.css')
+
+    app.add_directive('k3d_plot', K3D_Plot)

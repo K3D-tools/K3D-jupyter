@@ -40,7 +40,7 @@ class K3D_Plot(SphinxDirective):
         output = []
 
         if 'screenshot' in self.options:
-            with open(image_filepath, 'wb') as  image:
+            with open(image_filepath, 'wb') as image:
                 image.write(code_results)
         else:
             output.append(nodes.raw('', code_results, format='html'))

@@ -1,8 +1,5 @@
-
 K3D-jupyter - documentation
 ===========================
-
-
 
 K3D-jupyter is a Jupyter notebook 3D visualization package.
 
@@ -14,40 +11,12 @@ side widget with Python kernel by a proven and standardized protocol.
 
 .. toctree::
    :maxdepth: 2
-   :caption: Basic concepts
+   :caption: Why using K3D-jupyter?
 
-   intro
+   why_using_k3d_jupyter/index.rst
 
 .. toctree::
    :maxdepth: 2
    :caption: Getting started
 
-   basic_plotting
-   
-   
-.. toctree::
-   :maxdepth: 2
-   :caption: K3D by example:
-
-   basic_functionality/index
-
-.. toctree::
-   :maxdepth: 2
-   :caption: Showcase:
-
-   showcase/index
-
-
-.. toctree::
-   :maxdepth: 2
-   :caption: API Docs:
-
-   modules.rst
-
-
-Indices and tables
-==================
-
-* :ref:`genindex`
-* :ref:`modindex`
-* :ref:`search`
+   getting_started/index.rst
