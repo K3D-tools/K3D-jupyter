@@ -10,13 +10,19 @@ K3D plots are :code:`ipywidgets` assuring a perfect interaction of a browser
 side widget with Python kernel by a proven and standardized protocol.
 
 .. toctree::
-   :maxdepth: 2
-   :caption: Why using K3D-jupyter?
+    :maxdepth: 2
+    :caption: Why using K3D-jupyter?
 
-   why_using_k3d_jupyter/index.rst
+    why_using_k3d_jupyter/index.rst
 
 .. toctree::
-   :maxdepth: 2
-   :caption: Getting started
+    :maxdepth: 2
+    :caption: Getting started
 
-   getting_started/index.rst
+    getting_started/index.rst
+
+.. toctree::
+    :maxdepth: 2
+    :caption: Basic usage
+
+    basic_usage/index.rst

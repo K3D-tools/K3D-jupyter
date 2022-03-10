@@ -30,7 +30,6 @@ First plot
   :filename: first_plot.py
 
 
-
 .. Links
 .. _pip: https://pypi.org/project/k3d/
 .. _conda: https://anaconda.org/conda-forge/k3d
