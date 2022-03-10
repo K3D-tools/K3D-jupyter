@@ -26,3 +26,9 @@ side widget with Python kernel by a proven and standardized protocol.
     :caption: Basic usage
 
     basic_usage/index.rst
+
+.. toctree::
+    :maxdepth: 2
+    :caption: API reference
+
+    api_reference/index.rst
