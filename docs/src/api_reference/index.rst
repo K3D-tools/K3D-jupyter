@@ -2,7 +2,12 @@ Helpers
 =======
 
 * array_serialization_wrap
-* array_to_binary
+
+.. toctree::
+
+    helpers/array-to-binary.rst
+
+
 * bounding_corners
 * callback_serialization_wrap
 * check_attribute_range

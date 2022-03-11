@@ -13,10 +13,9 @@
 import os
 import sys
 import time
-from source.k3d_directives.plot import K3D_Plot
+from src.k3d_directives.plot import K3D_Plot
 
 sys.path.insert(0, os.path.abspath('.'))
-sys.path.insert(0, os.path.abspath("../"))
 
 # -- Project information -----------------------------------------------------
 

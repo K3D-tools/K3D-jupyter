@@ -22,16 +22,30 @@ import numpy as np
 # pylint: disable=unused-argument
 # noinspection PyUnusedLocal
 def array_to_binary(ar, compression_level=0, force_contiguous=True):
-    """Pre-process numpy array for serialization in traittypes.Array."""
+    """Returns a pre-processed numpy array for serialization into traittypes.Array.
+
+    Args:
+        ar (ndarray): A numpy array.
+        compression_level (int, optional): Level of compression. Defaults to 0.
+        force_contiguous (bool, optional): If True, makes the array contiguous in memory. Defaults to True.
+
+    Raises:
+        ValueError: Unsupported dtype.
+
+    Returns:
+        dict: The binary data of the array with its dtype and shape.
+    """
+
     if ar.dtype.kind not in ["u", "i", "f"]:  # ints and floats
-        raise ValueError("unsupported dtype: %s" % ar.dtype)
+        raise ValueError("Unsupported dtype: %s" % ar.dtype)
 
     if ar.dtype == np.float64:  # WebGL does not support float64
         ar = ar.astype(np.float32)
     elif ar.dtype == np.int64:  # JS does not support int64
         ar = ar.astype(np.int32)
 
-    if force_contiguous and not ar.flags["C_CONTIGUOUS"]:  # make sure it's contiguous
+    # make sure it's contiguous
+    if force_contiguous and not ar.flags["C_CONTIGUOUS"]:
         ar = np.ascontiguousarray(ar)
 
     if compression_level > 0:
@@ -168,11 +182,12 @@ def map_colors(attribute, color_map, color_range=()) -> Sequence[int]:
     map_array = np.asarray(color_map)
     map_array = map_array.reshape((map_array.size // 4, 4))
     attribute = (attribute - a_min) / (
-            a_max - a_min
+        a_max - a_min
     )  # normalizing attribute for range lookup
     red, green, blue = [
         np.array(
-            255 * np.interp(attribute, xp=map_array[:, 0], fp=map_array[:, i + 1]),
+            255 * np.interp(attribute,
+                            xp=map_array[:, 0], fp=map_array[:, i + 1]),
             dtype=np.int32,
         )
         for i in range(3)
@@ -184,7 +199,8 @@ def map_colors(attribute, color_map, color_range=()) -> Sequence[int]:
 def bounding_corners(bounds, z_bounds=(0.0, 1)):
     """Return corner point coordinates for bounds array."""
     return np.array(
-        list(itertools.product(bounds[:2], bounds[2:4], bounds[4:] or z_bounds))
+        list(itertools.product(bounds[:2],
+             bounds[2:4], bounds[4:] or z_bounds))
     )
 
 
@@ -200,7 +216,8 @@ def shape_validation(*dimensions):
     def validator(trait, value):
         if np.shape(value) != dimensions:
             raise TraitError(
-                "Expected an array of shape %s and got %s" % (dimensions, value.shape)
+                "Expected an array of shape %s and got %s" % (
+                    dimensions, value.shape)
             )
 
         return value
@@ -226,7 +243,8 @@ def validate_sparse_voxels(trait, value):
 def quad(w, h):
     w /= 2
     h /= 2
-    vertices = np.array([-w, -h, -0, w, -h, 0, w, h, 0, -w, h, 0], dtype=np.float32)
+    vertices = np.array([-w, -h, -0, w, -h, 0, w, h,
+                        0, -w, h, 0], dtype=np.float32)
     indices = np.array([0, 1, 2, 0, 2, 3], dtype=np.uint32)
 
     return vertices, indices
