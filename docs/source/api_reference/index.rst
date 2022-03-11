@@ -89,12 +89,14 @@ Transform
 Platonic
 ========
 
-* Cube
-* Dodecahedron
-* Icosahedron
-* Octahedron
-* PlatonicSolid
-* Tetrahedron
+.. toctree::
+
+    platonic/cube.rst
+    platonic/dodecahedron.rst
+    platonic/icosahedron.rst
+    platonic/octahedron.rst
+    platonic/platonic-solid.rst
+    platonic/tetrahedron.rst
 
 Colormaps
 =========

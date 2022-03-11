@@ -16,7 +16,7 @@ import time
 from source.k3d_directives.plot import K3D_Plot
 
 sys.path.insert(0, os.path.abspath('.'))
-
+sys.path.insert(0, os.path.abspath("../"))
 
 # -- Project information -----------------------------------------------------
 
@@ -45,10 +45,8 @@ extensions = [
     'sphinx.ext.viewcode',
     'sphinx.ext.githubpages',
     'sphinx_copybutton',
-    'sphinx.ext.autosummary'
+    'sphinx.ext.napoleon'
 ]
-
-autosummary_generate = True
 
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ['_templates']

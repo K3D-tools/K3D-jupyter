@@ -5,7 +5,7 @@ import k3d
 
 class PlatonicSolid(object):
     """Base class for platonic solids."""
-    
+
     @property
     def mesh(self):
         """Return k3d.mesh object of the solid."""
@@ -16,25 +16,33 @@ class PlatonicSolid(object):
         """Return k3d.points object of solid vertices."""
         return k3d.points(self.vertices, point_size=np.sqrt(np.sum((self.vertices[0] - self.vertices[1]) ** 2)) / 20)
 
+
 class Dodecahedron(PlatonicSolid):
     """Create a dodecahedron solid.
-        
-    Arguments:
-        origin: `array_like`. 
-            The position of centroid of the solid.
-        size: `float`.
-            The size*sqrt(3) is the distance of each vertex of the solid.
     """
+
     def __init__(self, origin=[0, 0, 0], size=1):
+        """Inits Dodecahedron with an origin and a size.
+
+        Args:
+            origin (list, optional): The position of centroid of the solid. Defaults to [0, 0, 0].
+            size (int, optional): The size*sqrt(3) is the distance of each vertex of the solid. Defaults to 1.
+
+        Raises:
+            TypeError: Origin should have 3 coordinates.
+        """
         origin = np.array(origin, dtype=np.float32)
 
         if origin.shape == (3,):
             fi = (1 + np.sqrt(5)) / 2
-            dodecahedron_vertices = list(product([-1, 1], [-1, 1], [-1, 1]))
+            dodecahedron_vertices = list(
+                product([-1, 1], [-1, 1], [-1, 1]))
             dodecahedron_vertices += [(0, fi, 1 / fi), (0, -fi, 1 / fi), (0, -fi, -1 / fi), (0, fi, -1 / fi),
-                                      (1 / fi, 0, fi), (-1 / fi, 0, fi), (-1 / fi, 0, -fi), (1 / fi, 0, -fi),
+                                      (1 / fi, 0, fi), (-1 / fi, 0,
+                                                        fi), (-1 / fi, 0, -fi), (1 / fi, 0, -fi),
                                       (fi, 1 / fi, 0), (-fi, 1 / fi, 0), (-fi, -1 / fi, 0), (fi, -1 / fi, 0)]
-            dodecahedron_vertices = np.float32(size * np.array(dodecahedron_vertices) + origin)
+            dodecahedron_vertices = np.float32(
+                size * np.array(dodecahedron_vertices) + origin)
 
             self.vertices = dodecahedron_vertices
             self.indices = [0, 1, 18, 0, 1, 10, 1, 9, 10, 0, 10, 14, 10, 14, 15, 4, 10, 15, 4, 9, 10, 4, 5, 9, 4, 5, 19,
@@ -49,20 +57,23 @@ class Dodecahedron(PlatonicSolid):
 
 class Cube(PlatonicSolid):
     """Create a cube.
-        
-    Arguments:
-        origin: `array_like`. 
-            The position of centroid of the solid.
-        size: `float`.
-            The size*sqrt(3) is the distance of each vertex from centroid of the solid.
-            
-            The edge of cube is 2*size.
     """
+
     def __init__(self, origin=[0, 0, 0], size=1):
+        """Inits Cube with an origin and a size.
+
+        Args:
+            origin (list, optional): The position of centroid of the solid. Defaults to [0, 0, 0].
+            size (int, optional): The size*sqrt(3) is the distance of each vertex from centroid of the solid. Defaults to 1.
+
+        Raises:
+            TypeError: Origin attribute should have 3 coordinates.
+        """
         origin = np.array(origin, dtype=np.float32)
 
         if origin.shape == (3,):
-            cube_vertices = np.array(list(product([1, -1], [1, -1], [1, -1])), np.float32)
+            cube_vertices = np.array(
+                list(product([1, -1], [1, -1], [1, -1])), np.float32)
             cube_vertices = np.float32(size * cube_vertices + origin)
 
             self.vertices = cube_vertices
@@ -75,22 +86,28 @@ class Cube(PlatonicSolid):
 
 class Icosahedron(PlatonicSolid):
     """Create a icosahedron solid.
-        
-    Arguments:
-        origin: `array_like`. 
-            The position of centroid of the solid.
-        size: `float`.
-            The size of the solid.
     """
+
     def __init__(self, origin=[0, 0, 0], size=1):
+        """Inits Icosahedron with an origne and a size.
+
+        Args:
+            origin (list, optional): The position of centroid of the solid. Defaults to [0, 0, 0].
+            size (int, optional): The size of the solid. Defaults to 1.
+
+        Raises:
+            TypeError: Origin attribute should have 3 coordinates.
+        """
         origin = np.array(origin, dtype=np.float32)
 
         if origin.shape == (3,):
             fi = (1 + np.sqrt(5)) / 2
             icosahedron_vertices = [(1, fi, 0), (1, -fi, 0), (-1, fi, 0), (-1, -fi, 0),
-                                    (fi, 0, 1), (fi, 0, -1), (-fi, 0, 1), (-fi, 0, -1),
+                                    (fi, 0, 1), (fi, 0, -
+                                                 1), (-fi, 0, 1), (-fi, 0, -1),
                                     (0, 1, fi), (0, 1, -fi), (0, -1, fi), (0, -1, -fi)]
-            icosahedron_vertices = np.float32(size * np.array(icosahedron_vertices) + origin)
+            icosahedron_vertices = np.float32(
+                size * np.array(icosahedron_vertices) + origin)
 
             self.vertices = icosahedron_vertices
             self.indices = [0, 2, 8, 0, 4, 8, 0, 2, 9, 0, 5, 9, 2, 6, 8, 2, 7, 9, 2, 6, 7, 0, 4, 5, 1, 4, 5, 1, 5, 11,
@@ -103,22 +120,29 @@ class Icosahedron(PlatonicSolid):
 
 class Octahedron(PlatonicSolid):
     """Create a octahedron solid.
-        
-    Arguments:
-        origin: `array_like`. 
-            The position of centroid of the solid.
-        size: `float`.
-            The distance of each vertex from centroid of the solid.
     """
+
     def __init__(self, origin=[0, 0, 0], size=1):
+        """Inits Octahedron with an origin and a size
+
+        Args:
+            origin (list, optional): The position of centroid of the solid. Defaults to [0, 0, 0].
+            size (int, optional): The distance of each vertex from centroid of the solid. Defaults to 1.
+
+        Raises:
+            TypeError: Origin attribute should have 3 coordinates.
+        """
         origin = np.array(origin, dtype=np.float32)
 
         if origin.shape == (3,):
-            octahedron_vertices = [(1, 0, 0), (0, 1, 0), (0, 0, 1), (-1, 0, 0), (0, -1, 0), (0, 0, -1)]
-            octahedron_vertices = np.float32(size * np.array(octahedron_vertices) + origin)
+            octahedron_vertices = [
+                (1, 0, 0), (0, 1, 0), (0, 0, 1), (-1, 0, 0), (0, -1, 0), (0, 0, -1)]
+            octahedron_vertices = np.float32(
+                size * np.array(octahedron_vertices) + origin)
 
             self.vertices = octahedron_vertices
-            self.indices = [0, 1, 2, 0, 1, 5, 1, 2, 3, 1, 3, 5, 0, 4, 5, 0, 2, 4, 2, 3, 4, 3, 4, 5]
+            self.indices = [0, 1, 2, 0, 1, 5, 1, 2, 3, 1,
+                            3, 5, 0, 4, 5, 0, 2, 4, 2, 3, 4, 3, 4, 5]
 
         else:
             raise TypeError('Origin attribute should have 3 coordinates.')
@@ -126,23 +150,28 @@ class Octahedron(PlatonicSolid):
 
 class Tetrahedron(PlatonicSolid):
     """Create a tetrahedron solid.
-        
-    Arguments:
-        origin: `array_like`. 
-            The position of centroid of the solid.
-        size: `float`.
-            The size*sqrt(3) is distance of each vertex of the solid.
     """
+
     def __init__(self, origin=[0, 0, 0], size=1):
+        """Inits Tetrahedron with an origin and a size.
+
+        Args:
+            origin (list, optional): The position of centroid of the solid. Defaults to [0, 0, 0].
+            size (int, optional): The size*sqrt(3) is the distance of each vertex from centroid of the solid. Defaults to 1.
+
+        Raises:
+            TypeError: Origin attribute should have 3 coordinates.
+        """
         origin = np.array(origin, dtype=np.float32)
 
         if origin.shape == (3,):
-            tetrahedron_vertices = [(1, 1, 1), (1, -1, -1), (-1, 1, -1), (-1, -1, 1)]
-            tetrahedron_vertices = np.float32(size * np.array(tetrahedron_vertices) + origin)
+            tetrahedron_vertices = [
+                (1, 1, 1), (1, -1, -1), (-1, 1, -1), (-1, -1, 1)]
+            tetrahedron_vertices = np.float32(
+                size * np.array(tetrahedron_vertices) + origin)
 
             self.vertices = tetrahedron_vertices
             self.indices = [0, 1, 2, 0, 1, 3, 1, 2, 3, 0, 2, 3]
 
         else:
             raise TypeError('Origin attribute should have 3 coordinates.')
-
