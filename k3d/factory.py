@@ -13,7 +13,7 @@ import numpy as np
 import six
 
 from .colormaps import matplotlib_color_maps
-from .helpers import check_attribute_range
+from .helpers import check_attribute_color_range
 from .objects import (
     Line,
     MarchingCubes,
@@ -120,12 +120,14 @@ def line(
     if color_map is None:
         color_map = default_colormap
     color_map = (
-        np.array(color_map, np.float32) if type(color_map) is not dict else color_map
+        np.array(color_map, np.float32) if type(
+            color_map) is not dict else color_map
     )
     attribute = (
-        np.array(attribute, np.float32) if type(attribute) is not dict else attribute
+        np.array(attribute, np.float32) if type(
+            attribute) is not dict else attribute
     )
-    color_range = check_attribute_range(attribute, color_range)
+    color_range = check_attribute_color_range(attribute, color_range)
 
     return process_transform_arguments(
         Line(
@@ -196,7 +198,7 @@ def marching_cubes(
         name: `string`.
             A name of a object
         group: `string`.
-            A name of a group            
+            A name of a group
         kwargs: `dict`.
             Dictionary arguments to configure transform and model_matrix."""
     return process_transform_arguments(
@@ -282,7 +284,7 @@ def mesh(
         name: `string`.
             A name of a object
         group: `string`.
-            A name of a group            
+            A name of a group
         texture: `bytes`.
             Image data in a specific format.
         texture_file_format: `str`.
@@ -295,11 +297,13 @@ def mesh(
     if color_map is None:
         color_map = default_colormap
     color_map = (
-        np.array(color_map, np.float32) if type(color_map) is not dict else color_map
+        np.array(color_map, np.float32) if type(
+            color_map) is not dict else color_map
     )
     uvs = np.array(uvs, np.float32) if type(uvs) is not dict else color_map
     attribute = (
-        np.array(attribute, np.float32) if type(attribute) is not dict else attribute
+        np.array(attribute, np.float32) if type(
+            attribute) is not dict else attribute
     )
     triangles_attribute = (
         np.array(triangles_attribute, np.float32)
@@ -313,13 +317,14 @@ def mesh(
     )
 
     if len(attribute) > 0:
-        color_range = check_attribute_range(attribute, color_range)
+        color_range = check_attribute_color_range(attribute, color_range)
 
     if len(triangles_attribute) > 0:
-        color_range = check_attribute_range(triangles_attribute, color_range)
+        color_range = check_attribute_color_range(
+            triangles_attribute, color_range)
 
     if len(volume) > 0:
-        color_range = check_attribute_range(volume, color_range)
+        color_range = check_attribute_color_range(volume, color_range)
 
     return process_transform_arguments(
         Mesh(
@@ -421,9 +426,10 @@ def points(
         color_map = default_colormap
 
     attribute = (
-        np.array(attribute, np.float32) if type(attribute) is not dict else attribute
+        np.array(attribute, np.float32) if type(
+            attribute) is not dict else attribute
     )
-    color_range = check_attribute_range(attribute, color_range)
+    color_range = check_attribute_color_range(attribute, color_range)
 
     return process_transform_arguments(
         Points(
@@ -535,7 +541,7 @@ def surface(
         name: `string`.
             A name of a object
         group: `string`.
-            A name of a group            
+            A name of a group
         kwargs: `dict`.
             Dictionary arguments to configure transform and model_matrix."""
 
@@ -543,7 +549,7 @@ def surface(
         color_map = default_colormap
     color_map = np.array(color_map, np.float32)
     attribute = np.array(attribute, np.float32)
-    color_range = check_attribute_range(attribute, color_range)
+    color_range = check_attribute_color_range(attribute, color_range)
 
     return process_transform_arguments(
         Surface(
@@ -600,7 +606,7 @@ def text(
         name: `string`.
             A name of a object
         group: `string`.
-            A name of a group            
+            A name of a group
         size: `float`.
             Font size in 'em' HTML units.
         kwargs: `dict`.
@@ -659,7 +665,7 @@ def text2d(
         name: `string`.
             A name of a object
         group: `string`.
-            A name of a group            
+            A name of a group
         size: `float`.
             Font size in 'em' HTML units."""
 
@@ -713,7 +719,7 @@ def label(
         name: `string`.
             A name of a object
         group: `string`.
-            A name of a group            
+            A name of a group
         is_html: `Boolean`.
             Whether text should be interpreted as HTML insted of KaTeX.
         size: `float`.
@@ -792,7 +798,7 @@ def texture(
         name: `string`.
             A name of a object
         group: `string`.
-            A name of a group            
+            A name of a group
         puv: `list`.
             A list of float triplets (x,y,z). The first triplet mean a position of left-bottom corner of texture.
             Second and third triplets means a base of coordinate system for texture.
@@ -802,7 +808,7 @@ def texture(
         color_map = default_colormap
     color_map = np.array(color_map, np.float32)
     attribute = np.array(attribute, np.float32)
-    color_range = check_attribute_range(attribute, color_range)
+    color_range = check_attribute_color_range(attribute, color_range)
 
     return process_transform_arguments(
         Texture(
@@ -859,7 +865,7 @@ def texture_text(
         name: `string`.
             A name of a object
         group: `string`.
-            A name of a group            
+            A name of a group
         font_size: `int`.
             The font size inside the sprite texture in px units. This does not affect the size of the
             text in the scene, only the accuracy and raster size of the texture."""
@@ -935,7 +941,7 @@ def vector_field(
         name: `string`.
             A name of a object
         group: `string`.
-            A name of a group            
+            A name of a group
         kwargs: `dict`.
             Dictionary arguments to configure transform and model_matrix."""
     return process_transform_arguments(
@@ -1011,7 +1017,7 @@ def vectors(
         name: `string`.
             A name of a object
         group: `string`.
-            A name of a group            
+            A name of a group
         group: `string`.
             A name of a group"""
     return process_transform_arguments(
@@ -1087,7 +1093,7 @@ def voxels(
         name: `string`.
             A name of a object
         group: `string`.
-            A name of a group            
+            A name of a group
         kwargs: `dict`.
             Dictionary arguments to configure transform and model_matrix."""
     if color_map is None:
@@ -1159,16 +1165,16 @@ def sparse_voxels(
         name: `string`.
             A name of a object
         group: `string`.
-            A name of a group            
+            A name of a group
         kwargs: `dict`.
             Dictionary arguments to configure transform and model_matrix."""
     if color_map is None:
         color_map = nice_colors
 
     assert (
-            isinstance(space_size, (tuple, list, np.ndarray))
-            and np.shape(space_size) == (3,)
-            and all(d > 0 for d in space_size)
+        isinstance(space_size, (tuple, list, np.ndarray))
+        and np.shape(space_size) == (3,)
+        and all(d > 0 for d in space_size)
     )
 
     if bounds is not None:
@@ -1241,7 +1247,7 @@ def voxels_group(
         name: `string`.
             A name of a object
         group: `string`.
-            A name of a group            
+            A name of a group
         kwargs: `dict`.
             Dictionary arguments to configure transform and model_matrix."""
     if color_map is None:
@@ -1346,7 +1352,7 @@ def volume(
         name: `string`.
             A name of a object
         group: `string`.
-            A name of a group            
+            A name of a group
         kwargs: `dict`.
             Dictionary arguments to configure transform and model_matrix."""
 
@@ -1354,13 +1360,14 @@ def volume(
         color_map = default_colormap
 
     color_range = (
-        check_attribute_range(volume, color_range)
+        check_attribute_color_range(volume, color_range)
         if type(color_range) is not dict
         else color_range
     )
 
     if opacity_function is None:
-        opacity_function = [np.min(color_map[::4]), 0.0, np.max(color_map[::4]), 1.0]
+        opacity_function = [np.min(color_map[::4]),
+                            0.0, np.max(color_map[::4]), 1.0]
 
     return process_transform_arguments(
         Volume(
@@ -1430,20 +1437,21 @@ def mip(
         name: `string`.
             A name of a object
         group: `string`.
-            A name of a group            
+            A name of a group
         kwargs: `dict`.
             Dictionary arguments to configure transform and model_matrix."""
     if color_map is None:
         color_map = default_colormap
 
     color_range = (
-        check_attribute_range(volume, color_range)
+        check_attribute_color_range(volume, color_range)
         if type(color_range) is not dict
         else color_range
     )
 
     if opacity_function is None:
-        opacity_function = [np.min(color_map[::4]), 0.0, np.max(color_map[::4]), 1.0]
+        opacity_function = [np.min(color_map[::4]),
+                            0.0, np.max(color_map[::4]), 1.0]
 
     return process_transform_arguments(
         MIP(
@@ -1525,7 +1533,7 @@ def vtk_poly_data(
         name: `string`.
             A name of a object
         group: `string`.
-            A name of a group            
+            A name of a group
         kwargs: `dict`.
             Dictionary arguments to configure transform and model_matrix."""
     if color_map is None:
@@ -1554,10 +1562,11 @@ def vtk_poly_data(
         )
         color_range = cell_color_attribute[1:3]
     elif volume != []:
-        color_range = check_attribute_range(volume, color_range)
+        color_range = check_attribute_color_range(volume, color_range)
 
     vertices = nps.vtk_to_numpy(poly_data.GetPoints().GetData())
-    indices = nps.vtk_to_numpy(poly_data.GetPolys().GetData()).reshape(-1, 4)[:, 1:4]
+    indices = nps.vtk_to_numpy(
+        poly_data.GetPolys().GetData()).reshape(-1, 4)[:, 1:4]
     volume_bounds = (
         np.array(volume_bounds, np.float32)
         if type(volume_bounds) is not dict
@@ -1704,7 +1713,7 @@ def plot(
         name: `string`.
             Name of the plot. Used to filenames of snapshot/screenshot etc.
         group: `string`.
-            A name of a group            
+            A name of a group
         camera_mode: `str`.
             Mode of camera.
 

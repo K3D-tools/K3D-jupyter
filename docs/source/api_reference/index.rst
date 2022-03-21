@@ -5,25 +5,28 @@ Helpers
 
 .. toctree::
 
-    helpers/array-to-binary.rst
+    helpers/array-serialization-wrap.rst
+    helpers/array-to-json.rst
+    helpers/bounding-corners.rst
+    helpers/callback-serialization-wrap.rst
+    helpers/check-attribute-color-range.rst
+    helpers/download.rst
+    helpers/get-bounding-box.rst
+    helpers/get-bounding-box-point.rst
+    helpers/get-bounding-box-points.rst
+    helpers/json-to-array.rst
+    helpers/map-colors.rst
+    helpers/minmax.rst
+    helpers/min-bounding-dimension.rst
+    helpers/shape-validation.rst
+    helpers/sparse-voxels-validation.rst
+    helpers/quad.rst
+    helpers/from-json.rst
+    helpers/to-json.rst
 
 
-* bounding_corners
+
 * callback_serialization_wrap
-* check_attribute_range
-* download
-* from_json
-* from_json_to_array
-* get_bounding_box
-* get_bounding_box_point
-* get_bounding_box_points
-* map_colors
-* min_bounding_dimension
-* minmax
-* quad
-* shape_validation
-* to_json
-* validate_sparse_voxels
 
 Factory
 =======

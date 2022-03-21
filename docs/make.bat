@@ -7,7 +7,7 @@ REM Command file for Sphinx documentation
 if "%SPHINXBUILD%" == "" (
 	set SPHINXBUILD=python -msphinx
 )
-set SOURCEDIR=src
+set SOURCEDIR=source
 set BUILDDIR=build
 set SPHINXPROJ=K3D-jupyter
 

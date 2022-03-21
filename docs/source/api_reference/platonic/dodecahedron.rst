@@ -1,4 +1,4 @@
-.. _platonic-dodecahedron:
+.. _platonic.Dodecahedron:
 
 platonic.Dodecahedron
 ======================

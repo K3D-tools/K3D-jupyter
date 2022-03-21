@@ -1,9 +1,9 @@
-.. heplers-array-to-binary:
+.. _helpers.array_to_json:
 
-helpers.array_to_binary
-=======================
+helpers.array_to_json
+=====================
 
-.. autofunction:: k3d.helpers.array_to_binary
+.. autofunction:: k3d.helpers.array_to_json
 
 **Examples**
 
@@ -14,9 +14,9 @@ Data compression
     import k3d
     import numpy as np
 
-    array = np.array([[1, 2, 3], [4, 5, 6]])
+    ar = np.array([[1, 2, 3], [4, 5, 6]])
 
-    data = k3d.helpers.array_to_binary(ar, compression_level=2)
+    data = k3d.helpers.array_to_json(ar, compression_level=2)
 
     """
     {
@@ -33,9 +33,9 @@ No data compression
     import k3d
     import numpy as np
 
-    array = np.array([[1, 2, 3], [4, 5, 6]])
+    ar = np.array([[1, 2, 3], [4, 5, 6]])
 
-    data = k3d.helpers.array_to_binary(ar)
+    data = k3d.helpers.array_to_json(ar)
 
     """
     {

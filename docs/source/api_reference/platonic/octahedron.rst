@@ -1,4 +1,4 @@
-.. _platonic-octahedron:
+.. _platonic.Octahedron:
 
 platonic.Octahedron
 ======================

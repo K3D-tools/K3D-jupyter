@@ -1,4 +1,4 @@
-.. _platonic-platonic-solid:
+.. _platonic.PlatonicSolid:
 
 platonic.PlatonicSolid
 ======================

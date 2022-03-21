@@ -5,7 +5,7 @@
 SPHINXOPTS    =
 SPHINXBUILD   = python3 -msphinx
 SPHINXPROJ    = K3D-jupyter
-SOURCEDIR     = src
+SOURCEDIR     = source
 BUILDDIR      = build
 
 # Put it first so that "make" without argument is like "make help".

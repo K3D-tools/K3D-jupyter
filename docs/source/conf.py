@@ -13,9 +13,9 @@
 import os
 import sys
 import time
-from src.k3d_directives.plot import K3D_Plot
+from source.k3d_directives.plot import K3D_Plot
 
-sys.path.insert(0, os.path.abspath('.'))
+sys.path.insert(0, os.path.abspath('../..'))
 
 # -- Project information -----------------------------------------------------
 
@@ -25,8 +25,12 @@ copyright = time.strftime(
 author = u'Marcin Kostur, Artur Trzęsiok, Tomasz Gandor, Thomas Mattone'
 
 # The full version, including alpha/beta/rc tags
-release = '2.12.0'
+_version_py = os.path.abspath('../../k3d/_version.py')
+version_ns = {}
+with open(_version_py) as f:
+    exec(f.read(), version_ns)
 
+release = version_ns['__version__']
 
 # -- General configuration ---------------------------------------------------
 

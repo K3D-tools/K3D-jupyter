@@ -1,4 +1,4 @@
-.. _platonic-cube:
+.. _platonic.Cube:
 
 platonic.Cube
 =============

@@ -1,4 +1,4 @@
-.. _platonic-icosahedron:
+.. _platonic.Icosahedron:
 
 platonic.Icosahedron
 ======================
