@@ -84,39 +84,43 @@ def line(
 ):
     """Create a Line drawable for plotting segments and polylines.
 
-    Arguments:
-        vertices: `array_like`.
-            Array with (x, y, z) coordinates of segment endpoints.
-        color: `int`.
-            Packed RGB color of the lines (0xff0000 is red, 0xff is blue) when `colors` is empty.
-        colors: `array_like`.
-            Array of int: packed RGB colors (0xff0000 is red, 0xff is blue) when attribute,
-            color_map and color_range are empty.
-        attribute: `array_like`.
-            Array of float attribute for the color mapping, coresponding to each vertex.
-        color_map: `list`.
-            A list of float quadruplets (attribute value, R, G, B), sorted by attribute value. The first
-            quadruplet should have value 0.0, the last 1.0; R, G, B are RGB color components in the range 0.0 to 1.0.
-        color_range: `list`.
-            A pair [min_value, max_value], which determines the levels of color attribute mapped
-            to 0 and 1 in the color map respectively.
-        shader: `str`.
-            Display style (name of the shader used) of the lines.
-            Legal values are:
+    Parameters
+    ----------
+    vertices : array_like
+        Array with (x, y, z) coordinates of segment endpoints.
+    color : int, optional
+        Hex color of the lines when `colors` is empty, by default `_default_color`.
+    colors : list, optional
+        Array of Hex colors when attribute, color_map and color_range are empty, by default [].
+    attribute: list, optional
+        List of values used to apply `color_map`, by default [].
+    color_map : list, optional
+        List of float quadruplets (attribute value, R, G, B) sorted by attribute value, by default None.
+        The first quadruplet should have value 0.0, the last 1.0;
+        R, G, B are RGB color components in the range 0.0 to 1.0.
+    color_range : list, optional
+        [min_value, max_value] pair determining the levels of color attribute mapped
+        to 0 and 1 in the colormap, by default [].
+    width : float, optional
+        Thickness of the lines, by default 0.01.
+    shader : {'simple', 'think', 'mesh'}, optional
+        Display style of the lines, by default `thick`.
+    radial_segments : int, optional
+        Number of segmented faces around the circumference of the tube, by default 8.
+    name : str, optional
+        Object name, by default None.
+    group : str, optional
+        Name of a group, by default None.
+    compression_level : int, optional
+        Level of data compression [-1, 9], by default 0.
+    **kwargs
+        For other keyword-only arguments, see transform.process_transform_arguments.
 
-            :`simple`: simple lines,
-
-            :`thick`: thick lines,
-
-            :`mesh`: high precision triangle mesh of segments (high quality and GPU load).
-        radial_segments: 'int'.
-            Number of segmented faces around the circumference of the tube
-        width: `float`.
-            Thickness of the lines.
-        name: `string`.
-            A name of a object
-        group: `string`.
-            A name of a group"""
+    Returns
+    -------
+    Line
+        Line Drawable.
+    """
     if color_map is None:
         color_map = default_colormap
     color_map = (
@@ -165,42 +169,53 @@ def marching_cubes(
 ):
     """Create a MarchingCubes drawable.
 
-    Plot an isosurface of a scalar field obtained through a Marching Cubes algorithm.
-
+    Plot an isosurface of a scalar field obtained through
+    `Marching cubes <https://en.wikipedia.org/wiki/Marching_cubes>`_ algorithm.
     The default domain of the scalar field is -0.5 < x, y, z < 0.5.
 
-    If the domain should be different, the bounding box needs to be transformed using kwargs, like this:
-        marching_cubes(..., bounds=[-1, 1, -1, 1, -1, 1])
-    or:
-        marching_cubes(..., xmin=-10, xmax=10, ymin=-4, ymax=4, zmin=0, zmax=20)
-    or:
-        marching_cubes(..., scaling=[width, height, length])
+    If the domain should be different, the bounding box needs to be transformed using `kwargs`
 
-    Arguments:
-        scalar_field: `array_like`.
-            A 3D scalar field of values.
-        level: `float`.
-            Value at the computed isosurface.
-        color: `int`.
-            Packed RGB color of the isosurface (0xff0000 is red, 0xff is blue).
-        wireframe: `bool`.
-            Whether mesh should display as wireframe.
-        spacings_x: `array_like`.
-            A spacings in x axis. Should match to scalar_field shape.
-        spacings_y: `array_like`.
-            A spacings in y axis. Should match to scalar_field shape.
-        spacings_z: `array_like`.
-            A spacings in z axis. Should match to scalar_field shape.
-        flat_shading: `bool`.
-            Whether mesh should display with flat shading.
-        opacity: `float`.
-            Opacity of mesh.
-        name: `string`.
-            A name of a object
-        group: `string`.
-            A name of a group
-        kwargs: `dict`.
-            Dictionary arguments to configure transform and model_matrix."""
+    - ``marching_cubes(..., bounds=[-1, 1, -1, 1, -1, 1])``
+    - ``marching_cubes(..., xmin=-10, xmax=10, ymin=-4, ymax=4, zmin=0, zmax=20)``
+    - ``marching_cubes(..., scaling=[width, height, length])``
+
+    Parameters
+    ----------
+    scalar_field : array_like
+        3D scalar field of values.
+    level : float
+        Value at the computed isosurface.
+    color : int, optional
+        Hex color of the isosurface, by default `_default_color`.
+    wireframe : bool, optional
+        Display the mesh as wireframe, by default False.
+    flat_shading : bool, optional
+        Display the mesh with flat shading, by default True.
+    opacity : float, optional
+        Opacity of the mesh, by default 1.0.
+    spacings_x : list, optional
+        Spacings in x axis, by default [].
+        Should match `scalar_field` shape.
+    spacings_y : list, optional
+        Spacings in y axis, by default [].
+        Should match `scalar_field` shape.
+    spacings_z : list, optional
+        Spacings in z axis, by default [].
+        Should match `scalar_field` shape.
+    name : str, optional
+        Object name, by default None.
+    group : str, optional
+        Name of a group, by default None.
+    compression_level : int, optional
+        Level of data compression [-1, 9], by default 0.
+    **kwargs
+        For other keyword-only arguments, see transform.process_transform_arguments.
+
+    Returns
+    -------
+    MarchingCubes
+        MarchingCubes Drawable.
+    """
     return process_transform_arguments(
         MarchingCubes(
             scalar_field=scalar_field,
@@ -245,33 +260,7 @@ def mesh(
         triangles_attribute=[],
         **kwargs
 ):
-    """Create a Mesh drawable representing a 3D triangles mesh.
-
-    Arguments:
-        vertices: `array_like`.
-            Array of triangle vertices: float (x, y, z) coordinate triplets.
-        indices: `array_like`.
-            Array of vertex indices: int triplets of indices from vertices array.
-        color: `int`.
-            Packed RGB color of the mesh (0xff0000 is red, 0xff is blue) when not using color maps.
-        colors: `array_like`.
-            Same-length array of `int`-packed RGB color of the points (0xff0000 is red, 0xff is blue).
-        attribute: `array_like`.
-            Array of float attribute for the color mapping, coresponding to each vertex.
-        triangles_attribute: `array_like`.
-            Array of float attribute for the color mapping, coresponding to each triangle.
-        color_map: `list`.
-            A list of float quadruplets (attribute value, R, G, B), sorted by attribute value. The first
-            quadruplet should have value 0.0, the last 1.0; R, G, B are RGB color components in the range 0.0 to 1.0.
-        color_range: `list`.
-            A pair [min_value, max_value], which determines the levels of color attribute mapped
-            to 0 and 1 in the color map respectively.
-        wireframe: `bool`.
-            Whether mesh should display as wireframe.
-        flat_shading: `bool`.
-            Whether mesh should display with flat shading.
-        opacity: `float`.
-            Opacity of mesh.
+    """
         volume: `array_like`.
             3D array of `float`
         volume_bounds: `array_like`.
@@ -281,19 +270,70 @@ def mesh(
             typles should have value 0.0, the last 1.0; opacity is in the range 0.0 to 1.0.
         side: `string`.
             Control over which side to render for a mesh. Legal values are `front`, `back`, `double`.
-        name: `string`.
-            A name of a object
-        group: `string`.
-            A name of a group
         texture: `bytes`.
             Image data in a specific format.
         texture_file_format: `str`.
             Format of the data, it should be the second part of MIME format of type 'image/',
             for example 'jpeg', 'png', 'gif', 'tiff'.
         uvs: `array_like`.
-            Array of float uvs for the texturing, coresponding to each vertex.
-        kwargs: `dict`.
-            Dictionary arguments to configure transform and model_matrix."""
+            Array of float uvs for the texturing, coresponding to each vertex."""
+    """Create a Mesh drawable from 3D triangles.
+
+    Parameters
+    ----------
+    vertices : array_like
+        Array of triangle vertices. `float` (x, y, z) coordinate triplets.
+    indices : array_like
+        Array of vertex indices. `int` triplets of indices from vertices array.
+    color : int, optional
+        Hex color of the lines when `colors` is empty, by default `_default_color`.
+    colors : list, optional
+        Array of Hex colors when attribute, color_map and color_range are empty, by default [].
+    attribute: list, optional
+        List of values used to apply `color_map`, by default [].
+    color_map : list, optional
+        List of float quadruplets (attribute value, R, G, B) sorted by attribute value, by default None.
+        The first quadruplet should have value 0.0, the last 1.0;
+        R, G, B are RGB color components in the range 0.0 to 1.0.
+    color_range : list, optional
+        [min_value, max_value] pair determining the levels of color attribute mapped
+        to 0 and 1 in the colormap, by default [].
+    wireframe : bool, optional
+        Display the mesh as wireframe, by default False.
+    flat_shading : bool, optional
+        Display the mesh with flat shading, by default True.
+    opacity : float, optional
+        Opacity of the mesh, by default 1.0.
+    texture : _type_, optional
+        _description_, by default None
+    texture_file_format : _type_, optional
+        _description_, by default None
+    volume : list, optional
+        _description_, by default []
+    volume_bounds : list, optional
+        _description_, by default []
+    opacity_function : list, optional
+        _description_, by default []
+    side : str, optional
+        _description_, by default "front"
+    uvs : _type_, optional
+        _description_, by default None
+    name : str, optional
+        Object name, by default None.
+    group : str, optional
+        Name of a group, by default None.
+    compression_level : int, optional
+        Level of data compression [-1, 9], by default 0.
+    triangles_attribute : list, optional
+        _description_, by default []
+    **kwargs
+        For other keyword-only arguments, see transform.process_transform_arguments.
+
+    Returns
+    -------
+    _type_
+        _description_
+    """
     if color_map is None:
         color_map = default_colormap
     color_map = (

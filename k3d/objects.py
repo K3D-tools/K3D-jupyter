@@ -55,10 +55,7 @@ class ListOrArray(List):
 
 
 class VoxelChunk(widgets.Widget):
-    """
-    Voxel chunk class for selective updating voxels
-    """
-
+    """Voxel chunk class for selective updating voxels."""
     _model_name = Unicode("ChunkModel").tag(sync=True)
     _model_module = Unicode("k3d").tag(sync=True)
     _model_module_version = Unicode(version).tag(sync=True)

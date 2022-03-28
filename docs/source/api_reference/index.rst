@@ -1,8 +1,6 @@
 Helpers
 =======
 
-* array_serialization_wrap
-
 .. toctree::
 
     helpers/array-serialization-wrap.rst
@@ -24,16 +22,16 @@ Helpers
     helpers/from-json.rst
     helpers/to-json.rst
 
-
-
-* callback_serialization_wrap
-
 Factory
 =======
 
+.. toctree::
+
+    factory/line.rst
+    factory/marching_cubes.rst
+    factory/mesh.rst
+
 * label
-* line
-* marching_cubes
 * mesh
 * mip
 * plot
