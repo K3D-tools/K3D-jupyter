@@ -260,23 +260,6 @@ def mesh(
         triangles_attribute=[],
         **kwargs
 ):
-    """
-        volume: `array_like`.
-            3D array of `float`
-        volume_bounds: `array_like`.
-            6-element tuple specifying the bounds of the volume data (x0, x1, y0, y1, z0, z1)
-        opacity_function: `array`.
-            A list of float tuples (attribute value, opacity), sorted by attribute value. The first
-            typles should have value 0.0, the last 1.0; opacity is in the range 0.0 to 1.0.
-        side: `string`.
-            Control over which side to render for a mesh. Legal values are `front`, `back`, `double`.
-        texture: `bytes`.
-            Image data in a specific format.
-        texture_file_format: `str`.
-            Format of the data, it should be the second part of MIME format of type 'image/',
-            for example 'jpeg', 'png', 'gif', 'tiff'.
-        uvs: `array_like`.
-            Array of float uvs for the texturing, coresponding to each vertex."""
     """Create a Mesh drawable from 3D triangles.
 
     Parameters
@@ -304,20 +287,24 @@ def mesh(
         Display the mesh with flat shading, by default True.
     opacity : float, optional
         Opacity of the mesh, by default 1.0.
-    texture : _type_, optional
-        _description_, by default None
-    texture_file_format : _type_, optional
-        _description_, by default None
+    texture : bytes, optional
+        Image data in a specific format, by default None.
+    texture_file_format : str, optional
+        Format of the data, , by default None.
+
+        It should be the second part of MIME format of type 'image/',e.g. 'jpeg', 'png', 'gif', 'tiff'.
     volume : list, optional
-        _description_, by default []
+        3D array of `float`, by default [].
     volume_bounds : list, optional
-        _description_, by default []
+        6-element tuple specifying the bounds of the volume data (x0, x1, y0, y1, z0, z1), by default [].
     opacity_function : list, optional
-        _description_, by default []
-    side : str, optional
-        _description_, by default "front"
-    uvs : _type_, optional
-        _description_, by default None
+        float tuples (attribute value, opacity) sorted by attribute value, by default [].
+
+        The first tuples should have value 0.0, the last 1.0; opacity is in the range 0.0 to 1.0.
+    side : {"front", "back", "both"}, optional
+        Side to render, by default "front".
+    uvs : array_like, optional
+        float uvs for the texturing corresponding to each vertex, by default None.
     name : str, optional
         Object name, by default None.
     group : str, optional
@@ -331,8 +318,8 @@ def mesh(
 
     Returns
     -------
-    _type_
-        _description_
+    Mesh
+        Mesh Drawable
     """
     if color_map is None:
         color_map = default_colormap
@@ -415,53 +402,54 @@ def points(
 ):
     """Create a Points drawable representing a point cloud.
 
-    Arguments:
-        positions: `array_like`.
-            Array with (x, y, z) coordinates of the points.
-        colors: `array_like`.
-            Same-length array of `int`-packed RGB color of the points (0xff0000 is red, 0xff is blue).
-        color: `int`.
-            Packed RGB color of the points (0xff0000 is red, 0xff is blue) when `colors` is empty.
-        opacity: `float`.
-            Opacity of points.
-        opacities: `array_like`.
-            Same-length array of `float` opacity of the points.
-        point_size: `float`.
-            Diameter of the balls representing the points in 3D space.
-        point_sizes: `array_like`.
-            Same-length array of `float` sizes of the points.
-        shader: `str`.
-            Display style (name of the shader used) of the points.
-            Legal values are:
+    Parameters
+    ----------
+    positions : array_like
+        Array of (x, y, z) coordinates.
+    colors : list, optional
+        Array of Hex colors, by default [].
+    color : int, optional
+        Hex color of the lines when `colors` is empty, by default `_default_color`.
+    point_size : float, optional
+        Diameter of the points, by default 1.0.
+    point_sizes : list, optional
+        Same-length array of `float` sizes of the points, by default [].
+    shader : {'flat', 'dot', '3d', '3dSpecular', 'mesh'}, optional
+        Display style of the points, by default `3dSpecular`.
+    opacity : float, optional
+        Opacity of points, by default 1.0.
+    opacities : list, optional
+        Same-length array of `float` opacity of the points, by default [].
+    attribute: list, optional
+        List of values used to apply `color_map`, by default [].
+    color_map : list, optional
+        List of float quadruplets (attribute value, R, G, B) sorted by attribute value, by default None.
+        The first quadruplet should have value 0.0, the last 1.0;
+        R, G, B are RGB color components in the range 0.0 to 1.0.
+    color_range : list, optional
+        [min_value, max_value] pair determining the levels of color attribute mapped
+        to 0 and 1 in the colormap, by default [].
+    opacity_function : list, optional
+        float tuples (attribute value, opacity) sorted by attribute value, by default [].
+        The first tuples should have value 0.0, the last 1.0; opacity is in the range 0.0 to 1.0.
+    name : str, optional
+        Object name, by default None.
+    group : str, optional
+        Name of a group, by default None.
+    compression_level : int, optional
+        Level of data compression [-1, 9], by default 0.
+    mesh_detail : int, optional
+        Detail level of points mesh, by default 2.
+        Only valid if `shader` is set to `mesh`. Setting this to a value greater than 0 adds more vertices making it no longer an
+        icosahedron. When detail is greater than 1, it's effectively a sphere.
+    **kwargs
+        For other keyword-only arguments, see transform.process_transform_arguments.
 
-            :`flat`: simple circles with uniform color,
-
-            :`dot`: simple dot with uniform color,
-
-            :`3d`: little 3D balls,
-
-            :`3dSpecular`: little 3D balls with specular lightning,
-
-            :`mesh`: high precision triangle mesh of a ball (high quality and GPU load).
-
-        mesh_detail: `int`.
-            Default is 2. Setting this to a value greater than 0 adds more vertices making it no longer an
-            icosahedron. When detail is greater than 1, it's effectively a sphere. Only valid if shader='mesh'
-        attribute: `array_like`.
-            Array of float attribute for the color mapping, coresponding to each point.
-        color_map: `list`.
-            A list of float quadruplets (attribute value, R, G, B), sorted by attribute value. The first
-            quadruplet should have value 0.0, the last 1.0; R, G, B are RGB color components in the range 0.0 to 1.0.
-        color_range: `list`.
-            A pair [min_value, max_value], which determines the levels of color attribute mapped
-            to 0 and 1 in the color map respectively.
-        opacity_function: `array`.
-            A list of float tuples (attribute value, opacity), sorted by attribute value. The first
-            tuples should have value 0.0, the last 1.0; opacity is in the range 0.0 to 1.0.
-        name: `string`.
-            A name of a object
-        group: `string`.
-            A name of a group"""
+    Returns
+    -------
+    Points
+        Points Drawable.
+    """
     if color_map is None:
         color_map = default_colormap
 
@@ -507,19 +495,30 @@ def stl(
 ):
     """Create an STL drawable for data in STereoLitograpy format.
 
-    Arguments:
-        stl: `str` or `bytes`.
-            STL data in either ASCII STL (string) or Binary STL (bytes).
-        color: `int`.
-            Packed RGB color of the resulting mesh (0xff0000 is red, 0xff is blue).
-        wireframe: `bool`.
-            Whether mesh should display as wireframe.
-        flat_shading: `bool`.
-            Whether mesh should display with flat shading.
-        name: `string`.
-            A name of a object
-        group: `string`.
-            A name of a group"""
+    Parameters
+    ----------
+    stl : `str` or `bytes`
+        STL data in either ASCII STL (str) or Binary STL (bytes).
+    color : int, optional
+        Hex color of the isosurface, by default `_default_color`.
+    wireframe : bool, optional
+        Display the mesh as wireframe, by default False.
+    flat_shading : bool, optional
+        Display the mesh with flat shading, by default True.
+    name : str, optional
+        Object name, by default None.
+    group : str, optional
+        Name of a group, by default None.
+    compression_level : int, optional
+        Level of data compression [-1, 9], by default 0.
+    **kwargs
+        For other keyword-only arguments, see transform.process_transform_arguments.
+
+    Returns
+    -------
+    STL
+        STL Drawable.
+    """
     plain = isinstance(stl, six.string_types)
 
     return process_transform_arguments(
@@ -553,38 +552,46 @@ def surface(
     """Create a Surface drawable.
 
     Plot a 2d function: z = f(x, y).
-
     The default domain of the scalar field is -0.5 < x, y < 0.5.
 
-    If the domain should be different, the bounding box needs to be transformed using kwargs, like this:
-        surface(..., bounds=[-1, 1, -1, 1])
-    or:
-        surface(..., xmin=-10, xmax=10, ymin=-4, ymax=4)
+    If the domain should be different, the bounding box needs to be transformed using `kwargs`
 
-    Arguments:
-        heights: `array_like`.
-            A 2d scalar function values grid.
-        color: `int`.
-            Packed RGB color of the surface (0xff0000 is red, 0xff is blue).
-        wireframe: `bool`.
-            Whether mesh should display as wireframe.
-        flat_shading: `bool`.
-            Whether mesh should display with flat shading.
-        attribute: `array_like`.
-            Array of float attribute for the color mapping, coresponding to each vertex.
-        color_map: `list`.
-            A list of float quadruplets (attribute value, R, G, B), sorted by attribute value. The first
-            quadruplet should have value 0.0, the last 1.0; R, G, B are RGB color components in the range 0.0 to 1.0.
-        color_range: `list`.
-            A pair [min_value, max_value], which determines the levels of color attribute mapped
-            to 0 and 1 in the color map respectively.
-        name: `string`.
-            A name of a object
-        group: `string`.
-            A name of a group
-        kwargs: `dict`.
-            Dictionary arguments to configure transform and model_matrix."""
+    - ``surface(..., bounds=[-1, 1, -1, 1])``
+    - ``surface(..., xmin=-10, xmax=10, ymin=-4, ymax=4)``
 
+    Parameters
+    ----------
+    heights : array_like
+        Array of `float` values.
+    color : int, optional
+        Hex color of the isosurface, by default `_default_color`.
+    wireframe : bool, optional
+        Display the mesh as wireframe, by default False.
+    flat_shading : bool, optional
+        Display the mesh with flat shading, by default True.
+    attribute: list, optional
+        List of values used to apply `color_map`, by default [].
+    color_map : list, optional
+        List of float quadruplets (attribute value, R, G, B) sorted by attribute value, by default None.
+        The first quadruplet should have value 0.0, the last 1.0;
+        R, G, B are RGB color components in the range 0.0 to 1.0.
+    color_range : list, optional
+        [min_value, max_value] pair determining the levels of color attribute mapped
+        to 0 and 1 in the colormap, by default [].
+    name : str, optional
+        Object name, by default None.
+    group : str, optional
+        Name of a group, by default None.
+    compression_level : int, optional
+        Level of data compression [-1, 9], by default 0.
+    **kwargs
+        For other keyword-only arguments, see transform.process_transform_arguments.
+
+    Returns
+    -------
+    Surface
+        Surface Drawable.
+    """
     if color_map is None:
         color_map = default_colormap
     color_map = np.array(color_map, np.float32)
@@ -625,33 +632,50 @@ def text(
 ):
     """Create a Text drawable for 3D-positioned text labels.
 
-    Arguments:
-        text: `str`.
-            Content of the text.
-        position: `list`.
-            Coordinates (x, y, z) of the text's position.
-        on_top: `Boolean`.
-            Render order with 3d object
-        label_box: `Boolean`.
-            Label background box.
-        color: `int`.
-            Packed RGB color of the text (0xff0000 is red, 0xff is blue).
-        is_html: `Boolean`.
-            Whether text should be interpreted as HTML insted of KaTeX.
-        reference_point: `str`.
-            Two-letter string representing the text's alignment.
-            First letter: 'l', 'c' or 'r': left, center or right
+    Parameters
+    ----------
+    text : str
+        Text content.
+    position : tuple, optional
+        (x, y, z) coordinates of text position, by default (0, 0, 0).
+    color : int, optional
+        Hex color of the isosurface, by default `_default_color`.
+    reference_point : str, optional
+        Two-letter string representing text alignment, by default "lb".
 
-            Second letter: 't', 'c' or 'b': top, center or bottom.
-        name: `string`.
-            A name of a object
-        group: `string`.
-            A name of a group
-        size: `float`.
-            Font size in 'em' HTML units.
-        kwargs: `dict`.
-            Dictionary arguments to configure transform and model_matrix."""
+        First letters
 
+        - ``l`` -- left
+        - ``c`` -- center
+        - ``r`` -- right
+
+        Second letters
+
+        - ``t`` -- top
+        - ``c`` -- center
+        - ``b`` -- bottom
+    on_top : bool, optional
+        Render order with 3d object, by default True.
+    size : float, optional
+        Font size in 'em' HTML units, by default 1.0.
+    label_box : bool, optional
+        Label background box, by default True.
+    is_html : bool, optional
+        Interprete text as HTMl instead of KaTeX, by default False.
+    name : str, optional
+        Object name, by default None.
+    group : str, optional
+        Name of a group, by default None.
+    compression_level : int, optional
+        Level of data compression [-1, 9], by default 0.
+    **kwargs
+        For other keyword-only arguments, see transform.process_transform_arguments.
+
+    Returns
+    -------
+    Text
+        Text Drawable.
+    """
     return process_transform_arguments(
         Text(
             position=position,
@@ -678,37 +702,55 @@ def text2d(
         size=1.0,
         reference_point="lt",
         label_box=True,
+        is_html=False,
         name=None,
         group=None,
-        is_html=False,
         compression_level=0,
 ):
     """Create a Text2d drawable for 2D-positioned (viewport bound, OSD) labels.
 
-    Arguments:
-        text: `str`.
-            Content of the text.
-        position: `list`.
-            Ratios (r_x, r_y) of the text's position in range (0, 1) - relative to canvas size.
-        color: `int`.
-            Packed RGB color of the text (0xff0000 is red, 0xff is blue).
-        is_html: `Boolean`.
-            Whether text should be interpreted as HTML insted of KaTeX.
-        reference_point: `str`.
-            Two-letter string representing the text's alignment.
+    Parameters
+    ----------
+    text : str
+        Text content.
+    position : tuple, optional
+        (r_x, r_y) text position ratios in range (0, 1) - relative to canvas size, by default (0, 0).
+    color : int, optional
+        Hex color of the isosurface, by default `_default_color`.
+    reference_point : str, optional
+        Two-letter string representing text alignment, by default "lb".
 
-            First letter: 'l', 'c' or 'r': left, center or right
+        First letters
 
-            Second letter: 't', 'c' or 'b': top, center or bottom.
-        label_box: `Boolean`.
-            Label background box.
-        name: `string`.
-            A name of a object
-        group: `string`.
-            A name of a group
-        size: `float`.
-            Font size in 'em' HTML units."""
+        - ``l`` -- left
+        - ``c`` -- center
+        - ``r`` -- right
 
+        Second letters
+
+        - ``t`` -- top
+        - ``c`` -- center
+        - ``b`` -- bottom
+    size : float, optional
+        Font size in 'em' HTML units, by default 1.0.
+    label_box : bool, optional
+        Label background box, by default True.
+    is_html : bool, optional
+        Interprete text as HTMl instead of KaTeX, by default False.
+    name : str, optional
+        Object name, by default None.
+    group : str, optional
+        Name of a group, by default None.
+    compression_level : int, optional
+        Level of data compression [-1, 9], by default 0.
+    **kwargs
+        For other keyword-only arguments, see transform.process_transform_arguments.
+
+    Returns
+    -------
+    Text2d
+        Text2d Drawable.
+    """
     return Text2d(
         position=position,
         reference_point=reference_point,

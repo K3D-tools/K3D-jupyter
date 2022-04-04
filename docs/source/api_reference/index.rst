@@ -30,17 +30,16 @@ Factory
     factory/line.rst
     factory/marching_cubes.rst
     factory/mesh.rst
+    factory/points.rst
+    factory/stl.rst
+    factory/surface.rst
+    factory/text.rst
+    factory/text2d.rst
 
 * label
-* mesh
 * mip
 * plot
-* points
 * sparse_voxels
-* stl
-* surface
-* text
-* text2d
 * texture
 * texture_text
 * vector_field
