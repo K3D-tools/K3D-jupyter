@@ -66,7 +66,7 @@ module.exports = {
         modelMatrix.set.apply(modelMatrix, config.model_matrix.data);
         modelMatrix.decompose(translation, rotation, scale);
 
-        const texture = new THREE.DataTexture3D(
+        const texture = new THREE.Data3DTexture(
             config.volume.data,
             config.volume.shape[2],
             config.volume.shape[1],

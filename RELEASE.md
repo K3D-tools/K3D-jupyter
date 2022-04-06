@@ -3,8 +3,10 @@
 git add and git commit
 rm -rf build
 rm -rf dist
-python setup.py sdist upload
-python setup.py bdist_wheel upload
+pip install -ve .
+python setup.py sdist
+python setup.py bdist_wheel
+twine upload dist/*
 cd js
 grunt build
 npm publish

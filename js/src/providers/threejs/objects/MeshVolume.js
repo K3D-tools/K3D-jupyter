@@ -38,7 +38,7 @@ module.exports = {
         geometry.setAttribute('position', new THREE.BufferAttribute(vertices, 3));
         geometry.setIndex(new THREE.BufferAttribute(indices, 1));
 
-        const texture = new THREE.DataTexture3D(
+        const texture = new THREE.Data3DTexture(
             config.volume.data,
             config.volume.shape[2],
             config.volume.shape[1],
