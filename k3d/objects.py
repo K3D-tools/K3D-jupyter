@@ -1380,7 +1380,7 @@ class SparseVoxels(DrawableWithVoxelCallback):
     sparse_voxels = (
         Array(dtype=np.uint16)
         .tag(sync=True, **array_serialization_wrap("sparse_voxels"))
-        .valid(sparse_voxels_validation)
+        .valid(sparse_voxels_validation())
     )
     space_size = (
         Array(dtype=np.uint32)

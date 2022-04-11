@@ -27,26 +27,26 @@ Factory
 
 .. toctree::
 
+    factory/label.rst
     factory/line.rst
-    factory/marching_cubes.rst
+    factory/marching-cubes.rst
     factory/mesh.rst
     factory/points.rst
     factory/stl.rst
     factory/surface.rst
     factory/text.rst
     factory/text2d.rst
+    factory/texture.rst
+    factory/texture-text.rst
+    factory/vector-field.rst
+    factory/vectors.rst
+    factory/voxels.rst
+    factory/sparse-voxels.rst
 
-* label
 * mip
 * plot
-* sparse_voxels
-* texture
-* texture_text
-* vector_field
-* vectors
 * volume
 * voxel_chunk
-* voxels
 * voxels_group
 * vtk_poly_data
 
