@@ -31,6 +31,8 @@ Factory
     factory/line.rst
     factory/marching-cubes.rst
     factory/mesh.rst
+    factory/mip.rst
+    factory/plot.rst
     factory/points.rst
     factory/stl.rst
     factory/surface.rst
@@ -40,56 +42,22 @@ Factory
     factory/texture-text.rst
     factory/vector-field.rst
     factory/vectors.rst
+    factory/volume.rst
+    factory/voxel-chunk.rst
     factory/voxels.rst
+    factory/voxels-group.rst
+    factory/vtk-poly-data.rst
     factory/sparse-voxels.rst
 
-* mip
-* plot
-* volume
-* voxel_chunk
-* voxels_group
-* vtk_poly_data
-
-Objects
-=======
-
-* Drawable
-* DrawableWithCallback
-* DrawableWithVoxelCallback
-* Group
-* Label
-* Line
-* ListOrArray
-* MIP
-* MarchingCubes
-* Mesh
-* Points
-* STL
-* SparseVoxels
-* Surface
-* Text
-* Text2d
-* Texture
-* TextureText
-* TimeSeries
-* VectorField
-* Vectors
-* Volume
-* VoxelChunk
-* Voxels
-* VoxelsGroup
-
-Plot
-====
-
-* Plot
 
 Transform
 =========
 
-* Transform
-* get_bounds_fit_matrix
-* process_transform_arguments
+.. toctree::
+
+    transform/get-bounds-fit-matrix.rst
+    transform/process-transform-arguments.rst
+    transform/transform.rst
 
 Platonic
 ========
@@ -106,6 +74,8 @@ Platonic
 Colormaps
 =========
 
-* basic_color_maps
-* matplotlib_color_maps
-* paraview_color_maps
+.. toctree::
+
+    colormaps/basic-color-maps.rst
+    colormaps/matplotlib-color-maps.rst
+    colormaps/paraview-color-maps.rst

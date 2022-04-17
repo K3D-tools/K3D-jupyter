@@ -1337,7 +1337,7 @@ def voxels_group(
     Parameters
     ----------
     space_size : array_like
-        Width, Height, Length of space.
+        Width, Height, Length of space. Must be non-negative.
     voxels_group : list, optional
         List of `voxel_chunk` in format {voxels: np.array, coord: [x,y,z], multiple: number}, by default [].
     chunks_ids : list, optional
@@ -1420,59 +1420,60 @@ def volume(
 
     By default, the volume are a grid inscribed in the -0.5 < x, y, z < 0.5 cube
     regardless of the passed voxel array shape (aspect ratio etc.).
-    Different grid size, shape and rotation can be obtained using  kwargs:
 
-        volume(..., bounds=[0, 300, 0, 400, 0, 500])
+    Different grid size, shape and rotation can be obtained using `kwargs`
 
-    or:
+    - ``volume(..., bounds=[0, 300, 0, 400, 0, 500])``
+    - ``volume(..., scaling=[scale_x, scale_y, scale_z])``
 
-        volume(..., scaling=[scale_x, scale_y, scale_z]).
+    Parameters
+    ----------
+    volume : ndarray
+        3D array of 'float'.
+    color_map : list, optional
+        List of float quadruplets (attribute value, R, G, B) sorted by attribute value, by default None.
+        The first quadruplet should have value 0.0, the last 1.0;
+        R, G, B are RGB color components in the range 0.0 to 1.0.
+    opacity_function : list, optional
+        float tuples (attribute value, opacity) sorted by attribute value, by default [].
+        The first tuples should have value 0.0, the last 1.0; opacity is in the range 0.0 to 1.0.
+    color_range : list, optional
+        [min_value, max_value] pair determining the levels of color attribute mapped
+        to 0 and 1 in the colormap, by default [].
+    samples : float, optional
+        Number of iteration per 1 unit of space, by default 512.0.
+    alpha_coef : float, optional
+        Alpha multiplier, by default 50.0.
+    gradient_step : float, optional
+        Gradient light step, by default 0.005.
+    shadow : {'off', 'on_demand', 'dynamic'}, optional
+        Type of shadow on volume, by default "off".
+    interpolation : bool, optional
+        Interpolate volume raycasting data, by default True.
+    shadow_delay : int, optional
+        Minimum number of miliseconds between shadow map updates, by default 500.
+    shadow_res : int, optional
+        Resolution of shadow map, by default 128.
+    focal_length : float, optional
+        Focal length of depth of field renderer, by default 0.0.
+    focal_plane : float, optional
+        Focal plane of depth of field renderer, by default 100.0.
+    ray_samples_count : int, optional
+        Number of rays for depth of field rendering, by default 16.
+    name : str, optional
+        Object name, by default None.
+    group : str, optional
+        Name of a group, by default None.
+    compression_level : int, optional
+        Level of data compression [-1, 9], by default 0.
+    **kwargs
+        For other keyword-only arguments, see transform.process_transform_arguments.
 
-    Arguments:
-        volume: `array_like`.
-            3D array of `float`
-        color_map: `list`.
-            A list of float quadruplets (attribute value, R, G, B), sorted by attribute value. The first
-            quadruplet should have value 0.0, the last 1.0; R, G, B are RGB color components in the range 0.0 to 1.0.
-        opacity_function: `array`.
-            A list of float tuples (attribute value, opacity), sorted by attribute value. The first
-            typles should have value 0.0, the last 1.0; opacity is in the range 0.0 to 1.0.
-        color_range: `list`.
-            A pair [min_value, max_value], which determines the levels of volume attribute mapped
-            to 0 and 1 in the color map respectively.
-        samples: `float`.
-            Number of iteration per 1 unit of space.
-        alpha_coef: `float`
-            Alpha multiplier.
-        gradient_step: `float`
-            Gradient light step.
-        focal_length: `float`
-            focal length of depth of field renderer. 0.0 for disabled
-        focal_plane: `float`
-            focal plane for depth of field renderer
-        ray_samples_count: `Int`
-            Number of rays for Depth of Field rendering
-        shadow: `str`.
-            Type of shadow on volume
-            Legal values are:
-
-                :`off`: shadow disabled,
-                :`on_demand`: update shadow map on demand,
-                :`dynamic`: update shadow map automaticaly every shadow_delay.
-
-        shadow_delay: `float`.
-            Minimum number of miliseconds between shadow map updates.
-        shadow_res: `int`.
-            Resolution of shadow map.
-        interpolation: `bool`.
-            Whether volume raycasting should interpolate data or not.
-        name: `string`.
-            A name of a object
-        group: `string`.
-            A name of a group
-        kwargs: `dict`.
-            Dictionary arguments to configure transform and model_matrix."""
-
+    Returns
+    -------
+    Volume
+        Volume Drawable.
+    """
     if color_map is None:
         color_map = default_colormap
 
@@ -1527,36 +1528,44 @@ def mip(
 
     By default, the volume are a grid inscribed in the -0.5 < x, y, z < 0.5 cube
     regardless of the passed voxel array shape (aspect ratio etc.).
-    Different grid size, shape and rotation can be obtained using  kwargs:
 
-        mip(..., bounds=[0, 300, 0, 400, 0, 500])
+    Different grid size, shape and rotation can be obtained using `kwargs`
 
-    or:
+    - ``mip(..., bounds=[0, 300, 0, 400, 0, 500])``
+    - ``mip(..., scaling=[scale_x, scale_y, scale_z])``
 
-        mip(..., scaling=[scale_x, scale_y, scale_z]).
+    Parameters
+    ----------
+    volume : ndarray
+        3D array of 'float'.
+    color_map : list, optional
+        List of float quadruplets (attribute value, R, G, B) sorted by attribute value, by default None.
+        The first quadruplet should have value 0.0, the last 1.0;
+        R, G, B are RGB color components in the range 0.0 to 1.0.
+    opacity_function : list, optional
+        float tuples (attribute value, opacity) sorted by attribute value, by default [].
+        The first tuples should have value 0.0, the last 1.0; opacity is in the range 0.0 to 1.0.
+    color_range : list, optional
+        [min_value, max_value] pair determining the levels of color attribute mapped
+        to 0 and 1 in the colormap, by default [].
+    samples : float, optional
+        Number of iteration per 1 unit of space, by default 512.0.
+    gradient_step : float, optional
+        Gradient light step, by default 0.005.
+    name : str, optional
+        Object name, by default None.
+    group : str, optional
+        Name of a group, by default None.
+    compression_level : int, optional
+        Level of data compression [-1, 9], by default 0.
+    **kwargs
+        For other keyword-only arguments, see transform.process_transform_arguments.
 
-    Arguments:
-        volume: `array_like`.
-            3D array of `float`
-        color_map: `list`.
-            A list of float quadruplets (attribute value, R, G, B), sorted by attribute value. The first
-            quadruplet should have value 0.0, the last 1.0; R, G, B are RGB color components in the range 0.0 to 1.0.
-        opacity_function: `array`.
-            A list of float tuples (attribute value, opacity), sorted by attribute value. The first
-            typles should have value 0.0, the last 1.0; opacity is in the range 0.0 to 1.0.
-        color_range: `list`.
-            A pair [min_value, max_value], which determines the levels of volume attribute mapped
-            to 0 and 1 in the color map respectively.
-        samples: `float`.
-            Number of iteration per 1 unit of space.
-        gradient_step: `float`.
-            Gradient light step.
-        name: `string`.
-            A name of a object
-        group: `string`.
-            A name of a group
-        kwargs: `dict`.
-            Dictionary arguments to configure transform and model_matrix."""
+    Returns
+    -------
+    MIP
+        MIP Drawable.
+    """
     if color_map is None:
         color_map = default_colormap
 
@@ -1590,69 +1599,89 @@ def vtk_poly_data(
         poly_data,
         color=_default_color,
         color_attribute=None,
+        cell_color_attribute=None,
         color_map=None,
+        color_range=[],
         side="front",
         wireframe=False,
         opacity=1.0,
-        volume=[],
-        flat_shading=True,
-        volume_bounds=[],
         opacity_function=[],
+        volume=[],
+        volume_bounds=[],
+        flat_shading=True,
         name=None,
         group=None,
-        color_range=[],
         compression_level=0,
-        cell_color_attribute=None,
         **kwargs
 ):
     """Create a Mesh drawable from given vtkPolyData.
 
-    This function requires the vtk module (from package VTK) to be installed.
+    Requires the vtk module (from package VTK) to be installed.
 
-    Arguments:
-        poly_data: `vtkPolyData`.
-            Native vtkPolyData geometry.
-        color: `int`.
-            Packed RGB color of the resulting mesh (0xff0000 is red, 0xff is blue) when not using color maps.
-        color_attribute: `tuple` of (`str`, `float`, `float`).
-            This determines which scalar should be taken as the
-            attribute for the color_map, and the color_range for the mesh: (attribute_name, min_value, max_value).
-            A VTK mesh can have multiple named attributes in the vertices.
-            min_value is the value mapped to 0 in the color_map.
-            max_value is the value mapped to 1 in the color_map.
-        cell_color_attribute: `tuple` of (`str`, `float`, `float`).
-            This determines which scalar should be taken as the
-            attribute for the color_map, and the color_range for the mesh: (attribute_name, min_value, max_value).
-            A VTK mesh can have multiple named attributes in the vertices.
-            min_value is the value mapped to 0 in the color_map.
-            max_value is the value mapped to 1 in the color_map.
-        color_map: `list`.
-            A list of float quadruplets (attribute value, R, G, B), sorted by attribute value. The first
-            quadruplet should have value 0.0, the last 1.0; R, G, B are RGB color components in the range 0.0 to 1.0.
-        color_range: `list`.
-            A pair [min_value, max_value], which determines the levels of color attribute mapped
-            to 0 and 1 in the color map respectively.
-        wireframe: `bool`.
-            Whether mesh should display as wireframe.
-        opacity: `float`.
-            Opacity of mesh.
-        flat_shading: `bool`.
-            Whether mesh should display with flat shading.
-        volume: `array_like`.
-            3D array of `float`
-        volume_bounds: `array_like`.
-            6-element tuple specifying the bounds of the volume data (x0, x1, y0, y1, z0, z1)
-        opacity_function: `array`.
-            A list of float tuples (attribute value, opacity), sorted by attribute value. The first
-            typles should have value 0.0, the last 1.0; opacity is in the range 0.0 to 1.0.
-        side: `string`.
-            Control over which side to render for a mesh. Legal values are `front`, `back`, `double`.
-        name: `string`.
-            A name of a object
-        group: `string`.
-            A name of a group
-        kwargs: `dict`.
-            Dictionary arguments to configure transform and model_matrix."""
+    Parameters
+    ----------
+    poly_data : vtkPolyData
+        Native vtkPolyData geometry.
+    color : int, optional
+        Hex color of the mesh when when not using color_map, by default _default_color.
+    color_attribute : tuple, optional
+        (`str`, `float`, `float`) to determine which scalar should be used
+        for the color_map and the color_range (attribute_name, min_value, max_value), by default None.
+
+        A VTK mesh can have multiple named attributes in the vertices
+
+        - min_value is the value mapped to 0 in the color_map
+        - max_value is the value mapped to 1 in the color_map
+    cell_color_attribute : tuple, optional
+        (`str`, `float`, `float`) to determine which scalar should be used
+        for the color_map and the color_range (attribute_name, min_value, max_value), by default None.
+
+        A VTK mesh can have multiple named attributes in the vertices
+
+        - min_value is the value mapped to 0 in the color_map
+        - max_value is the value mapped to 1 in the color_map
+    color_map : list, optional
+        List of float quadruplets (attribute value, R, G, B) sorted by attribute value, by default None.
+        The first quadruplet should have value 0.0, the last 1.0;
+        R, G, B are RGB color components in the range 0.0 to 1.0.
+    color_range : list, optional
+        [min_value, max_value] pair determining the levels of color attribute mapped
+        to 0 and 1 in the colormap, by default [].
+    side : {"front", "back", "both"}, optional
+        Side to render, by default "front".
+    wireframe : bool, optional
+        Display the mesh as wireframe, by default False.
+    opacity : float, optional
+        Opacity of mesh, by default 1.0.
+    opacity_function : list, optional
+        float tuples (attribute value, opacity) sorted by attribute value, by default [].
+
+        The first tuples should have value 0.0, the last 1.0; opacity is in the range 0.0 to 1.0.
+    volume : list, optional
+        3D array of `float`, by default [].
+    volume_bounds : list, optional
+        6-element tuple specifying the bounds of the volume data (x0, x1, y0, y1, z0, z1), by default [].
+    flat_shading : bool, optional
+        Display the mesh with flat shading, by default True.
+    name : str, optional
+        Object name, by default None.
+    group : str, optional
+        Name of a group, by default None.
+    compression_level : int, optional
+        Level of data compression [-1, 9], by default 0.
+    **kwargs
+        For other keyword-only arguments, see transform.process_transform_arguments.
+
+    Returns
+    -------
+    Mesh
+        Mesh Drawable.
+
+    Raises
+    ------
+    RuntimeError
+        vtk module is not available.
+    """
     if color_map is None:
         color_map = default_colormap
 
@@ -1717,17 +1746,25 @@ def vtk_poly_data(
 
 
 def voxel_chunk(voxels, coord, multiple=1, compression_level=0):
-    """Create a chunk of data that can be used for k3d.voxels_group.
+    """Create a VoxelChunk that can be used for voxels_group.
 
-    Arguments:
-        voxels: `array_like`.
-            3D array of `int` in range (0, 255).
-            0 means empty voxel, 1 and above refer to consecutive color_map entries.
-        coord: `array_like`.
-            Coordinate of chunk
-        multiple: `Int`
-            For future usage"""
+    Parameters
+    ----------
+    voxels : array_like
+        3D array of int from 0 to 255.
+        0 means empty voxel; 1 and above refer to value of a colormap.
+    coord : array_like
+        Coordinates of the chunk.
+    multiple : int, optional
+        For future usage, by default 1.
+    compression_level : int, optional
+        Level of data compression [-1, 9], by default 0.
 
+    Returns
+    -------
+    VoxelChunk
+        VoxelChunk for voxels_group.
+    """
     return VoxelChunk(
         voxels=np.array(voxels, np.uint8),
         coord=np.array(coord, np.uint32),
@@ -1740,13 +1777,13 @@ def plot(
         height=512,
         antialias=3,
         logarithmic_depth_buffer=True,
-        background_color=0xFFFFFF,
+        background_color=0xffffff,
         camera_auto_fit=True,
         grid_auto_fit=True,
         grid_visible=True,
         screenshot_scale=2.0,
         grid=(-1, -1, -1, 1, 1, 1),
-        grid_color=0xE6E6E6,
+        grid_color=0xe6e6e6,
         label_color=0x444444,
         lighting=1.5,
         menu_visibility=True,
@@ -1754,11 +1791,11 @@ def plot(
         colorbar_object_id=-1,
         camera_fov=60.0,
         time=0.0,
-        axes=["x", "y", "z"],
+        axes=['x', 'y', 'z'],
         axes_helper=1.0,
         name=None,
         group=None,
-        camera_mode="trackball",
+        camera_mode='trackball',
         snapshot_type='full',
         auto_rendering=True,
         camera_no_zoom=False,
@@ -1770,84 +1807,80 @@ def plot(
         camera_damping_factor=0.0,
         fps=25.0,
 ):
-    """Create a K3D Plot widget.
+    """Create a Plot widget.
 
-    This creates the main widget for displaying 3D objects.
+    Parameters
+    ----------
+    height : int, optional
+        Height of the widget in pixels, by default 512.
+    antialias : int, optional
+        WebGL renderer antialiasing, by default 3.
+    logarithmic_depth_buffer : bool, optional
+        WebGL renderer logarithmic depth buffer, by default True.
+    background_color : int, optional
+        Hex color of plot background, by default 0xffffff.
+    camera_auto_fit : bool, optional
+        Automatic camera setting after adding, removing or modifying objects, by default True.
+    grid_auto_fit : bool, optional
+        Automatic grid adjustment to contained objects, by default True.
+    grid_visible : bool, optional
+        Display grid, by default True.
+    screenshot_scale : float, optional
+        Screenshot resolution multiplier, by default 2.0.
+    grid : tuple, optional
+        6-element tuple specifying grid bounds (x0, y0, z0, x1, y1, z1), by default (-1, -1, -1, 1, 1, 1).
+    grid_color : int, optional
+        Hex color of the grid, by default 0xe6e6e6.
+    label_color : int, optional
+        Hex color of labels, by default 0x444444.
+    lighting : float, optional
+        Lighting factor, by default 1.5.
+    menu_visibility : bool, optional
+        Display menu on GUI, by default True.
+    voxel_paint_color : int, optional
+        (initial) int value to be inserted when editing voxels, by default 0.
+    colorbar_object_id : int, optional
+        Id of colorbar object, by default -1.
+    camera_fov : float, optional
+        Camera field of view, by default 60.0.
+    time : float, optional
+        Time value, by default 0.0.
+    axes : list, optional
+        Axes labels, by default ['x', 'y', 'z'].
+    axes_helper : float, optional
+        Axes helper size, by default 1.0.
+    name : str, optional
+        Object name, by default None.
+    group : str, optional
+        Name of a group, by default None.
+    camera_mode : {'trackball', 'orbit', 'fly'}, optional
+        Mode of camera, by default 'trackball'.
+    snapshot_type : {'full', 'online', 'inline'}, optional
+        Type of snapshot, by default 'full'.
+    auto_rendering : bool, optional
+        Auto rendering state, by default True.
+    camera_no_zoom : bool, optional
+        Lock camera zoom, by default False.
+    camera_no_rotate : bool, optional
+        Lock camera rotation, by default False.
+    camera_no_pan : bool, optional
+        Lock camera pan, by default False.
+    camera_rotate_speed : float, optional
+        Camera rotation speed, by default 1.0.
+    camera_zoom_speed : float, optional
+        Camera zoom speed, by default 1.2.
+    camera_pan_speed : float, optional
+        Camera pan speed, by default 0.3.
+    camera_damping_factor : float, optional
+        Camera intensity of damping, by default 0.0.
+    fps : float, optional
+        Animations FPS, by default 25.0.
 
-    Arguments:
-        height: `int`.
-            Height of the widget in pixels.
-        antialias: `bool`.
-            Enable antialiasing in WebGL renderer.
-        logarithmic_depth_buffer: `bool`.
-            Enables logarithmic_depth_buffer in WebGL renderer.
-        background_color: `int`.
-            Packed RGB color of the plot background (0xff0000 is red, 0xff is blue).
-        camera_auto_fit: `bool`.
-            Enable automatic camera setting after adding, removing or changing a plot object.
-        grid_auto_fit: `bool`.
-            Enable automatic adjustment of the plot grid to contained objects.
-        grid_visible: `bool`.
-            Enable or disable grid.
-        grid_color: `int`.
-            Packed RGB color of the plot grids (0xff0000 is red, 0xff is blue).
-        grid: `array_like`.
-            6-element tuple specifying the bounds of the plot grid (x0, y0, z0, x1, y1, z1).
-        screenshot_scale: `Float`.
-            Multipiler to screenshot resolution.
-        label_color: `int`.
-            Packed RGB color of the labels (0xff0000 is red, 0xff is blue).
-        lighting: `Float`.
-            Lighting factor.
-        menu_visibility: `bool`.
-            Enable menu on GUI.
-        voxel_paint_color: `int`.
-            The (initial) int value to be inserted when editing voxels.
-        camera_no_rotate: `Bool`.
-            Lock for camera rotation.
-        camera_no_zoom: `Bool`.
-            Lock for camera zoom.
-        camera_no_pan: `Bool`.
-            Lock for camera pan.
-        camera_rotate_speed: `Float`.
-            Speed of camera rotation.
-        camera_zoom_speed: `Float`.
-            Speed of camera zoom.
-        camera_pan_speed: `Float`.
-            Speed of camera pan.
-        camera_fov: `Float`.
-            Camera Field of View.
-        camera_damping_factor: `Float`.
-            Defines the intensity of damping. Default is 0 (disabled).
-        snapshot_type: `string`.
-            Can be 'full', 'online' or 'inline'.
-        axes: `list`.
-            Axes labels for plot.
-        axes_helper: `Float`.
-            Axes helper size.
-        time: `list`.
-            Time value (used in TimeSeries)
-        name: `string`.
-            Name of the plot. Used to filenames of snapshot/screenshot etc.
-        group: `string`.
-            A name of a group
-        camera_mode: `str`.
-            Mode of camera.
-
-            Legal values are:
-
-            :`trackball`: orbit around point with dynamic up-vector of camera,
-
-            :`orbit`: orbit around point with fixed up-vector of camera,
-
-            :`fly`: orbit around point with dynamic up-vector of camera, wheel on mouse change also target point.
-        auto_rendering: `Bool`.
-            State of auto rendering.
-        fps: `Float`.
-            Fps of animation.
-        grid: `array_like`.
-            6-element tuple specifying the bounds of the plot grid (x0, y0, z0, x1, y1, z1)."""
-
+    Returns
+    -------
+    Plot
+        Plot Widget.
+    """
     return Plot(
         antialias=antialias,
         logarithmic_depth_buffer=logarithmic_depth_buffer,
