@@ -1,8 +1,7 @@
 Features
 ========
 
-K3D-jupyter primarily aims is to be an easy and efficient 3D visualization tool.
-
+K3D-jupyter primarily aims is to be an easy and efficient 3D visualization tool. |br|
 To do so, it focuses on straightforward user experience,
 providing an API similar to the well-known matplotlib_,
 and uses the maximum of accelerated 3D graphics in web browsers.
@@ -35,15 +34,13 @@ Interactivity with Ipywidgets
 =============================
 
 K3D-jupyter being an ipywidgets_, it natively contains front-end
-and back-end.
-
+and back-end. |br|
 The back-end is a Python process where the data is prepared, and
 the frontend is a JavaScript application with WebGL_ (via `three.js <threejs>`_ and
 custom `pixel shaders <pixelshaders>`_) access.
 
 The ipywidgets_ architecture allows for communication of these two parts.
-K3D-jupyter exposes this communication and allows for easy dataset updates on existing plots.
-
+K3D-jupyter exposes this communication and allows for easy dataset updates on existing plots. |br|
 For example, if :code:`plt_points` is an :ref:`k3d.points <factory.points>` object,
 then a simple assignment on the backend
 
@@ -88,6 +85,10 @@ snapshots, which contain the front-end JavaScript 3D application
 bundles with the data. They can be used independently on the Python
 back-end, send by email or embedded in webpages.
 
+.. |br| raw:: html
+
+   <br />
+
 .. Links
 .. _matplotlib: https://matplotlib.org/
 .. _tomography: https://en.wikipedia.org/wiki/Tomography
@@ -99,3 +100,4 @@ back-end, send by email or embedded in webpages.
 .. _pixelshaders: https://www.nvidia.com/en-us/drivers/feature-pixelshader/
 .. _NumPy: https://numpy.org
 .. _VTK: https://vtk.org/
+.. _Jupyter: https://jupyter.org/
