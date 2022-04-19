@@ -89,13 +89,13 @@ def line(
     vertices : array_like
         Array with (x, y, z) coordinates of segment endpoints.
     color : int, optional
-        Hex color of the lines when `colors` is empty, by default `_default_color`.
+        Hex color of the lines when `colors` is empty, by default _default_color.
     colors : list, optional
         Array of Hex colors when attribute, color_map and color_range are empty, by default [].
     attribute: list, optional
         List of values used to apply `color_map`, by default [].
     color_map : list, optional
-        List of float quadruplets (attribute value, R, G, B) sorted by attribute value, by default None.
+        List of `float` quadruplets (attribute value, R, G, B) sorted by attribute value, by default None.
         The first quadruplet should have value 0.0, the last 1.0;
         R, G, B are RGB color components in the range 0.0 to 1.0.
     color_range : list, optional
@@ -114,7 +114,7 @@ def line(
     compression_level : int, optional
         Level of data compression [-1, 9], by default 0.
     **kwargs
-        For other keyword-only arguments, see transform.process_transform_arguments.
+        For other keyword-only arguments, see :ref:`transform.process_transform_arguments`.
 
     Returns
     -------
@@ -186,7 +186,7 @@ def marching_cubes(
     level : float
         Value at the computed isosurface.
     color : int, optional
-        Hex color of the isosurface, by default `_default_color`.
+        Hex color of the isosurface, by default _default_color.
     wireframe : bool, optional
         Display the mesh as wireframe, by default False.
     flat_shading : bool, optional
@@ -209,7 +209,7 @@ def marching_cubes(
     compression_level : int, optional
         Level of data compression [-1, 9], by default 0.
     **kwargs
-        For other keyword-only arguments, see transform.process_transform_arguments.
+        For other keyword-only arguments, see :ref:`transform.process_transform_arguments`.
 
     Returns
     -------
@@ -265,17 +265,17 @@ def mesh(
     Parameters
     ----------
     vertices : array_like
-        Array of triangle vertices. `float` (x, y, z) coordinate triplets.
+        Array of triangle vertices, `float` (x, y, z) coordinate triplets.
     indices : array_like
         Array of vertex indices. `int` triplets of indices from vertices array.
     color : int, optional
-        Hex color of the vertices when `colors` is empty, by default `_default_color`.
+        Hex color of the vertices when `colors` is empty, by default _default_color.
     colors : list, optional
         Array of Hex colors when attribute, color_map and color_range are empty, by default [].
     attribute: list, optional
         List of values used to apply `color_map`, by default [].
     color_map : list, optional
-        List of float quadruplets (attribute value, R, G, B) sorted by attribute value, by default None.
+        List of `float` quadruplets (attribute value, R, G, B) sorted by attribute value, by default None.
         The first quadruplet should have value 0.0, the last 1.0;
         R, G, B are RGB color components in the range 0.0 to 1.0.
     color_range : list, optional
@@ -291,17 +291,15 @@ def mesh(
         Image data in a specific format, by default None.
     texture_file_format : str, optional
         Format of the data, , by default None.
-
         It should be the second part of MIME format of type 'image/',e.g. 'jpeg', 'png', 'gif', 'tiff'.
     volume : list, optional
         3D array of `float`, by default [].
     volume_bounds : list, optional
         6-element tuple specifying the bounds of the volume data (x0, x1, y0, y1, z0, z1), by default [].
     opacity_function : list, optional
-        float tuples (attribute value, opacity) sorted by attribute value, by default [].
-
+        `float` tuples (attribute value, opacity) sorted by attribute value, by default [].
         The first tuples should have value 0.0, the last 1.0; opacity is in the range 0.0 to 1.0.
-    side : {"front", "back", "both"}, optional
+    side : {'front', 'back', 'both'}, optional
         Side to render, by default "front".
     uvs : array_like, optional
         float uvs for the texturing corresponding to each vertex, by default None.
@@ -314,7 +312,7 @@ def mesh(
     triangles_attribute : list, optional
         _description_, by default []
     **kwargs
-        For other keyword-only arguments, see transform.process_transform_arguments.
+        For other keyword-only arguments, see :ref:`transform.process_transform_arguments`.
 
     Returns
     -------
@@ -409,13 +407,13 @@ def points(
     colors : list, optional
         Array of Hex colors, by default [].
     color : int, optional
-        Hex color of the points when `colors` is empty, by default `_default_color`.
+        Hex color of the points when `colors` is empty, by default _default_color.
     point_size : float, optional
         Diameter of the points, by default 1.0.
     point_sizes : list, optional
         Same-length array of `float` sizes of the points, by default [].
     shader : {'flat', 'dot', '3d', '3dSpecular', 'mesh'}, optional
-        Display style of the points, by default `3dSpecular`.
+        Display style of the points, by default "3dSpecular".
     opacity : float, optional
         Opacity of points, by default 1.0.
     opacities : list, optional
@@ -423,14 +421,14 @@ def points(
     attribute: list, optional
         List of values used to apply `color_map`, by default [].
     color_map : list, optional
-        List of float quadruplets (attribute value, R, G, B) sorted by attribute value, by default None.
+        List of `float` quadruplets (attribute value, R, G, B) sorted by attribute value, by default None.
         The first quadruplet should have value 0.0, the last 1.0;
         R, G, B are RGB color components in the range 0.0 to 1.0.
     color_range : list, optional
         [min_value, max_value] pair determining the levels of color attribute mapped
         to 0 and 1 in the colormap, by default [].
     opacity_function : list, optional
-        float tuples (attribute value, opacity) sorted by attribute value, by default [].
+        `float` tuples (attribute value, opacity) sorted by attribute value, by default [].
         The first tuples should have value 0.0, the last 1.0; opacity is in the range 0.0 to 1.0.
     name : str, optional
         Object name, by default None.
@@ -443,7 +441,7 @@ def points(
         Only valid if `shader` is set to `mesh`. Setting this to a value greater than 0 adds more vertices making it no longer an
         icosahedron. When detail is greater than 1, it's effectively a sphere.
     **kwargs
-        For other keyword-only arguments, see transform.process_transform_arguments.
+        For other keyword-only arguments, see :ref:`transform.process_transform_arguments`.
 
     Returns
     -------
@@ -498,9 +496,9 @@ def stl(
     Parameters
     ----------
     stl : `str` or `bytes`
-        STL data in either ASCII STL (str) or Binary STL (bytes).
+        STL data in either ASCII STL (`str`) or Binary STL (`bytes`).
     color : int, optional
-        Hex color of the mesh, by default `_default_color`.
+        Hex color of the mesh, by default _default_color.
     wireframe : bool, optional
         Display the mesh as wireframe, by default False.
     flat_shading : bool, optional
@@ -512,7 +510,7 @@ def stl(
     compression_level : int, optional
         Level of data compression [-1, 9], by default 0.
     **kwargs
-        For other keyword-only arguments, see transform.process_transform_arguments.
+        For other keyword-only arguments, see :ref:`transform.process_transform_arguments`.
 
     Returns
     -------
@@ -564,7 +562,7 @@ def surface(
     heights : array_like
         Array of `float` values.
     color : int, optional
-        Hex color of the surface, by default `_default_color`.
+        Hex color of the surface, by default _default_color.
     wireframe : bool, optional
         Display the mesh as wireframe, by default False.
     flat_shading : bool, optional
@@ -572,7 +570,7 @@ def surface(
     attribute: list, optional
         List of values used to apply `color_map`, by default [].
     color_map : list, optional
-        List of float quadruplets (attribute value, R, G, B) sorted by attribute value, by default None.
+        List of `float` quadruplets (attribute value, R, G, B) sorted by attribute value, by default None.
         The first quadruplet should have value 0.0, the last 1.0;
         R, G, B are RGB color components in the range 0.0 to 1.0.
     color_range : list, optional
@@ -585,7 +583,7 @@ def surface(
     compression_level : int, optional
         Level of data compression [-1, 9], by default 0.
     **kwargs
-        For other keyword-only arguments, see transform.process_transform_arguments.
+        For other keyword-only arguments, see :ref:`transform.process_transform_arguments`.
 
     Returns
     -------
@@ -639,7 +637,7 @@ def text(
     position : tuple, optional
         (x, y, z) coordinates of text position, by default (0, 0, 0).
     color : int, optional
-        Hex color of the text, by default `_default_color`.
+        Hex color of the text, by default _default_color.
     reference_point : str, optional
         Two-letter string representing text alignment, by default "lb".
 
@@ -669,7 +667,7 @@ def text(
     compression_level : int, optional
         Level of data compression [-1, 9], by default 0.
     **kwargs
-        For other keyword-only arguments, see transform.process_transform_arguments.
+        For other keyword-only arguments, see :ref:`transform.process_transform_arguments`.
 
     Returns
     -------
@@ -714,23 +712,23 @@ def text2d(
     text : str
         Text content.
     position : tuple, optional
-        (r_x, r_y) text position ratios in range (0, 1) - relative to canvas size, by default (0, 0).
+        (rx, ry) text position ratios in range (0, 1) - relative to canvas size, by default (0, 0).
     color : int, optional
-        Hex color of the text, by default `_default_color`.
+        Hex color of the text, by default _default_color.
     reference_point : str, optional
         Two-letter string representing text alignment, by default "lb".
 
         First letters
 
-        - ``l`` -- left
-        - ``c`` -- center
-        - ``r`` -- right
+        - `l` -- left
+        - `c` -- center
+        - `r` -- right
 
         Second letters
 
-        - ``t`` -- top
-        - ``c`` -- center
-        - ``b`` -- bottom
+        - `t` -- top
+        - `c` -- center
+        - `b` -- bottom
     size : float, optional
         Font size in 'em' HTML units, by default 1.0.
     label_box : bool, optional
@@ -744,7 +742,7 @@ def text2d(
     compression_level : int, optional
         Level of data compression [-1, 9], by default 0.
     **kwargs
-        For other keyword-only arguments, see transform.process_transform_arguments.
+        For other keyword-only arguments, see :ref:`transform.process_transform_arguments`.
 
     Returns
     -------
@@ -790,7 +788,7 @@ def label(
     position : tuple, optional
         (x, y, z) coordinates of text position, by default (0, 0, 0).
     color : int, optional
-        Hex color of the text, by default `_default_color`.
+        Hex color of the text, by default _default_color.
     on_top : bool, optional
         Render order with 3d object, by default True.
     size : float, optional
@@ -800,7 +798,7 @@ def label(
     group : str, optional
         Name of a group, by default None.
     max_length : float, optional
-        Maximum length of line in % of half screen size (only for `mode`=`dynamic`), by default 0.8.
+        Maximum length of line in % of half screen size (only when `mode` is `dynamic`), by default 0.8.
     mode : {'dynamic', 'local', 'side'}, optional
         Label node, by default "dynamic".
     is_html : bool, optional
@@ -810,7 +808,7 @@ def label(
     compression_level : int, optional
         Level of data compression [-1, 9], by default 0.
     **kwargs
-        For other keyword-only arguments, see transform.process_transform_arguments.
+        For other keyword-only arguments, see :ref:`transform.process_transform_arguments`.
 
     Returns
     -------
@@ -870,7 +868,7 @@ def texture(
 
         It should be the second part of MIME format of type 'image/',e.g. 'jpeg', 'png', 'gif', 'tiff'.
     color_map : list, optional
-        List of float quadruplets (attribute value, R, G, B) sorted by attribute value, by default None.
+        List of `float` quadruplets (attribute value, R, G, B) sorted by attribute value, by default None.
         The first quadruplet should have value 0.0, the last 1.0;
         R, G, B are RGB color components in the range 0.0 to 1.0.
     color_range : list, optional
@@ -879,11 +877,11 @@ def texture(
     attribute: list, optional
         List of values used to apply `color_map`, by default [].
     puv : list, optional
-        List of float triplets (x,y,z), by default [].
+        List of `float` triplets (x,y,z), by default [].
         The first triplet mean a position of left-bottom corner of texture.
         Second and third triplets means a base of coordinate system for texture.
     opacity_function : list, optional
-        float tuples (attribute value, opacity) sorted by attribute value, by default [].
+        `float` tuples (attribute value, opacity) sorted by attribute value, by default [].
         The first tuples should have value 0.0, the last 1.0; opacity is in the range 0.0 to 1.0.
     interpolation : bool, optional
         Interpolate the data, by default True
@@ -894,7 +892,7 @@ def texture(
     compression_level : int, optional
         Level of data compression [-1, 9], by default 0.
     **kwargs
-        For other keyword-only arguments, see transform.process_transform_arguments.
+        For other keyword-only arguments, see :ref:`transform.process_transform_arguments`.
 
     Returns
     -------
@@ -952,14 +950,13 @@ def texture_text(
     position : tuple, optional
         (x, y, z) coordinates of text position, by default (0, 0, 0).
     color : int, optional
-        Hex color of the text, by default `_default_color`.
+        Hex color of the text, by default _default_color.
     font_weight : int, optional
         Characters thickness in HTML-like units [100, 900], by default 400.
     font_face : str, optional
         Font name used to render text, by default "Courier New".
     font_size : int, optional
         Font size inside the sprite texture in px units, by default 68.
-
         This does not affect the size of the text in the scene,
         only the accuracy and raster size of the texture.
     size : float, optional
@@ -971,7 +968,7 @@ def texture_text(
     compression_level : int, optional
         Level of data compression [-1, 9], by default 0.
     **kwargs
-        For other keyword-only arguments, see transform.process_transform_arguments.
+        For other keyword-only arguments, see :ref:`transform.process_transform_arguments`.
 
     Returns
     -------
@@ -1014,7 +1011,7 @@ def vector_field(
     """Create a VectorField drawable for displaying dense 2D or 3D grids of vectors of same dimensionality.
 
     By default, the origins of the vectors are assumed to be a grid inscribed in the -0.5 < x, y, z < 0.5 cube
-    or -0.5 < x, y < 0.5 square, regardless of the passed vector field shape (aspect ratio etc.).
+    or -0.5 < x, y < 0.5 square, regardless of the passed vector field shape, like aspect ratio.
 
     Different grid size, shape and rotation can be obtained using `kwargs`
 
@@ -1036,7 +1033,7 @@ def vector_field(
     head_color : int, optional
         Hex color of vector heads when `colors` is empty, by default None.
     color : int, optional
-        Hex color of the vectors when `colors` is empty, by default `_default_color`.
+        Hex color of the vectors when `colors` is empty, by default _default_color.
     use_head : bool, optional
         Display vector heads, by default True.
     head_size : float, optional
@@ -1052,7 +1049,7 @@ def vector_field(
     compression_level : int, optional
         Level of data compression [-1, 9], by default 0.
     **kwargs
-        For other keyword-only arguments, see transform.process_transform_arguments.
+        For other keyword-only arguments, see :ref:`transform.process_transform_arguments`.
 
     Returns
     -------
@@ -1097,7 +1094,7 @@ def vectors(
 ):
     """Create a Vectors drawable representing individual 3D vectors.
 
-    For dense (i.e. forming a grid) 3D or 2D vectors, use `vector_field`.
+    For dense 3D or 2D vectors,like forming a grid, use :ref:`factory.vector_field`.
 
     Parameters
     ----------
@@ -1131,7 +1128,7 @@ def vectors(
     compression_level : int, optional
         Level of data compression [-1, 9], by default 0.
     **kwargs
-        For other keyword-only arguments, see transform.process_transform_arguments.
+        For other keyword-only arguments, see :ref:`transform.process_transform_arguments`.
 
     Returns
     -------
@@ -1174,7 +1171,7 @@ def voxels(
     """Create a Voxels drawable for 3D volumetric data.
 
     By default, the voxels are a grid inscribed in the -0.5 < x, y, z < 0.5 cube
-    regardless of the passed voxel array shape (aspect ratio etc.).
+    regardless of the passed voxel array shape, like aspect ratio.
 
     Different grid size, shape and rotation can be obtained using `kwargs`
 
@@ -1204,7 +1201,7 @@ def voxels(
     compression_level : int, optional
         Level of data compression [-1, 9], by default 0.
     **kwargs
-        For other keyword-only arguments, see transform.process_transform_arguments.
+        For other keyword-only arguments, see :ref:`transform.process_transform_arguments`.
 
     Returns
     -------
@@ -1276,7 +1273,7 @@ def sparse_voxels(
     compression_level : int, optional
         Level of data compression [-1, 9], by default 0.
     **kwargs
-        For other keyword-only arguments, see transform.process_transform_arguments.
+        For other keyword-only arguments, see :ref:`transform.process_transform_arguments`.
 
     Returns
     -------
@@ -1327,7 +1324,7 @@ def voxels_group(
     """Create a VoxelsGroup drawable for 3D volumetric data.
 
     By default, the voxels are a grid inscribed in the -0.5 < x, y, z < 0.5 cube
-    regardless of the passed voxel array shape (aspect ratio etc.).
+    regardless of the passed voxel array shape, like aspect ratio.
 
     Different grid size, shape and rotation can be obtained using `kwargs`
 
@@ -1360,7 +1357,7 @@ def voxels_group(
     compression_level : int, optional
         Level of data compression [-1, 9], by default 0.
     **kwargs
-        For other keyword-only arguments, see transform.process_transform_arguments.
+        For other keyword-only arguments, see :ref:`transform.process_transform_arguments`.
 
     Returns
     -------
@@ -1419,7 +1416,7 @@ def volume(
     """Create a Volume drawable for 3D volumetric data.
 
     By default, the volume are a grid inscribed in the -0.5 < x, y, z < 0.5 cube
-    regardless of the passed voxel array shape (aspect ratio etc.).
+    regardless of the passed voxel array shape ,like aspect ratio.
 
     Different grid size, shape and rotation can be obtained using `kwargs`
 
@@ -1429,13 +1426,13 @@ def volume(
     Parameters
     ----------
     volume : ndarray
-        3D array of 'float'.
+        3D array of `float.
     color_map : list, optional
-        List of float quadruplets (attribute value, R, G, B) sorted by attribute value, by default None.
+        List of `float` quadruplets (attribute value, R, G, B) sorted by attribute value, by default None.
         The first quadruplet should have value 0.0, the last 1.0;
         R, G, B are RGB color components in the range 0.0 to 1.0.
     opacity_function : list, optional
-        float tuples (attribute value, opacity) sorted by attribute value, by default [].
+        `float` tuples (attribute value, opacity) sorted by attribute value, by default [].
         The first tuples should have value 0.0, the last 1.0; opacity is in the range 0.0 to 1.0.
     color_range : list, optional
         [min_value, max_value] pair determining the levels of color attribute mapped
@@ -1467,7 +1464,7 @@ def volume(
     compression_level : int, optional
         Level of data compression [-1, 9], by default 0.
     **kwargs
-        For other keyword-only arguments, see transform.process_transform_arguments.
+        For other keyword-only arguments, see :ref:`transform.process_transform_arguments`.
 
     Returns
     -------
@@ -1527,7 +1524,7 @@ def mip(
     """Create a MIP drawable for 3D volumetric data.
 
     By default, the volume are a grid inscribed in the -0.5 < x, y, z < 0.5 cube
-    regardless of the passed voxel array shape (aspect ratio etc.).
+    regardless of the passed voxel array shape, like aspect ratio.
 
     Different grid size, shape and rotation can be obtained using `kwargs`
 
@@ -1537,13 +1534,13 @@ def mip(
     Parameters
     ----------
     volume : ndarray
-        3D array of 'float'.
+        3D array of `float`.
     color_map : list, optional
-        List of float quadruplets (attribute value, R, G, B) sorted by attribute value, by default None.
+        List of `float` quadruplets (attribute value, R, G, B) sorted by attribute value, by default None.
         The first quadruplet should have value 0.0, the last 1.0;
         R, G, B are RGB color components in the range 0.0 to 1.0.
     opacity_function : list, optional
-        float tuples (attribute value, opacity) sorted by attribute value, by default [].
+        `float` tuples (attribute value, opacity) sorted by attribute value, by default [].
         The first tuples should have value 0.0, the last 1.0; opacity is in the range 0.0 to 1.0.
     color_range : list, optional
         [min_value, max_value] pair determining the levels of color attribute mapped
@@ -1559,7 +1556,7 @@ def mip(
     compression_level : int, optional
         Level of data compression [-1, 9], by default 0.
     **kwargs
-        For other keyword-only arguments, see transform.process_transform_arguments.
+        For other keyword-only arguments, see :ref:`transform.process_transform_arguments`.
 
     Returns
     -------
@@ -1616,17 +1613,17 @@ def vtk_poly_data(
 ):
     """Create a Mesh drawable from given vtkPolyData.
 
-    Requires the vtk module (from package VTK) to be installed.
+    Require the vtk module (from package VTK) to be installed.
 
     Parameters
     ----------
     poly_data : vtkPolyData
         Native vtkPolyData geometry.
     color : int, optional
-        Hex color of the mesh when when not using color_map, by default _default_color.
+        Hex color of the mesh when when not using `color_map`, by default _default_color.
     color_attribute : tuple, optional
         (`str`, `float`, `float`) to determine which scalar should be used
-        for the color_map and the color_range (attribute_name, min_value, max_value), by default None.
+        for the `color_map` and the `color_range` (attribute_name, min_value, max_value), by default None.
 
         A VTK mesh can have multiple named attributes in the vertices
 
@@ -1634,14 +1631,14 @@ def vtk_poly_data(
         - max_value is the value mapped to 1 in the color_map
     cell_color_attribute : tuple, optional
         (`str`, `float`, `float`) to determine which scalar should be used
-        for the color_map and the color_range (attribute_name, min_value, max_value), by default None.
+        for the `color_map` and the `color_range` (attribute_name, min_value, max_value), by default None.
 
         A VTK mesh can have multiple named attributes in the vertices
 
         - min_value is the value mapped to 0 in the color_map
         - max_value is the value mapped to 1 in the color_map
     color_map : list, optional
-        List of float quadruplets (attribute value, R, G, B) sorted by attribute value, by default None.
+        List of `float` quadruplets (attribute value, R, G, B) sorted by attribute value, by default None.
         The first quadruplet should have value 0.0, the last 1.0;
         R, G, B are RGB color components in the range 0.0 to 1.0.
     color_range : list, optional
@@ -1654,7 +1651,7 @@ def vtk_poly_data(
     opacity : float, optional
         Opacity of mesh, by default 1.0.
     opacity_function : list, optional
-        float tuples (attribute value, opacity) sorted by attribute value, by default [].
+        `float` tuples (attribute value, opacity) sorted by attribute value, by default [].
 
         The first tuples should have value 0.0, the last 1.0; opacity is in the range 0.0 to 1.0.
     volume : list, optional
@@ -1670,7 +1667,7 @@ def vtk_poly_data(
     compression_level : int, optional
         Level of data compression [-1, 9], by default 0.
     **kwargs
-        For other keyword-only arguments, see transform.process_transform_arguments.
+        For other keyword-only arguments, see :ref:`transform.process_transform_arguments`.
 
     Returns
     -------
@@ -1746,12 +1743,12 @@ def vtk_poly_data(
 
 
 def voxel_chunk(voxels, coord, multiple=1, compression_level=0):
-    """Create a VoxelChunk that can be used for voxels_group.
+    """Create a VoxelChunk that can be used for :ref:`factory.voxels_group`.
 
     Parameters
     ----------
     voxels : array_like
-        3D array of int from 0 to 255.
+        3D array of `int` from 0 to 255.
         0 means empty voxel; 1 and above refer to value of a colormap.
     coord : array_like
         Coordinates of the chunk.
@@ -1763,7 +1760,7 @@ def voxel_chunk(voxels, coord, multiple=1, compression_level=0):
     Returns
     -------
     VoxelChunk
-        VoxelChunk for voxels_group.
+        Voxel chunk.
     """
     return VoxelChunk(
         voxels=np.array(voxels, np.uint8),

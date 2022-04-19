@@ -22,17 +22,17 @@ Sinus cube
 
     scalars = sin(x*y + x*z + y*z) + sin(x*y) + sin(y*z) + sin(x*z) - 1
 
-    marching = k3d.marching_cubes(scalars, level=0.0,
-                                  color=0x0e2763,
-                                  opacity=0.25,
-                                  xmin=0, xmax=1,
-                                  ymin=0, ymax=1,
-                                  zmin=0, zmax=1,
-                                  compression_level=9,
-                                  flat_shading=False)
+    plt_marching = k3d.marching_cubes(scalars, level=0.0,
+                                      color=0x0e2763,
+                                      opacity=0.25,
+                                      xmin=0, xmax=1,
+                                      ymin=0, ymax=1,
+                                      zmin=0, zmax=1,
+                                      compression_level=9,
+                                      flat_shading=False)
 
     plot = k3d.plot()
-    plot += marching
+    plot += plt_marching
     plot.display()
 
 .. k3d_plot ::

@@ -7,8 +7,6 @@ factory.voxel_chunk
 
 **Examples**
 
-Basic
-
 .. code-block:: python3
 
     import k3d

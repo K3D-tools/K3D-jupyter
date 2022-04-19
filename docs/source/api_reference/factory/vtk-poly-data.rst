@@ -38,6 +38,9 @@ Basic
 
 Colormap
 
+.. attention::
+    `color_map` must be used along with `color_attribute` in order to work correctly.
+
 .. code-block:: python3
 
     # VTP model from https://github.com/pyvista/vtk-data/blob/master/Data/Bunny.vtp

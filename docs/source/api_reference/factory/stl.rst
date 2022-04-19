@@ -7,8 +7,6 @@ factory.stl
 
 **Examples**
 
-Basic
-
 .. code-block:: python3
 
     # Model from https://www.thingiverse.com/thing:819046/

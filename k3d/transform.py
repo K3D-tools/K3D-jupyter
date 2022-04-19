@@ -8,8 +8,8 @@ _epsilon = 1e-6
 def get_bounds_fit_matrix(xmin, xmax, ymin, ymax, zmin, zmax):
     """Return a 4x4 transform matrix.
 
-    Map the default bounding box ([-0.5, 0.5, -0.5, 0.5, -0.5, 0.5]) into
-    a custom bounding box ([xmin, xmax, ymin, ymax, zmin, zmax]).
+    Map the default bounding box [-0.5, 0.5, -0.5, 0.5, -0.5, 0.5] into
+    a custom bounding box [xmin, xmax, ymin, ymax, zmin, zmax].
 
     Parameters
     ----------
@@ -316,11 +316,11 @@ def transform(bounds=None, translation=None, rotation=None, scaling=None, custom
         Matrix of numbers, by default None.
         Must have four columns.
     parent : Transform, optional
-        optional parent transform, by default None.
+        Optional parent transform, by default None.
 
     Returns
     -------
-    Tranform
+    Transform
         Transform object.
     """
     return Transform(bounds, translation, rotation, scaling, custom_matrix, parent)

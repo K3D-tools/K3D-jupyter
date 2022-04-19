@@ -7,8 +7,6 @@ factory.voxels_group
 
 **Examples**
 
-Basic
-
 .. code-block:: python3
 
     import k3d

@@ -30,6 +30,9 @@ Basic
 
 Colormap
 
+.. attention::
+    `color_map` must be used along with `attribute` and `color_range` in order to work correctly.
+
 .. code-block:: python3
 
     import k3d
