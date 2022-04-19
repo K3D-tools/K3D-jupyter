@@ -5,6 +5,9 @@ factory.voxel_chunk
 
 .. autofunction:: k3d.factory.voxel_chunk
 
+.. seealso::
+    - :ref:`factory.voxels_group`
+
 **Examples**
 
 .. code-block:: python3

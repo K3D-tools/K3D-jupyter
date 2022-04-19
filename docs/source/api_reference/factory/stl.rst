@@ -5,6 +5,9 @@ factory.stl
 
 .. autofunction:: k3d.factory.stl
 
+.. seealso::
+    - :ref:`factory.vtk_poly_data`
+
 **Examples**
 
 .. code-block:: python3

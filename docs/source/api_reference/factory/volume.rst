@@ -5,6 +5,9 @@ factory.volume
 
 .. autofunction:: k3d.factory.volume
 
+.. seealso::
+    - :ref:`factory.mip`
+
 **Examples**
 
 Render mhd volumetric data

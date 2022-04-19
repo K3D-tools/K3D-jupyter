@@ -1426,7 +1426,7 @@ def volume(
     Parameters
     ----------
     volume : ndarray
-        3D array of `float.
+        3D array of `float`.
     color_map : list, optional
         List of `float` quadruplets (attribute value, R, G, B) sorted by attribute value, by default None.
         The first quadruplet should have value 0.0, the last 1.0;

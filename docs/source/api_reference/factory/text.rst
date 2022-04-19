@@ -5,6 +5,11 @@ factory.text
 
 .. autofunction:: k3d.factory.text
 
+.. seealso::
+    - :ref:`factory.label`
+    - :ref:`factory.text2d`
+    - :ref:`factory.texture_text`
+
 **Examples**
 
 Basic

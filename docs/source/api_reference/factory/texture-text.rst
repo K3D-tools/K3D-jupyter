@@ -5,6 +5,11 @@ factory.texture_text
 
 .. autofunction:: k3d.factory.texture_text
 
+.. seealso::
+    - :ref:`factory.label`
+    - :ref:`factory.text`
+    - :ref:`factory.text2d`
+
 **Examples**
 
 .. code-block:: python3

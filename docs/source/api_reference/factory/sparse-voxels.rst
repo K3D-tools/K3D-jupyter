@@ -5,6 +5,10 @@ factory.sparse_voxels
 
 .. autofunction:: k3d.factory.sparse_voxels
 
+.. seealso::
+    - :ref:`factory.voxels`
+    - :ref:`factory.voxels_group`
+
 **Examples**
 
 Basic

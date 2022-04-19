@@ -5,6 +5,9 @@ factory.vector_field
 
 .. autofunction:: k3d.factory.vector_field
 
+.. seealso::
+    - :ref:`factory.vectors`
+
 **Examples**
 
 Basic

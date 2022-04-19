@@ -5,6 +5,9 @@ factory.mesh
 
 .. autofunction:: k3d.factory.mesh
 
+.. seealso::
+    - :ref:`factory.surface`
+
 **Examples**
 
 Basic
