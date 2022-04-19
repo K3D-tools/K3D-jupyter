@@ -22,17 +22,24 @@ from traitlets import TraitError
 def array_to_json(ar, compression_level=0, force_contiguous=True):
     """Return the serialization of a numpy array.
 
-    Args:
-        ar (ndarray): A numpy array.
-        compression_level (int, optional): Level of compression [-1, 9]. Defaults to 0.
-        force_contiguous (bool, optional): If True, makes the array contiguous in memory. Defaults to True.
+    Parameters
+    ----------
+    ar : ndarray
+        A numpy array.
+    compression_level : int, optional
+        Level of compression [-1, 9], by default 0.
+    force_contiguous : bool, optional
+        Make the array contiguous in memory, by default True.
 
-    Raises:
-        ValueError: Unsupported dtype.
-        Error: Bad compression level.
+    Returns
+    -------
+    dict
+        Binary data of the array with its dtype and shape.
 
-    Returns:
-        dict: Binary data of the array with its dtype and shape.
+    Raises
+    ------
+    ValueError
+        Unsupported dtype.
     """
     if ar.dtype.kind not in ["u", "i", "f"]:  # ints and floats
         raise ValueError("Unsupported dtype: %s" % ar.dtype)
@@ -64,12 +71,17 @@ def array_to_json(ar, compression_level=0, force_contiguous=True):
 def json_to_array(value, obj=None):
     """Return numpy array from serialization.
 
-    Args:
-        value (dict): Binary data of an array with its dtype and shape.
-        obj (dict, optional): _description_. Defaults to None.
+    Parameters
+    ----------
+    value : dict
+        Binary data of an array with its dtype and shape.
+    obj : dict, optional
+        Object, by default None.
 
-    Returns:
-        ndarray: Numpy array or None.
+    Returns
+    -------
+    ndarray
+        Numpy array or None.
     """
     if value:
         if "data" in value:
@@ -148,16 +160,15 @@ def callback_serialization_wrap(name):
 def download(url):
     """Retrieve the file at url, save it locally and return its name.
 
-    Args:
-        url (str): URL.
+    Parameters
+    ----------
+    url : str
+        URL.
 
-    Raises:
-        FileNotFoundError: No such file or directory.
-        HTTPError: HTTP Error 403: Forbidden.
-        URLError: Temporary failure in name resolution.
-
-    Returns:
-        str: File path.
+    Returns
+    -------
+    str
+        File path.
     """
     basename = os.path.basename(url)
 
@@ -171,26 +182,35 @@ def download(url):
 
 
 def minmax(arr):
-    """Return the mnimum and maximum value of an array.
+    """Return the minimum and maximum value of an array.
 
-    Args:
-        arr (array_like): Array of numbers.
+    Parameters
+    ----------
+    arr : array_like
+        Array of numbers.
 
-    Returns:
-        list: Array of two numbers.
+    Returns
+    -------
+    list
+        Array of two numbers.
     """
     return [float(np.nanmin(arr)), float(np.nanmax(arr))]
 
 
 def check_attribute_color_range(attribute, color_range=()):
-    """Provide and return color range versus provided attribute.
+    """Return color range versus provided attribute.
 
-    Args:
-        attribute (list): Array of numbers.
-        color_range (tuple, optional): Tuple of two numbers. Defaults to ().
+    Parameters
+    ----------
+    attribute : list
+        Array of numbers.
+    color_range : tuple, optional
+        Two numbers, by default ().
 
-    Returns:
-        tuple: Color range.
+    Returns
+    -------
+    tuple
+        Color range.
     """
     if type(attribute) is dict or attribute.size == 0 or len(color_range) == 2:
         return color_range
@@ -204,18 +224,24 @@ def check_attribute_color_range(attribute, color_range=()):
 
 
 def map_colors(attribute, color_map, color_range=()):
-    """Return color mapping according to an attribute and a color map.
+    """Return color mapping according to an attribute and a colormap.
 
     The attribute represents the data on which the colormap will be apply.
     The color range allows to constraint the colormap between two values.
 
-    Args:
-        attribute (ndarray): Array of numbers.
-        color_map (array_like): Array of numbers.
-        color_range (tuple, optional): Tuple of two numbers. Defaults to ().
+    Parameters
+    ----------
+    attribute : ndarray
+        Array of numbers.
+    color_map : array_like
+        Array of numbers.
+    color_range : tuple, optional
+        Two numbers, by default ().
 
-    Returns:
-        ndarray: Color mapping.
+    Returns
+    -------
+    ndarray
+        Color mapping.
     """
     a_min, a_max = check_attribute_color_range(attribute, color_range)
     map_array = np.asarray(color_map)
@@ -239,14 +265,19 @@ def map_colors(attribute, color_map, color_range=()):
 def bounding_corners(bounds, z_bounds=(0, 1)):
     """Return corner point coordinates for bounds array.
 
-    z_bounds assigns Z points coordinates if bounds contains less than 5 items.
+    `z_bounds` assigns Z points coordinates if bounds contains less than 5 items.
 
-    Args:
-        bounds (array_like): Array of numbers.
-        z_bounds (tuple, optional): Tuple of two numbers. Defaults to (0, 1).
+    Parameters
+    ----------
+    bounds : array_like
+        Array of numbers.
+    z_bounds : tuple, optional
+        Two numbers, by default (0, 1).
 
-    Returns:
-        ndarray: Corner point coordinates.
+    Returns
+    -------
+    ndarray
+        Corner points coordinates.
     """
     return np.array(
         list(itertools.product(bounds[:2],
@@ -255,15 +286,19 @@ def bounding_corners(bounds, z_bounds=(0, 1)):
 
 
 def min_bounding_dimension(bounds):
-    """Return a minimal dimension along axis in a bounds array.
+    """Return the minimal dimension along axis in a bounds array.
 
-    *bounds* must be in the form *[min_x, max_x, min_y, max_y, min_z, max_z]*.
+    `bounds` must be of the form [min_x, max_x, min_y, max_y, min_z, max_z].
 
-    Args:
-        bounds (array_like): Array of numbers.
+    Parameters
+    ----------
+    bounds : array_like
+        Array of numbers.
 
-    Returns:
-        number: Minimum value of the array.
+    Returns
+    -------
+    number
+        Minimum value of the array.
     """
     return min(abs(x1 - x0) for x0, x1 in zip(bounds, bounds[1:]))
 
@@ -271,11 +306,15 @@ def min_bounding_dimension(bounds):
 def shape_validation(*dimensions):
     """Create a validator callback ensuring array shape.
 
-    Raises:
-        TraitError: Expected an array of shape _ and got _.
+    Returns
+    -------
+    function
+        Shape validator function.
 
-    Returns:
-        function: Shape validator function.
+    Raises
+    ------
+    TraitError
+        Expected an array of shape _ and got _.
     """
     def validator(trait, value):
         if np.shape(value) != dimensions:
@@ -292,12 +331,17 @@ def shape_validation(*dimensions):
 def sparse_voxels_validation():
     """Check sparse voxels for array shape and values.
 
-    Raises:
-        TraitError: Expected an array of shape (N, 4) and got _.
-        TraitError: Voxel coordinates and values must be non-negative.
+    Returns
+    -------
+    function
+        Sparse voxels validator function.
 
-    Returns:
-        function: Sparse voxels validator function.
+    Raises
+    ------
+    TraitError
+        Expected an array of shape (N, 4) and got _.
+    TraitError
+        Voxel coordinates and values must be non-negative.
     """
     def validator(trait, value):
         if len(value.shape) != 2 or value.shape[1] != 4:
@@ -315,14 +359,19 @@ def sparse_voxels_validation():
 
 
 def quad(w, h):
-    """Return the vertices and indices of a w * h quadrilateral.
+    """Return the vertices and indices of a `w` * `h` quadrilateral.
 
-    Args:
-        w (number): Quadrilateral width.
-        h (number): Quadrilateral height.
+    Parameters
+    ----------
+    w : number
+        Quadrilateral width.
+    h : number
+        Quadrilateral height.
 
-    Returns:
-        tuple (ndarray, ndarray): Array of vertices and indices.
+    Returns
+    -------
+    tuple
+        Array of vertices and indices.
     """
     w /= 2
     h /= 2
@@ -335,16 +384,20 @@ def quad(w, h):
 
 
 def get_bounding_box(model_matrix, boundary=[-0.5, 0.5, -0.5, 0.5, -0.5, 0.5]):
-    """Return the boundaries of the model_matrix.
+    """Return the boundaries of a model matrix.
 
-    Args:
-        model_matrix (ndarray): Matrix of numbers. Must have four columns.
+    Parameters
+    ----------
+    model_matrix : ndarray
+        Matrix of numbers. Must have four columns.
+    boundary : list, optional
+        Array of numbers, by default [-0.5, 0.5, -0.5, 0.5, -0.5, 0.5].
+        Must be of the form [min_x, max_x, min_y, max_y, min_z, max_z].
 
-        boundary (list, optional): Array of numbers. Defaults to [-0.5, 0.5, -0.5, 0.5, -0.5, 0.5].
-            Must be of the form `[min_x, max_x, min_y, max_y, min_z, max_z]`.
-
-    Returns:
-        ndarray: Model matrix boundaries.
+    Returns
+    -------
+    ndarray
+        Model matrix boundaries.
     """
     b_min = np.array([boundary[0], boundary[2], boundary[4], 0])
     b_max = np.array([boundary[1], boundary[3], boundary[5], 0])
@@ -358,12 +411,17 @@ def get_bounding_box(model_matrix, boundary=[-0.5, 0.5, -0.5, 0.5, -0.5, 0.5]):
 def get_bounding_box_points(arr, model_matrix):
     """Return the minimum and maximum coordinates on x, y, z axes.
 
-    Args:
-        arr (ndarray): Array of vertices. `[x, y, z]`.
-        model_matrix (ndarray): Matrix of numbers. Must have four columns.
+    Parameters
+    ----------
+    arr : ndarray
+        Array of vertices [x, y, z].
+    model_matrix : ndarray
+        Matrix of numbers. Must have four columns.
 
-    Returns:
-        ndarray: Array of numbers. `[min_x, max_x, min_y, max_y, min_z, max_z]`.
+    Returns
+    -------
+    ndarray
+        Array of numbers [min_x, max_x, min_y, max_y, min_z, max_z].
     """
     d = arr.flatten()
 
@@ -384,10 +442,14 @@ def get_bounding_box_points(arr, model_matrix):
 def get_bounding_box_point(position):
     """Return the boundaries of a position.
 
-    Args:
-        position (array_like): Array of numbers.
+    Parameters
+    ----------
+    position : array_like
+        Array of numbers.
 
-    Returns:
-        ndarray: Array of numbers.
+    Returns
+    -------
+    ndarray
+        Array of numbers.
     """
     return np.dstack([np.array(position), np.array(position)]).flatten()
