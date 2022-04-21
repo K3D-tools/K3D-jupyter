@@ -1,7 +1,7 @@
 K3D-jupyter Documentation
 ===========================
 
-K3D-jupyter is a `Jupyter notebook <Jupyter>`_ 3D visualization package.
+K3D-jupyter is a `Jupyter Notebook`_ 3D visualization package.
 
 The primary aim of K3D-jupyter is to be an easy 3D visualization tool,
 designed with native interoperation with existing powerful
@@ -10,7 +10,7 @@ libraries such as VTK_, without being strictly dependent on them.
 K3D-jupyter plots ipywidgets_ assuring a perfect interaction of a browser-side widget with Python kernel by a proven and standardized protocol.
 
 .. Links
-.. _Jupyter: https://jupyter.org/
+.. _Jupyter Notebook: https://jupyter.org/
 .. _VTK: https://vtk.org/
 .. _ipywidgets: https://ipywidgets.readthedocs.io/en/latest/
 
@@ -37,3 +37,9 @@ K3D-jupyter plots ipywidgets_ assuring a perfect interaction of a browser-side w
     :caption: API reference
 
     api_reference/index.rst
+
+.. toctree::
+    :maxdepth: 2
+    :caption: User guide
+
+    user_guide/installation.rst

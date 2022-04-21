@@ -5,7 +5,7 @@ Install using `pip`_:
 
 .. code-block:: bash
 
-  pip install k3d
+    pip install k3d
 
 
 Install using `conda`_:
@@ -19,12 +19,12 @@ First plot
 
 .. code-block:: python3
 
-  import k3d
+    import k3d
 
-  plot = k3d.plot()
-  plot += k3d.platonic.Cube()
+    plot = k3d.plot()
+    plot += k3d.platonic.Cube()
 
-  plot.display()
+    plot.display()
 
 .. k3d_plot::
   :filename: first_plot.py

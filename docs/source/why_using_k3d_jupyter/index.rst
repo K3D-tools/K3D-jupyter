@@ -12,7 +12,7 @@ Some examples of the use cases and features of K3D-jupyter:
 
  - Photorealistic volume rendering for data on regular grids.
 
-   A prominent example is `Computer Tomography <CT>`_ data, which can be
+   A prominent example is `Computer Tomography`_ data, which can be
    visualized in real-time with a dataset resolution of :math:`512^3`.
    Moreover, it experimentally supports time series,
    making it possible to display 4D (3D + time) tomography_.
@@ -28,7 +28,7 @@ Some examples of the use cases and features of K3D-jupyter:
 
  - Voxel geometry for both dense and sparse datasets.
 
-  For example, in `Computer Tomography <CT>`_  data segmentation.
+  For example, in `Computer Tomography`_  data segmentation.
 
 Interactivity with Ipywidgets
 =============================
@@ -36,7 +36,7 @@ Interactivity with Ipywidgets
 K3D-jupyter being an ipywidgets_, it natively contains front-end
 and back-end. |br|
 The back-end is a Python process where the data is prepared, and
-the frontend is a JavaScript application with WebGL_ (via `three.js <threejs>`_ and
+the frontend is a JavaScript application with WebGL_ (via `Three.js`_ and
 custom `pixel shaders <pixelshaders>`_) access.
 
 The ipywidgets_ architecture allows for communication of these two parts.
@@ -55,7 +55,7 @@ that the backend process can run on arbitrary remote infrastructure,
 like in HPC_ centres where large scale simulations are performed or
 large datasets are available.
 
-Then is it possible to use the `Jupyter notebook <Jupyter>`_ as a remote display for visualizing that data.
+Then is it possible to use the `Jupyter Notebook`_ as a remote display for visualizing that data.
 As the frontend is on the users' computer, the interactivity of 3D
 inspection is very good and can achieve fast updates on the whole
 dataset.
@@ -92,12 +92,12 @@ back-end, send by email or embedded in webpages.
 .. Links
 .. _matplotlib: https://matplotlib.org/
 .. _tomography: https://en.wikipedia.org/wiki/Tomography
-.. _CT: https://en.wikipedia.org/wiki/CT_scan
+.. _Computer Tomography: https://en.wikipedia.org/wiki/CT_scan
 .. _ipywidgets: https://ipywidgets.readthedocs.io/en/latest/
 .. _WebGL: https://www.khronos.org/webgl/
-.. _treejs: https://threejs.org/
+.. _Three.js: https://threejs.org/
 .. _HPC: https://en.wikipedia.org/wiki/High-performance_computing
 .. _pixelshaders: https://www.nvidia.com/en-us/drivers/feature-pixelshader/
 .. _NumPy: https://numpy.org
 .. _VTK: https://vtk.org/
-.. _Jupyter: https://jupyter.org/
+.. _Jupyter Notebook: https://jupyter.org/
