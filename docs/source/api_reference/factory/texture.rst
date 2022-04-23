@@ -9,6 +9,8 @@ factory.texture
 
 Basic
 
+:download:`arcade_carpet_512.png <./assets/arcade_carpet_512.png>`
+
 .. code-block:: python3
 
     # Texture from https://opengameart.org/content/arcade-carpet-textures-arcadecarpet512png

@@ -12,6 +12,9 @@ factory.volume
 
 Render mhd volumetric data
 
+:download:`heart.mhd <./assets/heart.mhd>`
+:download:`heart.mhd <./assets/heart.zraw>`
+
 .. code-block:: python3
 
     import k3d
@@ -31,6 +34,9 @@ Render mhd volumetric data
   :filename: plots/volume_render_mhd_plot.py
 
 Colormap
+
+:download:`heart.mhd <./assets/heart.mhd>`
+:download:`heart.mhd <./assets/heart.zraw>`
 
 .. code-block:: python3
 

@@ -9,6 +9,8 @@ factory.vtk_poly_data
 
 Basic
 
+:download:`cow.vtp <./assets/cow.vtp>`
+
 .. code-block:: python3
 
     # VTP model from https://github.com/naucoin/VTKData/blob/master/Data/cow.vtp
@@ -37,6 +39,8 @@ Basic
   :filename: plots/vtk_basic_plot.py
 
 Colormap
+
+:download:`bunny.vtp <./assets/bunny.vtp>`
 
 .. attention::
     `color_map` must be used along with `color_attribute` in order to work correctly.
