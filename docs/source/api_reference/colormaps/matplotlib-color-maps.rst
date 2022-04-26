@@ -1,12 +1,12 @@
-.. _colormaps.matplotlib_color_maps:
+.. _matplotlib_color_maps:
 
-colormaps.matplotlib_color_maps
-===============================
+matplotlib_color_maps
+=====================
 
 .. automodule:: k3d.colormaps.matplotlib_color_maps
 
 .. seealso::
-    - :ref:`colormaps.paraview_color_maps`
+    - :ref:`paraview_color_maps`
 
 **Colormap reference**
 

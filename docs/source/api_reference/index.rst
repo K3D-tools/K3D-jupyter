@@ -22,33 +22,37 @@ Helpers
     helpers/from-json.rst
     helpers/to-json.rst
 
-Factory
-=======
+Plot objects
+============
 
 .. toctree::
 
-    factory/label.rst
-    factory/line.rst
-    factory/marching-cubes.rst
-    factory/mesh.rst
-    factory/mip.rst
-    factory/plot.rst
-    factory/points.rst
-    factory/stl.rst
-    factory/surface.rst
-    factory/text.rst
-    factory/text2d.rst
-    factory/texture.rst
-    factory/texture-text.rst
-    factory/vector-field.rst
-    factory/vectors.rst
-    factory/volume.rst
-    factory/voxel-chunk.rst
-    factory/voxels.rst
-    factory/voxels-group.rst
-    factory/vtk-poly-data.rst
-    factory/sparse-voxels.rst
-
+    plot_objects/label.rst
+    plot_objects/line.rst
+    plot_objects/marching-cubes.rst
+    plot_objects/mesh.rst
+    plot_objects/mip.rst
+    plot_objects/plot.rst
+    plot_objects/points.rst
+    plot_objects/sparse-voxels.rst
+    plot_objects/stl.rst
+    plot_objects/surface.rst
+    plot_objects/text.rst
+    plot_objects/text2d.rst
+    plot_objects/texture.rst
+    plot_objects/texture-text.rst
+    plot_objects/vector-field.rst
+    plot_objects/vectors.rst
+    plot_objects/volume.rst
+    plot_objects/voxel-chunk.rst
+    plot_objects/voxels.rst
+    plot_objects/voxels-group.rst
+    plot_objects/vtk-poly-data.rst
+    plot_objects/Cube.rst
+    plot_objects/Dodecahedron.rst
+    plot_objects/Icosahedron.rst
+    plot_objects/Octahedron.rst
+    plot_objects/Tetrahedron.rst
 
 Transform
 =========
@@ -58,18 +62,6 @@ Transform
     transform/get-bounds-fit-matrix.rst
     transform/process-transform-arguments.rst
     transform/transform.rst
-
-Platonic
-========
-
-.. toctree::
-
-    platonic/cube.rst
-    platonic/dodecahedron.rst
-    platonic/icosahedron.rst
-    platonic/octahedron.rst
-    platonic/platonic-solid.rst
-    platonic/tetrahedron.rst
 
 Colormaps
 =========

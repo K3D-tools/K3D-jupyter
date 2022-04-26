@@ -1,7 +1,7 @@
-.. _helpers.json_to_array:
+.. _json_to_array:
 
-helpers.json_to_array
-=====================
+json_to_array
+=============
 
 .. autofunction:: k3d.helpers.json_to_array
 

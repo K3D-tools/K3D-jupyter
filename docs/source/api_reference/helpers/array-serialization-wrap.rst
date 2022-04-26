@@ -1,7 +1,7 @@
-.. _helpers.array_serialization_wrap:
+.. _array_serialization_wrap:
 
-helpers.array_serialization_wrap
-================================
+array_serialization_wrap
+========================
 
 .. autofunction:: k3d.helpers.array_serialization_wrap
 

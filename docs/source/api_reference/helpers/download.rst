@@ -1,7 +1,7 @@
-.. _helpers.download:
+.. _download:
 
-helpers.download
-================
+download
+========
 
 .. autofunction:: k3d.helpers.download
 

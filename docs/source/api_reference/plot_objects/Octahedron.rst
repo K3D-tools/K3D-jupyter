@@ -1,11 +1,17 @@
-.. _platonic.Octahedron:
+.. _Octahedron:
 
-platonic.Octahedron
-======================
+Octahedron
+==========
 
 .. autoclass:: k3d.platonic.Octahedron
     :members:
     :show-inheritance:
+
+.. seealso::
+    - :ref:`Cube`
+    - :ref:`Dodecahedron`
+    - :ref:`Icosahedron`
+    - :ref:`Tetrahedron`
 
 **Example**
 

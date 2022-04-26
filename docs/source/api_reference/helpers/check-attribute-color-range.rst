@@ -1,7 +1,7 @@
-.. _helpers.check_attribute_color_range:
+.. _check_attribute_color_range:
 
-helpers.check_attribute_color_range
-===================================
+check_attribute_color_range
+===========================
 
 .. autofunction:: k3d.helpers.check_attribute_color_range
 

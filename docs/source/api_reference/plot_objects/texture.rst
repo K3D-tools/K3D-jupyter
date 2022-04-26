@@ -1,7 +1,7 @@
-.. _factory.texture:
+.. _texture:
 
-factory.texture
-===============
+texture
+=======
 
 .. autofunction:: k3d.factory.texture
 

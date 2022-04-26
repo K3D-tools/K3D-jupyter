@@ -1,12 +1,12 @@
-.. _factory.mesh:
+.. _mesh:
 
-factory.mesh
-============
+mesh
+====
 
 .. autofunction:: k3d.factory.mesh
 
 .. seealso::
-    - :ref:`factory.surface`
+    - :ref:`surface`
 
 **Examples**
 

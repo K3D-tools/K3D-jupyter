@@ -1,7 +1,7 @@
-.. _helpers.shape_validation:
+.. _shape_validation:
 
-helpers.shape_validation
-==============================
+shape_validation
+================
 
 .. autofunction:: k3d.helpers.shape_validation
 

@@ -1,13 +1,13 @@
-.. _factory.sparse_voxels:
+.. _sparse_voxels:
 
-factory.sparse_voxels
-=====================
+sparse_voxels
+=============
 
 .. autofunction:: k3d.factory.sparse_voxels
 
 .. seealso::
-    - :ref:`factory.voxels`
-    - :ref:`factory.voxels_group`
+    - :ref:`voxels`
+    - :ref:`voxels_group`
 
 **Examples**
 

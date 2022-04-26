@@ -1,7 +1,7 @@
-.. _helpers.quad:
+.. _quad:
 
-helpers.quad
-============
+quad
+====
 
 .. autofunction:: k3d.helpers.quad
 

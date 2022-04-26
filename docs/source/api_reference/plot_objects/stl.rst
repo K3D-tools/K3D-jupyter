@@ -1,16 +1,16 @@
-.. _factory.stl:
+.. _stl:
 
-factory.stl
-===========
+stl
+===
 
 .. autofunction:: k3d.factory.stl
 
 .. seealso::
-    - :ref:`factory.vtk_poly_data`
+    - :ref:`vtk_poly_data`
 
 **Examples**
 
-:download:`heart.mhd <./assets/skull_w_jaw.stl>`
+:download:`skull_w_jaw.stl <./assets/skull_w_jaw.stl>`
 
 .. code-block:: python3
 

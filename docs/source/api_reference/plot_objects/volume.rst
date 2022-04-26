@@ -1,12 +1,11 @@
-.. _factory.mip:
+.. _volume:
 
-factory.mip
-===========
-
-.. autofunction:: k3d.factory.mip
+volume
+======
+.. autofunction:: k3d.factory.volume
 
 .. seealso::
-    - :ref:`factory.volume`
+    - :ref:`mip`
 
 **Examples**
 
@@ -24,14 +23,14 @@ Render mhd volumetric data
     im_sitk = sitk.ReadImage('heart.mhd')
     img = sitk.GetArrayFromImage(im_sitk)
 
-    plt_mip = k3d.mip(img.astype(np.float32))
+    plt_volume = k3d.volume(img.astype(np.float32))
 
     plot = k3d.plot()
-    plot += plt_mip
+    plot += plt_volume
     plot.display()
 
 .. k3d_plot ::
-  :filename: plots/mip_render_mhd_plot.py
+  :filename: plots/volume_render_mhd_plot.py
 
 Colormap
 
@@ -48,13 +47,14 @@ Colormap
     im_sitk = sitk.ReadImage('heart.mhd')
     img = sitk.GetArrayFromImage(im_sitk)
 
-    plt_mip = k3d.mip(img.astype(np.float32),
-                      color_map=matplotlib_color_maps.Turbo,
-                      color_range=[100, 750])
+    plt_volume = k3d.volume(img.astype(np.float32),
+                            alpha_coef=250,
+                            color_map=matplotlib_color_maps.Turbo,
+                            color_range=[300, 900])
 
     plot = k3d.plot()
-    plot += plt_mip
+    plot += plt_volume
     plot.display()
 
 .. k3d_plot ::
-  :filename: plots/mip_colormap_plot.py
+  :filename: plots/volume_colormap_plot.py

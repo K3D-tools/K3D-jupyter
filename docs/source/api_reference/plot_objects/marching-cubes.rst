@@ -1,7 +1,7 @@
-.. _factory.marching_cubes:
+.. _marching_cubes:
 
-factory.marching_cubes
-======================
+marching_cubes
+==============
 
 .. autofunction:: k3d.factory.marching_cubes
 

@@ -1,11 +1,17 @@
-.. _platonic.Dodecahedron:
+.. _Dodecahedron:
 
-platonic.Dodecahedron
-======================
+Dodecahedron
+============
 
 .. autoclass:: k3d.platonic.Dodecahedron
     :members:
     :show-inheritance:
+
+.. seealso::
+    - :ref:`Cube`
+    - :ref:`Icosahedron`
+    - :ref:`Octahedron`
+    - :ref:`Tetrahedron`
 
 **Example**
 

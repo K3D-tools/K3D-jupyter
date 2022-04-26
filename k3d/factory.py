@@ -114,7 +114,7 @@ def line(
     compression_level : int, optional
         Level of data compression [-1, 9], by default 0.
     **kwargs
-        For other keyword-only arguments, see :ref:`transform.process_transform_arguments`.
+        For other keyword-only arguments, see :ref:`process_transform_arguments`.
 
     Returns
     -------
@@ -209,7 +209,7 @@ def marching_cubes(
     compression_level : int, optional
         Level of data compression [-1, 9], by default 0.
     **kwargs
-        For other keyword-only arguments, see :ref:`transform.process_transform_arguments`.
+        For other keyword-only arguments, see :ref:`process_transform_arguments`.
 
     Returns
     -------
@@ -312,7 +312,7 @@ def mesh(
     triangles_attribute : list, optional
         _description_, by default []
     **kwargs
-        For other keyword-only arguments, see :ref:`transform.process_transform_arguments`.
+        For other keyword-only arguments, see :ref:`process_transform_arguments`.
 
     Returns
     -------
@@ -441,7 +441,7 @@ def points(
         Only valid if `shader` is set to `mesh`. Setting this to a value greater than 0 adds more vertices making it no longer an
         icosahedron. When detail is greater than 1, it's effectively a sphere.
     **kwargs
-        For other keyword-only arguments, see :ref:`transform.process_transform_arguments`.
+        For other keyword-only arguments, see :ref:`process_transform_arguments`.
 
     Returns
     -------
@@ -510,7 +510,7 @@ def stl(
     compression_level : int, optional
         Level of data compression [-1, 9], by default 0.
     **kwargs
-        For other keyword-only arguments, see :ref:`transform.process_transform_arguments`.
+        For other keyword-only arguments, see :ref:`process_transform_arguments`.
 
     Returns
     -------
@@ -583,7 +583,7 @@ def surface(
     compression_level : int, optional
         Level of data compression [-1, 9], by default 0.
     **kwargs
-        For other keyword-only arguments, see :ref:`transform.process_transform_arguments`.
+        For other keyword-only arguments, see :ref:`process_transform_arguments`.
 
     Returns
     -------
@@ -667,7 +667,7 @@ def text(
     compression_level : int, optional
         Level of data compression [-1, 9], by default 0.
     **kwargs
-        For other keyword-only arguments, see :ref:`transform.process_transform_arguments`.
+        For other keyword-only arguments, see :ref:`process_transform_arguments`.
 
     Returns
     -------
@@ -742,7 +742,7 @@ def text2d(
     compression_level : int, optional
         Level of data compression [-1, 9], by default 0.
     **kwargs
-        For other keyword-only arguments, see :ref:`transform.process_transform_arguments`.
+        For other keyword-only arguments, see :ref:`process_transform_arguments`.
 
     Returns
     -------
@@ -808,7 +808,7 @@ def label(
     compression_level : int, optional
         Level of data compression [-1, 9], by default 0.
     **kwargs
-        For other keyword-only arguments, see :ref:`transform.process_transform_arguments`.
+        For other keyword-only arguments, see :ref:`process_transform_arguments`.
 
     Returns
     -------
@@ -892,7 +892,7 @@ def texture(
     compression_level : int, optional
         Level of data compression [-1, 9], by default 0.
     **kwargs
-        For other keyword-only arguments, see :ref:`transform.process_transform_arguments`.
+        For other keyword-only arguments, see :ref:`process_transform_arguments`.
 
     Returns
     -------
@@ -968,7 +968,7 @@ def texture_text(
     compression_level : int, optional
         Level of data compression [-1, 9], by default 0.
     **kwargs
-        For other keyword-only arguments, see :ref:`transform.process_transform_arguments`.
+        For other keyword-only arguments, see :ref:`process_transform_arguments`.
 
     Returns
     -------
@@ -1049,7 +1049,7 @@ def vector_field(
     compression_level : int, optional
         Level of data compression [-1, 9], by default 0.
     **kwargs
-        For other keyword-only arguments, see :ref:`transform.process_transform_arguments`.
+        For other keyword-only arguments, see :ref:`process_transform_arguments`.
 
     Returns
     -------
@@ -1094,7 +1094,7 @@ def vectors(
 ):
     """Create a Vectors drawable representing individual 3D vectors.
 
-    For dense 3D or 2D vectors,like forming a grid, use :ref:`factory.vector_field`.
+    For dense 3D or 2D vectors,like forming a grid, use `vector_field`.
 
     Parameters
     ----------
@@ -1128,7 +1128,7 @@ def vectors(
     compression_level : int, optional
         Level of data compression [-1, 9], by default 0.
     **kwargs
-        For other keyword-only arguments, see :ref:`transform.process_transform_arguments`.
+        For other keyword-only arguments, see :ref:`process_transform_arguments`.
 
     Returns
     -------
@@ -1201,7 +1201,7 @@ def voxels(
     compression_level : int, optional
         Level of data compression [-1, 9], by default 0.
     **kwargs
-        For other keyword-only arguments, see :ref:`transform.process_transform_arguments`.
+        For other keyword-only arguments, see :ref:`process_transform_arguments`.
 
     Returns
     -------
@@ -1273,7 +1273,7 @@ def sparse_voxels(
     compression_level : int, optional
         Level of data compression [-1, 9], by default 0.
     **kwargs
-        For other keyword-only arguments, see :ref:`transform.process_transform_arguments`.
+        For other keyword-only arguments, see :ref:`process_transform_arguments`.
 
     Returns
     -------
@@ -1357,7 +1357,7 @@ def voxels_group(
     compression_level : int, optional
         Level of data compression [-1, 9], by default 0.
     **kwargs
-        For other keyword-only arguments, see :ref:`transform.process_transform_arguments`.
+        For other keyword-only arguments, see :ref:`process_transform_arguments`.
 
     Returns
     -------
@@ -1464,7 +1464,7 @@ def volume(
     compression_level : int, optional
         Level of data compression [-1, 9], by default 0.
     **kwargs
-        For other keyword-only arguments, see :ref:`transform.process_transform_arguments`.
+        For other keyword-only arguments, see :ref:`process_transform_arguments`.
 
     Returns
     -------
@@ -1556,7 +1556,7 @@ def mip(
     compression_level : int, optional
         Level of data compression [-1, 9], by default 0.
     **kwargs
-        For other keyword-only arguments, see :ref:`transform.process_transform_arguments`.
+        For other keyword-only arguments, see :ref:`process_transform_arguments`.
 
     Returns
     -------
@@ -1667,7 +1667,7 @@ def vtk_poly_data(
     compression_level : int, optional
         Level of data compression [-1, 9], by default 0.
     **kwargs
-        For other keyword-only arguments, see :ref:`transform.process_transform_arguments`.
+        For other keyword-only arguments, see :ref:`process_transform_arguments`.
 
     Returns
     -------
@@ -1743,7 +1743,7 @@ def vtk_poly_data(
 
 
 def voxel_chunk(voxels, coord, multiple=1, compression_level=0):
-    """Create a VoxelChunk that can be used for :ref:`factory.voxels_group`.
+    """Create a VoxelChunk that can be used for `voxels_group`.
 
     Parameters
     ----------

@@ -1,7 +1,7 @@
-.. _transform.transform:
+.. _transform:
 
-transform.transform
-===================
+transform
+=========
 
 .. autofunction:: k3d.transform.transform
 

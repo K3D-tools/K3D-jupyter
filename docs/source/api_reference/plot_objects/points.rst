@@ -1,7 +1,7 @@
-.. _factory.points:
+.. _points:
 
-factory.points
-==============
+points
+======
 
 .. autofunction:: k3d.factory.points
 

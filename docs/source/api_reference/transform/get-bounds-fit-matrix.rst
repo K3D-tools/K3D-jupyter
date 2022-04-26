@@ -1,7 +1,7 @@
-.. _transform.get_bounds_fit_matrix:
+.. _get_bounds_fit_matrix:
 
-transform.get_bounds_fit_matrix
-===============================
+get_bounds_fit_matrix
+=====================
 
 .. autofunction:: k3d.transform.get_bounds_fit_matrix
 

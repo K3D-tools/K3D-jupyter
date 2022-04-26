@@ -1,7 +1,7 @@
-.. _helpers.from_json:
+.. _from_json:
 
-helpers.from_json
-=================
+from_json
+=========
 
 .. autofunction:: k3d.helpers.from_json
 

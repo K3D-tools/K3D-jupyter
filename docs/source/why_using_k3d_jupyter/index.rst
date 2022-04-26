@@ -41,7 +41,7 @@ custom `pixel shaders <pixelshaders>`_) access.
 
 The ipywidgets_ architecture allows for communication of these two parts.
 K3D-jupyter exposes this communication and allows for easy dataset updates on existing plots. |br|
-For example, if :code:`plt_points` is an :ref:`k3d.points <factory.points>` object,
+For example, if :code:`plt_points` is an :ref:`points` object,
 then a simple assignment on the backend
 
 .. code-block:: python3

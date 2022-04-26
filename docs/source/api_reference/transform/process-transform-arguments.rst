@@ -1,7 +1,7 @@
-.. _transform.process_transform_arguments:
+.. _process_transform_arguments:
 
-transform.process_transform_arguments
-=====================================
+process_transform_arguments
+===========================
 
 .. autofunction:: k3d.transform.process_transform_arguments
 

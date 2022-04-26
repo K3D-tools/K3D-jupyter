@@ -1,12 +1,12 @@
-.. _factory.voxel_chunk:
+.. _voxel_chunk:
 
-factory.voxel_chunk
-===================
+voxel_chunk
+===========
 
 .. autofunction:: k3d.factory.voxel_chunk
 
 .. seealso::
-    - :ref:`factory.voxels_group`
+    - :ref:`voxels_group`
 
 **Examples**
 

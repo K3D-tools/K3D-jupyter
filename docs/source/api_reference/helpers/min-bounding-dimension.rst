@@ -1,7 +1,7 @@
-.. _helpers.min_bounding_dimension:
+.. _min_bounding_dimension:
 
-helpers.min_bounding_dimension
-==============================
+min_bounding_dimension
+======================
 
 .. autofunction:: k3d.helpers.min_bounding_dimension
 

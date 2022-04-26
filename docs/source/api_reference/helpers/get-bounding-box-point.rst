@@ -1,7 +1,7 @@
-.. _helpers.get_bounding_box_point:
+.. _get_bounding_box_point:
 
-helpers.get_bounding_box_point
-==============================
+get_bounding_box_point
+======================
 
 .. autofunction:: k3d.helpers.get_bounding_box_point
 

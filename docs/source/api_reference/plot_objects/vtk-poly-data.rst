@@ -1,7 +1,7 @@
-.. _factory.vtk_poly_data:
+.. _vtk_poly_data:
 
-factory.vtk_poly_data
-=====================
+vtk_poly_data
+=============
 
 .. autofunction:: k3d.factory.vtk_poly_data
 

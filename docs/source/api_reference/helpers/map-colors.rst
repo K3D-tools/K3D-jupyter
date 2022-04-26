@@ -1,7 +1,7 @@
-.. _helpers.map_colors:
+.. _map_colors:
 
-helpers.map_colors
-==================
+map_colors
+==========
 
 .. autofunction:: k3d.helpers.map_colors
 

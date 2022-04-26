@@ -1,7 +1,7 @@
-.. _factory.line:
+.. _line:
 
-factory.line
-============
+line
+=====
 
 .. autofunction:: k3d.factory.line
 

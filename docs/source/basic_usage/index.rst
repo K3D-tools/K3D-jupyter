@@ -1,7 +1,7 @@
 Create a plot
 =============
 
-You can create a new plot using the :ref:`k3d.plot <factory.plot>` function. |br|
+You can create a new plot using the :ref:`plot` function. |br|
 Then use the ``display()`` method to show the plot below a Jupyter notebook <Jupyter>`_ cell.
 
 .. code-block:: python3
@@ -176,7 +176,7 @@ In this case, you will have to write the ouput into an HTML file:
 Plot options
 ============
 
-When you create a new plot using the :ref:`k3d.plot <factory.plot>` function,
+When you create a new plot using the :ref:`plot` function,
 you can specify several options which control the behaviour and appearance of the
 plot, such as:
 

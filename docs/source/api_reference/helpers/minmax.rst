@@ -1,7 +1,7 @@
-.. _helpers.minmax:
+.. _minmax:
 
-helpers.minmax
-==============
+minmax
+======
 
 .. autofunction:: k3d.helpers.minmax
 

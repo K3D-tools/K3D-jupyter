@@ -1,7 +1,7 @@
-.. _helpers.sparse_voxels_validation:
+.. _sparse_voxels_validation:
 
-helpers.sparse_voxels_validation
-================================
+sparse_voxels_validation
+========================
 
 .. autofunction:: k3d.helpers.sparse_voxels_validation
 

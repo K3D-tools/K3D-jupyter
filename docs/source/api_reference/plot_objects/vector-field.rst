@@ -1,12 +1,12 @@
-.. _factory.vector_field:
+.. _vector_field:
 
-factory.vector_field
-====================
+vector_field
+============
 
 .. autofunction:: k3d.factory.vector_field
 
 .. seealso::
-    - :ref:`factory.vectors`
+    - :ref:`vectors`
 
 **Examples**
 

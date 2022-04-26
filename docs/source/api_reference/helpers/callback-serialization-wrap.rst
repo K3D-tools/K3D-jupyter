@@ -1,7 +1,7 @@
-.. _helpers.callback_serialization_wrap:
+.. _callback_serialization_wrap:
 
-helpers.callback_serialization_wrap
-===================================
+callback_serialization_wrap
+===========================
 
 .. autofunction:: k3d.helpers.callback_serialization_wrap
 

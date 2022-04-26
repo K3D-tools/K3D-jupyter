@@ -1,14 +1,14 @@
-.. _factory.text:
+.. _text:
 
-factory.text
-============
+text
+====
 
 .. autofunction:: k3d.factory.text
 
 .. seealso::
-    - :ref:`factory.label`
-    - :ref:`factory.text2d`
-    - :ref:`factory.texture_text`
+    - :ref:`label`
+    - :ref:`text2d`
+    - :ref:`texture_text`
 
 **Examples**
 

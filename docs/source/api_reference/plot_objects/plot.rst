@@ -1,7 +1,7 @@
-.. _factory.plot:
+.. _plot:
 
-factory.plot
-============
+plot
+====
 
 .. autofunction:: k3d.factory.plot
 

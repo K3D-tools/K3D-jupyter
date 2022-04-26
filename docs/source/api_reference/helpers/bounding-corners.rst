@@ -1,7 +1,7 @@
-.. _helpers.bounding_corners:
+.. _bounding_corners:
 
-helpers.bounding_corners
-========================
+bounding_corners
+================
 
 .. autofunction:: k3d.helpers.bounding_corners
 
