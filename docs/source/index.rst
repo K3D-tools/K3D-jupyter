@@ -34,6 +34,12 @@ K3D-jupyter plots ipywidgets_ assuring a perfect interaction of a browser-side w
 
 .. toctree::
     :maxdepth: 2
+    :caption: Gallery
+
+    gallery/index.rst
+
+.. toctree::
+    :maxdepth: 2
     :caption: API reference
 
     api_reference/index.rst

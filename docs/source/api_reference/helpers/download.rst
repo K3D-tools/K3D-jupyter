@@ -7,7 +7,7 @@ download
 
 .. note::
     If a file with a similar name already exists in the current directory,
-    `helpers.download`_ will not overwrite the file and just return the file name.
+    `download` will not overwrite the file and just return the file name.
 
 **Examples**
 
