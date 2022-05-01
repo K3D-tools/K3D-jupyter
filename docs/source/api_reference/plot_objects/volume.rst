@@ -12,7 +12,7 @@ volume
 Render mhd volumetric data
 
 :download:`heart.mhd <./assets/heart.mhd>`
-:download:`heart.mhd <./assets/heart.zraw>`
+:download:`heart.zraw <./assets/heart.zraw>`
 
 .. code-block:: python3
 
@@ -35,7 +35,7 @@ Render mhd volumetric data
 Colormap
 
 :download:`heart.mhd <./assets/heart.mhd>`
-:download:`heart.mhd <./assets/heart.zraw>`
+:download:`heart.zraw <./assets/heart.zraw>`
 
 .. code-block:: python3
 
