@@ -14,7 +14,7 @@ Turbine CFD
 
 .. code-block:: python3
 
-    # Data and model from ParaView sofware
+    # Data and model from ParaView software examples
 
     import k3d
     import numpy as np
