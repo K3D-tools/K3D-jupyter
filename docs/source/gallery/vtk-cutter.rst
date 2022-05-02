@@ -1,6 +1,13 @@
 VTK cutter
 ===========
 
+.. admonition:: References
+
+    - :ref:`mesh`
+    - :ref:`paraview_color_maps`
+    - :ref:`plot`
+    - :ref:`vtk_poly_data`
+
 :download:`output_fem.vtu <./assets/output_fem.vtu>`
 
 .. code-block:: python3

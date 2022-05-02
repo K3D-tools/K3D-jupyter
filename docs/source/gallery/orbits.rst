@@ -1,6 +1,13 @@
 Orbits
 ======
 
+.. admonition:: References
+
+    - :ref:`line`
+    - :ref:`paraview_color_maps`
+    - :ref:`plot`
+    - :ref:`points`
+
 .. note::
     Because this example relies on randomness, the live version configuration
     is hard-coded to ensure the same results for everyone.

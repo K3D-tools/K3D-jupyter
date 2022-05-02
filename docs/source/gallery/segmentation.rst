@@ -1,6 +1,12 @@
 Segmentation
 ============
 
+.. admonition:: References
+
+    - :ref:`voxels`
+    - :ref:`plot`
+    - :ref:`text2d`
+
 :download:`segmentations.npz <./assets/segmentations.npz>`
 
 .. code-block:: python3

@@ -1,6 +1,11 @@
 Point cloud
 ===========
 
+.. admonition:: References
+
+    - :ref:`plot`
+    - :ref:`points`
+
 :download:`point_cloud.npz <./assets/point_cloud.npz>`
 
 .. code-block:: python3

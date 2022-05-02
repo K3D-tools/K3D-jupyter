@@ -1,6 +1,12 @@
 Lorenz system
 =============
 
+.. admonition:: References
+
+    - :ref:`line`
+    - :ref:`paraview_color_maps`
+    - :ref:`plot`
+
 .. code-block:: python3
 
     import k3d

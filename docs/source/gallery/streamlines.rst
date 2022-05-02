@@ -1,6 +1,13 @@
 Streamlines
 ===========
 
+.. admonition:: References
+
+    - :ref:`line`
+    - :ref:`matplotlib_color_maps`
+    - :ref:`mesh`
+    - :ref:`plot`
+
 :download:`streamlines_data.npz <./assets/streamlines_data.npz>`
 
 .. code-block:: python3

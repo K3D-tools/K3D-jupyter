@@ -1,6 +1,14 @@
 Turbine CFD
 ===========
 
+.. admonition:: References
+
+    - :ref:`map_colors`
+    - :ref:`paraview_color_maps`
+    - :ref:`plot`
+    - :ref:`vectors`
+    - :ref:`vtk_poly_data`
+
 :download:`cylinder.vtp <./assets/cylinder.vtp>`
 :download:`cfd.csv <./assets/cfd.csv>`
 

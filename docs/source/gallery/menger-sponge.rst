@@ -1,6 +1,11 @@
 Menger sponge
 =============
 
+.. admonition:: References
+
+    - :ref:`voxels`
+    - :ref:`plot`
+
 .. code-block:: python3
 
     import k3d
