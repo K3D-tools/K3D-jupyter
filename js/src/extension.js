@@ -19,7 +19,7 @@ window.__webpack_public_path__ = `${document.querySelector('body').getAttribute(
 require('katex/dist/katex.min.css');
 require('lil-gui/dist/lil-gui.css');
 
-// Export the required load_ipython_extention
+// Export the required load_ipython_extension
 module.exports = {
     load_ipython_extension() {
     },
