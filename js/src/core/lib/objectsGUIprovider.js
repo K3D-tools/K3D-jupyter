@@ -282,6 +282,13 @@ function update(K3D, json, GUI, changes) {
                         changeParameter.bind(this, K3D, json, param),
                     );
                 }
+
+                if (json.type === 'Lines' || json.type === 'Line') {
+                    addController(K3D.gui_map[json.id], json, param,
+                        ['simple', 'thick', 'mesh']).onChange(
+                        changeParameter.bind(this, K3D, json, param),
+                    );
+                }
                 break;
             case 'mode':
                 if (json.type === 'Label') {
@@ -311,18 +318,16 @@ function update(K3D, json, GUI, changes) {
                 }
                 break;
             case 'width':
-                if (json.type === 'Line' && json.shader === 'mesh') {
+                if ((json.type === 'Line' || json.type === 'Lines') && json.shader === 'mesh') {
                     addController(K3D.gui_map[json.id], json, param).onChange(
                         changeParameter.bind(this, K3D, json, param),
                     );
                 }
                 break;
             case 'radial_segments':
-                if (json.shader === 'mesh') {
-                    addController(K3D.gui_map[json.id], json, param, 0, 64, 1).name('radialSeg').onChange(
-                        changeParameter.bind(this, K3D, json, param),
-                    );
-                }
+                addController(K3D.gui_map[json.id], json, param, 0, 64, 1).name('radialSeg').onChange(
+                    changeParameter.bind(this, K3D, json, param),
+                );
                 break;
             case 'mesh_detail':
                 if (json.shader === 'mesh') {

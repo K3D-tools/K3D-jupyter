@@ -46,6 +46,7 @@ module.exports = {
      */
     Objects: {
         Line: require('./objects/Line'),
+        Lines: require('./objects/Lines'),
         MarchingCubes: require('./objects/MarchingCubes'),
         Mesh: require('./objects/Mesh'),
         Points: require('./objects/Points'),

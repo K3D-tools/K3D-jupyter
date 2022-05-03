@@ -16,6 +16,7 @@ from .colormaps import matplotlib_color_maps
 from .helpers import check_attribute_range
 from .objects import (
     Line,
+    Lines,
     MarchingCubes,
     Mesh,
     Points,
@@ -65,6 +66,99 @@ nice_colors = (
 )
 
 default_colormap = matplotlib_color_maps.Inferno
+
+
+def lines(
+        vertices,
+        indices,
+        indices_type="triangle",
+        color=_default_color,
+        colors=[],  # lgtm [py/similar-function]
+        attribute=[],
+        color_map=None,
+        color_range=[],
+        width=0.01,
+        shader="thick",
+        radial_segments=8,
+        name=None,
+        group=None,
+        compression_level=0,
+        **kwargs
+):
+    """Create a Line drawable for plotting segments and polylines.
+
+    Arguments:
+        vertices: `array_like`.
+            Array with (x, y, z) coordinates of segment endpoints.
+        indices: `array_like`.
+            Array of vertex indices: int pair of indices from vertices array.
+        indices_type: `str`.
+            Interpretation of indices array
+            Legal values are:
+
+            :`segment`: indices contains pair of values,
+
+            :`triangle`: indices contains triple of values
+        color: `int`.
+            Packed RGB color of the lines (0xff0000 is red, 0xff is blue) when `colors` is empty.
+        colors: `array_like`.
+            Array of int: packed RGB colors (0xff0000 is red, 0xff is blue) when attribute,
+            color_map and color_range are empty.
+        attribute: `array_like`.
+            Array of float attribute for the color mapping, coresponding to each vertex.
+        color_map: `list`.
+            A list of float quadruplets (attribute value, R, G, B), sorted by attribute value. The first
+            quadruplet should have value 0.0, the last 1.0; R, G, B are RGB color components in the range 0.0 to 1.0.
+        color_range: `list`.
+            A pair [min_value, max_value], which determines the levels of color attribute mapped
+            to 0 and 1 in the color map respectively.
+        shader: `str`.
+            Display style (name of the shader used) of the lines.
+            Legal values are:
+
+            :`simple`: simple lines,
+
+            :`thick`: thick lines,
+
+            :`mesh`: high precision triangle mesh of segments (high quality and GPU load).
+        radial_segments: 'int'.
+            Number of segmented faces around the circumference of the tube
+        width: `float`.
+            Thickness of the lines.
+        name: `string`.
+            A name of a object
+        group: `string`.
+            A name of a group"""
+    if color_map is None:
+        color_map = default_colormap
+
+    color_map = (
+        np.array(color_map, np.float32) if type(color_map) is not dict else color_map
+    )
+    attribute = (
+        np.array(attribute, np.float32) if type(attribute) is not dict else attribute
+    )
+    color_range = check_attribute_range(attribute, color_range)
+
+    return process_transform_arguments(
+        Lines(
+            vertices=vertices,
+            indices=indices,
+            indices_type=indices_type,
+            color=color,
+            width=width,
+            shader=shader,
+            radial_segments=radial_segments,
+            colors=colors,
+            attribute=attribute,
+            color_map=color_map,
+            color_range=color_range,
+            name=name,
+            group=group,
+            compression_level=compression_level,
+        ),
+        **kwargs
+    )
 
 
 def line(
@@ -119,6 +213,7 @@ def line(
             A name of a group"""
     if color_map is None:
         color_map = default_colormap
+
     color_map = (
         np.array(color_map, np.float32) if type(color_map) is not dict else color_map
     )

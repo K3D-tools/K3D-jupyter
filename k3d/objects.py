@@ -318,6 +318,100 @@ class Line(Drawable):
         return proposal["value"]
 
 
+class Lines(Drawable):
+    """
+    A set of line (polyline) made up of indices.
+
+    Attributes:
+        vertices: `array_like`.
+            An array with (x, y, z) coordinates of segment endpoints.
+        indices: `array_like`.
+            Array of vertex indices: int pair of indices from vertices array.
+       indices_type: `str`.
+            Interpretation of indices array
+            Legal values are:
+
+            :`segment`: indices contains pair of values,
+
+            :`triangle`: indices contains triple of values
+        colors: `array_like`.
+            Same-length array of (`int`) packed RGB color of the points (0xff0000 is red, 0xff is blue).
+        color: `int`.
+            Packed RGB color of the lines (0xff0000 is red, 0xff is blue) when `colors` is empty.
+        attribute: `array_like`.
+            Array of float attribute for the color mapping, coresponding to each vertex.
+        color_map: `list`.
+            A list of float quadruplets (attribute value, R, G, B), sorted by attribute value. The first
+            quadruplet should have value 0.0, the last 1.0; R, G, B are RGB color components in the range 0.0 to 1.0.
+        color_range: `list`.
+            A pair [min_value, max_value], which determines the levels of color attribute mapped
+            to 0 and 1 in the color map respectively.
+        width: `float`.
+            The thickness of the lines.
+        shader: `str`.
+            Display style (name of the shader used) of the lines.
+            Legal values are:
+
+            :`simple`: simple lines,
+
+            :`thick`: thick lines,
+
+            :`mesh`: high precision triangle mesh of segments (high quality and GPU load).
+        radial_segments: 'int':
+            Number of segmented faces around the circumference of the tube.
+        model_matrix: `array_like`.
+            4x4 model transform matrix.
+    """
+
+    type = Unicode(read_only=True).tag(sync=True)
+
+    vertices = TimeSeries(Array(dtype=np.float32)).tag(
+        sync=True, **array_serialization_wrap("vertices")
+    )
+    indices = Array(dtype=np.float32).tag(sync=True, **array_serialization_wrap("indices"))
+    indices_type = TimeSeries(Unicode()).tag(sync=True)
+    colors = TimeSeries(Array(dtype=np.uint32)).tag(
+        sync=True, **array_serialization_wrap("colors")
+    )
+    color = TimeSeries(Int(min=0, max=0xFFFFFF)).tag(sync=True)
+    width = TimeSeries(Float(min=EPSILON, default_value=0.01)).tag(sync=True)
+    attribute = TimeSeries(Array(dtype=np.float32)).tag(
+        sync=True, **array_serialization_wrap("attribute")
+    )
+    color_map = TimeSeries(Array(dtype=np.float32)).tag(
+        sync=True, **array_serialization_wrap("color_map")
+    )
+    color_range = TimeSeries(ListOrArray(minlen=2, maxlen=2, empty_ok=True)).tag(
+        sync=True
+    )
+    shader = TimeSeries(Unicode()).tag(sync=True)
+    radial_segments = TimeSeries(Int()).tag(sync=True)
+    model_matrix = TimeSeries(Array(dtype=np.float32)).tag(
+        sync=True, **array_serialization_wrap("model_matrix")
+    )
+
+    def __init__(self, **kwargs):
+        super(Lines, self).__init__(**kwargs)
+
+        self.set_trait("type", "Lines")
+
+    def get_bounding_box(self):
+        return get_bounding_box_points(self.vertices, self.model_matrix)
+
+    @validate("colors")
+    def _validate_colors(self, proposal):
+        if type(proposal["value"]) is dict or type(self.vertices) is dict:
+            return proposal["value"]
+
+        required = self.vertices.size // 3  # (x, y, z) triplet per 1 color
+        actual = proposal["value"].size
+        if actual != 0 and required != actual:
+            raise TraitError(
+                "colors has wrong size: %s (%s required)" % (actual, required)
+            )
+        return proposal["value"]
+
+
 class MarchingCubes(DrawableWithCallback):
     """
     An isosurface in a scalar field obtained through Marching Cubes algorithm.
