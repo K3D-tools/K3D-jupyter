@@ -1,7 +1,7 @@
 Camera
 ======
 
-Camera is 9-th vector:
+The camera state is determined by a 9-th degree vector:
 
 .. code::
 
@@ -12,8 +12,8 @@ Camera is 9-th vector:
     ]
 
 
-Is is synchronized between frontend and backend automatically.
-Below there is an example of camera manipulation in Python backend.
+It is synchronized between the frontend and backend automatically.
+There is an example below of camera manipulation using the Python backend.
 
 
 .. code::
@@ -31,7 +31,7 @@ Below there is an example of camera manipulation in Python backend.
 .. k3d_plot ::
    :filename: camera/camera01.py
 
-Look at bigger icosahedron from above (z>0)  and first quarter of xy plane:
+Look at the bigger icosahedron from above (z>0)  and from the first quarter of xy plane:
 
 .. code::
 
@@ -42,7 +42,7 @@ Look at bigger icosahedron from above (z>0)  and first quarter of xy plane:
 .. k3d_plot ::
    :filename: camera/camera02.py
 
-Look at smaller icosahedron from above (z>0)
+Look at the smaller icosahedron from above (z>0)
 
 .. code::
 
@@ -53,7 +53,7 @@ Look at smaller icosahedron from above (z>0)
 .. k3d_plot ::
    :filename: camera/camera03.py
 
-Look at larger icosahedron from a point above  its center orienting camera to have y-axis up.
+Look at the larger icosahedron from a point above  its center, orienting camera to have y-axis up.
 
 .. code::
 

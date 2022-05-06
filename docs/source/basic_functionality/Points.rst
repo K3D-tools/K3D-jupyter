@@ -1,7 +1,7 @@
 Points
 ======
 
-To draw points one needs to prepare data in the array of coordinates `[number_of_points, 3]`.
+To draw points one needs to prepare data as an array of coordinates `[number_of_points, 3]`.
 Colors for all the points can either be the same or have an individual value (`colors` attribute).
 
 When the number of points is larger than $10^3$ it is recommended to use fast shaders: `flat`, `

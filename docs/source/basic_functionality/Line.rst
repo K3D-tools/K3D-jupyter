@@ -1,10 +1,9 @@
 Line
 ====
 
-Let us draw a trajectory of `N` steps of an approximation to the
-[Wiener Process](https://en.wikipedia.org/wiki/Wiener_process) in three dimensions.
+Let us draw a trajectory of `N` steps of an approximation to the `Wiener Process <https://en.wikipedia.org/wiki/Wiener_process>`_ in three dimensions.
 
-Below, a blue thin line is a trajectory and the total displacement is shown with red thick line.
+Below, a blue thin line is a trajectory and the total displacement is shown with a red thick line.
 
 Line takes data as an array of coordinates `[number_of_points,3]`.
 
