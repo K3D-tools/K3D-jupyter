@@ -20,7 +20,7 @@ function update(K3D, json, GUI, changes) {
     function moveToGroup(json) {
         let parent;
 
-        if (json.group !== null) {
+        if (json.group != null) {
             if (typeof (K3D.gui_groups[json.group]) === 'undefined') {
                 K3D.gui_groups[json.group] = GUI.addFolder(`${json.group}`).close();
             }
