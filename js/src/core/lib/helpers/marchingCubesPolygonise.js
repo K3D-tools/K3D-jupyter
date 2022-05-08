@@ -53,75 +53,75 @@ module.exports = function (positions, field, iso,
     }
 
     if (bits & 1) {
-        vertexList[0] = x + (sx * (iso - fieldNeighbours[0])) / (fieldNeighbours[1] - fieldNeighbours[0]);
+        vertexList[2] = x + (sx * (iso - fieldNeighbours[0])) / (fieldNeighbours[1] - fieldNeighbours[0]);
         vertexList[1] = y;
-        vertexList[2] = z;
+        vertexList[0] = z;
     }
 
     if (bits & 2) {
-        vertexList[3] = x + sx;
+        vertexList[5] = x + sx;
         vertexList[4] = y;
-        vertexList[5] = z + (sz * (iso - fieldNeighbours[1])) / (fieldNeighbours[2] - fieldNeighbours[1]);
+        vertexList[3] = z + (sz * (iso - fieldNeighbours[1])) / (fieldNeighbours[2] - fieldNeighbours[1]);
     }
 
     if (bits & 4) {
-        vertexList[6] = x + (sx * (iso - fieldNeighbours[3])) / (fieldNeighbours[2] - fieldNeighbours[3]);
+        vertexList[8] = x + (sx * (iso - fieldNeighbours[3])) / (fieldNeighbours[2] - fieldNeighbours[3]);
         vertexList[7] = y;
-        vertexList[8] = z + sz;
+        vertexList[6] = z + sz;
     }
 
     if (bits & 8) {
-        vertexList[9] = x;
+        vertexList[11] = x;
         vertexList[10] = y;
-        vertexList[11] = z + (sz * (iso - fieldNeighbours[0])) / (fieldNeighbours[3] - fieldNeighbours[0]);
+        vertexList[9] = z + (sz * (iso - fieldNeighbours[0])) / (fieldNeighbours[3] - fieldNeighbours[0]);
     }
 
     if (bits & 16) {
-        vertexList[12] = x + (sx * (iso - fieldNeighbours[4])) / (fieldNeighbours[5] - fieldNeighbours[4]);
+        vertexList[14] = x + (sx * (iso - fieldNeighbours[4])) / (fieldNeighbours[5] - fieldNeighbours[4]);
         vertexList[13] = y + sy;
-        vertexList[14] = z;
+        vertexList[12] = z;
     }
 
     if (bits & 32) {
-        vertexList[15] = x + sx;
+        vertexList[17] = x + sx;
         vertexList[16] = y + sy;
-        vertexList[17] = z + (sz * (iso - fieldNeighbours[5])) / (fieldNeighbours[6] - fieldNeighbours[5]);
+        vertexList[15] = z + (sz * (iso - fieldNeighbours[5])) / (fieldNeighbours[6] - fieldNeighbours[5]);
     }
 
     if (bits & 64) {
-        vertexList[18] = x + (sx * (iso - fieldNeighbours[7])) / (fieldNeighbours[6] - fieldNeighbours[7]);
+        vertexList[20] = x + (sx * (iso - fieldNeighbours[7])) / (fieldNeighbours[6] - fieldNeighbours[7]);
         vertexList[19] = y + sy;
-        vertexList[20] = z + sz;
+        vertexList[18] = z + sz;
     }
 
     if (bits & 128) {
-        vertexList[21] = x;
+        vertexList[23] = x;
         vertexList[22] = y + sy;
-        vertexList[23] = z + (sz * (iso - fieldNeighbours[4])) / (fieldNeighbours[7] - fieldNeighbours[4]);
+        vertexList[21] = z + (sz * (iso - fieldNeighbours[4])) / (fieldNeighbours[7] - fieldNeighbours[4]);
     }
 
     if (bits & 256) {
-        vertexList[24] = x;
+        vertexList[26] = x;
         vertexList[25] = y + (sy * (iso - fieldNeighbours[0])) / (fieldNeighbours[4] - fieldNeighbours[0]);
-        vertexList[26] = z;
+        vertexList[24] = z;
     }
 
     if (bits & 512) {
-        vertexList[27] = x + sx;
+        vertexList[29] = x + sx;
         vertexList[28] = y + (sy * (iso - fieldNeighbours[1])) / (fieldNeighbours[5] - fieldNeighbours[1]);
-        vertexList[29] = z;
+        vertexList[27] = z;
     }
 
     if (bits & 1024) {
-        vertexList[30] = x + sx;
+        vertexList[32] = x + sx;
         vertexList[31] = y + (sy * (iso - fieldNeighbours[2])) / (fieldNeighbours[6] - fieldNeighbours[2]);
-        vertexList[32] = z + sz;
+        vertexList[30] = z + sz;
     }
 
     if (bits & 2048) {
-        vertexList[33] = x;
+        vertexList[35] = x;
         vertexList[34] = y + (sy * (iso - fieldNeighbours[3])) / (fieldNeighbours[7] - fieldNeighbours[3]);
-        vertexList[35] = z + sz;
+        vertexList[33] = z + sz;
     }
 
     index <<= 4;
