@@ -50,4 +50,5 @@ K3D-jupyter plots ipywidgets_ assuring a perfect interaction of a browser-side w
 
     user_guide/installation.rst
     user_guide/k3d-panel.rst
+    user_guide/object-naming.rst
     user_guide/time-series.rst
