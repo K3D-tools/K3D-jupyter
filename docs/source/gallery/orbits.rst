@@ -7,6 +7,7 @@ Orbits
     - :ref:`paraview_color_maps`
     - :ref:`plot`
     - :ref:`points`
+    - :ref:`time_series`
 
 .. note::
     Because this example relies on randomness, the live version configuration

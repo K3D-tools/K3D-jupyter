@@ -14,6 +14,9 @@ Install using `conda`_:
 
   conda install -c conda-forge k3d
 
+.. seealso::
+    - :ref:`installation`
+
 First plot
 ==========
 
