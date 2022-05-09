@@ -35,7 +35,7 @@ Turbine CFD
                                 opacity=0.3)
 
     # CFD
-    ccfd = pd.read_csv('cfd.csv')
+    cfd = pd.read_csv('cfd.csv')
 
     o = cfd[['Points:0', 'Points:1', 'Points:2']].values.astype(np.float32)
     v = cfd[['v:0', 'v:1', 'v:2']].values.astype(np.float32)
