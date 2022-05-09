@@ -64,7 +64,7 @@ Time is represented as a ``str`` denoting wall time.
 .. k3d_plot ::
   :filename: plots/time_series_frontend_plot.py
 
-You can control the animation from the GUI or through several attributes:
+You can control the animation from the :ref:`K3D panel <k3d_panel>` or through several attributes:
 
 .. code-block::
 

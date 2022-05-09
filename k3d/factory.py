@@ -1833,9 +1833,9 @@ def plot(
     lighting : float, optional
         Lighting factor, by default 1.5.
     menu_visibility : bool, optional
-        Display menu on GUI, by default True.
+        Display K3D panel, by default True.
     voxel_paint_color : int, optional
-        (initial) int value to be inserted when editing voxels, by default 0.
+        (initial) `int` value to be inserted when editing voxels, by default 0.
     colorbar_object_id : int, optional
         Id of colorbar object, by default -1.
     camera_fov : float, optional
