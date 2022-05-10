@@ -15,10 +15,12 @@ def generate():
                        for z in p]).astype(np.float32)
     norms = np.apply_along_axis(norm, 1, vectors.reshape(-1, 3))
 
-    plt_vector_field = k3d.vector_field(vectors)
+    plt_vector_field = k3d.vector_field(vectors,
+                                        head_size=1.5,
+                                        scale=2,
+                                        bounds=[-1, 1, -1, 1, -1, 1])
 
-    colors = map_colors(norms, matplotlib_color_maps.Jet,
-                        [0, 1]).astype(np.uint32)
+    colors = map_colors(norms, matplotlib_color_maps.Turbo, [0, 1]).astype(np.uint32)
     plt_vector_field.colors = np.repeat(colors, 2)
 
     plot = k3d.plot()

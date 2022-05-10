@@ -17,14 +17,11 @@ Basic
 
     import k3d
     import numpy as np
-    import vtk
+    import pyvista as pv
 
-    reader = vtk.vtkXMLPolyDataReader()
-    reader.SetFileName('cow.vtp')
-    reader.Update()
-    polydata = reader.GetOutput()
+    data = pv.raed('cow.vtp')
 
-    plt_vtk = k3d.vtk_poly_data(polydata,
+    plt_vtk = k3d.vtk_poly_data(data,
                                 color=0xc6884b,
                                 model_matrix = (1.0, 0.0, 0.0, 0.0,
                                                 0.0, 0.0, 1.0, 0.0,
@@ -50,15 +47,12 @@ Colormap
     # VTP model from https://github.com/pyvista/vtk-data/blob/master/Data/Bunny.vtp
 
     import k3d
-    import vtk
+    import pyvista as pv
     from k3d.colormaps import matplotlib_color_maps
 
-    reader = vtk.vtkXMLPolyDataReader()
-    reader.SetFileName('bunny.vtp')
-    reader.Update()
-    polydata = reader.GetOutput()
+    data = pv.read('bunny.vtp')
 
-    plt_vtk = k3d.vtk_poly_data(polydata,
+    plt_vtk = k3d.vtk_poly_data(data,
                                 color_attribute=('Normals', 0, 1),
                                 color_map=matplotlib_color_maps.Rainbow,
                                 model_matrix = (1.0, 0.0, 0.0, 0.0,

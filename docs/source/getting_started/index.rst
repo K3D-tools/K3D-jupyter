@@ -24,8 +24,8 @@ First plot
 
     import k3d
 
-    plot = k3d.plot()
-    plot += k3d.platonic.Cube()
+    plot = k3d.line([[0, 0, 0],
+                     [1, 1, 1]])
 
     plot.display()
 

@@ -71,7 +71,7 @@ On the other hand, the availability of the back-end does not prohibit from using
 much more sophisticated visualization pipelines.
 
 An example could be an unstructured volumetric grid with some scalar field.
-K3D does not support this kind of data, but it can be preprocessed using VTK_ to --
+K3D does not support this kind of data, but it can be preprocessed using PyVista_ to --
 for example -- mesh it with colour coded values.
 Moreover, if such preprocessing produced a mesh with a small or moderate number of
 triangles (:math:`<10^5`), then it could be interactively explored by
@@ -99,5 +99,5 @@ back-end, send by email or embedded in webpages.
 .. _HPC: https://en.wikipedia.org/wiki/High-performance_computing
 .. _pixelshaders: https://www.nvidia.com/en-us/drivers/feature-pixelshader/
 .. _NumPy: https://numpy.org
-.. _VTK: https://vtk.org/
+.. _PyVista: https://docs.pyvista.org/
 .. _Jupyter Notebook: https://jupyter.org/

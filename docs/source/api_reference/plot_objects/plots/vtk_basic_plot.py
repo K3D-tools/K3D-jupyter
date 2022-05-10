@@ -1,18 +1,16 @@
-import k3d
 import os
-import vtk
+
+import k3d
+import pyvista as pv
 
 
 def generate():
     filepath = os.path.join(os.path.abspath(os.path.dirname(__file__)),
                             '../assets/cow.vtp')
 
-    reader = vtk.vtkXMLPolyDataReader()
-    reader.SetFileName(filepath)
-    reader.Update()
-    polydata = reader.GetOutput()
+    data = pv.read(filepath)
 
-    plt_vtk = k3d.vtk_poly_data(polydata,
+    plt_vtk = k3d.vtk_poly_data(data,
                                 color=0xc6884b,
                                 model_matrix=(1.0, 0.0, 0.0, 0.0,
                                               0.0, 0.0, 1.0, 0.0,

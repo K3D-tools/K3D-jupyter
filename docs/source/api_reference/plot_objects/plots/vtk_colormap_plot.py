@@ -1,6 +1,7 @@
-import k3d
 import os
-import vtk
+
+import k3d
+import pyvista as pv
 from k3d.colormaps import matplotlib_color_maps
 
 
@@ -8,12 +9,9 @@ def generate():
     filepath = os.path.join(os.path.abspath(os.path.dirname(__file__)),
                             '../assets/bunny.vtp')
 
-    reader = vtk.vtkXMLPolyDataReader()
-    reader.SetFileName(filepath)
-    reader.Update()
-    polydata = reader.GetOutput()
+    data = pv.read(filepath)
 
-    plt_vtk = k3d.vtk_poly_data(polydata,
+    plt_vtk = k3d.vtk_poly_data(data,
                                 color_attribute=('Normals', 0, 1),
                                 color_map=matplotlib_color_maps.Rainbow,
                                 model_matrix=(1.0, 0.0, 0.0, 0.0,
