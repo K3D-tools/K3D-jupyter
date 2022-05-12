@@ -9,7 +9,7 @@ from traitlets import Unicode, Bool, Int, List, Float
 from ._version import __version__ as version
 from .objects import (Line, Label, MIP, MarchingCubes, Mesh, Points, STL, SparseVoxels, Surface,
                       Text, Text2d, Texture, TextureText, VectorField, Vectors, Volume, Voxels,
-                      VoxelsGroup, ListOrArray, Drawable, TimeSeries)
+                      VoxelsGroup, ListOrArray, Drawable, TimeSeries, VoxelChunk)
 
 objects_map = {
     'Line': Line,
@@ -456,6 +456,11 @@ class Plot(widgets.DOMWidget):
                     attributes = {
                         k: from_json(o[k]) for k in o.keys() if k != 'type'
                     }
+
+                    # force to use current version
+                    attributes['_model_module'] = 'k3d'
+                    attributes['_model_module_version'] = version
+                    attributes['_view_module_version'] = version
 
                     if name == 'objects':
                         o = objects_map[o['type']](**attributes)
