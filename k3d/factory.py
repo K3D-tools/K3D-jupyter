@@ -759,9 +759,10 @@ def text2d(
         size=1.0,
         reference_point="lt",
         label_box=True,
+        is_html=False,
         name=None,
         group=None,
-        is_html=False,
+        custom_data=None,
         compression_level=0,
 ):
     """Create a Text2d drawable for 2D-positioned (viewport bound, OSD) labels.
