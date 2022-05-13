@@ -621,6 +621,7 @@ def surface(
         color_range=[],
         name=None,
         group=None,
+        custom_data=None,
         compression_level=0,
         **kwargs
 ):
