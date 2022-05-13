@@ -297,6 +297,7 @@ function K3D(provider, targetDOMNode, parameters) {
             autoRendering: true,
             axesHelper: 1.0,
             snapshotType: 'full',
+            customData: null,
             guiVersion: require('../../package.json').version,
         },
         parameters || {},

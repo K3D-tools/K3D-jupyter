@@ -92,6 +92,7 @@ class Drawable(widgets.Widget):
     id = Integer().tag(sync=True)
     name = Unicode(default_value=None, allow_none=True).tag(sync=True)
     group = Unicode(default_value=None, allow_none=True).tag(sync=True)
+    custom_data = Dict(default_value=None, allow_none=True).tag(sync=True)
     visible = TimeSeries(Bool(True)).tag(sync=True)
     compression_level = Integer().tag(sync=True)
 

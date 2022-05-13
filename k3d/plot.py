@@ -4,7 +4,7 @@ import base64
 import ipywidgets as widgets
 from IPython.display import display
 from functools import wraps
-from traitlets import Unicode, Bool, Int, List, Float
+from traitlets import Unicode, Bool, Int, List, Float, Dict
 
 from ._version import __version__ as version
 from .objects import (Line, Label, MIP, MarchingCubes, Mesh, Points, STL, SparseVoxels, Surface,
@@ -189,6 +189,7 @@ class Plot(widgets.DOMWidget):
     mode = Unicode().tag(sync=True)
     camera_mode = Unicode().tag(sync=True)
     manipulate_mode = Unicode().tag(sync=True)
+    custom_data = Dict(default_value=None, allow_none=True).tag(sync=True)
 
     objects = []
 
@@ -229,6 +230,7 @@ class Plot(widgets.DOMWidget):
             fps=25.0,
             grid_color=0xE6E6E6,
             label_color=0x444444,
+            custom_data=None,
             *args,
             **kwargs
     ):
@@ -270,6 +272,7 @@ class Plot(widgets.DOMWidget):
         self.manipulate_mode = manipulate_mode
         self.auto_rendering = auto_rendering
         self.camera = []
+        self.custom_data = custom_data
 
         self.object_ids = []
         self.objects = []
@@ -520,6 +523,7 @@ class Plot(widgets.DOMWidget):
             "cameraFov": self.camera_fov,
             "axesHelper": self.axes_helper,
             "cameraAnimation": self.camera_animation,
+            "customData": self.custom_data,
             "fps": self.fps,
         }
 
