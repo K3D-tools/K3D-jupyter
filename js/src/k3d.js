@@ -298,6 +298,7 @@ const PlotView = widgets.DOMWidgetView.extend({
         this.model.on('change:camera_fov', this._setCameraFOV, this);
         this.model.on('change:camera_damping_factor', this._setCameraDampingFactor, this);
         this.model.on('change:axes_helper', this._setAxesHelper, this);
+        this.model.on('change:axes_helper_colors', this._setAxesHelperColors, this);
         this.model.on('change:snapshot_type', this._setSnapshotType, this);
         this.model.on('change:name', this._setName, this);
         this.model.on('change:mode', this._setViewMode, this);
@@ -520,6 +521,10 @@ const PlotView = widgets.DOMWidgetView.extend({
 
     _setAxesHelper() {
         this.K3DInstance.setAxesHelper(this.model.get('axes_helper'));
+    },
+
+    _setAxesHelperColors() {
+        this.K3DInstance.setAxesHelperColors(this.model.get('axes_helper_colors'));
     },
 
     _setSnapshotType() {

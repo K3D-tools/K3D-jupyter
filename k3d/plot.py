@@ -87,6 +87,10 @@ class Plot(widgets.DOMWidget):
             Can be 'full', 'online' or 'inline'.
         axes: `list`.
             Axes labels for plot.
+        axes_helper: `Float`.
+            Axes helper size.
+        axes_helper_colors: `List`.
+            List of triple packed RGB color of the axes helper (0xff0000 is red, 0xff is blue).
         time: `list`.
             Time value (used in TimeSeries)
         name: `string`.
@@ -186,6 +190,8 @@ class Plot(widgets.DOMWidget):
     name = Unicode(default_value=None, allow_none=True).tag(sync=True)
     axes = List(minlen=3, maxlen=3, default_value=["x", "y", "z"]).tag(sync=True)
     axes_helper = Float().tag(sync=True)
+    axes_helper_colors = List(minlen=3, maxlen=3,
+                              default_value=[0xff0000, 0x00ff00, 0x0000ff]).tag(sync=True)
     mode = Unicode().tag(sync=True)
     camera_mode = Unicode().tag(sync=True)
     manipulate_mode = Unicode().tag(sync=True)
@@ -222,6 +228,7 @@ class Plot(widgets.DOMWidget):
             camera_fov=45.0,
             camera_damping_factor=0.0,
             axes_helper=1.0,
+            axes_helper_colors=[0xff0000, 0x00ff00, 0x0000ff],
             name=None,
             mode="view",
             camera_mode="trackball",
@@ -265,6 +272,7 @@ class Plot(widgets.DOMWidget):
         self.camera_fov = camera_fov
         self.axes = axes
         self.axes_helper = axes_helper
+        self.axes_helper_colors = axes_helper_colors
         self.name = name
         self.mode = mode
         self.snapshot_type = snapshot_type
@@ -522,6 +530,7 @@ class Plot(widgets.DOMWidget):
             "height": self.height,
             "cameraFov": self.camera_fov,
             "axesHelper": self.axes_helper,
+            "axesHelperColors": self.axes_helper_colors,
             "cameraAnimation": self.camera_animation,
             "customData": self.custom_data,
             "fps": self.fps,

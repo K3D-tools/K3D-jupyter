@@ -1804,6 +1804,7 @@ def plot(
         time=0.0,
         axes=["x", "y", "z"],
         axes_helper=1.0,
+        axes_helper_colors=[0xff0000, 0x00ff00, 0x0000ff],
         camera_mode="trackball",
         snapshot_type='full',
         auto_rendering=True,
@@ -1873,6 +1874,8 @@ def plot(
             Axes labels for plot.
         axes_helper: `Float`.
             Axes helper size.
+        axes_helper_colors: `List`.
+            List of triple packed RGB color of the axes helper (0xff0000 is red, 0xff is blue).
         time: `list`.
             Time value (used in TimeSeries)
         name: `string`.
@@ -1914,6 +1917,7 @@ def plot(
         grid=grid,
         axes=axes,
         axes_helper=axes_helper,
+        axes_helper_colors=axes_helper_colors,
         screenshot_scale=screenshot_scale,
         camera_fov=camera_fov,
         name=name,

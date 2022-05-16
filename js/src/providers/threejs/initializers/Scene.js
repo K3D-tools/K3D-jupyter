@@ -10,11 +10,7 @@ let rebuildSceneDataPromises = null;
 
 function generateAxesHelper(K3D, axesHelper) {
     const promises = [];
-    const colors = {
-        x: 0xff0000,
-        y: 0x0000ff,
-        z: 0x00ff00,
-    };
+    const colors = K3D.parameters.axesHelperColors;
     const directions = {
         x: [1, 0, 0],
         y: [0, 1, 0],
@@ -27,7 +23,8 @@ function generateAxesHelper(K3D, axesHelper) {
     };
     const labelColor = new THREE.Color(K3D.parameters.labelColor);
 
-    ['x', 'y', 'z'].forEach((axis) => {
+
+    ['x', 'y', 'z'].forEach((axis, i) => {
         const label = Text.create({
             position: new THREE.Vector3().fromArray(directions[axis]).multiplyScalar(1.1).toArray(),
             reference_point: 'cc',
@@ -38,12 +35,13 @@ function generateAxesHelper(K3D, axesHelper) {
 
         promises.push(label.then((obj) => {
             axesHelper[axis] = obj;
+            axesHelper[axis].color = colors[i];
             axesHelper.scene.add(obj);
         }));
     });
 
     const arrows = Vectors.create({
-        colors: { data: [colors.x, colors.x, colors.y, colors.y, colors.z, colors.z] },
+        colors: { data: [colors[0], colors[0], colors[1], colors[1], colors[2], colors[2]] },
         origins: { data: [0, 0, 0, 0, 0, 0, 0, 0, 0] },
         vectors: { data: [].concat(directions.x, directions.y, directions.z) },
         line_width: 0.05,
@@ -199,9 +197,15 @@ function rebuildSceneData(K3D, grids, axesHelper, force) {
     updateAxesHelper = !K3D.parameters.axesHelper || (K3D.parameters.axesHelper && !axesHelper.x);
 
     if (axesHelper.x && !updateAxesHelper) {
+        // has axes labels changed?
         updateAxesHelper |= K3D.parameters.axes[0] !== axesHelper.x.text
             || K3D.parameters.axes[1] !== axesHelper.y.text
             || K3D.parameters.axes[2] !== axesHelper.z.text;
+
+        // has axes colors changed?
+        updateAxesHelper |= K3D.parameters.axesHelperColors[0] !== axesHelper.x.color
+            || K3D.parameters.axesHelperColors[1] !== axesHelper.y.color
+            || K3D.parameters.axesHelperColors[2] !== axesHelper.z.color;
     }
 
     if (updateAxesHelper) {
