@@ -105,8 +105,7 @@ function serialize(obj) {
     }
 
     if (obj !== null) {
-        if (typeof (obj.data) !== 'undefined' && typeof (obj.shape) !== 'undefined'
-            && typeof (obj.data) !== 'undefined') {
+        if (typeof (obj.data) !== 'undefined' && typeof (obj.shape) !== 'undefined') {
             // plain data
             return serializeArray(obj);
         }

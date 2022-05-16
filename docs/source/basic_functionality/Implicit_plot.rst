@@ -6,10 +6,10 @@ In this case a function of three variables is sampled on 3d equidistant grid and
 an `k3d.marching_cubes` object which will do the visualization.
 
 Note that:
-    - data exchanged between frontend and backend is big
-    - browser javascript does mesh computation
+    - the amount of data exchanged between the frontend and backend is big
+    - the browser javascript does the mesh computations
     - `level` is a single scalar parameter which can be passed to the frontend for data exploration
-    - it is possible to use [jslink](https://ipywidgets.readthedocs.io/en/latest/examples/Widget%20Events.html#Linking-widgets-attributes-from-the-client-side) for interaction without a Python kernel].
+    - it is possible to use `jslink <https://ipywidgets.readthedocs.io/en/latest/examples/Widget%20Events.html#Linking-widgets-attributes-from-the-client-side>`_ for interaction without a Python kernel.
 
 .. code::
 
@@ -36,7 +36,6 @@ Note that:
                                  ymin=ymin, ymax=ymax,
                                  zmin=zmin, zmax=zmax, level=0.0,
                                  flat_shading=False)
-    plot += plt_iso
     plot += plt_iso
     plot.display()
 
