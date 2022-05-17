@@ -16,4 +16,4 @@ def generate():
     plt_points.positions = {str(t):x - t/5*x/np.linalg.norm(x,axis=-1)[:,np.newaxis] for t in range(10)}
 
     plot.snapshot_type = 'inline'
-    return plot.get_snapshot()
+    return plot.get_snapshot(additional_js_code='K3DInstance.startAutoPlay()')

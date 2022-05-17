@@ -31,4 +31,4 @@ Point cloud
                    0.0, 0.0, 1.0]
 
 .. k3d_plot ::
-  :filename: plots/lorenz_system_plot.py
+  :filename: plots/point_cloud_plot.py

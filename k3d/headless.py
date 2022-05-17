@@ -8,6 +8,7 @@ import logging
 import atexit
 import urllib.request
 import time
+from socket import socket
 
 from .helpers import to_json
 
@@ -19,9 +20,15 @@ log.setLevel(logging.ERROR)
 
 
 class k3d_remote:
-    def __init__(self, k3d_plot, driver, width=1280, height=720, port=8080):
+    def __init__(self, k3d_plot, driver, width=1280, height=720):
 
         driver.set_window_size(width, height)
+
+        available_socket = socket()
+        available_socket.bind(('', 0))
+
+        port = available_socket.getsockname()[1]
+        available_socket.close()
 
         self.port = port
         self.browser = driver

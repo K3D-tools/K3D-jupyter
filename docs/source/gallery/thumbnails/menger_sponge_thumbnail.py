@@ -1,0 +1,51 @@
+import k3d
+import numpy as np
+from k3d.headless import k3d_remote, get_headless_driver
+
+
+def generate():
+    def iterate(length, x, y, z):
+        nl = length // 3
+
+        if nl < 1:
+            return
+
+        margin = (nl - 1) // 2
+
+        voxels[z - margin:z + margin + 1, y - margin:y + margin + 1, :] = 0
+        voxels[z - margin:z + margin + 1, :, x - margin:x + margin + 1] = 0
+        voxels[:, y - margin:y + margin + 1, x - margin:x + margin + 1] = 0
+
+        for ix, iy, iz in np.ndindex((3, 3, 3)):
+            if (1 if ix != 1 else 0) + (1 if iy != 1 else 0) + (1 if iz != 1 else 0) != 2:
+                iterate(nl, x + (ix - 1) * nl, y +
+                        (iy - 1) * nl, z + (iz - 1) * nl)
+
+    iteration = 4
+    size = 3 ** iteration
+
+    voxels = np.ones((size, size, size))
+
+    iterate(size, size // 2, size // 2, size // 2)
+
+    plt_voxels = k3d.voxels(voxels.astype(np.uint8),
+                            color_map=(0xfdfe03), outlines=False)
+
+    plot = k3d.plot(grid_visible=False,
+                    camera_auto_fit=False,
+                    axes_helper = 0)
+    plot += plt_voxels
+
+    plot.camera = [98.5152, -60.0912, 88.9902,
+                   43.4731, 37.6014, 31.5219,
+                   -0.2226, 0.3405, 0.9135]
+
+    headless = k3d_remote(plot, get_headless_driver(), width=600, height=370)
+
+    headless.sync(hold_until_refreshed=True)
+    headless.camera_reset(1)
+
+    screenshot = headless.get_screenshot()
+    headless.close()
+
+    return screenshot
