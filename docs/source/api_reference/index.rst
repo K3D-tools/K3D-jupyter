@@ -4,6 +4,7 @@ Helpers
 =======
 
 .. toctree::
+    :maxdepth: 1
 
     helpers/array-serialization-wrap.rst
     helpers/array-to-json.rst
@@ -28,6 +29,7 @@ Plot objects
 ============
 
 .. toctree::
+    :maxdepth: 1
 
     plot_objects/label.rst
     plot_objects/line.rst
@@ -60,6 +62,7 @@ Transform
 =========
 
 .. toctree::
+    :maxdepth: 1
 
     transform/get-bounds-fit-matrix.rst
     transform/process-transform-arguments.rst
@@ -69,6 +72,7 @@ Colormaps
 =========
 
 .. toctree::
+    :maxdepth: 1
 
     colormaps/basic-color-maps.rst
     colormaps/matplotlib-color-maps.rst

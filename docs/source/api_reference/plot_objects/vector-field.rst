@@ -8,9 +8,11 @@ vector_field
 .. seealso::
     - :ref:`vectors`
 
-**Examples**
+Examples
+--------
 
 Basic
+^^^^^
 
 .. code-block:: python3
 
@@ -37,6 +39,7 @@ Basic
   :filename: plots/vector_field_basic_plot.py
 
 Colormap
+^^^^^^^^
 
 .. code-block:: python3
 

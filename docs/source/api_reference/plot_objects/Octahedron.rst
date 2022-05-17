@@ -13,7 +13,8 @@ Octahedron
     - :ref:`Icosahedron`
     - :ref:`Tetrahedron`
 
-**Example**
+Example
+-------
 
 .. code-block:: python3
 

@@ -9,9 +9,11 @@ voxels
     - :ref:`sparse_voxels`
     - :ref:`voxels_group`
 
-**Examples**
+Examples
+--------
 
 Basic
+^^^^^
 
 .. code-block:: python3
 
@@ -35,6 +37,7 @@ Basic
   :filename: plots/voxels_basic_plot.py
 
 Shapes
+^^^^^^
 
 .. code-block:: python3
 

@@ -9,7 +9,8 @@ voxels_group
     - :ref:`sparse_voxels`
     - :ref:`voxels`
 
-**Examples**
+Examples
+--------
 
 .. code-block:: python3
 

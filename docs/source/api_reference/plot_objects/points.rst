@@ -5,9 +5,11 @@ points
 
 .. autofunction:: k3d.factory.points
 
-**Examples**
+Examples
+--------
 
 Basic
+^^^^^
 
 .. code-block:: python3
 
@@ -29,6 +31,7 @@ Basic
   :filename: plots/points_basic_plot.py
 
 Colormap
+^^^^^^^^
 
 .. attention::
     `color_map` must be used along with `attribute` and `color_range` in order to work correctly.

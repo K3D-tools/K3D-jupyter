@@ -9,9 +9,11 @@ label
     - :ref:`text`
     - :ref:`text2d`
 
-**Examples**
+Examples
+--------
 
 Basic
+^^^^^
 
 .. code-block:: python3
 
@@ -32,6 +34,7 @@ Basic
   :filename: plots/label_basic_plot.py
 
 Modes
+^^^^^
 
 .. code-block:: python3
 

@@ -10,7 +10,8 @@ texture_text
     - :ref:`text`
     - :ref:`text2d`
 
-**Examples**
+Examples
+--------
 
 .. code-block:: python3
 

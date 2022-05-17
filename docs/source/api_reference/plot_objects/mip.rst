@@ -8,9 +8,11 @@ mip
 .. seealso::
     - :ref:`volume`
 
-**Examples**
+Examples
+--------
 
 Render mhd volumetric data
+^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 :download:`heart.mhd <./assets/heart.mhd>`
 :download:`heart.zraw <./assets/heart.zraw>`
@@ -34,6 +36,7 @@ Render mhd volumetric data
   :filename: plots/mip_render_mhd_plot.py
 
 Colormap
+^^^^^^^^
 
 :download:`heart.mhd <./assets/heart.mhd>`
 :download:`heart.zraw <./assets/heart.zraw>`

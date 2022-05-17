@@ -8,9 +8,11 @@ vectors
 .. seealso::
     - :ref:`vector_field`
 
-**Examples**
+Examples
+--------
 
 Basic
+^^^^^
 
 .. code-block:: python3
 
@@ -36,6 +38,7 @@ Basic
   :filename: plots/vectors_basic_plot.py
 
 Labels
+^^^^^^
 
 .. code-block:: python3
 

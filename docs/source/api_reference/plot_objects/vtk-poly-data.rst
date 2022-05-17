@@ -5,9 +5,11 @@ vtk_poly_data
 
 .. autofunction:: k3d.factory.vtk_poly_data
 
-**Examples**
+Examples
+--------
 
 Basic
+^^^^^
 
 :download:`cow.vtp <./assets/cow.vtp>`
 
@@ -36,6 +38,7 @@ Basic
   :filename: plots/vtk_basic_plot.py
 
 Colormap
+^^^^^^^^
 
 :download:`bunny.vtp <./assets/bunny.vtp>`
 

@@ -5,9 +5,11 @@ marching_cubes
 
 .. autofunction:: k3d.factory.marching_cubes
 
-**Examples**
+Examples
+--------
 
 Sinus cube
+^^^^^^^^^^
 
 .. code-block:: python3
 
@@ -36,9 +38,10 @@ Sinus cube
     plot.display()
 
 .. k3d_plot ::
-  :filename: plots/marching_cubes_sinus_cube.py
+  :filename: plots/marching_cubes_sinus_cube_plot.py
 
 Levels
+^^^^^^
 
 .. code-block:: python3
 
@@ -59,17 +62,17 @@ Levels
         level = 0 + i * 1.5
 
         plt_heart = k3d.marching_cubes(eq_heart, level=level,
-                                      color=0xe31b23,
-                                      xmin=-1.5, xmax=1.5,
-                                      ymin=-1.5, ymax=1.5,
-                                      zmin=-1.5, zmax=1.5,
-                                      translation=[i * 3.5, 0, 0])
+                                       color=0xe31b23,
+                                       xmin=-1.5, xmax=1.5,
+                                       ymin=-1.5, ymax=1.5,
+                                       zmin=-1.5, zmax=1.5,
+                                       translation=[i * 3.5, 0, 0])
         plt_torus = k3d.marching_cubes(eq_torus, level=level,
-                                      color=0x5aabac,
-                                      xmin=-1.5, xmax=1.5,
-                                      ymin=-1.5, ymax=1.5,
-                                      zmin=-1.5, zmax=1.5,
-                                      translation=[i * 3.5, 0, -3.5])
+                                       color=0x5aabac,
+                                       xmin=-1.5, xmax=1.5,
+                                       ymin=-1.5, ymax=1.5,
+                                       zmin=-1.5, zmax=1.5,
+                                       translation=[i * 3.5, 0, -3.5])
 
         plot += plt_heart
         plot += plt_torus
@@ -77,4 +80,4 @@ Levels
     plot.display()
 
 .. k3d_plot ::
-  :filename: plots/marching_cubes_sinus_cube.py
+  :filename: plots/marching_cubes_levels_plot.py

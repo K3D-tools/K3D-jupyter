@@ -5,9 +5,11 @@ line
 
 .. autofunction:: k3d.factory.line
 
-**Examples**
+Examples
+--------
 
 Basic
+^^^^^
 
 .. code-block:: python3
 
@@ -31,6 +33,7 @@ Basic
   :filename: plots/line_basic_plot.py
 
 Colormap
+^^^^^^^^
 
 .. attention::
     `color_map` must be used along with `attribute` and `color_range` in order to work correctly.

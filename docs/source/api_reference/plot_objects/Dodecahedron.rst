@@ -13,7 +13,8 @@ Dodecahedron
     - :ref:`Octahedron`
     - :ref:`Tetrahedron`
 
-**Example**
+Example
+-------
 
 .. code-block:: python3
 

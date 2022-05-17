@@ -8,9 +8,11 @@ mesh
 .. seealso::
     - :ref:`surface`
 
-**Examples**
+Examples
+--------
 
 Basic
+^^^^^
 
 .. code-block:: python3
 
@@ -30,6 +32,7 @@ Basic
   :filename: plots/mesh_basic_plot.py
 
 Colormap
+^^^^^^^^
 
 .. attention::
     `color_map` must be used along with `attribute` and `color_range` in order to work correctly.

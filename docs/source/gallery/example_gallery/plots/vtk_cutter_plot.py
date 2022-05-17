@@ -110,9 +110,5 @@ def generate():
                    0.0492, 0.0393, 0.0508,
                    0.0146, 0.0627, 0.9979]
 
-    @interact(s=FloatSlider(min=-0.01, max=0.01, step=0.00004))
-    def _(s):
-        update_from_cut(reader, center + s, [1, 0, 0], plt_vtk)
-
     plot.snapshot_type = 'inline'
     return plot.get_snapshot()

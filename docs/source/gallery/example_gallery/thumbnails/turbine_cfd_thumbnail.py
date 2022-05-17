@@ -27,6 +27,7 @@ def generate():
                               colors=data['c'])
 
     plot = k3d.plot(screenshot_scale=1.0,
+                    grid_visible=False,
                     axes_helper = 0)
     plot += plt_vtk
     plot += plt_vectors

@@ -8,7 +8,8 @@ voxel_chunk
 .. seealso::
     - :ref:`voxels_group`
 
-**Examples**
+Examples
+--------
 
 .. code-block:: python3
 

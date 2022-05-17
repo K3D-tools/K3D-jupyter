@@ -8,7 +8,8 @@ stl
 .. seealso::
     - :ref:`vtk_poly_data`
 
-**Examples**
+Examples
+--------
 
 :download:`skull_w_jaw.stl <./assets/skull_w_jaw.stl>`
 

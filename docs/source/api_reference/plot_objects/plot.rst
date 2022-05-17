@@ -5,9 +5,11 @@ plot
 
 .. autofunction:: k3d.factory.plot
 
-**Examples**
+Examples
+--------
 
 Coloring
+^^^^^^^^
 
 .. code-block:: python3
 
@@ -23,6 +25,7 @@ Coloring
   :filename: plots/plot_coloring_plot.py
 
 Axes and bounds
+^^^^^^^^^^^^^^^
 
 .. code-block:: python3
 
@@ -37,6 +40,7 @@ Axes and bounds
   :filename: plots/plot_axes_and_bounds_plot.py
 
 Static
+^^^^^^
 
 .. code-block:: python3
 

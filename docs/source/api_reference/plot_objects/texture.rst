@@ -5,9 +5,11 @@ texture
 
 .. autofunction:: k3d.factory.texture
 
-**Examples**
+Examples
+--------
 
 Basic
+^^^^^
 
 :download:`arcade_carpet_512.png <./assets/arcade_carpet_512.png>`
 
@@ -31,6 +33,7 @@ Basic
   :filename: plots/texture_basic_plot.py
 
 Colormap
+^^^^^^^^
 
 .. attention::
     `color_map` must be used along with `attribute` and `color_range` in order to work correctly.

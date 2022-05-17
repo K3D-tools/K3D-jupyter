@@ -10,9 +10,11 @@ text2d
     - :ref:`text`
     - :ref:`texture_text`
 
-**Examples**
+Examples
+--------
 
 Basic
+^^^^^
 
 .. code-block:: python3
 
@@ -33,6 +35,7 @@ Basic
   :filename: plots/text2d_basic_plot.py
 
 Positions
+^^^^^^^^^
 
 .. code-block:: python3
 
