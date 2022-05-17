@@ -22,7 +22,7 @@ There are two ways of changing data in the plot:
    :filename: interaction/Interaction01.py
 
 Using the backend to send data at each timestep
----------------------------------------------
+-----------------------------------------------
 
 The Python backend can update attribute of any plot object in K3D-jupyter.
 
