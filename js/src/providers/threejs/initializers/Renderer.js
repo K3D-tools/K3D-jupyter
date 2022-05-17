@@ -32,12 +32,14 @@ module.exports = function (K3D) {
         antialias: K3D.parameters.antialias > 0,
         preserveDrawingBuffer: true,
         alpha: true,
+        stencil: true,
         powerPreference: 'high-performance',
     });
 
     self.renderer = new THREE.WebGLRenderer({
         alpha: true,
         precision: "highp",
+        premultipliedAlpha: true,
         antialias: K3D.parameters.antialias > 0,
         logarithmicDepthBuffer: K3D.parameters.logarithmicDepthBuffer,
         canvas,
@@ -75,6 +77,7 @@ module.exports = function (K3D) {
     console.log('K3D: (UNMASKED_VENDOR_WEBGL)', gl.getParameter(debugInfo.UNMASKED_VENDOR_WEBGL));
     console.log('K3D: (UNMASKED_RENDERER_WEBGL)', gl.getParameter(debugInfo.UNMASKED_RENDERER_WEBGL));
     console.log('K3D: (depth bits)', gl.getParameter(gl.DEPTH_BITS));
+    console.log('K3D: (stencil bits)', gl.getParameter(gl.STENCIL_BITS));
 
     function standardRender(scene, camera, rt) {
         if (typeof (rt) === 'undefined') {
@@ -279,7 +282,7 @@ module.exports = function (K3D) {
                     rt, width, height, chunkHeights,
                     aaLevel, currentRenderMethod).then((scene) => {
                     rt.dispose();
-                    return [axesHelper, grid, scene];
+                    return [grid, scene, axesHelper];
                 });
             });
         });

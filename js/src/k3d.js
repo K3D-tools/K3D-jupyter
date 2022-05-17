@@ -224,19 +224,19 @@ const PlotView = widgets.DOMWidgetView.extend({
         this.model.lastCameraSync = (new Date()).getTime();
 
         this.model.on('msg:custom', function (obj) {
-            const {model} = this;
+            const { model } = this;
 
             if (obj.msg_type === 'fetch_screenshot') {
                 this.K3DInstance.getScreenshot(this.K3DInstance.parameters.screenshotScale, obj.only_canvas)
                     .then((canvas) => {
                         const data = canvas.toDataURL().split(',')[1];
 
-                        model.save('screenshot', data, {patch: true});
+                        model.save('screenshot', data, { patch: true });
                     });
             }
 
             if (obj.msg_type === 'fetch_snapshot') {
-                model.save('snapshot', this.K3DInstance.getHTMLSnapshot(obj.compression_level), {patch: true});
+                model.save('snapshot', this.K3DInstance.getHTMLSnapshot(obj.compression_level), { patch: true });
             }
 
             if (obj.msg_type === 'start_auto_play') {
@@ -298,6 +298,7 @@ const PlotView = widgets.DOMWidgetView.extend({
         this.model.on('change:camera_fov', this._setCameraFOV, this);
         this.model.on('change:camera_damping_factor', this._setCameraDampingFactor, this);
         this.model.on('change:axes_helper', this._setAxesHelper, this);
+        this.model.on('change:axes_helper_colors', this._setAxesHelperColors, this);
         this.model.on('change:snapshot_type', this._setSnapshotType, this);
         this.model.on('change:name', this._setName, this);
         this.model.on('change:mode', this._setViewMode, this);
@@ -353,14 +354,14 @@ const PlotView = widgets.DOMWidgetView.extend({
         this._setVoxelPaintColor();
 
         this.model.get('object_ids').forEach(function (id) {
-            this.renderPromises.push(this.K3DInstance.load({objects: [objectsList[id].attributes]}));
+            this.renderPromises.push(this.K3DInstance.load({ objects: [objectsList[id].attributes] }));
         }, this);
 
         this.cameraChangeId = this.K3DInstance.on(this.K3DInstance.events.CAMERA_CHANGE, (control) => {
             if (self.model._comm_live) {
                 if ((new Date()).getTime() - self.model.lastCameraSync > 200) {
                     self.model.lastCameraSync = (new Date()).getTime();
-                    self.model.save('camera', control, {patch: true});
+                    self.model.save('camera', control, { patch: true });
                 }
             }
         });
@@ -372,18 +373,18 @@ const PlotView = widgets.DOMWidgetView.extend({
                 }
 
                 if (objectsList[change.id]) {
-                    objectsList[change.id].save(change.key, change.value, {patch: true});
+                    objectsList[change.id].save(change.key, change.value, { patch: true });
                 }
             }
         });
 
         this.GUIParametersChanges = this.K3DInstance.on(this.K3DInstance.events.PARAMETERS_CHANGE, (change) => {
-            self.model.save(change.key, change.value, {patch: true});
+            self.model.save(change.key, change.value, { patch: true });
         });
 
         this.voxelsCallback = this.K3DInstance.on(this.K3DInstance.events.VOXELS_CALLBACK, (param) => {
             if (objectsList[param.object.K3DIdentifier]) {
-                objectsList[param.object.K3DIdentifier].send({msg_type: 'click_callback', coord: param.coord});
+                objectsList[param.object.K3DIdentifier].send({ msg_type: 'click_callback', coord: param.coord });
             }
         });
 
@@ -522,6 +523,10 @@ const PlotView = widgets.DOMWidgetView.extend({
         this.K3DInstance.setAxesHelper(this.model.get('axes_helper'));
     },
 
+    _setAxesHelperColors() {
+        this.K3DInstance.setAxesHelperColors(this.model.get('axes_helper_colors'));
+    },
+
     _setSnapshotType() {
         this.K3DInstance.setSnapshotType(this.model.get('snapshot_type'));
     },
@@ -563,7 +568,7 @@ const PlotView = widgets.DOMWidgetView.extend({
         }, this);
 
         _.difference(newObjectId, oldObjectId).forEach(function (id) {
-            this.renderPromises.push(this.K3DInstance.load({objects: [objectsList[id].attributes]}));
+            this.renderPromises.push(this.K3DInstance.load({ objects: [objectsList[id].attributes] }));
         }, this);
     },
 

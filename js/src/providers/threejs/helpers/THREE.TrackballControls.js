@@ -118,10 +118,10 @@ module.exports = function (THREE) {
         const getMouseOnScreen = (function () {
             const vector = new THREE.Vector2();
 
-            return function (pageX, pageY) {
+            return function (x, y) {
                 vector.set(
-                    (pageX - scope.screen.left) / scope.screen.width,
-                    (pageY - scope.screen.top) / scope.screen.height,
+                    x / scope.screen.width,
+                    y / scope.screen.height,
                 );
 
                 return vector;
@@ -131,10 +131,10 @@ module.exports = function (THREE) {
         const getMouseOnCircle = (function () {
             const vector = new THREE.Vector2();
 
-            return function (pageX, pageY) {
+            return function (x, y) {
                 vector.set(
-                    ((pageX - scope.screen.width * 0.5 - scope.screen.left) / (scope.screen.width * 0.5)),
-                    ((scope.screen.height + 2 * (scope.screen.top - pageY)) / scope.screen.width),
+                    ((x - scope.screen.width * 0.5) / (scope.screen.width * 0.5)),
+                    ((scope.screen.height - 2 * y) / scope.screen.width),
                 );
 
                 return vector;
@@ -457,13 +457,13 @@ module.exports = function (THREE) {
             const state = (_keyState !== STATE.NONE) ? _keyState : _state;
 
             if (state === STATE.ROTATE && !scope.noRotate) {
-                _moveCurr.copy(getMouseOnCircle(event.pageX, event.pageY));
+                _moveCurr.copy(getMouseOnCircle(event.offsetX, event.offsetY));
                 _movePrev.copy(_moveCurr);
             } else if (state === STATE.ZOOM && !scope.noZoom) {
-                _zoomStart.copy(getMouseOnScreen(event.pageX, event.pageY));
+                _zoomStart.copy(getMouseOnScreen(event.offsetX, event.offsetY));
                 _zoomEnd.copy(_zoomStart);
             } else if (state === STATE.PAN && !scope.noPan) {
-                _panStart.copy(getMouseOnScreen(event.pageX, event.pageY));
+                _panStart.copy(getMouseOnScreen(event.offsetX, event.offsetY));
                 _panEnd.copy(_panStart);
             }
 
@@ -477,11 +477,11 @@ module.exports = function (THREE) {
 
             if (state === STATE.ROTATE && !scope.noRotate) {
                 _movePrev.copy(_moveCurr);
-                _moveCurr.copy(getMouseOnCircle(event.pageX, event.pageY));
+                _moveCurr.copy(getMouseOnCircle(event.offsetX, event.offsetY));
             } else if (state === STATE.ZOOM && !scope.noZoom) {
-                _zoomEnd.copy(getMouseOnScreen(event.pageX, event.pageY));
+                _zoomEnd.copy(getMouseOnScreen(event.offsetX, event.offsetY));
             } else if (state === STATE.PAN && !scope.noPan) {
-                _panEnd.copy(getMouseOnScreen(event.pageX, event.pageY));
+                _panEnd.copy(getMouseOnScreen(event.offsetX, event.offsetY));
             }
         }
 
@@ -552,18 +552,18 @@ module.exports = function (THREE) {
                     break;
                 case 1:
                     _movePrev.copy(_moveCurr);
-                    _moveCurr.copy(getMouseOnCircle(event.pageX, event.pageY));
+                    _moveCurr.copy(getMouseOnCircle(event.offsetX, event.offsetY));
                     break;
 
                 default: // 2 or more
                     const position = getSecondPointerPosition(event);
 
-                    const dx = event.pageX - position.x;
-                    const dy = event.pageY - position.y;
+                    const dx = event.offsetX - position.x;
+                    const dy = event.offsetY - position.y;
                     _touchZoomDistanceEnd = Math.sqrt(dx * dx + dy * dy);
 
-                    const x = (event.pageX + position.x) / 2;
-                    const y = (event.pageY + position.y) / 2;
+                    const x = (event.offsetX + position.x) / 2;
+                    const y = (event.offsetY + position.y) / 2;
                     _panEnd.copy(getMouseOnScreen(x, y));
                     break;
             }
@@ -577,13 +577,13 @@ module.exports = function (THREE) {
 
                 case 1:
                     _state = STATE.TOUCH_ROTATE;
-                    _moveCurr.copy(getMouseOnCircle(event.pageX, event.pageY));
+                    _moveCurr.copy(getMouseOnCircle(event.offsetX, event.offsetY));
                     _movePrev.copy(_moveCurr);
                     break;
 
                 case 2:
                     _state = STATE.TOUCH_ZOOM_PAN;
-                    _moveCurr.copy(getMouseOnCircle(event.pageX - _movePrev.pageX, event.pageY - _movePrev.pageY));
+                    _moveCurr.copy(getMouseOnCircle(event.offsetX - _movePrev.pageX, event.offsetY - _movePrev.pageY));
                     _movePrev.copy(_moveCurr);
                     break;
             }
@@ -620,7 +620,7 @@ module.exports = function (THREE) {
                 scope._pointerPositions[event.pointerId] = position;
             }
 
-            position.set(event.pageX, event.pageY);
+            position.set(event.offsetX, event.offsetY);
         }
 
         function getSecondPointerPosition(event) {

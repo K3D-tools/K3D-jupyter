@@ -10,11 +10,7 @@ let rebuildSceneDataPromises = null;
 
 function generateAxesHelper(K3D, axesHelper) {
     const promises = [];
-    const colors = {
-        x: 0xff0000,
-        y: 0x0000ff,
-        z: 0x00ff00,
-    };
+    const colors = K3D.parameters.axesHelperColors;
     const directions = {
         x: [1, 0, 0],
         y: [0, 1, 0],
@@ -27,7 +23,8 @@ function generateAxesHelper(K3D, axesHelper) {
     };
     const labelColor = new THREE.Color(K3D.parameters.labelColor);
 
-    ['x', 'y', 'z'].forEach((axis) => {
+
+    ['x', 'y', 'z'].forEach((axis, i) => {
         const label = Text.create({
             position: new THREE.Vector3().fromArray(directions[axis]).multiplyScalar(1.1).toArray(),
             reference_point: 'cc',
@@ -38,12 +35,13 @@ function generateAxesHelper(K3D, axesHelper) {
 
         promises.push(label.then((obj) => {
             axesHelper[axis] = obj;
+            axesHelper[axis].color = colors[i];
             axesHelper.scene.add(obj);
         }));
     });
 
     const arrows = Vectors.create({
-        colors: { data: [colors.x, colors.x, colors.y, colors.y, colors.z, colors.z] },
+        colors: { data: [colors[0], colors[0], colors[1], colors[1], colors[2], colors[2]] },
         origins: { data: [0, 0, 0, 0, 0, 0, 0, 0, 0] },
         vectors: { data: [].concat(directions.x, directions.y, directions.z) },
         line_width: 0.05,
@@ -58,25 +56,11 @@ function generateAxesHelper(K3D, axesHelper) {
     return promises;
 }
 
-function ensureTwoTicksOnGrids(sceneBoundingBox, majorScale) {
-    const size = sceneBoundingBox.getSize(new THREE.Vector3());
-
-    ['x', 'y', 'z'].forEach((axis) => {
-        const dist = size[axis] / majorScale;
-
-        if (dist <= 2.0) {
-            sceneBoundingBox.min[axis] -= (1.0 - dist / 2.0 + 0.0001) * majorScale;
-            sceneBoundingBox.max[axis] += (1.0 - dist / 2.0 + 0.0001) * majorScale;
-        }
-    });
-}
-
 function getSceneBoundingBox() {
     /* jshint validthis:true */
 
     const sceneBoundingBox = new THREE.Box3();
     let objectBoundingBox;
-
     this.K3DObjects.traverse((object) => {
         let isK3DObject = false;
         let ref = object;
@@ -92,6 +76,7 @@ function getSceneBoundingBox() {
 
         if (isK3DObject
             && typeof (object.position.z) !== 'undefined'
+            && object.visible
             && (object.geometry || object.boundingBox)) {
             if (object.geometry && object.geometry.boundingBox) {
                 objectBoundingBox = object.geometry.boundingBox.clone();
@@ -212,9 +197,15 @@ function rebuildSceneData(K3D, grids, axesHelper, force) {
     updateAxesHelper = !K3D.parameters.axesHelper || (K3D.parameters.axesHelper && !axesHelper.x);
 
     if (axesHelper.x && !updateAxesHelper) {
+        // has axes labels changed?
         updateAxesHelper |= K3D.parameters.axes[0] !== axesHelper.x.text
             || K3D.parameters.axes[1] !== axesHelper.y.text
             || K3D.parameters.axes[2] !== axesHelper.z.text;
+
+        // has axes colors changed?
+        updateAxesHelper |= K3D.parameters.axesHelperColors[0] !== axesHelper.x.color
+            || K3D.parameters.axesHelperColors[1] !== axesHelper.y.color
+            || K3D.parameters.axesHelperColors[2] !== axesHelper.z.color;
     }
 
     if (updateAxesHelper) {
@@ -239,7 +230,7 @@ function rebuildSceneData(K3D, grids, axesHelper, force) {
         axesHelper.width = 100;
         axesHelper.height = 100;
     }
-    
+
     if (updateAxesHelper) {
         if (K3D.parameters.axesHelper > 0) {
             generateAxesHelper(K3D, axesHelper).forEach((p) => {
@@ -261,7 +252,13 @@ function rebuildSceneData(K3D, grids, axesHelper, force) {
         majorScale = pow10ceil(Math.max(size.x, size.y, size.z)) / 10.0;
         minorScale = majorScale / 10.0;
 
-        ensureTwoTicksOnGrids(sceneBoundingBox, majorScale);
+        ['x', 'y', 'z'].forEach(function (axis) {
+            if (sceneBoundingBox.min[axis] === sceneBoundingBox.max[axis]) {
+                sceneBoundingBox.min[axis] -= majorScale / 2.0;
+                sceneBoundingBox.max[axis] += majorScale / 2.0;
+            }
+        });
+        size = sceneBoundingBox.getSize(new THREE.Vector3());
 
         sceneBoundingBox.min = new THREE.Vector3(
             Math.floor(sceneBoundingBox.min.x / majorScale) * majorScale,
@@ -329,15 +326,27 @@ function rebuildSceneData(K3D, grids, axesHelper, force) {
         // create labels
         Object.keys(grids.labelsOnEdges).forEach((key) => {
             const iterateAxis = _.difference(['x', 'y', 'z'], key.replace(/[^xyz]/g, '').split(''))[0];
-            const iterationCount = size[iterateAxis] / majorScale;
-            const deltaValue = unitVectors[iterateAxis].clone().multiplyScalar(majorScale);
-            const deltaPosition = unitVectors[iterateAxis].clone().multiplyScalar(
+            let iterationCount = size[iterateAxis] / majorScale;
+
+            let deltaValue = unitVectors[iterateAxis].clone().multiplyScalar(majorScale);
+            let deltaPosition = unitVectors[iterateAxis].clone().multiplyScalar(
                 grids.labelsOnEdges[key].p[0].distanceTo(grids.labelsOnEdges[key].p[1]) / iterationCount,
             );
             let j;
             let v;
             let p;
             let label;
+
+            if (iterationCount <= 2) {
+                let originalIterationCount = iterationCount;
+
+                iterationCount = originalIterationCount * 5;
+                deltaValue = unitVectors[iterateAxis].clone()
+                    .multiplyScalar(originalIterationCount * majorScale / iterationCount);
+                deltaPosition = unitVectors[iterateAxis].clone().multiplyScalar(
+                    grids.labelsOnEdges[key].p[0].distanceTo(grids.labelsOnEdges[key].p[1]) / iterationCount,
+                );
+            }
 
             for (j = 1; j <= iterationCount - 1; j++) {
                 v = grids.labelsOnEdges[key].v[0].clone().add(deltaValue.clone().multiplyScalar(j));
@@ -408,8 +417,7 @@ function rebuildSceneData(K3D, grids, axesHelper, force) {
                     const delta = unitVectors[iterateAxis].clone().multiplyScalar(minorScale);
                     let p1;
                     let p2;
-                    let
-                        j;
+                    let j;
 
                     for (j = 0; j <= size[iterateAxis] / minorScale; j++) {
                         p1 = plane.p1.clone().add(delta.clone().multiplyScalar(j));

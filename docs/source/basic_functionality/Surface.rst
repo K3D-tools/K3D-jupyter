@@ -1,11 +1,11 @@
 Surface
 =======
 
-`k3d.surface` is an easy way to produce plot of an explicit function of two variables
+`k3d.surface` is an easy way to produce a plot of an explicit function of two variables
 f(x,y) on a rectangular domain.
 
 It takes a table of values, i.e. `f(x_i,y_i) = f[j,i]`. Proper scaling of x and y
-axes can by done by specifying `xmin/xmax` parameters.
+axes can be done by specifying `xmin/xmax` parameters.
 
 .. code::
 

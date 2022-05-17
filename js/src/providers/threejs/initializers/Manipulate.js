@@ -6,8 +6,8 @@ const { viewModes } = require('../../../core/lib/viewMode');
  * @memberof K3D.Providers.ThreeJS.Initializers
  */
 module.exports = function (K3D) {
-    const world = K3D.getWorld(); let
-        draggingState = false;
+    const world = K3D.getWorld();
+    let draggingState = false;
 
     K3D.on(K3D.events.VIEW_MODE_CHANGE, (mode) => {
         if (mode === viewModes.manipulate) {

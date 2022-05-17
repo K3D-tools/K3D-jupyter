@@ -21,7 +21,7 @@ There are two ways of changing data in the plot:
 .. k3d_plot ::
    :filename: interaction/Interaction01.py
 
-Using backend to send a data at each timestep
+Using the backend to send data at each timestep
 ---------------------------------------------
 
 The Python backend can update attribute of any plot object in K3D-jupyter.
@@ -36,7 +36,7 @@ The Python backend can update attribute of any plot object in K3D-jupyter.
 Sending a dictionary of all timesteps
 -------------------------------------
 
-In this case it is possible to play an animation using only frontend.
+In this case it is possible to play an animation using only the frontend.
 Time is a string denoting wall time.
 
 .. code::
@@ -46,7 +46,7 @@ Time is a string denoting wall time.
 .. k3d_plot ::
    :filename: interaction/Interaction02.py
 
-The animation can be controlled from GUI or by several attributes:
+The animation can be controlled from the GUI or by several attributes:
 
 .. code::
 
@@ -58,7 +58,7 @@ The number of frames which are played can be inspected or set with plot.fps attr
 
     plot.fps
 
-One can programatically change or read the time in the animation using:
+One can programmatically change or read the time in the animation using:
 
 .. code::
 

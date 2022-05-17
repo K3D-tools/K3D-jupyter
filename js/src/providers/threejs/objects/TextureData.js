@@ -137,9 +137,9 @@ module.exports = {
         }
 
         if (typeof (changes.attribute) !== 'undefined' && !changes.attribute.timeSeries) {
-            if (obj.material.uniforms.volumeTexture.value.image.data.constructor === changes.attribute.data.constructor
-                && obj.material.uniforms.volumeTexture.value.image.width === changes.attribute.shape[1]
-                && obj.material.uniforms.volumeTexture.value.image.height === changes.attribute.shape[0]) {
+            if (obj.material.uniforms.map.value.image.data.constructor === changes.attribute.data.constructor
+                && obj.material.uniforms.map.value.image.width === changes.attribute.shape[1]
+                && obj.material.uniforms.map.value.image.height === changes.attribute.shape[0]) {
                 obj.material.uniforms.map.value.image.data = changes.attribute.data;
                 obj.material.uniforms.map.value.needsUpdate = true;
 

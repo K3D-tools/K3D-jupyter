@@ -296,7 +296,9 @@ function K3D(provider, targetDOMNode, parameters) {
             cameraAnimation: {},
             autoRendering: true,
             axesHelper: 1.0,
+            axesHelperColors: [0xff0000, 0x00ff00, 0x0000ff],
             snapshotType: 'full',
+            customData: null,
             guiVersion: require('../../package.json').version,
         },
         parameters || {},
@@ -391,7 +393,7 @@ function K3D(provider, targetDOMNode, parameters) {
 
     this.getFullscreen = function () {
         return fullscreen.screenfull.isFullscreen;
-    }
+    };
 
     this.setDirectionalLightingIntensity = function (value) {
         self.parameters.lighting = Math.min(Math.max(value, 0.0), 4.0);
@@ -620,6 +622,19 @@ function K3D(provider, targetDOMNode, parameters) {
      */
     this.setAxesHelper = function (size) {
         self.parameters.axesHelper = size;
+
+        self.rebuildSceneData(true).then(() => {
+            self.render();
+        });
+    };
+
+    /**
+     * Set axes helper of plot
+     * @memberof K3D.Core
+     * @param {Number} size
+     */
+    this.setAxesHelperColors = function (colors) {
+        self.parameters.axesHelperColors = colors;
 
         self.rebuildSceneData(true).then(() => {
             self.render();

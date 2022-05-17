@@ -10,6 +10,7 @@ from .colormaps import matplotlib_color_maps
 from .factory import (plot,
                       nice_colors,
                       line,
+                      lines,
                       marching_cubes,
                       mesh,
                       points,

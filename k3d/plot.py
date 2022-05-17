@@ -4,12 +4,12 @@ import base64
 import ipywidgets as widgets
 from IPython.display import display
 from functools import wraps
-from traitlets import Unicode, Bool, Int, List, Float
+from traitlets import Unicode, Bool, Int, List, Float, Dict
 
 from ._version import __version__ as version
 from .objects import (Line, Label, MIP, MarchingCubes, Mesh, Points, STL, SparseVoxels, Surface,
                       Text, Text2d, Texture, TextureText, VectorField, Vectors, Volume, Voxels,
-                      VoxelsGroup, ListOrArray, Drawable, TimeSeries)
+                      VoxelsGroup, ListOrArray, Drawable, TimeSeries, VoxelChunk)
 
 objects_map = {
     'Line': Line,
@@ -87,6 +87,10 @@ class Plot(widgets.DOMWidget):
             Can be 'full', 'online' or 'inline'.
         axes: `list`.
             Axes labels for plot.
+        axes_helper: `Float`.
+            Axes helper size.
+        axes_helper_colors: `List`.
+            List of triple packed RGB color of the axes helper (0xff0000 is red, 0xff is blue).
         time: `list`.
             Time value (used in TimeSeries)
         name: `string`.
@@ -186,9 +190,12 @@ class Plot(widgets.DOMWidget):
     name = Unicode(default_value=None, allow_none=True).tag(sync=True)
     axes = List(minlen=3, maxlen=3, default_value=["x", "y", "z"]).tag(sync=True)
     axes_helper = Float().tag(sync=True)
+    axes_helper_colors = List(minlen=3, maxlen=3,
+                              default_value=[0xff0000, 0x00ff00, 0x0000ff]).tag(sync=True)
     mode = Unicode().tag(sync=True)
     camera_mode = Unicode().tag(sync=True)
     manipulate_mode = Unicode().tag(sync=True)
+    custom_data = Dict(default_value=None, allow_none=True).tag(sync=True)
 
     objects = []
 
@@ -221,6 +228,7 @@ class Plot(widgets.DOMWidget):
             camera_fov=45.0,
             camera_damping_factor=0.0,
             axes_helper=1.0,
+            axes_helper_colors=[0xff0000, 0x00ff00, 0x0000ff],
             name=None,
             mode="view",
             camera_mode="trackball",
@@ -229,6 +237,7 @@ class Plot(widgets.DOMWidget):
             fps=25.0,
             grid_color=0xE6E6E6,
             label_color=0x444444,
+            custom_data=None,
             *args,
             **kwargs
     ):
@@ -263,6 +272,7 @@ class Plot(widgets.DOMWidget):
         self.camera_fov = camera_fov
         self.axes = axes
         self.axes_helper = axes_helper
+        self.axes_helper_colors = axes_helper_colors
         self.name = name
         self.mode = mode
         self.snapshot_type = snapshot_type
@@ -270,6 +280,7 @@ class Plot(widgets.DOMWidget):
         self.manipulate_mode = manipulate_mode
         self.auto_rendering = auto_rendering
         self.camera = []
+        self.custom_data = custom_data
 
         self.object_ids = []
         self.objects = []
@@ -457,6 +468,11 @@ class Plot(widgets.DOMWidget):
                         k: from_json(o[k]) for k in o.keys() if k != 'type'
                     }
 
+                    # force to use current version
+                    attributes['_model_module'] = 'k3d'
+                    attributes['_model_module_version'] = version
+                    attributes['_view_module_version'] = version
+
                     if name == 'objects':
                         o = objects_map[o['type']](**attributes)
                         self += o
@@ -514,7 +530,9 @@ class Plot(widgets.DOMWidget):
             "height": self.height,
             "cameraFov": self.camera_fov,
             "axesHelper": self.axes_helper,
+            "axesHelperColors": self.axes_helper_colors,
             "cameraAnimation": self.camera_animation,
+            "customData": self.custom_data,
             "fps": self.fps,
         }
 

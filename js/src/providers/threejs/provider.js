@@ -5,9 +5,10 @@ require('./helpers/THREE.STLLoader')(THREE);
 require('./helpers/THREE.CopyShader')(THREE);
 require('./helpers/THREE.TrackballControls')(THREE);
 require('./helpers/THREE.OrbitControls')(THREE);
-require('./helpers/TransformControls')(THREE);
 
+THREE.TransformControls = require('./helpers/TransformControls').TransformControls;
 THREE.Mesh.prototype.raycast = threeMeshBVH.acceleratedRaycast;
+
 
 /**
  * K3D ThreeJS Provider namespace
@@ -46,6 +47,7 @@ module.exports = {
      */
     Objects: {
         Line: require('./objects/Line'),
+        Lines: require('./objects/Lines'),
         MarchingCubes: require('./objects/MarchingCubes'),
         Mesh: require('./objects/Mesh'),
         Points: require('./objects/Points'),

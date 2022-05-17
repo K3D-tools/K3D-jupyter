@@ -1,7 +1,7 @@
 Mesh
 ====
 
-Mesh is an object which displays triangles in 3d. An scalar can be displayed on the mesh
+Mesh is an object that displays triangles in 3d. A scalar can be displayed on the mesh
 using color map.
 
 .. code::
@@ -46,7 +46,7 @@ Scalars can be updated interactively using ipywidgets communication:
 .. k3d_plot ::
    :filename: mesh/Mesh02.py
 
-It is possible to send time series of an attribute values:
+It is possible to send a time series consisting of attribute values:
 
 .. code::
 
