@@ -393,7 +393,7 @@ function K3D(provider, targetDOMNode, parameters) {
 
     this.getFullscreen = function () {
         return fullscreen.screenfull.isFullscreen;
-    }
+    };
 
     this.setDirectionalLightingIntensity = function (value) {
         self.parameters.lighting = Math.min(Math.max(value, 0.0), 4.0);

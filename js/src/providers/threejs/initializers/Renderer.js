@@ -282,7 +282,7 @@ module.exports = function (K3D) {
                     rt, width, height, chunkHeights,
                     aaLevel, currentRenderMethod).then((scene) => {
                     rt.dispose();
-                    return [axesHelper, grid, scene];
+                    return [grid, scene, axesHelper];
                 });
             });
         });

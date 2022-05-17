@@ -54,7 +54,7 @@ function update(K3D, json, GUI, changes) {
                 K3D.gui_groups[group].destroy();
                 delete K3D.gui_groups[group];
             }
-        })
+        });
     }
 
     function addController(folder, obj, param, options1, options2, options3) {
