@@ -87,7 +87,7 @@ module.exports = {
         attribute = new Float32Array(attribute);
         colors = new Float32Array(colors);
 
-        if (attribute && colorRange && colorMap && attribute.length > 0 && colorRange.length > 0
+        if (colorRange && colorMap && attribute.length > 0 && colorRange.length > 0
             && colorMap.length > 0) {
             handleColorMap(geometry, colorMap, colorRange, attribute, material);
         } else {

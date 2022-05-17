@@ -97,7 +97,7 @@ function create(config, K3D) {
     positions = new Float32Array(positions);
     attribute = new Float32Array(attribute);
 
-    if (attribute && colorRange && colorMap && attribute.length > 0 && colorRange.length > 0 && colorMap.length > 0) {
+    if (colorRange && colorMap && attribute.length > 0 && colorRange.length > 0 && colorMap.length > 0) {
         const canvas = colorMapHelper.createCanvasGradient(colorMap, 1024);
         const texture = new THREE.CanvasTexture(canvas, THREE.UVMapping, THREE.ClampToEdgeWrapping,
             THREE.ClampToEdgeWrapping, THREE.NearestFilter, THREE.NearestFilter);
