@@ -18,51 +18,51 @@ Gallery
     </style>
 
 --------
-Examples
+Showcase
 --------
 
 .. toctree::
     :hidden:
 
-    example_gallery/lorenz-system.rst
-    example_gallery/menger-sponge.rst
-    example_gallery/orbits.rst
-    example_gallery/point-cloud.rst
-    example_gallery/segmentation.rst
-    example_gallery/streamlines.rst
-    example_gallery/turbine-cfd.rst
-    example_gallery/vtk-cutter.rst
+    showcase/lorenz-system.rst
+    showcase/menger-sponge.rst
+    showcase/orbits.rst
+    showcase/point-cloud.rst
+    showcase/segmentation.rst
+    showcase/streamlines.rst
+    showcase/turbine-cfd.rst
+    showcase/vtk-cutter.rst
 
 .. k3d_plot::
-   :filename: example_gallery/thumbnails/lorenz_system_thumbnail.py
+   :filename: showcase/thumbnails/lorenz_system_thumbnail.py
    :screenshot:
 
 .. k3d_plot::
-   :filename: example_gallery/thumbnails/menger_sponge_thumbnail.py
+   :filename: showcase/thumbnails/menger_sponge_thumbnail.py
    :screenshot:
 
 .. k3d_plot::
-   :filename: example_gallery/thumbnails/orbits_thumbnail.py
+   :filename: showcase/thumbnails/orbits_thumbnail.py
    :screenshot:
 
 .. k3d_plot::
-   :filename: example_gallery/thumbnails/point_cloud_thumbnail.py
+   :filename: showcase/thumbnails/point_cloud_thumbnail.py
    :screenshot:
 
 .. k3d_plot::
-   :filename: example_gallery/thumbnails/segmentation_thumbnail.py
+   :filename: showcase/thumbnails/segmentation_thumbnail.py
    :screenshot:
 
 .. k3d_plot::
-   :filename: example_gallery/thumbnails/streamlines_thumbnail.py
+   :filename: showcase/thumbnails/streamlines_thumbnail.py
    :screenshot:
 
 .. k3d_plot::
-   :filename: example_gallery/thumbnails/turbine_cfd_thumbnail.py
+   :filename: showcase/thumbnails/turbine_cfd_thumbnail.py
    :screenshot:
 
 .. k3d_plot::
-   :filename: example_gallery/thumbnails/vtk_cutter_thumbnail.py
+   :filename: showcase/thumbnails/vtk_cutter_thumbnail.py
    :screenshot:
    
 .. raw:: html
@@ -71,35 +71,35 @@ Examples
 
 .. image:: lorenz_system_thumbnail.png
    :width: 155
-   :target: example_gallery/lorenz-system.html
+   :target: showcase/lorenz-system.html
 
 .. image:: menger_sponge_thumbnail.png
    :width: 155
-   :target: example_gallery/menger-sponge.html
+   :target: showcase/menger-sponge.html
 
 .. image:: orbits_thumbnail.png
    :width: 155
-   :target: example_gallery/orbits.html
+   :target: showcase/orbits.html
 
 .. image:: point_cloud_thumbnail.png
    :width: 155
-   :target: example_gallery/point-cloud.html
+   :target: showcase/point-cloud.html
 
 .. image:: segmentation_thumbnail.png
    :width: 155
-   :target: example_gallery/segmentation.html
+   :target: showcase/segmentation.html
 
 .. image:: streamlines_thumbnail.png
    :width: 155
-   :target: example_gallery/streamlines.html
+   :target: showcase/streamlines.html
 
 .. image:: turbine_cfd_thumbnail.png
    :width: 155
-   :target: example_gallery/turbine-cfd.html
+   :target: showcase/turbine-cfd.html
 
 .. image:: vtk_cutter_thumbnail.png
    :width: 155
-   :target: example_gallery/vtk-cutter.html
+   :target: showcase/vtk-cutter.html
    
 .. raw:: html
     
@@ -110,67 +110,67 @@ API
 ---
 
 .. k3d_plot::
-   :filename: api_gallery/thumbnails/line_colormap_thumbnail.py
+   :filename: api/thumbnails/line_colormap_thumbnail.py
    :screenshot:
 
 .. k3d_plot::
-   :filename: api_gallery/thumbnails/marching_cubes_levels_thumbnail.py
+   :filename: api/thumbnails/marching_cubes_levels_thumbnail.py
    :screenshot:
    
 .. k3d_plot::
-   :filename: api_gallery/thumbnails/marching_cubes_sinus_cube_thumbnail.py
+   :filename: api/thumbnails/marching_cubes_sinus_cube_thumbnail.py
    :screenshot:
 
 .. k3d_plot::
-   :filename: api_gallery/thumbnails/mesh_colormap_thumbnail.py
+   :filename: api/thumbnails/mesh_colormap_thumbnail.py
    :screenshot:
 
 .. k3d_plot::
-   :filename: api_gallery/thumbnails/mip_colormap_thumbnail.py
+   :filename: api/thumbnails/mip_colormap_thumbnail.py
    :screenshot:
 
 .. k3d_plot::
-   :filename: api_gallery/thumbnails/points_colormap_thumbnail.py
+   :filename: api/thumbnails/points_colormap_thumbnail.py
    :screenshot:
 
 .. k3d_plot::
-   :filename: api_gallery/thumbnails/stl_basic_thumbnail.py
+   :filename: api/thumbnails/stl_basic_thumbnail.py
    :screenshot:
 
 .. k3d_plot::
-   :filename: api_gallery/thumbnails/surface_colormap_thumbnail.py
+   :filename: api/thumbnails/surface_colormap_thumbnail.py
    :screenshot:
 
 .. k3d_plot::
-   :filename: api_gallery/thumbnails/text_reference_points_thumbnail.py
+   :filename: api/thumbnails/text_reference_points_thumbnail.py
    :screenshot:
 
 .. k3d_plot::
-   :filename: api_gallery/thumbnails/texture_basic_thumbnail.py
+   :filename: api/thumbnails/texture_basic_thumbnail.py
    :screenshot:
 
 .. k3d_plot::
-   :filename: api_gallery/thumbnails/texture_colormap_thumbnail.py
+   :filename: api/thumbnails/texture_colormap_thumbnail.py
    :screenshot:
 
 .. k3d_plot::
-   :filename: api_gallery/thumbnails/texture_text_basic_thumbnail.py
+   :filename: api/thumbnails/texture_text_basic_thumbnail.py
    :screenshot:
 
 .. k3d_plot::
-   :filename: api_gallery/thumbnails/vector_field_colormap_thumbnail.py
+   :filename: api/thumbnails/vector_field_colormap_thumbnail.py
    :screenshot:
 
 .. k3d_plot::
-   :filename: api_gallery/thumbnails/volume_render_mhd_thumbnail.py
+   :filename: api/thumbnails/volume_render_mhd_thumbnail.py
    :screenshot:
 
 .. k3d_plot::
-   :filename: api_gallery/thumbnails/voxels_shapes_thumbnail.py
+   :filename: api/thumbnails/voxels_shapes_thumbnail.py
    :screenshot:
 
 .. k3d_plot::
-   :filename: api_gallery/thumbnails/vtk_colormap_thumbnail.py
+   :filename: api/thumbnails/vtk_colormap_thumbnail.py
    :screenshot:
 
 .. raw:: html

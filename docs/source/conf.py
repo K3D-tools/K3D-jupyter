@@ -71,11 +71,31 @@ exclude_patterns = ['_build', 'Thumbs.db', '.DS_Store']
 html_theme = 'pydata_sphinx_theme'
 
 html_theme_options = {
-  "show_prev_next": False
+    "show_prev_next": False,
+    "icon_links": [
+        {
+            "name": "GitHub",
+            "url": "https://github.com/K3D-tools/K3D-jupyter",
+            "icon": "fab fa-github",
+            "type": "fontawesome",
+        },
+        {
+            "name": "PyPi",
+            "url": "https://pypi.org/project/k3d/",
+            "icon": "fas fa-box-open",
+            "type": "fontawesome",
+        },
+        {
+            "name": "Conda",
+            "url": "https://anaconda.org/conda-forge/k3d",
+            "icon": "fas fa-circle-notch",
+            "type": "fontawesome",
+        }
+    ]
 }
 
 html_sidebars = {
-  "gallery/*": []
+    "gallery/*": []
 }
 
 # Add any paths that contain custom static files (such as style sheets) here,

@@ -24,3 +24,11 @@
   height: 400px;
   margin-bottom: 1em;
 }
+
+i.fa-box-open:before {
+    color: #0073b7;
+}
+ 
+i.fa-circle-notch:before {
+    color: #44a833;
+}
