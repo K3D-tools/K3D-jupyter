@@ -5,7 +5,7 @@ from k3d.headless import k3d_remote, get_headless_driver
 
 def generate():
     filepath = os.path.join(os.path.abspath(os.path.dirname(__file__)),
-                            '../../../api_reference/plot_objects/assets/arcade_carpet_512.png')
+                            '../../../reference/assets/factory/arcade_carpet_512.png')
 
     with open(filepath, 'rb') as stl:
         data = stl.read()

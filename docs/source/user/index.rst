@@ -42,7 +42,9 @@ First plot
     :maxdepth: 2
     :hidden:
     
+    why
     install
+    usage
     panel
     name
     time

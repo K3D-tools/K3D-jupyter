@@ -1,4 +1,4 @@
-.. _name:
+.. _object_name:
 
 =============
 Object naming

@@ -25,7 +25,7 @@ Objects
 
 This section lists all the objects within the plot, along with their modifiable attributes.
 
-A submenu is created for each object using their :ref:`name <object_naming>`, and you can find
+A submenu is created for each object using their :ref:`name <object_name>`, and you can find
 the related settings in their respective :ref:`API reference <api_reference>`.
 
 .. image:: assets/k3d_panel_objects.png

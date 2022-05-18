@@ -7,7 +7,7 @@ from k3d.headless import k3d_remote, get_headless_driver
 
 def generate():
     filepath = os.path.join(os.path.abspath(os.path.dirname(__file__)),
-                            '../../../api_reference/plot_objects/assets/heart.mhd')
+                            '../../../reference/assets/factory/heart.mhd')
 
     im_sitk = sitk.ReadImage(filepath)
     img = sitk.GetArrayFromImage(im_sitk)

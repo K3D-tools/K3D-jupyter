@@ -1,18 +1,5 @@
-Example gallery
-===============
-
-.. toctree::
-    :maxdepth: 1
-    :hidden:
-
-    example_gallery/lorenz-system.rst
-    example_gallery/menger-sponge.rst
-    example_gallery/orbits.rst
-    example_gallery/point-cloud.rst
-    example_gallery/segmentation.rst
-    example_gallery/streamlines.rst
-    example_gallery/turbine-cfd.rst
-    example_gallery/vtk-cutter.rst
+Examples
+========
 
 .. k3d_plot::
    :filename: example_gallery/thumbnails/lorenz_system_thumbnail.py
@@ -78,8 +65,8 @@ Example gallery
    :width: 33%
    :target: example_gallery/vtk-cutter.html
 
-API gallery
-===========
+API
+===
 
 .. k3d_plot::
    :filename: api_gallery/thumbnails/line_colormap_thumbnail.py

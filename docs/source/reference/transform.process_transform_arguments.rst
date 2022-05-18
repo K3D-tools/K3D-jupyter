@@ -35,4 +35,4 @@ Examples
     plot.display()
 
 .. k3d_plot ::
-  :filename: plots/process_transform_arguments_basic_plot.py
+  :filename: plots/transform/process_transform_arguments_basic_plot.py

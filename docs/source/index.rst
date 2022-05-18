@@ -21,3 +21,4 @@ K3D-jupyter plots ipywidgets_ assuring a perfect interaction of a browser-side w
     
     User Guide <user/index>
     API reference <reference/index>
+    Gallery <gallery/index>

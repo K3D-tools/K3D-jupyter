@@ -1,4 +1,4 @@
-.. _time:
+.. _time_series:
 
 ===========
 Time series
