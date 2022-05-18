@@ -36,7 +36,7 @@ def generate():
     plot += plt_voxels_heart
     plot += plt_voxels_torus
 
-    headless = k3d_remote(plot, get_headless_driver(), width=600, height=370)
+    headless = k3d_remote(plot, get_headless_driver(), width=800, height=800)
 
     headless.sync(hold_until_refreshed=True)
     headless.camera_reset(1)

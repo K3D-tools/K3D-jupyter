@@ -51,7 +51,7 @@ def generate():
                    62.2292, 85.1011, 55.6868,
                    -0.3889, 0.0614, 0.9192]
 
-    headless = k3d_remote(plot, get_headless_driver(), width=600, height=370)
+    headless = k3d_remote(plot, get_headless_driver(), width=800, height=800)
 
     headless.sync(hold_until_refreshed=True)
     headless.camera_reset(0.7)
