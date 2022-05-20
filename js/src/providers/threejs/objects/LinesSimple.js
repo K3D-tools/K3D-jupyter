@@ -22,7 +22,7 @@ module.exports = {
         const colorRange = config.color_range;
         const colorMap = (config.color_map && config.color_map.data) || null;
         const attr = (config.attribute && config.attribute.data) || null;
-        const object = new THREE.Line(geometry, material);
+        const object = new THREE.LineSegments(geometry, material);
         const modelMatrix = new THREE.Matrix4();
         const vertices = config.vertices.data;
         const indices = config.indices.data;
@@ -31,7 +31,7 @@ module.exports = {
         let positions = [];
         let attribute = [];
         let colors = [];
-        let jump = config.indices_type == 'segment' ? 2 : 3;
+        let jump = config.indices_type === 'segment' ? 2 : 3;
         let offsets;
 
         let verticesCount = vertices.length / 3;
