@@ -1,7 +1,7 @@
 .. _api_reference:
 
 =====================
-K3D-Jupyter reference
+K3D-jupyter reference
 =====================
 
 .. toctree::

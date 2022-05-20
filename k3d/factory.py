@@ -252,7 +252,7 @@ def mesh(
         volume=[],
         volume_bounds=[],
         opacity_function=[],
-        side="double",
+        side="front",
         uvs=None,
         name=None,
         group=None,

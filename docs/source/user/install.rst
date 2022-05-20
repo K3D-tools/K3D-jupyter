@@ -6,7 +6,7 @@ Installation
 Installing from PyPi
 --------------------
 
-K3D-Jupyter releases are available as wheel packages for macOS, Windows and Linux on PyPi_.
+K3D-jupyter releases are available as wheel packages for macOS, Windows and Linux on PyPi_.
 
 .. code-block:: bash
 
@@ -87,7 +87,7 @@ JupyterLab extension
 If required, you can install the JupyterLab extension:
 
 .. note::
-    Do not run this within K3D-Jupyter directory.
+    Do not run this within K3D-jupyter directory.
 
 .. code-block:: bash
 
