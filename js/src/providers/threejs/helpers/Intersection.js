@@ -1,7 +1,6 @@
 const threeMeshBVH = require('three-mesh-bvh');
 const intersectCallback = require('../interactions/intersectCallback');
-// THREE = require('three'),
-// viewModes = require('./../../../core/lib/viewMode').viewModes;
+// THREE = require('three');
 
 module.exports = {
     init(config, object, K3D) {
@@ -19,7 +18,6 @@ module.exports = {
             }
         };
 
-        // if (config.click_callback || config.hover_callback || K3D.parameters.viewMode === viewModes.manipulate) {
         if (config.click_callback || config.hover_callback) {
             object.startInteraction();
         }

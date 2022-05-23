@@ -7,6 +7,7 @@ const TFEdit = require('./transferFunctionEditor');
 const serialize = require('./core/lib/helpers/serialize');
 const ThreeJsProvider = require('./providers/threejs/provider');
 const CreateK3DAndLoadBinarySnapshot = require('./standalone').CreateK3DAndLoadBinarySnapshot;
+const { viewModes } = require('./core/lib/viewMode');
 
 const semverRange = require('./version').version;
 
@@ -389,7 +390,9 @@ const PlotView = widgets.DOMWidgetView.extend({
         });
 
         this.objectHoverCallback = this.K3DInstance.on(this.K3DInstance.events.OBJECT_HOVERED, (param) => {
-            if (objectsList[param.object.K3DIdentifier]) {
+            if (objectsList[param.object.K3DIdentifier] &&
+                this.K3DInstance.parameters.viewMode === viewModes.callback) {
+
                 objectsList[param.object.K3DIdentifier].send({
                     msg_type: 'hover_callback',
                     position: param.point.toArray(),
@@ -403,7 +406,9 @@ const PlotView = widgets.DOMWidgetView.extend({
         });
 
         this.objectClickCallback = this.K3DInstance.on(this.K3DInstance.events.OBJECT_CLICKED, (param) => {
-            if (objectsList[param.object.K3DIdentifier]) {
+            if (objectsList[param.object.K3DIdentifier] &&
+                this.K3DInstance.parameters.viewMode === viewModes.callback) {
+
                 objectsList[param.object.K3DIdentifier].send({
                     msg_type: 'click_callback',
                     position: param.point.toArray(),
