@@ -667,7 +667,7 @@ class Points(Drawable):
         sync=True, **array_serialization_wrap("opacities")
     )
     shader = TimeSeries(Unicode()).tag(sync=True)
-    mesh_detail = TimeSeries(Int(min=0, max=8)).tag(sync=True)
+    mesh_detail = TimeSeries(Int(min=0, max=12)).tag(sync=True)
     attribute = TimeSeries(Array(dtype=np.float32)).tag(
         sync=True, **array_serialization_wrap("attribute")
     )
