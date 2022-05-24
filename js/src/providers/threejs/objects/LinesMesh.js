@@ -47,7 +47,7 @@ module.exports = {
 
         let g = [];
         let verticesCount = position.length / 3;
-        let offsets
+        let offsets;
 
         for (let i = 0; i < indices.length; i += jump) {
             if (jump === 3) {
