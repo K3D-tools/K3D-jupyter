@@ -1,5 +1,5 @@
 const THREE = require('three');
-const intersectHelper = require('../helpers/Intersection');
+const interactionsHelper = require('../helpers/Interactions');
 const { areAllChangesResolve } = require('../helpers/Fn');
 const { commonUpdate } = require('../helpers/Fn');
 const buffer = require('../../../core/lib/helpers/buffer');
@@ -48,7 +48,7 @@ module.exports = {
                 material = new THREE.MeshBasicMaterial({ color: 0xffffff, side: THREE.DoubleSide, map: texture });
                 object = new THREE.Mesh(geometry, material);
 
-                intersectHelper.init(config, object, K3D);
+                interactionsHelper.init(config, object, K3D);
 
                 modelMatrix.set.apply(modelMatrix, config.model_matrix.data);
                 object.applyMatrix4(modelMatrix);
@@ -76,7 +76,7 @@ module.exports = {
     update(config, changes, obj) {
         const resolvedChanges = {};
 
-        intersectHelper.update(config, changes, resolvedChanges, obj);
+        interactionsHelper.update(config, changes, resolvedChanges, obj);
         commonUpdate(config, changes, resolvedChanges, obj);
 
         if (areAllChangesResolve(changes, resolvedChanges)) {

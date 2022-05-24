@@ -1,5 +1,5 @@
 const THREE = require('three');
-const intersectHelper = require('../helpers/Intersection');
+const interactionsHelper = require('../helpers/Interactions');
 const colorMapHelper = require('../../../core/lib/helpers/colorMap');
 const { handleColorMap } = require('../helpers/Fn');
 const { areAllChangesResolve } = require('../helpers/Fn');
@@ -68,8 +68,7 @@ module.exports = {
 
                 object = new THREE.Mesh(geometry, material);
 
-
-                intersectHelper.init(config, object, K3D);
+                interactionsHelper.init(config, object, K3D);
 
                 object.applyMatrix4(modelMatrix);
                 object.updateMatrixWorld();
@@ -198,7 +197,7 @@ module.exports = {
             resolvedChanges.opacity = null;
         }
 
-        intersectHelper.update(config, changes, resolvedChanges, obj);
+        interactionsHelper.update(config, changes, resolvedChanges, obj);
 
         commonUpdate(config, changes, resolvedChanges, obj);
 

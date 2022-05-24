@@ -1,5 +1,5 @@
 const THREE = require('three');
-const intersectHelper = require('../helpers/Intersection');
+const interactionsHelper = require('../helpers/Interactions');
 const colorMapHelper = require('../../../core/lib/helpers/colorMap');
 const { typedArrayToThree } = require('../helpers/Fn');
 const { areAllChangesResolve } = require('../helpers/Fn');
@@ -96,7 +96,7 @@ module.exports = {
 
         const object = new THREE.Mesh(geometry, material);
 
-        intersectHelper.init(config, object, K3D);
+        interactionsHelper.init(config, object, K3D);
 
         modelMatrix.set.apply(modelMatrix, config.model_matrix.data);
         object.applyMatrix4(modelMatrix);
@@ -109,7 +109,7 @@ module.exports = {
     update(config, changes, obj) {
         const resolvedChanges = {};
 
-        intersectHelper.update(config, changes, resolvedChanges, obj);
+        interactionsHelper.update(config, changes, resolvedChanges, obj);
 
         if (typeof (changes.volume) !== 'undefined' && !changes.volume.timeSeries) {
             if (obj.material.uniforms.volumeTexture.value.image.data.constructor === changes.volume.data.constructor

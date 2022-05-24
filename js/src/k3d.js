@@ -393,15 +393,11 @@ const PlotView = widgets.DOMWidgetView.extend({
             if (objectsList[param.object.K3DIdentifier] &&
                 this.K3DInstance.parameters.viewMode === viewModes.callback) {
 
-                objectsList[param.object.K3DIdentifier].send({
-                    msg_type: 'hover_callback',
-                    position: param.point.toArray(),
-                    normal: param.face.normal.toArray(),
-                    distance: param.distance,
-                    face_index: param.faceIndex,
-                    face: [param.face.a, param.face.b, param.face.c],
-                    uv: param.uv,
-                });
+                objectsList[param.object.K3DIdentifier].send(
+                    _.extend({
+                        msg_type: 'hover_callback'
+                    }, param)
+                );
             }
         });
 
@@ -409,15 +405,11 @@ const PlotView = widgets.DOMWidgetView.extend({
             if (objectsList[param.object.K3DIdentifier] &&
                 this.K3DInstance.parameters.viewMode === viewModes.callback) {
 
-                objectsList[param.object.K3DIdentifier].send({
-                    msg_type: 'click_callback',
-                    position: param.point.toArray(),
-                    normal: param.face.normal.toArray(),
-                    distance: param.distance,
-                    face_index: param.faceIndex,
-                    face: [param.face.a, param.face.b, param.face.c],
-                    uv: param.uv,
-                });
+                objectsList[param.object.K3DIdentifier].send(
+                    _.extend({
+                        msg_type: 'click_callback'
+                    }, param)
+                );
             }
         });
     },

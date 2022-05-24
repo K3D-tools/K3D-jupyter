@@ -1,5 +1,5 @@
 const THREE = require('three');
-const intersectHelper = require('../helpers/Intersection');
+const interactionsHelper = require('../helpers/Interactions');
 const colorMapHelper = require('../../../core/lib/helpers/colorMap');
 const { areAllChangesResolve } = require('../helpers/Fn');
 const { commonUpdate } = require('../helpers/Fn');
@@ -90,7 +90,7 @@ module.exports = {
 
             const object = new THREE.Mesh(geometry, material);
 
-            intersectHelper.init(config, object, K3D);
+            interactionsHelper.init(config, object, K3D);
 
             modelMatrix.set.apply(modelMatrix, config.model_matrix.data);
             object.applyMatrix4(modelMatrix);
@@ -110,7 +110,7 @@ module.exports = {
     update(config, changes, obj) {
         const resolvedChanges = {};
 
-        intersectHelper.update(config, changes, resolvedChanges, obj);
+        interactionsHelper.update(config, changes, resolvedChanges, obj);
 
         if (typeof (changes.color_range) !== 'undefined' && !changes.color_range.timeSeries) {
             obj.material.uniforms.low.value = changes.color_range[0];

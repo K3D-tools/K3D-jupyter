@@ -2,7 +2,6 @@ const THREE = require('three');
 const { viewModes } = require('../../../core/lib/viewMode');
 /**
  * Interactions handlers for Voxels object
- * @method Voxels
  * @memberof K3D.Providers.ThreeJS.Interactions
  */
 module.exports = function (object, mesh, rollOverMesh, K3D) {

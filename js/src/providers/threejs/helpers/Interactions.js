@@ -1,13 +1,17 @@
 const threeMeshBVH = require('three-mesh-bvh');
-const intersectCallback = require('../interactions/intersectCallback');
-// THREE = require('three');
+const StandardInteractions = require('../interactions/StandardCallback');
 
 module.exports = {
-    init(config, object, K3D) {
+    init(config, object, K3D, InteractionsCallback) {
         object.startInteraction = function () {
             if (!object.interactions) {
                 object.geometry.boundsTree = new threeMeshBVH.MeshBVH(object.geometry);
-                object.interactions = intersectCallback(object, K3D);
+
+                if (InteractionsCallback) {
+                    object.interactions = InteractionsCallback(object, K3D);
+                } else {
+                    object.interactions = StandardInteractions(object, K3D);
+                }
             }
         };
 
@@ -22,6 +26,7 @@ module.exports = {
             object.startInteraction();
         }
 
+        // THREE = require('three');
         // object.startInteraction();
         //
         // var o = new THREE.Group(),
