@@ -390,10 +390,10 @@ const PlotView = widgets.DOMWidgetView.extend({
         });
 
         this.objectHoverCallback = this.K3DInstance.on(this.K3DInstance.events.OBJECT_HOVERED, (param) => {
-            if (objectsList[param.object.K3DIdentifier] &&
+            if (objectsList[param.K3DIdentifier] &&
                 this.K3DInstance.parameters.viewMode === viewModes.callback) {
 
-                objectsList[param.object.K3DIdentifier].send(
+                objectsList[param.K3DIdentifier].send(
                     _.extend({
                         msg_type: 'hover_callback'
                     }, param)
@@ -402,10 +402,10 @@ const PlotView = widgets.DOMWidgetView.extend({
         });
 
         this.objectClickCallback = this.K3DInstance.on(this.K3DInstance.events.OBJECT_CLICKED, (param) => {
-            if (objectsList[param.object.K3DIdentifier] &&
+            if (objectsList[param.K3DIdentifier] &&
                 this.K3DInstance.parameters.viewMode === viewModes.callback) {
 
-                objectsList[param.object.K3DIdentifier].send(
+                objectsList[param.K3DIdentifier].send(
                     _.extend({
                         msg_type: 'click_callback'
                     }, param)

@@ -10,7 +10,8 @@ function prepareParam(param) {
         distance: param.distance,
         face_index: param.faceIndex,
         face: [param.face.a, param.face.b, param.face.c],
-        uv: param.uv
+        uv: param.uv,
+        K3DIdentifier: param.object.K3DIdentifier
     };
 }
 
