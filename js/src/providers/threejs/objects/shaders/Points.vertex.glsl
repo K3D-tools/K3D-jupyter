@@ -30,10 +30,13 @@ void main() {
 
     mvPosition = modelViewMatrix * vec4(position, 1.0);
 
+    float fov = 2.0 * atan(1.0 / projectionMatrix[1][1]) * 180.0 / PI;
+    float fovCorrection = tan((PI / 180.0) * fov / 2.0);
+
     #if (USE_PER_POINT_SIZE == 1)
-    gl_PointSize = 2.0 * sizes * (scale / - mvPosition.z);
+    gl_PointSize = sizes * (scale / - mvPosition.z) / fovCorrection;
     #else
-    gl_PointSize = 2.0 * size * (scale / - mvPosition.z);
+    gl_PointSize = size * (scale / - mvPosition.z) / fovCorrection;
     #endif
 
     gl_Position = projectionMatrix * mvPosition;

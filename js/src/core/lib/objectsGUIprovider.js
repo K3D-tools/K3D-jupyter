@@ -331,7 +331,7 @@ function update(K3D, json, GUI, changes) {
                 break;
             case 'mesh_detail':
                 if (json.shader === 'mesh') {
-                    addController(K3D.gui_map[json.id], json, param, 0, 8, 1).name('meshDetail').onChange(
+                    addController(K3D.gui_map[json.id], json, param, 0, 12, 1).name('meshDetail').onChange(
                         changeParameter.bind(this, K3D, json, param),
                     );
                 }

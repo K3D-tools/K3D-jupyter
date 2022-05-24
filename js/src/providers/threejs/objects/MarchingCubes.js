@@ -1,6 +1,6 @@
 const THREE = require('three');
 const BufferGeometryUtils = require('three/examples/jsm/utils/BufferGeometryUtils');
-const intersectHelper = require('../helpers/Intersection');
+const interactionsHelper = require('../helpers/Interactions');
 const marchingCubesPolygonise = require('../../../core/lib/helpers/marchingCubesPolygonise');
 const yieldingLoop = require('../../../core/lib/helpers/yieldingLoop');
 const { areAllChangesResolve } = require('../helpers/Fn');
@@ -129,7 +129,7 @@ module.exports = {
                     object = new THREE.Mesh(geometry, material);
                     object.scale.set(1.0 / sizeX, 1.0 / sizeY, 1.0 / sizeZ);
 
-                    intersectHelper.init(config, object, K3D);
+                    interactionsHelper.init(config, object, K3D);
 
                     modelMatrix.set.apply(modelMatrix, config.model_matrix.data);
 
@@ -148,7 +148,7 @@ module.exports = {
     update(config, changes, obj) {
         const resolvedChanges = {};
 
-        intersectHelper.update(config, changes, resolvedChanges, obj);
+        interactionsHelper.update(config, changes, resolvedChanges, obj);
 
         if (typeof (changes.opacity) !== 'undefined' && !changes.opacity.timeSeries) {
             obj.material.opacity = changes.opacity;

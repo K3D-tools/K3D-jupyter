@@ -520,6 +520,10 @@ function raycast(K3D, x, y, camera, click, viewMode) {
 
     this.K3DObjects.traverse((object) => {
         if (object.interactions) {
+            if (object.geometry && object.geometry.attributes.position.count === 0) {
+                return;
+            }
+
             meshes.push(object);
         }
     });

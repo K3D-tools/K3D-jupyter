@@ -74,7 +74,7 @@ module.exports = {
      */
     Interactions: {
         Voxels: require('./interactions/Voxels'),
-        intersectCallback: require('./interactions/intersectCallback'),
+        StandardCallback: require('./interactions/StandardCallback'),
     },
 
     THREE,
