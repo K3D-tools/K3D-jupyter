@@ -1,4 +1,4 @@
-const screenfull = require('screenfull');
+const screenfull = require('screenfull').default;
 
 function fullscreenGUI(container, gui, currentWindow) {
     const obj = {

@@ -1,4 +1,3 @@
-require('es6-promise');
 require('katex/dist/katex.min.css');
 require('lil-gui/dist/lil-gui.css');
 

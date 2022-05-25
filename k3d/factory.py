@@ -1816,6 +1816,7 @@ def plot(
         camera_pan_speed=0.3,
         camera_damping_factor=0.0,
         fps=25.0,
+        fps_meter=False,
         name=None,
         custom_data=None
 ):
@@ -1932,5 +1933,6 @@ def plot(
         camera_pan_speed=camera_pan_speed,
         auto_rendering=auto_rendering,
         fps=fps,
+        fps_meter=fps_meter,
         custom_data=custom_data
     )

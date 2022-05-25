@@ -15,8 +15,6 @@ const objectsList = {};
 const chunkList = {};
 const plotsList = [];
 
-require('es6-promise');
-
 function runOnEveryPlot(id, cb) {
     plotsList.forEach((plot) => {
         if (plot.model.get('object_ids').indexOf(id) !== -1) {
