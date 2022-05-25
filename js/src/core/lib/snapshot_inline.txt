@@ -13,38 +13,50 @@
   }
 
   function loadK3D() {
-    loadScript('https://unpkg.com/k3d@[VERSION]/dist/standalone.js', function () {
-      require(['k3d'], function (lib) {
-        function _base64ToArrayBuffer(base64) {
-          var binary_string = window.atob(base64);
-          var len = binary_string.length;
-          var bytes = new Uint8Array(len);
-          for (var i = 0; i < len; i++) {
-            bytes[i] = binary_string.charCodeAt(i);
-          }
-          return bytes;
+    function load(lib) {
+      function _base64ToArrayBuffer(base64) {
+        var binary_string = window.atob(base64);
+        var len = binary_string.length;
+        var bytes = new Uint8Array(len);
+        for (var i = 0; i < len; i++) {
+          bytes[i] = binary_string.charCodeAt(i);
         }
+        return bytes;
+      }
 
-        try {
-          document.getElementById('canvasTarget_[ID]').style.cssText = [
-              `height:[HEIGHT]px`,
-              'position: relative',
-          ].join(';');
+      try {
+        document.getElementById('canvasTarget_[ID]').style.cssText = [
+          `height:[HEIGHT]px`,
+          'position: relative',
+        ].join(';');
 
-          K3DInstance = new lib.CreateK3DAndLoadBinarySnapshot(
-            _base64ToArrayBuffer(data_[ID]),
-            document.getElementById('canvasTarget_[ID]'),
-          );
+        K3DInstance = new lib.CreateK3DAndLoadBinarySnapshot(
+          _base64ToArrayBuffer(data_[ID]),
+          document.getElementById('canvasTarget_[ID]'),
+        );
 
-          K3DInstance.then(function (K3DInstance) {
-            [ADDITIONAL]
-          });
-        } catch (e) {
-          console.log(e);
-          return;
-        }
-      });
-    });
+        K3DInstance.then(function (K3DInstance) {
+          [ADDITIONAL]
+        });
+      } catch (e) {
+        console.log(e);
+        return;
+      }
+    }
+
+    require(['k3d'],
+            load,
+            function () {
+              loadScript('https://unpkg.com/k3d@[VERSION]/dist/standalone.js', function () {
+                try {
+                  delete require.s.contexts._.registry.k3d;
+                } catch(err) {
+                  console.log(err);
+                }
+
+                require(['k3d'], load);
+              });
+            });
   }
 
   if (typeof (require) === 'undefined') {

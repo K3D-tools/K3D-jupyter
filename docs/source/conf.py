@@ -26,6 +26,7 @@ import sphinx_rtd_theme
 import json
 from os.path import dirname
 from source.k3d_directives.plot import K3D_Plot
+import shutil
 
 here = os.path.dirname(__file__)
 docs = dirname(dirname(__file__))
@@ -210,9 +211,16 @@ on_rtd = os.environ.get('READTHEDOCS', None) == 'True'
 
 
 def setup(app):
+    shutil.copy('./../js/dist/standalone.js', './source/_static/standalone.js')
+    shutil.copy('./../node_modules/requirejs/require.js', './source/_static/require.js')
+
     try:
         app.add_stylesheet('style.css')
+        app.add_javascript('require.js')
+        app.add_javascript('standalone.js?k3d')
     except AttributeError:
         app.add_css_file('style.css')
+        app.add_js_file('require.js')
+        app.add_js_file('standalone.js?k3d')
 
     app.add_directive('k3d_plot', K3D_Plot)
