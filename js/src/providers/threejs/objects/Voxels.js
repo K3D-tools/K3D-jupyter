@@ -13,7 +13,7 @@ module.exports = {
     create(config, K3D) {
         return VoxelsHelper.create(
             config,
-            VoxelsHelper.generateRegularChunks(27, config.voxels.shape, config.voxels.data),
+            VoxelsHelper.generateRegularChunks(96, config.voxels.shape, config.voxels.data),
             [config.voxels.shape[2], config.voxels.shape[1], config.voxels.shape[0]],
             K3D,
         );
