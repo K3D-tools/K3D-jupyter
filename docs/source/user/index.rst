@@ -39,12 +39,9 @@ First plot
 .. _conda: https://anaconda.org/conda-forge/k3d
 
 .. toctree::
-    :maxdepth: 2
+    :maxdepth: 1
     :hidden:
     
     why
     install
     usage
-    panel
-    name
-    time

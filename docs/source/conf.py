@@ -20,9 +20,9 @@ sys.path.insert(0, os.path.abspath('../..'))
 # -- Project information -----------------------------------------------------
 
 project = 'K3D-jupyter'
-copyright = time.strftime(
-    '%Y') + u' Marcin Kostur, Artur Trzęsiok, Tomasz Gandor'
 author = u'Marcin Kostur, Artur Trzęsiok, Tomasz Gandor, Thomas Mattone'
+copyright = time.strftime(
+    '%Y') + ' ' + author
 
 # The full version, including alpha/beta/rc tags
 _version_py = os.path.abspath('../../k3d/_version.py')
