@@ -257,6 +257,8 @@ class Line(Drawable):
             to 0 and 1 in the color map respectively.
         width: `float`.
             The thickness of the lines.
+        opacity: `float`.
+            Opacity of lines.
         shader: `str`.
             Display style (name of the shader used) of the lines.
             Legal values are:
@@ -291,6 +293,7 @@ class Line(Drawable):
     color_range = TimeSeries(ListOrArray(minlen=2, maxlen=2, empty_ok=True)).tag(
         sync=True
     )
+    opacity = TimeSeries(Float(min=0.0, max=1.0, default_value=1.0)).tag(sync=True)
     shader = TimeSeries(Unicode()).tag(sync=True)
     radial_segments = TimeSeries(Int()).tag(sync=True)
     model_matrix = TimeSeries(Array(dtype=np.float32)).tag(
@@ -349,6 +352,8 @@ class Lines(Drawable):
             to 0 and 1 in the color map respectively.
         width: `float`.
             The thickness of the lines.
+        opacity: `float`.
+            Opacity of lines.
         shader: `str`.
             Display style (name of the shader used) of the lines.
             Legal values are:
@@ -385,6 +390,7 @@ class Lines(Drawable):
     color_range = TimeSeries(ListOrArray(minlen=2, maxlen=2, empty_ok=True)).tag(
         sync=True
     )
+    opacity = TimeSeries(Float(min=0.0, max=1.0, default_value=1.0)).tag(sync=True)
     shader = TimeSeries(Unicode()).tag(sync=True)
     radial_segments = TimeSeries(Int()).tag(sync=True)
     model_matrix = TimeSeries(Array(dtype=np.float32)).tag(

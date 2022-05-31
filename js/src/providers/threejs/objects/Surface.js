@@ -94,11 +94,11 @@ module.exports = {
         return Promise.resolve(object);
     },
 
-    update(config, changes, obj) {
+    update(config, changes, obj, K3D) {
         const resolvedChanges = {};
 
         interactionsHelper.update(config, changes, resolvedChanges, obj);
-        commonUpdate(config, changes, resolvedChanges, obj);
+        commonUpdate(config, changes, resolvedChanges, obj, K3D);
 
         if (areAllChangesResolve(changes, resolvedChanges)) {
             return Promise.resolve({ json: config, obj });

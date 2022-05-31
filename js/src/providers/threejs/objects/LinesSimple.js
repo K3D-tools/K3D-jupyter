@@ -16,7 +16,11 @@ const { handleColorMap } = Fn;
 module.exports = {
     create(config) {
         const geometry = new THREE.BufferGeometry();
-        const material = new THREE.MeshBasicMaterial();
+        const material = new THREE.MeshBasicMaterial({
+            opacity: config.opacity,
+            depthWrite: config.opacity === 1.0,
+            transparent: config.opacity !== 1.0,
+        });
         let verticesColors = (config.colors && config.colors.data) || null;
         const color = new THREE.Color(config.color);
         const colorRange = config.color_range;
@@ -108,9 +112,9 @@ module.exports = {
         return Promise.resolve(object);
     },
 
-    update(config, changes, obj) {
+    update(config, changes, obj, K3D) {
         const resolvedChanges = {};
-
+ 
         if (typeof (obj.geometry.attributes.uv) !== 'undefined') {
             if (typeof (changes.color_range) !== 'undefined' && !changes.color_range.timeSeries) {
                 obj.material.uniforms.low.value = changes.color_range[0];
@@ -133,7 +137,18 @@ module.exports = {
             }
         }
 
-        commonUpdate(config, changes, resolvedChanges, obj);
+        if (typeof (changes.vertices) !== 'undefined' && !changes.vertices.timeSeries
+            && changes.vertices.data.length === obj.geometry.attributes.position.array.length) {
+            obj.geometry.attributes.position.array.set(changes.vertices.data);
+            obj.geometry.attributes.position.needsUpdate = true;
+
+            obj.geometry.computeBoundingSphere();
+            obj.geometry.computeBoundingBox();
+
+            resolvedChanges.vertices = null;
+        }
+
+        commonUpdate(config, changes, resolvedChanges, obj, K3D);
 
         if (areAllChangesResolve(changes, resolvedChanges)) {
             return Promise.resolve({ json: config, obj });

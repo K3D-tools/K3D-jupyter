@@ -243,7 +243,7 @@ module.exports = {
             resolvedChanges._hold_remeshing = null;
         }
 
-        commonUpdate(config, changes, resolvedChanges, obj);
+        commonUpdate(config, changes, resolvedChanges, obj, K3D);
 
         if (areAllChangesResolve(changes, resolvedChanges)) {
             return Promise.resolve({ json: config, obj });

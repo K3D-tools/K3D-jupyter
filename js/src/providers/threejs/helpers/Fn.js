@@ -6,6 +6,24 @@ function getSpaceDimensionsFromTargetElement(world) {
     return [world.targetDOMNode.offsetWidth, world.targetDOMNode.offsetHeight];
 }
 
+function getSide(config) {
+    const map = {
+        front: THREE.FrontSide,
+        back: THREE.BackSide,
+        double: THREE.DoubleSide,
+    };
+
+    if (config.opacity < 1.0) {
+        return map.double;
+    }
+
+    if (!config.side) {
+        return map.front;
+    }
+
+    return map[config.side] || map.front;
+}
+
 module.exports = {
     /**
      * Finds the nearest (greater than x) power of two of given x
@@ -129,7 +147,7 @@ module.exports = {
      * @param  {Number} headHeight
      */
     generateArrow(coneGeometry, lineVertices, heads, origin,
-        destination, headColor, headHeight) {
+                  destination, headColor, headHeight) {
         const axis = new THREE.Vector3();
         const direction = new THREE.Vector3().subVectors(destination, origin);
         const length = direction.length();
@@ -241,7 +259,7 @@ module.exports = {
         ));
     },
 
-    commonUpdate(config, changes, resolvedChanges, obj) {
+    commonUpdate(config, changes, resolvedChanges, obj, K3D) {
         if (typeof (changes.model_matrix) !== 'undefined' && !changes.model_matrix.timeSeries) {
             const modelMatrix = new THREE.Matrix4();
 
@@ -271,23 +289,26 @@ module.exports = {
 
             resolvedChanges.visible = null;
         }
-    },
 
-    getSide(config) {
-        const map = {
-            front: THREE.FrontSide,
-            back: THREE.BackSide,
-            double: THREE.DoubleSide,
-        };
+        if (typeof (changes.opacity) !== 'undefined' && !changes.opacity.timeSeries) {
+            obj.material.opacity = changes.opacity;
 
-        if (config.opacity < 1.0) {
-            return map.double;
+            obj.material.side = getSide({
+                opacity: changes.opacity,
+                side: config.side
+            });
+
+            if (obj.material.uniforms && obj.material.uniforms.opacity) {
+                obj.material.uniforms.opacity.value = changes.opacity;
+            }
+
+            obj.material.depthWrite = changes.opacity === 1.0;
+            obj.material.transparent = changes.opacity !== 1.0;
+
+            obj.material.needsUpdate = true;
+
+            resolvedChanges.opacity = null;
         }
-
-        if (!config.side) {
-            return map.front;
-        }
-
-        return map[config.side] || map.front;
     },
+    getSide
 };

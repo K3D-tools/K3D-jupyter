@@ -125,7 +125,7 @@ module.exports = {
         });
     },
 
-    update(config, changes, obj) {
+    update(config, changes, obj, K3D) {
         const resolvedChanges = {};
         let data;
         let
@@ -183,23 +183,9 @@ module.exports = {
             }
         }
 
-        if (typeof (changes.opacity) !== 'undefined' && !changes.opacity.timeSeries) {
-            if (obj.material.uniforms && obj.material.uniforms.opacity) {
-                obj.material.uniforms.opacity.value = changes.opacity;
-            } else {
-                obj.material.opacity = changes.opacity;
-            }
-
-            obj.material.depthWrite = changes.opacity === 1.0;
-            obj.material.transparent = changes.opacity !== 1.0;
-            obj.material.side = changes.opacity < 1.0 ? THREE.DoubleSide : THREE.FrontSide;
-
-            resolvedChanges.opacity = null;
-        }
-
         interactionsHelper.update(config, changes, resolvedChanges, obj);
 
-        commonUpdate(config, changes, resolvedChanges, obj);
+        commonUpdate(config, changes, resolvedChanges, obj, K3D);
 
         if (areAllChangesResolve(changes, resolvedChanges)) {
             return Promise.resolve({ json: config, obj });

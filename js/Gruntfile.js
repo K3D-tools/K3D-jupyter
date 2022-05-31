@@ -21,10 +21,17 @@ module.exports = function (grunt) {
                 files: [
                     'src/**/*.js',
                     'src/**/*.glsl',
-                    'src/**/*.css',
-                    'development.html'
+                    'src/**/*.css'
                 ],
                 tasks: ['webpack'],
+                options: {
+                    livereload: true
+                }
+            },
+            development: {
+                files: [
+                    'development.html'
+                ],
                 options: {
                     livereload: true
                 }
@@ -81,7 +88,7 @@ module.exports = function (grunt) {
             'webpack',
             'connect',
             'open:dev',
-            'watch:webpack'
+            'watch'
         ]);
     });
 };

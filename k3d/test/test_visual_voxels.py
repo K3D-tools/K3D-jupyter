@@ -36,6 +36,7 @@ def test_voxels():
 
     compare('voxels')
 
+
 def test_voxels_sparse():
     global color_map, voxels
 
@@ -45,8 +46,9 @@ def test_voxels_sparse():
 
     for val in np.unique(voxels):
         if val != 0:
-            z, y, x = np.where(voxels==val)
-            sparse_data.append(np.dstack((x, y, z, np.full(x.shape, val))).reshape(-1,4).astype(np.uint16))
+            z, y, x = np.where(voxels == val)
+            sparse_data.append(
+                np.dstack((x, y, z, np.full(x.shape, val))).reshape(-1, 4).astype(np.uint16))
 
     sparse_data = np.vstack(sparse_data)
     obj = k3d.sparse_voxels(sparse_data, (100, 100, 100), color_map, outlines=False)
@@ -54,6 +56,7 @@ def test_voxels_sparse():
     pytest.plot += obj
 
     compare('voxels_sparse')
+
 
 def test_voxels_wireframe():
     global color_map, voxels
@@ -125,4 +128,3 @@ def test_voxels_box():
     pytest.plot += obj
 
     compare('voxels_box')
-

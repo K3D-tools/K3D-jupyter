@@ -17,4 +17,5 @@ module.exports = {
     merge: require('lodash/merge'),
     isObject: require('lodash/isObject'),
     isEmpty: require('lodash/isEmpty'),
+    isEqual: require('lodash/isEqual')
 };
