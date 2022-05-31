@@ -1,6 +1,8 @@
 const THREE = require('three');
-const katex = require('katex');
+let katex = require('katex');
 const { areAllChangesResolve } = require('../helpers/Fn');
+
+katex = katex.default || katex;
 
 /**
  * Loader strategy to handle Label object
