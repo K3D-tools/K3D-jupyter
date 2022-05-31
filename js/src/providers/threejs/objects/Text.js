@@ -1,5 +1,7 @@
 const THREE = require('three');
-const katex = require('katex');
+let katex = require('katex');
+
+katex = katex.default || katex;
 
 /**
  * Loader strategy to handle LaTex object

@@ -65,7 +65,7 @@ module.exports = {
                 new THREE.InstancedBufferAttribute(attribute, 1).setUsage(THREE.DynamicDrawUsage));
         } else {
             colors = (pointColors && pointColors.length === positions.length / 3
-                ? colorsToFloat32Array(pointColors) : getColorsArray(color, positions.length / 3)
+                    ? colorsToFloat32Array(pointColors) : getColorsArray(color, positions.length / 3)
             );
         }
 
@@ -122,22 +122,30 @@ module.exports = {
         return Promise.resolve(object);
     },
 
-    update(config, changes, obj) {
+    update(config, changes, obj, K3D) {
         const resolvedChanges = {};
 
         if (typeof (changes.positions) !== 'undefined' && !changes.positions.timeSeries
-            && changes.positions.data.length === obj.geometry.attributes.position.array.length) {
-            obj.geometry.attributes.position.array.set(changes.positions.data);
-            obj.geometry.attributes.position.needsUpdate = true;
+            && changes.positions.data.length / 3 === obj.instanceMatrix.count) {
 
-            obj.geometry.computeBoundingSphere();
-            obj.geometry.computeBoundingBox();
+            let positions = changes.positions.data;
 
+            for (let i = 0; i < positions.length / 3; i++) {
+                const s = (config.sizes && config.sizes[i]) || 1.0;
+
+                obj.setMatrixAt(i,
+                    (new THREE.Matrix4())
+                        .identity()
+                        .setPosition(positions[i * 3], positions[i * 3 + 1], positions[i * 3 + 2])
+                        .scale(new THREE.Vector3(s, s, s)));
+            }
+
+            obj.instanceMatrix.needsUpdate = true;
             resolvedChanges.positions = null;
         }
 
         if (((typeof (changes.color_map) !== 'undefined' && !changes.color_map.timeSeries)
-            || (typeof (changes.opacity_function) !== 'undefined' && !changes.opacity_function.timeSeries))
+                || (typeof (changes.opacity_function) !== 'undefined' && !changes.opacity_function.timeSeries))
             && obj.geometry.attributes.attributes) {
             const canvas = colorMapHelper.createCanvasGradient(
                 (changes.color_map && changes.color_map.data) || config.color_map.data,
@@ -169,7 +177,7 @@ module.exports = {
             resolvedChanges.attribute = null;
         }
 
-        commonUpdate(config, changes, resolvedChanges, obj);
+        commonUpdate(config, changes, resolvedChanges, obj, K3D);
 
         if (areAllChangesResolve(changes, resolvedChanges)) {
             return Promise.resolve({ json: config, obj });

@@ -21,7 +21,7 @@ function create(config, K3D) {
 
     const material = new MeshLine.MeshLineMaterial({
         color: new THREE.Color(1, 1, 1),
-        opacity: 1.0,
+        opacity: config.opacity,
         sizeAttenuation: true,
         transparent: true,
         lineWidth: config.width,
@@ -149,7 +149,7 @@ function create(config, K3D) {
     return Promise.resolve(object);
 }
 
-function update(config, changes, obj) {
+function update(config, changes, obj, K3D) {
     let uvs = obj.userData.lastUVs;
     let positions = obj.userData.lastPositions;
     const colors = obj.userData.lastColors;
@@ -189,13 +189,17 @@ function update(config, changes, obj) {
     }
 
     if (typeof (changes.attribute) !== 'undefined' || typeof (changes.vertices) !== 'undefined') {
-        obj.userData.meshLine.setGeometry(positions, false, null, colors, uvs);
+        obj.userData.meshLine.setGeometry(positions, true, null, colors, uvs);
+        obj.geometry.attributes.position.needsUpdate = true;
+
+        obj.geometry.computeBoundingSphere();
+        obj.geometry.computeBoundingBox();
 
         resolvedChanges.attribute = null;
         resolvedChanges.vertices = null;
     }
 
-    commonUpdate(config, changes, resolvedChanges, obj);
+    commonUpdate(config, changes, resolvedChanges, obj, K3D);
 
     if (areAllChangesResolve(changes, resolvedChanges)) {
         return Promise.resolve({ json: config, obj });

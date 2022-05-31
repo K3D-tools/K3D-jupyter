@@ -535,14 +535,12 @@ function raycast(K3D, x, y, camera, click, viewMode) {
             intersect = intersect[0];
             K3D.getWorld().targetDOMNode.style.cursor = 'pointer';
 
-            if (intersect.object.interactions && intersect.object.interactions.onHover) {
+            if (!click && intersect.object.interactions && intersect.object.interactions.onHover) {
                 needRender |= intersect.object.interactions.onHover(intersect, viewMode);
             }
 
-            if (click) {
-                if (intersect.object.interactions && intersect.object.interactions.onClick) {
-                    needRender |= intersect.object.interactions.onClick(intersect, viewMode);
-                }
+            if (click && intersect.object.interactions && intersect.object.interactions.onClick) {
+                needRender |= intersect.object.interactions.onClick(intersect, viewMode);
             }
         } else {
             K3D.getWorld().targetDOMNode.style.cursor = 'auto';

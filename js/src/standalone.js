@@ -4,6 +4,7 @@ const TFEdit = require('./transferFunctionEditor');
 const serialize = require('./core/lib/helpers/serialize');
 const K3D = require('./core/Core');
 const ThreeJsProvider = require('./providers/threejs/provider');
+const _ = require('./lodash');
 
 const MsgpackCodec = msgpack.createCodec({ preset: true });
 
@@ -64,5 +65,6 @@ module.exports = {
     TransferFunctionModel: TFEdit.transferFunctionModel,
     TransferFunctionView: TFEdit.transferFunctionView,
     ThreeJsProvider,
+    _,
     version: require('./version').version,
 };

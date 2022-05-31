@@ -21,7 +21,7 @@ function create(config, K3D) {
 
     const material = new MeshLine.MeshLineMaterial({
         color: new THREE.Color(1, 1, 1),
-        opacity: 1.0,
+        opacity: config.opacity,
         sizeAttenuation: true,
         transparent: true,
         lineWidth: config.width,
@@ -54,7 +54,7 @@ function create(config, K3D) {
         }
     } else {
         colors = (verticesColors && verticesColors.length === position.length / 3
-            ? colorsToFloat32Array(verticesColors) : getColorsArray(color, position.length / 3)
+                ? colorsToFloat32Array(verticesColors) : getColorsArray(color, position.length / 3)
         );
     }
 
@@ -92,7 +92,7 @@ function create(config, K3D) {
     return Promise.resolve(object);
 }
 
-function update(config, changes, obj) {
+function update(config, changes, obj, K3D) {
     let uvs = obj.userData.lastUVs;
     let position = obj.userData.lastPosition;
     const colors = obj.userData.lastColors;
@@ -115,7 +115,7 @@ function update(config, changes, obj) {
 
             for (let i = 0; i < uvs.length; i++) {
                 uvs[i] = (changes.attribute.data[i] - config.color_range[0])
-                         / (config.color_range[1] - config.color_range[0]);
+                    / (config.color_range[1] - config.color_range[0]);
             }
 
             obj.userData.lastUVs = uvs;
@@ -133,12 +133,16 @@ function update(config, changes, obj) {
 
     if (typeof (changes.attribute) !== 'undefined' || typeof (changes.vertices) !== 'undefined') {
         obj.userData.meshLine.setGeometry(position, false, null, colors, uvs);
+        obj.geometry.attributes.position.needsUpdate = true;
+
+        obj.geometry.computeBoundingSphere();
+        obj.geometry.computeBoundingBox();
 
         resolvedChanges.attribute = null;
         resolvedChanges.vertices = null;
     }
 
-    commonUpdate(config, changes, resolvedChanges, obj);
+    commonUpdate(config, changes, resolvedChanges, obj, K3D);
 
     if (areAllChangesResolve(changes, resolvedChanges)) {
         return Promise.resolve({ json: config, obj });

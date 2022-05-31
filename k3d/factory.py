@@ -80,6 +80,7 @@ def lines(
         width=0.01,
         shader="thick",
         radial_segments=8,
+        opacity=1.0,
         name=None,
         group=None,
         custom_data=None,
@@ -126,6 +127,8 @@ def lines(
             Number of segmented faces around the circumference of the tube
         width: `float`.
             Thickness of the lines.
+        opacity: `float`.
+            Opacity of line.
         name: `string`.
             A name of a object
         group: `string`.
@@ -157,6 +160,7 @@ def lines(
             attribute=attribute,
             color_map=color_map,
             color_range=color_range,
+            opacity=opacity,
             name=name,
             group=group,
             custom_data=custom_data,
@@ -174,6 +178,7 @@ def line(
         color_map=None,
         color_range=[],
         width=0.01,
+        opacity=1.0,
         shader="thick",
         radial_segments=8,
         name=None,
@@ -213,6 +218,8 @@ def line(
             Number of segmented faces around the circumference of the tube
         width: `float`.
             Thickness of the lines.
+        opacity: `float`.
+            Opacity of lines.
         name: `string`.
             A name of a object
         group: `string`.
@@ -241,6 +248,7 @@ def line(
             attribute=attribute,
             color_map=color_map,
             color_range=color_range,
+            opacity=opacity,
             name=name,
             group=group,
             custom_data=custom_data,
@@ -619,6 +627,7 @@ def surface(
         attribute=[],
         color_map=None,
         color_range=[],
+        opacity=1.0,
         name=None,
         group=None,
         custom_data=None,
@@ -677,6 +686,7 @@ def surface(
             attribute=attribute,
             color_map=color_map,
             color_range=color_range,
+            opacity=opacity,
             name=name,
             group=group,
             custom_data=custom_data,

@@ -17,7 +17,11 @@ const { handleColorMap } = Fn;
 module.exports = {
     create(config) {
         const geometry = new THREE.BufferGeometry();
-        const material = new THREE.MeshBasicMaterial();
+        const material = new THREE.MeshBasicMaterial({
+            opacity: config.opacity,
+            depthWrite: config.opacity === 1.0,
+            transparent: config.opacity !== 1.0,
+        });
         const verticesColors = (config.colors && config.colors.data) || null;
         const color = new THREE.Color(config.color);
         let colors;
@@ -33,7 +37,7 @@ module.exports = {
             handleColorMap(geometry, colorMap, colorRange, attribute, material);
         } else {
             colors = (verticesColors && verticesColors.length === position.length / 3
-                ? colorsToFloat32Array(verticesColors) : getColorsArray(color, position.length / 3)
+                    ? colorsToFloat32Array(verticesColors) : getColorsArray(color, position.length / 3)
             );
 
             material.setValues({ vertexColors: THREE.VertexColors });
@@ -53,7 +57,7 @@ module.exports = {
         return Promise.resolve(object);
     },
 
-    update(config, changes, obj) {
+    update(config, changes, obj, K3D) {
         const resolvedChanges = {};
 
         if (typeof (obj.geometry.attributes.uv) !== 'undefined') {
@@ -82,10 +86,14 @@ module.exports = {
             && changes.vertices.data.length === obj.geometry.attributes.position.array.length) {
             obj.geometry.attributes.position.array.set(changes.vertices.data);
             obj.geometry.attributes.position.needsUpdate = true;
+
+            obj.geometry.computeBoundingSphere();
+            obj.geometry.computeBoundingBox();
+
             resolvedChanges.vertices = null;
         }
 
-        commonUpdate(config, changes, resolvedChanges, obj);
+        commonUpdate(config, changes, resolvedChanges, obj, K3D);
 
         if (areAllChangesResolve(changes, resolvedChanges)) {
             return Promise.resolve({ json: config, obj });

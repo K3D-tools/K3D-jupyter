@@ -74,7 +74,7 @@ module.exports = {
             };
         } else {
             colors = (pointColors && pointColors.length === pointPositions.length / 3
-                ? colorsToFloat32Array(pointColors) : getColorsArray(color, pointPositions.length / 3)
+                    ? colorsToFloat32Array(pointColors) : getColorsArray(color, pointPositions.length / 3)
             );
         }
 
@@ -124,7 +124,7 @@ module.exports = {
 
         return Promise.resolve(object);
     },
-    update(config, changes, obj) {
+    update(config, changes, obj, K3D) {
         const resolvedChanges = {};
 
         if (typeof (changes.positions) !== 'undefined' && !changes.positions.timeSeries
@@ -147,7 +147,7 @@ module.exports = {
         }
 
         if (((typeof (changes.color_map) !== 'undefined' && !changes.color_map.timeSeries)
-            || (typeof (changes.opacity_function) !== 'undefined' && !changes.opacity_function.timeSeries))
+                || (typeof (changes.opacity_function) !== 'undefined' && !changes.opacity_function.timeSeries))
             && obj.geometry.attributes.attributes) {
             const canvas = colorMapHelper.createCanvasGradient(
                 (changes.color_map && changes.color_map.data) || config.color_map.data,
@@ -171,7 +171,7 @@ module.exports = {
             resolvedChanges.attribute = null;
         }
 
-        commonUpdate(config, changes, resolvedChanges, obj);
+        commonUpdate(config, changes, resolvedChanges, obj, K3D);
 
         if (areAllChangesResolve(changes, resolvedChanges)) {
             return Promise.resolve({ json: config, obj });

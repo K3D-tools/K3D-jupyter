@@ -19,6 +19,7 @@ module.exports = {
     create(config) {
         config.radial_segments = typeof (config.radial_segments) !== 'undefined' ? config.radial_segments : 8;
         config.width = typeof (config.width) !== 'undefined' ? config.width : 0.1;
+        config.opacity = typeof (config.opacity) !== 'undefined' ? config.opacity : 1.0;
 
         const material = new THREE.MeshPhongMaterial({
             emissive: 0,
@@ -26,6 +27,9 @@ module.exports = {
             specular: 0x111111,
             side: THREE.DoubleSide,
             wireframe: false,
+            opacity: config.opacity,
+            depthWrite: config.opacity === 1.0,
+            transparent: config.opacity !== 1.0,
         });
         const radialSegments = config.radial_segments;
         const { width } = config;
@@ -63,10 +67,10 @@ module.exports = {
         return Promise.resolve(object);
     },
 
-    update(config, changes, obj) {
+    update(config, changes, obj, K3D) {
         const resolvedChanges = {};
 
-        commonUpdate(config, changes, resolvedChanges, obj);
+        commonUpdate(config, changes, resolvedChanges, obj, K3D);
 
         if (areAllChangesResolve(changes, resolvedChanges)) {
             return Promise.resolve({ json: config, obj });

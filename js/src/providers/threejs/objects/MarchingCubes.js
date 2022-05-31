@@ -145,21 +145,12 @@ module.exports = {
         });
     },
 
-    update(config, changes, obj) {
+    update(config, changes, obj, K3D) {
         const resolvedChanges = {};
 
         interactionsHelper.update(config, changes, resolvedChanges, obj);
 
-        if (typeof (changes.opacity) !== 'undefined' && !changes.opacity.timeSeries) {
-            obj.material.opacity = changes.opacity;
-            obj.material.depthWrite = changes.opacity === 1.0;
-            obj.material.transparent = changes.opacity !== 1.0;
-            obj.material.needsUpdate = true;
-
-            resolvedChanges.opacity = null;
-        }
-
-        commonUpdate(config, changes, resolvedChanges, obj);
+        commonUpdate(config, changes, resolvedChanges, obj, K3D);
 
         if (areAllChangesResolve(changes, resolvedChanges)) {
             return Promise.resolve({ json: config, obj });
