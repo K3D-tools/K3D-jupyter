@@ -105,7 +105,11 @@ Please make sure to take a look at the [HOW-TO.md](HOW-TO.md) document.
 ### Code of Conduct
 K3D-jupyter follows the Python Software Foundation Code of Conduct in everything we do.
 
+## Kudos
 
+- Travis is ❤️
+- OpenDreamKit is 🚀
+- Three.js is 🥇
 
 ## Acknowledgments
 

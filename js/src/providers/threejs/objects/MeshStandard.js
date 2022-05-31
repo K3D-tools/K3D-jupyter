@@ -128,8 +128,7 @@ module.exports = {
     update(config, changes, obj, K3D) {
         const resolvedChanges = {};
         let data;
-        let
-            i;
+        let i;
 
         if (!obj) {
             return false;
