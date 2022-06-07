@@ -1,4 +1,3 @@
-
 import json
 from pathlib import Path
 
@@ -32,6 +31,7 @@ from .factory import (plot,
                       voxel_chunk)
 
 from .plot import Plot
+from .objects import create_object, clone_object
 
 from .transfer_function_editor import transfer_function_editor
 
@@ -42,11 +42,13 @@ HERE = Path(__file__).parent.resolve()
 with (HERE / "labextension" / "package.json").open() as fid:
     data = json.load(fid)
 
+
 def _jupyter_labextension_paths():
     return [{
         "src": "labextension",
         "dest": data["name"]
     }]
+
 
 def _jupyter_nbextension_paths():
     return [{

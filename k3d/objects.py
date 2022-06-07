@@ -144,6 +144,9 @@ class Drawable(widgets.Widget):
         plot += self
         plot.display()
 
+    def clone(self):
+        return clone_object(self)
+
 
 class DrawableWithVoxelCallback(Drawable):
     """
@@ -1548,3 +1551,53 @@ class VoxelsGroup(DrawableWithVoxelCallback):
 
     def get_bounding_box(self):
         return get_bounding_box(self.model_matrix)
+
+
+objects_map = {
+    'Line': Line,
+    'Label': Label,
+    'MIP': MIP,
+    'MarchingCubes': MarchingCubes,
+    'Mesh': Mesh,
+    'Points': Points,
+    'STL': STL,
+    'SparseVoxels': SparseVoxels,
+    'Surface': Surface,
+    'Text': Text,
+    'Text2d': Text2d,
+    'Texture': Texture,
+    'TextureText': TextureText,
+    'VectorField': VectorField,
+    'Vectors': Vectors,
+    'Volume': Volume,
+    'Voxels': Voxels,
+    'VoxelsGroup': VoxelsGroup
+}
+
+
+def create_object(obj, is_chunk=False):
+    from .helpers import from_json
+
+    attributes = {
+        k: from_json(obj[k]) for k in obj.keys() if k != 'type'
+    }
+
+    # force to use current version
+    attributes['_model_module'] = 'k3d_pro'
+    attributes['_model_module_version'] = version
+    attributes['_view_module_version'] = version
+
+    if is_chunk:
+        return VoxelChunk(**attributes)
+    else:
+        return objects_map[obj['type']](**attributes)
+
+
+def clone_object(obj):
+    param = {}
+
+    for k, v in obj.traits().items():
+        if "sync" in v.metadata and k not in ['id', 'type']:
+            param[k] = obj[k]
+
+    return objects_map[obj['type']](**param)

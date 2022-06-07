@@ -7,30 +7,8 @@ from functools import wraps
 from traitlets import Unicode, Bool, Int, List, Float, Dict
 
 from ._version import __version__ as version
-from .objects import (Line, Label, MIP, MarchingCubes, Mesh, Points, STL, SparseVoxels, Surface,
-                      Text, Text2d, Texture, TextureText, VectorField, Vectors, Volume, Voxels,
-                      VoxelsGroup, ListOrArray, Drawable, TimeSeries, VoxelChunk)
+from .objects import (ListOrArray, Drawable, TimeSeries, create_object)
 
-objects_map = {
-    'Line': Line,
-    'Label': Label,
-    'MIP': MIP,
-    'MarchingCubes': MarchingCubes,
-    'Mesh': Mesh,
-    'Points': Points,
-    'STL': STL,
-    'SparseVoxels': SparseVoxels,
-    'Surface': Surface,
-    'Text': Text,
-    'Text2d': Text2d,
-    'Texture': Texture,
-    'TextureText': TextureText,
-    'VectorField': VectorField,
-    'Vectors': Vectors,
-    'Volume': Volume,
-    'Voxels': Voxels,
-    'VoxelsGroup': VoxelsGroup
-}
 import numpy as np
 
 
@@ -453,33 +431,23 @@ class Plot(widgets.DOMWidget):
 
         return zlib.compress(data, compression_level)
 
+
     def load_binary_snapshot(self, data):
         import zlib
         import msgpack
-        from .helpers import from_json
 
         data = msgpack.unpackb(zlib.decompress(data))
         self.voxel_chunks = []
 
-        for name in ['objects', 'chunkList']:
-            if name in data.keys():
-                for o in data[name]:
-                    attributes = {
-                        k: from_json(o[k]) for k in o.keys() if k != 'type'
-                    }
+        if 'objects' in data.keys():
+            for o in data['objects']:
+                self += create_object(o)
 
-                    # force to use current version
-                    attributes['_model_module'] = 'k3d'
-                    attributes['_model_module_version'] = version
-                    attributes['_view_module_version'] = version
+        if 'chunkList' in data.keys():
+            for o in data['chunkList']:
+                self.voxel_chunks.append(create_object(o, True))
 
-                    if name == 'objects':
-                        o = objects_map[o['type']](**attributes)
-                        self += o
-                    else:
-                        self.voxel_chunks.append(VoxelChunk(**attributes))
-
-        return self.voxel_chunks
+        return data, self.voxel_chunks
 
     def get_binary_snapshot_objects(self, voxel_chunks=[]):
         from .helpers import to_json
