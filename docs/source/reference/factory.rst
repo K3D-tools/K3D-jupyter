@@ -7,6 +7,7 @@ Plot objects
     
     factory.label
     factory.line
+    factory.lines
     factory.marching_cubes
     factory.mesh
     factory.mip
