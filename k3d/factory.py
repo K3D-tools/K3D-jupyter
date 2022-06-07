@@ -145,7 +145,7 @@ def lines(
     attribute = (
         np.array(attribute, np.float32) if type(attribute) is not dict else attribute
     )
-    color_range = check_attribute_range(attribute, color_range)
+    color_range = check_attribute_color_range(attribute, color_range)
 
     return process_transform_arguments(
         Lines(
