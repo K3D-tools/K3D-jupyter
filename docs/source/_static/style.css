@@ -15,14 +15,6 @@
     max-width: 1072px;
 }
 
-#gallery {
-    text-align: center;
-}
-
-#gallery h1 {
-    text-align: left;
-}
-
 .dg .cr.color {
     display: block;
 }
@@ -31,4 +23,12 @@
   width: 100%;
   height: 400px;
   margin-bottom: 1em;
+}
+
+i.fa-box-open:before {
+    color: #0073b7;
+}
+ 
+i.fa-circle-notch:before {
+    color: #44a833;
 }

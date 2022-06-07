@@ -1,24 +1,52 @@
 import numpy as np
-from functools import reduce
 import weakref
+from functools import reduce
 
 _epsilon = 1e-6
 
 
 def get_bounds_fit_matrix(xmin, xmax, ymin, ymax, zmin, zmax):
-    """Create a 4x4 transform matrix which maps the default bounding box ([-0.5, 0.5] in all dimensions) into
-    a custom bounding box ([xmin, xmax, ymin, ymax, zmin, zmax]).
+    """Return a 4x4 transform matrix.
 
-    It is used for fitting fields (VectorField, Surface, MachingCubes) into custom domains."""
+    Map the default bounding box [-0.5, 0.5, -0.5, 0.5, -0.5, 0.5] into
+    a custom bounding box [xmin, xmax, ymin, ymax, zmin, zmax].
 
+    Parameters
+    ----------
+    xmin : float
+        Lower x bound.
+    xmax : float
+        Upper x bound.
+    ymin : float
+        Lower y bound.
+    ymax : float
+        Upper y bound.
+    zmin : float
+        Lower z bound.
+    zmax : float
+        Upper z bound.
+
+    Returns
+    -------
+    ndarray
+        Transform matrix.
+
+    Raises
+    ------
+    TypeError
+        Expected float.
+    """
     for name, value in locals().items():
         try:
             float(value)
         except (TypeError, ValueError):
-            raise TypeError('%s: expected float, %s given' % (name, type(value).__name__))
+            raise TypeError('%s: expected float, %s given' %
+                            (name, type(value).__name__))
 
-    matrix = np.diagflat(np.array((xmax - xmin, ymax - ymin, zmax - zmin, 1.0), np.float32, order='C'))
-    matrix[0:3, 3] = ((xmax + xmin) / 2.0, (ymax + ymin) / 2.0, (zmax + zmin) / 2.0)
+    matrix = np.diagflat(
+        np.array((xmax - xmin, ymax - ymin, zmax - zmin, 1.0), np.float32, order='C'))
+    matrix[0:3, 3] = ((xmax + xmin) / 2.0, (ymax + ymin) /
+                      2.0, (zmax + zmin) / 2.0)
 
     return matrix
 
@@ -53,8 +81,10 @@ class Transform(object):
 
         self.drawables = []
         self.children = []
-        self.parent_matrix = parent.model_matrix if parent else np.identity(4, dtype=np.float32)
-        self.custom_matrix = custom_matrix if custom_matrix is not None else np.identity(4, dtype=np.float32)
+        self.parent_matrix = parent.model_matrix if parent else np.identity(
+            4, dtype=np.float32)
+        self.custom_matrix = custom_matrix if custom_matrix is not None else np.identity(
+            4, dtype=np.float32)
         self.model_matrix = np.identity(4, dtype=np.float32)
         self._recompute_matrix()
 
@@ -81,7 +111,8 @@ class Transform(object):
             needed_norm = np.sqrt(1 - value[0] * value[0])
             if abs(norm - needed_norm) > _epsilon:
                 if norm < _epsilon:
-                    raise ValueError('Norm of (x, y, z) part of quaternion too close to zero')
+                    raise ValueError(
+                        'Norm of (x, y, z) part of quaternion too close to zero')
                 value[1:4] = value[1:4] / norm * needed_norm
             # assert abs(np.linalg.norm(value) - 1.0) < _epsilon
         elif key == 'scaling':
@@ -120,11 +151,13 @@ class Transform(object):
                     self.bounds
                 ))
 
-            fit_matrix = get_bounds_fit_matrix(xmin, xmax, ymin, ymax, zmin, zmax)
+            fit_matrix = get_bounds_fit_matrix(
+                xmin, xmax, ymin, ymax, zmin, zmax)
 
         if self.translation is not None:
             translation_matrix = np.vstack((
-                np.hstack((np.identity(3), np.array(self.translation).reshape(3, 1))),
+                np.hstack((np.identity(3), np.array(
+                    self.translation).reshape(3, 1))),
                 np.array([0., 0., 0., 1.]).reshape(1, 4)
             ))
         else:
@@ -134,9 +167,12 @@ class Transform(object):
             a, b, c, d = self.rotation
 
             rotation_matrix = np.array([
-                [a * a + b * b - c * c - d * d, 2 * (b * c - a * d), 2 * (b * d + a * c), 0.],
-                [2 * (b * c + a * d), a * a - b * b + c * c - d * d, 2 * (c * d - a * b), 0.],
-                [2 * (b * d - a * c), 2 * (c * d + a * b), a * a - b * b - c * c + d * d, 0.],
+                [a * a + b * b - c * c - d * d, 2 *
+                    (b * c - a * d), 2 * (b * d + a * c), 0.],
+                [2 * (b * c + a * d), a * a - b * b + c *
+                 c - d * d, 2 * (c * d - a * b), 0.],
+                [2 * (b * d - a * c), 2 * (c * d + a * b),
+                 a * a - b * b - c * c + d * d, 0.],
                 [0., 0., 0., 1.]
             ])
         else:
@@ -187,40 +223,55 @@ class Transform(object):
 
 
 def process_transform_arguments(drawable, **kwargs):
-    """Process keyword arguments dictionary for a drawable to create a Transform for it.
+    """Create a Transform to apply to a drawable.
 
-    Keyword arguments:
-        transform: `Transform`.
-            An existing transform object to be (re-)used for the drawable.
-            This is useful if the transform should have a parent.
-        xmin: `float`.
-            Lower bound in the X dimension for array fields of scalars or vectors.
-        xmax: `float`.
-            Upper bound in the X dimension for array fields of scalars or vectors.
-        ymin: `float`.
-            Lower bound in the Y dimension for array fields of scalars or vectors.
-        ymax: `float`.
-            Upper bound in the Y dimension for array fields of scalars or vectors.
-        zmin: `float`.
-            Lower bound in the Z dimension for array fields of scalars or vectors.
-        zmax: `float`.
-            Upper bound in the Z dimension for array fields of scalars or vectors.
-        bounds: `array_like`.
-            Array of bounds (bounding box or rectangle) for array fields of scalars or vectors.
-            This array can be of size 6 (xmin, xmax, ymin, ymax, zmin, zmax) for 3D fields,
-            or of size 4 (xmin, xmax, ymin, ymax) for 2D fields.
-            Takes precedence over separate xmin, xmax, ... etc. arguments.
+    Parameters
+    ----------
+    drawable : object
+        Drawable object.
+    **kwargs
+        transform : Transform
+            Existing Trasnform to be (re-)used on the drawable.
+        xmin : float
+            Lower bound in x dimsension.
+        xmax : float
+            Upper bound in x dimsension.
+        ymin : float
+            Lower bound in y dimsension.
+        ymax : float
+            Upper bound in y dimsension.
+        zmin : float
+            Lower bound in z dimsension.
+        zmax : float
+            Upper bound in z dimsension.
+        bounds: array_like
+            Dimensions bounds taking precedence over seperate bound arguments,
+            [xmin, xmax, ymin, ymax, zmin, zmax] or [xmin, xmax, ymin, ymax].
+        translation : array_like
+            [tx, ty, tz] translation vector.
+        rotation : array_like
+            [gamme, rx, ry, rz] rotation vector (radians).
+        scaling : array_like
+            [sx, sy, sz] scaling coefficients.
+        model_matrix : ndarray
+            Matrix of numbers.
+            Must have four columns.
 
-        translation=kwargs.get('translation'),
-        rotation=kwargs.get('rotation'),
-        scaling=kwargs.get('scaling'),
-        model_matrix
+    Returns
+    -------
+    Drawable
+        Transformed Drawable.
+
+    Raises
+    ------
+    ValueError
+        Provided transform argument is not a Transform object.
     """
-
     if 'transform' in kwargs:
         transform = kwargs['transform']
         if not isinstance(transform, Transform):
-            raise ValueError('Provided transform argument is not a Transform object')
+            raise ValueError(
+                'Provided transform argument is not a Transform object')
     else:
         separate_bounds = [
             kwargs.get('xmin', -0.5),
@@ -248,4 +299,28 @@ def process_transform_arguments(drawable, **kwargs):
 
 
 def transform(bounds=None, translation=None, rotation=None, scaling=None, custom_matrix=None, parent=None):
+    """Return a Transform object.
+
+    Parameters
+    ----------
+    bounds: array_like, optional
+            Dimensions bounds taking precedence over seperate bound arguments, by default None.
+            [xmin, xmax, ymin, ymax, zmin, zmax] or [xmin, xmax, ymin, ymax].
+    translation : array_like, optional
+        [tx, ty, tz] translation vector, by default None.
+    rotation : array_like, optional
+        [gamme, rx, ry, rz] rotation vector (radians), by default None.
+    scaling : array_like, optional
+        [sx, sy, sz] scaling coefficients, by default None.
+    custom_matrix : _type_, optional
+        Matrix of numbers, by default None.
+        Must have four columns.
+    parent : Transform, optional
+        Optional parent transform, by default None.
+
+    Returns
+    -------
+    Transform
+        Transform object.
+    """
     return Transform(bounds, translation, rotation, scaling, custom_matrix, parent)

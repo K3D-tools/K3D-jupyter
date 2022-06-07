@@ -4,4 +4,5 @@ traittypes
 traitlets
 numpy
 jupyter_sphinx
-sphinx_rtd_theme
+pydata_sphinx_theme
+sphinx-copybutton

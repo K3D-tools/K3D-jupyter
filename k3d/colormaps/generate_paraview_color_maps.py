@@ -1,14 +1,22 @@
 import urllib.request
 import json
 
-response = urllib.request.urlopen('https://gitlab.kitware.com/paraview/paraview/raw/master/Remoting/Views/ColorMaps.json')
+response = urllib.request.urlopen(
+    'https://gitlab.kitware.com/paraview/paraview/raw/master/Remoting/Views/ColorMaps.json')
 data = json.loads(response.read().decode('utf8'))
 
 file = open('paraview_color_maps.py', 'w')
 
+file.write("""\"\"\"
+ParaView colormaps.
+\"\"\"
+""")
+
 for item in data:
     if 'RGBPoints' in item:
-        name = item['Name'].replace(' ', '_').replace('-', '_').replace('(', '').replace(')', '').replace('2', 'two_')\
+        name = item['Name'].replace(' ', '_').replace('-', '_').replace('(', '').replace(')',
+                                                                                         '').replace(
+            '2', 'two_') \
             .replace(',', '')
         name = name[:1].upper() + name[1:]
         file.write(name + ' = [\n')

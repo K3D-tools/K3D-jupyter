@@ -1,53 +1,24 @@
-
-K3D-jupyter - documentation
+K3D-jupyter Documentation
 ===========================
 
+K3D-jupyter is a `Jupyter Notebook`_ 3D visualization package.
 
+The primary aim of K3D-jupyter is to be an easy 3D visualization tool,
+designed with native interoperation with existing powerful
+libraries such as PyVista_, without being strictly dependent on them.
 
-K3D-jupyter is a Jupyter notebook 3D visualization package.
+K3D-jupyter plots ipywidgets_ assuring a perfect interaction of a browser-side widget with Python kernel by a proven and standardized protocol.
 
-The primary aim of K3D is to be an easy tool for 3D visualization. We
-designed it with native interoperation with existing powerful
-libraries such as VTK. However, it is not strictly dependent on them.
-K3D plots are :code:`ipywidgets` assuring a perfect interaction of a browser
-side widget with Python kernel by a proven and standardized protocol.
-
-.. toctree::
-   :maxdepth: 2
-   :caption: Basic concepts
-
-   intro
-
-.. toctree::
-   :maxdepth: 2
-   :caption: Getting started
-
-   basic_plotting
-   
-   
-.. toctree::
-   :maxdepth: 2
-   :caption: K3D by example:
-
-   basic_functionality/index
-
-.. toctree::
-   :maxdepth: 2
-   :caption: Showcase:
-
-   showcase/index
+.. Links
+.. _Jupyter Notebook: https://jupyter.org/
+.. _PyVista: https://docs.pyvista.org/
+.. _ipywidgets: https://ipywidgets.readthedocs.io/en/latest/
 
 
 .. toctree::
-   :maxdepth: 2
-   :caption: API Docs:
-
-   modules.rst
-
-
-Indices and tables
-==================
-
-* :ref:`genindex`
-* :ref:`modindex`
-* :ref:`search`
+    :maxdepth: 1
+    :hidden:
+    
+    User Guide <user/index>
+    API reference <reference/index>
+    Gallery <gallery/index>

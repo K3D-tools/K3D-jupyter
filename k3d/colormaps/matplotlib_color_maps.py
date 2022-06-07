@@ -1,3 +1,9 @@
+"""
+matplotlib colormaps.
+
+For more information, see
+`Choosing Colormaps in Matplotlib <https://matplotlib.org/stable/tutorials/colors/colormaps.html>`_.
+"""
 Accent = [ 
     0.0000, 0.4980, 0.7882, 0.4980,
     0.0039, 0.4980, 0.7882, 0.4980,

@@ -3,7 +3,16 @@ from matplotlib import pyplot, cm
 
 
 min_samples = 256
+
 with open('matplotlib_color_maps.py', 'w') as file:
+    file.write("""\"\"\"
+matplotlib colormaps.
+
+For more information, see
+`Choosing Colormaps in Matplotlib <https://matplotlib.org/stable/tutorials/colors/colormaps.html>`_.
+\"\"\"
+""")
+
     for name in sorted(pyplot.colormaps()):
         cmap = cm.get_cmap(name)
         name_c = name.capitalize()

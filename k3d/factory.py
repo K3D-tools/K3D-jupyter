@@ -13,7 +13,7 @@ import numpy as np
 import six
 
 from .colormaps import matplotlib_color_maps
-from .helpers import check_attribute_range
+from .helpers import check_attribute_color_range
 from .objects import (
     Line,
     Lines,
@@ -189,53 +189,54 @@ def line(
 ):
     """Create a Line drawable for plotting segments and polylines.
 
-    Arguments:
-        vertices: `array_like`.
-            Array with (x, y, z) coordinates of segment endpoints.
-        color: `int`.
-            Packed RGB color of the lines (0xff0000 is red, 0xff is blue) when `colors` is empty.
-        colors: `array_like`.
-            Array of int: packed RGB colors (0xff0000 is red, 0xff is blue) when attribute,
-            color_map and color_range are empty.
-        attribute: `array_like`.
-            Array of float attribute for the color mapping, coresponding to each vertex.
-        color_map: `list`.
-            A list of float quadruplets (attribute value, R, G, B), sorted by attribute value. The first
-            quadruplet should have value 0.0, the last 1.0; R, G, B are RGB color components in the range 0.0 to 1.0.
-        color_range: `list`.
-            A pair [min_value, max_value], which determines the levels of color attribute mapped
-            to 0 and 1 in the color map respectively.
-        shader: `str`.
-            Display style (name of the shader used) of the lines.
-            Legal values are:
+    Parameters
+    ----------
+    vertices : array_like
+        Array with (x, y, z) coordinates of segment endpoints.
+    color : int, optional
+        Hex color of the lines when `colors` is empty, by default _default_color.
+    colors : list, optional
+        Array of Hex colors when attribute, color_map and color_range are empty, by default [].
+    attribute: list, optional
+        List of values used to apply `color_map`, by default [].
+    color_map : list, optional
+        List of `float` quadruplets (attribute value, R, G, B) sorted by attribute value, by default None.
+        The first quadruplet should have value 0.0, the last 1.0;
+        R, G, B are RGB color components in the range 0.0 to 1.0.
+    color_range : list, optional
+        [min_value, max_value] pair determining the levels of color attribute mapped
+        to 0 and 1 in the colormap, by default [].
+    width : float, optional
+        Thickness of the lines, by default 0.01.
+    shader : {'simple', 'think', 'mesh'}, optional
+        Display style of the lines, by default `thick`.
+    radial_segments : int, optional
+        Number of segmented faces around the circumference of the tube, by default 8.
+    name : str, optional
+        Object name, by default None.
+    group : str, optional
+        Name of a group, by default None.
+    compression_level : int, optional
+        Level of data compression [-1, 9], by default 0.
+    **kwargs
+        For other keyword-only arguments, see :ref:`process_transform_arguments`.
 
-            :`simple`: simple lines,
-
-            :`thick`: thick lines,
-
-            :`mesh`: high precision triangle mesh of segments (high quality and GPU load).
-        radial_segments: 'int'.
-            Number of segmented faces around the circumference of the tube
-        width: `float`.
-            Thickness of the lines.
-        opacity: `float`.
-            Opacity of lines.
-        name: `string`.
-            A name of a object
-        group: `string`.
-            A name of a group
-        custom_data: `dict`.
-            A object with custom data attached to object."""
+    Returns
+    -------
+    Line
+        Line Drawable.
+    """
     if color_map is None:
         color_map = default_colormap
-
     color_map = (
-        np.array(color_map, np.float32) if type(color_map) is not dict else color_map
+        np.array(color_map, np.float32) if type(
+            color_map) is not dict else color_map
     )
     attribute = (
-        np.array(attribute, np.float32) if type(attribute) is not dict else attribute
+        np.array(attribute, np.float32) if type(
+            attribute) is not dict else attribute
     )
-    color_range = check_attribute_range(attribute, color_range)
+    color_range = check_attribute_color_range(attribute, color_range)
 
     return process_transform_arguments(
         Line(
@@ -276,44 +277,53 @@ def marching_cubes(
 ):
     """Create a MarchingCubes drawable.
 
-    Plot an isosurface of a scalar field obtained through a Marching Cubes algorithm.
-
+    Plot an isosurface of a scalar field obtained through
+    `Marching cubes <https://en.wikipedia.org/wiki/Marching_cubes>`_ algorithm.
     The default domain of the scalar field is -0.5 < x, y, z < 0.5.
 
-    If the domain should be different, the bounding box needs to be transformed using kwargs, like this:
-        marching_cubes(..., bounds=[-1, 1, -1, 1, -1, 1])
-    or:
-        marching_cubes(..., xmin=-10, xmax=10, ymin=-4, ymax=4, zmin=0, zmax=20)
-    or:
-        marching_cubes(..., scaling=[width, height, length])
+    If the domain should be different, the bounding box needs to be transformed using `kwargs`
 
-    Arguments:
-        scalar_field: `array_like`.
-            A 3D scalar field of values.
-        level: `float`.
-            Value at the computed isosurface.
-        color: `int`.
-            Packed RGB color of the isosurface (0xff0000 is red, 0xff is blue).
-        wireframe: `bool`.
-            Whether mesh should display as wireframe.
-        spacings_x: `array_like`.
-            A spacings in x axis. Should match to scalar_field shape.
-        spacings_y: `array_like`.
-            A spacings in y axis. Should match to scalar_field shape.
-        spacings_z: `array_like`.
-            A spacings in z axis. Should match to scalar_field shape.
-        flat_shading: `bool`.
-            Whether mesh should display with flat shading.
-        opacity: `float`.
-            Opacity of mesh.
-        name: `string`.
-            A name of a object
-        group: `string`.
-            A name of a group
-        custom_data: `dict`.
-            A object with custom data attached to object.
-        kwargs: `dict`.
-            Dictionary arguments to configure transform and model_matrix."""
+    - ``marching_cubes(..., bounds=[-1, 1, -1, 1, -1, 1])``
+    - ``marching_cubes(..., xmin=-10, xmax=10, ymin=-4, ymax=4, zmin=0, zmax=20)``
+    - ``marching_cubes(..., scaling=[width, height, length])``
+
+    Parameters
+    ----------
+    scalar_field : array_like
+        3D scalar field of values.
+    level : float
+        Value at the computed isosurface.
+    color : int, optional
+        Hex color of the isosurface, by default _default_color.
+    wireframe : bool, optional
+        Display the mesh as wireframe, by default False.
+    flat_shading : bool, optional
+        Display the mesh with flat shading, by default True.
+    opacity : float, optional
+        Opacity of the mesh, by default 1.0.
+    spacings_x : list, optional
+        Spacings in x axis, by default [].
+        Should match `scalar_field` shape.
+    spacings_y : list, optional
+        Spacings in y axis, by default [].
+        Should match `scalar_field` shape.
+    spacings_z : list, optional
+        Spacings in z axis, by default [].
+        Should match `scalar_field` shape.
+    name : str, optional
+        Object name, by default None.
+    group : str, optional
+        Name of a group, by default None.
+    compression_level : int, optional
+        Level of data compression [-1, 9], by default 0.
+    **kwargs
+        For other keyword-only arguments, see :ref:`process_transform_arguments`.
+
+    Returns
+    -------
+    MarchingCubes
+        MarchingCubes Drawable.
+    """
     return process_transform_arguments(
         MarchingCubes(
             scalar_field=scalar_field,
@@ -360,65 +370,75 @@ def mesh(
         triangles_attribute=[],
         **kwargs
 ):
-    """Create a Mesh drawable representing a 3D triangles mesh.
+    """Create a Mesh drawable from 3D triangles.
 
-    Arguments:
-        vertices: `array_like`.
-            Array of triangle vertices: float (x, y, z) coordinate triplets.
-        indices: `array_like`.
-            Array of vertex indices: int triplets of indices from vertices array.
-        color: `int`.
-            Packed RGB color of the mesh (0xff0000 is red, 0xff is blue) when not using color maps.
-        colors: `array_like`.
-            Same-length array of `int`-packed RGB color of the points (0xff0000 is red, 0xff is blue).
-        attribute: `array_like`.
-            Array of float attribute for the color mapping, coresponding to each vertex.
-        triangles_attribute: `array_like`.
-            Array of float attribute for the color mapping, coresponding to each triangle.
-        color_map: `list`.
-            A list of float quadruplets (attribute value, R, G, B), sorted by attribute value. The first
-            quadruplet should have value 0.0, the last 1.0; R, G, B are RGB color components in the range 0.0 to 1.0.
-        color_range: `list`.
-            A pair [min_value, max_value], which determines the levels of color attribute mapped
-            to 0 and 1 in the color map respectively.
-        wireframe: `bool`.
-            Whether mesh should display as wireframe.
-        flat_shading: `bool`.
-            Whether mesh should display with flat shading.
-        opacity: `float`.
-            Opacity of mesh.
-        volume: `array_like`.
-            3D array of `float`
-        volume_bounds: `array_like`.
-            6-element tuple specifying the bounds of the volume data (x0, x1, y0, y1, z0, z1)
-        opacity_function: `array`.
-            A list of float tuples (attribute value, opacity), sorted by attribute value. The first
-            typles should have value 0.0, the last 1.0; opacity is in the range 0.0 to 1.0.
-        side: `string`.
-            Control over which side to render for a mesh. Legal values are `front`, `back`, `double`.
-        texture: `bytes`.
-            Image data in a specific format.
-        texture_file_format: `str`.
-            Format of the data, it should be the second part of MIME format of type 'image/',
-            for example 'jpeg', 'png', 'gif', 'tiff'.
-        uvs: `array_like`.
-            Array of float uvs for the texturing, coresponding to each vertex.
-        name: `string`.
-            A name of a object
-        group: `string`.
-            A name of a group
-        custom_data: `dict`.
-            A object with custom data attached to object.
-        kwargs: `dict`.
-            Dictionary arguments to configure transform and model_matrix."""
+    Parameters
+    ----------
+    vertices : array_like
+        Array of triangle vertices, `float` (x, y, z) coordinate triplets.
+    indices : array_like
+        Array of vertex indices. `int` triplets of indices from vertices array.
+    color : int, optional
+        Hex color of the vertices when `colors` is empty, by default _default_color.
+    colors : list, optional
+        Array of Hex colors when attribute, color_map and color_range are empty, by default [].
+    attribute: list, optional
+        List of values used to apply `color_map`, by default [].
+    color_map : list, optional
+        List of `float` quadruplets (attribute value, R, G, B) sorted by attribute value, by default None.
+        The first quadruplet should have value 0.0, the last 1.0;
+        R, G, B are RGB color components in the range 0.0 to 1.0.
+    color_range : list, optional
+        [min_value, max_value] pair determining the levels of color attribute mapped
+        to 0 and 1 in the colormap, by default [].
+    wireframe : bool, optional
+        Display the mesh as wireframe, by default False.
+    flat_shading : bool, optional
+        Display the mesh with flat shading, by default True.
+    opacity : float, optional
+        Opacity of the mesh, by default 1.0.
+    texture : bytes, optional
+        Image data in a specific format, by default None.
+    texture_file_format : str, optional
+        Format of the data, , by default None.
+        It should be the second part of MIME format of type 'image/',e.g. 'jpeg', 'png', 'gif', 'tiff'.
+    volume : list, optional
+        3D array of `float`, by default [].
+    volume_bounds : list, optional
+        6-element tuple specifying the bounds of the volume data (x0, x1, y0, y1, z0, z1), by default [].
+    opacity_function : list, optional
+        `float` tuples (attribute value, opacity) sorted by attribute value, by default [].
+        The first tuples should have value 0.0, the last 1.0; opacity is in the range 0.0 to 1.0.
+    side : {'front', 'back', 'both'}, optional
+        Side to render, by default "front".
+    uvs : array_like, optional
+        float uvs for the texturing corresponding to each vertex, by default None.
+    name : str, optional
+        Object name, by default None.
+    group : str, optional
+        Name of a group, by default None.
+    compression_level : int, optional
+        Level of data compression [-1, 9], by default 0.
+    triangles_attribute : list, optional
+        _description_, by default []
+    **kwargs
+        For other keyword-only arguments, see :ref:`process_transform_arguments`.
+
+    Returns
+    -------
+    Mesh
+        Mesh Drawable
+    """
     if color_map is None:
         color_map = default_colormap
     color_map = (
-        np.array(color_map, np.float32) if type(color_map) is not dict else color_map
+        np.array(color_map, np.float32) if type(
+            color_map) is not dict else color_map
     )
     uvs = np.array(uvs, np.float32) if type(uvs) is not dict else color_map
     attribute = (
-        np.array(attribute, np.float32) if type(attribute) is not dict else attribute
+        np.array(attribute, np.float32) if type(
+            attribute) is not dict else attribute
     )
     triangles_attribute = (
         np.array(triangles_attribute, np.float32)
@@ -432,13 +452,14 @@ def mesh(
     )
 
     if len(attribute) > 0:
-        color_range = check_attribute_range(attribute, color_range)
+        color_range = check_attribute_color_range(attribute, color_range)
 
     if len(triangles_attribute) > 0:
-        color_range = check_attribute_range(triangles_attribute, color_range)
+        color_range = check_attribute_color_range(
+            triangles_attribute, color_range)
 
     if len(volume) > 0:
-        color_range = check_attribute_range(volume, color_range)
+        color_range = check_attribute_color_range(volume, color_range)
 
     return process_transform_arguments(
         Mesh(
@@ -491,62 +512,62 @@ def points(
 ):
     """Create a Points drawable representing a point cloud.
 
-    Arguments:
-        positions: `array_like`.
-            Array with (x, y, z) coordinates of the points.
-        colors: `array_like`.
-            Same-length array of `int`-packed RGB color of the points (0xff0000 is red, 0xff is blue).
-        color: `int`.
-            Packed RGB color of the points (0xff0000 is red, 0xff is blue) when `colors` is empty.
-        opacity: `float`.
-            Opacity of points.
-        opacities: `array_like`.
-            Same-length array of `float` opacity of the points.
-        point_size: `float`.
-            Diameter of the balls representing the points in 3D space.
-        point_sizes: `array_like`.
-            Same-length array of `float` sizes of the points.
-        shader: `str`.
-            Display style (name of the shader used) of the points.
-            Legal values are:
+    Parameters
+    ----------
+    positions : array_like
+        Array of (x, y, z) coordinates.
+    colors : list, optional
+        Array of Hex colors, by default [].
+    color : int, optional
+        Hex color of the points when `colors` is empty, by default _default_color.
+    point_size : float, optional
+        Diameter of the points, by default 1.0.
+    point_sizes : list, optional
+        Same-length array of `float` sizes of the points, by default [].
+    shader : {'flat', 'dot', '3d', '3dSpecular', 'mesh'}, optional
+        Display style of the points, by default "3dSpecular".
+    opacity : float, optional
+        Opacity of points, by default 1.0.
+    opacities : list, optional
+        Same-length array of `float` opacity of the points, by default [].
+    attribute: list, optional
+        List of values used to apply `color_map`, by default [].
+    color_map : list, optional
+        List of `float` quadruplets (attribute value, R, G, B) sorted by attribute value, by default None.
+        The first quadruplet should have value 0.0, the last 1.0;
+        R, G, B are RGB color components in the range 0.0 to 1.0.
+    color_range : list, optional
+        [min_value, max_value] pair determining the levels of color attribute mapped
+        to 0 and 1 in the colormap, by default [].
+    opacity_function : list, optional
+        `float` tuples (attribute value, opacity) sorted by attribute value, by default [].
+        The first tuples should have value 0.0, the last 1.0; opacity is in the range 0.0 to 1.0.
+    name : str, optional
+        Object name, by default None.
+    group : str, optional
+        Name of a group, by default None.
+    compression_level : int, optional
+        Level of data compression [-1, 9], by default 0.
+    mesh_detail : int, optional
+        Detail level of points mesh, by default 2.
+        Only valid if `shader` is set to `mesh`. Setting this to a value greater than 0 adds more vertices making it no longer an
+        icosahedron. When detail is greater than 1, it's effectively a sphere.
+    **kwargs
+        For other keyword-only arguments, see :ref:`process_transform_arguments`.
 
-            :`flat`: simple circles with uniform color,
-
-            :`dot`: simple dot with uniform color,
-
-            :`3d`: little 3D balls,
-
-            :`3dSpecular`: little 3D balls with specular lightning,
-
-            :`mesh`: high precision triangle mesh of a ball (high quality and GPU load).
-
-        mesh_detail: `int`.
-            Default is 2. Setting this to a value greater than 0 adds more vertices making it no longer an
-            icosahedron. When detail is greater than 1, it's effectively a sphere. Only valid if shader='mesh'
-        attribute: `array_like`.
-            Array of float attribute for the color mapping, coresponding to each point.
-        color_map: `list`.
-            A list of float quadruplets (attribute value, R, G, B), sorted by attribute value. The first
-            quadruplet should have value 0.0, the last 1.0; R, G, B are RGB color components in the range 0.0 to 1.0.
-        color_range: `list`.
-            A pair [min_value, max_value], which determines the levels of color attribute mapped
-            to 0 and 1 in the color map respectively.
-        opacity_function: `array`.
-            A list of float tuples (attribute value, opacity), sorted by attribute value. The first
-            tuples should have value 0.0, the last 1.0; opacity is in the range 0.0 to 1.0.
-        name: `string`.
-            A name of a object
-        group: `string`.
-            A name of a group
-        custom_data: `dict`.
-            A object with custom data attached to object."""
+    Returns
+    -------
+    Points
+        Points Drawable.
+    """
     if color_map is None:
         color_map = default_colormap
 
     attribute = (
-        np.array(attribute, np.float32) if type(attribute) is not dict else attribute
+        np.array(attribute, np.float32) if type(
+            attribute) is not dict else attribute
     )
-    color_range = check_attribute_range(attribute, color_range)
+    color_range = check_attribute_color_range(attribute, color_range)
 
     return process_transform_arguments(
         Points(
@@ -586,21 +607,30 @@ def stl(
 ):
     """Create an STL drawable for data in STereoLitograpy format.
 
-    Arguments:
-        stl: `str` or `bytes`.
-            STL data in either ASCII STL (string) or Binary STL (bytes).
-        color: `int`.
-            Packed RGB color of the resulting mesh (0xff0000 is red, 0xff is blue).
-        wireframe: `bool`.
-            Whether mesh should display as wireframe.
-        flat_shading: `bool`.
-            Whether mesh should display with flat shading.
-        name: `string`.
-            A name of a object
-        group: `string`.
-            A name of a group
-        custom_data: `dict`.
-            A object with custom data attached to object."""
+    Parameters
+    ----------
+    stl : `str` or `bytes`
+        STL data in either ASCII STL (`str`) or Binary STL (`bytes`).
+    color : int, optional
+        Hex color of the mesh, by default _default_color.
+    wireframe : bool, optional
+        Display the mesh as wireframe, by default False.
+    flat_shading : bool, optional
+        Display the mesh with flat shading, by default True.
+    name : str, optional
+        Object name, by default None.
+    group : str, optional
+        Name of a group, by default None.
+    compression_level : int, optional
+        Level of data compression [-1, 9], by default 0.
+    **kwargs
+        For other keyword-only arguments, see :ref:`process_transform_arguments`.
+
+    Returns
+    -------
+    STL
+        STL Drawable.
+    """
     plain = isinstance(stl, six.string_types)
 
     return process_transform_arguments(
@@ -637,45 +667,51 @@ def surface(
     """Create a Surface drawable.
 
     Plot a 2d function: z = f(x, y).
-
     The default domain of the scalar field is -0.5 < x, y < 0.5.
 
-    If the domain should be different, the bounding box needs to be transformed using kwargs, like this:
-        surface(..., bounds=[-1, 1, -1, 1])
-    or:
-        surface(..., xmin=-10, xmax=10, ymin=-4, ymax=4)
+    If the domain should be different, the bounding box needs to be transformed using `kwargs`
 
-    Arguments:
-        heights: `array_like`.
-            A 2d scalar function values grid.
-        color: `int`.
-            Packed RGB color of the surface (0xff0000 is red, 0xff is blue).
-        wireframe: `bool`.
-            Whether mesh should display as wireframe.
-        flat_shading: `bool`.
-            Whether mesh should display with flat shading.
-        attribute: `array_like`.
-            Array of float attribute for the color mapping, coresponding to each vertex.
-        color_map: `list`.
-            A list of float quadruplets (attribute value, R, G, B), sorted by attribute value. The first
-            quadruplet should have value 0.0, the last 1.0; R, G, B are RGB color components in the range 0.0 to 1.0.
-        color_range: `list`.
-            A pair [min_value, max_value], which determines the levels of color attribute mapped
-            to 0 and 1 in the color map respectively.
-        name: `string`.
-            A name of a object
-        group: `string`.
-            A name of a group
-        custom_data: `dict`.
-            A object with custom data attached to object.
-        kwargs: `dict`.
-            Dictionary arguments to configure transform and model_matrix."""
+    - ``surface(..., bounds=[-1, 1, -1, 1])``
+    - ``surface(..., xmin=-10, xmax=10, ymin=-4, ymax=4)``
 
+    Parameters
+    ----------
+    heights : array_like
+        Array of `float` values.
+    color : int, optional
+        Hex color of the surface, by default _default_color.
+    wireframe : bool, optional
+        Display the mesh as wireframe, by default False.
+    flat_shading : bool, optional
+        Display the mesh with flat shading, by default True.
+    attribute: list, optional
+        List of values used to apply `color_map`, by default [].
+    color_map : list, optional
+        List of `float` quadruplets (attribute value, R, G, B) sorted by attribute value, by default None.
+        The first quadruplet should have value 0.0, the last 1.0;
+        R, G, B are RGB color components in the range 0.0 to 1.0.
+    color_range : list, optional
+        [min_value, max_value] pair determining the levels of color attribute mapped
+        to 0 and 1 in the colormap, by default [].
+    name : str, optional
+        Object name, by default None.
+    group : str, optional
+        Name of a group, by default None.
+    compression_level : int, optional
+        Level of data compression [-1, 9], by default 0.
+    **kwargs
+        For other keyword-only arguments, see :ref:`process_transform_arguments`.
+
+    Returns
+    -------
+    Surface
+        Surface Drawable.
+    """
     if color_map is None:
         color_map = default_colormap
     color_map = np.array(color_map, np.float32)
     attribute = np.array(attribute, np.float32)
-    color_range = check_attribute_range(attribute, color_range)
+    color_range = check_attribute_color_range(attribute, color_range)
 
     return process_transform_arguments(
         Surface(
@@ -714,35 +750,50 @@ def text(
 ):
     """Create a Text drawable for 3D-positioned text labels.
 
-    Arguments:
-        text: `str`.
-            Content of the text.
-        position: `list`.
-            Coordinates (x, y, z) of the text's position.
-        on_top: `Boolean`.
-            Render order with 3d object
-        label_box: `Boolean`.
-            Label background box.
-        color: `int`.
-            Packed RGB color of the text (0xff0000 is red, 0xff is blue).
-        is_html: `Boolean`.
-            Whether text should be interpreted as HTML insted of KaTeX.
-        reference_point: `str`.
-            Two-letter string representing the text's alignment.
-            First letter: 'l', 'c' or 'r': left, center or right
+    Parameters
+    ----------
+    text : str
+        Text content.
+    position : tuple, optional
+        (x, y, z) coordinates of text position, by default (0, 0, 0).
+    color : int, optional
+        Hex color of the text, by default _default_color.
+    reference_point : str, optional
+        Two-letter string representing text alignment, by default "lb".
 
-            Second letter: 't', 'c' or 'b': top, center or bottom.
-        size: `float`.
-            Font size in 'em' HTML units.
-        name: `string`.
-            A name of a object
-        group: `string`.
-            A name of a group
-        custom_data: `dict`.
-            A object with custom data attached to object.
-        kwargs: `dict`.
-            Dictionary arguments to configure transform and model_matrix."""
+        First letters
 
+        - ``l`` -- left
+        - ``c`` -- center
+        - ``r`` -- right
+
+        Second letters
+
+        - ``t`` -- top
+        - ``c`` -- center
+        - ``b`` -- bottom
+    on_top : bool, optional
+        Render order with 3d object, by default True.
+    size : float, optional
+        Font size in 'em' HTML units, by default 1.0.
+    label_box : bool, optional
+        Label background box, by default True.
+    is_html : bool, optional
+        Interprete text as HTMl instead of KaTeX, by default False.
+    name : str, optional
+        Object name, by default None.
+    group : str, optional
+        Name of a group, by default None.
+    compression_level : int, optional
+        Level of data compression [-1, 9], by default 0.
+    **kwargs
+        For other keyword-only arguments, see :ref:`process_transform_arguments`.
+
+    Returns
+    -------
+    Text
+        Text Drawable.
+    """
     return process_transform_arguments(
         Text(
             position=position,
@@ -778,32 +829,48 @@ def text2d(
 ):
     """Create a Text2d drawable for 2D-positioned (viewport bound, OSD) labels.
 
-    Arguments:
-        text: `str`.
-            Content of the text.
-        position: `list`.
-            Ratios (r_x, r_y) of the text's position in range (0, 1) - relative to canvas size.
-        color: `int`.
-            Packed RGB color of the text (0xff0000 is red, 0xff is blue).
-        is_html: `Boolean`.
-            Whether text should be interpreted as HTML insted of KaTeX.
-        reference_point: `str`.
-            Two-letter string representing the text's alignment.
+    Parameters
+    ----------
+    text : str
+        Text content.
+    position : tuple, optional
+        (rx, ry) text position ratios in range (0, 1) - relative to canvas size, by default (0, 0).
+    color : int, optional
+        Hex color of the text, by default _default_color.
+    reference_point : str, optional
+        Two-letter string representing text alignment, by default "lb".
 
-            First letter: 'l', 'c' or 'r': left, center or right
+        First letters
 
-            Second letter: 't', 'c' or 'b': top, center or bottom.
-        label_box: `Boolean`.
-            Label background box.
-        size: `float`.
-            Font size in 'em' HTML units.
-        name: `string`.
-            A name of a object
-        group: `string`.
-            A name of a group
-        custom_data: `dict`.
-            A object with custom data attached to object."""
+        - `l` -- left
+        - `c` -- center
+        - `r` -- right
 
+        Second letters
+
+        - `t` -- top
+        - `c` -- center
+        - `b` -- bottom
+    size : float, optional
+        Font size in 'em' HTML units, by default 1.0.
+    label_box : bool, optional
+        Label background box, by default True.
+    is_html : bool, optional
+        Interprete text as HTMl instead of KaTeX, by default False.
+    name : str, optional
+        Object name, by default None.
+    group : str, optional
+        Name of a group, by default None.
+    compression_level : int, optional
+        Level of data compression [-1, 9], by default 0.
+    **kwargs
+        For other keyword-only arguments, see :ref:`process_transform_arguments`.
+
+    Returns
+    -------
+    Text2d
+        Text2d Drawable.
+    """
     return Text2d(
         position=position,
         reference_point=reference_point,
@@ -838,34 +905,40 @@ def label(
 ):
     """Create a Text drawable for 3D-positioned text labels.
 
-    Arguments:
-        text: `str`.
-            Content of the text.
-        position: `list`.
-            Coordinates (x, y, z) of the text's position.
-        on_top: `Boolean`.
-            Render order with 3d object
-        label_box: `Boolean`.
-            Label background box.
-        color: `int`.
-            Packed RGB color of the text (0xff0000 is red, 0xff is blue).
-        max_length: `float`.
-            Maximum length of line in % of half screen size (only for mode='dynamic').
-        mode: `str`.
-            Label node. Can be 'dynamic', 'local' or 'side'.
-        is_html: `Boolean`.
-            Whether text should be interpreted as HTML insted of KaTeX.
-        size: `float`.
-            Font size in 'em' HTML units.
-        name: `string`.
-            A name of a object
-        group: `string`.
-            A name of a group
-        custom_data: `dict`.
-            A object with custom data attached to object.
-        kwargs: `dict`.
-            Dictionary arguments to configure transform and model_matrix."""
+    Parameters
+    ----------
+    text : str
+        Text content.
+    position : tuple, optional
+        (x, y, z) coordinates of text position, by default (0, 0, 0).
+    color : int, optional
+        Hex color of the text, by default _default_color.
+    on_top : bool, optional
+        Render order with 3d object, by default True.
+    size : float, optional
+        Font size in 'em' HTML units, by default 1.0.
+    name : str, optional
+        Object name, by default None.
+    group : str, optional
+        Name of a group, by default None.
+    max_length : float, optional
+        Maximum length of line in % of half screen size (only when `mode` is `dynamic`), by default 0.8.
+    mode : {'dynamic', 'local', 'side'}, optional
+        Label node, by default "dynamic".
+    is_html : bool, optional
+        Interprete text as HTMl instead of KaTeX, by default False.
+    label_box : bool, optional
+        Label background box, by default True.
+    compression_level : int, optional
+        Level of data compression [-1, 9], by default 0.
+    **kwargs
+        For other keyword-only arguments, see :ref:`process_transform_arguments`.
 
+    Returns
+    -------
+    Label
+        Label Drawable.
+    """
     return process_transform_arguments(
         Label(
             position=position,
@@ -904,54 +977,59 @@ def texture(
     """Create a Texture drawable for displaying 2D raster images in common formats.
 
     By default, the texture image is mapped into the square: -0.5 < x, y < 0.5, z = 1.
+
     If the size (scale, aspect ratio) or position should be different then the texture should be transformed
-    using kwargs, for example:
+    using `kwargs`
 
-        texture(..., xmin=0, xmax=640, ymin=0, ymax=480)
+    - ``texture(..., xmin=0, xmax=640, ymin=0, ymax=480)``
+    - ``texture(..., bounds=[0, 10, 0, 20])``
+    - ``texture(..., scaling=[1.0, 0.75, 0])``
 
-    or:
+    Parameters
+    ----------
+    binary : bytes, optional
+        Image data in a specific format, by default None
+    file_format : str, optional
+        Format of the data, by default None.
 
-        texture(..., bounds=[0, 10, 0, 20])
+        It should be the second part of MIME format of type 'image/',e.g. 'jpeg', 'png', 'gif', 'tiff'.
+    color_map : list, optional
+        List of `float` quadruplets (attribute value, R, G, B) sorted by attribute value, by default None.
+        The first quadruplet should have value 0.0, the last 1.0;
+        R, G, B are RGB color components in the range 0.0 to 1.0.
+    color_range : list, optional
+        [min_value, max_value] pair determining the levels of color attribute mapped
+        to 0 and 1 in the colormap, by default [].
+    attribute: list, optional
+        List of values used to apply `color_map`, by default [].
+    puv : list, optional
+        List of `float` triplets (x,y,z), by default [].
+        The first triplet mean a position of left-bottom corner of texture.
+        Second and third triplets means a base of coordinate system for texture.
+    opacity_function : list, optional
+        `float` tuples (attribute value, opacity) sorted by attribute value, by default [].
+        The first tuples should have value 0.0, the last 1.0; opacity is in the range 0.0 to 1.0.
+    interpolation : bool, optional
+        Interpolate the data, by default True
+    name : str, optional
+        Object name, by default None.
+    group : str, optional
+        Name of a group, by default None.
+    compression_level : int, optional
+        Level of data compression [-1, 9], by default 0.
+    **kwargs
+        For other keyword-only arguments, see :ref:`process_transform_arguments`.
 
-    or:
-
-        texture(..., scaling=[1.0, 0.75, 0])
-
-    Arguments:
-        binary: `bytes`.
-            Image data in a specific format.
-        file_format: `str`.
-            Format of the data, it should be the second part of MIME format of type 'image/',
-            for example 'jpeg', 'png', 'gif', 'tiff'.
-        attribute: `array_like`.
-            Array of float attribute for the color mapping, corresponding to each pixels.
-        color_map: `list`.
-            A list of float quadruplets (attribute value, R, G, B), sorted by attribute value. The first
-            quadruplet should have value 0.0, the last 1.0; R, G, B are RGB color components in the range 0.0 to 1.0.
-        opacity_function: `array`.
-            A list of float tuples (attribute value, opacity), sorted by attribute value. The first
-            typles should have value 0.0, the last 1.0; opacity is in the range 0.0 to 1.0.
-        color_range: `list`.
-            A pair [min_value, max_value], which determines the levels of color attribute mapped
-            to 0 and 1 in the color map respectively.
-        interpolation: `bool`.
-            Whether data should be interpolatedor not.
-        puv: `list`.
-            A list of float triplets (x,y,z). The first triplet mean a position of left-bottom corner of texture.
-            Second and third triplets means a base of coordinate system for texture.
-        name: `string`.
-            A name of a object
-        group: `string`.
-            A name of a group
-        custom_data: `dict`.
-            A object with custom data attached to object.
-        kwargs: `dict`.
-            Dictionary arguments to configure transform and model_matrix."""
+    Returns
+    -------
+    Texture
+        Texture Drawable.
+    """
     if color_map is None:
         color_map = default_colormap
     color_map = np.array(color_map, np.float32)
     attribute = np.array(attribute, np.float32)
-    color_range = check_attribute_range(attribute, color_range)
+    color_range = check_attribute_color_range(attribute, color_range)
 
     return process_transform_arguments(
         Texture(
@@ -993,29 +1071,38 @@ def texture_text(
     in the GPU memory, and not the browser's DOM tree. This has performance consequences, and may be preferable when
     many simple labels need to be displayed.
 
-    Arguments:
-        text: `str`.
-            Content of the text.
-        position: `list`.
-            Coordinates (x, y, z) of the text's position.
-        color: `int`.
-            Packed RGB color of the text (0xff0000 is red, 0xff is blue).
-        size: `float`.
-            Size of the texture sprite containing the text.
-        font_face: `str`.
-            Name of the font to use for rendering the text.
-        font_weight: `int`.
-            Thickness of the characters in HTML-like units from the range (100, 900), where
-            400 is normal and 600 is bold font.
-        font_size: `int`.
-            The font size inside the sprite texture in px units. This does not affect the size of the
-            text in the scene, only the accuracy and raster size of the texture.
-        name: `string`.
-            A name of a object
-        group: `string`.
-            A name of a group
-        custom_data: `dict`.
-            A object with custom data attached to object."""
+    Parameters
+    ----------
+    text : str
+        Text content.
+    position : tuple, optional
+        (x, y, z) coordinates of text position, by default (0, 0, 0).
+    color : int, optional
+        Hex color of the text, by default _default_color.
+    font_weight : int, optional
+        Characters thickness in HTML-like units [100, 900], by default 400.
+    font_face : str, optional
+        Font name used to render text, by default "Courier New".
+    font_size : int, optional
+        Font size inside the sprite texture in px units, by default 68.
+        This does not affect the size of the text in the scene,
+        only the accuracy and raster size of the texture.
+    size : float, optional
+        Size of the texture sprite containing the text, by default 1.0.
+    name : str, optional
+        Object name, by default None.
+    group : str, optional
+        Name of a group, by default None.
+    compression_level : int, optional
+        Level of data compression [-1, 9], by default 0.
+    **kwargs
+        For other keyword-only arguments, see :ref:`process_transform_arguments`.
+
+    Returns
+    -------
+    TextureText
+        TextureText Drawable.
+    """
     return process_transform_arguments(
         TextureText(
             text=text,
@@ -1054,47 +1141,51 @@ def vector_field(
     """Create a VectorField drawable for displaying dense 2D or 3D grids of vectors of same dimensionality.
 
     By default, the origins of the vectors are assumed to be a grid inscribed in the -0.5 < x, y, z < 0.5 cube
-    or -0.5 < x, y < 0.5 square, regardless of the passed vector field shape (aspect ratio etc.).
-    Different grid size, shape and rotation can be obtained using kwargs:
+    or -0.5 < x, y < 0.5 square, regardless of the passed vector field shape, like aspect ratio.
 
-        vector_field(..., bounds=[-pi, pi, -pi, pi, 0, 1])
+    Different grid size, shape and rotation can be obtained using `kwargs`
 
-    or:
+    - ``vector_field(..., bounds=[-pi, pi, -pi, pi, 0, 1])``
+    - ``vector_field(..., scaling=[scale_x, scale_y, scale_z])``
 
-        vector_field(..., scaling=[scale_x, scale_y, scale_z]).
+    For sparse (i.e. not forming a grid) 3D vectors, use `vectors`.
 
-    For sparse (i.e. not forming a grid) 3D vectors, use the `vectors()` function.
+    Parameters
+    ----------
+    vectors : array_like
+        Vector field of shape (L, H, W, 3) for 3D fields or (H, W, 2) for 2D fields.
+    colors : list, optional
+        Array of Hex colors of vectors, by default [].
 
-    Arguments:
-        vectors: `array_like`.
-            Vector field of shape (L, H, W, 3) for 3D fields or (H, W, 2) for 2D fields.
-        colors: `array_like`.
-            Twice the length of vectors array of int: packed RGB colors
-            (0xff0000 is red, 0xff is blue).
-            The array has consecutive pairs (origin_color, head_color) for vectors in row-major order.
-        origin_color: `int`.
-            Packed RGB color of the origins (0xff0000 is red, 0xff is blue), default: same as color.
-        head_color: `int`.
-            Packed RGB color of the vector heads (0xff0000 is red, 0xff is blue), default: same as color.
-        color: `int`.
-            Packed RGB color of the vectors (0xff0000 is red, 0xff is blue) when `colors` is empty and
-            origin_color and head_color are not specified.
-        use_head: `bool`.
-            Whether vectors should display an arrow head.
-        head_size: `float`.
-            The size of the arrow heads.
-        scale: `float`.
-            Scale factor for the vector lengths, for artificially scaling the vectors in place.
-        line_width: `float`.
-            Width of the vector segments.
-        name: `string`.
-            A name of a object
-        group: `string`.
-            A name of a group
-        custom_data: `dict`.
-            A object with custom data attached to object.
-        kwargs: `dict`.
-            Dictionary arguments to configure transform and model_matrix."""
+        The array has consecutive pairs (origin_color, head_color) for vectors in row-major order.
+    origin_color : int, optional
+        Hex color of vector origins when `colors` is empty, by default None.
+    head_color : int, optional
+        Hex color of vector heads when `colors` is empty, by default None.
+    color : int, optional
+        Hex color of the vectors when `colors` is empty, by default _default_color.
+    use_head : bool, optional
+        Display vector heads, by default True.
+    head_size : float, optional
+        Vector heads size, by default 1.0.
+    scale : float, optional
+        Scale factor for the vector lengths, by default 1.0.
+    line_width : float, optional
+        Width of vector segments, by default 0.01.
+    name : str, optional
+        Object name, by default None.
+    group : str, optional
+        Name of a group, by default None.
+    compression_level : int, optional
+        Level of data compression [-1, 9], by default 0.
+    **kwargs
+        For other keyword-only arguments, see :ref:`process_transform_arguments`.
+
+    Returns
+    -------
+    VectorField
+        VectorField Drawable.
+    """
     return process_transform_arguments(
         VectorField(
             vectors=vectors,
@@ -1135,44 +1226,47 @@ def vectors(
 ):
     """Create a Vectors drawable representing individual 3D vectors.
 
-    The color of the vectors is a gradient from origin_color to head_color. Heads, when used, have uniform head_color.
+    For dense 3D or 2D vectors,like forming a grid, use `vector_field`.
 
-    For dense (i.e. forming a grid) 3D or 2D vectors, use the `vector_field` function.
+    Parameters
+    ----------
+    origins : array_like
+        Array of (x, y, z) coordinates of vector origins.
+    vectors : array_like, optional
+        Array of (dx, dy, dz) directions of vectors, by default None.
+        Must have the same size as `origins`.
+    colors : list, optional
+        Array of Hex colors of vectors, by default [].
+    origin_color : int, optional
+        Hex color of vector origins when `colors` is empty, by default None.
+    head_color : int, optional
+        Hex color of vector heads when `colors` is empty, by default None.
+    color : int, optional
+        Hex color of the vectors when `colors` is empty, by default None.
+    use_head : bool, optional
+        Display vector heads, by default True.
+    head_size : float, optional
+        Vector heads size, by default 1.0.
+    labels : list, optional
+        List of `str` of caption the display next tot the vectors, by default [].
+    label_size : float, optional
+        Label font size in 'em' HTML units, by default 1.0.
+    line_width : float, optional
+        Width of vector segments, by default 0.01.
+    name : str, optional
+        Object name, by default None.
+    group : str, optional
+        Name of a group, by default None.
+    compression_level : int, optional
+        Level of data compression [-1, 9], by default 0.
+    **kwargs
+        For other keyword-only arguments, see :ref:`process_transform_arguments`.
 
-    Arguments:
-        origins: `array_like`.
-            Array of (x, y, z) coordinates of vector origins, when `vectors` is None, these
-            are (dx, dy, dz) components of unbound vectors (which are displayed as originating in (0, 0, 0)).
-        vectors: `array_like`.
-            The vectors as (dx, dy, dz) float triples. When not given, the `origins` are taken
-            as vectors. When given, it must be same size as `origins`.
-        colors: `array_like`.
-            Twice the length of vectors array of int: packed RGB colors
-            (0xff0000 is red, 0xff is blue).
-            The array has consecutive pairs (origin_color, head_color) for vectors in row-major order.
-        origin_color: `int`.
-            Packed RGB color of the origins (0xff0000 is red, 0xff is blue), default: same as color.
-        head_color: `int`.
-            Packed RGB color of the vector heads (0xff0000 is red, 0xff is blue), default: same as color.
-        color: `int`.
-            Packed RGB color of the vectors (0xff0000 is red, 0xff is blue) when `colors` is empty and
-            origin_color and head_color are not specified.
-        use_head: `bool`.
-            Whether vectors should display an arrow head.
-        head_size: `float`.
-            The size of the arrow heads.
-        labels: `list` of `str`.
-            Captions to display next to the vectors.
-        label_size: `float`.
-            Label font size in 'em' HTML units.
-        line_width: `float`.
-            Width of the vector segments.
-        name: `string`.
-            A name of a object
-        group: `string`.
-            A name of a group            
-        custom_data: `dict`.
-            A object with custom data attached to object."""
+    Returns
+    -------
+    Vectors
+        Vectors Drawable.
+    """
     return process_transform_arguments(
         Vectors(
             vectors=vectors if vectors is not None else origins,
@@ -1212,49 +1306,46 @@ def voxels(
     """Create a Voxels drawable for 3D volumetric data.
 
     By default, the voxels are a grid inscribed in the -0.5 < x, y, z < 0.5 cube
-    regardless of the passed voxel array shape (aspect ratio etc.).
-    Different grid size, shape and rotation can be obtained using  kwargs:
+    regardless of the passed voxel array shape, like aspect ratio.
 
-        voxels(..., bounds=[0, 300, 0, 400, 0, 500])
+    Different grid size, shape and rotation can be obtained using `kwargs`
 
-    or:
+    - ``voxels(..., bounds=[0, 300, 0, 400, 0, 500])``
+    - ``voxels(..., scaling=[scale_x, scale_y, scale_z])``
 
-        voxels(..., scaling=[scale_x, scale_y, scale_z]).
+    Parameters
+    ----------
+    voxels : array_like
+        3D array of `int` from 0 to 255.
+        0 means empty voxel; 1 and above refer to consecutive `color_map`.
+    color_map : int, optional
+        List of Hex color, by default None.
+        The color defined at index i is for voxel value (i+1).
+    wireframe : bool, optional
+        Display voxels as wireframe, by default False.
+    outlines : bool, optional
+        Display voxels outlines, by default True.
+    outlines_color : int, optional
+        Hex color of voxels outlines, by default 0.
+    opacity : float, optional
+        Opacity of voxels, by default 1.0.
+    name : str, optional
+        Object name, by default None.
+    group : str, optional
+        Name of a group, by default None.
+    compression_level : int, optional
+        Level of data compression [-1, 9], by default 0.
+    **kwargs
+        For other keyword-only arguments, see :ref:`process_transform_arguments`.
 
-    Arguments:
-        voxels: `array_like`.
-            3D array of `int` in range (0, 255).
-            0 means empty voxel, 1 and above refer to consecutive color_map entries.
-        color_map: `array_like`.
-            Flat array of `int` packed RGB colors (0xff0000 is red, 0xff is blue).
-            The color defined at index i is for voxel value (i+1), e.g.:
-
-            | color_map = [0xff, 0x00ff]
-            | voxels =
-            | [
-            | 0, # empty voxel
-            | 1, # blue voxel
-            | 2  # red voxel
-            | ]
-
-        wireframe: `bool`.
-            Whether mesh should display as wireframe.
-        opacity: `float`.
-            Opacity of voxels.
-        outlines: `bool`.
-            Whether mesh should display with outlines.
-        outlines_color: `int`.
-            Packed RGB color of the resulting outlines (0xff0000 is red, 0xff is blue)
-        name: `string`.
-            A name of a object
-        group: `string`.
-            A name of a group
-        custom_data: `dict`.
-            A object with custom data attached to object.
-        kwargs: `dict`.
-            Dictionary arguments to configure transform and model_matrix."""
+    Returns
+    -------
+    Voxels
+        Voxels Drawable.
+    """
     if color_map is None:
         color_map = nice_colors
+
     if bounds is not None:
         kwargs["bounds"] = bounds
     else:
@@ -1294,55 +1385,53 @@ def sparse_voxels(
         compression_level=0,
         **kwargs
 ):
-    """Create a Voxels drawable for 3D volumetric data.
+    """Create a SparseVoxels drawable for 3D volumetric data.
 
-    Different grid size, shape and rotation can be obtained using  kwargs:
+    Different grid size, shape and rotation can be obtained using `kwargs`
 
-        voxels(..., bounds=[0, 300, 0, 400, 0, 500])
+    - ``sparse_voxels(..., bounds=[0, 300, 0, 400, 0, 500])``
+    - ``sparse_voxels(..., scaling=[scale_x, scale_y, scale_z])``
 
-    or:
+    Parameters
+    ----------
+    sparse_voxels : array_like
+        2D array of cordinates [x, y, z, v],  x, y, z >= 0 and 0<= v <= 255.
+        v = 0 means empty voxel; v >= 1 refer to consecutive `color_map`.
+    space_size : array_like
+        Width, Height and Length of space.
+    color_map : int, optional
+        List of Hex color, by default None.
+        The color defined at index i is for voxel value (i+1).
+    wireframe : bool, optional
+        Display voxels as wireframe, by default False.
+    outlines : bool, optional
+        Display voxels outlines, by default True.
+    outlines_color : int, optional
+        Hex color of voxels outlines, by default 0.
+    opacity : float, optional
+        Opacity of voxels, by default 1.0.
+    name : str, optional
+        Object name, by default None.
+    group : str, optional
+        Name of a group, by default None.
+    compression_level : int, optional
+        Level of data compression [-1, 9], by default 0.
+    **kwargs
+        For other keyword-only arguments, see :ref:`process_transform_arguments`.
 
-        voxels(..., scaling=[scale_x, scale_y, scale_z]).
-
-    Arguments:
-        sparse_voxels: `array_like`.
-            2D array of `coords` in format [[x,y,z,v], [x,y,z,v]].
-            x, y, z >= 0
-            v = 0 means empty voxel, 1 and above refer to consecutive color_map entries.
-        space_size: `array_like`.
-            Width, Height, Length of space
-        color_map: `array_like`.
-            Flat array of `int` packed RGB colors (0xff0000 is red, 0xff is blue).
-        wireframe: `bool`.
-            Whether mesh should display as wireframe.
-        opacity: `float`.
-            Opacity of voxels.
-        outlines: `bool`.
-            Whether mesh should display with outlines.
-        outlines_color: `int`.
-            Packed RGB color of the resulting outlines (0xff0000 is red, 0xff is blue)
-        name: `string`.
-            A name of a object
-        group: `string`.
-            A name of a group
-        custom_data: `dict`.
-            A object with custom data attached to object.
-        kwargs: `dict`.
-            Dictionary arguments to configure transform and model_matrix."""
+    Returns
+    -------
+    SparseVoxels
+        SparseVoxels Drawable.
+    """
     if color_map is None:
         color_map = nice_colors
 
     assert (
-            isinstance(space_size, (tuple, list, np.ndarray))
-            and np.shape(space_size) == (3,)
-            and all(d > 0 for d in space_size)
+        isinstance(space_size, (tuple, list, np.ndarray))
+        and np.shape(space_size) == (3,)
+        and all(d > 0 for d in space_size)
     )
-
-    if bounds is not None:
-        kwargs["bounds"] = bounds
-    else:
-        max_x, max_y, max_z = space_size
-        kwargs["bounds"] = np.array([0, max_x, 0, max_y, 0, max_z])
 
     return process_transform_arguments(
         SparseVoxels(
@@ -1378,43 +1467,49 @@ def voxels_group(
         compression_level=0,
         **kwargs
 ):
-    """Create a Voxels drawable for 3D volumetric data.
+    """Create a VoxelsGroup drawable for 3D volumetric data.
 
     By default, the voxels are a grid inscribed in the -0.5 < x, y, z < 0.5 cube
-    regardless of the passed voxel array shape (aspect ratio etc.).
-    Different grid size, shape and rotation can be obtained using  kwargs:
+    regardless of the passed voxel array shape, like aspect ratio.
 
-        voxels(..., bounds=[0, 300, 0, 400, 0, 500])
+    Different grid size, shape and rotation can be obtained using `kwargs`
 
-    or:
+    - ``voxels_group(..., bounds=[0, 300, 0, 400, 0, 500])``
+    - ``voxels_group(..., scaling=[scale_x, scale_y, scale_z])``
 
-        voxels(..., scaling=[scale_x, scale_y, scale_z]).
+    Parameters
+    ----------
+    space_size : array_like
+        Width, Height, Length of space. Must be non-negative.
+    voxels_group : list, optional
+        List of `voxel_chunk` in format {voxels: np.array, coord: [x,y,z], multiple: number}, by default [].
+    chunks_ids : list, optional
+        List of `voxels_chunk` id, by default [].
+    color_map : int, optional
+        List of Hex color, by default None.
+        The color defined at index i is for voxel value (i+1).
+    wireframe : bool, optional
+        Display voxels as wireframe, by default False.
+    outlines : bool, optional
+        Display voxels outlines, by default True.
+    outlines_color : int, optional
+        Hex color of voxels outlines, by default 0.
+    opacity : float, optional
+        Opacity of voxels, by default 1.0.
+    name : str, optional
+        Object name, by default None.
+    group : str, optional
+        Name of a group, by default None.
+    compression_level : int, optional
+        Level of data compression [-1, 9], by default 0.
+    **kwargs
+        For other keyword-only arguments, see :ref:`process_transform_arguments`.
 
-    Arguments:
-        space_size: `array_like`.
-            Width, Height, Length of space
-        voxels_group: `array_like`.
-            List of `chunks` in format {voxels: np.array, coord: [x,y,z], multiple: number}.
-        chunks_ids: `array`.
-            List of `chunks_id`. Chunks widget you can create using k3d.voxel_chunk()
-        color_map: `array_like`.
-            Flat array of `int` packed RGB colors (0xff0000 is red, 0xff is blue).
-        wireframe: `bool`.
-            Whether mesh should display as wireframe.
-        opacity: `float`.
-            Opacity of voxels.
-        outlines: `bool`.
-            Whether mesh should display with outlines.
-        outlines_color: `int`.
-            Packed RGB color of the resulting outlines (0xff0000 is red, 0xff is blue)
-        name: `string`.
-            A name of a object
-        group: `string`.
-            A name of a group
-        custom_data: `dict`.
-            A object with custom data attached to object.
-        kwargs: `dict`.
-            Dictionary arguments to configure transform and model_matrix."""
+    Returns
+    -------
+    VoxelsGroup
+        VoxelsGroup Drawable.
+    """
     if color_map is None:
         color_map = nice_colors
 
@@ -1469,73 +1564,73 @@ def volume(
     """Create a Volume drawable for 3D volumetric data.
 
     By default, the volume are a grid inscribed in the -0.5 < x, y, z < 0.5 cube
-    regardless of the passed voxel array shape (aspect ratio etc.).
-    Different grid size, shape and rotation can be obtained using  kwargs:
+    regardless of the passed voxel array shape ,like aspect ratio.
 
-        volume(..., bounds=[0, 300, 0, 400, 0, 500])
+    Different grid size, shape and rotation can be obtained using `kwargs`
 
-    or:
+    - ``volume(..., bounds=[0, 300, 0, 400, 0, 500])``
+    - ``volume(..., scaling=[scale_x, scale_y, scale_z])``
 
-        volume(..., scaling=[scale_x, scale_y, scale_z]).
+    Parameters
+    ----------
+    volume : ndarray
+        3D array of `float`.
+    color_map : list, optional
+        List of `float` quadruplets (attribute value, R, G, B) sorted by attribute value, by default None.
+        The first quadruplet should have value 0.0, the last 1.0;
+        R, G, B are RGB color components in the range 0.0 to 1.0.
+    opacity_function : list, optional
+        `float` tuples (attribute value, opacity) sorted by attribute value, by default [].
+        The first tuples should have value 0.0, the last 1.0; opacity is in the range 0.0 to 1.0.
+    color_range : list, optional
+        [min_value, max_value] pair determining the levels of color attribute mapped
+        to 0 and 1 in the colormap, by default [].
+    samples : float, optional
+        Number of iteration per 1 unit of space, by default 512.0.
+    alpha_coef : float, optional
+        Alpha multiplier, by default 50.0.
+    gradient_step : float, optional
+        Gradient light step, by default 0.005.
+    shadow : {'off', 'on_demand', 'dynamic'}, optional
+        Type of shadow on volume, by default "off".
+    interpolation : bool, optional
+        Interpolate volume raycasting data, by default True.
+    shadow_delay : int, optional
+        Minimum number of miliseconds between shadow map updates, by default 500.
+    shadow_res : int, optional
+        Resolution of shadow map, by default 128.
+    focal_length : float, optional
+        Focal length of depth of field renderer, by default 0.0.
+    focal_plane : float, optional
+        Focal plane of depth of field renderer, by default 100.0.
+    ray_samples_count : int, optional
+        Number of rays for depth of field rendering, by default 16.
+    name : str, optional
+        Object name, by default None.
+    group : str, optional
+        Name of a group, by default None.
+    compression_level : int, optional
+        Level of data compression [-1, 9], by default 0.
+    **kwargs
+        For other keyword-only arguments, see :ref:`process_transform_arguments`.
 
-    Arguments:
-        volume: `array_like`.
-            3D array of `float`
-        color_map: `list`.
-            A list of float quadruplets (attribute value, R, G, B), sorted by attribute value. The first
-            quadruplet should have value 0.0, the last 1.0; R, G, B are RGB color components in the range 0.0 to 1.0.
-        opacity_function: `array`.
-            A list of float tuples (attribute value, opacity), sorted by attribute value. The first
-            typles should have value 0.0, the last 1.0; opacity is in the range 0.0 to 1.0.
-        color_range: `list`.
-            A pair [min_value, max_value], which determines the levels of volume attribute mapped
-            to 0 and 1 in the color map respectively.
-        samples: `float`.
-            Number of iteration per 1 unit of space.
-        alpha_coef: `float`
-            Alpha multiplier.
-        gradient_step: `float`
-            Gradient light step.
-        focal_length: `float`
-            focal length of depth of field renderer. 0.0 for disabled
-        focal_plane: `float`
-            focal plane for depth of field renderer
-        ray_samples_count: `Int`
-            Number of rays for Depth of Field rendering
-        shadow: `str`.
-            Type of shadow on volume
-            Legal values are:
-
-                :`off`: shadow disabled,
-                :`on_demand`: update shadow map on demand,
-                :`dynamic`: update shadow map automaticaly every shadow_delay.
-
-        shadow_delay: `float`.
-            Minimum number of miliseconds between shadow map updates.
-        shadow_res: `int`.
-            Resolution of shadow map.
-        interpolation: `bool`.
-            Whether volume raycasting should interpolate data or not.
-        name: `string`.
-            A name of a object
-        group: `string`.
-            A name of a group
-        custom_data: `dict`.
-            A object with custom data attached to object.
-        kwargs: `dict`.
-            Dictionary arguments to configure transform and model_matrix."""
-
+    Returns
+    -------
+    Volume
+        Volume Drawable.
+    """
     if color_map is None:
         color_map = default_colormap
 
     color_range = (
-        check_attribute_range(volume, color_range)
+        check_attribute_color_range(volume, color_range)
         if type(color_range) is not dict
         else color_range
     )
 
     if opacity_function is None:
-        opacity_function = [np.min(color_map[::4]), 0.0, np.max(color_map[::4]), 1.0]
+        opacity_function = [np.min(color_map[::4]),
+                            0.0, np.max(color_map[::4]), 1.0]
 
     return process_transform_arguments(
         Volume(
@@ -1579,50 +1674,57 @@ def mip(
     """Create a MIP drawable for 3D volumetric data.
 
     By default, the volume are a grid inscribed in the -0.5 < x, y, z < 0.5 cube
-    regardless of the passed voxel array shape (aspect ratio etc.).
-    Different grid size, shape and rotation can be obtained using  kwargs:
+    regardless of the passed voxel array shape, like aspect ratio.
 
-        mip(..., bounds=[0, 300, 0, 400, 0, 500])
+    Different grid size, shape and rotation can be obtained using `kwargs`
 
-    or:
+    - ``mip(..., bounds=[0, 300, 0, 400, 0, 500])``
+    - ``mip(..., scaling=[scale_x, scale_y, scale_z])``
 
-        mip(..., scaling=[scale_x, scale_y, scale_z]).
+    Parameters
+    ----------
+    volume : ndarray
+        3D array of `float`.
+    color_map : list, optional
+        List of `float` quadruplets (attribute value, R, G, B) sorted by attribute value, by default None.
+        The first quadruplet should have value 0.0, the last 1.0;
+        R, G, B are RGB color components in the range 0.0 to 1.0.
+    opacity_function : list, optional
+        `float` tuples (attribute value, opacity) sorted by attribute value, by default [].
+        The first tuples should have value 0.0, the last 1.0; opacity is in the range 0.0 to 1.0.
+    color_range : list, optional
+        [min_value, max_value] pair determining the levels of color attribute mapped
+        to 0 and 1 in the colormap, by default [].
+    samples : float, optional
+        Number of iteration per 1 unit of space, by default 512.0.
+    gradient_step : float, optional
+        Gradient light step, by default 0.005.
+    name : str, optional
+        Object name, by default None.
+    group : str, optional
+        Name of a group, by default None.
+    compression_level : int, optional
+        Level of data compression [-1, 9], by default 0.
+    **kwargs
+        For other keyword-only arguments, see :ref:`process_transform_arguments`.
 
-    Arguments:
-        volume: `array_like`.
-            3D array of `float`
-        color_map: `list`.
-            A list of float quadruplets (attribute value, R, G, B), sorted by attribute value. The first
-            quadruplet should have value 0.0, the last 1.0; R, G, B are RGB color components in the range 0.0 to 1.0.
-        opacity_function: `array`.
-            A list of float tuples (attribute value, opacity), sorted by attribute value. The first
-            typles should have value 0.0, the last 1.0; opacity is in the range 0.0 to 1.0.
-        color_range: `list`.
-            A pair [min_value, max_value], which determines the levels of volume attribute mapped
-            to 0 and 1 in the color map respectively.
-        samples: `float`.
-            Number of iteration per 1 unit of space.
-        gradient_step: `float`.
-            Gradient light step.
-        name: `string`.
-            A name of a object
-        group: `string`.
-            A name of a group
-        custom_data: `dict`.
-            A object with custom data attached to object.
-        kwargs: `dict`.
-            Dictionary arguments to configure transform and model_matrix."""
+    Returns
+    -------
+    MIP
+        MIP Drawable.
+    """
     if color_map is None:
         color_map = default_colormap
 
     color_range = (
-        check_attribute_range(volume, color_range)
+        check_attribute_color_range(volume, color_range)
         if type(color_range) is not dict
         else color_range
     )
 
     if opacity_function is None:
-        opacity_function = [np.min(color_map[::4]), 0.0, np.max(color_map[::4]), 1.0]
+        opacity_function = [np.min(color_map[::4]),
+                            0.0, np.max(color_map[::4]), 1.0]
 
     return process_transform_arguments(
         MIP(
@@ -1650,11 +1752,11 @@ def vtk_poly_data(
         wireframe=False,
         opacity=1.0,
         volume=[],
-        flat_shading=True,
         volume_bounds=[],
         opacity_function=[],
         color_range=[],
         cell_color_attribute=None,
+        flat_shading=True,
         name=None,
         group=None,
         custom_data=None,
@@ -1663,54 +1765,72 @@ def vtk_poly_data(
 ):
     """Create a Mesh drawable from given vtkPolyData.
 
-    This function requires the vtk module (from package VTK) to be installed.
+    Require the vtk module (from package VTK) to be installed.
 
-    Arguments:
-        poly_data: `vtkPolyData`.
-            Native vtkPolyData geometry.
-        color: `int`.
-            Packed RGB color of the resulting mesh (0xff0000 is red, 0xff is blue) when not using color maps.
-        color_attribute: `tuple` of (`str`, `float`, `float`).
-            This determines which scalar should be taken as the
-            attribute for the color_map, and the color_range for the mesh: (attribute_name, min_value, max_value).
-            A VTK mesh can have multiple named attributes in the vertices.
-            min_value is the value mapped to 0 in the color_map.
-            max_value is the value mapped to 1 in the color_map.
-        cell_color_attribute: `tuple` of (`str`, `float`, `float`).
-            This determines which scalar should be taken as the
-            attribute for the color_map, and the color_range for the mesh: (attribute_name, min_value, max_value).
-            A VTK mesh can have multiple named attributes in the vertices.
-            min_value is the value mapped to 0 in the color_map.
-            max_value is the value mapped to 1 in the color_map.
-        color_map: `list`.
-            A list of float quadruplets (attribute value, R, G, B), sorted by attribute value. The first
-            quadruplet should have value 0.0, the last 1.0; R, G, B are RGB color components in the range 0.0 to 1.0.
-        color_range: `list`.
-            A pair [min_value, max_value], which determines the levels of color attribute mapped
-            to 0 and 1 in the color map respectively.
-        wireframe: `bool`.
-            Whether mesh should display as wireframe.
-        opacity: `float`.
-            Opacity of mesh.
-        flat_shading: `bool`.
-            Whether mesh should display with flat shading.
-        volume: `array_like`.
-            3D array of `float`
-        volume_bounds: `array_like`.
-            6-element tuple specifying the bounds of the volume data (x0, x1, y0, y1, z0, z1)
-        opacity_function: `array`.
-            A list of float tuples (attribute value, opacity), sorted by attribute value. The first
-            typles should have value 0.0, the last 1.0; opacity is in the range 0.0 to 1.0.
-        side: `string`.
-            Control over which side to render for a mesh. Legal values are `front`, `back`, `double`.
-        name: `string`.
-            A name of a object
-        group: `string`.
-            A name of a group
-        custom_data: `dict`.
-            A object with custom data attached to object.
-        kwargs: `dict`.
-            Dictionary arguments to configure transform and model_matrix."""
+    Parameters
+    ----------
+    poly_data : vtkPolyData
+        Native vtkPolyData geometry.
+    color : int, optional
+        Hex color of the mesh when when not using `color_map`, by default _default_color.
+    color_attribute : tuple, optional
+        (`str`, `float`, `float`) to determine which scalar should be used
+        for the `color_map` and the `color_range` (attribute_name, min_value, max_value), by default None.
+
+        A VTK mesh can have multiple named attributes in the vertices
+
+        - min_value is the value mapped to 0 in the color_map
+        - max_value is the value mapped to 1 in the color_map
+    cell_color_attribute : tuple, optional
+        (`str`, `float`, `float`) to determine which scalar should be used
+        for the `color_map` and the `color_range` (attribute_name, min_value, max_value), by default None.
+
+        A VTK mesh can have multiple named attributes in the vertices
+
+        - min_value is the value mapped to 0 in the color_map
+        - max_value is the value mapped to 1 in the color_map
+    color_map : list, optional
+        List of `float` quadruplets (attribute value, R, G, B) sorted by attribute value, by default None.
+        The first quadruplet should have value 0.0, the last 1.0;
+        R, G, B are RGB color components in the range 0.0 to 1.0.
+    color_range : list, optional
+        [min_value, max_value] pair determining the levels of color attribute mapped
+        to 0 and 1 in the colormap, by default [].
+    side : {"front", "back", "both"}, optional
+        Side to render, by default "front".
+    wireframe : bool, optional
+        Display the mesh as wireframe, by default False.
+    opacity : float, optional
+        Opacity of mesh, by default 1.0.
+    opacity_function : list, optional
+        `float` tuples (attribute value, opacity) sorted by attribute value, by default [].
+
+        The first tuples should have value 0.0, the last 1.0; opacity is in the range 0.0 to 1.0.
+    volume : list, optional
+        3D array of `float`, by default [].
+    volume_bounds : list, optional
+        6-element tuple specifying the bounds of the volume data (x0, x1, y0, y1, z0, z1), by default [].
+    flat_shading : bool, optional
+        Display the mesh with flat shading, by default True.
+    name : str, optional
+        Object name, by default None.
+    group : str, optional
+        Name of a group, by default None.
+    compression_level : int, optional
+        Level of data compression [-1, 9], by default 0.
+    **kwargs
+        For other keyword-only arguments, see :ref:`process_transform_arguments`.
+
+    Returns
+    -------
+    Mesh
+        Mesh Drawable.
+
+    Raises
+    ------
+    RuntimeError
+        vtk module is not available.
+    """
     if color_map is None:
         color_map = default_colormap
 
@@ -1737,10 +1857,11 @@ def vtk_poly_data(
         )
         color_range = cell_color_attribute[1:3]
     elif volume != []:
-        color_range = check_attribute_range(volume, color_range)
+        color_range = check_attribute_color_range(volume, color_range)
 
     vertices = nps.vtk_to_numpy(poly_data.GetPoints().GetData())
-    indices = nps.vtk_to_numpy(poly_data.GetPolys().GetData()).reshape(-1, 4)[:, 1:4]
+    indices = nps.vtk_to_numpy(
+        poly_data.GetPolys().GetData()).reshape(-1, 4)[:, 1:4]
     volume_bounds = (
         np.array(volume_bounds, np.float32)
         if type(volume_bounds) is not dict
@@ -1775,17 +1896,25 @@ def vtk_poly_data(
 
 
 def voxel_chunk(voxels, coord, multiple=1, compression_level=0):
-    """Create a chunk of data that can be used for k3d.voxels_group.
+    """Create a VoxelChunk that can be used for `voxels_group`.
 
-    Arguments:
-        voxels: `array_like`.
-            3D array of `int` in range (0, 255).
-            0 means empty voxel, 1 and above refer to consecutive color_map entries.
-        coord: `array_like`.
-            Coordinate of chunk
-        multiple: `Int`
-            For future usage"""
+    Parameters
+    ----------
+    voxels : array_like
+        3D array of `int` from 0 to 255.
+        0 means empty voxel; 1 and above refer to value of a colormap.
+    coord : array_like
+        Coordinates of the chunk.
+    multiple : int, optional
+        For future usage, by default 1.
+    compression_level : int, optional
+        Level of data compression [-1, 9], by default 0.
 
+    Returns
+    -------
+    VoxelChunk
+        Voxel chunk.
+    """
     return VoxelChunk(
         voxels=np.array(voxels, np.uint8),
         coord=np.array(coord, np.uint32),
@@ -1798,13 +1927,13 @@ def plot(
         height=512,
         antialias=3,
         logarithmic_depth_buffer=True,
-        background_color=0xFFFFFF,
+        background_color=0xffffff,
         camera_auto_fit=True,
         grid_auto_fit=True,
         grid_visible=True,
         screenshot_scale=2.0,
         grid=(-1, -1, -1, 1, 1, 1),
-        grid_color=0xE6E6E6,
+        grid_color=0xe6e6e6,
         label_color=0x444444,
         lighting=1.5,
         menu_visibility=True,
@@ -1812,7 +1941,7 @@ def plot(
         colorbar_object_id=-1,
         camera_fov=60.0,
         time=0.0,
-        axes=["x", "y", "z"],
+        axes=['x', 'y', 'z'],
         axes_helper=1.0,
         axes_helper_colors=[0xff0000, 0x00ff00, 0x0000ff],
         camera_mode="trackball",
@@ -1830,86 +1959,80 @@ def plot(
         name=None,
         custom_data=None
 ):
-    """Create a K3D Plot widget.
+    """Create a Plot widget.
 
-    This creates the main widget for displaying 3D objects.
+    Parameters
+    ----------
+    height : int, optional
+        Height of the widget in pixels, by default 512.
+    antialias : int, optional
+        WebGL renderer antialiasing, by default 3.
+    logarithmic_depth_buffer : bool, optional
+        WebGL renderer logarithmic depth buffer, by default True.
+    background_color : int, optional
+        Hex color of plot background, by default 0xffffff.
+    camera_auto_fit : bool, optional
+        Automatic camera setting after adding, removing or modifying objects, by default True.
+    grid_auto_fit : bool, optional
+        Automatic grid adjustment to contained objects, by default True.
+    grid_visible : bool, optional
+        Display grid, by default True.
+    screenshot_scale : float, optional
+        Screenshot resolution multiplier, by default 2.0.
+    grid : tuple, optional
+        6-element tuple specifying grid bounds (x0, y0, z0, x1, y1, z1), by default (-1, -1, -1, 1, 1, 1).
+    grid_color : int, optional
+        Hex color of the grid, by default 0xe6e6e6.
+    label_color : int, optional
+        Hex color of labels, by default 0x444444.
+    lighting : float, optional
+        Lighting factor, by default 1.5.
+    menu_visibility : bool, optional
+        Display K3D panel, by default True.
+    voxel_paint_color : int, optional
+        (initial) `int` value to be inserted when editing voxels, by default 0.
+    colorbar_object_id : int, optional
+        Id of colorbar object, by default -1.
+    camera_fov : float, optional
+        Camera field of view, by default 60.0.
+    time : float, optional
+        Time value, by default 0.0.
+    axes : list, optional
+        Axes labels, by default ['x', 'y', 'z'].
+    axes_helper : float, optional
+        Axes helper size, by default 1.0.
+    name : str, optional
+        Object name, by default None.
+    group : str, optional
+        Name of a group, by default None.
+    camera_mode : {'trackball', 'orbit', 'fly'}, optional
+        Mode of camera, by default 'trackball'.
+    snapshot_type : {'full', 'online', 'inline'}, optional
+        Type of snapshot, by default 'full'.
+    auto_rendering : bool, optional
+        Auto rendering state, by default True.
+    camera_no_zoom : bool, optional
+        Lock camera zoom, by default False.
+    camera_no_rotate : bool, optional
+        Lock camera rotation, by default False.
+    camera_no_pan : bool, optional
+        Lock camera pan, by default False.
+    camera_rotate_speed : float, optional
+        Camera rotation speed, by default 1.0.
+    camera_zoom_speed : float, optional
+        Camera zoom speed, by default 1.2.
+    camera_pan_speed : float, optional
+        Camera pan speed, by default 0.3.
+    camera_damping_factor : float, optional
+        Camera intensity of damping, by default 0.0.
+    fps : float, optional
+        Animations FPS, by default 25.0.
 
-    Arguments:
-        height: `int`.
-            Height of the widget in pixels.
-        antialias: `bool`.
-            Enable antialiasing in WebGL renderer.
-        logarithmic_depth_buffer: `bool`.
-            Enables logarithmic_depth_buffer in WebGL renderer.
-        background_color: `int`.
-            Packed RGB color of the plot background (0xff0000 is red, 0xff is blue).
-        camera_auto_fit: `bool`.
-            Enable automatic camera setting after adding, removing or changing a plot object.
-        grid_auto_fit: `bool`.
-            Enable automatic adjustment of the plot grid to contained objects.
-        grid_visible: `bool`.
-            Enable or disable grid.
-        grid_color: `int`.
-            Packed RGB color of the plot grids (0xff0000 is red, 0xff is blue).
-        grid: `array_like`.
-            6-element tuple specifying the bounds of the plot grid (x0, y0, z0, x1, y1, z1).
-        screenshot_scale: `Float`.
-            Multipiler to screenshot resolution.
-        label_color: `int`.
-            Packed RGB color of the labels (0xff0000 is red, 0xff is blue).
-        lighting: `Float`.
-            Lighting factor.
-        menu_visibility: `bool`.
-            Enable menu on GUI.
-        voxel_paint_color: `int`.
-            The (initial) int value to be inserted when editing voxels.
-        camera_no_rotate: `Bool`.
-            Lock for camera rotation.
-        camera_no_zoom: `Bool`.
-            Lock for camera zoom.
-        camera_no_pan: `Bool`.
-            Lock for camera pan.
-        camera_rotate_speed: `Float`.
-            Speed of camera rotation.
-        camera_zoom_speed: `Float`.
-            Speed of camera zoom.
-        camera_pan_speed: `Float`.
-            Speed of camera pan.
-        camera_fov: `Float`.
-            Camera Field of View.
-        camera_damping_factor: `Float`.
-            Defines the intensity of damping. Default is 0 (disabled).
-        snapshot_type: `string`.
-            Can be 'full', 'online' or 'inline'.
-        axes: `list`.
-            Axes labels for plot.
-        axes_helper: `Float`.
-            Axes helper size.
-        axes_helper_colors: `List`.
-            List of triple packed RGB color of the axes helper (0xff0000 is red, 0xff is blue).
-        time: `list`.
-            Time value (used in TimeSeries)
-        name: `string`.
-            Name of the plot. Used to filenames of snapshot/screenshot etc.
-        camera_mode: `str`.
-            Mode of camera.
-
-            Legal values are:
-
-            :`trackball`: orbit around point with dynamic up-vector of camera,
-
-            :`orbit`: orbit around point with fixed up-vector of camera,
-
-            :`fly`: orbit around point with dynamic up-vector of camera, wheel on mouse change also target point.
-        auto_rendering: `Bool`.
-            State of auto rendering.
-        fps: `Float`.
-            Fps of animation.
-        grid: `array_like`.
-            6-element tuple specifying the bounds of the plot grid (x0, y0, z0, x1, y1, z1).
-        custom_data: `dict`.
-            A object with custom data attached to object."""
-
+    Returns
+    -------
+    Plot
+        Plot Widget.
+    """
     return Plot(
         antialias=antialias,
         logarithmic_depth_buffer=logarithmic_depth_buffer,

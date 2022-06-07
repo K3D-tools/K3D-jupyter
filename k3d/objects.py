@@ -26,7 +26,7 @@ from .helpers import (
     get_bounding_box_points,
     get_bounding_box,
     shape_validation,
-    validate_sparse_voxels,
+    sparse_voxels_validation,
 )
 from .validation.stl import AsciiStlData, BinaryStlData
 
@@ -55,17 +55,16 @@ class ListOrArray(List):
 
 
 class VoxelChunk(widgets.Widget):
-    """
-    Voxel chunk class for selective updating voxels
-    """
-
+    """Voxel chunk class for selective updating voxels."""
     _model_name = Unicode("ChunkModel").tag(sync=True)
     _model_module = Unicode("k3d").tag(sync=True)
     _model_module_version = Unicode(version).tag(sync=True)
 
     id = Int().tag(sync=True)
-    voxels = Array(dtype=np.uint8).tag(sync=True, **array_serialization_wrap("voxels"))
-    coord = Array(dtype=np.uint32).tag(sync=True, **array_serialization_wrap("coord"))
+    voxels = Array(dtype=np.uint8).tag(
+        sync=True, **array_serialization_wrap("voxels"))
+    coord = Array(dtype=np.uint32).tag(
+        sync=True, **array_serialization_wrap("coord"))
     multiple = Int().tag(sync=True)
     compression_level = Integer().tag(sync=True)
 
@@ -469,7 +468,8 @@ class MarchingCubes(DrawableWithCallback):
     color = Int(min=0, max=0xFFFFFF).tag(sync=True)
     wireframe = Bool().tag(sync=True)
     flat_shading = Bool().tag(sync=True)
-    opacity = TimeSeries(Float(min=0.0, max=1.0, default_value=1.0)).tag(sync=True)
+    opacity = TimeSeries(
+        Float(min=0.0, max=1.0, default_value=1.0)).tag(sync=True)
     model_matrix = TimeSeries(Array(dtype=np.float32)).tag(
         sync=True, **array_serialization_wrap("model_matrix")
     )
@@ -553,12 +553,15 @@ class Mesh(DrawableWithCallback):
     wireframe = TimeSeries(Bool()).tag(sync=True)
     flat_shading = TimeSeries(Bool()).tag(sync=True)
     side = TimeSeries(Unicode()).tag(sync=True)
-    opacity = TimeSeries(Float(min=0.0, max=1.0, default_value=1.0)).tag(sync=True)
-    volume = TimeSeries(Array()).tag(sync=True, **array_serialization_wrap("volume"))
+    opacity = TimeSeries(
+        Float(min=0.0, max=1.0, default_value=1.0)).tag(sync=True)
+    volume = TimeSeries(Array()).tag(
+        sync=True, **array_serialization_wrap("volume"))
     volume_bounds = TimeSeries(Array(dtype=np.float32)).tag(
         sync=True, **array_serialization_wrap("volume_bounds")
     )
-    texture = Bytes(allow_none=True).tag(sync=True, **array_serialization_wrap("texture"))
+    texture = Bytes(allow_none=True).tag(
+        sync=True, **array_serialization_wrap("texture"))
     texture_file_format = Unicode(allow_none=True).tag(sync=True)
     uvs = TimeSeries(Array()).tag(sync=True, **array_serialization_wrap("uvs"))
     opacity_function = TimeSeries(Array(dtype=np.float32)).tag(
@@ -667,11 +670,13 @@ class Points(Drawable):
         sync=True, **array_serialization_wrap("colors")
     )
     color = TimeSeries(Int(min=0, max=0xFFFFFF)).tag(sync=True)
-    point_size = TimeSeries(Float(min=EPSILON, default_value=1.0)).tag(sync=True)
+    point_size = TimeSeries(
+        Float(min=EPSILON, default_value=1.0)).tag(sync=True)
     point_sizes = TimeSeries(Array(dtype=np.float32)).tag(
         sync=True, **array_serialization_wrap("point_sizes")
     )
-    opacity = TimeSeries(Float(min=0.0, max=1.0, default_value=1.0)).tag(sync=True)
+    opacity = TimeSeries(
+        Float(min=0.0, max=1.0, default_value=1.0)).tag(sync=True)
     opacities = TimeSeries(Array(dtype=np.float32)).tag(
         sync=True, **array_serialization_wrap("opacities")
     )
@@ -994,10 +999,12 @@ class Texture(DrawableWithCallback):
     """
 
     type = Unicode(read_only=True).tag(sync=True)
-    binary = Bytes(allow_none=True).tag(sync=True, **array_serialization_wrap("binary"))
+    binary = Bytes(allow_none=True).tag(
+        sync=True, **array_serialization_wrap("binary"))
     file_format = Unicode(allow_none=True).tag(sync=True)
     attribute = Array().tag(sync=True, **array_serialization_wrap("attribute"))
-    puv = Array(dtype=np.float32).tag(sync=True, **array_serialization_wrap("puv"))
+    puv = Array(dtype=np.float32).tag(
+        sync=True, **array_serialization_wrap("puv"))
     color_map = Array(dtype=np.float32).tag(
         sync=True, **array_serialization_wrap("color_map")
     )
@@ -1108,7 +1115,8 @@ class VectorField(Drawable):
     vectors = Array(dtype=np.float32).tag(
         sync=True, **array_serialization_wrap("vectors")
     )
-    colors = Array(dtype=np.uint32).tag(sync=True, **array_serialization_wrap("colors"))
+    colors = Array(dtype=np.uint32).tag(
+        sync=True, **array_serialization_wrap("colors"))
     origin_color = Int(min=0, max=0xFFFFFF).tag(sync=True)
     head_color = Int(min=0, max=0xFFFFFF).tag(sync=True)
     use_head = Bool().tag(sync=True)
@@ -1182,7 +1190,8 @@ class Vectors(Drawable):
     vectors = Array(dtype=np.float32).tag(
         sync=True, **array_serialization_wrap("vectors")
     )
-    colors = Array(dtype=np.uint32).tag(sync=True, **array_serialization_wrap("colors"))
+    colors = Array(dtype=np.uint32).tag(
+        sync=True, **array_serialization_wrap("colors"))
     origin_color = Int(min=0, max=0xFFFFFF).tag(sync=True)
     head_color = Int(min=0, max=0xFFFFFF).tag(sync=True)
     use_head = Bool().tag(sync=True)
@@ -1249,7 +1258,8 @@ class Volume(Drawable):
     """
 
     type = Unicode(read_only=True).tag(sync=True)
-    volume = TimeSeries(Array()).tag(sync=True, **array_serialization_wrap("volume"))
+    volume = TimeSeries(Array()).tag(
+        sync=True, **array_serialization_wrap("volume"))
     color_map = TimeSeries(Array(dtype=np.float32)).tag(
         sync=True, **array_serialization_wrap("color_map")
     )
@@ -1263,9 +1273,11 @@ class Volume(Drawable):
     alpha_coef = TimeSeries(Float()).tag(sync=True)
     gradient_step = TimeSeries(Float()).tag(sync=True)
     shadow = TimeSeries(Unicode()).tag(sync=True)
-    shadow_res = TimeSeries(Int(min=31, max=513, default_value=128)).tag(sync=True)
+    shadow_res = TimeSeries(
+        Int(min=31, max=513, default_value=128)).tag(sync=True)
     shadow_delay = TimeSeries(Float()).tag(sync=True)
-    ray_samples_count = TimeSeries(Int(min=1, max=128, default_value=16)).tag(sync=True)
+    ray_samples_count = TimeSeries(
+        Int(min=1, max=128, default_value=16)).tag(sync=True)
     focal_length = TimeSeries(Float()).tag(sync=True)
     focal_plane = TimeSeries(Float()).tag(sync=True)
     interpolation = TimeSeries(Bool()).tag(sync=True)
@@ -1335,7 +1347,8 @@ class MIP(Drawable):
     """
 
     type = Unicode(read_only=True).tag(sync=True)
-    volume = TimeSeries(Array()).tag(sync=True, **array_serialization_wrap("volume"))
+    volume = TimeSeries(Array()).tag(
+        sync=True, **array_serialization_wrap("volume"))
     color_map = TimeSeries(Array(dtype=np.float32)).tag(
         sync=True, **array_serialization_wrap("color_map")
     )
@@ -1416,14 +1429,16 @@ class Voxels(DrawableWithVoxelCallback):
     """
 
     type = Unicode(read_only=True).tag(sync=True)
-    voxels = Array(dtype=np.uint8).tag(sync=True, **array_serialization_wrap("voxels"))
+    voxels = Array(dtype=np.uint8).tag(
+        sync=True, **array_serialization_wrap("voxels"))
     color_map = Array(dtype=np.uint32).tag(
         sync=True, **array_serialization_wrap("voxels")
     )
     wireframe = Bool().tag(sync=True)
     outlines = Bool().tag(sync=True)
     outlines_color = Int(min=0, max=0xFFFFFF).tag(sync=True)
-    opacity = TimeSeries(Float(min=0.0, max=1.0, default_value=1.0)).tag(sync=True)
+    opacity = TimeSeries(
+        Float(min=0.0, max=1.0, default_value=1.0)).tag(sync=True)
     model_matrix = TimeSeries(Array(dtype=np.float32)).tag(
         sync=True, **array_serialization_wrap("model_matrix")
     )
@@ -1468,13 +1483,13 @@ class SparseVoxels(DrawableWithVoxelCallback):
     type = Unicode(read_only=True).tag(sync=True)
     sparse_voxels = (
         Array(dtype=np.uint16)
-            .tag(sync=True, **array_serialization_wrap("sparse_voxels"))
-            .valid(validate_sparse_voxels)
+        .tag(sync=True, **array_serialization_wrap("sparse_voxels"))
+        .valid(sparse_voxels_validation())
     )
     space_size = (
         Array(dtype=np.uint32)
-            .tag(sync=True, **array_serialization_wrap("space_size"))
-            .valid(shape_validation(3))
+        .tag(sync=True, **array_serialization_wrap("space_size"))
+        .valid(shape_validation(3))
     )
     color_map = Array(dtype=np.uint32).tag(
         sync=True, **array_serialization_wrap("color_map")
@@ -1482,7 +1497,8 @@ class SparseVoxels(DrawableWithVoxelCallback):
     wireframe = Bool().tag(sync=True)
     outlines = Bool().tag(sync=True)
     outlines_color = Int(min=0, max=0xFFFFFF).tag(sync=True)
-    opacity = TimeSeries(Float(min=0.0, max=1.0, default_value=1.0)).tag(sync=True)
+    opacity = TimeSeries(
+        Float(min=0.0, max=1.0, default_value=1.0)).tag(sync=True)
     model_matrix = TimeSeries(Array(dtype=np.float32)).tag(
         sync=True, **array_serialization_wrap("model_matrix")
     )
@@ -1539,7 +1555,8 @@ class VoxelsGroup(DrawableWithVoxelCallback):
     wireframe = Bool().tag(sync=True)
     outlines = Bool().tag(sync=True)
     outlines_color = Int(min=0, max=0xFFFFFF).tag(sync=True)
-    opacity = TimeSeries(Float(min=0.0, max=1.0, default_value=1.0)).tag(sync=True)
+    opacity = TimeSeries(
+        Float(min=0.0, max=1.0, default_value=1.0)).tag(sync=True)
     model_matrix = TimeSeries(Array(dtype=np.float32)).tag(
         sync=True, **array_serialization_wrap("model_matrix")
     )
