@@ -114,6 +114,10 @@ API
    :screenshot:
 
 .. k3d_plot::
+   :filename: api/thumbnails/lines_thumbnail.py
+   :screenshot:
+
+.. k3d_plot::
    :filename: api/thumbnails/marching_cubes_levels_thumbnail.py
    :screenshot:
    
@@ -180,6 +184,10 @@ API
 .. image:: line_colormap_thumbnail.png
    :width: 155
    :target: ../reference/factory.line.html#colormap
+
+.. image:: lines_thumbnail.png
+   :width: 155
+   :target: ../reference/factory.lines.html
 
 .. image:: marching_cubes_levels_thumbnail.png
    :width: 155
