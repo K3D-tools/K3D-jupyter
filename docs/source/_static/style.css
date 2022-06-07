@@ -1,22 +1,22 @@
 .p-Widget .jp-OutputArea-output {
-    width: 100%;
+  width: 100%;
 }
 
 .p-Widget .jp-OutputArea-output .dg * {
-    box-shadow: none;
+  box-shadow: none;
 }
 
 .rst-content .section .p-Widget .jp-OutputArea-output li,
 .rst-content .section .p-Widget .jp-OutputArea-output ul {
-    margin-left: 0;
+  margin-left: 0;
 }
 
 .wy-nav-content {
-    max-width: 1072px;
+  max-width: 1072px;
 }
 
 .dg .cr.color {
-    display: block;
+  display: block;
 }
 
 .k3d_plot {
@@ -26,9 +26,9 @@
 }
 
 i.fa-box-open:before {
-    color: #0073b7;
+  color: #0073b7;
 }
- 
+
 i.fa-circle-notch:before {
-    color: #44a833;
+  color: #44a833;
 }

@@ -133,7 +133,7 @@ def lines(
             A name of a object
         group: `string`.
             A name of a group
-        custom_data: `dict`.
+        custom_data: `dict`
             A object with custom data attached to object.
             """
     if color_map is None:
@@ -216,6 +216,8 @@ def line(
         Object name, by default None.
     group : str, optional
         Name of a group, by default None.
+    custom_data: `dict`
+        A object with custom data attached to object.
     compression_level : int, optional
         Level of data compression [-1, 9], by default 0.
     **kwargs
@@ -314,6 +316,8 @@ def marching_cubes(
         Object name, by default None.
     group : str, optional
         Name of a group, by default None.
+    custom_data: `dict`
+        A object with custom data attached to object.
     compression_level : int, optional
         Level of data compression [-1, 9], by default 0.
     **kwargs
@@ -417,6 +421,8 @@ def mesh(
         Object name, by default None.
     group : str, optional
         Name of a group, by default None.
+    custom_data: `dict`
+        A object with custom data attached to object.
     compression_level : int, optional
         Level of data compression [-1, 9], by default 0.
     triangles_attribute : list, optional
@@ -548,6 +554,8 @@ def points(
         Name of a group, by default None.
     compression_level : int, optional
         Level of data compression [-1, 9], by default 0.
+    custom_data: `dict`
+        A object with custom data attached to object.
     mesh_detail : int, optional
         Detail level of points mesh, by default 2.
         Only valid if `shader` is set to `mesh`. Setting this to a value greater than 0 adds more vertices making it no longer an
@@ -621,6 +629,8 @@ def stl(
         Object name, by default None.
     group : str, optional
         Name of a group, by default None.
+    custom_data: `dict`
+        A object with custom data attached to object.
     compression_level : int, optional
         Level of data compression [-1, 9], by default 0.
     **kwargs
@@ -697,6 +707,8 @@ def surface(
         Object name, by default None.
     group : str, optional
         Name of a group, by default None.
+    custom_data: `dict`
+        A object with custom data attached to object.
     compression_level : int, optional
         Level of data compression [-1, 9], by default 0.
     **kwargs
@@ -784,6 +796,8 @@ def text(
         Object name, by default None.
     group : str, optional
         Name of a group, by default None.
+    custom_data: `dict`
+        A object with custom data attached to object.
     compression_level : int, optional
         Level of data compression [-1, 9], by default 0.
     **kwargs
@@ -861,6 +875,8 @@ def text2d(
         Object name, by default None.
     group : str, optional
         Name of a group, by default None.
+    custom_data: `dict`
+        A object with custom data attached to object.
     compression_level : int, optional
         Level of data compression [-1, 9], by default 0.
     **kwargs
@@ -929,6 +945,8 @@ def label(
         Interprete text as HTMl instead of KaTeX, by default False.
     label_box : bool, optional
         Label background box, by default True.
+    custom_data: `dict`
+        A object with custom data attached to object.
     compression_level : int, optional
         Level of data compression [-1, 9], by default 0.
     **kwargs
@@ -1015,6 +1033,8 @@ def texture(
         Object name, by default None.
     group : str, optional
         Name of a group, by default None.
+    custom_data: `dict`
+        A object with custom data attached to object.
     compression_level : int, optional
         Level of data compression [-1, 9], by default 0.
     **kwargs
@@ -1093,6 +1113,8 @@ def texture_text(
         Object name, by default None.
     group : str, optional
         Name of a group, by default None.
+    custom_data: `dict`
+        A object with custom data attached to object.
     compression_level : int, optional
         Level of data compression [-1, 9], by default 0.
     **kwargs
@@ -1176,6 +1198,8 @@ def vector_field(
         Object name, by default None.
     group : str, optional
         Name of a group, by default None.
+    custom_data: `dict`
+        A object with custom data attached to object.
     compression_level : int, optional
         Level of data compression [-1, 9], by default 0.
     **kwargs
@@ -1257,6 +1281,8 @@ def vectors(
         Object name, by default None.
     group : str, optional
         Name of a group, by default None.
+    custom_data: `dict`
+        A object with custom data attached to object.
     compression_level : int, optional
         Level of data compression [-1, 9], by default 0.
     **kwargs
@@ -1333,6 +1359,8 @@ def voxels(
         Object name, by default None.
     group : str, optional
         Name of a group, by default None.
+    custom_data: `dict`
+        A object with custom data attached to object.
     compression_level : int, optional
         Level of data compression [-1, 9], by default 0.
     **kwargs
@@ -1414,6 +1442,8 @@ def sparse_voxels(
         Object name, by default None.
     group : str, optional
         Name of a group, by default None.
+    custom_data: `dict`
+        A object with custom data attached to object.
     compression_level : int, optional
         Level of data compression [-1, 9], by default 0.
     **kwargs
@@ -1500,6 +1530,8 @@ def voxels_group(
         Object name, by default None.
     group : str, optional
         Name of a group, by default None.
+    custom_data: `dict`
+        A object with custom data attached to object.
     compression_level : int, optional
         Level of data compression [-1, 9], by default 0.
     **kwargs
@@ -1609,6 +1641,8 @@ def volume(
         Object name, by default None.
     group : str, optional
         Name of a group, by default None.
+    custom_data: `dict`
+        A object with custom data attached to object.
     compression_level : int, optional
         Level of data compression [-1, 9], by default 0.
     **kwargs
@@ -1703,6 +1737,8 @@ def mip(
         Object name, by default None.
     group : str, optional
         Name of a group, by default None.
+    custom_data: `dict`
+        A object with custom data attached to object.
     compression_level : int, optional
         Level of data compression [-1, 9], by default 0.
     **kwargs
@@ -1816,6 +1852,8 @@ def vtk_poly_data(
         Object name, by default None.
     group : str, optional
         Name of a group, by default None.
+    custom_data: `dict`
+        A object with custom data attached to object.
     compression_level : int, optional
         Level of data compression [-1, 9], by default 0.
     **kwargs
@@ -2027,6 +2065,8 @@ def plot(
         Camera intensity of damping, by default 0.0.
     fps : float, optional
         Animations FPS, by default 25.0.
+    custom_data: `dict`
+        A object with custom data attached to object.
 
     Returns
     -------

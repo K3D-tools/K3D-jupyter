@@ -75,7 +75,7 @@ html_theme = 'pydata_sphinx_theme'
 
 html_theme_options = {
     "show_prev_next": False,
-    "analytics_id": 'UA-141840477-1',
+    "google_analytics_id": 'UA-141840477-1',
     "icon_links": [
         {
             "name": "GitHub",
