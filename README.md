@@ -9,6 +9,10 @@
 
 Jupyter notebook extension for 3D visualization.
 
+Documentation: [https://k3d-jupyter.org](https://k3d-jupyter.org)
+
+#### Showcase:
+
 ![points_cloud](imgs/points_cloud.gif)
 
 ![streamlines](imgs/streamlines.gif)
@@ -19,20 +23,18 @@ Jupyter notebook extension for 3D visualization.
 
 #### YouTube:
 
-[![Volume renderer](https://img.youtube.com/vi/zCeQ_ZXy_Ps/0.jpg)](https://www.youtube.com/watch?v=zCeQ_ZXy_Ps)
+[![Volume renderer](https://i3.ytimg.com/vi/zCeQ_ZXy_Ps/maxresdefault.jpg)](https://www.youtube.com/watch?v=zCeQ_ZXy_Ps)
 
-[![Volume renderer](https://img.youtube.com/vi/9evYSq3ieVs/0.jpg)](https://www.youtube.com/watch?v=9evYSq3ieVs)
+[![Volume renderer](https://i3.ytimg.com/vi/9evYSq3ieVs/maxresdefault.jpg)](https://www.youtube.com/watch?v=9evYSq3ieVs)
 
-[![Volume renderer](https://img.youtube.com/vi/DbCiauTuJrU/0.jpg)](https://www.youtube.com/watch?v=DbCiauTuJrU)
+[![Volume renderer](https://i3.ytimg.com/vi/DbCiauTuJrU/maxresdefault.jpg)](https://www.youtube.com/watch?v=DbCiauTuJrU)
 
-[![Volume renderer](https://img.youtube.com/vi/wIbBpUlB5vc/0.jpg)](https://www.youtube.com/watch?v=wIbBpUlB5vc)
+[![Volume renderer](https://i3.ytimg.com/vi/wIbBpUlB5vc/maxresdefault.jpg)](https://www.youtube.com/watch?v=wIbBpUlB5vc)
 
 
 ## Try it Now!
 
-Watch: [Interactive showcase gallery](https://k3d-jupyter.org/showcase/index.html)
-
-Documentation: [https://k3d-jupyter.org](https://k3d-jupyter.org)
+Watch: [Interactive showcase gallery](https://k3d-jupyter.org/gallery/index.html)
 
 Jupyter version: [![Binder](https://mybinder.org/badge.svg)](https://mybinder.org/v2/gh/K3D-tools/K3D-jupyter/main?filepath=index.ipynb)
 

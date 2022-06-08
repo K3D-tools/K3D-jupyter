@@ -22,7 +22,7 @@ sys.path.insert(0, os.path.abspath('../..'))
 # -- Project information -----------------------------------------------------
 
 project = 'K3D-jupyter'
-author = u'Marcin Kostur, Artur Trzęsiok, Tomasz Gandor, Thomas Mattone'
+author = u'Artur Trzęsiok, Marcin Kostur, Tomasz Gandor, Thomas Mattone'
 copyright = time.strftime(
     '%Y') + ' ' + author
 
