@@ -99,6 +99,7 @@ html_theme_options = {
 }
 
 html_sidebars = {
+    "index": ["search-field", "sidebar_index"],
     "gallery/*": []
 }
 

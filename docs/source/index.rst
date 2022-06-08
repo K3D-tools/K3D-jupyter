@@ -36,8 +36,6 @@ K3D-jupyter plots ipywidgets_ assuring a perfect interaction of a browser-side w
 Brief Examples
 --------------
 
-Here are some brief interactive examples that demonstrate how you might want to use K3D:
-
 .. code-block:: python3
 
     import k3d
@@ -45,27 +43,13 @@ Here are some brief interactive examples that demonstrate how you might want to 
     from k3d import matplotlib_color_maps
 
     data = np.load('streamlines_data.npz')
-
-    plt_streamlines = k3d.line(data['lines'],
-                               width=0.00007,
-                               attribute=data['v'],
-                               color_map=matplotlib_color_maps.Inferno,
-                               color_range=[0, 0.5],
-                               shader='mesh')
-
-    plt_mesh = k3d.mesh(data['vertices'], data['indices'],
-                        opacity=0.25,
-                        wireframe=True,
-                        color=0x0002)
-
     plot = k3d.plot()
-    plot += plt_streamlines
-    plot += plt_mesh
-    plot.display()
+    plot += k3d.line(data['lines'], width=0.00007, color_range=[0, 0.5], shader='mesh',
+                     attribute=data['v'], color_map=matplotlib_color_maps.Inferno)
 
-    plot.camera = [0.0705, 0.0411, 0.0538,
-                   0.0511, 0.0391, 0.0493,
-                   -0.0798, 0.9872, 0.1265]
+    plot += k3d.mesh(data['vertices'], data['indices'],
+                     opacity=0.25, wireframe=True, color=0x0002)
+    plot.display()
 
 .. k3d_plot ::
   :filename: plot.py
@@ -118,16 +102,16 @@ Click to open YouTube video.
     </div>
 
 
+.. toctree::
+    :maxdepth: 1
+    :hidden:
+
+    User Guide <user/index>
+    API reference <reference/index>
+    Gallery <gallery/index>
 
 .. Links
 .. _Jupyter Notebook: https://jupyter.org/
 .. _PyVista: https://docs.pyvista.org/
 .. _ipywidgets: https://ipywidgets.readthedocs.io/en/latest/
 
-.. toctree::
-    :hidden:
-    :maxdepth: 1
-
-    User Guide <user/index>
-    API reference <reference/index>
-    Gallery <gallery/index>
