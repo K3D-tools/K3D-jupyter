@@ -27,9 +27,4 @@ Plot objects
     factory.voxels
     factory.voxels_group
     factory.vtk_poly_data
-    factory.Cube
-    factory.Dodecahedron
-    factory.Icosahedron
-    factory.Octahedron
-    factory.Tetrahedron
     

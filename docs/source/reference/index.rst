@@ -8,6 +8,7 @@ K3D-jupyter reference
     :maxdepth: 2
     
     factory
+    platonic
     transform
     colormaps
     helpers
