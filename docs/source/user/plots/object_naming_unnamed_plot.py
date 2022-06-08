@@ -1,5 +1,6 @@
-import k3d
 import numpy as np
+
+import k3d
 
 
 def generate():

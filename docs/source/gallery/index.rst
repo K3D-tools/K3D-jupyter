@@ -31,6 +31,7 @@ Showcase
     showcase/segmentation.rst
     showcase/streamlines.rst
     showcase/turbine-cfd.rst
+    showcase/terrain.rst
     showcase/vtk-cutter.rst
 
 .. k3d_plot::
@@ -59,6 +60,10 @@ Showcase
 
 .. k3d_plot::
    :filename: showcase/thumbnails/turbine_cfd_thumbnail.py
+   :screenshot:
+
+.. k3d_plot::
+   :filename: showcase/thumbnails/terrain_thumbnail.py
    :screenshot:
 
 .. k3d_plot::
@@ -96,6 +101,10 @@ Showcase
 .. image:: turbine_cfd_thumbnail.png
    :width: 155
    :target: showcase/turbine-cfd.html
+
+.. image:: terrain_thumbnail.png
+   :width: 155
+   :target: showcase/terrain.html
 
 .. image:: vtk_cutter_thumbnail.png
    :width: 155
