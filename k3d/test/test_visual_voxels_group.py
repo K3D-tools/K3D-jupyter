@@ -1,8 +1,9 @@
-import k3d
-import pytest
-from .plot_compare import *
 import numpy as np
+import pytest
 import skimage.measure
+
+import k3d
+from .plot_compare import *
 
 
 def generate(dim):
@@ -59,6 +60,10 @@ def test_voxels_group():
     pytest.plot += obj
 
     compare('voxels_group')
+
+    obj.opacity = 0.2
+
+    compare('voxels_group_dynamic_opacity')
 
 
 def test_voxels_group_wireframe():

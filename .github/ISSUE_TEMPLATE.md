@@ -12,7 +12,7 @@ k3d python and js version is the same. Instructions are
 Describe what you were trying to get done.
 Tell us what happened, what went wrong, and what you expected to happen.
 
-Please attach screenshot(s) it is related.
+Please attach screenshot(s) if it's related.
 
 ### What I Did
 
@@ -27,6 +27,7 @@ If there was a crash, please include the traceback here.
 In case of web console log please start from point like:
 
 K3D: (UNMASKED_VENDOR_WEBGL) Google Inc. (NVIDIA)
+...
 
 up to the last line. If you don't want to share details about your GPU please anonymise it
 ```

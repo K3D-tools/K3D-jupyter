@@ -164,8 +164,7 @@ module.exports = {
                     config.outlines,
                     config.opacity < 1.0,
                 );
-                let
-                    chunkData;
+                let chunkData;
 
                 if (object.holdRemeshing) {
                     chunkData = {
