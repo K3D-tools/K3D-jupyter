@@ -81,7 +81,7 @@
 
         var data = K3DInstance.msgpack.decode(
           new Uint8Array(stringToArrayBuffer(req.response)),
-          { codec: K3DInstance.MsgpackCodec }
+          {codec: K3DInstance.MsgpackCodec}
         );
 
         var map = {
@@ -146,11 +146,11 @@
           let load = Object.keys(json).length === 0;
 
           Object.keys(diff).forEach((k) => {
-            json[k] = K3DInstance.serialize.deserialize(diff[k]);
+            json[k] = diff[k] = K3DInstance.serialize.deserialize(diff[k]);
           });
 
           if (load) {
-            promises.push(K3DInstance.load({ objects: [json] }));
+            promises.push(K3DInstance.load({objects: [json]}));
           } else {
             promises.push(K3DInstance.reload(json, diff));
           }

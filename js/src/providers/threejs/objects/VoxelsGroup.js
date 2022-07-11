@@ -248,6 +248,7 @@ module.exports = {
         if (areAllChangesResolve(changes, resolvedChanges)) {
             return Promise.resolve({ json: config, obj });
         }
+
         return false;
     },
 };

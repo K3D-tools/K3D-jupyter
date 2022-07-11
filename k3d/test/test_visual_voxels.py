@@ -1,8 +1,9 @@
-import k3d
-import pytest
-from .plot_compare import *
 import numpy as np
+import pytest
 from math import sqrt, sin, cos
+
+import k3d
+from .plot_compare import *
 
 color_map = (0xffff00, 0xff0000, 0x00ff00)
 
@@ -36,6 +37,10 @@ def test_voxels():
 
     compare('voxels')
 
+    obj.opacity = 0.5
+
+    compare('voxels_dynamic_opacity')
+
 
 def test_voxels_sparse():
     global color_map, voxels
@@ -56,6 +61,10 @@ def test_voxels_sparse():
     pytest.plot += obj
 
     compare('voxels_sparse')
+
+    obj.opacity = 0.5
+
+    compare('voxels_sparse_dynamic_opacity')
 
 
 def test_voxels_wireframe():

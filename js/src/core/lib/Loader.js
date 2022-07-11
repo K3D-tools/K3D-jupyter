@@ -20,6 +20,11 @@ function loader(K3D, data) {
         data.objects.forEach((json, i) => {
             K3DObjectPromise = false;
 
+            if (json.visible === false) {
+                // lazy loading on scene
+                return;
+            }
+
             validateAndPrepareObject(K3D, json);
 
             objectProvider = json && K3D.Provider.Objects[json.type];

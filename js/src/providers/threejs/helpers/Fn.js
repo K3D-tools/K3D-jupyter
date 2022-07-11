@@ -8,9 +8,7 @@ function getSpaceDimensionsFromTargetElement(world) {
 
 function getSide(config) {
     const map = {
-        front: THREE.FrontSide,
-        back: THREE.BackSide,
-        double: THREE.DoubleSide,
+        front: THREE.FrontSide, back: THREE.BackSide, double: THREE.DoubleSide,
     };
 
     if (config.opacity < 1.0) {
@@ -146,8 +144,7 @@ module.exports = {
      * @param  {THREE.Color} headColor
      * @param  {Number} headHeight
      */
-    generateArrow(coneGeometry, lineVertices, heads, origin,
-                  destination, headColor, headHeight) {
+    generateArrow(coneGeometry, lineVertices, heads, origin, destination, headColor, headHeight) {
         const axis = new THREE.Vector3();
         const direction = new THREE.Vector3().subVectors(destination, origin);
         const length = direction.length();
@@ -165,9 +162,8 @@ module.exports = {
         if (coneGeometry !== null) {
             coneGeometry = coneGeometry.clone();
 
-            lineDestination = new THREE.Vector3().copy(origin).add(
-                direction.clone().multiplyScalar(length - headHeight),
-            );
+            lineDestination = new THREE.Vector3().copy(origin).add(direction.clone()
+                .multiplyScalar(length - headHeight));
 
             lineVertices.push(lineDestination.x, lineDestination.y, lineDestination.z);
 
@@ -209,13 +205,16 @@ module.exports = {
 
         const canvas = createCanvasGradient(colorMap, 1024);
 
-        const texture = new THREE.CanvasTexture(canvas, THREE.UVMapping, THREE.ClampToEdgeWrapping,
-            THREE.ClampToEdgeWrapping, THREE.NearestFilter, THREE.NearestFilter);
+        const texture = new THREE.CanvasTexture(canvas,
+            THREE.UVMapping,
+            THREE.ClampToEdgeWrapping,
+            THREE.ClampToEdgeWrapping,
+            THREE.NearestFilter,
+            THREE.NearestFilter);
         texture.needsUpdate = true;
 
         material.setValues({
-            map: texture,
-            color: 0xffffff,
+            map: texture, color: 0xffffff,
         });
 
         if (attributes) {
@@ -254,13 +253,12 @@ module.exports = {
     },
 
     recalculateFrustum(camera) {
-        camera.frustum.setFromProjectionMatrix(new THREE.Matrix4().multiplyMatrices(
-            camera.projectionMatrix, camera.matrixWorldInverse,
-        ));
+        camera.frustum.setFromProjectionMatrix(new THREE.Matrix4().multiplyMatrices(camera.projectionMatrix,
+            camera.matrixWorldInverse,));
     },
 
     commonUpdate(config, changes, resolvedChanges, obj, K3D) {
-        if (typeof (changes.model_matrix) !== 'undefined' && !changes.model_matrix.timeSeries) {
+        if (resolvedChanges.model_matrix !== null && typeof (changes.model_matrix) !== 'undefined' && !changes.model_matrix.timeSeries) {
             const modelMatrix = new THREE.Matrix4();
 
             modelMatrix.set.apply(modelMatrix, changes.model_matrix.data);
@@ -284,18 +282,17 @@ module.exports = {
             resolvedChanges.model_matrix = null;
         }
 
-        if (typeof (changes.visible) !== 'undefined' && !changes.visible.timeSeries) {
+        if (resolvedChanges.visible !== null && typeof (changes.visible) !== 'undefined' && !changes.visible.timeSeries) {
             obj.visible = changes.visible;
 
             resolvedChanges.visible = null;
         }
 
-        if (typeof (changes.opacity) !== 'undefined' && !changes.opacity.timeSeries) {
+        if (resolvedChanges.opacity !== null && typeof (changes.opacity) !== 'undefined' && !changes.opacity.timeSeries) {
             obj.material.opacity = changes.opacity;
 
             obj.material.side = getSide({
-                opacity: changes.opacity,
-                side: config.side
+                opacity: changes.opacity, side: config.side
             });
 
             if (obj.material.uniforms && obj.material.uniforms.opacity) {
@@ -310,5 +307,6 @@ module.exports = {
             resolvedChanges.opacity = null;
         }
     },
+
     getSide
 };

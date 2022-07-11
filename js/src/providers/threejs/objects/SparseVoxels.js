@@ -79,6 +79,23 @@ module.exports = {
     update(config, changes, obj, K3D) {
         const resolvedChanges = {};
 
+        if (typeof (changes.opacity) !== 'undefined' && !changes.opacity.timeSeries) {
+            obj.traverse((object) => {
+                if (object.material) {
+                    if (object.material.userData.outline) {
+                        object.material.uniforms.opacity.value = config.opacity * 0.75;
+                        object.material.opacity = object.material.uniforms.opacity.value;
+                    } else {
+                        object.material.opacity = config.opacity;
+                        object.material.depthWrite = config.opacity === 1.0;
+                        object.material.transparent = config.opacity !== 1.0;
+                    }
+                }
+            });
+
+            resolvedChanges.opacity = null;
+        }
+
         commonUpdate(config, changes, resolvedChanges, obj, K3D);
 
         if (areAllChangesResolve(changes, resolvedChanges)) {

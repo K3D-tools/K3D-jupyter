@@ -1,13 +1,12 @@
-import threading
-import numpy as np
-import copy
-import msgpack
-from flask import Flask, request, Response, send_from_directory
-from base64 import b64decode
-import logging
 import atexit
-import urllib.request
+import copy
+import logging
+import msgpack
+import threading
 import time
+import urllib.request
+from base64 import b64decode
+from flask import Flask, request, Response, send_from_directory
 
 from .helpers import to_json
 
@@ -72,12 +71,13 @@ class k3d_remote:
                         if p.startswith('_'):
                             continue
 
-                        sync = False
-
-                        if isinstance(o[p], np.ndarray):
-                            sync = (o[p] != self.synced_objects[o.id][p]).any()
+                        if p == 'voxels_group':
+                            sync = True  # todo
                         else:
-                            sync = o[p] != self.synced_objects[o.id][p]
+                            try:
+                                sync = (o[p] != self.synced_objects[o.id][p]).any()
+                            except:  # lgtm [py/catch-base-exception]
+                                sync = o[p] != self.synced_objects[o.id][p]
 
                         if sync:
                             if o.id not in objects_diff.keys():
