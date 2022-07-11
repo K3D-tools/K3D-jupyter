@@ -66,6 +66,7 @@ def test_voxels_sparse():
 
     compare('voxels_sparse_dynamic_opacity')
 
+
 def test_voxels_wireframe():
     global color_map, voxels
 

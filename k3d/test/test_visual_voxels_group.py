@@ -61,7 +61,7 @@ def test_voxels_group():
 
     compare('voxels_group')
 
-    obj.opacity = 0.2
+    obj.opacity = 0.5
 
     compare('voxels_group_dynamic_opacity')
 
