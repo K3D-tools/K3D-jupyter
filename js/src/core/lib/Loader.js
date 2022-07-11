@@ -20,11 +20,6 @@ function loader(K3D, data) {
         data.objects.forEach((json, i) => {
             K3DObjectPromise = false;
 
-            if (json.visible === false) {
-                // lazy loading on scene
-                return;
-            }
-
             validateAndPrepareObject(K3D, json);
 
             objectProvider = json && K3D.Provider.Objects[json.type];
@@ -56,6 +51,8 @@ function loader(K3D, data) {
 
                 K3DObjectPromise = objectProvider.create(interpolated.json, K3D)
                     .then((K3DObject) => {
+                        K3DObject.visible = interpolated.json.visible;
+
                         const objectNumber = K3D.addOrUpdateObject(json, K3DObject);
 
                         K3DObject.K3DIdentifier = json.id || (`K3DAutoIncrement_${objectNumber}`);

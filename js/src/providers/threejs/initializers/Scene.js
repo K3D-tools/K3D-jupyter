@@ -92,6 +92,11 @@ function getSceneBoundingBox() {
         }
     });
 
+    // one point on scene?
+    if (sceneBoundingBox.getSize(new THREE.Vector3()).lengthSq() < Number.EPSILON) {
+        sceneBoundingBox.max.addScalar(0.1);
+    }
+
     return sceneBoundingBox.isEmpty() ? null : sceneBoundingBox;
 }
 

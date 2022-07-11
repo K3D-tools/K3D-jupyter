@@ -910,9 +910,7 @@ function K3D(provider, targetDOMNode, parameters) {
             // nothing
         }
 
-        if (object.visible !== false) {
-            world.K3DObjects.add(K3DObject);
-        }
+        world.K3DObjects.add(K3DObject);
 
         objectIndex += 1;
 

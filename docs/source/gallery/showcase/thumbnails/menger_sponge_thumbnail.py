@@ -29,7 +29,7 @@ def generate():
     iterate(size, size // 2, size // 2, size // 2)
 
     plt_voxels = k3d.voxels(voxels.astype(np.uint8),
-                            color_map=(0xfdfe03), outlines=False)
+                            color_map=(0xfdfe03), outlines=True)
 
     plot = k3d.plot(grid_visible=False,
                     camera_auto_fit=False,
