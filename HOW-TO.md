@@ -1,5 +1,10 @@
 # How To
 
+## Check if python and js version of k3d match
+
+![image](https://user-images.githubusercontent.com/5256837/178248398-8805dcac-b2e3-4618-a316-30ca01fdd20f.png)
+
+
 ## Add support for new object type
 
 > **Note**
