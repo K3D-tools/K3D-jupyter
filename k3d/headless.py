@@ -13,6 +13,7 @@ from .helpers import to_json
 log = logging.getLogger('werkzeug')
 log.setLevel(logging.ERROR)
 
+
 # logging.basicConfig(filename='test.log', level=logging.DEBUG)
 
 
@@ -75,7 +76,7 @@ class k3d_remote:
                         else:
                             try:
                                 sync = (o[p] != self.synced_objects[o.id][p]).any()
-                            except:
+                            except:  # lgtm [py/catch-base-exception]
                                 sync = o[p] != self.synced_objects[o.id][p]
 
                         if sync:
