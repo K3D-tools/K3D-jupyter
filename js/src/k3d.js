@@ -314,6 +314,7 @@ const PlotView = widgets.DOMWidgetView.extend({
                 backendVersion: this.model.get('_backend_version'),
                 screenshotScale: this.model.get('screenshot_scale'),
                 menuVisibility: this.model.get('menu_visibility'),
+                cameraAutoFit: this.model.get('camera_auto_fit'),
                 cameraNoRotate: this.model.get('camera_no_rotate'),
                 cameraNoZoom: this.model.get('camera_no_zoom'),
                 cameraNoPan: this.model.get('camera_no_pan'),
@@ -332,8 +333,10 @@ const PlotView = widgets.DOMWidgetView.extend({
                 autoRendering: this.model.get('auto_rendering'),
                 gridVisible: this.model.get('grid_visible'),
                 gridColor: this.model.get('grid_color'),
+                gridAutoFit: this.model.get('grid_auto_fit'),
                 clippingPlanes: this.model.get('clipping_planes'),
                 labelColor: this.model.get('label_color'),
+                voxelPaintColor: this.model.get('voxel_paint_color'),
             });
 
             if (this.model.get('camera_auto_fit') === false) {
@@ -346,11 +349,6 @@ const PlotView = widgets.DOMWidgetView.extend({
 
         this.K3DInstance.setClearColor(this.model.get('background_color'));
         this.K3DInstance.setChunkList(chunkList);
-
-        this._setCameraAutoFit();
-        this._setGridAutoFit();
-        this._setMenuVisibility();
-        this._setVoxelPaintColor();
 
         this.model.get('object_ids').forEach(function (id) {
             this.renderPromises.push(this.K3DInstance.load({ objects: [objectsList[id].attributes] }));

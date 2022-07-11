@@ -65,7 +65,13 @@ module.exports = {
 
         line.frustumCulled = false;
 
-        geometry.setAttribute('position', new THREE.BufferAttribute(new Float32Array([0, 0, 0, 1, 1, 1]), 3));
+        geometry.setAttribute('position',
+            new THREE.BufferAttribute(new Float32Array(
+                [
+                    position[0], position[1], position[2],
+                    position[0], position[1], position[2]
+                ]
+            ), 3));
         geometry.computeBoundingSphere();
         geometry.computeBoundingBox();
 
@@ -196,7 +202,6 @@ module.exports = {
 
                 geometry.attributes.position.array.set([p.position.x, p.position.y, p.position.z, v.x, v.y, v.z]);
                 geometry.attributes.position.needsUpdate = true;
-                geometry.computeBoundingBox();
 
                 line.visible = true;
 
