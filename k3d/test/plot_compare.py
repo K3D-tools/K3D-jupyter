@@ -1,10 +1,10 @@
-import pytest
-from PIL import Image
-from pixelmatch.contrib.PIL import pixelmatch
-from io import BytesIO
 import os
+import pytest
 import sys
+from PIL import Image
 from base64 import b64encode
+from io import BytesIO
+from pixelmatch.contrib.PIL import pixelmatch
 
 
 def prepare():
@@ -13,7 +13,13 @@ def prepare():
 
     pytest.plot.clipping_planes = []
     pytest.plot.colorbar_object_id = 0
-    pytest.headless.sync()
+    pytest.plot.grid_visible = True
+    pytest.plot.camera_mode = 'trackball'
+    pytest.plot.camera = [2, -3, 0.2,
+                          0.0, 0.0, 0.0,
+                          0, 0, 1]
+    pytest.headless.sync(hold_until_refreshed=True)
+    pytest.headless.camera_reset()
 
 
 def compare(name, only_canvas=True, threshold=0.2, camera_factor=1.0):
