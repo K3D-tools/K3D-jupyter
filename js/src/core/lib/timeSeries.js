@@ -212,16 +212,14 @@ module.exports = {
 
     interpolateTimeSeries(json, time) {
         const interpolatedJson = {};
-        const
-            changes = {};
+        const changes = {};
 
         Object.keys(json).forEach((property) => {
             let keypoints;
             let a;
             let b;
             let i;
-            let
-                f;
+            let f;
 
             if (json[property] && typeof (json[property].timeSeries) !== 'undefined') {
                 keypoints = Object.keys(json[property]).reduce((p, k) => {
