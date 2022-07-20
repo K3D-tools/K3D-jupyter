@@ -163,6 +163,8 @@ const ObjectModel = widgets.WidgetModel.extend({
         spacings_x: serialize,
         spacings_y: serialize,
         spacings_z: serialize,
+        mask: serialize,
+        mask_opacities: serialize
     }, widgets.WidgetModel.serializers),
 });
 

@@ -3,21 +3,6 @@ const { error } = require('../../../core/lib/Error');
 const getSSAAChunkedRender = require('../helpers/SSAAChunkedRender');
 
 /**
- * @memberof K3D.Providers.ThreeJS.Initializers
- * @inner
- * @param  {K3D.Core} K3D       Current K3D instance
- * @param  {Object} on          Internal type of listener (when its called)
- * @param  {Function} listener  Listener to be removed
- */
-function handleListeners(K3D, on, listener) {
-    listener.call(K3D);
-
-    if (listener.callOnce) {
-        K3D.removeFrameUpdateListener(on, listener);
-    }
-}
-
-/**
  * Renderer initializer for Three.js library
  * @this K3D.Core world
  * @method Renderer
@@ -99,8 +84,6 @@ module.exports = function (K3D) {
             const size = new THREE.Vector2();
 
             self.renderer.getSize(size);
-
-            K3D.frameUpdateHandlers.before.forEach(handleListeners.bind(null, K3D, 'before'));
 
             K3D.refreshGrid();
 
@@ -188,8 +171,6 @@ module.exports = function (K3D) {
 
                 self.renderer.setViewport(0, 0, size.x, size.y);
                 self.camera.clearViewOffset();
-
-                K3D.frameUpdateHandlers.after.forEach(handleListeners.bind(null, K3D, 'after'));
 
                 K3D.dispatch(K3D.events.RENDERED);
 

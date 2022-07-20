@@ -1,7 +1,6 @@
-import warnings
-
 import ipywidgets as widgets
 import numpy as np
+import warnings
 from traitlets import (
     Any,
     Bool,
@@ -1253,6 +1252,10 @@ class Volume(Drawable):
             Resolution of shadow map.
         interpolation: `bool`.
             Whether volume raycasting should interpolate data or not.
+        mask: `array_like`.
+            3D array of `int` in range (0, 255).
+        mask_opacities: `array_like`.
+            List of opacity values for mask.
         model_matrix: `array_like`.
             4x4 model transform matrix.
     """
@@ -1281,6 +1284,9 @@ class Volume(Drawable):
     focal_length = TimeSeries(Float()).tag(sync=True)
     focal_plane = TimeSeries(Float()).tag(sync=True)
     interpolation = TimeSeries(Bool()).tag(sync=True)
+    mask = Array(dtype=np.uint8).tag(sync=True, **array_serialization_wrap('mask'))
+    mask_opacities = TimeSeries(Array(dtype=np.float32)).tag(sync=True, **array_serialization_wrap(
+        'mask_opacities'))
     model_matrix = TimeSeries(Array(dtype=np.float32)).tag(
         sync=True, **array_serialization_wrap("model_matrix")
     )
@@ -1342,6 +1348,10 @@ class MIP(Drawable):
             Number of iteration per 1 unit of space.
         gradient_step: `float`
             Gradient light step.
+        mask: `array_like`.
+            3D array of `int` in range (0, 255).
+        mask_opacities: `array_like`.
+            List of opacity values for mask.
         model_matrix: `array_like`.
             4x4 model transform matrix.
     """
@@ -1360,6 +1370,10 @@ class MIP(Drawable):
     )
     gradient_step = TimeSeries(Float()).tag(sync=True)
     samples = TimeSeries(Float()).tag(sync=True)
+    interpolation = TimeSeries(Bool()).tag(sync=True)
+    mask = Array(dtype=np.uint8).tag(sync=True, **array_serialization_wrap('mask'))
+    mask_opacities = TimeSeries(Array(dtype=np.float32)).tag(sync=True, **array_serialization_wrap(
+        'mask_opacities'))
     model_matrix = TimeSeries(Array(dtype=np.float32)).tag(
         sync=True, **array_serialization_wrap("model_matrix")
     )

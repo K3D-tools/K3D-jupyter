@@ -308,5 +308,15 @@ module.exports = {
         }
     },
 
+    ensure256size: function (data) {
+        let ret = new Float32Array(256);
+
+        for (let i = 0; i < Math.min(256, data.length); i++) {
+            ret[i] = data[i];
+        }
+
+        return ret;
+    },
+
     getSide
 };

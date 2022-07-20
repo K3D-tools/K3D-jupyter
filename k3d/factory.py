@@ -1587,6 +1587,8 @@ def volume(
         focal_length=0.0,
         focal_plane=100.0,
         ray_samples_count=16,
+        mask=[],
+        mask_opacities=[],
         name=None,
         group=None,
         custom_data=None,
@@ -1637,6 +1639,10 @@ def volume(
         Focal plane of depth of field renderer, by default 100.0.
     ray_samples_count : int, optional
         Number of rays for depth of field rendering, by default 16.
+    mask: `array_like`.
+        3D array of `int` in range (0, 255).
+    mask_opacities: `array_like`.
+        List of opacity values for mask. 
     name : str, optional
         Object name, by default None.
     group : str, optional
@@ -1682,6 +1688,8 @@ def volume(
             shadow_res=shadow_res,
             focal_plane=focal_plane,
             focal_length=focal_length,
+            mask=mask,
+            mask_opacities=mask_opacities,
             name=name,
             group=group,
             custom_data=custom_data,
@@ -1699,6 +1707,9 @@ def mip(
         color_range=[],
         samples=512.0,
         gradient_step=0.005,
+        interpolation=True,
+        mask=[],
+        mask_opacities=[],
         name=None,
         group=None,
         custom_data=None,
@@ -1733,6 +1744,12 @@ def mip(
         Number of iteration per 1 unit of space, by default 512.0.
     gradient_step : float, optional
         Gradient light step, by default 0.005.
+    interpolation : bool, optional
+        Interpolate volume raycasting data, by default True.
+    mask: `array_like`.
+        3D array of `int` in range (0, 255).
+    mask_opacities: `array_like`.
+        List of opacity values for mask.
     name : str, optional
         Object name, by default None.
     group : str, optional
@@ -1770,6 +1787,9 @@ def mip(
             color_range=color_range,
             samples=samples,
             gradient_step=gradient_step,
+            interpolation=interpolation,
+            mask=mask,
+            mask_opacities=mask_opacities,
             name=name,
             group=group,
             custom_data=custom_data,

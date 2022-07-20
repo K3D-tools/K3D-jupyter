@@ -19,7 +19,8 @@ function clone(val) {
 }
 
 function getObjectsWithTimeSeriesAndMinMax(K3D) {
-    let min = 0.0; let max = 0.0;
+    let min = 0.0;
+    let max = 0.0;
     const world = K3D.getWorld();
     const objects = [];
 
@@ -46,9 +47,10 @@ function getObjectsWithTimeSeriesAndMinMax(K3D) {
     });
 
     Object.keys(K3D.parameters.cameraAnimation).forEach((t) => {
-        if (!Number.isNaN(parseFloat(t))) {
-            min = Math.min(min, parseFloat(t));
-            max = Math.max(max, parseFloat(t));
+        t = parseFloat(t);
+        if (!Number.isNaN(t)) {
+            min = Math.min(min, t);
+            max = Math.max(max, t);
         }
     });
 
@@ -60,8 +62,10 @@ function getObjectsWithTimeSeriesAndMinMax(K3D) {
 }
 
 function interpolate(a, b, f, property) {
-    let i; let interpolated; let minLength; let
-        maxLength;
+    let i;
+    let interpolated;
+    let minLength;
+    let maxLength;
 
     if (property === 'model_matrix') {
         const matrix = new THREE.Matrix4();
@@ -167,6 +171,11 @@ function startAutoPlay(K3D, changeParameters) {
             t -= K3D.GUI.controls.controllersMap.time._max;
         }
 
+        if (K3D.frameInterval > 1000.0 / K3D.parameters.fps) {
+            console.log("skip frame");
+            return;
+        }
+
         K3D.setTime(t);
         changeParameters('time', t);
     }, 1000.0 / K3D.parameters.fps);
@@ -202,12 +211,16 @@ module.exports = {
     },
 
     interpolateTimeSeries(json, time) {
-        const interpolatedJson = {}; const
+        const interpolatedJson = {};
+        const
             changes = {};
 
         Object.keys(json).forEach((property) => {
             let keypoints;
-            let a; let b; let i; let
+            let a;
+            let b;
+            let i;
+            let
                 f;
 
             if (json[property] && typeof (json[property].timeSeries) !== 'undefined') {

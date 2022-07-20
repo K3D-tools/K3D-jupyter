@@ -211,6 +211,8 @@ function K3D(provider, targetDOMNode, parameters) {
         throw new Error('Provider should be an object (a key-value map following convention)');
     }
 
+    K3D.frameInterval = 0;
+
     this.refreshAfterObjectsChange = function (isUpdate, force) {
         if (self.parameters.autoRendering || force) {
             if (!isUpdate) {
@@ -359,19 +361,6 @@ function K3D(provider, targetDOMNode, parameters) {
                 }
             });
         }
-    };
-
-    /**
-     * Set autoRendering state
-     * @memberof K3D.Core
-     */
-    this.refreshAutoRenderingState = function () {
-        let handlersCount = 0;
-        Object.keys(self.frameUpdateHandlers).forEach((when) => {
-            handlersCount += self.frameUpdateHandlers[when].length;
-        });
-
-        self.autoRendering = handlersCount > 0;
     };
 
     this.dispatch = dispatch;
@@ -979,7 +968,7 @@ function K3D(provider, targetDOMNode, parameters) {
 
             const newCamera = timeSeries.interpolateTimeSeries(json, time);
 
-            world.setupCamera(newCamera.json.camera);
+            world.setupCamera(newCamera.json.camera, null, true);
         }
 
         if (GUI.controls) {
@@ -991,7 +980,7 @@ function K3D(provider, targetDOMNode, parameters) {
         }
 
         return Promise.all(promises).then(() => {
-            self.refreshAfterObjectsChange(true);
+            return self.refreshAfterObjectsChange(true);
         });
     };
 
@@ -1200,8 +1189,6 @@ function K3D(provider, targetDOMNode, parameters) {
      */
     this.disable = function () {
         this.disabling = true;
-        this.frameUpdateHandlers.before = [];
-        this.frameUpdateHandlers.after = [];
         if (this.gui) {
             this.gui.destroy();
         }
@@ -1290,26 +1277,6 @@ function K3D(provider, targetDOMNode, parameters) {
     world.targetDOMNode.className += ' k3d-target';
 }
 
-function isSupportedUpdateListener(when) {
-    return (when in {
-        before: !0,
-        after: !0,
-    });
-}
-
-/**
- * Hash with before and after render listeners
- * @memberof K3D.Core
- * @public
- * @property {Array.<Function>} before Before render listeners
- * @property {Array.<Function>} after After render listeners
- * @type {Object}
- */
-K3D.prototype.frameUpdateHandlers = {
-    before: [],
-    after: [],
-};
-
 K3D.prototype.events = {
     VIEW_MODE_CHANGE: 'viewModeChange',
     CAMERA_MODE_CHANGE: 'cameraModeChange',
@@ -1329,40 +1296,5 @@ K3D.prototype.events = {
     MOUSE_CLICK: 'mouseClick',
 };
 
-/**
- * Attach a listener to current instance
- * @memberof K3D.Core
- * @public
- * @param {String} when=before  When to call the listener (after or before)
- * @param {Function} listener   The listener to be called when before- after- render
- * @param {Bool} callOnce       Info if this is a single-call listener
- */
-K3D.prototype.addFrameUpdateListener = function (when, listener, callOnce) {
-    when = isSupportedUpdateListener(when) ? when : 'before';
-    listener.callOnce = !!callOnce;
-    this.frameUpdateHandlers[when].push(listener);
-
-    this.refreshAutoRenderingState();
-};
-
-/**
- * Detach a listener to current instance
- * @memberof K3D.Core
- * @public
- * @param {String} when=before  Where original listener was attached to (before of after)
- * @param {Function} listener   The listener to be removed
- */
-K3D.prototype.removeFrameUpdateListener = function (when, listener) {
-    when = isSupportedUpdateListener(when) ? when : 'before';
-
-    this.frameUpdateHandlers[when] = this.frameUpdateHandlers[when].filter((fn) => {
-        if (fn !== listener) {
-            return fn;
-        }
-        return false;
-    });
-
-    this.refreshAutoRenderingState();
-};
 
 module.exports = K3D;

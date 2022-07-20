@@ -32,9 +32,7 @@ function addEvents(self, K3D, controls) {
     });
 
     controls.addEventListener('change', () => {
-        if (K3D.frameUpdateHandlers.before.length === 0 && K3D.frameUpdateHandlers.after.length === 0) {
-            self.render();
-        }
+        self.render();
     });
 }
 
@@ -124,8 +122,14 @@ function createControls(self, K3D) {
 module.exports = function (K3D) {
     const self = this;
     let mouseCoordOnDown;
+    let lastFrame = (new Date()).getTime();
 
     function refresh() {
+        let currentFrame = (new Date()).getTime();
+
+        K3D.frameInterval = currentFrame - lastFrame;
+        lastFrame = currentFrame;
+
         const { targetDOMNode } = K3D.getWorld();
 
         if (!targetDOMNode.ownerDocument.contains(targetDOMNode)) {

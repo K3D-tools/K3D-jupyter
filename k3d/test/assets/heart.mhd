@@ -1,0 +1,14 @@
+ObjectType = Image
+NDims = 3
+BinaryData = True
+BinaryDataByteOrderMSB = False
+CompressedData = True
+CompressedDataSize = 18991937
+TransformMatrix = 1 0 0 0 1 0 0 0 1
+Offset = -83.319299999999998 -245.31899999999999 -206.19999999999999
+CenterOfRotation = 0 0 0
+AnatomicalOrientation = RAI
+ElementSpacing = 0.36132799999999998 0.36132799999999998 0.5
+DimSize = 512 512 317
+ElementType = MET_SHORT
+ElementDataFile = heart.zraw

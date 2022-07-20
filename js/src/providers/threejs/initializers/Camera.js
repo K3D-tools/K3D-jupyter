@@ -22,7 +22,7 @@ module.exports = function (K3D) {
     this.axesHelper.camera.lookAt(0.5, 0.5, 0.5);
     this.axesHelper.camera.up.copy(this.camera.up);
 
-    this.setupCamera = function (array, fov) {
+    this.setupCamera = function (array, fov, silent) {
         if (fov) {
             if (typeof (this.camera.fov) !== 'undefined' && typeof (this.axesHelper.camera.fov) !== 'undefined') {
                 this.camera.fov = fov;
@@ -46,7 +46,7 @@ module.exports = function (K3D) {
 
         recalculateFrustum(this.camera);
 
-        this.controls.update(true);
+        this.controls.update(silent);
     };
 
     this.setCameraToFitScene = function (force, factor) {
@@ -132,6 +132,6 @@ module.exports = function (K3D) {
             this.controls.target = sceneBoundingSphere.center;
         }
 
-        this.controls.update(true);
+        this.controls.update();
     };
 };
