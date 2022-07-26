@@ -23,7 +23,9 @@ const { base64ToArrayBuffer } = require('./lib/helpers/buffer');
 
 const MsgpackCodec = msgpack.createCodec({ preset: true });
 
-window.Float16Array = require('./lib/helpers/float16Array');
+const Float16Array = require('./lib/helpers/float16Array');
+
+window.Float16Array = Float16Array;
 
 MsgpackCodec.addExtPacker(0x20, Float16Array, (val) => val);
 MsgpackCodec.addExtUnpacker(0x20, (val) => Float16Array(val.buffer));
@@ -90,7 +92,7 @@ function K3D(provider, targetDOMNode, parameters) {
 
     function initializeGUI() {
         self.gui = new LilGUI({
-            width: 220, autoPlace: false, title: 'K3D panel'
+            width: 220, autoPlace: false, title: 'K3D panel',
         });
 
         guiContainer.appendChild(self.gui.domElement);
@@ -107,12 +109,14 @@ function K3D(provider, targetDOMNode, parameters) {
             detachWindowGUI(GUI.controls, self);
 
             if (fullscreen.isAvailable()) {
-                fullscreen.initialize(world.targetDOMNode, GUI.controls, currentWindow);
+                fullscreen.initialize(world.targetDOMNode, GUI.controls, currentWindow, self);
             }
         }
 
-        GUI.controls.add(self.parameters, 'cameraAutoFit').onChange(changeParameters.bind(self,
-            'camera_auto_fit'));
+        GUI.controls.add(self.parameters, 'cameraAutoFit').onChange(changeParameters.bind(
+            self,
+            'camera_auto_fit',
+        ));
         GUI.controls.add(self.parameters, 'gridAutoFit').onChange((value) => {
             self.setGridAutoFit(value);
             changeParameters.call(self, 'grid_auto_fit', value);
@@ -211,8 +215,6 @@ function K3D(provider, targetDOMNode, parameters) {
         throw new Error('Provider should be an object (a key-value map following convention)');
     }
 
-    K3D.frameInterval = 0;
-
     this.refreshAfterObjectsChange = function (isUpdate, force) {
         if (self.parameters.autoRendering || force) {
             if (!isUpdate) {
@@ -260,7 +262,8 @@ function K3D(provider, targetDOMNode, parameters) {
     ].join(';');
 
     this.GUI = GUI;
-    this.parameters = _.assignWith({
+    this.parameters = _.assignWith(
+        {
             viewMode: viewModes.view,
             cameraMode: cameraModes.trackball,
             manipulateMode: manipulate.manipulateModes.translate,
@@ -286,6 +289,7 @@ function K3D(provider, targetDOMNode, parameters) {
             colorbarScientific: false,
             fps: 25.0,
             axes: ['x', 'y', 'z'],
+            minimumFps: -1,
             cameraNoRotate: false,
             cameraNoZoom: false,
             cameraNoPan: false,
@@ -304,9 +308,15 @@ function K3D(provider, targetDOMNode, parameters) {
             guiVersion: require('../../package.json').version,
         },
         parameters || {},
-        (objValue, srcValue) => (typeof (srcValue) === 'undefined' ? objValue : srcValue));
+        (objValue, srcValue) => (typeof (srcValue) === 'undefined' ? objValue : srcValue),
+    );
 
     this.autoRendering = false;
+
+    this.setMinimumFps = function (fpsTarget) {
+        self.parameters.minimumFps = fpsTarget;
+    };
+
 
     this.startAutoPlay = function () {
         timeSeries.startAutoPlay(self, changeParameters);
@@ -903,6 +913,8 @@ function K3D(provider, targetDOMNode, parameters) {
 
         objectIndex += 1;
 
+        self.heavyOperationSync = true;
+
         return objectIndex;
     };
 
@@ -979,9 +991,7 @@ function K3D(provider, targetDOMNode, parameters) {
             });
         }
 
-        return Promise.all(promises).then(() => {
-            return self.refreshAfterObjectsChange(true);
-        });
+        return Promise.all(promises).then(() => self.refreshAfterObjectsChange(true));
     };
 
     /**
@@ -1169,8 +1179,10 @@ function K3D(provider, targetDOMNode, parameters) {
             });
         });
 
-        return self.load({ objects: data.objects }).then(() => self.refreshAfterObjectsChange(false,
-            true));
+        return self.load({ objects: data.objects }).then(() => self.refreshAfterObjectsChange(
+            false,
+            true,
+        ));
     };
 
     /**
@@ -1295,6 +1307,5 @@ K3D.prototype.events = {
     MOUSE_MOVE: 'mouseMove',
     MOUSE_CLICK: 'mouseClick',
 };
-
 
 module.exports = K3D;

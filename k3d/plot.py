@@ -2,14 +2,13 @@ from __future__ import print_function
 
 import base64
 import ipywidgets as widgets
+import numpy as np
 from IPython.display import display
 from functools import wraps
 from traitlets import Unicode, Bool, Int, List, Float, Dict
 
 from ._version import __version__ as version
 from .objects import (ListOrArray, Drawable, TimeSeries, create_object)
-
-import numpy as np
 
 
 class Plot(widgets.DOMWidget):
@@ -111,6 +110,8 @@ class Plot(widgets.DOMWidget):
             State of auto rendering.
         fps: `Float`.
             Fps of animation.
+        minimum_fps: `Float`.
+            If negative then disabled. Set target FPS to adaptative resolution.
         objects: `list`.
             List of `k3d.objects.Drawable` currently included in the plot, not to be changed directly.
     """
@@ -137,6 +138,7 @@ class Plot(widgets.DOMWidget):
     auto_rendering = Bool(True).tag(sync=True)
     lighting = Float().tag(sync=True)
     fps = Float().tag(sync=True)
+    minimum_fps = Float().tag(sync=True)
     grid_auto_fit = Bool(True).tag(sync=True)
     grid_visible = Bool(True).tag(sync=True)
     fps_meter = Bool(True).tag(sync=True)
@@ -213,6 +215,7 @@ class Plot(widgets.DOMWidget):
             manipulate_mode="translate",
             auto_rendering=True,
             fps=25.0,
+            minimum_fps=20,
             grid_color=0xE6E6E6,
             label_color=0x444444,
             custom_data=None,
@@ -227,6 +230,7 @@ class Plot(widgets.DOMWidget):
         self.grid_auto_fit = grid_auto_fit
         self.fps_meter = fps_meter
         self.fps = fps
+        self.minimum_fps = minimum_fps
         self.grid = grid
         self.grid_visible = grid_visible
         self.background_color = background_color
@@ -431,7 +435,6 @@ class Plot(widgets.DOMWidget):
 
         return zlib.compress(data, compression_level)
 
-
     def load_binary_snapshot(self, data):
         import zlib
         import msgpack
@@ -502,6 +505,7 @@ class Plot(widgets.DOMWidget):
             "cameraAnimation": self.camera_animation,
             "customData": self.custom_data,
             "fps": self.fps,
+            "minimumFps": self.minimum_fps,
         }
 
     def get_snapshot(self, compression_level=9, voxel_chunks=[], additional_js_code=""):

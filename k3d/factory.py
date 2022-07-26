@@ -2013,6 +2013,7 @@ def plot(
         camera_pan_speed=0.3,
         camera_damping_factor=0.0,
         fps=25.0,
+        minimum_fps=20,
         fps_meter=False,
         name=None,
         custom_data=None
@@ -2085,6 +2086,8 @@ def plot(
         Camera intensity of damping, by default 0.0.
     fps : float, optional
         Animations FPS, by default 25.0.
+    minimum_fps: `Float`.
+            If negative then disabled. Set target FPS to adaptative resolution.
     custom_data: `dict`
         A object with custom data attached to object.
 
@@ -2126,6 +2129,7 @@ def plot(
         camera_pan_speed=camera_pan_speed,
         auto_rendering=auto_rendering,
         fps=fps,
+        minimum_fps=minimum_fps,
         fps_meter=fps_meter,
         custom_data=custom_data
     )

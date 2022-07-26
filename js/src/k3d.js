@@ -303,6 +303,7 @@ const PlotView = widgets.DOMWidgetView.extend({
         this.model.on('change:snapshot_type', this._setSnapshotType, this);
         this.model.on('change:name', this._setName, this);
         this.model.on('change:mode', this._setViewMode, this);
+        this.model.on('change:minimum_fps', this._setMinimumFps, this);
         this.model.on('change:camera_mode', this._setCameraMode, this);
         this.model.on('change:manipulate_mode', this._setManipulateMode, this);
 
@@ -500,6 +501,10 @@ const PlotView = widgets.DOMWidgetView.extend({
 
     _setViewMode() {
         this.K3DInstance.setViewMode(this.model.get('mode'));
+    },
+
+    _setMinimumFps() {
+        this.K3DInstance.setMinimumFps(this.model.get('minimum_fps'));
     },
 
     _setCameraMode() {
