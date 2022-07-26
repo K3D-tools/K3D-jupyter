@@ -58,7 +58,7 @@ class k3d_remote:
         def generate():
             current_plot_params = self.k3d_plot.get_plot_params()
             plot_diff = {k: current_plot_params[k] for k in current_plot_params.keys()
-                         if current_plot_params[k] != self.synced_plot[k]}
+                         if current_plot_params[k] != self.synced_plot[k] and k != 'minimumFps'}
 
             objects_diff = {}
 
