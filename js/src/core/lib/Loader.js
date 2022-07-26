@@ -58,8 +58,11 @@ function loader(K3D, data) {
                         K3DObject.K3DIdentifier = json.id || (`K3DAutoIncrement_${objectNumber}`);
                         json.id = K3DObject.K3DIdentifier;
 
-                        console.log(`K3D: Object type "${json.type}" loaded in: `,
-                            (new Date().getTime() - startTime) / 1000, 's');
+                        console.log(
+                            `K3D: Object type "${json.type}" loaded in: `,
+                            (new Date().getTime() - startTime) / 1000,
+                            's',
+                        );
 
                         return { json, obj: K3DObject };
                     })

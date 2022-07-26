@@ -1,11 +1,12 @@
 const THREE = require('three');
+const BufferGeometryUtils = require('three/examples/jsm/utils/BufferGeometryUtils');
+
 const Fn = require('../helpers/Fn');
 
 const { areAllChangesResolve } = Fn;
 const { commonUpdate } = Fn;
 const { colorsToFloat32Array } = require('../../../core/lib/helpers/buffer');
 const streamLine = require('../helpers/Streamline');
-const BufferGeometryUtils = require('three/examples/jsm/utils/BufferGeometryUtils');
 
 const { handleColorMap } = Fn;
 
@@ -43,14 +44,14 @@ module.exports = {
         const position = config.vertices.data;
         const indices = config.indices.data;
         const edges = new Set();
-        let jump = config.indices_type == 'segment' ? 2 : 3;
+        const jump = config.indices_type === 'segment' ? 2 : 3;
 
         if (verticesColors && verticesColors.length === position.length / 3) {
             verticesColors = colorsToFloat32Array(verticesColors);
         }
 
-        let g = [];
-        let verticesCount = position.length / 3;
+        const g = [];
+        const verticesCount = position.length / 3;
         let offsets;
 
         for (let i = 0; i < indices.length; i += jump) {
@@ -62,26 +63,26 @@ module.exports = {
                 ];
             } else {
                 offsets = [
-                    [indices[i], indices[i + 1]]
+                    [indices[i], indices[i + 1]],
                 ];
             }
 
             for (let j = 0; j < offsets.length; j++) {
-                let hash = offsets[j][0] > offsets[j][1]
+                const hash = offsets[j][0] > offsets[j][1]
                     ? offsets[j][0] + offsets[j][1] * verticesCount
                     : offsets[j][1] + offsets[j][0] * verticesCount;
 
                 if (!edges.has(hash)) {
                     edges.add(hash);
 
-                    let o1 = offsets[j][0] * 3;
-                    let o2 = offsets[j][1] * 3;
+                    const o1 = offsets[j][0] * 3;
+                    const o2 = offsets[j][1] * 3;
 
                     g.push(
                         streamLine(
                             [
                                 position[o1], position[o1 + 1], position[o1 + 2],
-                                position[o2], position[o2 + 1], position[o2 + 2]
+                                position[o2], position[o2 + 1], position[o2 + 2],
                             ],
                             attribute.length > 0 ? [attribute[offsets[j][0]], attribute[offsets[j][1]]] : null,
                             width,
@@ -91,14 +92,14 @@ module.exports = {
                                 ? [verticesColors[o1], verticesColors[o1 + 1], verticesColors[o1 + 2],
                                     verticesColors[o2], verticesColors[o2 + 1], verticesColors[o2 + 2]]
                                 : null,
-                            colorRange
-                        )
+                            colorRange,
+                        ),
                     );
                 }
             }
         }
 
-        let geometry = BufferGeometryUtils.mergeBufferGeometries(g);
+        const geometry = BufferGeometryUtils.mergeBufferGeometries(g);
 
         if (attribute && colorRange && colorMap && attribute.length > 0 && colorRange.length > 0
             && colorMap.length > 0) {

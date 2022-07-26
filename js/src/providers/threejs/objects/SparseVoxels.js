@@ -69,7 +69,9 @@ module.exports = {
         return VoxelsHelper.create(
             config,
             VoxelsHelper.generateRegularChunks(
-                32, [config.space_size.data[2], config.space_size.data[1], config.space_size.data[0]], voxels,
+                32,
+                [config.space_size.data[2], config.space_size.data[1], config.space_size.data[0]],
+                voxels,
             ),
             config.space_size.data,
             K3D,

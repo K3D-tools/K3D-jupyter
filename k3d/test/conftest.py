@@ -1,4 +1,6 @@
-import os, sys, inspect
+import inspect
+import os
+import sys
 
 current_dir = os.path.dirname(os.path.abspath(inspect.getfile(inspect.currentframe())))
 parent_dir = os.path.dirname(current_dir)
@@ -27,7 +29,7 @@ def pytest_sessionstart(session):
     before performing collection and entering the run test loop.
     """
     pytest.plot = k3d.plot(screenshot_scale=1.0, antialias=2, camera_auto_fit=False,
-                           colorbar_object_id=0)
+                           minimum_fps=-1, colorbar_object_id=0)
     print(pytest.plot.get_static_path())
     pytest.headless = k3d_remote(pytest.plot, get_headless_driver())
     pytest.headless.browser.execute_script("window.randomMul = 0.0;")

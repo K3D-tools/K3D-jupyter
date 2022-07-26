@@ -163,6 +163,8 @@ const ObjectModel = widgets.WidgetModel.extend({
         spacings_x: serialize,
         spacings_y: serialize,
         spacings_z: serialize,
+        mask: serialize,
+        mask_opacities: serialize,
     }, widgets.WidgetModel.serializers),
 });
 
@@ -301,6 +303,7 @@ const PlotView = widgets.DOMWidgetView.extend({
         this.model.on('change:snapshot_type', this._setSnapshotType, this);
         this.model.on('change:name', this._setName, this);
         this.model.on('change:mode', this._setViewMode, this);
+        this.model.on('change:minimum_fps', this._setMinimumFps, this);
         this.model.on('change:camera_mode', this._setCameraMode, this);
         this.model.on('change:manipulate_mode', this._setManipulateMode, this);
 
@@ -386,25 +389,21 @@ const PlotView = widgets.DOMWidgetView.extend({
         });
 
         this.objectHoverCallback = this.K3DInstance.on(this.K3DInstance.events.OBJECT_HOVERED, (param) => {
-            if (objectsList[param.K3DIdentifier] &&
-                this.K3DInstance.parameters.viewMode === viewModes.callback) {
-
+            if (objectsList[param.K3DIdentifier] && this.K3DInstance.parameters.viewMode === viewModes.callback) {
                 objectsList[param.K3DIdentifier].send(
                     _.extend({
-                        msg_type: 'hover_callback'
-                    }, param)
+                        msg_type: 'hover_callback',
+                    }, param),
                 );
             }
         });
 
         this.objectClickCallback = this.K3DInstance.on(this.K3DInstance.events.OBJECT_CLICKED, (param) => {
-            if (objectsList[param.K3DIdentifier] &&
-                this.K3DInstance.parameters.viewMode === viewModes.callback) {
-
+            if (objectsList[param.K3DIdentifier] && this.K3DInstance.parameters.viewMode === viewModes.callback) {
                 objectsList[param.K3DIdentifier].send(
                     _.extend({
-                        msg_type: 'click_callback'
-                    }, param)
+                        msg_type: 'click_callback',
+                    }, param),
                 );
             }
         });
@@ -502,6 +501,10 @@ const PlotView = widgets.DOMWidgetView.extend({
 
     _setViewMode() {
         this.K3DInstance.setViewMode(this.model.get('mode'));
+    },
+
+    _setMinimumFps() {
+        this.K3DInstance.setMinimumFps(this.model.get('minimum_fps'));
     },
 
     _setCameraMode() {

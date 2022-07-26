@@ -143,7 +143,7 @@ module.exports = function (THREE) {
         };
 
         // this method is exposed, but perhaps it would be better if we can make it private...
-        this.update = function () {
+        this.update = function (silent) {
 
             const offset = new THREE.Vector3();
 
@@ -247,7 +247,9 @@ module.exports = function (THREE) {
                     lastPosition.distanceToSquared(scope.object.position) > EPS ||
                     8 * (1 - lastQuaternion.dot(scope.object.quaternion)) > EPS) {
 
-                    scope.dispatchEvent(_changeEvent);
+                    if (!silent) {
+                        scope.dispatchEvent(_changeEvent);
+                    }
 
                     lastPosition.copy(scope.object.position);
                     lastQuaternion.copy(scope.object.quaternion);

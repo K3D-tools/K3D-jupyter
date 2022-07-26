@@ -20,6 +20,10 @@ uniform float alpha_coef;
 uniform vec3 lightDirection;
 uniform mat4 modelViewMatrix;
 
+uniform sampler3D mask;
+uniform float maskOpacities[256];
+uniform bool maskEnabled;
+
 float inv_range;
 
 struct Ray {
@@ -65,6 +69,12 @@ void intersect(
     tzmax = (aabb[1-ray.sign[2]].z - ray.origin.z) * ray.inv_direction.z;
     tmin = max(max(tmin, tymin), tzmin);
     tmax = min(min(tmax, tymax), tzmax);
+}
+
+float getMaskOpacity(vec3 pos) {
+    int maskValue = int(texture(mask, pos).r * 255.0);
+
+    return  maskOpacities[maskValue];
 }
 
 void main() {
@@ -153,6 +163,11 @@ void main() {
 
             float density = 1.0 - pow(1.0 - alpha, textcoord_delta_step * alpha_coef);
             density *= (1.0 - sum_density);
+
+            #if (USE_MASK == 1)
+            density *= getMaskOpacity(textcoord);
+            #endif
+
             sum_density += density;
 
             if(sum_density >= 0.99){

@@ -55,8 +55,13 @@ module.exports = {
             throw new Error('there should be 2 colors for each vector');
         }
 
-        const singleConeGeometry = new THREE.CylinderGeometry(0, 0.025 * headSize,
-            0.2 * headSize, 5, 1).translate(0, -0.1 * headSize, 0);
+        const singleConeGeometry = new THREE.CylinderGeometry(
+            0,
+            0.025 * headSize,
+            0.2 * headSize,
+            5,
+            1,
+        ).translate(0, -0.1 * headSize, 0);
 
         for (i = 0; i < vectors.length; i += 3) {
             origin = new THREE.Vector3(origins[i], origins[i + 1], origins[i + 2]);

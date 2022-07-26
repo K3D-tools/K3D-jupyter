@@ -16,13 +16,17 @@ module.exports = function (K3D) {
     this.camera.up.set(0, 0, 1);
     this.camera.frustum = new THREE.Frustum();
 
-    this.axesHelper.camera = new THREE.PerspectiveCamera(K3D.parameters.cameraFov,
-        this.axesHelper.width / this.axesHelper.height, 0.1, 1000);
+    this.axesHelper.camera = new THREE.PerspectiveCamera(
+        K3D.parameters.cameraFov,
+        this.axesHelper.width / this.axesHelper.height,
+        0.1,
+        1000,
+    );
     this.axesHelper.camera.position.set(2, 0.5, 0.5);
     this.axesHelper.camera.lookAt(0.5, 0.5, 0.5);
     this.axesHelper.camera.up.copy(this.camera.up);
 
-    this.setupCamera = function (array, fov) {
+    this.setupCamera = function (array, fov, silent) {
         if (fov) {
             if (typeof (this.camera.fov) !== 'undefined' && typeof (this.axesHelper.camera.fov) !== 'undefined') {
                 this.camera.fov = fov;
@@ -46,7 +50,7 @@ module.exports = function (K3D) {
 
         recalculateFrustum(this.camera);
 
-        this.controls.update(true);
+        this.controls.update(silent);
     };
 
     this.setCameraToFitScene = function (force, factor) {
@@ -132,6 +136,6 @@ module.exports = function (K3D) {
             this.controls.target = sceneBoundingSphere.center;
         }
 
-        this.controls.update(true);
+        this.controls.update();
     };
 };

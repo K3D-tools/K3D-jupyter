@@ -51,7 +51,7 @@ def compare(name, only_canvas=True, threshold=0.2, camera_factor=1.0):
 
     if mismatch >= threshold:
         with open('./test/results/' + name + '.k3d', 'wb') as f:
-            f.write(pytest.plot.get_binary_snapshot(0))
+            f.write(pytest.plot.get_binary_snapshot(1))
         result.save('./test/results/' + name + '.png')
         reference.save('./test/results/' + name + '_reference.png')
         img_diff.save('./test/results/' + name + '_diff.png')

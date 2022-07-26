@@ -1,7 +1,7 @@
 const FileSaver = require('file-saver');
 const fflate = require('fflate');
 const requireJsSource = require('requirejs/require?raw');
-const fflateJsSource = require('./../../../node_modules/fflate/umd/index?raw');
+const fflateJsSource = require('../../../node_modules/fflate/umd/index?raw');
 const fileLoader = require('./helpers/fileLoader');
 const templateStandalone = require('./snapshot_standalone.txt');
 const templateOnline = require('./snapshot_online.txt');
@@ -39,6 +39,8 @@ if (typeof (sourceCode) === 'undefined') {
 }
 
 function getHTMLSnapshot(K3D, compressionLevel) {
+    K3D.heavyOperationSync = true;
+
     const data = buffer.arrayBufferToBase64(K3D.getSnapshot(compressionLevel));
     let filecontent;
     const timestamp = new Date().toUTCString();

@@ -11,7 +11,7 @@ function prepareParam(param) {
         face_index: param.faceIndex,
         face: [param.face.a, param.face.b, param.face.c],
         uv: param.uv,
-        K3DIdentifier: param.object.K3DIdentifier
+        K3DIdentifier: param.object.K3DIdentifier,
     };
 }
 

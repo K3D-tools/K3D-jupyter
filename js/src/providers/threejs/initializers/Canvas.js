@@ -20,21 +20,16 @@ function addEvents(self, K3D, controls) {
 
         K3D.dispatch(K3D.events.CAMERA_CHANGE, r);
 
-        const camDistance = (3.0 * 0.5) / Math.tan(
-            THREE.Math.degToRad(K3D.parameters.cameraFov / 2.0),
-        );
+        const camDistance = (3.0 * 0.5) / Math.tan(THREE.Math.degToRad(K3D.parameters.cameraFov / 2.0));
 
-        self.axesHelper.camera.position.copy(
-            self.camera.position.clone().sub(self.controls.target).normalize().multiplyScalar(camDistance),
-        );
+        self.axesHelper.camera.position.copy(self.camera.position.clone().sub(self.controls.target).normalize()
+            .multiplyScalar(camDistance));
         self.axesHelper.camera.lookAt(0, 0, 0);
         self.axesHelper.camera.up.copy(self.camera.up);
     });
 
     controls.addEventListener('change', () => {
-        if (K3D.frameUpdateHandlers.before.length === 0 && K3D.frameUpdateHandlers.after.length === 0) {
-            self.render();
-        }
+        self.render();
     });
 }
 
@@ -124,8 +119,92 @@ function createControls(self, K3D) {
 module.exports = function (K3D) {
     const self = this;
     let mouseCoordOnDown;
+    let lastFrameTime = null;
+    const intervals = new Float32Array(64);
+    let intervalsPtr = 0;
+    let qualityFactor = 1.0;
 
-    function refresh() {
+    function changeQuality(quality) {
+        self.renderer.setPixelRatio(window.devicePixelRatio * quality);
+    }
+
+    function guessQualityFactor(time) {
+        if (time < 1000.0 / (2.0 * K3D.parameters.minimumFps)) {
+            return Math.min(qualityFactor * 1.5, 1);
+        }
+
+        return qualityFactor / Math.min((1.25 * time) / (1000.0 / K3D.parameters.minimumFps), 5);
+    }
+
+    function refresh(time, skipFrameCount) {
+        if (K3D.parameters.minimumFps > 0) {
+            if (!time) {
+                // fired manually - we need correct parameters
+                requestAnimationFrame(refresh);
+                return;
+            }
+
+            if (lastFrameTime === null) {
+                lastFrameTime = time;
+                requestAnimationFrame(refresh);
+                return;
+            }
+
+            const currentFrame = time;
+
+            K3D.frameInterval = currentFrame - lastFrameTime;
+
+            lastFrameTime = currentFrame;
+
+            if (skipFrameCount > 0 || K3D.heavyOperationAsync || K3D.heavyOperationSync) {
+                if (K3D.heavyOperationSync) {
+                    skipFrameCount = 16;
+                    K3D.heavyOperationSync = false;
+                }
+
+                self.controls.update();
+                requestAnimationFrame((t) => {
+                    refresh(t, skipFrameCount - 1);
+                });
+                return;
+            }
+
+            // adaptative resolution
+            intervals[intervalsPtr] = K3D.frameInterval;
+            intervalsPtr = (intervalsPtr + 1) % intervals.length;
+            const longAverageTime = intervals.reduce((a, b) => a + b, 0) / intervals.length;
+
+            let shortAverageTime = 0;
+            for (let i = intervalsPtr - 8 + intervals.length; i < intervalsPtr + intervals.length; i++) {
+                shortAverageTime += intervals[i % intervals.length];
+            }
+            shortAverageTime /= 8;
+
+            const oldQualityFactor = qualityFactor;
+
+            if (K3D.frameInterval > (2.0 * 1000.0) / K3D.parameters.minimumFps) {
+                qualityFactor = guessQualityFactor(K3D.frameInterval);
+            } else if (shortAverageTime > 1000.0 / K3D.parameters.minimumFps) {
+                qualityFactor = guessQualityFactor(shortAverageTime);
+            } else if (longAverageTime < 1000.0 / (2.0 * K3D.parameters.minimumFps)) {
+                qualityFactor = guessQualityFactor(longAverageTime);
+            }
+
+            if (oldQualityFactor !== qualityFactor) {
+                console.log('qualityFactor', qualityFactor);
+
+                changeQuality(qualityFactor);
+                K3D.render();
+                intervals.fill(1000.0 / (1.5 * K3D.parameters.minimumFps));
+
+                requestAnimationFrame((t) => {
+                    refresh(t, 16);
+                });
+
+                return;
+            }
+        }
+
         const { targetDOMNode } = K3D.getWorld();
 
         if (!targetDOMNode.ownerDocument.contains(targetDOMNode)) {
@@ -181,6 +260,10 @@ module.exports = function (K3D) {
         if (self.controls.handleResize) {
             self.controls.handleResize();
         }
+    });
+
+    window.addEventListener('visibilitychange', () => {
+        lastFrameTime = null;
     });
 
     this.changeControls = function (force) {

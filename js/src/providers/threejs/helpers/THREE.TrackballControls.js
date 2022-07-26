@@ -1,5 +1,4 @@
-// jshint ignore: start
-// jscs:disable
+/* eslint-disable */
 
 module.exports = function (THREE) {
     THREE.TrackballControls = function (object, domElement) {
@@ -292,7 +291,7 @@ module.exports = function (THREE) {
             }
         };
 
-        this.update = function () {
+        this.update = function (silent) {
             _eye.subVectors(scope.object.position, scope.target);
 
             if (!scope.noRotate) {
@@ -318,7 +317,9 @@ module.exports = function (THREE) {
                     lastPosition.copy(scope.object.position);
                     lastUp.copy(scope.object.up);
 
-                    scope.dispatchEvent(_changeEvent);
+                    if (!silent) {
+                        scope.dispatchEvent(_changeEvent);
+                    }
 
                     lastPosition.copy(scope.object.position);
                 }
@@ -326,7 +327,9 @@ module.exports = function (THREE) {
                 scope.object.lookAt(scope.target);
 
                 if (lastPosition.distanceToSquared(scope.object.position) > EPS || lastZoom !== scope.object.zoom) {
-                    scope.dispatchEvent(_changeEvent);
+                    if (!silent) {
+                        scope.dispatchEvent(_changeEvent);
+                    }
                     lastPosition.copy(scope.object.position);
                     lastZoom = scope.object.zoom;
                 }

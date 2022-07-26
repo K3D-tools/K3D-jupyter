@@ -7,8 +7,8 @@ require('./helpers/THREE.TrackballControls')(THREE);
 require('./helpers/THREE.OrbitControls')(THREE);
 
 THREE.TransformControls = require('./helpers/TransformControls').TransformControls;
-THREE.Mesh.prototype.raycast = threeMeshBVH.acceleratedRaycast;
 
+THREE.Mesh.prototype.raycast = threeMeshBVH.acceleratedRaycast;
 
 /**
  * K3D ThreeJS Provider namespace

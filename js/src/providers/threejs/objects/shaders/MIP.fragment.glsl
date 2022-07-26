@@ -15,6 +15,9 @@ uniform mat4 modelViewMatrix;
 uniform float samples;
 uniform float gradient_step;
 
+uniform sampler3D mask;
+uniform float maskOpacities[256];
+
 uniform vec4 scale;
 uniform vec4 translation;
 
@@ -69,13 +72,29 @@ void intersect(
     tmax = min(min(tmax, tymax), tzmax);
 }
 
+float getMaskOpacity(vec3 pos) {
+    int maskValue = int(texture(mask, pos).r * 255.0);
+
+    return maskOpacities[maskValue];
+}
+
+float getMaskedVolume(vec3 pos)
+{
+    #if (USE_MASK == 1)
+    return texture(volumeTexture, pos).x * getMaskOpacity(pos);
+    #else
+    return texture(volumeTexture, pos).x;
+    #endif
+}
+
 vec3 worldGetNormal(in float px, in vec3 pos)
 {
     return normalize(
-        vec3(px -  texture(volumeTexture, pos + vec3(gradient_step, 0, 0)).x,
-             px -  texture(volumeTexture, pos + vec3(0, gradient_step, 0)).x,
-             px -  texture(volumeTexture, pos + vec3(0, 0, gradient_step)).x
-         )
+        vec3(
+            px -  getMaskedVolume(pos + vec3(gradient_step, 0, 0)),
+            px -  getMaskedVolume(pos + vec3(0, gradient_step, 0)),
+            px -  getMaskedVolume(pos + vec3(0, 0, gradient_step))
+        )
     );
 }
 
@@ -123,7 +142,11 @@ void main() {
             #pragma unroll_loop_end
         #endif
 
+        #if (USE_MASK == 1)
+        float newPx = texture(volumeTexture, textcoord).x * getMaskOpacity(textcoord);
+        #else
         float newPx = texture(volumeTexture, textcoord).x;
+        #endif
 
         if(newPx > px) {
             px = newPx;

@@ -68,21 +68,27 @@ module.exports = {
             }
 
             if (axesHelper) {
-                coord = toScreenPosition(object, {
-                    width: axesHelper.width,
-                    height: axesHelper.height,
-                    offsetX: world.width - axesHelper.width,
-                    offsetY: world.height - axesHelper.height,
-                },
-                axesHelper.camera);
+                coord = toScreenPosition(
+                    object,
+                    {
+                        width: axesHelper.width,
+                        height: axesHelper.height,
+                        offsetX: world.width - axesHelper.width,
+                        offsetY: world.height - axesHelper.height,
+                    },
+                    axesHelper.camera,
+                );
             } else {
-                coord = toScreenPosition(object, {
-                    width: world.width,
-                    height: world.height,
-                    offsetX: 0,
-                    offsetY: 0,
-                },
-                world.camera);
+                coord = toScreenPosition(
+                    object,
+                    {
+                        width: world.width,
+                        height: world.height,
+                        offsetX: 0,
+                        offsetY: 0,
+                    },
+                    world.camera,
+                );
             }
 
             switch (referencePoint[0]) {

@@ -52,8 +52,14 @@ module.exports = {
             }
 
             const canvas = colorMapHelper.createCanvasGradient(colorMap, 1024, opacityFunction);
-            const colormap = new THREE.CanvasTexture(canvas, THREE.UVMapping, THREE.ClampToEdgeWrapping,
-                THREE.ClampToEdgeWrapping, THREE.NearestFilter, THREE.NearestFilter);
+            const colormap = new THREE.CanvasTexture(
+                canvas,
+                THREE.UVMapping,
+                THREE.ClampToEdgeWrapping,
+                THREE.ClampToEdgeWrapping,
+                THREE.NearestFilter,
+                THREE.NearestFilter,
+            );
             colormap.needsUpdate = true;
 
             uniforms = {
@@ -61,19 +67,23 @@ module.exports = {
                 high: { value: colorRange[1] },
                 colormap: { type: 't', value: colormap },
             };
-            geometry.setAttribute('attributes',
-                new THREE.InstancedBufferAttribute(attribute, 1).setUsage(THREE.DynamicDrawUsage));
+            geometry.setAttribute(
+                'attributes',
+                new THREE.InstancedBufferAttribute(attribute, 1).setUsage(THREE.DynamicDrawUsage),
+            );
         } else {
             colors = (pointColors && pointColors.length === positions.length / 3
-                    ? colorsToFloat32Array(pointColors) : getColorsArray(color, positions.length / 3)
+                ? colorsToFloat32Array(pointColors) : getColorsArray(color, positions.length / 3)
             );
         }
 
         geometry.setAttribute('color', new THREE.InstancedBufferAttribute(new Float32Array(colors), 3));
 
         if (opacities) {
-            geometry.setAttribute('opacities',
-                new THREE.InstancedBufferAttribute(opacities, 1));
+            geometry.setAttribute(
+                'opacities',
+                new THREE.InstancedBufferAttribute(opacities, 1),
+            );
         }
 
         // boundingBox & boundingSphere
@@ -112,11 +122,13 @@ module.exports = {
         for (i = 0; i < positions.length / 3; i++) {
             const s = (sizes && sizes[i]) || 1.0;
 
-            object.setMatrixAt(i,
+            object.setMatrixAt(
+                i,
                 (new THREE.Matrix4())
                     .identity()
                     .setPosition(positions[i * 3], positions[i * 3 + 1], positions[i * 3 + 2])
-                    .scale(new THREE.Vector3(s, s, s)));
+                    .scale(new THREE.Vector3(s, s, s)),
+            );
         }
 
         return Promise.resolve(object);
@@ -127,17 +139,18 @@ module.exports = {
 
         if (typeof (changes.positions) !== 'undefined' && !changes.positions.timeSeries
             && changes.positions.data.length / 3 === obj.instanceMatrix.count) {
-
-            let positions = changes.positions.data;
+            const positions = changes.positions.data;
 
             for (let i = 0; i < positions.length / 3; i++) {
                 const s = (config.sizes && config.sizes[i]) || 1.0;
 
-                obj.setMatrixAt(i,
+                obj.setMatrixAt(
+                    i,
                     (new THREE.Matrix4())
                         .identity()
                         .setPosition(positions[i * 3], positions[i * 3 + 1], positions[i * 3 + 2])
-                        .scale(new THREE.Vector3(s, s, s)));
+                        .scale(new THREE.Vector3(s, s, s)),
+                );
             }
 
             obj.instanceMatrix.needsUpdate = true;

@@ -23,7 +23,9 @@ const { base64ToArrayBuffer } = require('./lib/helpers/buffer');
 
 const MsgpackCodec = msgpack.createCodec({ preset: true });
 
-window.Float16Array = require('./lib/helpers/float16Array');
+const Float16Array = require('./lib/helpers/float16Array');
+
+window.Float16Array = Float16Array;
 
 MsgpackCodec.addExtPacker(0x20, Float16Array, (val) => val);
 MsgpackCodec.addExtUnpacker(0x20, (val) => Float16Array(val.buffer));
@@ -90,7 +92,7 @@ function K3D(provider, targetDOMNode, parameters) {
 
     function initializeGUI() {
         self.gui = new LilGUI({
-            width: 220, autoPlace: false, title: 'K3D panel'
+            width: 220, autoPlace: false, title: 'K3D panel',
         });
 
         guiContainer.appendChild(self.gui.domElement);
@@ -107,12 +109,14 @@ function K3D(provider, targetDOMNode, parameters) {
             detachWindowGUI(GUI.controls, self);
 
             if (fullscreen.isAvailable()) {
-                fullscreen.initialize(world.targetDOMNode, GUI.controls, currentWindow);
+                fullscreen.initialize(world.targetDOMNode, GUI.controls, currentWindow, self);
             }
         }
 
-        GUI.controls.add(self.parameters, 'cameraAutoFit').onChange(changeParameters.bind(self,
-            'camera_auto_fit'));
+        GUI.controls.add(self.parameters, 'cameraAutoFit').onChange(changeParameters.bind(
+            self,
+            'camera_auto_fit',
+        ));
         GUI.controls.add(self.parameters, 'gridAutoFit').onChange((value) => {
             self.setGridAutoFit(value);
             changeParameters.call(self, 'grid_auto_fit', value);
@@ -258,7 +262,8 @@ function K3D(provider, targetDOMNode, parameters) {
     ].join(';');
 
     this.GUI = GUI;
-    this.parameters = _.assignWith({
+    this.parameters = _.assignWith(
+        {
             viewMode: viewModes.view,
             cameraMode: cameraModes.trackball,
             manipulateMode: manipulate.manipulateModes.translate,
@@ -284,6 +289,7 @@ function K3D(provider, targetDOMNode, parameters) {
             colorbarScientific: false,
             fps: 25.0,
             axes: ['x', 'y', 'z'],
+            minimumFps: -1,
             cameraNoRotate: false,
             cameraNoZoom: false,
             cameraNoPan: false,
@@ -302,9 +308,15 @@ function K3D(provider, targetDOMNode, parameters) {
             guiVersion: require('../../package.json').version,
         },
         parameters || {},
-        (objValue, srcValue) => (typeof (srcValue) === 'undefined' ? objValue : srcValue));
+        (objValue, srcValue) => (typeof (srcValue) === 'undefined' ? objValue : srcValue),
+    );
 
     this.autoRendering = false;
+
+    this.setMinimumFps = function (fpsTarget) {
+        self.parameters.minimumFps = fpsTarget;
+    };
+
 
     this.startAutoPlay = function () {
         timeSeries.startAutoPlay(self, changeParameters);
@@ -359,19 +371,6 @@ function K3D(provider, targetDOMNode, parameters) {
                 }
             });
         }
-    };
-
-    /**
-     * Set autoRendering state
-     * @memberof K3D.Core
-     */
-    this.refreshAutoRenderingState = function () {
-        let handlersCount = 0;
-        Object.keys(self.frameUpdateHandlers).forEach((when) => {
-            handlersCount += self.frameUpdateHandlers[when].length;
-        });
-
-        self.autoRendering = handlersCount > 0;
     };
 
     this.dispatch = dispatch;
@@ -914,6 +913,8 @@ function K3D(provider, targetDOMNode, parameters) {
 
         objectIndex += 1;
 
+        self.heavyOperationSync = true;
+
         return objectIndex;
     };
 
@@ -979,7 +980,7 @@ function K3D(provider, targetDOMNode, parameters) {
 
             const newCamera = timeSeries.interpolateTimeSeries(json, time);
 
-            world.setupCamera(newCamera.json.camera);
+            world.setupCamera(newCamera.json.camera, null, true);
         }
 
         if (GUI.controls) {
@@ -990,9 +991,7 @@ function K3D(provider, targetDOMNode, parameters) {
             });
         }
 
-        return Promise.all(promises).then(() => {
-            self.refreshAfterObjectsChange(true);
-        });
+        return Promise.all(promises).then(() => self.refreshAfterObjectsChange(true));
     };
 
     /**
@@ -1180,8 +1179,10 @@ function K3D(provider, targetDOMNode, parameters) {
             });
         });
 
-        return self.load({ objects: data.objects }).then(() => self.refreshAfterObjectsChange(false,
-            true));
+        return self.load({ objects: data.objects }).then(() => self.refreshAfterObjectsChange(
+            false,
+            true,
+        ));
     };
 
     /**
@@ -1200,8 +1201,6 @@ function K3D(provider, targetDOMNode, parameters) {
      */
     this.disable = function () {
         this.disabling = true;
-        this.frameUpdateHandlers.before = [];
-        this.frameUpdateHandlers.after = [];
         if (this.gui) {
             this.gui.destroy();
         }
@@ -1290,26 +1289,6 @@ function K3D(provider, targetDOMNode, parameters) {
     world.targetDOMNode.className += ' k3d-target';
 }
 
-function isSupportedUpdateListener(when) {
-    return (when in {
-        before: !0,
-        after: !0,
-    });
-}
-
-/**
- * Hash with before and after render listeners
- * @memberof K3D.Core
- * @public
- * @property {Array.<Function>} before Before render listeners
- * @property {Array.<Function>} after After render listeners
- * @type {Object}
- */
-K3D.prototype.frameUpdateHandlers = {
-    before: [],
-    after: [],
-};
-
 K3D.prototype.events = {
     VIEW_MODE_CHANGE: 'viewModeChange',
     CAMERA_MODE_CHANGE: 'cameraModeChange',
@@ -1327,42 +1306,6 @@ K3D.prototype.events = {
     VOXELS_CALLBACK: 'voxelsCallback',
     MOUSE_MOVE: 'mouseMove',
     MOUSE_CLICK: 'mouseClick',
-};
-
-/**
- * Attach a listener to current instance
- * @memberof K3D.Core
- * @public
- * @param {String} when=before  When to call the listener (after or before)
- * @param {Function} listener   The listener to be called when before- after- render
- * @param {Bool} callOnce       Info if this is a single-call listener
- */
-K3D.prototype.addFrameUpdateListener = function (when, listener, callOnce) {
-    when = isSupportedUpdateListener(when) ? when : 'before';
-    listener.callOnce = !!callOnce;
-    this.frameUpdateHandlers[when].push(listener);
-
-    this.refreshAutoRenderingState();
-};
-
-/**
- * Detach a listener to current instance
- * @memberof K3D.Core
- * @public
- * @param {String} when=before  Where original listener was attached to (before of after)
- * @param {Function} listener   The listener to be removed
- */
-K3D.prototype.removeFrameUpdateListener = function (when, listener) {
-    when = isSupportedUpdateListener(when) ? when : 'before';
-
-    this.frameUpdateHandlers[when] = this.frameUpdateHandlers[when].filter((fn) => {
-        if (fn !== listener) {
-            return fn;
-        }
-        return false;
-    });
-
-    this.refreshAutoRenderingState();
 };
 
 module.exports = K3D;

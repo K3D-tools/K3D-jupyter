@@ -18,6 +18,7 @@ function getScreenshot(K3D, scale, onlyCanvas) {
         finalCanvas.height = Math.floor(canvas3d.height * scale);
         htmlElementCanvas.height = Math.floor(canvas3d.height * scale);
 
+        K3D.heavyOperationAsync = true;
         K3D.labels = [];
         K3D.dispatch(K3D.events.BEFORE_RENDER);
 
@@ -39,7 +40,6 @@ function getScreenshot(K3D, scale, onlyCanvas) {
             for (let i = 0; i < styles.length; i++) {
                 style += styles[i].outerHTML;
             }
-
             renderPromise = rasterizeHTML.drawHTML(
                 `<style>body{margin:0;}</style>
                 ${style}
@@ -52,6 +52,7 @@ function getScreenshot(K3D, scale, onlyCanvas) {
             );
         }
 
+        K3D.heavyOperationAsync = true;
         renderPromise.then((result) => {
             console.log(`K3D: Screenshot [html]: ${(new Date().getTime() - t) / 1000}`, 's');
             t = new Date().getTime();
@@ -79,6 +80,7 @@ function getScreenshot(K3D, scale, onlyCanvas) {
                     finalCanvasCtx.drawImage(htmlElementCanvas, 0, 0);
                 }
 
+                K3D.heavyOperationAsync = false;
                 resolve(finalCanvas);
             });
         }, (e) => {

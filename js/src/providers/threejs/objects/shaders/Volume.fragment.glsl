@@ -25,6 +25,9 @@ uniform float gradient_step;
 uniform vec4 scale;
 uniform vec4 translation;
 
+uniform sampler3D mask;
+uniform float maskOpacities[256];
+
 varying vec3 localPosition;
 varying vec3 transformedCameraPosition;
 varying vec3 transformedWorldPosition;
@@ -76,13 +79,29 @@ void intersect(
     tmax = min(min(tmax, tymax), tzmax);
 }
 
+float getMaskOpacity(vec3 pos) {
+    int maskValue = int(texture(mask, pos).r * 255.0);
+
+    return maskOpacities[maskValue];
+}
+
+float getMaskedVolume(vec3 pos)
+{
+    #if (USE_MASK == 1)
+    return texture(volumeTexture, pos).x * getMaskOpacity(pos);
+    #else
+    return texture(volumeTexture, pos).x;
+    #endif
+}
+
 vec3 worldGetNormal(in float px, in vec3 pos)
 {
     return normalize(
-        vec3(px -  texture(volumeTexture, pos + vec3(gradient_step, 0, 0)).x,
-             px -  texture(volumeTexture, pos + vec3(0, gradient_step, 0)).x,
-             px -  texture(volumeTexture, pos + vec3(0, 0, gradient_step)).x
-         )
+        vec3(
+            px -  getMaskedVolume(pos + vec3(gradient_step, 0, 0)),
+            px -  getMaskedVolume(pos + vec3(0, gradient_step, 0)),
+            px -  getMaskedVolume(pos + vec3(0, 0, gradient_step))
+        )
     );
 }
 
@@ -192,65 +211,76 @@ void main() {
             float scaled_px = (px - low) * inv_range;
 
             if(scaled_px > 0.0) {
-                #if (USE_SHADOW == 1)
-                    shadow =
-                        (getShadow(textcoord, sliceCount) +
-                         getShadow(textcoord + vec3(1.0/lightMapSize.x, 0, 0), sliceCount) +
-                         getShadow(textcoord - vec3(1.0/lightMapSize.x, 0, 0), sliceCount) +
-                         getShadow(textcoord + vec3(0, 1.0/lightMapSize.y, 0), sliceCount) +
-                         getShadow(textcoord - vec3(0, 1.0/lightMapSize.y, 0), sliceCount) +
-                         getShadow(textcoord + vec3(0, 0, 1.0/lightMapSize.z), sliceCount) +
-                         getShadow(textcoord - vec3(0, 0, 1.0/lightMapSize.z), sliceCount)) / 7.0;
+                #if (USE_MASK == 1)
+                float maskOpacity = getMaskOpacity(textcoord);
                 #else
+                float maskOpacity = 1.0;
+                #endif
+
+                if(maskOpacity > 0.0) {
+                    #if (USE_SHADOW == 1)
+                    shadow =
+                    (getShadow(textcoord, sliceCount) +
+                    getShadow(textcoord + vec3(1.0/lightMapSize.x, 0, 0), sliceCount) +
+                    getShadow(textcoord - vec3(1.0/lightMapSize.x, 0, 0), sliceCount) +
+                    getShadow(textcoord + vec3(0, 1.0/lightMapSize.y, 0), sliceCount) +
+                    getShadow(textcoord - vec3(0, 1.0/lightMapSize.y, 0), sliceCount) +
+                    getShadow(textcoord + vec3(0, 0, 1.0/lightMapSize.z), sliceCount) +
+                    getShadow(textcoord - vec3(0, 0, 1.0/lightMapSize.z), sliceCount)) / 7.0;
+                    #else
                     shadow = 0.0;
-                #endif
+                    #endif
 
-                scaled_px = min(scaled_px, 0.99);
+                    scaled_px = min(scaled_px, 0.99);
 
-                pxColor = texture(colormap, vec2(scaled_px, 0.5));
+                    pxColor = texture(colormap, vec2(scaled_px, 0.5));
 
-                pxColor.a = 1.0 - pow(1.0 - pxColor.a, step * alpha_coef);
-                pxColor.a *= (1.0 - value.a);
+                    pxColor.a = 1.0 - pow(1.0 - pxColor.a, step * alpha_coef);
+                    pxColor.a *= (1.0 - value.a);
+                    pxColor.a *= maskOpacity;
 
-                pxColor.rgb *= pxColor.a;
+                    pxColor.rgb *= pxColor.a;
 
-                // LIGHT
-                #if NUM_DIR_LIGHTS > 0
-                    vec4 addedLights = vec4(ambientLightColor / PI, 1.0);
-                    vec3 specularColor = vec3(0.0);
+                    // LIGHT
+                    #if NUM_DIR_LIGHTS > 0
+                    if (pxColor.a > 0.0) {
+                        vec4 addedLights = vec4(ambientLightColor / PI, 1.0);
+                        vec3 specularColor = vec3(0.0);
 
-                    vec3 normal = worldGetNormal(px, textcoord);
+                        vec3 normal = worldGetNormal(px * maskOpacity, textcoord);
 
-                    vec3 lightDirection;
-                    float lightingIntensity;
+                        vec3 lightDirection;
+                        float lightingIntensity;
 
-                    vec3 lightReflect;
-                    float specularFactor;
+                        vec3 lightReflect;
+                        float specularFactor;
 
-                    #pragma unroll_loop_start
-                    for ( int i = 0; i < NUM_DIR_LIGHTS; i ++ ) {
-                        lightDirection = directionalLights[ i ].direction;
-                        lightingIntensity = clamp(dot(lightDirection, normal), 0.0, 1.0);
-                        addedLights.rgb += directionalLights[ i ].color / PI * (0.2 + 0.8 * lightingIntensity) * (1.0 - shadow);
+                        #pragma unroll_loop_start
+                        for ( int i = 0; i < NUM_DIR_LIGHTS; i ++ ) {
+                            lightDirection = directionalLights[ i ].direction;
+                            lightingIntensity = clamp(dot(lightDirection, normal), 0.0, 1.0);
+                            addedLights.rgb += directionalLights[ i ].color / PI * (0.2 + 0.8 * lightingIntensity) * (1.0 - shadow);
 
-                        lightReflect = normalize(reflect(lightDirection, normal));
-                        specularFactor = dot(direction, lightReflect);
+                            lightReflect = normalize(reflect(lightDirection, normal));
+                            specularFactor = dot(direction, lightReflect);
 
-                        if (specularFactor > 0.0)
-                            specularColor += 0.002 * scaled_px * (1.0 / step)  *
-                                             directionalLights[ i ].color / PI * pow(specularFactor, 250.0) *
-                                             pxColor.a * (1.0 - shadow);
+                            if (specularFactor > 0.0)
+                                specularColor += 0.002 * scaled_px * (1.0 / step)  *
+                                                 directionalLights[ i ].color / PI * pow(specularFactor, 250.0) *
+                                                 pxColor.a * (1.0 - shadow);
+                        }
+                        #pragma unroll_loop_end
+
+                        pxColor.rgb = pxColor.rgb * addedLights.xyz + specularColor;
                     }
-                    #pragma unroll_loop_end
+                    #endif
 
-                    pxColor.rgb = pxColor.rgb * addedLights.xyz + specularColor;
-                #endif
+                    value += pxColor;
 
-                value += pxColor;
-
-                if (value.a >= 0.99) {
-                    value.a = 1.0;
-                    break;
+                    if (value.a >= 0.99) {
+                        value.a = 1.0;
+                        break;
+                    }
                 }
             }
         }

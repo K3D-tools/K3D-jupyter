@@ -7,6 +7,7 @@ const { closestPowOfTwo } = require('../helpers/Fn');
 const { typedArrayToThree } = require('../helpers/Fn');
 const { areAllChangesResolve } = require('../helpers/Fn');
 const { commonUpdate } = require('../helpers/Fn');
+const { ensure256size } = require('../helpers/Fn');
 
 /**
  * Loader strategy to handle Volume object
@@ -43,6 +44,8 @@ module.exports = {
         let opacityFunction = (config.opacity_function && config.opacity_function.data) || null;
         const colorRange = config.color_range;
         const { samples } = config;
+        let mask = null;
+        let maskEnabled = false;
         let sceneRTT;
         let cameraRTT;
         let quadRTT;
@@ -94,7 +97,10 @@ module.exports = {
 
         jitterTexture = new THREE.DataTexture(
             new Uint8Array(_.range(64 * 64).map(() => randomMul * Math.random())),
-            64, 64, THREE.RedFormat, THREE.UnsignedByteType,
+            64,
+            64,
+            THREE.RedFormat,
+            THREE.UnsignedByteType,
         );
         jitterTexture.minFilter = THREE.LinearFilter;
         jitterTexture.magFilter = THREE.LinearFilter;
@@ -104,8 +110,14 @@ module.exports = {
         jitterTexture.needsUpdate = true;
 
         const canvas = colorMapHelper.createCanvasGradient(colorMap, 1024, opacityFunction);
-        const colormap = new THREE.CanvasTexture(canvas, THREE.UVMapping, THREE.ClampToEdgeWrapping,
-            THREE.ClampToEdgeWrapping, THREE.NearestFilter, THREE.NearestFilter);
+        const colormap = new THREE.CanvasTexture(
+            canvas,
+            THREE.UVMapping,
+            THREE.ClampToEdgeWrapping,
+            THREE.ClampToEdgeWrapping,
+            THREE.NearestFilter,
+            THREE.NearestFilter,
+        );
         colormap.needsUpdate = true;
 
         if (config.shadow !== 'off') {
@@ -120,12 +132,35 @@ module.exports = {
             });
         }
 
+        if (config.mask.data.length > 0 && config.mask_opacities.data.length > 0) {
+            mask = new THREE.Data3DTexture(
+                config.mask.data,
+                config.mask.shape[2],
+                config.mask.shape[1],
+                config.mask.shape[0],
+            );
+            mask.format = THREE.RedFormat;
+            mask.type = THREE.UnsignedByteType;
+
+            mask.generateMipmaps = false;
+            mask.minFilter = THREE.NearestFilter;
+            mask.magFilter = THREE.NearestFilter;
+            mask.wrapS = THREE.ClampToEdgeWrapping;
+            mask.wrapT = THREE.ClampToEdgeWrapping;
+            mask.needsUpdate = true;
+
+            maskEnabled = true;
+        }
+
         const uniforms = {
+            maskOpacities: { value: ensure256size(config.mask_opacities.data) },
             lightMapSize: { value: new THREE.Vector3(lightMapSize, lightMapSize, lightMapSize) },
             volumeMapSize: {
-                value: new THREE.Vector3(config.volume.shape[2],
+                value: new THREE.Vector3(
+                    config.volume.shape[2],
                     config.volume.shape[1],
-                    config.volume.shape[0]),
+                    config.volume.shape[0],
+                ),
             },
             lightMapRenderTargetSize: { value: new THREE.Vector2(lightMapRenderTargetSize, lightMapRenderTargetSize) },
             low: { value: colorRange[0] },
@@ -140,6 +175,7 @@ module.exports = {
             focal_plane: { value: config.focal_plane },
             scale: { value: scale },
             volumeTexture: { type: 't', value: texture },
+            mask: { type: 't', value: mask },
             colormap: { type: 't', value: colormap },
             jitterTexture: { type: 't', value: jitterTexture },
         };
@@ -151,6 +187,7 @@ module.exports = {
             ),
             defines: {
                 USE_SHADOW: (config.shadow !== 'off' ? 1 : 0),
+                USE_MASK: (maskEnabled ? 1 : 0),
                 RAY_SAMPLES_COUNT: config.focal_length !== 0.0 ? config.ray_samples_count : 0,
             },
             vertexShader: require('./shaders/Volume.vertex.glsl'),
@@ -187,6 +224,7 @@ module.exports = {
                     ),
                     defines: {
                         USE_MAP: 1,
+                        USE_MASK: (maskEnabled ? 1 : 0),
                     },
                     vertexShader: require('./shaders/Volume.lightmap.vertex.glsl'),
                     fragmentShader: require('./shaders/Volume.lightmap.fragment.glsl'),
@@ -201,9 +239,12 @@ module.exports = {
             quadRTT.updateMatrixWorld();
 
             cameraRTT = new THREE.OrthographicCamera(
-                lightMapRenderTargetSize / -2, lightMapRenderTargetSize / 2,
-                lightMapRenderTargetSize / 2, lightMapRenderTargetSize / -2,
-                -10000, 10000,
+                lightMapRenderTargetSize / -2,
+                lightMapRenderTargetSize / 2,
+                lightMapRenderTargetSize / 2,
+                lightMapRenderTargetSize / -2,
+                -10000,
+                10000,
             );
 
             cameraRTT.position.z = 100;
@@ -326,6 +367,29 @@ module.exports = {
                 obj.material.uniforms.volumeTexture.value.needsUpdate = true;
 
                 resolvedChanges.volume = null;
+            }
+        }
+
+        if (typeof (changes.mask) !== 'undefined' && !changes.mask.timeSeries) {
+            if (obj.material.uniforms.mask.value !== null) {
+                if (obj.material.uniforms.mask.value.image.data.constructor === changes.mask.data.constructor
+                    && obj.material.uniforms.mask.value.image.width === changes.mask.shape[2]
+                    && obj.material.uniforms.mask.value.image.height === changes.mask.shape[1]
+                    && obj.material.uniforms.mask.value.image.depth === changes.mask.shape[0]) {
+                    obj.material.uniforms.mask.value.image.data = changes.mask.data;
+                    obj.material.uniforms.mask.value.needsUpdate = true;
+
+                    resolvedChanges.mask = null;
+                }
+            }
+        }
+
+        if (typeof (changes.mask_opacities) !== 'undefined' && !changes.mask_opacities.timeSeries) {
+            if (obj.material.uniforms.maskOpacities.value !== null) {
+                obj.material.uniforms.maskOpacities.value = ensure256size(changes.mask_opacities.data);
+                obj.material.uniforms.maskOpacities.value.needsUpdate = true;
+
+                resolvedChanges.mask_opacities = null;
             }
         }
 

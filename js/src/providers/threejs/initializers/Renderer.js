@@ -3,21 +3,6 @@ const { error } = require('../../../core/lib/Error');
 const getSSAAChunkedRender = require('../helpers/SSAAChunkedRender');
 
 /**
- * @memberof K3D.Providers.ThreeJS.Initializers
- * @inner
- * @param  {K3D.Core} K3D       Current K3D instance
- * @param  {Object} on          Internal type of listener (when its called)
- * @param  {Function} listener  Listener to be removed
- */
-function handleListeners(K3D, on, listener) {
-    listener.call(K3D);
-
-    if (listener.callOnce) {
-        K3D.removeFrameUpdateListener(on, listener);
-    }
-}
-
-/**
  * Renderer initializer for Three.js library
  * @this K3D.Core world
  * @method Renderer
@@ -38,7 +23,7 @@ module.exports = function (K3D) {
 
     self.renderer = new THREE.WebGLRenderer({
         alpha: true,
-        precision: "highp",
+        precision: 'highp',
         premultipliedAlpha: true,
         antialias: K3D.parameters.antialias > 0,
         logarithmicDepthBuffer: K3D.parameters.logarithmicDepthBuffer,
@@ -49,13 +34,15 @@ module.exports = function (K3D) {
     if (!context) {
         if (typeof WebGL2RenderingContext !== 'undefined') {
             error(
-                'Your browser appears to support WebGL2 but it might ' +
-                'be disabled. Try updating your OS and/or video card driver.',
-                true);
+                'Your browser appears to support WebGL2 but it might '
+                + 'be disabled. Try updating your OS and/or video card driver.',
+                true,
+            );
         } else {
             error(
                 "It's look like your browser has no WebGL2 support.",
-                true);
+                true,
+            );
         }
     }
 
@@ -93,14 +80,13 @@ module.exports = function (K3D) {
 
         return new Promise((resolve) => {
             if (K3D.disabling) {
-                return null;
+                resolve(null);
+                return;
             }
 
             const size = new THREE.Vector2();
 
             self.renderer.getSize(size);
-
-            K3D.frameUpdateHandlers.before.forEach(handleListeners.bind(null, K3D, 'before'));
 
             K3D.refreshGrid();
 
@@ -189,8 +175,6 @@ module.exports = function (K3D) {
                 self.renderer.setViewport(0, 0, size.x, size.y);
                 self.camera.clearViewOffset();
 
-                K3D.frameUpdateHandlers.after.forEach(handleListeners.bind(null, K3D, 'after'));
-
                 K3D.dispatch(K3D.events.RENDERED);
 
                 if (K3D.autoRendering) {
@@ -200,7 +184,7 @@ module.exports = function (K3D) {
                 }
             });
 
-            return null;
+            resolve(null);
         });
     }
 
@@ -225,7 +209,7 @@ module.exports = function (K3D) {
             }
         }
 
-        return null;
+        return renderingPromise;
     };
 
     this.renderOffScreen = function (width, height) {
@@ -252,11 +236,13 @@ module.exports = function (K3D) {
             type: THREE.FloatType,
         });
 
-        const rtAxesHelper = new THREE.WebGLRenderTarget(self.axesHelper.width * scale,
+        const rtAxesHelper = new THREE.WebGLRenderTarget(
+            self.axesHelper.width * scale,
             self.axesHelper.height * scale,
             {
                 type: THREE.FloatType,
-            });
+            },
+        );
         self.renderer.clippingPlanes = [];
 
         return getSSAAChunkedRender(self.renderer, self.axesHelper.scene, self.axesHelper.camera,

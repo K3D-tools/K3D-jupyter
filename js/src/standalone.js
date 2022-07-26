@@ -8,7 +8,9 @@ const _ = require('./lodash');
 
 const MsgpackCodec = msgpack.createCodec({ preset: true });
 
-window.Float16Array = require('./core/lib/helpers/float16Array');
+const Float16Array = require('./core/lib/helpers/float16Array');
+
+window.Float16Array = Float16Array;
 
 MsgpackCodec.addExtPacker(0x20, Float16Array, (val) => val);
 MsgpackCodec.addExtUnpacker(0x20, (val) => Float16Array(val.buffer));
@@ -42,7 +44,7 @@ function CreateK3DAndLoadBinarySnapshot(data, targetDOMNode) {
                 return reject(e);
             }
 
-            K3DInstance.setSnapshot(data).then(() => {
+            return K3DInstance.setSnapshot(data).then(() => {
                 setTimeout(() => {
                     if (data.plot.camera.length > 0) {
                         K3DInstance.setCamera(data.plot.camera);
@@ -50,7 +52,7 @@ function CreateK3DAndLoadBinarySnapshot(data, targetDOMNode) {
                     }
                 }, 10);
 
-                resolve(K3DInstance);
+                return resolve(K3DInstance);
             });
         });
     });

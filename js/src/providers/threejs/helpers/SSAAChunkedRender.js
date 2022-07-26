@@ -107,9 +107,14 @@ module.exports = function (renderer, scene, camera, rt, fullWidth, fullHeight, c
                 for (let i = 0; i < jitterOffsets.length; i++) {
                     const jitterOffset = jitterOffsets[i];
 
-                    camera.setViewOffset(fullWidth, fullHeight,
-                        jitterOffset[0] * 0.0625, jitterOffset[1] * 0.0625 + c[0], // 0.0625 = 1 / 16
-                        width, height);
+                    camera.setViewOffset(
+                        fullWidth,
+                        fullHeight,
+                        jitterOffset[0] * 0.0625,
+                        jitterOffset[1] * 0.0625 + c[0], // 0.0625 = 1 / 16
+                        width,
+                        height,
+                    );
 
                     let sampleWeight = baseSampleWeight;
                     const uniformCenteredDistribution = (-0.5 + (i + 0.5) / jitterOffsets.length);
