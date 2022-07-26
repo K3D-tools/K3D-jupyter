@@ -133,7 +133,7 @@ module.exports = function (K3D) {
             return Math.min(qualityFactor * 1.5, 1);
         }
 
-        return qualityFactor / ((1.25 * time) / (1000.0 / K3D.parameters.minimumFps));
+        return qualityFactor / Math.min((1.25 * time) / (1000.0 / K3D.parameters.minimumFps), 5);
     }
 
     function refresh(time, skipFrameCount) {
