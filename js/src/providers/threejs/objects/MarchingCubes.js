@@ -141,7 +141,8 @@ module.exports = {
                     object.updateMatrixWorld();
 
                     resolve(object);
-                });
+                },
+            );
         });
     },
 

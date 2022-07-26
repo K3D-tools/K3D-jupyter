@@ -17,39 +17,41 @@ function changeParameter(K3D, json, key, value, timeSeriesReload) {
 }
 
 function update(K3D, json, GUI, changes) {
-    function moveToGroup(json) {
+    function moveToGroup(config) {
         let parent;
 
-        if (json.group != null) {
-            if (typeof (K3D.gui_groups[json.group]) === 'undefined') {
-                K3D.gui_groups[json.group] = GUI.addFolder(`${json.group}`).close();
+        if (config.group != null) {
+            if (typeof (K3D.gui_groups[config.group]) === 'undefined') {
+                K3D.gui_groups[config.group] = GUI.addFolder(`${config.group}`).close();
             }
 
-            parent = K3D.gui_groups[json.group];
+            parent = K3D.gui_groups[config.group];
         } else {
             parent = GUI;
         }
 
         // cleanup previous plance
-        K3D.gui_map[json.id].parent.children.splice(
-            K3D.gui_map[json.id].parent.children.indexOf(K3D.gui_map[json.id]), 1);
-        K3D.gui_map[json.id].parent.folders.splice(
-            K3D.gui_map[json.id].parent.folders.indexOf(K3D.gui_map[json.id]), 1);
+        K3D.gui_map[config.id].parent.children.splice(K3D.gui_map[config.id].parent.children.indexOf(
+            K3D.gui_map[config.id],
+        ), 1);
+        K3D.gui_map[config.id].parent.folders.splice(K3D.gui_map[config.id].parent.folders.indexOf(
+            K3D.gui_map[config.id],
+        ), 1);
 
-        K3D.gui_map[json.id].parent = parent;
-        K3D.gui_map[json.id].parent.$children.append(K3D.gui_map[json.id].domElement);
+        K3D.gui_map[config.id].parent = parent;
+        K3D.gui_map[config.id].parent.$children.append(K3D.gui_map[config.id].domElement);
 
         // add to new place
-        if (parent.children.indexOf(K3D.gui_map[json.id]) === -1) {
-            parent.children.push(K3D.gui_map[json.id]);
+        if (parent.children.indexOf(K3D.gui_map[config.id]) === -1) {
+            parent.children.push(K3D.gui_map[config.id]);
         }
 
-        if (parent.folders.indexOf(K3D.gui_map[json.id]) === -1) {
-            parent.folders.push(K3D.gui_map[json.id]);
+        if (parent.folders.indexOf(K3D.gui_map[config.id]) === -1) {
+            parent.folders.push(K3D.gui_map[config.id]);
         }
 
         // remove empty groups
-        Object.keys(K3D.gui_groups).forEach(function (group) {
+        Object.keys(K3D.gui_groups).forEach((group) => {
             if (K3D.gui_groups[group].children.length === 0) {
                 K3D.gui_groups[group].destroy();
                 delete K3D.gui_groups[group];
@@ -277,23 +279,35 @@ function update(K3D, json, GUI, changes) {
                 break;
             case 'shader':
                 if (json.type === 'Points') {
-                    addController(K3D.gui_map[json.id], json, param,
-                        ['3dSpecular', '3d', 'flat', 'mesh', 'dot']).onChange(
+                    addController(
+                        K3D.gui_map[json.id],
+                        json,
+                        param,
+                        ['3dSpecular', '3d', 'flat', 'mesh', 'dot'],
+                    ).onChange(
                         changeParameter.bind(this, K3D, json, param),
                     );
                 }
 
                 if (json.type === 'Lines' || json.type === 'Line') {
-                    addController(K3D.gui_map[json.id], json, param,
-                        ['simple', 'thick', 'mesh']).onChange(
+                    addController(
+                        K3D.gui_map[json.id],
+                        json,
+                        param,
+                        ['simple', 'thick', 'mesh'],
+                    ).onChange(
                         changeParameter.bind(this, K3D, json, param),
                     );
                 }
                 break;
             case 'mode':
                 if (json.type === 'Label') {
-                    addController(K3D.gui_map[json.id], json, param,
-                        ['dynamic', 'local', 'side']).onChange(changeParameter.bind(this, K3D, json, param));
+                    addController(
+                        K3D.gui_map[json.id],
+                        json,
+                        param,
+                        ['dynamic', 'local', 'side'],
+                    ).onChange(changeParameter.bind(this, K3D, json, param));
                 }
                 break;
             case 'shadow_res':

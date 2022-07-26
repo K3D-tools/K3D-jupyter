@@ -70,7 +70,10 @@ module.exports = {
 
         jitterTexture = new THREE.DataTexture(
             new Uint8Array(_.range(64 * 64).map(() => randomMul * Math.random())),
-            64, 64, THREE.RedFormat, THREE.UnsignedByteType,
+            64,
+            64,
+            THREE.RedFormat,
+            THREE.UnsignedByteType,
         );
         jitterTexture.minFilter = THREE.LinearFilter;
         jitterTexture.magFilter = THREE.LinearFilter;
@@ -80,8 +83,14 @@ module.exports = {
         jitterTexture.needsUpdate = true;
 
         const canvas = colorMapHelper.createCanvasGradient(colorMap, 1024, opacityFunction);
-        const colormap = new THREE.CanvasTexture(canvas, THREE.UVMapping, THREE.ClampToEdgeWrapping,
-            THREE.ClampToEdgeWrapping, THREE.NearestFilter, THREE.NearestFilter);
+        const colormap = new THREE.CanvasTexture(
+            canvas,
+            THREE.UVMapping,
+            THREE.ClampToEdgeWrapping,
+            THREE.ClampToEdgeWrapping,
+            THREE.NearestFilter,
+            THREE.NearestFilter,
+        );
         colormap.needsUpdate = true;
 
         if (config.mask.data.length > 0 && config.mask_opacities.data.length > 0) {
@@ -107,9 +116,11 @@ module.exports = {
         const uniforms = {
             maskOpacities: { value: ensure256size(config.mask_opacities.data) },
             volumeMapSize: {
-                value: new THREE.Vector3(config.volume.shape[2],
+                value: new THREE.Vector3(
+                    config.volume.shape[2],
                     config.volume.shape[1],
-                    config.volume.shape[0]),
+                    config.volume.shape[0],
+                ),
             },
             low: { value: colorRange[0] },
             high: { value: colorRange[1] },

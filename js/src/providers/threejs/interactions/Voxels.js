@@ -102,8 +102,13 @@ module.exports = function (object, mesh, rollOverMesh, K3D) {
         if (mesh.voxel.chunk.voxels instanceof Uint8Array) {
             mesh.voxel.chunk.voxels[i] = K3D.parameters.voxelPaintColor;
         } else {
-            mesh.voxel.chunk.voxels.set(voxelCoordinate.x, voxelCoordinate.y, voxelCoordinate.z,
-                K3D.parameters.voxelPaintColor, true);
+            mesh.voxel.chunk.voxels.set(
+                voxelCoordinate.x,
+                voxelCoordinate.y,
+                voxelCoordinate.z,
+                K3D.parameters.voxelPaintColor,
+                true,
+            );
         }
 
         updateObject(mesh);
@@ -151,8 +156,13 @@ module.exports = function (object, mesh, rollOverMesh, K3D) {
         if (mesh.voxel.chunk.voxels instanceof Uint8Array) {
             mesh.voxel.chunk.voxels[i] = K3D.parameters.voxelPaintColor;
         } else {
-            mesh.voxel.chunk.voxels.set(voxelCoordinate.x, voxelCoordinate.y, voxelCoordinate.z,
-                K3D.parameters.voxelPaintColor, true);
+            mesh.voxel.chunk.voxels.set(
+                voxelCoordinate.x,
+                voxelCoordinate.y,
+                voxelCoordinate.z,
+                K3D.parameters.voxelPaintColor,
+                true,
+            );
         }
 
         updateObject(mesh);

@@ -65,7 +65,8 @@ module.exports = {
 
         line.frustumCulled = false;
 
-        geometry.setAttribute('position',
+        geometry.setAttribute(
+            'position',
             new THREE.BufferAttribute(new Float32Array(
                 [
                     position[0], position[1], position[2],
@@ -101,10 +102,14 @@ module.exports = {
                         dist = Math.sqrt((coord.x - widthHalf) * (coord.x - widthHalf)
                             + (coord.y - heightHalf) * (coord.y - heightHalf));
 
-                        x = coord.x + Math.cos(fi) * Math.min(widthHalf * 0.98 - dist,
-                            Math.min(widthHalf, heightHalf) * maxLength);
-                        y = coord.y + Math.sin(fi) * Math.min(heightHalf * 0.98 - dist,
-                            Math.min(widthHalf, heightHalf) * maxLength);
+                        x = coord.x + Math.cos(fi) * Math.min(
+                            widthHalf * 0.98 - dist,
+                            Math.min(widthHalf, heightHalf) * maxLength,
+                        );
+                        y = coord.y + Math.sin(fi) * Math.min(
+                            heightHalf * 0.98 - dist,
+                            Math.min(widthHalf, heightHalf) * maxLength,
+                        );
 
                         fiIsOK = K3D.labels.every((point) => Math.sqrt(
                             (x - point.coord.x) * (x - point.coord.x)

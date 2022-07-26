@@ -31,8 +31,14 @@ module.exports = {
         }
 
         const canvas = colorMapHelper.createCanvasGradient(colorMap, 1024, opacityFunction);
-        const colormap = new THREE.CanvasTexture(canvas, THREE.UVMapping, THREE.ClampToEdgeWrapping,
-            THREE.ClampToEdgeWrapping, THREE.NearestFilter, THREE.NearestFilter);
+        const colormap = new THREE.CanvasTexture(
+            canvas,
+            THREE.UVMapping,
+            THREE.ClampToEdgeWrapping,
+            THREE.ClampToEdgeWrapping,
+            THREE.NearestFilter,
+            THREE.NearestFilter,
+        );
         colormap.needsUpdate = true;
 
         geometry.setAttribute('position', new THREE.BufferAttribute(vertices, 3));

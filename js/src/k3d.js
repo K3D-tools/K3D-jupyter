@@ -164,7 +164,7 @@ const ObjectModel = widgets.WidgetModel.extend({
         spacings_y: serialize,
         spacings_z: serialize,
         mask: serialize,
-        mask_opacities: serialize
+        mask_opacities: serialize,
     }, widgets.WidgetModel.serializers),
 });
 
@@ -388,25 +388,21 @@ const PlotView = widgets.DOMWidgetView.extend({
         });
 
         this.objectHoverCallback = this.K3DInstance.on(this.K3DInstance.events.OBJECT_HOVERED, (param) => {
-            if (objectsList[param.K3DIdentifier] &&
-                this.K3DInstance.parameters.viewMode === viewModes.callback) {
-
+            if (objectsList[param.K3DIdentifier] && this.K3DInstance.parameters.viewMode === viewModes.callback) {
                 objectsList[param.K3DIdentifier].send(
                     _.extend({
-                        msg_type: 'hover_callback'
-                    }, param)
+                        msg_type: 'hover_callback',
+                    }, param),
                 );
             }
         });
 
         this.objectClickCallback = this.K3DInstance.on(this.K3DInstance.events.OBJECT_CLICKED, (param) => {
-            if (objectsList[param.K3DIdentifier] &&
-                this.K3DInstance.parameters.viewMode === viewModes.callback) {
-
+            if (objectsList[param.K3DIdentifier] && this.K3DInstance.parameters.viewMode === viewModes.callback) {
                 objectsList[param.K3DIdentifier].send(
                     _.extend({
-                        msg_type: 'click_callback'
-                    }, param)
+                        msg_type: 'click_callback',
+                    }, param),
                 );
             }
         });

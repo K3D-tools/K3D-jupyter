@@ -31,7 +31,7 @@ module.exports = {
      * @returns {Number}
      */
     closestPowOfTwo(x) {
-        return Math.pow(2, Math.ceil(Math.log(x) / Math.log(2)));
+        return 2 ** Math.ceil(Math.log(x) / Math.log(2));
     },
 
     /**
@@ -205,12 +205,14 @@ module.exports = {
 
         const canvas = createCanvasGradient(colorMap, 1024);
 
-        const texture = new THREE.CanvasTexture(canvas,
+        const texture = new THREE.CanvasTexture(
+            canvas,
             THREE.UVMapping,
             THREE.ClampToEdgeWrapping,
             THREE.ClampToEdgeWrapping,
             THREE.NearestFilter,
-            THREE.NearestFilter);
+            THREE.NearestFilter,
+        );
         texture.needsUpdate = true;
 
         material.setValues({
@@ -253,12 +255,15 @@ module.exports = {
     },
 
     recalculateFrustum(camera) {
-        camera.frustum.setFromProjectionMatrix(new THREE.Matrix4().multiplyMatrices(camera.projectionMatrix,
-            camera.matrixWorldInverse,));
+        camera.frustum.setFromProjectionMatrix(new THREE.Matrix4().multiplyMatrices(
+            camera.projectionMatrix,
+            camera.matrixWorldInverse,
+        ));
     },
 
-    commonUpdate(config, changes, resolvedChanges, obj, K3D) {
-        if (resolvedChanges.model_matrix !== null && typeof (changes.model_matrix) !== 'undefined' && !changes.model_matrix.timeSeries) {
+    commonUpdate(config, changes, resolvedChanges, obj) {
+        if (resolvedChanges.model_matrix !== null && typeof (changes.model_matrix) !== 'undefined'
+            && !changes.model_matrix.timeSeries) {
             const modelMatrix = new THREE.Matrix4();
 
             modelMatrix.set.apply(modelMatrix, changes.model_matrix.data);
@@ -282,17 +287,19 @@ module.exports = {
             resolvedChanges.model_matrix = null;
         }
 
-        if (resolvedChanges.visible !== null && typeof (changes.visible) !== 'undefined' && !changes.visible.timeSeries) {
+        if (resolvedChanges.visible !== null && typeof (changes.visible) !== 'undefined'
+            && !changes.visible.timeSeries) {
             obj.visible = changes.visible;
 
             resolvedChanges.visible = null;
         }
 
-        if (resolvedChanges.opacity !== null && typeof (changes.opacity) !== 'undefined' && !changes.opacity.timeSeries) {
+        if (resolvedChanges.opacity !== null && typeof (changes.opacity) !== 'undefined'
+            && !changes.opacity.timeSeries) {
             obj.material.opacity = changes.opacity;
 
             obj.material.side = getSide({
-                opacity: changes.opacity, side: config.side
+                opacity: changes.opacity, side: config.side,
             });
 
             if (obj.material.uniforms && obj.material.uniforms.opacity) {
@@ -308,8 +315,8 @@ module.exports = {
         }
     },
 
-    ensure256size: function (data) {
-        let ret = new Float32Array(256);
+    ensure256size(data) {
+        const ret = new Float32Array(256);
 
         for (let i = 0; i < Math.min(256, data.length); i++) {
             ret[i] = data[i];
@@ -318,5 +325,5 @@ module.exports = {
         return ret;
     },
 
-    getSide
+    getSide,
 };

@@ -32,9 +32,13 @@ module.exports = {
                 };
             }
 
-            const texture = new THREE.DataTexture(config.attribute.data,
-                config.attribute.shape[1], config.attribute.shape[0], THREE.RedFormat,
-                typedArrayToThree(config.attribute.data.constructor));
+            const texture = new THREE.DataTexture(
+                config.attribute.data,
+                config.attribute.shape[1],
+                config.attribute.shape[0],
+                THREE.RedFormat,
+                typedArrayToThree(config.attribute.data.constructor),
+            );
 
             if (config.interpolation) {
                 texture.minFilter = THREE.LinearFilter;
@@ -51,8 +55,14 @@ module.exports = {
             texture.needsUpdate = true;
 
             const canvas = colorMapHelper.createCanvasGradient(colorMap, 1024, opacityFunction);
-            const colormap = new THREE.CanvasTexture(canvas, THREE.UVMapping, THREE.ClampToEdgeWrapping,
-                THREE.ClampToEdgeWrapping, THREE.NearestFilter, THREE.NearestFilter);
+            const colormap = new THREE.CanvasTexture(
+                canvas,
+                THREE.UVMapping,
+                THREE.ClampToEdgeWrapping,
+                THREE.ClampToEdgeWrapping,
+                THREE.NearestFilter,
+                THREE.NearestFilter,
+            );
             colormap.needsUpdate = true;
 
             const uniforms = {

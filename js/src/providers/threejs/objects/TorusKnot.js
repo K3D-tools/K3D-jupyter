@@ -45,14 +45,17 @@ module.exports = {
             }),
         ));
 
-        updateGroupGeometry(object,
+        updateGroupGeometry(
+            object,
             new THREE.TorusKnotGeometry(
                 config.radius,
                 config.tube,
                 64,
                 config.knotsNumber,
-                2, 3,
-            ));
+                2,
+                3,
+            ),
+        );
 
         modelMatrix.set.apply(modelMatrix, config.model_matrix.data);
         object.applyMatrix4(modelMatrix);

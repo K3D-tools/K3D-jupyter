@@ -23,7 +23,6 @@ function generateAxesHelper(K3D, axesHelper) {
     };
     const labelColor = new THREE.Color(K3D.parameters.labelColor);
 
-
     ['x', 'y', 'z'].forEach((axis, i) => {
         const label = Text.create({
             position: new THREE.Vector3().fromArray(directions[axis]).multiplyScalar(1.1).toArray(),
@@ -257,7 +256,7 @@ function rebuildSceneData(K3D, grids, axesHelper, force) {
         majorScale = pow10ceil(Math.max(size.x, size.y, size.z)) / 10.0;
         minorScale = majorScale / 10.0;
 
-        ['x', 'y', 'z'].forEach(function (axis) {
+        ['x', 'y', 'z'].forEach((axis) => {
             if (sceneBoundingBox.min[axis] === sceneBoundingBox.max[axis]) {
                 sceneBoundingBox.min[axis] -= majorScale / 2.0;
                 sceneBoundingBox.max[axis] += majorScale / 2.0;
@@ -343,11 +342,11 @@ function rebuildSceneData(K3D, grids, axesHelper, force) {
             let label;
 
             if (iterationCount <= 2) {
-                let originalIterationCount = iterationCount;
+                const originalIterationCount = iterationCount;
 
                 iterationCount = originalIterationCount * 5;
                 deltaValue = unitVectors[iterateAxis].clone()
-                    .multiplyScalar(originalIterationCount * majorScale / iterationCount);
+                    .multiplyScalar((originalIterationCount * majorScale) / iterationCount);
                 deltaPosition = unitVectors[iterateAxis].clone().multiplyScalar(
                     grids.labelsOnEdges[key].p[0].distanceTo(grids.labelsOnEdges[key].p[1]) / iterationCount,
                 );

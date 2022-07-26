@@ -1,5 +1,4 @@
-// jshint ignore: start
-// jscs:disable
+/* eslint-disable */
 
 module.exports = function (THREE) {
     THREE.TrackballControls = function (object, domElement) {

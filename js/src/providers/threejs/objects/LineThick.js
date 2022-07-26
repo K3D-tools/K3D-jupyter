@@ -40,8 +40,14 @@ function create(config, K3D) {
 
     if (attribute && colorRange && colorMap && attribute.length > 0 && colorRange.length > 0 && colorMap.length > 0) {
         const canvas = colorMapHelper.createCanvasGradient(colorMap, 1024);
-        const texture = new THREE.CanvasTexture(canvas, THREE.UVMapping, THREE.ClampToEdgeWrapping,
-            THREE.ClampToEdgeWrapping, THREE.NearestFilter, THREE.NearestFilter);
+        const texture = new THREE.CanvasTexture(
+            canvas,
+            THREE.UVMapping,
+            THREE.ClampToEdgeWrapping,
+            THREE.ClampToEdgeWrapping,
+            THREE.NearestFilter,
+            THREE.NearestFilter,
+        );
         texture.needsUpdate = true;
 
         material.uniforms.useMap.value = 1.0;
@@ -54,7 +60,7 @@ function create(config, K3D) {
         }
     } else {
         colors = (verticesColors && verticesColors.length === position.length / 3
-                ? colorsToFloat32Array(verticesColors) : getColorsArray(color, position.length / 3)
+            ? colorsToFloat32Array(verticesColors) : getColorsArray(color, position.length / 3)
         );
     }
 

@@ -161,13 +161,15 @@ function createCanvasGradient(colorMap, size, opacityFunction) {
     for (i = 0; i < merged.length / 5; i++) {
         segment = merged.slice(i * 5, i * 5 + 5);
 
-        grd.addColorStop((segment[0] - min) / (max - min),
+        grd.addColorStop(
+            (segment[0] - min) / (max - min),
             `rgba(${
                 toColor(segment[1])}, ${
                 toColor(segment[2])}, ${
                 toColor(segment[3])}, ${
                 segment[4]
-            })`);
+            })`,
+        );
     }
 
     ctx.fillStyle = grd;

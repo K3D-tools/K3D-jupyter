@@ -21,10 +21,14 @@ function getVoxelChunkObject(K3D, config, voxelSize, chunkStructure) {
     );
     voxelsChunkObject.updateMatrix();
 
-    geometry.setAttribute('position',
-        new THREE.BufferAttribute(new Float32Array(chunkStructure.vertices), 3));
-    geometry.setAttribute('color',
-        new THREE.BufferAttribute(new Float32Array(chunkStructure.colors), 3));
+    geometry.setAttribute(
+        'position',
+        new THREE.BufferAttribute(new Float32Array(chunkStructure.vertices), 3),
+    );
+    geometry.setAttribute(
+        'color',
+        new THREE.BufferAttribute(new Float32Array(chunkStructure.colors), 3),
+    );
 
     geometry.computeBoundingSphere();
     geometry.computeBoundingBox();
@@ -196,10 +200,12 @@ module.exports = {
                     // voxelChunkObject.children[0].add(helper);
                 }
 
-                voxelChunkObject.children[0].interactions = interactionsVoxels(object,
+                voxelChunkObject.children[0].interactions = interactionsVoxels(
+                    object,
                     voxelChunkObject,
                     rollOverMesh,
-                    K3D);
+                    K3D,
+                );
 
                 object.add(voxelChunkObject);
 

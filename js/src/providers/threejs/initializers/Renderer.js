@@ -23,7 +23,7 @@ module.exports = function (K3D) {
 
     self.renderer = new THREE.WebGLRenderer({
         alpha: true,
-        precision: "highp",
+        precision: 'highp',
         premultipliedAlpha: true,
         antialias: K3D.parameters.antialias > 0,
         logarithmicDepthBuffer: K3D.parameters.logarithmicDepthBuffer,
@@ -34,13 +34,15 @@ module.exports = function (K3D) {
     if (!context) {
         if (typeof WebGL2RenderingContext !== 'undefined') {
             error(
-                'Your browser appears to support WebGL2 but it might ' +
-                'be disabled. Try updating your OS and/or video card driver.',
-                true);
+                'Your browser appears to support WebGL2 but it might '
+                + 'be disabled. Try updating your OS and/or video card driver.',
+                true,
+            );
         } else {
             error(
                 "It's look like your browser has no WebGL2 support.",
-                true);
+                true,
+            );
         }
     }
 
@@ -78,7 +80,8 @@ module.exports = function (K3D) {
 
         return new Promise((resolve) => {
             if (K3D.disabling) {
-                return null;
+                resolve(null);
+                return;
             }
 
             const size = new THREE.Vector2();
@@ -181,7 +184,7 @@ module.exports = function (K3D) {
                 }
             });
 
-            return null;
+            resolve(null);
         });
     }
 
@@ -206,7 +209,7 @@ module.exports = function (K3D) {
             }
         }
 
-        return null;
+        return renderingPromise;
     };
 
     this.renderOffScreen = function (width, height) {
@@ -233,11 +236,13 @@ module.exports = function (K3D) {
             type: THREE.FloatType,
         });
 
-        const rtAxesHelper = new THREE.WebGLRenderTarget(self.axesHelper.width * scale,
+        const rtAxesHelper = new THREE.WebGLRenderTarget(
+            self.axesHelper.width * scale,
             self.axesHelper.height * scale,
             {
                 type: THREE.FloatType,
-            });
+            },
+        );
         self.renderer.clippingPlanes = [];
 
         return getSSAAChunkedRender(self.renderer, self.axesHelper.scene, self.axesHelper.camera,

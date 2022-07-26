@@ -120,12 +120,14 @@ function K3DTransferFunctionEditor(targetDOMNode, parameters, onChange) {
                     let
                         i;
                     // new point injected
-                    const data = colorMapHelper.mergeColorMapWithOpacity(colorMap,
+                    const data = colorMapHelper.mergeColorMapWithOpacity(
+                        colorMap,
                         [
                             colorMap[0], 0.0,
                             newX, 0.5,
                             colorMap[colorMap.length - 4], 1.0,
-                        ]);
+                        ],
+                    );
 
                     for (i = 0; i < data.length; i += 5) {
                         if (data[i] === newX) {
@@ -158,10 +160,14 @@ function K3DTransferFunctionEditor(targetDOMNode, parameters, onChange) {
                     if (index === 0 || index === opacityCircles.length - 1) {
                         coord.x = parseFloat(draggableElement.childNodes[1].getAttribute('cx'));
                     } else {
-                        coord.x = Math.min(coord.x,
-                            parseFloat(opacityCircles[index + 1].childNodes[1].getAttribute('cx')) - 1);
-                        coord.x = Math.max(coord.x,
-                            parseFloat(opacityCircles[index - 1].childNodes[1].getAttribute('cx')) + 1);
+                        coord.x = Math.min(
+                            coord.x,
+                            parseFloat(opacityCircles[index + 1].childNodes[1].getAttribute('cx')) - 1,
+                        );
+                        coord.x = Math.max(
+                            coord.x,
+                            parseFloat(opacityCircles[index - 1].childNodes[1].getAttribute('cx')) + 1,
+                        );
                     }
 
                     opacityFunction[index * 2] = colorMap[0] + (coord.x / dom.clientWidth)
@@ -180,10 +186,14 @@ function K3DTransferFunctionEditor(targetDOMNode, parameters, onChange) {
                     if (index === 0 || index === colormapCircles.length - 1) {
                         coord.x = parseFloat(draggableElement.childNodes[1].getAttribute('cx'));
                     } else {
-                        coord.x = Math.min(coord.x,
-                            parseFloat(colormapCircles[index + 1].childNodes[1].getAttribute('cx')) - 1);
-                        coord.x = Math.max(coord.x,
-                            parseFloat(colormapCircles[index - 1].childNodes[1].getAttribute('cx')) + 1);
+                        coord.x = Math.min(
+                            coord.x,
+                            parseFloat(colormapCircles[index + 1].childNodes[1].getAttribute('cx')) - 1,
+                        );
+                        coord.x = Math.max(
+                            coord.x,
+                            parseFloat(colormapCircles[index - 1].childNodes[1].getAttribute('cx')) + 1,
+                        );
                     }
 
                     colorMap[index * 4] = colorMap[0] + (coord.x / dom.clientWidth)

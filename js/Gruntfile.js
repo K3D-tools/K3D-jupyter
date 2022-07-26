@@ -8,77 +8,77 @@ module.exports = function (grunt) {
 
     grunt.initConfig({
         webpack: {
-            myConfig: webpackConfig
+            myConfig: webpackConfig,
         },
         eslint: {
             options: {
-                config: '.eslintrc.js'
+                config: '.eslintrc.js',
             },
-            target: ['src/core/*.js']
+            target: ['src/core/*.js'],
         },
         watch: {
             webpack: {
                 files: [
                     'src/**/*.js',
                     'src/**/*.glsl',
-                    'src/**/*.css'
+                    'src/**/*.css',
                 ],
                 tasks: ['webpack'],
                 options: {
-                    livereload: true
-                }
+                    livereload: true,
+                },
             },
             development: {
                 files: [
-                    'development.html'
+                    'development.html',
                 ],
                 options: {
-                    livereload: true
-                }
-            }
+                    livereload: true,
+                },
+            },
         },
         connect: {
             server: {
                 options: {
                     port: 9000,
-                    base: './'
-                }
-            }
+                    base: './',
+                },
+            },
         },
         jsdoc: {
             dist: {
                 src: ['src/providers/**/*.js', 'src/core/**/*.js'],
                 options: {
                     destination: 'doc',
-                    readme: 'README.md'
-                }
-            }
+                    readme: 'README.md',
+                },
+            },
         },
         open: {
             dev: {
-                path: 'http://localhost:9000/development.html'
-            }
+                path: 'http://localhost:9000/development.html',
+            },
         },
         clean: {
             doc: 'doc',
             dist: 'dist',
-            dev: 'dev'
-        }
+            dev: 'dev',
+        },
     });
 
     grunt.registerTask('codeStyle', [
-        'eslint'
+        'eslint',
     ]);
 
     grunt.registerTask('doc', [
         'clean:doc',
-        'jsdoc'
+        'jsdoc',
     ]);
 
     grunt.registerTask('build', () => {
         grunt.task.run([
             'clean',
-            'webpack'
+            'webpack',
         ]);
     });
 
@@ -88,7 +88,7 @@ module.exports = function (grunt) {
             'webpack',
             'connect',
             'open:dev',
-            'watch'
+            'watch',
         ]);
     });
 };

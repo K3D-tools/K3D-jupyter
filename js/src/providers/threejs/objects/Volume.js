@@ -97,7 +97,10 @@ module.exports = {
 
         jitterTexture = new THREE.DataTexture(
             new Uint8Array(_.range(64 * 64).map(() => randomMul * Math.random())),
-            64, 64, THREE.RedFormat, THREE.UnsignedByteType,
+            64,
+            64,
+            THREE.RedFormat,
+            THREE.UnsignedByteType,
         );
         jitterTexture.minFilter = THREE.LinearFilter;
         jitterTexture.magFilter = THREE.LinearFilter;
@@ -107,8 +110,14 @@ module.exports = {
         jitterTexture.needsUpdate = true;
 
         const canvas = colorMapHelper.createCanvasGradient(colorMap, 1024, opacityFunction);
-        const colormap = new THREE.CanvasTexture(canvas, THREE.UVMapping, THREE.ClampToEdgeWrapping,
-            THREE.ClampToEdgeWrapping, THREE.NearestFilter, THREE.NearestFilter);
+        const colormap = new THREE.CanvasTexture(
+            canvas,
+            THREE.UVMapping,
+            THREE.ClampToEdgeWrapping,
+            THREE.ClampToEdgeWrapping,
+            THREE.NearestFilter,
+            THREE.NearestFilter,
+        );
         colormap.needsUpdate = true;
 
         if (config.shadow !== 'off') {
@@ -147,9 +156,11 @@ module.exports = {
             maskOpacities: { value: ensure256size(config.mask_opacities.data) },
             lightMapSize: { value: new THREE.Vector3(lightMapSize, lightMapSize, lightMapSize) },
             volumeMapSize: {
-                value: new THREE.Vector3(config.volume.shape[2],
+                value: new THREE.Vector3(
+                    config.volume.shape[2],
                     config.volume.shape[1],
-                    config.volume.shape[0]),
+                    config.volume.shape[0],
+                ),
             },
             lightMapRenderTargetSize: { value: new THREE.Vector2(lightMapRenderTargetSize, lightMapRenderTargetSize) },
             low: { value: colorRange[0] },
@@ -213,7 +224,7 @@ module.exports = {
                     ),
                     defines: {
                         USE_MAP: 1,
-                        USE_MASK: (maskEnabled ? 1 : 0)
+                        USE_MASK: (maskEnabled ? 1 : 0),
                     },
                     vertexShader: require('./shaders/Volume.lightmap.vertex.glsl'),
                     fragmentShader: require('./shaders/Volume.lightmap.fragment.glsl'),
@@ -228,9 +239,12 @@ module.exports = {
             quadRTT.updateMatrixWorld();
 
             cameraRTT = new THREE.OrthographicCamera(
-                lightMapRenderTargetSize / -2, lightMapRenderTargetSize / 2,
-                lightMapRenderTargetSize / 2, lightMapRenderTargetSize / -2,
-                -10000, 10000,
+                lightMapRenderTargetSize / -2,
+                lightMapRenderTargetSize / 2,
+                lightMapRenderTargetSize / 2,
+                lightMapRenderTargetSize / -2,
+                -10000,
+                10000,
             );
 
             cameraRTT.position.z = 100;

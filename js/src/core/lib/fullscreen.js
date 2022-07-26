@@ -1,11 +1,12 @@
 const screenfull = require('screenfull').default;
 
-function fullscreenGUI(container, gui, currentWindow) {
+function fullscreenGUI(container, gui, currentWindow, K3D) {
     const obj = {
         fullscreen: false,
     };
 
     const controller = gui.add(obj, 'fullscreen').name('Full screen').onChange((value) => {
+        K3D.heavyOperationSync = true;
         if (value) {
             screenfull.request(container);
         } else {
@@ -27,5 +28,5 @@ module.exports = {
     },
 
     initialize: fullscreenGUI,
-    screenfull: screenfull
+    screenfull,
 };

@@ -1,6 +1,7 @@
 const THREE = require('three');
 const { colorsToFloat32Array } = require('../../../core/lib/helpers/buffer');
 const Fn = require('../helpers/Fn');
+
 const { commonUpdate } = Fn;
 const { areAllChangesResolve } = Fn;
 const { getColorsArray } = Fn;
@@ -35,13 +36,13 @@ module.exports = {
         let positions = [];
         let attribute = [];
         let colors = [];
-        let jump = config.indices_type === 'segment' ? 2 : 3;
+        const jump = config.indices_type === 'segment' ? 2 : 3;
         let offsets;
 
-        let verticesCount = vertices.length / 3;
+        const verticesCount = vertices.length / 3;
 
         verticesColors = (verticesColors && verticesColors.length === vertices.length / 3
-                ? colorsToFloat32Array(verticesColors) : getColorsArray(color, vertices.length / 3)
+            ? colorsToFloat32Array(verticesColors) : getColorsArray(color, vertices.length / 3)
         );
 
         for (let i = 0; i < indices.length; i += jump) {
@@ -53,30 +54,38 @@ module.exports = {
                 ];
             } else {
                 offsets = [
-                    [indices[i], indices[i + 1]]
+                    [indices[i], indices[i + 1]],
                 ];
             }
 
             for (let j = 0; j < offsets.length; j++) {
-                let hash = offsets[j][0] > offsets[j][1]
+                const hash = offsets[j][0] > offsets[j][1]
                     ? offsets[j][0] + offsets[j][1] * verticesCount
                     : offsets[j][1] + offsets[j][0] * verticesCount;
 
                 if (!edges.has(hash)) {
                     edges.add(hash);
 
-                    let o1 = offsets[j][0] * 3;
-                    let o2 = offsets[j][1] * 3;
+                    const o1 = offsets[j][0] * 3;
+                    const o2 = offsets[j][1] * 3;
 
                     positions.push(
-                        vertices[o1], vertices[o1 + 1], vertices[o1 + 2],
-                        vertices[o2], vertices[o2 + 1], vertices[o2 + 2]
+                        vertices[o1],
+                        vertices[o1 + 1],
+                        vertices[o1 + 2],
+                        vertices[o2],
+                        vertices[o2 + 1],
+                        vertices[o2 + 2],
                     );
 
                     if (verticesColors && verticesColors.length > 0) {
                         colors.push(
-                            verticesColors[o1], verticesColors[o1 + 1], verticesColors[o1 + 2],
-                            verticesColors[o2], verticesColors[o2 + 1], verticesColors[o2 + 2]
+                            verticesColors[o1],
+                            verticesColors[o1 + 1],
+                            verticesColors[o1 + 2],
+                            verticesColors[o2],
+                            verticesColors[o2 + 1],
+                            verticesColors[o2 + 2],
                         );
                     }
 
@@ -114,7 +123,7 @@ module.exports = {
 
     update(config, changes, obj, K3D) {
         const resolvedChanges = {};
- 
+
         if (typeof (obj.geometry.attributes.uv) !== 'undefined') {
             if (typeof (changes.color_range) !== 'undefined' && !changes.color_range.timeSeries) {
                 obj.material.uniforms.low.value = changes.color_range[0];
