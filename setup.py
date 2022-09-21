@@ -81,7 +81,7 @@ setup_args = dict(
     packages=setuptools.find_packages(),
     install_requires=[
         "traittypes",
-        "ipywidgets",
+        "ipywidgets>=7,<9",
         "traitlets",
         "numpy",
         "msgpack"
