@@ -78,15 +78,12 @@
           ]
         }
       ]
-    }
-  },
-  "externalExtensions": {
-    "@jupyter-widgets/jupyterlab-manager": "2.0.0"
-  },
-  "sharedPackages": {
-    "@jupyter-widgets/base": {
-      "bundled": false,
-      "singleton": true
+    },
+    "sharedPackages": {
+      "@jupyter-widgets/base": {
+        "bundled": false,
+        "singleton": true
+      }
     }
   }
 }
