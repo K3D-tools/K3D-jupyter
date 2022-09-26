@@ -21,14 +21,17 @@ function runOnEveryPlot(id, cb) {
             cb(plot, plot.K3DInstance.getObjectById(id));
         }
     });
-}
+};
 
-const ChunkModel = widgets.WidgetModel.extend({
-    defaults: _.extend(_.result({}, 'widgets.WidgetModel.prototype.defaults'), {
-        _model_name: 'ChunkModel',
-        _model_module: 'k3d',
-        _model_module_version: semverRange,
-    }),
+class ChunkModel extends widgets.WidgetModel {
+    defaults() {
+        return {
+            ...super.defaults(),
+            _model_name: 'ChunkModel',
+            _model_module: 'k3d',
+            _model_module_version: semverRange,
+        };
+    };
 
     initialize() {
         const chunk = arguments[0];
@@ -38,7 +41,7 @@ const ChunkModel = widgets.WidgetModel.extend({
         this.on('change', this._change, this);
 
         chunkList[chunk.id] = this;
-    },
+    };
 
     _change() {
         const chunk = this.attributes;
@@ -50,23 +53,27 @@ const ChunkModel = widgets.WidgetModel.extend({
                 });
             }
         });
-    },
-}, {
-    serializers: _.extend({
+    };
+    
+    static serializers = {
+        ...widgets.WidgetModel.serializers,
         voxels: serialize,
         coord: serialize,
-    }, widgets.WidgetModel.serializers),
-});
+    };
+}
 
-const ObjectModel = widgets.WidgetModel.extend({
-    defaults: _.extend(_.result({}, 'widgets.WidgetModel.prototype.defaults'), {
-        _model_name: 'ObjectModel',
-        _view_name: 'ObjectView',
-        _model_module: 'k3d',
-        _view_module: 'k3d',
-        _model_module_version: semverRange,
-        _view_module_version: semverRange,
-    }),
+class ObjectModel extends widgets.WidgetModel {
+    defaults() {
+        return {
+            ...super.defaults(),
+            _model_name: 'ObjectModel',
+            _view_name: 'ObjectView',
+            _model_module: 'k3d',
+            _view_module: 'k3d',
+            _model_module_version: semverRange,
+            _view_module_version: semverRange,
+        };
+    };
 
     initialize() {
         const obj = arguments[0];
@@ -103,15 +110,16 @@ const ObjectModel = widgets.WidgetModel.extend({
         }, this);
 
         objectsList[obj.id] = this;
-    },
+    };
 
     _change(c) {
         plotsList.forEach(function (plot) {
             plot.refreshObject(this, c.changed);
         }, this);
-    },
-}, {
-    serializers: _.extend({
+    };
+
+    static serializers = {
+        ...widgets.WidgetModel.serializers,
         model_matrix: serialize,
         positions: serialize,
         scalar_field: serialize,
@@ -165,24 +173,27 @@ const ObjectModel = widgets.WidgetModel.extend({
         spacings_z: serialize,
         mask: serialize,
         mask_opacities: serialize,
-    }, widgets.WidgetModel.serializers),
-});
+    };
+}
 
 const ObjectView = widgets.WidgetView.extend({});
 
-const PlotModel = widgets.DOMWidgetModel.extend({
-    defaults: _.extend(_.result({}, 'widgets.DOMWidgetModel.prototype.defaults'), {
-        _model_name: 'PlotModel',
-        _view_name: 'PlotView',
-        _model_module: 'k3d',
-        _view_module: 'k3d',
-        _model_module_version: semverRange,
-        _view_module_version: semverRange,
-    }),
-});
+class PlotModel extends widgets.DOMWidgetModel {
+    defaults () {
+        return {
+            ...super.defaults(),
+            _model_name: 'PlotModel',
+            _view_name: 'PlotView',
+            _model_module: 'k3d',
+            _view_module: 'k3d',
+            _model_module_version: semverRange,
+            _view_module_version: semverRange,
+        };
+    };
+};
 
 // Custom View. Renders the widget model.
-const PlotView = widgets.DOMWidgetView.extend({
+class PlotView extends widgets.DOMWidgetView {
     render() {
         const containerEnvelope = window.document.createElement('div');
         const container = window.document.createElement('div');
@@ -203,7 +214,7 @@ const PlotView = widgets.DOMWidgetView.extend({
 
         this.container = container;
         this.on('displayed', this._init, this);
-    },
+    };
 
     remove() {
         _.pull(plotsList, this);
@@ -213,7 +224,7 @@ const PlotView = widgets.DOMWidgetView.extend({
         this.K3DInstance.off(this.K3DInstance.events.VOXELS_CALLBACK, this.voxelsCallback);
         this.K3DInstance.off(this.K3DInstance.events.OBJECT_HOVERED, this.objectHoverCallback);
         this.K3DInstance.off(this.K3DInstance.events.OBJECT_CLICKED, this.objectClickCallback);
-    },
+    };
 
     _init() {
         const self = this;
@@ -407,125 +418,125 @@ const PlotView = widgets.DOMWidgetView.extend({
                 );
             }
         });
-    },
+    };
 
     _setDirectionalLightingIntensity() {
         this.K3DInstance.setDirectionalLightingIntensity(this.model.get('lighting'));
-    },
+    };
 
     _setTime() {
         if (this.K3DInstance.parameters.time !== this.model.get('time')) {
             this.renderPromises.push(this.K3DInstance.setTime(this.model.get('time')));
         }
-    },
+    };
 
     _setCameraAutoFit() {
         this.K3DInstance.setCameraAutoFit(this.model.get('camera_auto_fit'));
-    },
+    };
 
     _setGridAutoFit() {
         this.K3DInstance.setGridAutoFit(this.model.get('grid_auto_fit'));
-    },
+    };
 
     _setGridVisible() {
         this.K3DInstance.setGridVisible(this.model.get('grid_visible'));
-    },
+    };
 
     _setGridColor() {
         this.K3DInstance.setGridColor(this.model.get('grid_color'));
-    },
+    };
 
     _setLabelColor() {
         this.K3DInstance.setLabelColor(this.model.get('label_color'));
-    },
+    };
 
     _setFps() {
         this.K3DInstance.setFps(this.model.get('fps'));
-    },
+    };
 
     _setFpsMeter() {
         this.K3DInstance.setFpsMeter(this.model.get('fps_meter'));
-    },
+    };
 
     _setScreenshotScale() {
         this.K3DInstance.setScreenshotScale(this.model.get('screenshot_scale'));
-    },
+    };
 
     _setVoxelPaintColor() {
         this.K3DInstance.setVoxelPaint(this.model.get('voxel_paint_color'));
-    },
+    };
 
     _setBackgroundColor() {
         this.K3DInstance.setClearColor(this.model.get('background_color'));
-    },
+    };
 
     _setGrid() {
         this.K3DInstance.setGrid(this.model.get('grid'));
-    },
+    };
 
     _setAutoRendering() {
         this.K3DInstance.setAutoRendering(this.model.get('auto_rendering'));
-    },
+    };
 
     _setMenuVisibility() {
         this.K3DInstance.setMenuVisibility(this.model.get('menu_visibility'));
-    },
+    };
 
     _setColorMapLegend() {
         this.K3DInstance.setColorMapLegend(this.model.get('colorbar_object_id'));
-    },
+    };
 
     _setColorbarScientific() {
         this.K3DInstance.setColorbarScientific(this.model.get('colorbar_scientific'));
-    },
+    };
 
     _setCamera() {
         this.K3DInstance.setCamera(this.model.get('camera'));
-    },
+    };
 
     _setCameraAnimation() {
         this.K3DInstance.setCameraAnimation(this.model.get('camera_animation'));
-    },
+    };
 
     _setRenderingSteps() {
         this.K3DInstance.setRenderingSteps(this.model.get('rendering_steps'));
-    },
+    };
 
     _setAxes() {
         this.K3DInstance.setAxes(this.model.get('axes'));
-    },
+    };
 
     _setName() {
         this.K3DInstance.setName(this.model.get('name'));
-    },
+    };
 
     _setViewMode() {
         this.K3DInstance.setViewMode(this.model.get('mode'));
-    },
+    };
 
     _setMinimumFps() {
         this.K3DInstance.setMinimumFps(this.model.get('minimum_fps'));
-    },
+    };
 
     _setCameraMode() {
         this.K3DInstance.setCameraMode(this.model.get('camera_mode'));
-    },
+    };
 
     _setManipulateMode() {
         this.K3DInstance.setManipulateMode(this.model.get('manipulate_mode'));
-    },
+    };
 
     _setAxesHelper() {
         this.K3DInstance.setAxesHelper(this.model.get('axes_helper'));
-    },
+    };
 
     _setAxesHelperColors() {
         this.K3DInstance.setAxesHelperColors(this.model.get('axes_helper_colors'));
-    },
+    };
 
     _setSnapshotType() {
         this.K3DInstance.setSnapshotType(this.model.get('snapshot_type'));
-    },
+    };
 
     _setCameraLock() {
         this.K3DInstance.setCameraLock(
@@ -533,7 +544,7 @@ const PlotView = widgets.DOMWidgetView.extend({
             this.model.get('camera_no_zoom'),
             this.model.get('camera_no_pan'),
         );
-    },
+    };
 
     _setCameraSpeeds() {
         this.K3DInstance.setCameraSpeeds(
@@ -541,19 +552,19 @@ const PlotView = widgets.DOMWidgetView.extend({
             this.model.get('camera_zoom_speed'),
             this.model.get('camera_pan_speed'),
         );
-    },
+    };
 
     _setCameraFOV() {
         this.K3DInstance.setCameraFOV(this.model.get('camera_fov'));
-    },
+    };
 
     _setCameraDampingFactor() {
         this.K3DInstance.setCameraDampingFactor(this.model.get('camera_damping_factor'));
-    },
+    };
 
     _setClippingPlanes() {
         this.K3DInstance.setClippingPlanes(this.model.get('clipping_planes'));
-    },
+    };
 
     _onObjectsListChange() {
         const oldObjectId = this.model.previous('object_ids');
@@ -566,13 +577,13 @@ const PlotView = widgets.DOMWidgetView.extend({
         _.difference(newObjectId, oldObjectId).forEach(function (id) {
             this.renderPromises.push(this.K3DInstance.load({ objects: [objectsList[id].attributes] }));
         }, this);
-    },
+    };
 
     refreshObject(obj, changed) {
         if (this.model.get('object_ids').indexOf(obj.get('id')) !== -1) {
             this.renderPromises.push(this.K3DInstance.reload(objectsList[obj.get('id')].attributes, changed));
         }
-    },
+    };
 
     processPhosphorMessage(msg) {
         widgets.DOMWidgetView.prototype.processPhosphorMessage.call(this, msg);
@@ -590,7 +601,7 @@ const PlotView = widgets.DOMWidgetView.extend({
             default:
                 break;
         }
-    },
+    };
 
     handleEvent(event) {
         switch (event.type) {
@@ -601,7 +612,7 @@ const PlotView = widgets.DOMWidgetView.extend({
                 widgets.DOMWidgetView.prototype.handleEvent.call(this, event);
                 break;
         }
-    },
+    };
 
     handleContextMenu(event) {
         // Cancel context menu if on renderer:
@@ -609,14 +620,14 @@ const PlotView = widgets.DOMWidgetView.extend({
             event.preventDefault();
             event.stopPropagation();
         }
-    },
+    };
 
     handleResize() {
         if (this.K3DInstance) {
             this.K3DInstance.resizeHelper();
         }
-    },
-});
+    };
+};
 
 module.exports = {
     ChunkModel,
