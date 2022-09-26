@@ -14,8 +14,6 @@ if (window.require) {
     });
 }
 
-window.__webpack_public_path__ = `${document.querySelector('body').getAttribute('data-base-url')}nbextensions/k3d/`;
-
 require('katex/dist/katex.min.css');
 require('lil-gui/dist/lil-gui.css');
 
