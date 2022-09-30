@@ -46,11 +46,7 @@ artifacts = [
 
 [tool.hatch.build.targets.wheel]
 exclude = ["k3d/test"]
-artifacts = [
-    "k3d/static/",
-    # We don't actually need this, save for `package.json`
-    "k3d/labextension/",
-]
+artifacts = ["k3d/static"]
 
 [tool.hatch.version]
 source = "nodejs"
