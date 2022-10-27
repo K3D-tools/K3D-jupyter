@@ -94,8 +94,9 @@ class k3d_remote:
             return Response(msgpack.packb(diff, use_bin_type=True),
                 mimetype='application/octet-stream')
 
-        self.browser.implicitly_wait(5)
-        self.browser.get(url="http://localhost:" + str(port) + "/headless.html")
+        while self.browser.execute_script("return typeof(window.headlessK3D) !== 'undefined'") == False:
+            time.sleep(1)
+            self.browser.get(url="http://localhost:" + str(port) + "/headless.html")
 
         atexit.register(self.close)
 
