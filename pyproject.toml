@@ -40,9 +40,12 @@ dev = [
     "flask",
     "jupyterlab",
     "notebook",
+    "pixelmatch",
     "pytest",
     "pytest-notebook",
     "pytest-cov",
+    "selenium",
+    "webdriver_manager"
 ]
 # these cover all packages necessary to run the notebooks in `examples/`
 examples = [
