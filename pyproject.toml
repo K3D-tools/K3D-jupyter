@@ -37,14 +37,16 @@ dynamic = ["version", "description", "authors", "urls"]
 [project.optional-dependencies]
 dev = [
     "build",
+    "flask",
     "jupyterlab",
     "notebook",
     "pytest",
     "pytest-notebook",
-    "pytest-cov"
+    "pytest-cov",
 ]
 # these cover all packages necessary to run the notebooks in `examples/`
 examples = [
+    "flask",
     "matplotlib",
     "mdutils",
     "nibabel",
