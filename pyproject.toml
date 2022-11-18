@@ -40,6 +40,7 @@ file = "LICENSE.txt"
 [tool.hatch.build.sdist]
 artifacts = [
     "k3d/static/",
+    "js/src/index.*",
     "k3d/labextension/",
 ]
 
@@ -49,6 +50,7 @@ artifacts = [
     "k3d/static/",
     # We don't actually need this, save for `package.json`
     "k3d/labextension/",
+    "js/src/index.*",
 ]
 
 [tool.hatch.version]
@@ -57,6 +59,7 @@ source = "nodejs"
 [tool.hatch.build.targets.wheel.shared-data]
 "k3d/labextension" = "share/jupyter/labextensions/k3d"
 "install.json" = "share/jupyter/labextensions/k3d/install.json"
+"k3d/static" = "share/jupyter/nbextensions/k3d"
 "k3d/static/standalone.js" = "k3d/static/k3d/standalone.js"
 "k3d/static/snapshot_standalone.txt" = "k3d/static/k3d/snapshot_standalone.txt"
 "k3d/static/snapshot_online.txt" = "k3d/static/k3d/snapshot_online.txt"
@@ -74,6 +77,7 @@ exclude = [
 [tool.hatch.build.hooks.jupyter-builder]
 ensured-targets = [
     "k3d/labextension/package.json",
+    "js/src/index.js",
 ]
 dependencies = [
     "hatch-jupyter-builder>=0.6.2",
@@ -82,7 +86,6 @@ build-function = "hatch_jupyter_builder.npm_builder"
 
 [tool.hatch.build.hooks.jupyter-builder.build-kwargs]
 path = "."
-build_dir = "js"
 build_cmd = "build:prod"
 npm = [
     "jlpm",

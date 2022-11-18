@@ -50,6 +50,7 @@ module.exports = [
         },
         mode,
         plugins,
+        externals: ['@jupyter-widgets/base', 'module'],
     },
     { // Bundle for the notebook containing the custom widget views and models
         //
