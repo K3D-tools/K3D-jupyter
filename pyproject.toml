@@ -67,6 +67,8 @@ source = "nodejs"
 "k3d/static/headless.html" = "k3d/static/k3d/headless.html"
 "k3d/static/extension.js" = "k3d/static/k3d/extension.js"
 "k3d/static/index.js" = "k3d/static/k3d/index.js"
+# this makes the nbextensino auto enable on install
+"k3d.json" = "etc/jupyter/nbconfig/notebook.d/k3d.json"
 
 
 [tool.hatch.build.targets.sdist]
