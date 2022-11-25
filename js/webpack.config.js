@@ -50,6 +50,7 @@ module.exports = [
         },
         mode,
         plugins,
+        externals: ['@jupyter-widgets/base', 'module'],
     },
     { // Bundle for the notebook containing the custom widget views and models
         //
@@ -57,11 +58,12 @@ module.exports = [
         // custom widget.
         // It must be an amd module
         //
-        entry: './src/index.js',
+        entry: ['./src/amd-public-path.js', './src/index.js'],
         output: {
             filename: 'index.js',
             path: `${__dirname}/../k3d/static`,
             libraryTarget: 'amd',
+            publicPath: '', // Set in amd-public-path.js
         },
         mode,
         plugins,
@@ -69,7 +71,8 @@ module.exports = [
         module: {
             rules,
         },
-        externals: ['@jupyter-widgets/base'],
+        // 'module' is the magic requirejs dependency used to set the publicPath
+        externals: ['@jupyter-widgets/base', 'module'],
     },
     { // Embeddable K3D-jupyter bundle
         //
@@ -85,12 +88,12 @@ module.exports = [
         // The target bundle is always `dist/index.js`, which is the path required
         // by the custom widget embedder.
         //
-        entry: './src/embed.js',
+        entry: ['./src/amd-public-path.js', './src/embed.js'],
         output: {
             filename: 'index.js',
             path: `${__dirname}/dist/`,
             libraryTarget: 'amd',
-            publicPath: `https://unpkg.com/k3d@${version}/dist/`,
+            publicPath: '', // Set in amd-public-path.js
         },
         mode,
         devtool: 'source-map',
@@ -98,7 +101,8 @@ module.exports = [
             rules,
         },
         plugins,
-        externals: ['@jupyter-widgets/base'],
+        // 'module' is the magic requirejs dependency used to set the publicPath
+        externals: ['@jupyter-widgets/base', 'module'],
     },
     {
         entry: './src/standalone.js',

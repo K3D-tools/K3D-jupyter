@@ -26,10 +26,11 @@
     "url": "https://github.com/K3D-tools/K3D-jupyter"
   },
   "scripts": {
-    "build": "jlpm run build:labextension:dev",
-    "build:prod": "jlpm run build:labextension",
+    "build": "jlpm run build:nbextension && jlpm run build:labextension:dev",
+    "build:prod": "jlpm run build:labextension && jlpm run build:nbextension",
     "build:labextension": "jupyter labextension build .",
     "build:labextension:dev": "jupyter labextension build --development True .",
+    "build:nbextension": "cd js && jlpm install && jlpm build",
     "clean:labextension": "rimraf k3d/labextension",
     "clean:all": "jlpm run clean:labextension",
     "install:extension": "jupyter labextension develop --overwrite .",
@@ -39,7 +40,7 @@
     "watch:labextension": "jupyter labextension watch ."
   },
   "dependencies": {
-    "@jupyter-widgets/base": "^4.1.0",
+    "@jupyter-widgets/base": "^4 || ^5 || ^6",
     "fflate": "^0.7.3",
     "file-saver": "^2.0.5",
     "katex": "^0.15.6",
@@ -51,7 +52,8 @@
     "screenfull": "^6.0.1",
     "stats.js": "^0.17.0",
     "three": "^0.140.2",
-    "three-mesh-bvh": "^0.5.11"
+    "three-mesh-bvh": "^0.5.11",
+    "copy-webpack-plugin": "^11.0.0"
   },
   "devDependencies": {
     "@jupyterlab/builder": "^3.4.2",
@@ -78,15 +80,12 @@
           ]
         }
       ]
-    }
-  },
-  "externalExtensions": {
-    "@jupyter-widgets/jupyterlab-manager": "2.0.0"
-  },
-  "sharedPackages": {
-    "@jupyter-widgets/base": {
-      "bundled": false,
-      "singleton": true
+    },
+    "sharedPackages": {
+      "@jupyter-widgets/base": {
+        "bundled": false,
+        "singleton": true
+      }
     }
   }
 }

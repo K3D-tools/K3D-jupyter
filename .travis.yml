@@ -1,5 +1,6 @@
 sudo: required
 dist: xenial
+python: 3.7
 language: python
 services:
   - xvfb

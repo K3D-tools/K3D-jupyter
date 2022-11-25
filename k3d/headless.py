@@ -4,9 +4,10 @@ import logging
 import msgpack
 import threading
 import time
-import urllib.request
 from base64 import b64decode
-from flask import Flask, request, Response, send_from_directory
+from flask import Flask, send_from_directory
+from werkzeug import Response
+from werkzeug.serving import make_server
 
 from .helpers import to_json
 
@@ -15,7 +16,6 @@ log.setLevel(logging.ERROR)
 
 
 # logging.basicConfig(filename='test.log', level=logging.DEBUG)
-
 
 class k3d_remote:
     def __init__(self, k3d_plot, driver, width=1280, height=720, port=8080):
@@ -28,22 +28,15 @@ class k3d_remote:
 
         self.api = Flask(__name__)
 
-        thread = threading.Thread(target=lambda: self.api.run(host="0.0.0.0", port=port),
-                                  daemon=True)
-        thread.deamon = True
-        thread.start()
+        self.server = make_server("localhost", port, self.api)
+
+        self.thread = threading.Thread(target=lambda: self.server.serve_forever(), daemon=True)
+        self.thread.deamon = True
+        self.thread.start()
 
         self.synced_plot = {k: None for k in k3d_plot.get_plot_params().keys()}
         self.synced_objects = {}
 
-        @self.api.route('/stop', methods=['GET'])
-        def stopServer():
-            shutdown_hook = request.environ.get('werkzeug.server.shutdown')
-
-            if shutdown_hook is not None:
-                shutdown_hook()
-
-            return Response("Bye", mimetype='text/plain')
 
         @self.api.route('/<path:path>')
         def static_file(path):
@@ -99,10 +92,11 @@ class k3d_remote:
             self.synced_plot = current_plot_params
 
             return Response(msgpack.packb(diff, use_bin_type=True),
-                            mimetype='application/octet-stream')
+                mimetype='application/octet-stream')
 
-        self.browser.implicitly_wait(5)
-        self.browser.get(url="http://localhost:" + str(port) + "/headless.html")
+        while self.browser.execute_script("return typeof(window.headlessK3D) !== 'undefined'") == False:
+            time.sleep(1)
+            self.browser.get(url="http://localhost:" + str(port) + "/headless.html")
 
         atexit.register(self.close)
 
@@ -132,9 +126,9 @@ class k3d_remote:
         return b64decode(screenshot)
 
     def close(self):
-        if self.api is not None:
-            urllib.request.urlopen("http://localhost:" + str(self.port) + "/stop")
-            self.api = None
+        if self.server is not None:
+            self.server.shutdown()
+            self.server = None
 
         if self.browser is not None:
             self.browser.close()

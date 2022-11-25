@@ -1,3 +1,96 @@
 [build-system]
-requires = ["jupyter_packaging~=0.7.9", "jupyterlab~=3.0", "setuptools>=40.8.0", "wheel"]
-build-backend = "setuptools.build_meta"
+requires = [
+    "hatchling>=1.10.0",
+    "hatch-nodejs-version>=0.3.0",
+    "jupyterlab~=3.0",
+]
+build-backend = "hatchling.build"
+
+[project]
+name = "k3d"
+readme = "README.md"
+requires-python = ">=3.7"
+keywords = [
+    "Jupyter",
+    "JupyterLab",
+    "JupyterLab3",
+]
+classifiers = [
+    "Framework :: Jupyter",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.7",
+    "Programming Language :: Python :: 3.8",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+]
+dependencies = [
+    "ipywidgets>=7.0.0,<9.0.0",
+    "msgpack",
+    "numpy",
+    "traitlets",
+    "traittypes",
+]
+dynamic = ["version", "description", "authors", "urls"]
+
+[project.license]
+file = "LICENSE.txt"
+
+[tool.hatch.build.sdist]
+artifacts = [
+    "k3d/static/",
+    "js/src/index.*",
+    "k3d/labextension/",
+]
+
+[tool.hatch.build.targets.wheel]
+exclude = ["k3d/test"]
+artifacts = [
+    "k3d/static/",
+    # We don't actually need this, save for `package.json`
+    "k3d/labextension/",
+    "js/src/index.*",
+]
+
+[tool.hatch.version]
+source = "nodejs"
+
+[tool.hatch.build.targets.wheel.shared-data]
+"k3d/labextension" = "share/jupyter/labextensions/k3d"
+"install.json" = "share/jupyter/labextensions/k3d/install.json"
+"k3d/static" = "share/jupyter/nbextensions/k3d"
+"k3d/static/standalone.js" = "k3d/static/k3d/standalone.js"
+"k3d/static/snapshot_standalone.txt" = "k3d/static/k3d/snapshot_standalone.txt"
+"k3d/static/snapshot_online.txt" = "k3d/static/k3d/snapshot_online.txt"
+"k3d/static/snapshot_inline.txt" = "k3d/static/k3d/snapshot_inline.txt"
+"k3d/static/headless.html" = "k3d/static/k3d/headless.html"
+"k3d/static/extension.js" = "k3d/static/k3d/extension.js"
+"k3d/static/index.js" = "k3d/static/k3d/index.js"
+# this makes the nbextensino auto enable on install
+"k3d.json" = "etc/jupyter/nbconfig/notebook.d/k3d.json"
+
+
+[tool.hatch.build.targets.sdist]
+exclude = [
+    ".github",
+]
+
+[tool.hatch.build.hooks.jupyter-builder]
+ensured-targets = [
+    "k3d/labextension/package.json",
+    "js/src/index.js",
+]
+dependencies = [
+    "hatch-jupyter-builder>=0.6.2",
+]
+build-function = "hatch_jupyter_builder.npm_builder"
+
+[tool.hatch.build.hooks.jupyter-builder.build-kwargs]
+path = "."
+build_cmd = "build:prod"
+npm = [
+    "jlpm",
+]
+
+
