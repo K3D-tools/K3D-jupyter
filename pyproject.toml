@@ -34,6 +34,35 @@ dependencies = [
 ]
 dynamic = ["version", "description", "authors", "urls"]
 
+[project.optional-dependencies]
+dev = [
+    "build",
+    "flask",
+    "jupyterlab",
+    "notebook",
+    "pixelmatch",
+    "pytest",
+    "pytest-notebook",
+    "pytest-cov",
+    "selenium",
+    "webdriver_manager"
+]
+# these cover all packages necessary to run the notebooks in `examples/`
+examples = [
+    "flask",
+    "matplotlib",
+    "mdutils",
+    "nibabel",
+    "numba",
+    "opencv-python",
+    "pyunpack",
+    "scikit-image",
+    "scikit-learn",
+    "scipy",
+    "tqdm",
+    "vtk"
+]
+
 [project.license]
 file = "LICENSE.txt"
 

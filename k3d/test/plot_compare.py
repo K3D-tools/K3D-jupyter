@@ -57,9 +57,4 @@ def compare(name, only_canvas=True, threshold=0.2, camera_factor=1.0):
         img_diff.save('./test/results/' + name + '_diff.png')
 
         print(name, mismatch, threshold)
-
-        if 'CI' in os.environ and os.environ['CI'] == 'true':
-            print(name)
-            print(b64encode(open('./test/results/' + name + '.png', 'rb').read()))
-
     assert mismatch < threshold
