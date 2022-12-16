@@ -1,5 +1,6 @@
 const mathHelper = require('./helpers/math');
 const colorMapHelper = require('./helpers/colorMap');
+const _ = require('../../lodash');
 
 function getColorLegend(K3D, object) {
     let line;
@@ -19,13 +20,33 @@ function getColorLegend(K3D, object) {
     let resizeListenerId = null;
     let i;
 
-    if (K3D.colorMapNode) {
-        K3D.getWorld().targetDOMNode.removeChild(K3D.colorMapNode);
-        K3D.colorMapNode = null;
+    if (!K3D.lastColorMap) {
+        K3D.lastColorMap = {
+            objectId: null,
+            colorRange: [null, null],
+            colorMap: null
+        }
     }
 
     if (typeof (object) !== 'object') {
         return;
+    }
+
+    range[0] = Math.min(object.color_range[0], object.color_range[1]);
+    range[1] = Math.max(object.color_range[0], object.color_range[1]);
+
+    // avoid regenerating colormap
+    if (K3D.lastColorMap.objectId === object.id &&
+        K3D.lastColorMap.colorRange[0] == range[0] &&
+        K3D.lastColorMap.colorRange[1] == range[1] &&
+        _.isEqual(K3D.lastColorMap.colorMap, object.color_map.data)) {
+        return;
+    }
+
+
+    if (K3D.colorMapNode) {
+        K3D.getWorld().targetDOMNode.removeChild(K3D.colorMapNode);
+        K3D.colorMapNode = null;
     }
 
     const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
@@ -62,8 +83,6 @@ function getColorLegend(K3D, object) {
 
     svg.appendChild(rect);
 
-    range[0] = Math.min(object.color_range[0], object.color_range[1]);
-    range[1] = Math.max(object.color_range[0], object.color_range[1]);
 
     const colorRange = range[1] - range[0];
     majorScale = mathHelper.pow10ceil(Math.abs(colorRange)) / 10.0;
@@ -158,6 +177,12 @@ function getColorLegend(K3D, object) {
     tryPosLabels();
 
     K3D.colorMapNode = svg;
+
+    K3D.lastColorMap = {
+        objectId: object.id,
+        colorRange: range,
+        colorMap: object.color_map.data
+    }
 }
 
 module.exports = {
