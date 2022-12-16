@@ -1,6 +1,6 @@
 {
   "name": "k3d",
-  "version": "2.14.5",
+  "version": "2.15.0",
   "description": "3D visualization library",
   "keywords": [
     "jupyter",
