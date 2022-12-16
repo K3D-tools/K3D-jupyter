@@ -2013,7 +2013,7 @@ def plot(
         camera_pan_speed=0.3,
         camera_damping_factor=0.0,
         fps=25.0,
-        minimum_fps=20,
+        minimum_fps=-1,
         fps_meter=False,
         name=None,
         custom_data=None

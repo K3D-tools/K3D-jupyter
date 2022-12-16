@@ -3,9 +3,7 @@
 git add and git commit
 rm -rf build
 rm -rf dist
-pip install -ve .
-python setup.py sdist
-python setup.py bdist_wheel
+python -m build .
 twine upload dist/*
 cd js
 grunt build
