@@ -98,7 +98,9 @@ exclude = [
     ".github",
     "docs",
     "imgs",
-    "k3d/test"
+    "k3d/test",
+    "examples",
+    "binder",
 ]
 artifacts = [
     "k3d/static/",
