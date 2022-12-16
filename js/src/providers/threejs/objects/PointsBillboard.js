@@ -169,13 +169,14 @@ module.exports = {
         }
 
         if (typeof (changes.attribute) !== 'undefined' && !changes.attribute.timeSeries
-            && obj.geometry.attributes.attattributesribute
+            && obj.geometry.attributes.attributes
             && changes.attribute.data.length === obj.geometry.attributes.attributes.array.length) {
             obj.geometry.attributes.attributes.array.set(changes.attribute.data);
             obj.geometry.attributes.attributes.needsUpdate = true;
 
             resolvedChanges.attribute = null;
         }
+
 
         commonUpdate(config, changes, resolvedChanges, obj, K3D);
 
