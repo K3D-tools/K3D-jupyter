@@ -3,9 +3,10 @@ const buffer = require('../../../core/lib/helpers/buffer');
 const colorMapHelper = require('../../../core/lib/helpers/colorMap');
 const Fn = require('../helpers/Fn');
 
-const { commonUpdate } = Fn;
-const { areAllChangesResolve } = Fn;
-const { getColorsArray } = Fn;
+const {commonUpdate} = Fn;
+const {areAllChangesResolve} = Fn;
+const {getColorsArray} = Fn;
+const {colorsToFloat32Array} = buffer;
 
 /**
  * Loader strategy to handle Points object
@@ -20,13 +21,12 @@ module.exports = {
         const color = new THREE.Color(config.color);
         const pointPositions = config.positions.data;
         const pointColors = (config.colors && config.colors.data) || null;
-        const { shader } = config;
+        const {shader} = config;
         let colors = null;
         const opacities = (config.opacities && config.opacities.data
             && config.opacities.data.length === pointPositions.length / 3) ? config.opacities.data : null;
         const sizes = (config.point_sizes && config.point_sizes.data
             && config.point_sizes.data.length === pointPositions.length / 3) ? config.point_sizes.data : null;
-        const { colorsToFloat32Array } = buffer;
         const fragmentShaderMap = {
             dot: require('./shaders/Points.dot.fragment.glsl'),
             flat: require('./shaders/Points.flat.fragment.glsl'),
@@ -74,13 +74,13 @@ module.exports = {
             colormap.needsUpdate = true;
 
             uniforms = {
-                low: { value: colorRange[0] },
-                high: { value: colorRange[1] },
-                colormap: { type: 't', value: colormap },
+                low: {value: colorRange[0]},
+                high: {value: colorRange[1]},
+                colormap: {type: 't', value: colormap},
             };
         } else {
             colors = (pointColors && pointColors.length === pointPositions.length / 3
-                ? colorsToFloat32Array(pointColors) : getColorsArray(color, pointPositions.length / 3)
+                    ? colorsToFloat32Array(pointColors) : getColorsArray(color, pointPositions.length / 3)
             );
         }
 
@@ -177,11 +177,18 @@ module.exports = {
             resolvedChanges.attribute = null;
         }
 
+        if (typeof (changes.colors) !== 'undefined' && !changes.colors.timeSeries
+            && changes.colors.data.length === obj.geometry.attributes.color.array.length / 3) {
+            obj.geometry.attributes.color.array.set(colorsToFloat32Array(changes.colors.data));
+            obj.geometry.attributes.color.needsUpdate = true;
+
+            resolvedChanges.colors = null;
+        }
 
         commonUpdate(config, changes, resolvedChanges, obj, K3D);
 
         if (areAllChangesResolve(changes, resolvedChanges)) {
-            return Promise.resolve({ json: config, obj });
+            return Promise.resolve({json: config, obj});
         }
         return false;
     },
