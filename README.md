@@ -46,19 +46,6 @@ To install from PyPI use pip:
 
     $ pip install k3d
 
-When using Jupyter Notebook, remember to install and enable the `k3d` extension:
-
-    $ jupyter nbextension install --py --user k3d
-    $ jupyter nbextension enable --py --user k3d
-
-When upgrading from an earlier version, use the following commands:
-
-    $ pip install -U k3d
-    $ jupyter nbextension install --py --user k3d
-    $ jupyter nbextension enable --py --user k3d
-
-See below for instructions about JupyterLab installation.
-
 ### Conda/Anaconda
 
 To install from conda-forge use:
@@ -88,21 +75,6 @@ For a development installation (requires npm and node.js),
 Then, if required, JupyterLab installation:
 
     $ jupyter labextension install ./js
-
-### JupyterLab
-
-Then, if required, JupyterLab installation:
-
-*Note: do not run this command inside K3D-jupyter directory.*
-
-    $ jupyter labextension install @jupyter-widgets/jupyterlab-manager
-    $ jupyter labextension install k3d
-
-Please notice that support for jupyterLab is still experimental.
-
-### Developer's How To
-
-Please make sure to take a look at the [HOW-TO.md](HOW-TO.md) document.
 
 ### Code of Conduct
 K3D-jupyter follows the Python Software Foundation Code of Conduct in everything we do.

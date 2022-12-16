@@ -215,7 +215,7 @@ class Plot(widgets.DOMWidget):
             manipulate_mode="translate",
             auto_rendering=True,
             fps=25.0,
-            minimum_fps=20,
+            minimum_fps=-1,
             grid_color=0xE6E6E6,
             label_color=0x444444,
             custom_data=None,
