@@ -66,13 +66,6 @@ examples = [
 [project.license]
 file = "LICENSE.txt"
 
-[tool.hatch.build.sdist]
-artifacts = [
-    "k3d/static/",
-    "js/src/index.*",
-    "k3d/labextension/",
-]
-
 [tool.hatch.build.targets.wheel]
 exclude = ["k3d/test"]
 artifacts = [
@@ -103,6 +96,16 @@ source = "nodejs"
 [tool.hatch.build.targets.sdist]
 exclude = [
     ".github",
+    "docs",
+    "imgs",
+    "k3d/test",
+    "examples",
+    "binder",
+]
+artifacts = [
+    "k3d/static/",
+    "js/src/index.*",
+    "k3d/labextension/",
 ]
 
 [tool.hatch.build.hooks.jupyter-builder]
