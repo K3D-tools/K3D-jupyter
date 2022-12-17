@@ -271,7 +271,7 @@ function update(K3D, json, GUI, changes) {
                 );
                 break;
             case 'text':
-                if (json.type !== 'STL') {
+                if (json.type !== 'STL' && !Array.isArray(json.text)) {
                     addController(K3D.gui_map[json.id], json, param).onChange(
                         changeParameter.bind(this, K3D, json, param),
                     );

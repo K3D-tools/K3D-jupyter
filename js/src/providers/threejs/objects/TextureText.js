@@ -16,9 +16,8 @@ module.exports = {
         config.font_size = typeof (config.font_size) !== 'undefined' ? config.font_size : 68;
         config.font_weight = typeof (config.font_weight) !== 'undefined' ? config.font_weight : 700;
 
-        const text = config.text.split('\n');
         const { color } = config;
-        const { position } = config;
+        let { position } = config;
         const size = config.size || 1.0;
 
         // Setup font
@@ -26,34 +25,49 @@ module.exports = {
         const fontSize = config.font_size;
         const fontWeight = config.font_weight;
         const fontSpec = `${fontWeight} ${fontSize}px ${fontFace}`;
+        const object = new THREE.Group();
+        let i;
 
-        // Helper canvas
-        const canvas = document.createElement('canvas');
-        const context = canvas.getContext('2d');
-        // Helpers
-        const isMultiline = text.length > 1;
+        if (position.data && Array.isArray(config.text)) {
+            object.positions = position.data;
+        } else {
+            if (position.data) {
+                position = position.data;
+            }
+            object.positions = position;
+        }
 
-        context.font = fontSpec;
+        for (i = 0; i < object.positions.length / 3; i++) {
+            // Helper canvas
+            const canvas = document.createElement('canvas');
+            const context = canvas.getContext('2d');
+            context.font = fontSpec;
 
-        const longestLineWidth = getLongestLineWidth(text, context);
+            let text = Array.isArray(config.text) ? config.text[i] : config.text;
+            text = text.split('\n');
+            const isMultiline = text.length > 1;
 
-        canvas.width = closestPowOfTwo(longestLineWidth);
-        canvas.height = ~~canvas.width;
+            const longestLineWidth = getLongestLineWidth(text, context);
 
-        context.font = fontSpec;
-        context.textBaseline = 'top';
-        context.fillStyle = colorToHex(color);
-        context.lineWidth = 5;
+            canvas.width = closestPowOfTwo(longestLineWidth);
+            canvas.height = ~~canvas.width;
 
-        text.forEach((line, index) => {
-            const x = (canvas.width - longestLineWidth) / 2;
-            const y = canvas.height / 2 - (isMultiline ? fontSize : fontSize / 2) + (fontSize * index);
+            context.font = fontSpec;
+            context.textBaseline = 'top';
+            context.fillStyle = colorToHex(color);
+            context.lineWidth = 5;
 
-            context.strokeText(line, x, y);
-            context.fillText(line, x, y);
-        });
+            text.forEach((line, index) => {
+                const x = (canvas.width - longestLineWidth) / 2;
+                const y = canvas.height / 2 - (isMultiline ? fontSize : fontSize / 2) + (fontSize * index);
 
-        const object = getSprite(canvas, position, size, config);
+                context.strokeText(line, x, y);
+                context.fillText(line, x, y);
+            });
+
+            const sprite = getSprite(canvas, object, i, size, config);
+            object.add(sprite);
+        }
 
         return Promise.resolve(object);
     },
@@ -62,30 +76,33 @@ module.exports = {
         const resolvedChanges = {};
 
         if (typeof (changes.position) !== 'undefined' && !changes.position.timeSeries) {
-            obj.position.set(changes.position[0], changes.position[1], changes.position[2]);
+            let positions = changes.position.data || changes.position;
+
+            obj.children.forEach(function (object, index) {
+                object.position.fromArray(positions, index * 3);
+            });
+
             resolvedChanges.position = null;
         }
 
         if (typeof (changes.size) !== 'undefined' && !changes.size.timeSeries) {
-            obj.scale.set(changes.size, changes.size, changes.size);
+            obj.children.forEach(function (object) {
+                object.scale.set(changes.size, changes.size, changes.size);
+            });
+
             resolvedChanges.size = null;
         }
 
         if (areAllChangesResolve(changes, resolvedChanges)) {
-            return Promise.resolve({ json: config, obj });
+            return Promise.resolve({
+                json: config,
+                obj
+            });
         }
         return false;
     },
 };
 
-/**
- * Gets the longest line
- * @inner
- * @memberof K3D.Providers.ThreeJS.Objects.Text
- * @param {Array} lines
- * @param {CanvasRenderingContext2D} context
- * @returns {*}
- */
 function getLongestLineWidth(lines, context) {
     return lines.reduce((longest, text) => {
         const metric = context.measureText(text);
@@ -99,16 +116,7 @@ function getLongestLineWidth(lines, context) {
     }, 0);
 }
 
-/**
- * Get a THREE.Sprite based on helper canvas
- * @inner
- * @memberof K3D.Providers.ThreeJS.Objects.Text
- * @param {Element} canvas
- * @param {Array} position
- *
- * @returns {THREE.Sprite}
- */
-function getSprite(canvas, position, size, config) {
+function getSprite(canvas, object, index, size, config) {
     const texture = new THREE.Texture(canvas);
     const material = new THREE.SpriteMaterial({ map: texture });
     const sprite = new THREE.Sprite(material);
@@ -116,7 +124,7 @@ function getSprite(canvas, position, size, config) {
 
     texture.needsUpdate = true;
 
-    sprite.position.set(position[0], position[1], position[2]);
+    sprite.position.fromArray(object.positions, index * 3);
     sprite.scale.set(size, size, size);
     sprite.boundingBox = new THREE.Box3().setFromCenterAndSize(
         new THREE.Vector3(),
@@ -135,5 +143,6 @@ function getSprite(canvas, position, size, config) {
 function colorToHex(color) {
     color = parseInt(color, 10) + 0x1000000;
 
-    return `#${color.toString(16).substr(1)}`;
+    return `#${color.toString(16)
+        .substr(1)}`;
 }

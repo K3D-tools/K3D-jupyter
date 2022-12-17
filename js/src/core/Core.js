@@ -1209,10 +1209,11 @@ function K3D(provider, targetDOMNode, parameters) {
         }
         this.autoRendering = false;
 
-        world.K3DObjects.children.forEach((obj) => {
-            removeObjectFromScene(obj.K3DIdentifier);
-            delete world.ObjectsListJson[obj.K3DIdentifier];
+        Object.keys(world.ObjectsListJson).forEach(function (K3DIdentifier) {
+            removeObjectFromScene(K3DIdentifier);
+            delete world.ObjectsListJson[K3DIdentifier];
         });
+
         world.cleanup();
 
         if (fpsMeter) {

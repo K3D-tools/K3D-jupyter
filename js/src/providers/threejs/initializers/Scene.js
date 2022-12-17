@@ -54,26 +54,17 @@ function generateAxesHelper(K3D, axesHelper) {
     return promises;
 }
 
-function getSceneBoundingBox() {
+function getSceneBoundingBox(K3D) {
     /* jshint validthis:true */
 
     const sceneBoundingBox = new THREE.Box3();
     let objectBoundingBox;
-    this.K3DObjects.traverse((object) => {
-        let isK3DObject = false;
-        let ref = object;
+    let world = K3D.getWorld();
 
-        while (ref.parent) {
-            if (ref.K3DIdentifier) {
-                isK3DObject = true;
-                break;
-            }
+    Object.keys(world.ObjectsListJson).forEach(function (K3DIdentifier) {
+        let object = world.ObjectsById[K3DIdentifier];
 
-            ref = ref.parent;
-        }
-
-        if (isK3DObject
-            && typeof (object.position.z) !== 'undefined'
+        if (object && typeof (object.position.z) !== 'undefined'
             && object.visible
             && (object.geometry || object.boundingBox)) {
             if (object.geometry && object.geometry.boundingBox) {
@@ -625,7 +616,7 @@ module.exports = {
         this.cleanup = cleanup.bind(this, grids, this.gridScene);
 
         K3D.rebuildSceneData = rebuildSceneData.bind(this, K3D, grids, this.axesHelper);
-        K3D.getSceneBoundingBox = getSceneBoundingBox.bind(this);
+        K3D.getSceneBoundingBox = getSceneBoundingBox.bind(this, K3D);
         K3D.refreshGrid = refreshGrid.bind(this, K3D, grids);
 
         K3D.rebuildSceneData().then(() => {
