@@ -30,12 +30,9 @@ module.exports = {
         let domElements = [];
         let i;
 
-        if (position.data && Array.isArray(text)) {
+        if (position.data) {
             object.positions = position.data;
         } else {
-            if (position.data) {
-                position = position.data;
-            }
             object.positions = position
         }
 

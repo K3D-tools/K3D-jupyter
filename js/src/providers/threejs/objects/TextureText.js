@@ -28,13 +28,10 @@ module.exports = {
         const object = new THREE.Group();
         let i;
 
-        if (position.data && Array.isArray(config.text)) {
+        if (position.data) {
             object.positions = position.data;
         } else {
-            if (position.data) {
-                position = position.data;
-            }
-            object.positions = position;
+            object.positions = position
         }
 
         for (i = 0; i < object.positions.length / 3; i++) {
