@@ -35,7 +35,6 @@ function generateAxesHelper(K3D, axesHelper) {
         promises.push(label.then((obj) => {
             axesHelper[axis] = obj;
             axesHelper[axis].color = colors[i];
-            axesHelper.scene.add(obj);
         }));
     });
 
