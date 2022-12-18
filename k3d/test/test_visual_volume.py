@@ -4,7 +4,7 @@ import vtk
 from vtk.util import numpy_support
 
 import k3d
-from .plot_compare import *
+from .plot_compare import prepare, compare
 
 
 def test_volume():

@@ -1,8 +1,9 @@
-import k3d
 import numpy as np
 import pytest
-from .plot_compare import *
+
+import k3d
 from k3d.helpers import download
+from .plot_compare import prepare, compare
 
 
 def test_stl():
@@ -11,8 +12,9 @@ def test_stl():
     filename = download(
         'https://github.com/To-Fujita/Babylon.js_3D_Graphics/raw/master/scenes/stl/Cute%20Darth%20Vader.stl')
 
-    mesh = k3d.stl(open(filename, 'rb').read(), color=0x222222, flat_shading=True,
-                   transform=k3d.transform(rotation=[np.pi / 2, 1, 0, 0]))
+    with open(filename, 'rb') as f:
+        mesh = k3d.stl(f.read(), color=0x222222, flat_shading=True,
+                       transform=k3d.transform(rotation=[np.pi / 2, 1, 0, 0]))
 
     pytest.plot += mesh
 
@@ -25,8 +27,9 @@ def test_stl_color():
     filename = download(
         'https://github.com/To-Fujita/Babylon.js_3D_Graphics/raw/master/scenes/stl/Cute%20Darth%20Vader.stl')
 
-    mesh = k3d.stl(open(filename, 'rb').read(), color=0xff00ff,
-                   transform=k3d.transform(rotation=[np.pi / 2, 1, 0, 0]))
+    with open(filename, 'rb') as f:
+        mesh = k3d.stl(f.read(), color=0xff00ff,
+                       transform=k3d.transform(rotation=[np.pi / 2, 1, 0, 0]))
 
     pytest.plot += mesh
 
@@ -39,8 +42,9 @@ def test_stl_wireframe():
     filename = download(
         'https://github.com/To-Fujita/Babylon.js_3D_Graphics/raw/master/scenes/stl/Cute%20Darth%20Vader.stl')
 
-    mesh = k3d.stl(open(filename, 'rb').read(), wireframe=True,
-                   transform=k3d.transform(rotation=[np.pi / 2, 1, 0, 0]))
+    with open(filename, 'rb') as f:
+        mesh = k3d.stl(f.read(), wireframe=True,
+                       transform=k3d.transform(rotation=[np.pi / 2, 1, 0, 0]))
 
     pytest.plot += mesh
 
@@ -53,8 +57,9 @@ def test_stl_smooth():
     filename = download(
         'https://github.com/To-Fujita/Babylon.js_3D_Graphics/raw/master/scenes/stl/Cute%20Darth%20Vader.stl')
 
-    mesh = k3d.stl(open(filename, 'rb').read(), flat_shading=False, color=0x222222,
-                   transform=k3d.transform(rotation=[np.pi / 2, 1, 0, 0]))
+    with open(filename, 'rb') as f:
+        mesh = k3d.stl(f.read(), flat_shading=False, color=0x222222,
+                       transform=k3d.transform(rotation=[np.pi / 2, 1, 0, 0]))
 
     pytest.plot += mesh
 

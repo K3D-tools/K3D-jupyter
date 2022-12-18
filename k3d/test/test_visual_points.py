@@ -1,8 +1,9 @@
-import k3d
+import math
 import numpy as np
 import pytest
-from .plot_compare import *
-import math
+
+import k3d
+from .plot_compare import prepare, compare
 
 v = []
 s = []

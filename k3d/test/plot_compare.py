@@ -2,7 +2,6 @@ import os
 import pytest
 import sys
 from PIL import Image
-from base64 import b64encode
 from io import BytesIO
 from pixelmatch.contrib.PIL import pixelmatch
 

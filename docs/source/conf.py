@@ -11,11 +11,10 @@
 # documentation root, use os.path.abspath to make it absolute, like shown here.
 #
 import os
+import shutil
 import sys
 import time
 from source.k3d_directives.plot import K3D_Plot
-import shutil
-import json
 
 sys.path.insert(0, os.path.abspath('../..'))
 
@@ -29,11 +28,7 @@ copyright = time.strftime(
 # The full version, including alpha/beta/rc tags
 here = os.path.dirname(__file__)
 repo = os.path.join(here, '..', '..')
-_version_py = os.path.join(repo, 'package.json')
 version_ns = {}
-
-with open(_version_py) as f:
-    version = json.load(f)["version"]
 
 # -- General configuration ---------------------------------------------------
 
@@ -64,7 +59,6 @@ root_doc = 'index'
 # directories to ignore when looking for source files.
 # This pattern also affects html_static_path and html_extra_path.
 exclude_patterns = ['_build', 'Thumbs.db', '.DS_Store']
-
 
 # -- Options for HTML output -------------------------------------------------
 

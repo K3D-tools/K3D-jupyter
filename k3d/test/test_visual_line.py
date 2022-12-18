@@ -1,7 +1,8 @@
-import k3d
 import numpy as np
 import pytest
-from .plot_compare import *
+
+import k3d
+from .plot_compare import prepare, compare
 
 vertices = [
     -10.0, -15.0, 0.0,

@@ -1,11 +1,8 @@
+import numpy as np
 import os
+import pyvista as pv
 
 import k3d
-import numpy as np
-import pyvista as pv
-from k3d.colormaps import paraview_color_maps
-from k3d.helpers import map_colors
-from numpy.linalg import norm
 from k3d.headless import k3d_remote, get_headless_driver
 
 
@@ -28,13 +25,13 @@ def generate():
 
     plot = k3d.plot(screenshot_scale=1.0,
                     grid_visible=False,
-                    axes_helper = 0)
+                    axes_helper=0)
     plot += plt_vtk
     plot += plt_vectors
 
     plot.camera = [3.0792, 14.6017, -8.8171,
-                  -0.9959, 0.5287, -0.2337,
-                  1, 0, 0]
+                   -0.9959, 0.5287, -0.2337,
+                   1, 0, 0]
 
     headless = k3d_remote(plot, get_headless_driver(), width=800, height=800)
 

@@ -10,7 +10,6 @@ import pytest
 import k3d
 from k3d.headless import k3d_remote, get_headless_driver
 import subprocess
-import os
 
 
 def pytest_configure(config):
