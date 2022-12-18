@@ -1,6 +1,6 @@
 const VoxelsHelper = require('../helpers/Voxels');
-const { areAllChangesResolve } = require('../helpers/Fn');
-const { commonUpdate } = require('../helpers/Fn');
+const {areAllChangesResolve} = require('../helpers/Fn');
+const {commonUpdate} = require('../helpers/Fn');
 
 /**
  * Loader strategy to handle SparseVoxels object
@@ -42,7 +42,7 @@ module.exports = {
         commonUpdate(config, changes, resolvedChanges, obj, K3D);
 
         if (areAllChangesResolve(changes, resolvedChanges)) {
-            return Promise.resolve({ json: config, obj });
+            return Promise.resolve({json: config, obj});
         }
         return false;
     },

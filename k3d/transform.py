@@ -168,7 +168,7 @@ class Transform(object):
 
             rotation_matrix = np.array([
                 [a * a + b * b - c * c - d * d, 2 *
-                    (b * c - a * d), 2 * (b * d + a * c), 0.],
+                 (b * c - a * d), 2 * (b * d + a * c), 0.],
                 [2 * (b * c + a * d), a * a - b * b + c *
                  c - d * d, 2 * (c * d - a * b), 0.],
                 [2 * (b * d - a * c), 2 * (c * d + a * b),

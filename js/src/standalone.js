@@ -6,7 +6,7 @@ const K3D = require('./core/Core');
 const ThreeJsProvider = require('./providers/threejs/provider');
 const _ = require('./lodash');
 
-const MsgpackCodec = msgpack.createCodec({ preset: true });
+const MsgpackCodec = msgpack.createCodec({preset: true});
 
 const Float16Array = require('./core/lib/helpers/float16Array');
 
@@ -19,7 +19,7 @@ require('katex/dist/katex.min.css');
 require('lil-gui/dist/lil-gui.css');
 
 function msgpackDecode(data) {
-    return msgpack.decode(data, { codec: MsgpackCodec });
+    return msgpack.decode(data, {codec: MsgpackCodec});
 }
 
 function CreateK3DAndLoadBinarySnapshot(data, targetDOMNode) {

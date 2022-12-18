@@ -1,9 +1,9 @@
 const THREE = require('three');
 const interactionsHelper = require('../helpers/Interactions');
 const colorMapHelper = require('../../../core/lib/helpers/colorMap');
-const { areAllChangesResolve } = require('../helpers/Fn');
-const { commonUpdate } = require('../helpers/Fn');
-const { typedArrayToThree } = require('../helpers/Fn');
+const {areAllChangesResolve} = require('../helpers/Fn');
+const {commonUpdate} = require('../helpers/Fn');
+const {typedArrayToThree} = require('../helpers/Fn');
 
 /**
  * Loader strategy to handle Texture object
@@ -66,10 +66,10 @@ module.exports = {
             colormap.needsUpdate = true;
 
             const uniforms = {
-                low: { value: colorRange[0] },
-                high: { value: colorRange[1] },
-                map: { type: 't', value: texture },
-                colormap: { type: 't', value: colormap },
+                low: {value: colorRange[0]},
+                high: {value: colorRange[1]},
+                map: {type: 't', value: texture},
+                colormap: {type: 't', value: colormap},
             };
 
             const material = new THREE.ShaderMaterial({
@@ -160,7 +160,7 @@ module.exports = {
         commonUpdate(config, changes, resolvedChanges, obj, K3D);
 
         if (areAllChangesResolve(changes, resolvedChanges)) {
-            return Promise.resolve({ json: config, obj });
+            return Promise.resolve({json: config, obj});
         }
         return false;
     },

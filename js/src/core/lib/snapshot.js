@@ -68,7 +68,7 @@ function getHTMLSnapshot(K3D, compressionLevel) {
 }
 
 function handleFileSelect(K3D, evt) {
-    const { files } = evt.dataTransfer;
+    const {files} = evt.dataTransfer;
     const HTMLSnapshotReader = new FileReader();
     const BinarySnapshotReader = new FileReader();
     const STLReader = new FileReader();
@@ -141,7 +141,7 @@ function snapshotGUI(gui, K3D) {
                 filename = `${K3D.parameters.name}.html`;
             }
 
-            data = new Blob([data], { type: 'text/plain;charset=utf-8' });
+            data = new Blob([data], {type: 'text/plain;charset=utf-8'});
             FileSaver.saveAs(data, filename);
         },
     };

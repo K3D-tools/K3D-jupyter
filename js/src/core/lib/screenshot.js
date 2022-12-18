@@ -6,7 +6,7 @@ function getScreenshot(K3D, scale, onlyCanvas) {
         const finalCanvas = document.createElement('canvas');
         const finalCanvasCtx = finalCanvas.getContext('2d');
         const htmlElementCanvas = document.createElement('canvas');
-        const { clearColor } = K3D.parameters;
+        const {clearColor} = K3D.parameters;
         const world = K3D.getWorld();
         const canvas3d = world.renderer.domElement;
         let renderPromise;

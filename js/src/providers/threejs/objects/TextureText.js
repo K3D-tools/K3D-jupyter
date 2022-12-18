@@ -1,6 +1,6 @@
 const THREE = require('three');
-const { closestPowOfTwo } = require('../helpers/Fn');
-const { areAllChangesResolve } = require('../helpers/Fn');
+const {closestPowOfTwo} = require('../helpers/Fn');
+const {areAllChangesResolve} = require('../helpers/Fn');
 
 /**
  * Loader strategy to handle Text object
@@ -16,8 +16,8 @@ module.exports = {
         config.font_size = typeof (config.font_size) !== 'undefined' ? config.font_size : 68;
         config.font_weight = typeof (config.font_weight) !== 'undefined' ? config.font_weight : 700;
 
-        const { color } = config;
-        let { position } = config;
+        const {color} = config;
+        let {position} = config;
         const size = config.size || 1.0;
 
         // Setup font
@@ -115,7 +115,7 @@ function getLongestLineWidth(lines, context) {
 
 function getSprite(canvas, object, index, size, config) {
     const texture = new THREE.Texture(canvas);
-    const material = new THREE.SpriteMaterial({ map: texture });
+    const material = new THREE.SpriteMaterial({map: texture});
     const sprite = new THREE.Sprite(material);
     const modelMatrix = new THREE.Matrix4();
 

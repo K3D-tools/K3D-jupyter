@@ -20,7 +20,7 @@ function init(K3D, gui, obj, prefix, dispatch) {
     }
 
     function refresh(current, render) {
-        const { camera } = K3D.getWorld();
+        const {camera} = K3D.getWorld();
         camera.updateMatrixWorld();
         const plane = new THREE.Plane().setFromCoplanarPoints(
             new THREE.Vector3(-1, -1, -1).unproject(camera),
@@ -125,7 +125,7 @@ function init(K3D, gui, obj, prefix, dispatch) {
                 delete(withoutFireChange) {
                     Object.keys(gui[prefix].map).forEach((key) => {
                         if (current.obj === gui[prefix].map[key].obj) {
-                            const { folder } = gui[prefix].map[key];
+                            const {folder} = gui[prefix].map[key];
 
                             folder.destroy();
 

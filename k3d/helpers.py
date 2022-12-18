@@ -1,11 +1,11 @@
 """Utilities module."""
 import itertools
+import numpy as np
 import os
 import zlib
+from traitlets import TraitError
 from urllib.request import urlopen
 
-import numpy as np
-from traitlets import TraitError
 
 # import logging
 # from pprint import pprint, pformat
@@ -281,7 +281,7 @@ def bounding_corners(bounds, z_bounds=(0, 1)):
     """
     return np.array(
         list(itertools.product(bounds[:2],
-             bounds[2:4], bounds[4:] or z_bounds))
+                               bounds[2:4], bounds[4:] or z_bounds))
     )
 
 
@@ -316,6 +316,7 @@ def shape_validation(*dimensions):
     TraitError
         Expected an array of shape _ and got _.
     """
+
     def validator(trait, value):
         if np.shape(value) != dimensions:
             raise TraitError(
@@ -343,6 +344,7 @@ def sparse_voxels_validation():
     TraitError
         Voxel coordinates and values must be non-negative.
     """
+
     def validator(trait, value):
         if len(value.shape) != 2 or value.shape[1] != 4:
             raise TraitError(

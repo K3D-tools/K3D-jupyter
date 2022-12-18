@@ -3,12 +3,12 @@ const BufferGeometryUtils = require('three/examples/jsm/utils/BufferGeometryUtil
 
 const Fn = require('../helpers/Fn');
 
-const { areAllChangesResolve } = Fn;
-const { commonUpdate } = Fn;
-const { colorsToFloat32Array } = require('../../../core/lib/helpers/buffer');
+const {areAllChangesResolve} = Fn;
+const {commonUpdate} = Fn;
+const {colorsToFloat32Array} = require('../../../core/lib/helpers/buffer');
 const streamLine = require('../helpers/Streamline');
 
-const { handleColorMap } = Fn;
+const {handleColorMap} = Fn;
 
 /**
  * Loader strategy to handle Lines object
@@ -34,7 +34,7 @@ module.exports = {
             transparent: config.opacity !== 1.0,
         });
         const radialSegments = config.radial_segments;
-        const { width } = config;
+        const {width} = config;
         let verticesColors = (config.colors && config.colors.data) || [];
         const color = new THREE.Color(config.color);
         const colorRange = config.color_range;
@@ -105,7 +105,7 @@ module.exports = {
             && colorMap.length > 0) {
             handleColorMap(geometry, colorMap, colorRange, null, material);
         } else {
-            material.setValues({ vertexColors: THREE.VertexColors });
+            material.setValues({vertexColors: THREE.VertexColors});
         }
 
         geometry.computeBoundingSphere();
@@ -127,7 +127,7 @@ module.exports = {
         commonUpdate(config, changes, resolvedChanges, obj, K3D);
 
         if (areAllChangesResolve(changes, resolvedChanges)) {
-            return Promise.resolve({ json: config, obj });
+            return Promise.resolve({json: config, obj});
         }
         return false;
     },
