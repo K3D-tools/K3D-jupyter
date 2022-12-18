@@ -1,5 +1,4 @@
 import numpy as np
-from numpy import sin, sqrt
 
 import k3d
 

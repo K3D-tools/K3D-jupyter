@@ -28,7 +28,6 @@ copyright = time.strftime(
 # The full version, including alpha/beta/rc tags
 here = os.path.dirname(__file__)
 repo = os.path.join(here, '..', '..')
-_version_py = os.path.join(repo, 'package.json')
 version_ns = {}
 
 # -- General configuration ---------------------------------------------------

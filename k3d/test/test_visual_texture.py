@@ -19,10 +19,11 @@ def test_texture():
         0.0, 0.0, 0.0, 1.0
     ]
 
-    texture = k3d.texture(open('./test/assets/texture.png', 'br').read(), 'png',
-                          rotation=[math.radians(90), 1, 0, 0],
-                          model_matrix=model_matrix,
-                          name='Photo')
+    with open('./test/assets/texture.png', 'br') as file:
+        texture = k3d.texture(file.read(), 'png',
+                              rotation=[math.radians(90), 1, 0, 0],
+                              model_matrix=model_matrix,
+                              name='Photo')
 
     pytest.plot += texture
 
