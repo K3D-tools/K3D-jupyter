@@ -1,11 +1,11 @@
 import numpy as np
 import os
 import vtk
-from vtk.util import numpy_support
 
 import k3d
-from k3d.colormaps import paraview_color_maps
 from k3d.headless import k3d_remote, get_headless_driver
+
+numpy_support = vtk.util.numpy_support
 
 
 def generate():
@@ -83,7 +83,7 @@ def generate():
             vtk_o, vtk_n
         ),
         color_attribute=('Umag', 0.0, 0.32),
-        color_map=paraview_color_maps.Cool_to_Warm,
+        color_map=k3d.paraview_color_maps.Cool_to_Warm,
         side='double')
 
     plt_vtk.flat_shading = True
