@@ -3,7 +3,6 @@ import os
 import k3d
 import numpy as np
 import vtk
-from ipywidgets import FloatSlider, interact
 from k3d.colormaps import paraview_color_maps
 from vtk.util import numpy_support
 

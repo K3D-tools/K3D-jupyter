@@ -3,7 +3,6 @@ import os
 import k3d
 import numpy as np
 import vtk
-from ipywidgets import FloatSlider, interact
 from k3d.colormaps import paraview_color_maps
 from vtk.util import numpy_support
 from k3d.headless import k3d_remote, get_headless_driver
@@ -84,7 +83,7 @@ def generate():
 
     plot = k3d.plot(grid_visible=False,
                     screenshot_scale=1,
-                    axes_helper = 0)
+                    axes_helper=0)
 
     plt_vtk = k3d.vtk_poly_data(
         vtk_ExtractSurface(

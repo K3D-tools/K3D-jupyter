@@ -3,7 +3,7 @@ import pytest
 import skimage.measure
 
 import k3d
-from .plot_compare import *
+from .plot_compare import prepare, compare
 
 
 def generate(dim):

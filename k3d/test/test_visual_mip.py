@@ -1,9 +1,10 @@
-import k3d
 import numpy as np
 import pytest
-from .plot_compare import *
 import vtk
 from vtk.util import numpy_support
+
+import k3d
+from .plot_compare import prepare, compare
 
 
 def test_mip():
@@ -45,6 +46,7 @@ def test_mip_opacity_function():
 
     compare('mip_opacity_function')
 
+
 def test_mip_mask():
     prepare()
 
@@ -71,7 +73,7 @@ def test_mip_mask():
     ).reshape(-1, y, x).astype(np.uint8)
 
     volume = k3d.mip(volume_data, mask=mask_data, mask_opacities=[1.0, 1.0],
-                        color_range=[0, 700], alpha_coef=200, samples=128, bounds=bounds)
+                     color_range=[0, 700], alpha_coef=200, samples=128, bounds=bounds)
 
     pytest.plot += volume
 

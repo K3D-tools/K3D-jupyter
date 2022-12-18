@@ -1,7 +1,8 @@
-import k3d
-import pytest
-from .plot_compare import *
 import numpy as np
+import pytest
+
+import k3d
+from .plot_compare import prepare, compare
 
 width = height = 50
 

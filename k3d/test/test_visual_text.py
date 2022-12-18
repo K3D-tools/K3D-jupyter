@@ -1,6 +1,7 @@
-import k3d
 import pytest
-from .plot_compare import *
+
+import k3d
+from .plot_compare import prepare, compare
 
 
 def test_text():

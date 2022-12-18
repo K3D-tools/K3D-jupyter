@@ -24,7 +24,6 @@ def generate():
 
     plot += obj
 
-
     headless = k3d_remote(plot, get_headless_driver(), width=800, height=800)
 
     headless.sync(hold_until_refreshed=True)

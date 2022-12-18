@@ -1,7 +1,7 @@
 from base64 import b64decode
 
-f = open('./log.txt', 'r')
-log = f.read().splitlines()
+with open('./log.txt', 'r') as f:
+    log = f.read().splitlines()
 
 for i in range(len(log)):
     if log[i] == '----------------------------- Captured stdout call -----------------------------':

@@ -1,11 +1,12 @@
-import k3d
 import numpy as np
+
+import k3d
 from k3d.colormaps import paraview_color_maps
 from k3d.headless import k3d_remote, get_headless_driver
 
 
 def generate():
-    def lorenz(x, y, z, s=10, r=28, b=8/3):
+    def lorenz(x, y, z, s=10, r=28, b=8 / 3):
         x_dot = s * (y - x)
         y_dot = r * x - y - x * z
         z_dot = x * y - b * z
@@ -36,7 +37,7 @@ def generate():
                     label_color=0xf0f0f0,
                     grid_visible=False,
                     menu_visibility=False,
-                    axes_helper = 0)
+                    axes_helper=0)
     plot += plt_line
 
     plot.camera = [10.1646, -36.8108, -0.4144,

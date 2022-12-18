@@ -1,10 +1,11 @@
-import k3d
 import numpy as np
+
+import k3d
 from k3d.colormaps import paraview_color_maps
 
 
 def generate():
-    def lorenz(x, y, z, s=10, r=28, b=8/3):
+    def lorenz(x, y, z, s=10, r=28, b=8 / 3):
         x_dot = s * (y - x)
         y_dot = r * x - y - x * z
         z_dot = x * y - b * z

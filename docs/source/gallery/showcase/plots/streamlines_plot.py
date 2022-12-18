@@ -1,7 +1,7 @@
+import numpy as np
 import os
 
 import k3d
-import numpy as np
 from k3d import matplotlib_color_maps
 
 

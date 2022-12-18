@@ -69,7 +69,7 @@ class k3d_remote:
                         else:
                             try:
                                 sync = (o[p] != self.synced_objects[o.id][p]).any()
-                            except:  # lgtm [py/catch-base-exception]
+                            except Exception:
                                 sync = o[p] != self.synced_objects[o.id][p]
 
                         if sync:

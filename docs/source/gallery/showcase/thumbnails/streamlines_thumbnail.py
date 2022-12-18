@@ -1,7 +1,7 @@
+import numpy as np
 import os
 
 import k3d
-import numpy as np
 from k3d import matplotlib_color_maps
 from k3d.headless import k3d_remote, get_headless_driver
 
@@ -31,7 +31,7 @@ def generate():
 
     plot = k3d.plot(grid_visible=False,
                     screenshot_scale=1.0,
-                    axes_helper = 0)
+                    axes_helper=0)
     plot += plt_streamlines
     plot += plt_mesh
 

@@ -1,11 +1,8 @@
+import numpy as np
 import os
+import pyvista as pv
 
 import k3d
-import numpy as np
-import pyvista as pv
-from k3d.colormaps import paraview_color_maps
-from k3d.helpers import map_colors
-from numpy.linalg import norm
 
 
 def generate():
@@ -30,8 +27,8 @@ def generate():
     plot += plt_vectors
 
     plot.camera = [3.0792, 14.6017, -8.8171,
-                  -0.9959, 0.5287, -0.2337,
-                  1, 0, 0]
+                   -0.9959, 0.5287, -0.2337,
+                   1, 0, 0]
 
     plot.snapshot_type = 'inline'
     return plot.get_snapshot()

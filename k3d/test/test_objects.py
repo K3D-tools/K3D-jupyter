@@ -1,10 +1,9 @@
-import unittest
-
-from traitlets import TraitError
 import numpy as np
+import unittest
+from traitlets import TraitError
 
-from ..objects import Drawable
 from ..factory import text
+from ..objects import Drawable
 
 
 class TestDrawable(unittest.TestCase):
@@ -91,6 +90,7 @@ endsolid
         '''
 
         self.assertRaises(TraitError, assign_bad)
+
 
 if __name__ == '__main__':
     unittest.main()

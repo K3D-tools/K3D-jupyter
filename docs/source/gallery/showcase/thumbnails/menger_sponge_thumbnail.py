@@ -1,5 +1,6 @@
-import k3d
 import numpy as np
+
+import k3d
 from k3d.headless import k3d_remote, get_headless_driver
 
 
@@ -33,7 +34,7 @@ def generate():
 
     plot = k3d.plot(grid_visible=False,
                     camera_auto_fit=False,
-                    axes_helper = 0)
+                    axes_helper=0)
     plot += plt_voxels
 
     plot.camera = [98.5152, -60.0912, 88.9902,
