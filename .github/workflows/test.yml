@@ -54,6 +54,7 @@ jobs:
       - name: Run tests
         run: cd k3d && python -m pytest
       - uses: actions/upload-artifact@v3
+        if: ${{ failure() }}
         with:
           name: comparison_results
           path: ./k3d/test/results/*
