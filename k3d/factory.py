@@ -747,7 +747,7 @@ def surface(
 # noinspection PyShadowingNames
 def text(
         text,
-        position=(0, 0, 0),
+        position=[0, 0, 0],
         color=_default_color,
         reference_point="lb",
         on_top=True,
@@ -764,10 +764,11 @@ def text(
 
     Parameters
     ----------
-    text : str
-        Text content.
-    position : tuple, optional
+    text: str or list of str
+        Content of the text.
+    position : list
         (x, y, z) coordinates of text position, by default (0, 0, 0).
+        If n text is pass position should contain 3*n elements .
     color : int, optional
         Hex color of the text, by default _default_color.
     reference_point : str, optional
@@ -845,10 +846,11 @@ def text2d(
 
     Parameters
     ----------
-    text : str
+    text : str or list of str
         Text content.
     position : tuple, optional
         (rx, ry) text position ratios in range (0, 1) - relative to canvas size, by default (0, 0).
+        If n text is pass position should contain 2*n elements .
     color : int, optional
         Hex color of the text, by default _default_color.
     reference_point : str, optional
@@ -923,10 +925,11 @@ def label(
 
     Parameters
     ----------
-    text : str
-        Text content.
-    position : tuple, optional
+    text: str or list of str
+        Content of the text.
+    position : list
         (x, y, z) coordinates of text position, by default (0, 0, 0).
+        If n text is pass position should contain 3*n elements .
     color : int, optional
         Hex color of the text, by default _default_color.
     on_top : bool, optional
@@ -1093,10 +1096,11 @@ def texture_text(
 
     Parameters
     ----------
-    text : str
-        Text content.
-    position : tuple, optional
+    text: str or list of str
+        Content of the text.
+    position : list
         (x, y, z) coordinates of text position, by default (0, 0, 0).
+        If n text is pass position should contain 3*n elements .
     color : int, optional
         Hex color of the text, by default _default_color.
     font_weight : int, optional
@@ -1642,7 +1646,7 @@ def volume(
     mask: `array_like`.
         3D array of `int` in range (0, 255).
     mask_opacities: `array_like`.
-        List of opacity values for mask. 
+        List of opacity values for mask.
     name : str, optional
         Object name, by default None.
     group : str, optional

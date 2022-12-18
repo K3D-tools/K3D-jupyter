@@ -18,4 +18,5 @@ module.exports = {
     isObject: require('lodash/isObject'),
     isEmpty: require('lodash/isEmpty'),
     isEqual: require('lodash/isEqual'),
+    isArray: require('lodash/isArray')
 };
