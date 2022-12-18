@@ -65,7 +65,7 @@ void main() {
     #include <project_vertex>
     #include <logdepthbuf_vertex>
     #include <clipping_planes_vertex>
-    vViewPosition = - mvPosition.xyz;
+    vViewPosition = -mvPosition.xyz;
     #include <worldpos_vertex>
     #include <envmap_vertex>
     #include <shadowmap_vertex>

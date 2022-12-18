@@ -11,7 +11,7 @@ uniform mat4 projectionMatrix;
 varying vec4 vColor;
 varying vec4 mvPosition;
 
-void main (void)
+void main(void)
 {
     #include <clipping_planes_fragment>
 
@@ -31,7 +31,7 @@ void main (void)
     float depth = log2(1.0 + pos.w) * logDepthBufFC * 0.5;
     #else
     pos = pos / pos.w;
-    float depth  = ((gl_DepthRange.diff * pos.z) + gl_DepthRange.near + gl_DepthRange.far) / 2.0;
+    float depth = ((gl_DepthRange.diff * pos.z) + gl_DepthRange.near + gl_DepthRange.far) / 2.0;
     #endif
 
     if (depth < gl_FragDepthEXT) discard;
@@ -44,7 +44,7 @@ void main (void)
 
     finalSphereColor.a *= opacity;
 
-    for (int l = 0; l <NUM_DIR_LIGHTS; l++) {
+    for (int l = 0; l < NUM_DIR_LIGHTS; l++) {
         vec3 lightDirection = -directionalLights[l].direction;
         float lightingIntensity = clamp(dot(-lightDirection, normal), 0.0, 1.0);
         addedLights.rgb += directionalLights[l].color / PI * (0.05 + 0.95 * lightingIntensity);

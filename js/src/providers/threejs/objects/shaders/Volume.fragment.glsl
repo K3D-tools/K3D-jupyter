@@ -42,22 +42,22 @@ struct Ray {
 };
 
 vec3 aabb[2] = vec3[2](
-vec3(-0.5, -0.5, -0.5),
-vec3(0.5, 0.5, 0.5)
+    vec3(-0.5, -0.5, -0.5),
+    vec3(0.5, 0.5, 0.5)
 );
 
 Ray makeRay(vec3 origin, vec3 direction) {
     vec3 inv_direction = vec3(1.0) / direction;
 
     return Ray(
-    origin,
-    direction,
-    inv_direction,
-    int[3](
-    ((inv_direction.x < 0.0) ? 1 : 0),
-    ((inv_direction.y < 0.0) ? 1 : 0),
-    ((inv_direction.z < 0.0) ? 1 : 0)
-    )
+        origin,
+        direction,
+        inv_direction,
+        int[3](
+            ((inv_direction.x < 0.0) ? 1 : 0),
+            ((inv_direction.y < 0.0) ? 1 : 0),
+            ((inv_direction.z < 0.0) ? 1 : 0)
+        )
     );
 }
 
@@ -67,14 +67,14 @@ Ray makeRay(vec3 origin, vec3 direction) {
 void intersect(
 in Ray ray, in vec3 aabb[2],
 out float tmin, out float tmax
-){
+) {
     float tymin, tymax, tzmin, tzmax;
     tmin = (aabb[ray.sign[0]].x - ray.origin.x) * ray.inv_direction.x;
-    tmax = (aabb[1-ray.sign[0]].x - ray.origin.x) * ray.inv_direction.x;
+    tmax = (aabb[1 - ray.sign[0]].x - ray.origin.x) * ray.inv_direction.x;
     tymin = (aabb[ray.sign[1]].y - ray.origin.y) * ray.inv_direction.y;
-    tymax = (aabb[1-ray.sign[1]].y - ray.origin.y) * ray.inv_direction.y;
+    tymax = (aabb[1 - ray.sign[1]].y - ray.origin.y) * ray.inv_direction.y;
     tzmin = (aabb[ray.sign[2]].z - ray.origin.z) * ray.inv_direction.z;
-    tzmax = (aabb[1-ray.sign[2]].z - ray.origin.z) * ray.inv_direction.z;
+    tzmax = (aabb[1 - ray.sign[2]].z - ray.origin.z) * ray.inv_direction.z;
     tmin = max(max(tmin, tymin), tzmin);
     tmax = min(min(tmax, tymax), tzmax);
 }
@@ -97,11 +97,11 @@ float getMaskedVolume(vec3 pos)
 vec3 worldGetNormal(in float px, in vec3 pos)
 {
     return normalize(
-    vec3(
-    px -  getMaskedVolume(pos + vec3(gradient_step, 0, 0)),
-    px -  getMaskedVolume(pos + vec3(0, gradient_step, 0)),
-    px -  getMaskedVolume(pos + vec3(0, 0, gradient_step))
-    )
+        vec3(
+            px - getMaskedVolume(pos + vec3(gradient_step, 0, 0)),
+            px - getMaskedVolume(pos + vec3(0, gradient_step, 0)),
+            px - getMaskedVolume(pos + vec3(0, 0, gradient_step))
+        )
     );
 }
 
@@ -111,26 +111,26 @@ float getShadow(vec3 textcoord, vec2 sliceCount)
     float zidx2 = ceil(textcoord.z * lightMapSize.z);
 
     float shadow1 = texture2D(shadowTexture,
-    vec2(
-    floor(mod(zidx1, sliceCount.x)) * lightMapSize.x / lightMapRenderTargetSize.x,
-    floor(zidx1 / sliceCount.x)* lightMapSize.y / lightMapRenderTargetSize.y
-    )
-    + vec2(textcoord.x / sliceCount.x, textcoord.y / sliceCount.y)
+                              vec2(
+                                  floor(mod(zidx1, sliceCount.x)) * lightMapSize.x / lightMapRenderTargetSize.x,
+                                  floor(zidx1 / sliceCount.x) * lightMapSize.y / lightMapRenderTargetSize.y
+                              )
+                              + vec2(textcoord.x / sliceCount.x, textcoord.y / sliceCount.y)
     ).r;
 
     float shadow2 = texture2D(shadowTexture,
-    vec2(
-    floor(mod(zidx2, sliceCount.x)) * lightMapSize.x / lightMapRenderTargetSize.x,
-    floor(zidx2 / sliceCount.x)* lightMapSize.y / lightMapRenderTargetSize.y
-    )
-    + vec2(textcoord.x / sliceCount.x, textcoord.y / sliceCount.y)
+                              vec2(
+                                  floor(mod(zidx2, sliceCount.x)) * lightMapSize.x / lightMapRenderTargetSize.x,
+                                  floor(zidx2 / sliceCount.x) * lightMapSize.y / lightMapRenderTargetSize.y
+                              )
+                              + vec2(textcoord.x / sliceCount.x, textcoord.y / sliceCount.y)
     ).r;
 
     return mix(shadow1, shadow2, textcoord.z * lightMapSize.z - zidx1);
 }
 
 void main() {
-    float jitter = texture2D(jitterTexture, gl_FragCoord.xy/64.0).r;
+    float jitter = texture2D(jitterTexture, gl_FragCoord.xy / 64.0).r;
     float tmin = 0.0;
     float tmax = 0.0;
     float px = 0.0;
@@ -144,7 +144,7 @@ void main() {
     #if (RAY_SAMPLES_COUNT > 0)
     vec4 accuColor = vec4(0.0, 0.0, 0.0, 0.0);
 
-    for (int ray_samples=0; ray_samples < RAY_SAMPLES_COUNT; ray_samples++) {
+    for (int ray_samples = 0; ray_samples < RAY_SAMPLES_COUNT; ray_samples++) {
 
         vec4 value = vec4(0.0, 0.0, 0.0, 0.0);
 
@@ -153,12 +153,12 @@ void main() {
         // Focal plane correction
         vec3 P = transformedCameraPosition + direction * focal_plane;
 
-        float r = texture2D(jitterTexture, vec2(0.3) + gl_FragCoord.xy/64.0 * float(ray_samples+3)).r;
+        float r = texture2D(jitterTexture, vec2(0.3) + gl_FragCoord.xy / 64.0 * float(ray_samples + 3)).r;
         vec3 apertureShift = normalize(vec3(
-        1.0 - 2.0 * texture2D(jitterTexture, vec2(0.0) + gl_FragCoord.xy/64.0 * float(ray_samples)).r,
-        1.0 - 2.0 * texture2D(jitterTexture, vec2(0.1) + gl_FragCoord.xy/64.0 * float(ray_samples+1)).r,
-        1.0 - 2.0 * texture2D(jitterTexture, vec2(0.2) + gl_FragCoord.xy/64.0 * float(ray_samples+2)).r
-        )) * r * focal_length;
+                                           1.0 - 2.0 * texture2D(jitterTexture, vec2(0.0) + gl_FragCoord.xy / 64.0 * float(ray_samples)).r,
+                                           1.0 - 2.0 * texture2D(jitterTexture, vec2(0.1) + gl_FragCoord.xy / 64.0 * float(ray_samples + 1)).r,
+                                           1.0 - 2.0 * texture2D(jitterTexture, vec2(0.2) + gl_FragCoord.xy / 64.0 * float(ray_samples + 2)).r
+                                       )) * r * focal_length;
 
         direction = normalize(P - (transformedCameraPosition + apertureShift));
 
@@ -189,7 +189,7 @@ void main() {
 
         #if (USE_SHADOW == 1)
         float sliceSize = lightMapSize.x * lightMapSize.y;
-        vec2 sliceCount =  lightMapRenderTargetSize / lightMapSize.xy;
+        vec2 sliceCount = lightMapRenderTargetSize / lightMapSize.xy;
         #endif
 
         for (int count = 0; count < sampleCount; count++) {
@@ -200,7 +200,7 @@ void main() {
             vec3 pos = -vec3(modelViewMatrix * vec4(textcoord - vec3(0.5), 1.0));
 
             #pragma unroll_loop_start
-            for (int i = 0; i < UNION_CLIPPING_PLANES; i ++) {
+            for (int i = 0; i < UNION_CLIPPING_PLANES; i++) {
                 plane = clippingPlanes[i];
                 if (dot(pos, plane.xyz) > plane.w) continue;
             }
@@ -221,12 +221,12 @@ void main() {
                     #if (USE_SHADOW == 1)
                     shadow =
                     (getShadow(textcoord, sliceCount) +
-                    getShadow(textcoord + vec3(1.0/lightMapSize.x, 0, 0), sliceCount) +
-                    getShadow(textcoord - vec3(1.0/lightMapSize.x, 0, 0), sliceCount) +
-                    getShadow(textcoord + vec3(0, 1.0/lightMapSize.y, 0), sliceCount) +
-                    getShadow(textcoord - vec3(0, 1.0/lightMapSize.y, 0), sliceCount) +
-                    getShadow(textcoord + vec3(0, 0, 1.0/lightMapSize.z), sliceCount) +
-                    getShadow(textcoord - vec3(0, 0, 1.0/lightMapSize.z), sliceCount)) / 7.0;
+                    getShadow(textcoord + vec3(1.0 / lightMapSize.x, 0, 0), sliceCount) +
+                    getShadow(textcoord - vec3(1.0 / lightMapSize.x, 0, 0), sliceCount) +
+                    getShadow(textcoord + vec3(0, 1.0 / lightMapSize.y, 0), sliceCount) +
+                    getShadow(textcoord - vec3(0, 1.0 / lightMapSize.y, 0), sliceCount) +
+                    getShadow(textcoord + vec3(0, 0, 1.0 / lightMapSize.z), sliceCount) +
+                    getShadow(textcoord - vec3(0, 0, 1.0 / lightMapSize.z), sliceCount)) / 7.0;
                     #else
                     shadow = 0.0;
                     #endif
@@ -256,7 +256,7 @@ void main() {
                         float specularFactor;
 
                         #pragma unroll_loop_start
-                        for (int i = 0; i < NUM_DIR_LIGHTS; i ++) {
+                        for (int i = 0; i < NUM_DIR_LIGHTS; i++) {
                             lightDirection = directionalLights[i].direction;
                             lightingIntensity = clamp(dot(lightDirection, normal), 0.0, 1.0);
                             addedLights.rgb += directionalLights[i].color / PI * (0.2 + 0.8 * lightingIntensity) * (1.0 - shadow);
@@ -265,7 +265,7 @@ void main() {
                             specularFactor = dot(direction, lightReflect);
 
                             if (specularFactor > 0.0)
-                            specularColor += 0.002 * scaled_px * (1.0 / step)  *
+                            specularColor += 0.002 * scaled_px * (1.0 / step) *
                             directionalLights[i].color / PI * pow(specularFactor, 250.0) *
                             pxColor.a * (1.0 - shadow);
                         }

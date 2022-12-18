@@ -34,9 +34,9 @@ void main() {
     float fovCorrection = tan((PI / 180.0) * fov / 2.0);
 
     #if (USE_PER_POINT_SIZE == 1)
-    gl_PointSize = sizes * (scale / - mvPosition.z) / fovCorrection;
+    gl_PointSize = sizes * (scale / -mvPosition.z) / fovCorrection;
     #else
-    gl_PointSize = size * (scale / - mvPosition.z) / fovCorrection;
+    gl_PointSize = size * (scale / -mvPosition.z) / fovCorrection;
     #endif
 
     gl_Position = projectionMatrix * mvPosition;

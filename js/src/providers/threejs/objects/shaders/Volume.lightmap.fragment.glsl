@@ -34,22 +34,22 @@ struct Ray {
 };
 
 vec3 aabb[2] = vec3[2](
-vec3(-0.5, -0.5, -0.5),
-vec3(0.5, 0.5, 0.5)
+    vec3(-0.5, -0.5, -0.5),
+    vec3(0.5, 0.5, 0.5)
 );
 
 Ray makeRay(vec3 origin, vec3 direction) {
     vec3 inv_direction = vec3(1.0) / direction;
 
     return Ray(
-    origin,
-    direction,
-    inv_direction,
-    int[3](
-    ((inv_direction.x < 0.0) ? 1 : 0),
-    ((inv_direction.y < 0.0) ? 1 : 0),
-    ((inv_direction.z < 0.0) ? 1 : 0)
-    )
+        origin,
+        direction,
+        inv_direction,
+        int[3](
+            ((inv_direction.x < 0.0) ? 1 : 0),
+            ((inv_direction.y < 0.0) ? 1 : 0),
+            ((inv_direction.z < 0.0) ? 1 : 0)
+        )
     );
 }
 
@@ -59,14 +59,14 @@ Ray makeRay(vec3 origin, vec3 direction) {
 void intersect(
 in Ray ray, in vec3 aabb[2],
 out float tmin, out float tmax
-){
+) {
     float tymin, tymax, tzmin, tzmax;
     tmin = (aabb[ray.sign[0]].x - ray.origin.x) * ray.inv_direction.x;
-    tmax = (aabb[1-ray.sign[0]].x - ray.origin.x) * ray.inv_direction.x;
+    tmax = (aabb[1 - ray.sign[0]].x - ray.origin.x) * ray.inv_direction.x;
     tymin = (aabb[ray.sign[1]].y - ray.origin.y) * ray.inv_direction.y;
-    tymax = (aabb[1-ray.sign[1]].y - ray.origin.y) * ray.inv_direction.y;
+    tymax = (aabb[1 - ray.sign[1]].y - ray.origin.y) * ray.inv_direction.y;
     tzmin = (aabb[ray.sign[2]].z - ray.origin.z) * ray.inv_direction.z;
-    tzmax = (aabb[1-ray.sign[2]].z - ray.origin.z) * ray.inv_direction.z;
+    tzmax = (aabb[1 - ray.sign[2]].z - ray.origin.z) * ray.inv_direction.z;
     tmin = max(max(tmin, tymin), tzmin);
     tmax = min(min(tmax, tymax), tzmax);
 }
@@ -78,8 +78,8 @@ float getMaskOpacity(vec3 pos) {
 }
 
 void main() {
-    vec2 sliceCount =  lightMapRenderTargetSize / lightMapSize.xy;
-    float zidx = floor(vUv.x * lightMapRenderTargetSize.x / lightMapSize.x)  +
+    vec2 sliceCount = lightMapRenderTargetSize / lightMapSize.xy;
+    float zidx = floor(vUv.x * lightMapRenderTargetSize.x / lightMapSize.x) +
     floor(vUv.y * lightMapRenderTargetSize.y / lightMapSize.y) * sliceCount.x;
 
     if (zidx > lightMapSize.z) {
@@ -139,7 +139,7 @@ void main() {
     float textcoord_delta_step = length(textcoord_delta);
     float sum_density = 0.0;
 
-    for (int count = 0; count < sampleCount; count++){
+    for (int count = 0; count < sampleCount; count++) {
         textcoord += textcoord_delta;
 
         #if NUM_CLIPPING_PLANES > 0
@@ -147,7 +147,7 @@ void main() {
         vec3 pos = -vec3(modelViewMatrix * vec4(textcoord - vec3(0.5), 1.0));
 
         #pragma unroll_loop_start
-        for (int i = 0; i < UNION_CLIPPING_PLANES; i ++) {
+        for (int i = 0; i < UNION_CLIPPING_PLANES; i++) {
             plane = clippingPlanes[i];
             if (dot(pos, plane.xyz) > plane.w) continue;
         }
@@ -170,7 +170,7 @@ void main() {
 
             sum_density += density;
 
-            if (sum_density >= 0.99){
+            if (sum_density >= 0.99) {
                 sum_density = 1.0;
                 break;
             }
