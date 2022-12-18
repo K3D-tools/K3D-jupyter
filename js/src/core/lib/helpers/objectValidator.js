@@ -11,7 +11,7 @@ module.exports = function (K3D, object) {
     const isObject = typeof (object) === 'object';
     const hasType = isObject && object.hasOwnProperty('type');
     const hasValidType = hasType && K3D.Provider.hasOwnProperty('Objects')
-            && K3D.Provider.Objects.hasOwnProperty(object.type);
+        && K3D.Provider.Objects.hasOwnProperty(object.type);
 
     if (!isObject) {
         throw new Error('Object definition should be a valid javascript object!');

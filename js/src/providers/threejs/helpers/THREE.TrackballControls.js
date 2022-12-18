@@ -46,7 +46,7 @@ module.exports = function (THREE) {
         this.minDistance = 0;
         this.maxDistance = Infinity;
 
-        this.mouseButtons = { LEFT: THREE.MOUSE.ROTATE, MIDDLE: THREE.MOUSE.DOLLY, RIGHT: THREE.MOUSE.PAN };
+        this.mouseButtons = {LEFT: THREE.MOUSE.ROTATE, MIDDLE: THREE.MOUSE.DOLLY, RIGHT: THREE.MOUSE.PAN};
 
         // internals
 
@@ -91,9 +91,9 @@ module.exports = function (THREE) {
 
         // events
 
-        const _changeEvent = { type: 'change' };
-        const _startEvent = { type: 'start' };
-        const _endEvent = { type: 'end' };
+        const _changeEvent = {type: 'change'};
+        const _startEvent = {type: 'start'};
+        const _endEvent = {type: 'end'};
 
         // methods
 
@@ -648,7 +648,7 @@ module.exports = function (THREE) {
 
         this.domElement.addEventListener('pointerdown', onPointerDown);
         this.domElement.addEventListener('pointercancel', onPointerCancel);
-        this.domElement.addEventListener('wheel', onMouseWheel, { passive: false });
+        this.domElement.addEventListener('wheel', onMouseWheel, {passive: false});
         this.domElement.addEventListener('contextmenu', contextmenu);
 
         currentDocument.addEventListener('keydown', keydown);

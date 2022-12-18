@@ -1,5 +1,6 @@
 import numpy as np
 from itertools import product
+
 import k3d
 
 
@@ -104,7 +105,7 @@ class Icosahedron(PlatonicSolid):
             fi = (1 + np.sqrt(5)) / 2
             icosahedron_vertices = [(1, fi, 0), (1, -fi, 0), (-1, fi, 0), (-1, -fi, 0),
                                     (fi, 0, 1), (fi, 0, -
-                                                 1), (-fi, 0, 1), (-fi, 0, -1),
+                1), (-fi, 0, 1), (-fi, 0, -1),
                                     (0, 1, fi), (0, 1, -fi), (0, -1, fi), (0, -1, -fi)]
             icosahedron_vertices = np.float32(
                 size * np.array(icosahedron_vertices) + origin)

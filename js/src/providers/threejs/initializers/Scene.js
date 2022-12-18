@@ -3,8 +3,8 @@ const _ = require('../../../lodash');
 const Text = require('../objects/Text');
 const Vectors = require('../objects/Vectors');
 const MeshLine = require('../helpers/THREE.MeshLine')(THREE);
-const { viewModes } = require('../../../core/lib/viewMode');
-const { pow10ceil } = require('../../../core/lib/helpers/math');
+const {viewModes} = require('../../../core/lib/viewMode');
+const {pow10ceil} = require('../../../core/lib/helpers/math');
 
 let rebuildSceneDataPromises = null;
 
@@ -39,9 +39,9 @@ function generateAxesHelper(K3D, axesHelper) {
     });
 
     const arrows = Vectors.create({
-        colors: { data: [colors[0], colors[0], colors[1], colors[1], colors[2], colors[2]] },
-        origins: { data: [0, 0, 0, 0, 0, 0, 0, 0, 0] },
-        vectors: { data: [].concat(directions.x, directions.y, directions.z) },
+        colors: {data: [colors[0], colors[0], colors[1], colors[1], colors[2], colors[2]]},
+        origins: {data: [0, 0, 0, 0, 0, 0, 0, 0, 0]},
+        vectors: {data: [].concat(directions.x, directions.y, directions.z)},
         line_width: 0.05,
         head_size: 2.5,
     }, K3D);
@@ -64,7 +64,7 @@ function getSceneBoundingBox(K3D) {
     Object.keys(world.ObjectsListJson).forEach(function (K3DIdentifier) {
         let k3dObject = world.ObjectsById[K3DIdentifier];
 
-        if(!k3dObject) {
+        if (!k3dObject) {
             return
         }
 

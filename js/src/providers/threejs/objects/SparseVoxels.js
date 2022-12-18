@@ -1,6 +1,6 @@
 const VoxelsHelper = require('../helpers/Voxels');
-const { areAllChangesResolve } = require('../helpers/Fn');
-const { commonUpdate } = require('../helpers/Fn');
+const {areAllChangesResolve} = require('../helpers/Fn');
+const {commonUpdate} = require('../helpers/Fn');
 
 function K3DVoxelsMap(config) {
     let newArray;
@@ -101,7 +101,7 @@ module.exports = {
         commonUpdate(config, changes, resolvedChanges, obj, K3D);
 
         if (areAllChangesResolve(changes, resolvedChanges)) {
-            return Promise.resolve({ json: config, obj });
+            return Promise.resolve({json: config, obj});
         }
         return false;
     },

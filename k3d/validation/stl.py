@@ -59,7 +59,7 @@ class BinaryStlData(Bytes):
                 .format(len(stl))
             )
 
-        (num_facets,) = struct.unpack('<I', stl[self.HEADER : self.HEADER + self.COUNT_SIZE])
+        (num_facets,) = struct.unpack('<I', stl[self.HEADER: self.HEADER + self.COUNT_SIZE])
 
         expected_size = self.HEADER + self.COUNT_SIZE + num_facets * self.FACET_SIZE
 

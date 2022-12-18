@@ -25,7 +25,7 @@ function detachWindowGUI(gui, K3D) {
         }, []);
 
         K3D.disable();
-        newK3D.load({ objects });
+        newK3D.load({objects});
         newK3D.setCamera(K3D.getWorld().controls.getCameraArray());
 
         _.assign(K3D, newK3D);

@@ -1462,9 +1462,9 @@ def sparse_voxels(
         color_map = nice_colors
 
     assert (
-        isinstance(space_size, (tuple, list, np.ndarray))
-        and np.shape(space_size) == (3,)
-        and all(d > 0 for d in space_size)
+            isinstance(space_size, (tuple, list, np.ndarray))
+            and np.shape(space_size) == (3,)
+            and all(d > 0 for d in space_size)
     )
 
     return process_transform_arguments(

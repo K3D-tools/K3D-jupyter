@@ -1,5 +1,5 @@
 const THREE = require('three');
-const { viewModes } = require('../../../core/lib/viewMode');
+const {viewModes} = require('../../../core/lib/viewMode');
 /**
  * Interactions handlers for Voxels object
  * @memberof K3D.Providers.ThreeJS.Interactions
@@ -168,27 +168,27 @@ module.exports = function (object, mesh, rollOverMesh, K3D) {
         updateObject(mesh);
 
         if (voxelCoordinate.x === mesh.voxel.chunk.offset.x) {
-            updateChunk(voxelCoordinate, { x: -1, y: 0, z: 0 });
+            updateChunk(voxelCoordinate, {x: -1, y: 0, z: 0});
         }
 
         if (voxelCoordinate.x === mesh.voxel.chunk.offset.x + mesh.voxel.chunk.size - 1) {
-            updateChunk(voxelCoordinate, { x: 1, y: 0, z: 0 });
+            updateChunk(voxelCoordinate, {x: 1, y: 0, z: 0});
         }
 
         if (voxelCoordinate.y === mesh.voxel.chunk.offset.y) {
-            updateChunk(voxelCoordinate, { x: 0, y: -1, z: 0 });
+            updateChunk(voxelCoordinate, {x: 0, y: -1, z: 0});
         }
 
         if (voxelCoordinate.y === mesh.voxel.chunk.offset.y + mesh.voxel.chunk.size - 1) {
-            updateChunk(voxelCoordinate, { x: 0, y: 1, z: 0 });
+            updateChunk(voxelCoordinate, {x: 0, y: 1, z: 0});
         }
 
         if (voxelCoordinate.z === mesh.voxel.chunk.offset.z) {
-            updateChunk(voxelCoordinate, { x: 1, y: 0, z: -1 });
+            updateChunk(voxelCoordinate, {x: 1, y: 0, z: -1});
         }
 
         if (voxelCoordinate.z === mesh.voxel.chunk.offset.z + mesh.voxel.chunk.size - 1) {
-            updateChunk(voxelCoordinate, { x: 0, y: 0, z: 1 });
+            updateChunk(voxelCoordinate, {x: 0, y: 0, z: 1});
         }
 
         rollOverMesh.visible = false;
@@ -200,7 +200,7 @@ module.exports = function (object, mesh, rollOverMesh, K3D) {
         const voxelCoordinate = getVoxelCoordinate(intersect, false);
 
         if (voxelCoordinate) {
-            K3D.dispatch(K3D.events.VOXELS_CALLBACK, { coord: voxelCoordinate, object });
+            K3D.dispatch(K3D.events.VOXELS_CALLBACK, {coord: voxelCoordinate, object});
         }
 
         return false;

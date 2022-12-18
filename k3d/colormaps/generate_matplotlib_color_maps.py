@@ -1,7 +1,6 @@
 import numpy as np
 from matplotlib import pyplot, cm
 
-
 min_samples = 256
 
 with open('matplotlib_color_maps.py', 'w') as file:

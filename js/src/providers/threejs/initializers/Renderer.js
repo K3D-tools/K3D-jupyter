@@ -1,5 +1,5 @@
 const THREE = require('three');
-const { error } = require('../../../core/lib/Error');
+const {error} = require('../../../core/lib/Error');
 const getSSAAChunkedRender = require('../helpers/SSAAChunkedRender');
 
 /**

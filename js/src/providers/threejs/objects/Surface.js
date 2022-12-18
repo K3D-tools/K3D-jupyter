@@ -1,8 +1,8 @@
 const THREE = require('three');
 const interactionsHelper = require('../helpers/Interactions');
-const { handleColorMap } = require('../helpers/Fn');
-const { areAllChangesResolve } = require('../helpers/Fn');
-const { commonUpdate } = require('../helpers/Fn');
+const {handleColorMap} = require('../helpers/Fn');
+const {areAllChangesResolve} = require('../helpers/Fn');
+const {commonUpdate} = require('../helpers/Fn');
 
 /**
  * Loader strategy to handle Surface object
@@ -101,7 +101,7 @@ module.exports = {
         commonUpdate(config, changes, resolvedChanges, obj, K3D);
 
         if (areAllChangesResolve(changes, resolvedChanges)) {
-            return Promise.resolve({ json: config, obj });
+            return Promise.resolve({json: config, obj});
         }
         return false;
     },

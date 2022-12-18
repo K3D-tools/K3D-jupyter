@@ -1,7 +1,7 @@
 const VoxelsHelper = require('../helpers/Voxels');
 const _ = require('../../../lodash');
-const { areAllChangesResolve } = require('../helpers/Fn');
-const { commonUpdate } = require('../helpers/Fn');
+const {areAllChangesResolve} = require('../helpers/Fn');
+const {commonUpdate} = require('../helpers/Fn');
 
 function K3DVoxelsMap(group) {
     const cx = group.coord.data[0];
@@ -10,7 +10,7 @@ function K3DVoxelsMap(group) {
     const sx = group.voxels.shape[2];
     const sy = group.voxels.shape[1];
     const sz = group.voxels.shape[0];
-    const { data } = group.voxels;
+    const {data} = group.voxels;
 
     function dist(a) {
         let dx = group.coord.data[0] - a.offset[0];
@@ -215,7 +215,7 @@ module.exports = {
             });
 
             _.difference(changes.chunks_ids, ids).forEach((id) => {
-                const { chunk } = idsMap[id].voxel;
+                const {chunk} = idsMap[id].voxel;
 
                 affectedIds.add(chunk.id);
                 chunk.voxels.neighbours.forEach((value) => {
@@ -246,7 +246,7 @@ module.exports = {
         commonUpdate(config, changes, resolvedChanges, obj, K3D);
 
         if (areAllChangesResolve(changes, resolvedChanges)) {
-            return Promise.resolve({ json: config, obj });
+            return Promise.resolve({json: config, obj});
         }
 
         return false;

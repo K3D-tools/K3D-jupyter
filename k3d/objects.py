@@ -749,7 +749,7 @@ class STL(Drawable):
     type = Unicode(read_only=True).tag(sync=True)
     text = AsciiStlData(allow_none=True, default_value=None).tag(sync=True)
     binary = BinaryStlData(allow_none=True,
-        default_value=None).tag(sync=True, **array_serialization_wrap("binary"))
+                           default_value=None).tag(sync=True, **array_serialization_wrap("binary"))
     color = Int(min=0, max=0xFFFFFF).tag(sync=True)
     wireframe = Bool().tag(sync=True)
     flat_shading = Bool().tag(sync=True)
