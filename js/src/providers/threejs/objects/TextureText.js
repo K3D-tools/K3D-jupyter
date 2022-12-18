@@ -31,7 +31,7 @@ module.exports = {
         if (position.data) {
             object.positions = position.data;
         } else {
-            object.positions = position
+            object.positions = position;
         }
 
         for (i = 0; i < object.positions.length / 3; i++) {

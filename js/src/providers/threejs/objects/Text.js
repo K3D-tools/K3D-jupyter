@@ -33,7 +33,7 @@ module.exports = {
         if (position.data) {
             object.positions = position.data;
         } else {
-            object.positions = position
+            object.positions = position;
         }
 
         object.text = text;

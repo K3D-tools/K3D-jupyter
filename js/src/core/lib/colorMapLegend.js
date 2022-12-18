@@ -25,7 +25,7 @@ function getColorLegend(K3D, object) {
             objectId: null,
             colorRange: [null, null],
             colorMap: null
-        }
+        };
     }
 
     if (typeof (object) !== 'object') {
@@ -182,7 +182,7 @@ function getColorLegend(K3D, object) {
         objectId: object.id,
         colorRange: range,
         colorMap: object.color_map.data
-    }
+    };
 }
 
 module.exports = {
