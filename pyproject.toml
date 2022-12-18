@@ -113,6 +113,7 @@ ensured-targets = [
     "k3d/labextension/package.json",
     "js/src/index.js",
 ]
+skip-if-exists = ["k3d/labextension/package.json"]
 dependencies = [
     "hatch-jupyter-builder>=0.6.2",
 ]
