@@ -1,6 +1,9 @@
-import k3d
 import numpy as np
 from numpy import sin, sqrt
+
+import k3d
+
+sin, sqrt = np.sin, np.sqrt
 
 
 def generate():
@@ -8,7 +11,7 @@ def generate():
     y = np.linspace(-5, 5, 100, dtype=np.float32)
 
     x, y = np.meshgrid(x, y)
-    f = sin(sqrt(x**2 + y**2))
+    f = sin(sqrt(x ** 2 + y ** 2))
 
     plt_surface = k3d.surface(f,
                               color=0x006394,

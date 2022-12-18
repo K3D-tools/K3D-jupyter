@@ -1,10 +1,10 @@
+import numpy as np
 import os
+import vtk
+from vtk.util import numpy_support
 
 import k3d
-import numpy as np
-import vtk
 from k3d.colormaps import paraview_color_maps
-from vtk.util import numpy_support
 
 
 def generate():
@@ -58,10 +58,8 @@ def generate():
         if color_attribute is not None:
             attribute = numpy_support.vtk_to_numpy(
                 poly_data.GetPointData().GetArray(color_attribute[0]))
-            color_range = color_attribute[1:3]
         else:
             attribute = []
-            color_range = []
 
         vertices = numpy_support.vtk_to_numpy(poly_data.GetPoints().GetData())
         indices = numpy_support.vtk_to_numpy(
@@ -70,12 +68,6 @@ def generate():
         return (np.array(vertices, np.float32),
                 np.array(indices, np.uint32),
                 np.array(attribute, np.float32))
-
-    def clipping_plane_to_vtkPlane(clipping_plane):
-        vtk_n = -np.array(clipping_plane[:3])
-        vtk_o = clipping_plane[3] * vtk_n
-
-        return (vtk_o, vtk_n)
 
     vtk_n = np.array([0., .3, 0.])
     vtk_o = np.array([0.04984861, 20.03934663, 0.04888905])

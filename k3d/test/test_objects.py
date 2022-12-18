@@ -37,7 +37,7 @@ class TestText(unittest.TestCase):
 class TestSTL(unittest.TestCase):
     def test_creation(self):
         from ..objects import STL
-        s = STL(text='''
+        STL(text='''
 solid
     facet normal 0 0 0
         outer loop

@@ -2,7 +2,6 @@ import numpy as np
 import os
 
 import k3d
-from k3d import matplotlib_color_maps
 
 
 def generate():
@@ -19,7 +18,7 @@ def generate():
     plt_streamlines = k3d.line(lines,
                                width=0.00007,
                                attribute=v,
-                               color_map=matplotlib_color_maps.Inferno,
+                               color_map=k3d.matplotlib_color_maps.Inferno,
                                color_range=[0, 0.5],
                                shader='mesh')
 
