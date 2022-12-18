@@ -62,23 +62,29 @@ function getSceneBoundingBox(K3D) {
     let world = K3D.getWorld();
 
     Object.keys(world.ObjectsListJson).forEach(function (K3DIdentifier) {
-        let object = world.ObjectsById[K3DIdentifier];
+        let k3dObject = world.ObjectsById[K3DIdentifier];
 
-        if (object && typeof (object.position.z) !== 'undefined'
-            && object.visible
-            && (object.geometry || object.boundingBox)) {
-            if (object.geometry && object.geometry.boundingBox) {
-                objectBoundingBox = object.geometry.boundingBox.clone();
-            } else if (object.boundingBox) {
-                objectBoundingBox = object.boundingBox.clone();
-            } else {
-                console.log('Object without bbox');
-                return;
-            }
-
-            objectBoundingBox.applyMatrix4(object.matrixWorld);
-            sceneBoundingBox.union(objectBoundingBox);
+        if(!k3dObject) {
+            return
         }
+
+        k3dObject.traverse((object) => {
+            if (object && typeof (object.position.z) !== 'undefined'
+                && object.visible
+                && (object.geometry || object.boundingBox)) {
+                if (object.geometry && object.geometry.boundingBox) {
+                    objectBoundingBox = object.geometry.boundingBox.clone();
+                } else if (object.boundingBox) {
+                    objectBoundingBox = object.boundingBox.clone();
+                } else {
+                    console.log('Object without bbox');
+                    return;
+                }
+
+                objectBoundingBox.applyMatrix4(object.matrixWorld);
+                sceneBoundingBox.union(objectBoundingBox);
+            }
+        });
     });
 
     // one point on scene?
