@@ -413,7 +413,7 @@ def mesh(
     opacity_function : list, optional
         `float` tuples (attribute value, opacity) sorted by attribute value, by default [].
         The first tuples should have value 0.0, the last 1.0; opacity is in the range 0.0 to 1.0.
-    side : {'front', 'back', 'both'}, optional
+    side : {'front', 'back', 'double'}, optional
         Side to render, by default "front".
     uvs : array_like, optional
         float uvs for the texturing corresponding to each vertex, by default None.
@@ -1856,7 +1856,7 @@ def vtk_poly_data(
     color_range : list, optional
         [min_value, max_value] pair determining the levels of color attribute mapped
         to 0 and 1 in the colormap, by default [].
-    side : {"front", "back", "both"}, optional
+    side : {"front", "back", "double"}, optional
         Side to render, by default "front".
     wireframe : bool, optional
         Display the mesh as wireframe, by default False.
