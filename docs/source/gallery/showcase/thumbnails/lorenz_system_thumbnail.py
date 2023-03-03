@@ -37,6 +37,7 @@ def generate():
                     label_color=0xf0f0f0,
                     grid_visible=False,
                     menu_visibility=False,
+                    screenshot_scale=1,
                     axes_helper=0)
     plot += plt_line
 

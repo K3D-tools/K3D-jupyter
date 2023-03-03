@@ -453,8 +453,6 @@ class Plot(widgets.DOMWidget):
         return data, self.voxel_chunks
 
     def get_binary_snapshot_objects(self, voxel_chunks=[]):
-        from .helpers import to_json
-
         snapshot = {"objects": [], "chunkList": []}
 
         for name, l in [('objects', self.objects), ('chunkList', voxel_chunks)]:
@@ -462,7 +460,10 @@ class Plot(widgets.DOMWidget):
                 obj = {}
                 for k, v in o.traits().items():
                     if "sync" in v.metadata:
-                        obj[k] = to_json(k, o[k], o, o["compression_level"])
+                        if 'to_json' in v.metadata:
+                            obj[k] = v.metadata['to_json'](v.get(o), o)
+                        else:
+                            obj[k] = v.get(o)
 
                 snapshot[name].append(obj)
 

@@ -1,5 +1,5 @@
-K3D-jupyter Documentation
-===========================
+Overview
+========
 
 .. raw:: html
 

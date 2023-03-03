@@ -1,12 +1,15 @@
 const THREE = require('three');
 const buffer = require('../../../core/lib/helpers/buffer');
 const colorMapHelper = require('../../../core/lib/helpers/colorMap');
+const interactionsHelper = require('../helpers/Interactions');
+const pointsCallback = require('../interactions/PointsCallback');
+const pointsIntersect = require('../interactions/PointsIntersect');
 const Fn = require('../helpers/Fn');
 
-const {commonUpdate} = Fn;
-const {areAllChangesResolve} = Fn;
-const {getColorsArray} = Fn;
-const {colorsToFloat32Array} = buffer;
+const { commonUpdate } = Fn;
+const { areAllChangesResolve } = Fn;
+const { getColorsArray } = Fn;
+const { colorsToFloat32Array } = buffer;
 
 /**
  * Loader strategy to handle Points object
@@ -16,12 +19,12 @@ const {colorsToFloat32Array} = buffer;
  * @return {Object} 3D object ready to render
  */
 module.exports = {
-    create(config) {
+    create(config, K3D) {
         const modelMatrix = new THREE.Matrix4();
         const color = new THREE.Color(config.color);
         const pointPositions = config.positions.data;
         const pointColors = (config.colors && config.colors.data) || null;
-        const {shader} = config;
+        const { shader } = config;
         let colors = null;
         const opacities = (config.opacities && config.opacities.data
             && config.opacities.data.length === pointPositions.length / 3) ? config.opacities.data : null;
@@ -74,9 +77,9 @@ module.exports = {
             colormap.needsUpdate = true;
 
             uniforms = {
-                low: {value: colorRange[0]},
-                high: {value: colorRange[1]},
-                colormap: {type: 't', value: colormap},
+                low: { value: colorRange[0] },
+                high: { value: colorRange[1] },
+                colormap: { type: 't', value: colormap },
             };
         } else {
             colors = (pointColors && pointColors.length === pointPositions.length / 3
@@ -123,6 +126,9 @@ module.exports = {
             Fn.expandBoundingBox(object.geometry.boundingBox, config.point_size * 0.5);
         }
 
+        interactionsHelper.init(config, object, K3D,
+            pointsCallback, pointsIntersect.prepareGeometry(object.geometry), pointsIntersect.Intersect);
+
         modelMatrix.set.apply(modelMatrix, config.model_matrix.data);
         object.applyMatrix4(modelMatrix);
 
@@ -142,6 +148,13 @@ module.exports = {
             obj.geometry.computeBoundingBox();
 
             resolvedChanges.positions = null;
+
+            if (obj.interactions) {
+                obj.stopInteraction();
+
+                interactionsHelper.init(config, obj, K3D,
+                    pointsCallback, pointsIntersect.prepareGeometry(obj.geometry), pointsIntersect.Intersect);
+            }
         }
 
         if (typeof (changes.color_range) !== 'undefined' && !changes.color_range.timeSeries
@@ -185,10 +198,12 @@ module.exports = {
             resolvedChanges.colors = null;
         }
 
+        interactionsHelper.update(config, changes, resolvedChanges, obj);
+
         commonUpdate(config, changes, resolvedChanges, obj, K3D);
 
         if (areAllChangesResolve(changes, resolvedChanges)) {
-            return Promise.resolve({json: config, obj});
+            return Promise.resolve({ json: config, obj });
         }
         return false;
     },

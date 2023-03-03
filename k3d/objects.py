@@ -620,7 +620,7 @@ class Mesh(DrawableWithCallback):
         return get_bounding_box_points(self.vertices, self.model_matrix)
 
 
-class Points(Drawable):
+class Points(DrawableWithCallback):
     """
     A point cloud.
 

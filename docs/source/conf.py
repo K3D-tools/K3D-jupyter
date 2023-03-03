@@ -22,8 +22,7 @@ sys.path.insert(0, os.path.abspath('../..'))
 
 project = 'K3D-jupyter'
 author = u'Artur Trzęsiok, Marcin Kostur, Tomasz Gandor, Thomas Mattone'
-copyright = time.strftime(
-    '%Y') + ' ' + author
+copyright = time.strftime('%Y') + ' ' + author
 
 # The full version, including alpha/beta/rc tags
 here = os.path.dirname(__file__)
@@ -69,7 +68,9 @@ html_theme = 'pydata_sphinx_theme'
 
 html_theme_options = {
     "show_prev_next": False,
-    "google_analytics_id": 'UA-141840477-1',
+    "analytics": {
+        "google_analytics_id": 'UA-141840477-1',
+    },
     "icon_links": [
         {
             "name": "GitHub",
@@ -93,7 +94,8 @@ html_theme_options = {
 }
 
 html_sidebars = {
-    "index": ["search-field", "sidebar_index"],
+    "index": ["sidebar_index", "search-field"],
+    "**": ["search-field", "sidebar-nav-bs"],
     "gallery/*": []
 }
 

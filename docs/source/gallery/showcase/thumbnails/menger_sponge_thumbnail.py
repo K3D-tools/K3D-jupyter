@@ -34,6 +34,7 @@ def generate():
 
     plot = k3d.plot(grid_visible=False,
                     camera_auto_fit=False,
+                    screenshot_scale=1,
                     axes_helper=0)
     plot += plt_voxels
 
