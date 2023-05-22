@@ -3,8 +3,8 @@ const _ = require('../../../lodash');
 const Text = require('../objects/Text');
 const Vectors = require('../objects/Vectors');
 const MeshLine = require('../helpers/THREE.MeshLine')(THREE);
-const { viewModes } = require('../../../core/lib/viewMode');
-const { pow10ceil } = require('../../../core/lib/helpers/math');
+const {viewModes} = require('../../../core/lib/viewMode');
+const {pow10ceil} = require('../../../core/lib/helpers/math');
 
 let rebuildSceneDataPromises = null;
 
@@ -35,14 +35,13 @@ function generateAxesHelper(K3D, axesHelper) {
         promises.push(label.then((obj) => {
             axesHelper[axis] = obj;
             axesHelper[axis].color = colors[i];
-            axesHelper.scene.add(obj);
         }));
     });
 
     const arrows = Vectors.create({
-        colors: { data: [colors[0], colors[0], colors[1], colors[1], colors[2], colors[2]] },
-        origins: { data: [0, 0, 0, 0, 0, 0, 0, 0, 0] },
-        vectors: { data: [].concat(directions.x, directions.y, directions.z) },
+        colors: {data: [colors[0], colors[0], colors[1], colors[1], colors[2], colors[2]]},
+        origins: {data: [0, 0, 0, 0, 0, 0, 0, 0, 0]},
+        vectors: {data: [].concat(directions.x, directions.y, directions.z)},
         line_width: 0.05,
         head_size: 2.5,
     }, K3D);
@@ -55,40 +54,37 @@ function generateAxesHelper(K3D, axesHelper) {
     return promises;
 }
 
-function getSceneBoundingBox() {
+function getSceneBoundingBox(K3D) {
     /* jshint validthis:true */
 
     const sceneBoundingBox = new THREE.Box3();
     let objectBoundingBox;
-    this.K3DObjects.traverse((object) => {
-        let isK3DObject = false;
-        let ref = object;
+    let world = K3D.getWorld();
 
-        while (ref.parent) {
-            if (ref.K3DIdentifier) {
-                isK3DObject = true;
-                break;
-            }
+    Object.keys(world.ObjectsListJson).forEach(function (K3DIdentifier) {
+        let k3dObject = world.ObjectsById[K3DIdentifier];
 
-            ref = ref.parent;
+        if (!k3dObject) {
+            return
         }
 
-        if (isK3DObject
-            && typeof (object.position.z) !== 'undefined'
-            && object.visible
-            && (object.geometry || object.boundingBox)) {
-            if (object.geometry && object.geometry.boundingBox) {
-                objectBoundingBox = object.geometry.boundingBox.clone();
-            } else if (object.boundingBox) {
-                objectBoundingBox = object.boundingBox.clone();
-            } else {
-                console.log('Object without bbox');
-                return;
-            }
+        k3dObject.traverse((object) => {
+            if (object && typeof (object.position.z) !== 'undefined'
+                && object.visible
+                && (object.geometry || object.boundingBox)) {
+                if (object.geometry && object.geometry.boundingBox) {
+                    objectBoundingBox = object.geometry.boundingBox.clone();
+                } else if (object.boundingBox) {
+                    objectBoundingBox = object.boundingBox.clone();
+                } else {
+                    console.log('Object without bbox');
+                    return;
+                }
 
-            objectBoundingBox.applyMatrix4(object.matrixWorld);
-            sceneBoundingBox.union(objectBoundingBox);
-        }
+                objectBoundingBox.applyMatrix4(object.matrixWorld);
+                sceneBoundingBox.union(objectBoundingBox);
+            }
+        });
     });
 
     // one point on scene?
@@ -626,7 +622,7 @@ module.exports = {
         this.cleanup = cleanup.bind(this, grids, this.gridScene);
 
         K3D.rebuildSceneData = rebuildSceneData.bind(this, K3D, grids, this.axesHelper);
-        K3D.getSceneBoundingBox = getSceneBoundingBox.bind(this);
+        K3D.getSceneBoundingBox = getSceneBoundingBox.bind(this, K3D);
         K3D.refreshGrid = refreshGrid.bind(this, K3D, grids);
 
         K3D.rebuildSceneData().then(() => {

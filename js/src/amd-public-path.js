@@ -4,5 +4,5 @@
 var module = require('module');
 var url = new URL(module.uri, document.location)
 // Using lastIndexOf('/')+1 gives us the empty string if there is no '/', so pathname becomes '/'
-url.pathname = url.pathname.slice(0,url.pathname.lastIndexOf('/')+1);
+url.pathname = url.pathname.slice(0, url.pathname.lastIndexOf('/') + 1);
 __webpack_public_path__ = `${url.origin}${url.pathname}`;

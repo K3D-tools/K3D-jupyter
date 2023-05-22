@@ -27,7 +27,7 @@ varying vec4 mvPosition;
 void main() {
     float perPointOpacity = 1.0;
 
-    mvPosition = modelViewMatrix * vec4( position, 1.0 );
+    mvPosition = modelViewMatrix * vec4(position, 1.0);
 
     #if (USE_PER_POINT_SIZE == 1)
     gl_PointSize = 2.0 * sizes;
@@ -41,7 +41,7 @@ void main() {
     #include <clipping_planes_vertex>
 
     #if (USE_PER_POINT_OPACITY == 1)
-        perPointOpacity = opacities;
+    perPointOpacity = opacities;
     #endif
 
     #if (USE_COLOR_MAP == 1)

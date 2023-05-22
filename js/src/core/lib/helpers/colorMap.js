@@ -13,8 +13,7 @@ function toColor(val) {
 function mergeColorMapWithOpacity(colormap, opacity) {
     const merged = {};
     let sortedKeys;
-    let
-        i;
+    let i;
 
     function findNeighbors(key, property) {
         const startKeyIndex = sortedKeys.indexOf(key);

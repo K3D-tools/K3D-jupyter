@@ -1,4 +1,4 @@
-const { viewModes } = require('./viewMode');
+const {viewModes} = require('./viewMode');
 
 const manipulateModes = {
     translate: 'translate',

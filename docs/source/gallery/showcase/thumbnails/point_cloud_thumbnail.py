@@ -1,7 +1,7 @@
+import numpy as np
 import os
 
 import k3d
-import numpy as np
 from k3d.headless import k3d_remote, get_headless_driver
 
 
@@ -20,7 +20,7 @@ def generate():
                     camera_auto_fit=False,
                     background_color=0x87ceeb,
                     screenshot_scale=1.0,
-                    axes_helper = 0)
+                    axes_helper=0)
     plot += plt_points
 
     plot.camera = [20.84, -3.06, 6.96,
@@ -36,4 +36,3 @@ def generate():
     headless.close()
 
     return screenshot
-

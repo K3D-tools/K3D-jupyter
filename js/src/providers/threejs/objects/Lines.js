@@ -17,7 +17,8 @@ module.exports = {
 
         if (config.shader === 'mesh') {
             return LinesMesh.create(config, K3D);
-        } if (config.shader === 'simple') {
+        }
+        if (config.shader === 'simple') {
             return LinesSimple.create(config, K3D);
         }
         return LinesThick.create(config, K3D);
@@ -26,7 +27,8 @@ module.exports = {
     update(config, changes, obj, K3D) {
         if (config.shader === 'mesh') {
             return LinesMesh.update(config, changes, obj, K3D);
-        } if (config.shader === 'simple') {
+        }
+        if (config.shader === 'simple') {
             return LinesSimple.update(config, changes, obj, K3D);
         }
         return LinesThick.update(config, changes, obj, K3D);

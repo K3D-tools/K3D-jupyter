@@ -1,5 +1,6 @@
-import unittest
 import numpy as np
+import unittest
+
 import k3d
 from ..transform import Transform
 

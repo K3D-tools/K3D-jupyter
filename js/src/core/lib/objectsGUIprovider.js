@@ -141,7 +141,7 @@ function update(K3D, json, GUI, changes) {
         K3D.gui_map[json.id].controllersMap = {};
         K3D.gui_map[json.id].listenersId = K3D.on(K3D.events.OBJECT_REMOVED, (id) => {
             if (id === json.id.toString()) {
-                const { listenersId } = K3D.gui_map[json.id];
+                const {listenersId} = K3D.gui_map[json.id];
                 const folder = K3D.gui_map[json.id];
 
                 folder.destroy();
@@ -271,7 +271,7 @@ function update(K3D, json, GUI, changes) {
                 );
                 break;
             case 'text':
-                if (json.type !== 'STL') {
+                if (json.type !== 'STL' && !Array.isArray(json.text)) {
                     addController(K3D.gui_map[json.id], json, param).onChange(
                         changeParameter.bind(this, K3D, json, param),
                     );

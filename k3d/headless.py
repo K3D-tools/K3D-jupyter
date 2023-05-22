@@ -37,7 +37,6 @@ class k3d_remote:
         self.synced_plot = {k: None for k in k3d_plot.get_plot_params().keys()}
         self.synced_objects = {}
 
-
         @self.api.route('/<path:path>')
         def static_file(path):
             root_dir = self.k3d_plot.get_static_path()
@@ -69,7 +68,7 @@ class k3d_remote:
                         else:
                             try:
                                 sync = (o[p] != self.synced_objects[o.id][p]).any()
-                            except:  # lgtm [py/catch-base-exception]
+                            except Exception:
                                 sync = o[p] != self.synced_objects[o.id][p]
 
                         if sync:
@@ -92,7 +91,7 @@ class k3d_remote:
             self.synced_plot = current_plot_params
 
             return Response(msgpack.packb(diff, use_bin_type=True),
-                mimetype='application/octet-stream')
+                            mimetype='application/octet-stream')
 
         while self.browser.execute_script("return typeof(window.headlessK3D) !== 'undefined'") == False:
             time.sleep(1)

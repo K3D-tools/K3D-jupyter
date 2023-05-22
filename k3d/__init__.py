@@ -2,10 +2,9 @@ import json
 from pathlib import Path
 
 from ._version import __version__
-from .colormaps import paraview_color_maps
 from .colormaps import basic_color_maps
 from .colormaps import matplotlib_color_maps
-
+from .colormaps import paraview_color_maps
 from .factory import (plot,
                       nice_colors,
                       line,
@@ -29,12 +28,9 @@ from .factory import (plot,
                       label,
                       vtk_poly_data,
                       voxel_chunk)
-
-from .plot import Plot
 from .objects import create_object, clone_object
-
+from .plot import Plot
 from .transfer_function_editor import transfer_function_editor
-
 from .transform import transform
 
 HERE = Path(__file__).parent.resolve()

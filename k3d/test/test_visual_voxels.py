@@ -3,7 +3,7 @@ import pytest
 from math import sqrt, sin, cos
 
 import k3d
-from .plot_compare import *
+from .plot_compare import prepare, compare
 
 color_map = (0xffff00, 0xff0000, 0x00ff00)
 

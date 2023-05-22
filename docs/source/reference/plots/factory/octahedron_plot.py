@@ -1,5 +1,6 @@
 import k3d
-from k3d import platonic
+
+platonic = k3d.platonic
 
 
 def generate():

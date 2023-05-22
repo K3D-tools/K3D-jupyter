@@ -1,10 +1,11 @@
-import k3d
 import numpy as np
 import pytest
-from .plot_compare import *
-from k3d.helpers import download
 import vtk
 from vtk.util import numpy_support
+
+import k3d
+from k3d.helpers import download
+from .plot_compare import prepare, compare
 
 vertices = [
     -10, 0, -1,

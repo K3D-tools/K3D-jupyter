@@ -40,6 +40,11 @@ class TimeSeries(Union):
             Union.__init__(self, [trait, Dict(trait)])
 
 
+class SingleOrList(Union):
+    def __init__(self, trait):
+        Union.__init__(self, [trait, List(trait)])
+
+
 class ListOrArray(List):
     _cast_types = (tuple, np.ndarray)
 
@@ -824,10 +829,11 @@ class Text(Drawable):
     Text rendered using KaTeX with a 3D position.
 
     Attributes:
-        text: `str`.
+        text: str or list of str
             Content of the text.
-        position: `list`.
-            Coordinates (x, y, z) of the text's position.
+        position : list
+            (x, y, z) coordinates of text position, by default (0, 0, 0).
+            If n text is pass position should contain 3*n elements .
         color: `int`.
             Packed RGB color of the text (0xff0000 is red, 0xff is blue).
         is_html: `Boolean`.
@@ -849,8 +855,8 @@ class Text(Drawable):
     """
 
     type = Unicode(read_only=True).tag(sync=True)
-    text = TimeSeries(Unicode()).tag(sync=True)
-    position = TimeSeries(ListOrArray(minlen=3, maxlen=3)).tag(sync=True)
+    text = TimeSeries(SingleOrList(Unicode())).tag(sync=True)
+    position = TimeSeries(Array(dtype=np.float32)).tag(sync=True, **array_serialization_wrap("position"))
     is_html = Bool(False).tag(sync=True)
     color = Int(min=0, max=0xFFFFFF).tag(sync=True)
     reference_point = Unicode().tag(sync=True)
@@ -875,10 +881,11 @@ class Text2d(Drawable):
     Text rendered using KaTeX with a fixed 2D position, independent of camera settings.
 
     Attributes:
-        text: `str`.
+        text: str or list of str
             Content of the text.
         position: `list`.
             Ratios (r_x, r_y) of the text's position in range (0, 1) - relative to canvas size.
+            If n text is pass position should contain 2*n elements .
         color: `int`.
             Packed RGB color of the text (0xff0000 is red, 0xff is blue).
         is_html: `Boolean`.
@@ -896,12 +903,12 @@ class Text2d(Drawable):
     """
 
     type = Unicode(read_only=True).tag(sync=True)
-    color = Int(min=0, max=0xFFFFFF).tag(sync=True)
-    size = TimeSeries(Float(min=EPSILON, default_value=1.0)).tag(sync=True)
+    text = TimeSeries(SingleOrList(Unicode())).tag(sync=True)
+    position = TimeSeries(Array(dtype=np.float32)).tag(sync=True, **array_serialization_wrap("position"))
     is_html = Bool(False).tag(sync=True)
+    color = Int(min=0, max=0xFFFFFF).tag(sync=True)
     reference_point = Unicode().tag(sync=True)
-    position = TimeSeries(ListOrArray(minlen=2, maxlen=2)).tag(sync=True)
-    text = TimeSeries(Unicode()).tag(sync=True)
+    size = TimeSeries(Float(min=EPSILON, default_value=1.0)).tag(sync=True)
     label_box = Bool().tag(sync=True)
 
     def __init__(self, **kwargs):
@@ -918,10 +925,11 @@ class Label(Drawable):
     Label rendered using KaTeX with a 3D position.
 
     Attributes:
-        text: `str`.
+        text: str or list of str
             Content of the text.
-        position: `list`.
-            Coordinates (x, y, z) of the text's position.
+        position : list
+            (x, y, z) coordinates of text position, by default (0, 0, 0).
+            If n text is pass position should contain 3*n elements .
         color: `int`.
             Packed RGB color of the text (0xff0000 is red, 0xff is blue).
         on_top: `Boolean`.
@@ -942,9 +950,9 @@ class Label(Drawable):
 
     type = Unicode(read_only=True).tag(sync=True)
     mode = Unicode().tag(sync=True)
-    text = TimeSeries(Unicode()).tag(sync=True)
+    text = TimeSeries(SingleOrList(Unicode())).tag(sync=True)
     is_html = Bool(False).tag(sync=True)
-    position = TimeSeries(ListOrArray(minlen=3, maxlen=3)).tag(sync=True)
+    position = TimeSeries(Array(dtype=np.float32)).tag(sync=True, **array_serialization_wrap("position"))
     color = Int(min=0, max=0xFFFFFF).tag(sync=True)
     max_length = Float(min=0, max=1.0).tag(sync=True)
     size = TimeSeries(Float(min=EPSILON, default_value=1.0)).tag(sync=True)
@@ -1034,10 +1042,11 @@ class TextureText(Drawable):
     many simple labels need to be displayed.
 
     Attributes:
-        text: `str`.
+        text: str or list of str
             Content of the text.
-        position: `list`.
-            Coordinates (x, y, z) of the text's position.
+        position : list
+            (x, y, z) coordinates of text position, by default (0, 0, 0).
+            If n text is pass position should contain 3*n elements .
         color: `int`.
             Packed RGB color of the text (0xff0000 is red, 0xff is blue).
         size: `float`.
@@ -1055,8 +1064,8 @@ class TextureText(Drawable):
     """
 
     type = Unicode(read_only=True).tag(sync=True)
-    text = TimeSeries(Unicode()).tag(sync=True)
-    position = TimeSeries(ListOrArray(minlen=3, maxlen=3)).tag(sync=True)
+    text = TimeSeries(SingleOrList(Unicode())).tag(sync=True)
+    position = TimeSeries(Array(dtype=np.float32)).tag(sync=True, **array_serialization_wrap("position"))
     color = TimeSeries(Int(min=0, max=0xFFFFFF)).tag(sync=True)
     size = TimeSeries(Float(min=EPSILON, default_value=1.0)).tag(sync=True)
     font_face = Unicode().tag(sync=True)

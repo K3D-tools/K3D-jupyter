@@ -3,8 +3,8 @@ const BufferGeometryUtils = require('three/examples/jsm/utils/BufferGeometryUtil
 const interactionsHelper = require('../helpers/Interactions');
 const marchingCubesPolygonise = require('../../../core/lib/helpers/marchingCubesPolygonise');
 const yieldingLoop = require('../../../core/lib/helpers/yieldingLoop');
-const { areAllChangesResolve } = require('../helpers/Fn');
-const { commonUpdate } = require('../helpers/Fn');
+const {areAllChangesResolve} = require('../helpers/Fn');
+const {commonUpdate} = require('../helpers/Fn');
 
 /**
  * Loader strategy to handle Marching Cubes object
@@ -30,7 +30,7 @@ module.exports = {
             const spacingsY = config.spacings_y;
             const spacingsZ = config.spacings_z;
             let isSpacings = false;
-            const { level } = config;
+            const {level} = config;
             const modelMatrix = new THREE.Matrix4();
             const MaterialConstructor = config.wireframe ? THREE.MeshBasicMaterial : THREE.MeshPhongMaterial;
             const material = new MaterialConstructor({
@@ -48,8 +48,11 @@ module.exports = {
             let geometry = new THREE.BufferGeometry();
             let positions = [];
             let object;
-            let x; let y; let z = 0;
-            let j; let k;
+            let x;
+            let y;
+            let z = 0;
+            let j;
+            let k;
             const polygonise = marchingCubesPolygonise;
 
             if (spacingsX && spacingsY && spacingsZ) {
@@ -99,7 +102,9 @@ module.exports = {
 
             yieldingLoop(length - 1, 5, isSpacings ? withSpacings : withoutSpacings,
                 () => {
-                    let sizeX = 1.0; let sizeY = 1.0; let
+                    let sizeX = 1.0;
+                    let sizeY = 1.0;
+                    let
                         sizeZ = 1.0;
 
                     positions = new Float32Array(positions);
@@ -154,7 +159,7 @@ module.exports = {
         commonUpdate(config, changes, resolvedChanges, obj, K3D);
 
         if (areAllChangesResolve(changes, resolvedChanges)) {
-            return Promise.resolve({ json: config, obj });
+            return Promise.resolve({json: config, obj});
         }
         return false;
     },

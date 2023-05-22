@@ -2,9 +2,9 @@ const fflate = require('fflate');
 const msgpack = require('msgpack-lite');
 
 const LilGUI = require('lil-gui').GUI;
-const { viewModes } = require('./lib/viewMode');
+const {viewModes} = require('./lib/viewMode');
 const _ = require('../lodash');
-const { cameraModes } = require('./lib/cameraMode');
+const {cameraModes} = require('./lib/cameraMode');
 const loader = require('./lib/Loader');
 const serialize = require('./lib/helpers/serialize');
 const screenshot = require('./lib/screenshot');
@@ -12,16 +12,16 @@ const snapshot = require('./lib/snapshot');
 const resetCameraGUI = require('./lib/resetCamera');
 const detachWindowGUI = require('./lib/detachWindow');
 const fullscreen = require('./lib/fullscreen');
-const { viewModeGUI } = require('./lib/viewMode');
-const { cameraModeGUI } = require('./lib/cameraMode');
+const {viewModeGUI} = require('./lib/viewMode');
+const {cameraModeGUI} = require('./lib/cameraMode');
 const manipulate = require('./lib/manipulate');
-const { getColorLegend } = require('./lib/colorMapLegend');
+const {getColorLegend} = require('./lib/colorMapLegend');
 const objectsGUIProvider = require('./lib/objectsGUIprovider');
 const clippingPlanesGUIProvider = require('./lib/clippingPlanesGUIProvider');
 const timeSeries = require('./lib/timeSeries');
-const { base64ToArrayBuffer } = require('./lib/helpers/buffer');
+const {base64ToArrayBuffer} = require('./lib/helpers/buffer');
 
-const MsgpackCodec = msgpack.createCodec({ preset: true });
+const MsgpackCodec = msgpack.createCodec({preset: true});
 
 const Float16Array = require('./lib/helpers/float16Array');
 
@@ -909,7 +909,10 @@ function K3D(provider, targetDOMNode, parameters) {
             // nothing
         }
 
-        world.K3DObjects.add(K3DObject);
+        // skip non-webgl objects
+        if (object.type !== 'Text' && object.type !== 'Text2d') {
+            world.K3DObjects.add(K3DObject);
+        }
 
         objectIndex += 1;
 
@@ -1047,7 +1050,7 @@ function K3D(provider, targetDOMNode, parameters) {
             return Promise.resolve(true);
         }
 
-        const data = { objects: [json] };
+        const data = {objects: [json]};
 
         if (changes !== null) {
             data.changes = [changes];
@@ -1144,9 +1147,9 @@ function K3D(provider, targetDOMNode, parameters) {
                     chunkList,
                     plot,
                 },
-                { codec: MsgpackCodec },
+                {codec: MsgpackCodec},
             ),
-            { level: compressionLevel },
+            {level: compressionLevel},
         );
     };
 
@@ -1160,7 +1163,7 @@ function K3D(provider, targetDOMNode, parameters) {
         }
 
         if (data instanceof Uint8Array) {
-            data = msgpack.decode(data, { codec: MsgpackCodec });
+            data = msgpack.decode(data, {codec: MsgpackCodec});
         }
 
         Object.keys(data.chunkList).forEach((k) => {
@@ -1179,7 +1182,7 @@ function K3D(provider, targetDOMNode, parameters) {
             });
         });
 
-        return self.load({ objects: data.objects }).then(() => self.refreshAfterObjectsChange(
+        return self.load({objects: data.objects}).then(() => self.refreshAfterObjectsChange(
             false,
             true,
         ));
@@ -1206,10 +1209,11 @@ function K3D(provider, targetDOMNode, parameters) {
         }
         this.autoRendering = false;
 
-        world.K3DObjects.children.forEach((obj) => {
-            removeObjectFromScene(obj.K3DIdentifier);
-            delete world.ObjectsListJson[obj.K3DIdentifier];
+        Object.keys(world.ObjectsListJson).forEach(function (K3DIdentifier) {
+            removeObjectFromScene(K3DIdentifier);
+            delete world.ObjectsListJson[K3DIdentifier];
         });
+
         world.cleanup();
 
         if (fpsMeter) {

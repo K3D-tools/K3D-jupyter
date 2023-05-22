@@ -1,8 +1,8 @@
-import unittest
 import numpy as np
+import unittest
 
-from ..helpers import map_colors
 from ..colormaps.basic_color_maps import Rainbow, Binary
+from ..helpers import map_colors
 
 
 class TestPythonColorMapping(unittest.TestCase):

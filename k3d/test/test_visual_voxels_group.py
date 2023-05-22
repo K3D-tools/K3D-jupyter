@@ -3,12 +3,10 @@ import pytest
 import skimage.measure
 
 import k3d
-from .plot_compare import *
+from .plot_compare import prepare, compare
 
 
 def generate(dim):
-    data = np.zeros((dim, dim, dim), dtype=np.uint8)
-
     x = np.linspace(-0.5, 0.5, dim, dtype=np.float32)
     y = np.linspace(-0.5, 0.5, dim, dtype=np.float32)
     z = np.linspace(-0.5, 0.5, dim, dtype=np.float32)

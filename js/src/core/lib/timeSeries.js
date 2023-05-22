@@ -2,7 +2,7 @@
 
 const THREE = require('three');
 const _ = require('../../lodash');
-const { pow10ceil } = require('./helpers/math');
+const {pow10ceil} = require('./helpers/math');
 
 function clone(val) {
     if (typeof (val) === 'object') {
@@ -116,8 +116,25 @@ function interpolate(a, b, f, property) {
         maxLength = Math.max(a.data.length, b.data.length);
         interpolated = new a.data.constructor(maxLength);
 
-        for (i = 0; i < minLength; i++) {
-            interpolated[i] = a.data[i] + f * (b.data[i] - a.data[i]);
+        if (property === 'colors') {
+            for (i = 0; i < minLength; i++) {
+                let r1 = (a.data[i] & 255);
+                let r2 = (b.data[i] & 255);
+                let g1 = ((a.data[i] >> 8) & 255);
+                let g2 = ((b.data[i] >> 8) & 255);
+                let b1 = ((a.data[i] >> 16) & 255);
+                let b2 = ((b.data[i] >> 16) & 255);
+
+                let rf = Math.round(r1 + f * (r2 - r1));
+                let gf = Math.round(g1 + f * (g2 - g1));
+                let bf = Math.round(b1 + f * (b2 - b1));
+
+                interpolated[i] = (bf << 16) | (gf << 8) | rf;
+            }
+        } else {
+            for (i = 0; i < minLength; i++) {
+                interpolated[i] = a.data[i] + f * (b.data[i] - a.data[i]);
+            }
         }
 
         if (minLength !== maxLength) {
@@ -230,7 +247,7 @@ module.exports = {
             if (json[property] && typeof (json[property].timeSeries) !== 'undefined') {
                 keypoints = Object.keys(json[property]).reduce((p, k) => {
                     if (!Number.isNaN(parseFloat(k))) {
-                        p.push({ v: parseFloat(k), k });
+                        p.push({v: parseFloat(k), k});
                     }
 
                     return p;
@@ -271,7 +288,7 @@ module.exports = {
             }
         });
 
-        return { json: interpolatedJson, changes };
+        return {json: interpolatedJson, changes};
     },
 
     getObjectsWithTimeSeriesAndMinMax,

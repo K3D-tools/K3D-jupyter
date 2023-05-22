@@ -5,8 +5,8 @@ from traitlets import Unicode, Int
 from traitlets import validate
 from traittypes import Array
 
-from .colormaps import paraview_color_maps
 from ._version import __version__ as version
+from .colormaps import paraview_color_maps
 from .helpers import array_serialization_wrap
 
 

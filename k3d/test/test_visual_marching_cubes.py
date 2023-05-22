@@ -1,7 +1,8 @@
-import k3d
 import numpy as np
 import pytest
-from .plot_compare import *
+
+import k3d
+from .plot_compare import prepare, compare
 
 T = 1.618033988749895
 r = 4.77

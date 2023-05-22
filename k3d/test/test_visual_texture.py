@@ -1,10 +1,11 @@
-import k3d
+import math
 import numpy as np
 import pytest
-from .plot_compare import *
-import math
 import vtk
 from vtk.util import numpy_support
+
+import k3d
+from .plot_compare import prepare, compare
 
 
 def test_texture():
@@ -18,16 +19,18 @@ def test_texture():
         0.0, 0.0, 0.0, 1.0
     ]
 
-    texture = k3d.texture(open('./test/assets/texture.png', 'br').read(), 'png',
-                          rotation=[math.radians(90), 1, 0, 0],
-                          model_matrix=model_matrix,
-                          name='Photo')
+    with open('./test/assets/texture.png', 'br') as file:
+        texture = k3d.texture(file.read(), 'png',
+                              rotation=[math.radians(90), 1, 0, 0],
+                              model_matrix=model_matrix,
+                              name='Photo')
 
     pytest.plot += texture
 
     compare('texture')
 
-    texture.binary = open('./test/assets/mandelbrot.jpg', 'br').read()
+    with open('./test/assets/mandelbrot.jpg', 'br') as file:
+        texture.binary = file.read()
     texture.name = 'Fractal'
 
     compare('texture_dynamic_change')

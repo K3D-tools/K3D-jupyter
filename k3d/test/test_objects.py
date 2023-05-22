@@ -1,10 +1,9 @@
-import unittest
-
-from traitlets import TraitError
 import numpy as np
+import unittest
+from traitlets import TraitError
 
-from ..objects import Drawable
 from ..factory import text
+from ..objects import Drawable
 
 
 class TestDrawable(unittest.TestCase):
@@ -38,7 +37,7 @@ class TestText(unittest.TestCase):
 class TestSTL(unittest.TestCase):
     def test_creation(self):
         from ..objects import STL
-        s = STL(text='''
+        STL(text='''
 solid
     facet normal 0 0 0
         outer loop
@@ -91,6 +90,7 @@ endsolid
         '''
 
         self.assertRaises(TraitError, assign_bad)
+
 
 if __name__ == '__main__':
     unittest.main()

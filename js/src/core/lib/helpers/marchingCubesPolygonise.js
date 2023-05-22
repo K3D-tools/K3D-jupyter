@@ -19,14 +19,14 @@
 
 const vertexList = new Float32Array(12 * 3);
 const fieldNeighbours = new Float32Array(8);
-const { edgeTable } = require('./marchingCubesLookupTables');
-const { triangleTable } = require('./marchingCubesLookupTables');
+const {edgeTable} = require('./marchingCubesLookupTables');
+const {triangleTable} = require('./marchingCubesLookupTables');
 
 module.exports = function (positions, field, iso,
-    width, height, length,
-    k, j, i,
-    x, y, z,
-    sx, sy, sz) {
+                           width, height, length,
+                           k, j, i,
+                           x, y, z,
+                           sx, sy, sz) {
     let index = 0;
     const ptr = i * width * height + j * width + k;
     let o = 0;
