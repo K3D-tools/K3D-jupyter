@@ -496,6 +496,9 @@ class Mesh(DrawableWithCallback):
             Array of triangle vertices: float (x, y, z) coordinate triplets.
         indices: `array_like`.
             Array of vertex indices: int triplets of indices from vertices array.
+        normals: `array_like`.
+            Array of vertex normals: float (x, y, z) coordinate triples. Normals are used when flat_shading is false.
+            If the normals are not specified here, normals will be automatically computed.
         color: `int`.
             Packed RGB color of the mesh (0xff0000 is red, 0xff is blue) when not using color maps.
         colors: `array_like`.
@@ -537,6 +540,9 @@ class Mesh(DrawableWithCallback):
     )
     indices = TimeSeries(Array(dtype=np.uint32)).tag(
         sync=True, **array_serialization_wrap("indices")
+    )
+    normals = TimeSeries(Array(dtype=np.float32)).tag(
+        sync=True, **array_serialization_wrap("normals")
     )
     color = TimeSeries(Int(min=0, max=0xFFFFFF)).tag(sync=True)
     colors = TimeSeries(Array(dtype=np.uint32)).tag(

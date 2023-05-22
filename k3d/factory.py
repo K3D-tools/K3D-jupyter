@@ -351,6 +351,7 @@ def marching_cubes(
 def mesh(
         vertices,
         indices,
+        normals=[],
         color=_default_color,
         colors=[],
         attribute=[],
@@ -382,6 +383,9 @@ def mesh(
         Array of triangle vertices, `float` (x, y, z) coordinate triplets.
     indices : array_like
         Array of vertex indices. `int` triplets of indices from vertices array.
+    normals: array_like, optional
+        Array of vertex normals: float (x, y, z) coordinate triples. Normals are used when flat_shading is false.
+        If the normals are not specified here, normals will be automatically computed.
     color : int, optional
         Hex color of the vertices when `colors` is empty, by default _default_color.
     colors : list, optional
@@ -471,6 +475,7 @@ def mesh(
         Mesh(
             vertices=vertices,
             indices=indices,
+            normals=normals,
             color=color,
             colors=colors,
             attribute=attribute,
