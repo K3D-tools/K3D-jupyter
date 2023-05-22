@@ -9,7 +9,7 @@ const PointsBillboard = require('./PointsBillboard');
  * @return {Object} 3D object ready to render
  */
 module.exports = {
-    create(config) {
+    create(config, K3D) {
         config.visible = typeof (config.visible) !== 'undefined' ? config.visible : true;
         config.color = typeof (config.color) !== 'undefined' ? config.color : 0xff00;
         config.opacity = typeof (config.opacity) !== 'undefined' ? config.opacity : 1.0;
@@ -19,9 +19,9 @@ module.exports = {
         config.opacity = Math.max(Math.min(config.opacity, 1.0), 0.0);
 
         if (config.shader === 'mesh') {
-            return PointsMesh.create(config);
+            return PointsMesh.create(config, K3D);
         }
-        return PointsBillboard.create(config);
+        return PointsBillboard.create(config, K3D);
     },
 
     update(config, changes, obj, K3D) {

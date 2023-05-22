@@ -3,8 +3,8 @@ const _ = require('../../../lodash');
 const Text = require('../objects/Text');
 const Vectors = require('../objects/Vectors');
 const MeshLine = require('../helpers/THREE.MeshLine')(THREE);
-const {viewModes} = require('../../../core/lib/viewMode');
-const {pow10ceil} = require('../../../core/lib/helpers/math');
+const { viewModes } = require('../../../core/lib/viewMode');
+const { pow10ceil } = require('../../../core/lib/helpers/math');
 
 let rebuildSceneDataPromises = null;
 
@@ -39,9 +39,9 @@ function generateAxesHelper(K3D, axesHelper) {
     });
 
     const arrows = Vectors.create({
-        colors: {data: [colors[0], colors[0], colors[1], colors[1], colors[2], colors[2]]},
-        origins: {data: [0, 0, 0, 0, 0, 0, 0, 0, 0]},
-        vectors: {data: [].concat(directions.x, directions.y, directions.z)},
+        colors: { data: [colors[0], colors[0], colors[1], colors[1], colors[2], colors[2]] },
+        origins: { data: [0, 0, 0, 0, 0, 0, 0, 0, 0] },
+        vectors: { data: [].concat(directions.x, directions.y, directions.z) },
         line_width: 0.05,
         head_size: 2.5,
     }, K3D);
@@ -513,7 +513,7 @@ function refreshGrid(K3D, grids) {
 function raycast(K3D, x, y, camera, click, viewMode) {
     /* jshint validthis:true */
     const meshes = [];
-    let intersect;
+    let intersects = [];
     let needRender = false;
 
     this.raycaster.setFromCamera(new THREE.Vector2(x, y), camera);
@@ -524,28 +524,33 @@ function raycast(K3D, x, y, camera, click, viewMode) {
                 return;
             }
 
-            meshes.push(object);
+            if (object.interactions.intersect) {
+                intersects = intersects.concat(object.interactions.intersect(this.raycaster));
+            } else {
+                meshes.push(object);
+            }
         }
     });
 
     if (meshes.length > 0) {
-        intersect = this.raycaster.intersectObjects(meshes);
-
-        if (intersect.length > 0) {
-            intersect = intersect[0];
-            K3D.getWorld().targetDOMNode.style.cursor = 'pointer';
-
-            if (!click && intersect.object.interactions && intersect.object.interactions.onHover) {
-                needRender |= intersect.object.interactions.onHover(intersect, viewMode);
-            }
-
-            if (click && intersect.object.interactions && intersect.object.interactions.onClick) {
-                needRender |= intersect.object.interactions.onClick(intersect, viewMode);
-            }
-        } else {
-            K3D.getWorld().targetDOMNode.style.cursor = 'auto';
-        }
+        intersects = intersect.concat(this.raycaster.intersectObjects(meshes));
     }
+
+    if (intersects.length > 0) {
+        let intersect = intersects[0];
+        K3D.getWorld().targetDOMNode.style.cursor = 'pointer';
+
+        if (!click && intersect.object.interactions && intersect.object.interactions.onHover) {
+            needRender |= intersect.object.interactions.onHover(intersect, viewMode);
+        }
+
+        if (click && intersect.object.interactions && intersect.object.interactions.onClick) {
+            needRender |= intersect.object.interactions.onClick(intersect, viewMode);
+        }
+    } else {
+        K3D.getWorld().targetDOMNode.style.cursor = 'auto';
+    }
+
 
     return needRender;
 }

@@ -3,6 +3,9 @@
 git add and git commit
 rm -rf build
 rm -rf dist
+rm -rf k3d/static
+rm -rf k3d/labextension
+rm -rf js/dist
 python -m build .
 twine upload dist/*
 cd js

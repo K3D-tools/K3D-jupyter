@@ -83,6 +83,7 @@ class ObjectModel extends widgets.WidgetModel {
         triangles_attribute: serialize,
         vertices: serialize,
         indices: serialize,
+        normals: serialize,
         colors: serialize,
         origins: serialize,
         vectors: serialize,

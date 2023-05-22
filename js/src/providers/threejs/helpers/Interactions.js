@@ -2,16 +2,30 @@ const threeMeshBVH = require('three-mesh-bvh');
 const StandardInteractions = require('../interactions/StandardCallback');
 
 module.exports = {
-    init(config, object, K3D, InteractionsCallback) {
+    init(config, object, K3D, InteractionsCallback, geometry, Intersect) {
         object.startInteraction = function () {
             if (!object.interactions) {
-                object.geometry.boundsTree = new threeMeshBVH.MeshBVH(object.geometry);
+                if (typeof (geometry) === 'undefined') {
+                    geometry = object.geometry;
+                }
+
+                object.geometry.boundsTree = new threeMeshBVH.MeshBVH(geometry);
 
                 if (InteractionsCallback) {
                     object.interactions = InteractionsCallback(object, K3D);
                 } else {
                     object.interactions = StandardInteractions(object, K3D);
                 }
+
+                if (typeof (Intersect) !== 'undefined') {
+                    object.interactions.intersect = Intersect(object);
+                }
+
+                // var helper = new threeMeshBVH.MeshBVHVisualizer(object);
+                // helper.depth = 14;
+                // helper.update();
+                //
+                // K3D.getWorld().K3DObjects.add(helper);
             }
         };
 
@@ -25,19 +39,6 @@ module.exports = {
         if (config.click_callback || config.hover_callback) {
             object.startInteraction();
         }
-
-        // THREE = require('three');
-        // object.startInteraction();
-        //
-        // var o = new THREE.Group(),
-        //     helper = new threeMeshBVH.Visualizer(object);
-        // helper.depth = 7;
-        // helper.update();
-        //
-        // o.add(object);
-        // o.add(helper);
-        //
-        // return o;
     },
 
     update(config, changes, resolvedChanges, obj) {

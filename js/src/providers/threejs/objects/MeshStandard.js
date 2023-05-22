@@ -32,6 +32,7 @@ module.exports = {
             const colorMap = (config.color_map && config.color_map.data) || null;
             const attribute = (config.attribute && config.attribute.data) || null;
             const triangleAttribute = (config.triangles_attribute && config.triangles_attribute.data) || null;
+            const normals = (config.normals && config.normals.data) || null;
             const vertices = (config.vertices && config.vertices.data) || null;
             const indices = (config.indices && config.indices.data) || null;
             const uvs = (config.uvs && config.uvs.data) || null;
@@ -40,10 +41,16 @@ module.exports = {
             let object;
             let preparedtriangleAttribute;
 
+            const hasNormals = (normals !== null && normals.length > 0);
+
             modelMatrix.set.apply(modelMatrix, config.model_matrix.data);
 
             geometry.setAttribute('position', new THREE.BufferAttribute(vertices, 3));
             geometry.setIndex(new THREE.BufferAttribute(indices, 1));
+
+            if (config.flat_shading === false && hasNormals) {
+                geometry.setAttribute('normal', new THREE.BufferAttribute(normals, 3));
+            }
 
             const material = new MaterialConstructor({
                 color: config.color,
@@ -59,7 +66,7 @@ module.exports = {
             });
 
             function finish() {
-                if (config.flat_shading === false) {
+                if (config.flat_shading === false && !hasNormals) {
                     geometry.computeVertexNormals();
                 }
 

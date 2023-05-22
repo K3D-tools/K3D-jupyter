@@ -36,7 +36,7 @@ def get_bounds_fit_matrix(xmin, xmax, ymin, ymax, zmin, zmax):
     TypeError
         Expected float.
     """
-    for name, value in locals().items():
+    for name, value in locals().copy().items():
         try:
             float(value)
         except (TypeError, ValueError):

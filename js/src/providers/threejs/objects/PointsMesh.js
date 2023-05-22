@@ -1,6 +1,9 @@
 const THREE = require('three');
 const buffer = require('../../../core/lib/helpers/buffer');
 const colorMapHelper = require('../../../core/lib/helpers/colorMap');
+const interactionsHelper = require('../helpers/Interactions');
+const pointsCallback = require('../interactions/PointsCallback');
+const pointsIntersect = require('../interactions/PointsIntersect');
 const Fn = require('../helpers/Fn');
 
 const {areAllChangesResolve} = Fn;
@@ -15,7 +18,7 @@ const {getColorsArray} = Fn;
  * @return {Object} 3D object ready to render
  */
 module.exports = {
-    create(config) {
+    create(config, K3D) {
         const modelMatrix = new THREE.Matrix4();
         const color = new THREE.Color(config.color);
         const positions = config.positions.data;
@@ -115,9 +118,15 @@ module.exports = {
         const object = new THREE.InstancedMesh(geometry, material, positions.length / 3);
         object.instanceMatrix.setUsage(THREE.DynamicDrawUsage);
 
+        let pointsGeometry = new THREE.BufferGeometry();
+        pointsGeometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+
         modelMatrix.set.apply(modelMatrix, config.model_matrix.data);
         object.applyMatrix4(modelMatrix);
         object.updateMatrixWorld();
+
+        interactionsHelper.init(config, object, K3D,
+            pointsCallback, pointsIntersect.prepareGeometry(pointsGeometry), pointsIntersect.Intersect);
 
         for (i = 0; i < positions.length / 3; i++) {
             const s = (sizes && sizes[i]) || 1.0;
@@ -151,6 +160,16 @@ module.exports = {
                         .setPosition(positions[i * 3], positions[i * 3 + 1], positions[i * 3 + 2])
                         .scale(new THREE.Vector3(s, s, s)),
                 );
+            }
+
+            if (obj.interactions) {
+                obj.stopInteraction();
+
+                let pointsGeometry = new THREE.BufferGeometry();
+                pointsGeometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+
+                interactionsHelper.init(config, obj, K3D,
+                    pointsCallback, pointsIntersect.prepareGeometry(pointsGeometry), pointsIntersect.Intersect);
             }
 
             obj.instanceMatrix.needsUpdate = true;
@@ -189,6 +208,8 @@ module.exports = {
 
             resolvedChanges.attribute = null;
         }
+
+        interactionsHelper.update(config, changes, resolvedChanges, obj);
 
         commonUpdate(config, changes, resolvedChanges, obj, K3D);
 
