@@ -58,3 +58,8 @@ jobs:
         with:
           name: comparison_results
           path: ./k3d/test/results/*
+      - uses: actions/upload-artifact@v3
+        if: ${{ failure() }}
+        with:
+          name: npm logs
+          path: /home/runner/.npm/_logs/*
