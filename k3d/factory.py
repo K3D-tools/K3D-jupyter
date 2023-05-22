@@ -450,6 +450,10 @@ def mesh(
         np.array(attribute, np.float32) if type(
             attribute) is not dict else attribute
     )
+    normals = (
+        np.array(normals, np.float32) if type(
+            normals) is not dict else normals
+    )
     triangles_attribute = (
         np.array(triangles_attribute, np.float32)
         if type(triangles_attribute) is not dict
@@ -1939,6 +1943,7 @@ def vtk_poly_data(
         Mesh(
             vertices=np.array(vertices, np.float32),
             indices=np.array(indices, np.uint32),
+            normals=[],
             color=color,
             colors=[],
             opacity=opacity,
