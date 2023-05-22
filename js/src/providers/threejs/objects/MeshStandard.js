@@ -41,15 +41,15 @@ module.exports = {
             let object;
             let preparedtriangleAttribute;
 
-            const has_normals = (normals !== null && normals.length > 0);
+            const hasNormals = (normals !== null && normals.length > 0);
 
             modelMatrix.set.apply(modelMatrix, config.model_matrix.data);
 
             geometry.setAttribute('position', new THREE.BufferAttribute(vertices, 3));
             geometry.setIndex(new THREE.BufferAttribute(indices, 1));
 
-            if (config.flat_shading === false && has_normals) {
-                geometry.setAttribute('normal', new THREE.BufferAttribute(normals, 3)); 
+            if (config.flat_shading === false && hasNormals) {
+                geometry.setAttribute('normal', new THREE.BufferAttribute(normals, 3));
             }
 
             const material = new MaterialConstructor({
@@ -66,7 +66,7 @@ module.exports = {
             });
 
             function finish() {
-                if (config.flat_shading === false && !has_normals) {
+                if (config.flat_shading === false && !hasNormals) {
                     geometry.computeVertexNormals();
                 }
 
