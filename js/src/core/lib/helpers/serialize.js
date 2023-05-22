@@ -1,6 +1,8 @@
 const fflate = require('fflate');
 const _ = require('../../../lodash');
 const Float16Array = require('./float16Array');
+const msgpack = require('msgpack-lite');
+const buffer = require('./buffer');
 
 const typesToArray = {
     int8: Int8Array,
@@ -13,13 +15,17 @@ const typesToArray = {
     float32: Float32Array,
     float64: Float64Array,
 };
+const MsgpackCodec = msgpack.createCodec({ preset: true });
+MsgpackCodec.addExtPacker(0x20, Float16Array, (val) => val);
+MsgpackCodec.addExtUnpacker(0x20, (val) => Float16Array(val.buffer));
+
 
 function isNumeric(n) {
     return !Number.isNaN(parseFloat(n)) && Number.isFinite(parseFloat(n));
 }
 
 function deserializeArray(obj) {
-    let buffer;
+    let data;
 
     if (typeof (obj.data) !== 'undefined') {
         return {
@@ -28,13 +34,13 @@ function deserializeArray(obj) {
         };
     }
     if (typeof (obj.compressed_data) !== 'undefined') {
-        buffer = new typesToArray[obj.dtype](fflate.unzlibSync(new Uint8Array(obj.compressed_data.buffer)).buffer);
+        data = new typesToArray[obj.dtype](fflate.unzlibSync(new Uint8Array(obj.compressed_data.buffer)).buffer);
 
-        console.log(`K3D: Receive: ${buffer.byteLength} bytes compressed to ${
+        console.log(`K3D: Receive: ${data.byteLength} bytes compressed to ${
             obj.compressed_data.byteLength} bytes`);
 
         return {
-            data: buffer,
+            data: data,
             shape: obj.shape,
         };
     }
@@ -45,7 +51,7 @@ function serializeArray(obj) {
     if (obj.compression_level && obj.compression_level > 0) {
         return {
             dtype: _.invert(typesToArray)[obj.data.constructor],
-            compressed_data: fflate.zlibSync(obj.data.buffer, {level: obj.compression_level}),
+            compressed_data: fflate.zlibSync(obj.data.buffer, { level: obj.compression_level }),
             shape: obj.shape,
         };
     }
@@ -59,6 +65,9 @@ function serializeArray(obj) {
 function deserialize(obj, manager) {
     if (obj == null) {
         return null;
+    }
+    if (typeof (obj) === 'string' && obj.substring(0, 7) === 'base64_') {
+        obj = msgpack.decode(buffer.base64ToArrayBuffer(obj.substring(7)), { codec: MsgpackCodec });
     }
     if (typeof (obj) === 'string' || typeof (obj) === 'boolean') {
         return obj;
@@ -96,7 +105,7 @@ function deserialize(obj, manager) {
     return deserializedObj;
 }
 
-function serialize(obj) {
+function serialize_helper(obj) {
     if (_.isNumber(obj)) {
         return obj;
     }
@@ -124,6 +133,14 @@ function serialize(obj) {
         }, {});
     }
     return null;
+}
+
+function serialize(obj) {
+    let data = serialize_helper(obj);
+
+    // TODO: convert to base64 if necessary
+
+    return data;
 }
 
 module.exports = {

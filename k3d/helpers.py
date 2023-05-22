@@ -1,10 +1,14 @@
 """Utilities module."""
+import base64
 import itertools
+import msgpack
 import numpy as np
 import os
 import zlib
 from traitlets import TraitError
 from urllib.request import urlopen
+
+from ._protocol import get_protocol
 
 
 # import logging
@@ -54,17 +58,22 @@ def array_to_json(ar, compression_level=0, force_contiguous=True):
         ar = np.ascontiguousarray(ar)
 
     if compression_level > 0:
-        return {
+        ret = {
             "compressed_data": zlib.compress(ar.flatten(), compression_level),
             "dtype": str(ar.dtype),
             "shape": ar.shape,
         }
     else:
-        return {
+        ret = {
             "data": memoryview(ar.flatten()),
             "dtype": str(ar.dtype),
             "shape": ar.shape,
         }
+
+    if get_protocol() == 'text':
+        return 'base64_' + base64.b64encode(msgpack.packb(ret, use_bin_type=True)).decode('ascii')
+    else:
+        return ret
 
 
 # noinspection PyUnusedLocal
@@ -124,6 +133,9 @@ def to_json(name, input, obj=None, compression_level=0):
 
 def from_json(input, obj=None):
     """Return JSON object deserialization."""
+    if isinstance(input, str) and input[0:7] == 'base64_':
+        input = msgpack.unpackb(base64.b64decode(input[7:]))
+
     if isinstance(input, dict) \
             and "dtype" in input \
             and ("data" in input or "compressed_data" in input) \
