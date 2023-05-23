@@ -1,6 +1,7 @@
 import json
 from pathlib import Path
 
+from ._protocol import switch_to_binary_protocol, switch_to_text_protocol
 from ._version import __version__
 from .colormaps import basic_color_maps
 from .colormaps import matplotlib_color_maps
