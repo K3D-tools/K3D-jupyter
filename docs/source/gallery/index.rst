@@ -3,7 +3,7 @@ Gallery
 =======
 
 .. raw:: html
-    
+
     <style>
         .grid-container {
             display: flex;
@@ -33,6 +33,7 @@ Showcase
     showcase/turbine-cfd.rst
     showcase/terrain.rst
     showcase/vtk-cutter.rst
+    showcase/tractogram.rst
 
 .. k3d_plot::
    :filename: showcase/thumbnails/lorenz_system_thumbnail.py
@@ -69,9 +70,14 @@ Showcase
 .. k3d_plot::
    :filename: showcase/thumbnails/vtk_cutter_thumbnail.py
    :screenshot:
-   
+
+.. k3d_plot::
+    :filename: showcase/thumbnails/tractogram_thumbnail.py
+    :screenshot:
+
+
 .. raw:: html
-    
+
     <div class="grid-container">
 
 .. image:: lorenz_system_thumbnail.png
@@ -109,9 +115,13 @@ Showcase
 .. image:: vtk_cutter_thumbnail.png
    :width: 155
    :target: showcase/vtk-cutter.html
-   
+
+.. image:: tractogram_thumbnail.png
+   :width: 155
+   :target: showcase/tractogram.html
+
 .. raw:: html
-    
+
     </div>
 
 ---
@@ -129,7 +139,7 @@ API
 .. k3d_plot::
    :filename: api/thumbnails/marching_cubes_levels_thumbnail.py
    :screenshot:
-   
+
 .. k3d_plot::
    :filename: api/thumbnails/marching_cubes_sinus_cube_thumbnail.py
    :screenshot:
@@ -187,7 +197,7 @@ API
    :screenshot:
 
 .. raw:: html
-    
+
     <div class="grid-container">
 
 .. image:: line_colormap_thumbnail.png
@@ -201,7 +211,7 @@ API
 .. image:: marching_cubes_levels_thumbnail.png
    :width: 155
    :target: ../reference/factory.marching_cubes.html#levels
-   
+
 .. image:: marching_cubes_sinus_cube_thumbnail.png
    :width: 155
    :target: ../reference/factory.marching_cubes.html#sinus-cube
@@ -257,7 +267,7 @@ API
 .. image:: vtk_colormap_thumbnail.png
    :width: 155
    :target: ../reference/factory.vtk_poly_data.html#colormap
-   
+
 .. raw:: html
-    
+
     </div>
