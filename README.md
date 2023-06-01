@@ -4,11 +4,25 @@
 [![Anaconda-Server Badge](https://anaconda.org/conda-forge/k3d/badges/downloads.svg)](https://anaconda.org/conda-forge/k3d)
 [![CodeQL](https://github.com/K3D-tools/K3D-jupyter/workflows/CodeQL/badge.svg)](https://github.com/K3D-tools/K3D-jupyter/actions)
 
-Jupyter notebook extension for 3D visualization.
+<div>
+
+<img src="https://k3d-jupyter.org/_static/logo.png" width="25%" align="right">
+
+K3D lets you create 3D plots backed by WebGL with high-level API (surfaces, isosurfaces, voxels,
+mesh, cloud points, vtk objects, volume renderer, colormaps, etc). The primary aim of K3D-jupyter is
+to be easy for use as stand alone package like matplotlib, but also to allow interoperation with
+existing libraries as VTK. K3D can be run as:
+
+- Jupyter Notebook extension 🚀
+- Jupyter Lab extension 🎉
+- Google Colab extension 🧪 [still experimental]
+- Standalone HTML/JS 📑
 
 Documentation: [https://k3d-jupyter.org](https://k3d-jupyter.org)
+</div>
 
-#### Showcase:
+
+## Showcase:
 
 ![points_cloud](imgs/points_cloud.gif)
 
@@ -18,7 +32,9 @@ Documentation: [https://k3d-jupyter.org](https://k3d-jupyter.org)
 
 ![transfer_function_editor](imgs/tf_edit.gif)
 
-#### YouTube:
+### YouTube:
+
+Click to watch at YouTube:
 
 [![Volume renderer](https://i3.ytimg.com/vi/zCeQ_ZXy_Ps/maxresdefault.jpg)](https://www.youtube.com/watch?v=zCeQ_ZXy_Ps)
 
@@ -28,12 +44,12 @@ Documentation: [https://k3d-jupyter.org](https://k3d-jupyter.org)
 
 [![Volume renderer](https://i3.ytimg.com/vi/wIbBpUlB5vc/maxresdefault.jpg)](https://www.youtube.com/watch?v=wIbBpUlB5vc)
 
-
 ## Try it Now!
 
 Watch: [Interactive showcase gallery](https://k3d-jupyter.org/gallery/index.html)
 
-Jupyter version: [![Binder](https://mybinder.org/badge.svg)](https://mybinder.org/v2/gh/K3D-tools/K3D-jupyter/main?filepath=index.ipynb)
+Jupyter
+version: [![Binder](https://mybinder.org/badge.svg)](https://mybinder.org/v2/gh/K3D-tools/K3D-jupyter/main?filepath=index.ipynb)
 
 ## Installation
 
@@ -48,6 +64,24 @@ To install from PyPI use pip:
 To install from conda-forge use:
 
     $ conda install -c conda-forge k3d
+
+### Google Colab
+
+First you need to install k3d:
+
+    !pip install k3d
+    !jupyter nbextension install --py --user k3d
+    !jupyter nbextension enable --py --user k3d
+
+After that you need to activate custom widgets and switch k3d to text protocol:
+
+    import k3d
+    from google.colab import output
+    
+    output.enable_custom_widget_manager()
+    
+    k3d.switch_to_text_protocol()
+    k3d._protocol.get_protocol()
 
 ### Installing directly from GitHub
 
@@ -74,6 +108,7 @@ Then, if required, JupyterLab installation:
     $ jupyter labextension install ./js
 
 ### Code of Conduct
+
 K3D-jupyter follows the Python Software Foundation Code of Conduct in everything we do.
 
 ## Kudos
