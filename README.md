@@ -81,7 +81,6 @@ After that you need to activate custom widgets and switch k3d to text protocol:
     output.enable_custom_widget_manager()
     
     k3d.switch_to_text_protocol()
-    k3d._protocol.get_protocol()
 
 ### Installing directly from GitHub
 
