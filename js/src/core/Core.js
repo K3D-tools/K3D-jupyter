@@ -1221,7 +1221,7 @@ function K3D(provider, targetDOMNode, parameters) {
         }
 
         listeners = {};
-        currentWindow.removeEventListener('resize', this.resizeHelper);
+        this.resizeObserver.disconnect();
         world.renderer.removeContextLossListener();
         world.renderer.forceContextLoss();
     };
@@ -1235,7 +1235,10 @@ function K3D(provider, targetDOMNode, parameters) {
     this.Provider.Initializers.Scene.call(world, this);
     this.Provider.Initializers.Manipulate.call(world, this);
 
-    currentWindow.addEventListener('resize', this.resizeHelper, false);
+    this.resizeObserver = new ResizeObserver(entries => {
+        this.resizeHelper();
+    });
+    this.resizeObserver.observe(targetDOMNode);
 
     // load toolbars
     guiContainer = currentWindow.document.createElement('div');
