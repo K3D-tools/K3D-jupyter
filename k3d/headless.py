@@ -135,13 +135,16 @@ class k3d_remote:
 
 
 def get_headless_driver(no_headless=False):
-    from selenium.webdriver.chrome.options import Options
     from selenium import webdriver
+    from selenium.webdriver.chrome.service import Service as ChromeService
     from webdriver_manager.chrome import ChromeDriverManager
 
-    options = Options()
+    options = webdriver.ChromeOptions()
+
+    options.add_argument("--no-sandbox")
 
     if not no_headless:
         options.add_argument("--headless")
 
-    return webdriver.Chrome(ChromeDriverManager().install(), options=options)
+    return webdriver.Chrome(service=ChromeService(ChromeDriverManager().install()),
+                            options=options)
