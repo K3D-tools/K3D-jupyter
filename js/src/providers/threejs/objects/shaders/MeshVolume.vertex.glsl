@@ -12,8 +12,6 @@ void main() {
 
     gl_Position = projectionMatrix * mvPosition;
 
-    gl_Position = projectionMatrix * mvPosition;
-
     #include <logdepthbuf_vertex>
     #include <clipping_planes_vertex>
 }

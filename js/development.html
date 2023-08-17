@@ -51,14 +51,21 @@
     //   return reject(e);
     // }
 
-    fileLoader('binary_snapshot.k3d', function (data) {
+    fileLoader('dump.k3d', function (data) {
       K3DInstance = lib.CreateK3DAndLoadBinarySnapshot(
         data,
         document.getElementById('canvasTarget')
       ).then(function (ret) {
         K3DInstance = ret;
 
-        K3DInstance.resetCamera(0.7);
+        // setTimeout(function () {
+        //   K3DInstance.resetCamera(1.5);
+        // }, 500);
+
+        // K3DInstance.on(K3DInstance.events.OBJECT_HOVERED, (params) => {
+        //   console.log(params);
+        // });
+
         // setTimeout(function () {
         //   let jsons = ret.getWorld().ObjectsListJson;
         //

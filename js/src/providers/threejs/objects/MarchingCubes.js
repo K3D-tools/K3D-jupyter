@@ -3,8 +3,16 @@ const BufferGeometryUtils = require('three/examples/jsm/utils/BufferGeometryUtil
 const interactionsHelper = require('../helpers/Interactions');
 const marchingCubesPolygonise = require('../../../core/lib/helpers/marchingCubesPolygonise');
 const yieldingLoop = require('../../../core/lib/helpers/yieldingLoop');
-const {areAllChangesResolve} = require('../helpers/Fn');
-const {commonUpdate} = require('../helpers/Fn');
+const { areAllChangesResolve, getSide, typedArrayToThree } = require('../helpers/Fn');
+const { commonUpdate } = require('../helpers/Fn');
+const colorMapHelper = require('../../../core/lib/helpers/colorMap');
+const _ = require('../../../lodash');
+
+function isAttribute(config) {
+    return config.attribute && config.attribute.data && config.attribute.data.length > 0
+        && config.color_range && config.color_range.length > 0
+        && config.color_map && config.color_map.data && config.color_map.data.length > 0;
+}
 
 /**
  * Loader strategy to handle Marching Cubes object
@@ -30,10 +38,13 @@ module.exports = {
             const spacingsY = config.spacings_y;
             const spacingsZ = config.spacings_z;
             let isSpacings = false;
-            const {level} = config;
+            const { level } = config;
             const modelMatrix = new THREE.Matrix4();
             const MaterialConstructor = config.wireframe ? THREE.MeshBasicMaterial : THREE.MeshPhongMaterial;
-            const material = new MaterialConstructor({
+            const colorRange = config.color_range;
+            const colorMap = (config.color_map && config.color_map.data) || null;
+            let opacityFunction = null;
+            let material = new MaterialConstructor({
                 color: config.color,
                 emissive: 0,
                 shininess: 50,
@@ -54,6 +65,68 @@ module.exports = {
             let j;
             let k;
             const polygonise = marchingCubesPolygonise;
+
+            if (isAttribute(config)) {
+                if (config.opacity_function && config.opacity_function.data && config.opacity_function.data.length > 0) {
+                    opacityFunction = config.opacity_function.data;
+                }
+
+                const canvas = colorMapHelper.createCanvasGradient(colorMap, 1024, opacityFunction);
+                const colormap = new THREE.CanvasTexture(
+                    canvas,
+                    THREE.UVMapping,
+                    THREE.ClampToEdgeWrapping,
+                    THREE.ClampToEdgeWrapping,
+                    THREE.NearestFilter,
+                    THREE.NearestFilter,
+                );
+                colormap.needsUpdate = true;
+
+                const texture = new THREE.Data3DTexture(
+                    config.attribute.data,
+                    config.attribute.shape[2],
+                    config.attribute.shape[1],
+                    config.attribute.shape[0],
+                );
+                texture.format = THREE.RedFormat;
+                texture.type = typedArrayToThree(config.attribute.data.constructor);
+
+                texture.generateMipmaps = false;
+                texture.minFilter = THREE.LinearFilter;
+                texture.magFilter = THREE.LinearFilter;
+                texture.wrapT = THREE.ClampToEdgeWrapping;
+                texture.wrapS = THREE.ClampToEdgeWrapping;
+                texture.needsUpdate = true;
+
+                material = new THREE.ShaderMaterial({
+                    uniforms: _.merge(
+                        {
+                            opacity: { value: config.opacity },
+                            low: { value: colorRange[0] },
+                            high: { value: colorRange[1] },
+                            volumeTexture: { type: 't', value: texture },
+                            colormap: { type: 't', value: colormap },
+                            emissive: { type: 'v3', value: new THREE.Vector3(0, 0, 0) },
+                            specular: { type: 'v3', value: new THREE.Vector3(0.04, 0.04, 0.04) },
+                            shininess: { value: 50 },
+
+                        },
+                        THREE.UniformsLib.lights,
+                    ),
+                    defines: {
+                        FLAT_SHADED: config.flat_shading
+                    },
+                    side: getSide(config),
+                    vertexShader: require('./shaders/MarchingCubesVolume.vertex.glsl'),
+                    fragmentShader: require('./shaders/MarchingCubesVolume.fragment.glsl'),
+                    depthWrite: (config.opacity === 1.0 && opacityFunction === null),
+                    transparent: (config.opacity !== 1.0 || opacityFunction !== null),
+                    wireframe: config.wireframe,
+                    flatShading: config.flat_shading,
+                    lights: true,
+                    clipping: true
+                });
+            }
 
             if (spacingsX && spacingsY && spacingsZ) {
                 isSpacings = spacingsX.shape[0] === width - 1 && spacingsY.shape[0] === height - 1
@@ -156,10 +229,49 @@ module.exports = {
 
         interactionsHelper.update(config, changes, resolvedChanges, obj);
 
+        if (typeof (changes.attribute) !== 'undefined' && !changes.attribute.timeSeries) {
+            if (obj.material.uniforms &&
+                obj.material.uniforms.volumeTexture.value.image.data.constructor === changes.attribute.data.constructor
+                && obj.material.uniforms.volumeTexture.value.image.width === changes.attribute.shape[2]
+                && obj.material.uniforms.volumeTexture.value.image.height === changes.attribute.shape[1]
+                && obj.material.uniforms.volumeTexture.value.image.depth === changes.attribute.shape[0]) {
+                obj.material.uniforms.volumeTexture.value.image.data = changes.attribute.data;
+                obj.material.uniforms.volumeTexture.value.needsUpdate = true;
+
+                resolvedChanges.volume = null;
+            }
+        }
+
+        if (obj.material.uniforms &&
+            typeof (changes.color_range) !== 'undefined' && !changes.color_range.timeSeries) {
+            obj.material.uniforms.low.value = changes.color_range[0];
+            obj.material.uniforms.high.value = changes.color_range[1];
+
+            resolvedChanges.color_range = null;
+        }
+
+        if (obj.material.uniforms &&
+            (typeof (changes.color_map) !== 'undefined' && !changes.color_map.timeSeries)
+            || (typeof (changes.opacity_function) !== 'undefined' && !changes.opacity_function.timeSeries)) {
+            if (!(changes.opacity_function && obj.material.transparent === false)) {
+                const canvas = colorMapHelper.createCanvasGradient(
+                    (changes.color_map && changes.color_map.data) || config.color_map.data,
+                    1024,
+                    (changes.opacity_function && changes.opacity_function.data) || config.opacity_function.data,
+                );
+
+                obj.material.uniforms.colormap.value.image = canvas;
+                obj.material.uniforms.colormap.value.needsUpdate = true;
+
+                resolvedChanges.color_map = null;
+                resolvedChanges.opacity_function = null;
+            }
+        }
+
         commonUpdate(config, changes, resolvedChanges, obj, K3D);
 
         if (areAllChangesResolve(changes, resolvedChanges)) {
-            return Promise.resolve({json: config, obj});
+            return Promise.resolve({ json: config, obj });
         }
         return false;
     },

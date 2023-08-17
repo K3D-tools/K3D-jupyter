@@ -445,6 +445,17 @@ class MarchingCubes(DrawableWithCallback):
             A spacings in z axis. Should match to scalar_field shape.
         color: `int`.
             Packed RGB color of the isosurface (0xff0000 is red, 0xff is blue).
+        attribute: `array_like`.
+            Array of float attribute for the color mapping, coresponding to each vertex.
+        color_map: `list`.
+            A list of float quadruplets (attribute value, R, G, B), sorted by attribute value. The first
+            quadruplet should have value 0.0, the last 1.0; R, G, B are RGB color components in the range 0.0 to 1.0.
+        color_range: `list`.
+            A pair [min_value, max_value], which determines the levels of color attribute mapped
+            to 0 and 1 in the color map respectively.
+        opacity_function: `array`.
+            A list of float tuples (attribute value, opacity), sorted by attribute value. The first
+            tuples should have value 0.0, the last 1.0; opacity is in the range 0.0 to 1.0.
         wireframe: `bool`.
             Whether mesh should display as wireframe.
         flat_shading: `bool`.
@@ -469,6 +480,18 @@ class MarchingCubes(DrawableWithCallback):
         sync=True, **array_serialization_wrap("spacings_z")
     )
     level = Float().tag(sync=True)
+    attribute = TimeSeries(Array(dtype=np.float32)).tag(
+        sync=True, **array_serialization_wrap("attribute")
+    )
+    color_map = TimeSeries(Array(dtype=np.float32)).tag(
+        sync=True, **array_serialization_wrap("color_map")
+    )
+    color_range = TimeSeries(ListOrArray(minlen=2, maxlen=2, empty_ok=True)).tag(
+        sync=True
+    )
+    opacity_function = TimeSeries(Array(dtype=np.float32)).tag(
+        sync=True, **array_serialization_wrap("opacity_function")
+    )
     color = Int(min=0, max=0xFFFFFF).tag(sync=True)
     wireframe = Bool().tag(sync=True)
     flat_shading = Bool().tag(sync=True)
