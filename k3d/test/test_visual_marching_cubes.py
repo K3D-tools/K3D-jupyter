@@ -17,6 +17,8 @@ z = np.linspace(zmin, zmax, Nz)
 x, y, z = np.meshgrid(x, y, z, indexing='ij')
 p = 2 - (np.cos(x + T * y) + np.cos(x - T * y) + np.cos(y + T * z) + np.cos(y - T * z) + np.cos(
     z - T * x) + np.cos(z + T * x)).astype(np.float32)
+a = (np.sin(x + T * y) + np.sin(x - T * y) + np.sin(y + T * z) + np.cos(y - T * z) + np.sin(
+    z - T * x) + np.cos(z + T * x)).astype(np.float32)
 
 
 def test_marching_cubes():
@@ -77,3 +79,61 @@ def test_marching_cubes_non_uniformly_spaced():
     pytest.plot += iso
 
     compare('marching_cubes_non_uniformly_spaced')
+
+
+def test_marching_cubes_with_attribute():
+    global p, a
+
+    prepare()
+
+    iso = k3d.marching_cubes(p, attribute=a, level=0.0)
+
+    pytest.plot += iso
+
+    compare('marching_cubes_with_attribute')
+
+
+def test_marching_cubes_with_dynamic_attribute():
+    global p, a
+
+    prepare()
+
+    iso = k3d.marching_cubes(p, level=0.0)
+
+    pytest.plot += iso
+
+    compare('marching_cubes')
+
+    iso.attribute = a
+    iso.color_map = k3d.matplotlib_color_maps.Inferno
+    iso.color_range = [-5, 5]
+
+    compare('marching_cubes_dynamic_attribute')
+
+    iso.attribute = []
+
+    compare('marching_cubes')
+
+
+def test_marching_cubes_with_attribute_smoothed():
+    global p, a
+
+    prepare()
+
+    iso = k3d.marching_cubes(p, attribute=a, level=0.0, flat_shading=False)
+
+    pytest.plot += iso
+
+    compare('marching_cubes_with_attribute_smoothed')
+
+
+def test_marching_cubes_with_attribute_wireframe():
+    global p, a
+
+    prepare()
+
+    iso = k3d.marching_cubes(p, attribute=a, level=0.0, wireframe=True)
+
+    pytest.plot += iso
+
+    compare('marching_cubes_with_attribute_wireframe')

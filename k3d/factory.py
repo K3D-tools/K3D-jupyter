@@ -265,6 +265,10 @@ def marching_cubes(
         scalar_field,
         level,
         color=_default_color,
+        attribute=[],
+        color_map=None,
+        color_range=[],
+        opacity_function=[],
         wireframe=False,
         flat_shading=True,
         opacity=1.0,
@@ -297,6 +301,18 @@ def marching_cubes(
         Value at the computed isosurface.
     color : int, optional
         Hex color of the isosurface, by default _default_color.
+    attribute: list, optional
+        List of values used to apply `color_map`, by default [].
+    color_map : list, optional
+        List of `float` quadruplets (attribute value, R, G, B) sorted by attribute value, by default None.
+        The first quadruplet should have value 0.0, the last 1.0;
+        R, G, B are RGB color components in the range 0.0 to 1.0.
+    color_range : list, optional
+        [min_value, max_value] pair determining the levels of color attribute mapped
+        to 0 and 1 in the colormap, by default [].
+    opacity_function: `array`.
+        A list of float tuples (attribute value, opacity), sorted by attribute value. The first
+        typles should have value 0.0, the last 1.0; opacity is in the range 0.0 to 1.0.
     wireframe : bool, optional
         Display the mesh as wireframe, by default False.
     flat_shading : bool, optional
@@ -328,6 +344,16 @@ def marching_cubes(
     MarchingCubes
         MarchingCubes Drawable.
     """
+
+    if color_map is None:
+        color_map = default_colormap
+
+    attribute = (
+        np.array(attribute, np.float32) if type(
+            attribute) is not dict else attribute
+    )
+    color_range = check_attribute_color_range(attribute, color_range)
+
     return process_transform_arguments(
         MarchingCubes(
             scalar_field=scalar_field,
@@ -335,6 +361,10 @@ def marching_cubes(
             spacings_y=spacings_y,
             spacings_z=spacings_z,
             color=color,
+            attribute=attribute,
+            color_map=color_map,
+            color_range=color_range,
+            opacity_function=opacity_function,
             level=level,
             wireframe=wireframe,
             flat_shading=flat_shading,
@@ -705,6 +735,8 @@ def surface(
         Display the mesh with flat shading, by default True.
     attribute: list, optional
         List of values used to apply `color_map`, by default [].
+    opacity: `float`.
+        Opacity of surface.
     color_map : list, optional
         List of `float` quadruplets (attribute value, R, G, B) sorted by attribute value, by default None.
         The first quadruplet should have value 0.0, the last 1.0;
