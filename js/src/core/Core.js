@@ -1265,6 +1265,7 @@ function K3D(provider, targetDOMNode, parameters) {
     self.setTime(self.parameters.time);
     self.setGridAutoFit(self.parameters.gridAutoFit);
     self.setGridVisible(self.parameters.gridVisible);
+    self.setGrid(self.parameters.grid);
     self.setCameraAutoFit(self.parameters.cameraAutoFit);
     self.setCameraDampingFactor(self.parameters.cameraDampingFactor);
     self.setClippingPlanes(self.parameters.clippingPlanes);
