@@ -814,6 +814,8 @@ class Surface(DrawableWithCallback):
             Whether mesh should display with flat shading.
         attribute: `array_like`.
             Array of float attribute for the color mapping, coresponding to each vertex.
+        opacity: `float`.
+            Opacity of surface.
         color_map: `list`.
             A list of float quadruplets (attribute value, R, G, B), sorted by attribute value. The first
             quadruplet should have value 0.0, the last 1.0; R, G, B are RGB color components in the range 0.0 to 1.0.
@@ -834,6 +836,7 @@ class Surface(DrawableWithCallback):
     attribute = TimeSeries(Array(dtype=np.float32)).tag(
         sync=True, **array_serialization_wrap("attribute")
     )
+    opacity = TimeSeries(Float(min=0.0, max=1.0, default_value=1.0)).tag(sync=True)
     color_map = TimeSeries(Array(dtype=np.float32)).tag(
         sync=True, **array_serialization_wrap("color_map")
     )

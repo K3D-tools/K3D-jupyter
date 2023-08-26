@@ -17,6 +17,7 @@ module.exports = {
         config.color = typeof (config.color) !== 'undefined' ? config.color : 255;
         config.wireframe = typeof (config.wireframe) !== 'undefined' ? config.wireframe : false;
         config.flat_shading = typeof (config.flat_shading) !== 'undefined' ? config.flat_shading : true;
+        config.opacity = typeof (config.opacity) !== 'undefined' ? config.opacity : 1.0;
 
         const heights = config.heights.data;
         const width = config.heights.shape[1];
@@ -28,6 +29,9 @@ module.exports = {
         const attribute = (config.attribute && config.attribute.data) || null;
         const material = new MaterialConstructor({
             color: config.color,
+            opacity: config.opacity,
+            depthWrite: config.opacity === 1.0,
+            transparent: config.opacity !== 1.0,
             emissive: 0,
             shininess: 50,
             specular: 0x111111,

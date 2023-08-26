@@ -735,6 +735,8 @@ def surface(
         Display the mesh with flat shading, by default True.
     attribute: list, optional
         List of values used to apply `color_map`, by default [].
+    opacity: `float`.
+        Opacity of surface.
     color_map : list, optional
         List of `float` quadruplets (attribute value, R, G, B) sorted by attribute value, by default None.
         The first quadruplet should have value 0.0, the last 1.0;
