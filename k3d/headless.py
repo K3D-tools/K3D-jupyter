@@ -142,6 +142,7 @@ def get_headless_driver(no_headless=False):
     options = webdriver.ChromeOptions()
 
     options.add_argument("--no-sandbox")
+    options.add_argument("--disable-crash-reporter")
 
     if not no_headless:
         options.add_argument("--headless")
