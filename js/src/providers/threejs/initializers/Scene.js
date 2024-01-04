@@ -533,7 +533,7 @@ function raycast(K3D, x, y, camera, click, viewMode) {
     });
 
     if (meshes.length > 0) {
-        intersects = intersect.concat(this.raycaster.intersectObjects(meshes));
+        intersects = intersects.concat(this.raycaster.intersectObjects(meshes));
     }
 
     if (intersects.length > 0) {
