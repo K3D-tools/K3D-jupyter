@@ -214,7 +214,7 @@ def check_attribute_color_range(attribute, color_range=()):
 
     Parameters
     ----------
-    attribute : list
+    attribute : list or dict (for timeseries)
         Array of numbers.
     color_range : tuple, optional
         Two numbers, by default ().
@@ -224,10 +224,16 @@ def check_attribute_color_range(attribute, color_range=()):
     tuple
         Color range.
     """
-    if type(attribute) is dict or attribute.size == 0 or len(color_range) == 2:
-        return color_range
 
-    color_range = minmax(attribute)
+    if len(color_range) == 2:
+        return color_range
+    elif type(attribute) is dict:
+        t = [minmax(attribute[k]) for k in attribute.keys()]
+        color_range = [min([v[0] for v in t]), max([v[1] for v in t])]
+    elif attribute.size == 0:
+        return color_range
+    else:
+        color_range = minmax(attribute)
 
     if color_range[0] == color_range[1]:
         color_range[1] += 1.0
