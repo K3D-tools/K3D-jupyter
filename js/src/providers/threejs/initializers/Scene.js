@@ -156,8 +156,8 @@ function cleanup(grids, gridScene) {
         });
     });
 
-    Object.keys(grids.labelsOnEdges).forEach((key) => {
-        grids.labelsOnEdges[key].labels.forEach((label) => {
+    Object.keys(grids.labelsOnPlanes).forEach((key) => {
+        grids.labelsOnPlanes[key].labels.forEach((label) => {
             label.onRemove();
         });
     });
@@ -179,17 +179,28 @@ function rebuildSceneData(K3D, grids, axesHelper, force) {
     const promises = [];
     let originalEdges;
     let updateAxesHelper;
-    let extendedEdges;
     let size;
     let majorScale;
     let minorScale;
+    let i;
     let sceneBoundingBox = new THREE.Box3().setFromArray(K3D.parameters.grid);
-    let extendedSceneBoundingBox;
     const unitVectors = {
         x: new THREE.Vector3(1.0, 0.0, 0.0),
         y: new THREE.Vector3(0.0, 1.0, 0.0),
         z: new THREE.Vector3(0.0, 0.0, 1.0),
     };
+    const cornerToLabeledEdges = {
+        '+x+y+z': ['+x-y', '+x-z', '-x+y', '+y-z', '-x+z', '-y+z'],
+        '+x+y-z': ['+x-y', '+x+z', '-x+y', '+y+z', '-x-z', '-y-z'],
+        '+x-y+z': ['+x+y', '+x-z', '-x-y', '-y-z', '-x+z', '+y+z'],
+        '+x-y-z': ['+x+y', '+x+z', '-x-y', '-y+z', '-x-z', '+y-z'],
+        '-x+y+z': ['-x-y', '-x-z', '+x+y', '+y-z', '+x+z', '-y+z'],
+        '-x+y-z': ['-x-y', '-x+z', '+x+y', '+y+z', '+x-z', '-y-z'],
+        '-x-y+z': ['-x+y', '-x-z', '+x-y', '-y-z', '+x+z', '+y+z'],
+        '-x-y-z': ['-x+y', '-x+z', '+x-y', '-y+z', '+x-z', '+y-z']
+    };
+    const labelsShiftMap = ['x', 'x', 'y', 'y', 'z', 'z'];
+
     const gridColor = new THREE.Color(K3D.parameters.gridColor);
     const labelColor = new THREE.Color(K3D.parameters.labelColor);
 
@@ -249,6 +260,7 @@ function rebuildSceneData(K3D, grids, axesHelper, force) {
 
         // generate new one
         size = sceneBoundingBox.getSize(new THREE.Vector3());
+
         majorScale = pow10ceil(Math.max(size.x, size.y, size.z)) / 10.0;
         minorScale = majorScale / 10.0;
 
@@ -261,15 +273,15 @@ function rebuildSceneData(K3D, grids, axesHelper, force) {
         size = sceneBoundingBox.getSize(new THREE.Vector3());
 
         sceneBoundingBox.min = new THREE.Vector3(
-            Math.floor(sceneBoundingBox.min.x / majorScale) * majorScale,
-            Math.floor(sceneBoundingBox.min.y / majorScale) * majorScale,
-            Math.floor(sceneBoundingBox.min.z / majorScale) * majorScale,
+            Math.floor(sceneBoundingBox.min.x / minorScale) * minorScale,
+            Math.floor(sceneBoundingBox.min.y / minorScale) * minorScale,
+            Math.floor(sceneBoundingBox.min.z / minorScale) * minorScale,
         );
 
         sceneBoundingBox.max = new THREE.Vector3(
-            Math.ceil(sceneBoundingBox.max.x / majorScale) * majorScale,
-            Math.ceil(sceneBoundingBox.max.y / majorScale) * majorScale,
-            Math.ceil(sceneBoundingBox.max.z / majorScale) * majorScale,
+            Math.ceil(sceneBoundingBox.max.x / minorScale) * minorScale,
+            Math.ceil(sceneBoundingBox.max.y / minorScale) * minorScale,
+            Math.ceil(sceneBoundingBox.max.z / minorScale) * minorScale,
         );
 
         size = sceneBoundingBox.getSize(new THREE.Vector3());
@@ -310,90 +322,77 @@ function rebuildSceneData(K3D, grids, axesHelper, force) {
                 }],
         };
 
-        // expand sceneBoundingBox to avoid labels overlapping
-        extendedSceneBoundingBox = sceneBoundingBox.clone().expandByScalar(majorScale * 0.15);
-
         originalEdges = generateEdgesPoints(sceneBoundingBox);
-        extendedEdges = generateEdgesPoints(extendedSceneBoundingBox);
 
-        Object.keys(originalEdges).forEach((key) => {
-            grids.labelsOnEdges[key] = {};
-            grids.labelsOnEdges[key].v = originalEdges[key];
-            grids.labelsOnEdges[key].p = extendedEdges[key];
-            grids.labelsOnEdges[key].labels = [];
-        });
+        // create labels for ticks - iterate over all 8 corners of box
 
-        // create labels
-        Object.keys(grids.labelsOnEdges).forEach((key) => {
-            const iterateAxis = _.difference(['x', 'y', 'z'], key.replace(/[^xyz]/g, '').split(''))[0];
-            let iterationCount = size[iterateAxis] / majorScale;
+        for (i = 0; i < 8; i++) {
+            let corner = (i & 0x01 ? '-' : '+') + 'x' + (i & 0x02 ? '-' : '+') + 'y' + (i & 0x04 ? '-' : '+') + 'z';
 
-            let deltaValue = unitVectors[iterateAxis].clone().multiplyScalar(majorScale);
-            let deltaPosition = unitVectors[iterateAxis].clone().multiplyScalar(
-                grids.labelsOnEdges[key].p[0].distanceTo(grids.labelsOnEdges[key].p[1]) / iterationCount,
-            );
-            let j;
-            let v;
-            let p;
-            let label;
+            grids.labelsOnPlanes[corner] = {};
+            grids.labelsOnPlanes[corner].labels = [];
 
-            if (iterationCount <= 2) {
-                const originalIterationCount = iterationCount;
+            cornerToLabeledEdges[corner].forEach(function (edge, index) {
+                let j;
+                let p;
+                let label;
+                const iterateAxis = _.difference(['x', 'y', 'z'], edge.replace(/[^xyz]/g, '').split(''))[0];
 
-                iterationCount = originalIterationCount * 5;
-                deltaValue = unitVectors[iterateAxis].clone()
-                    .multiplyScalar((originalIterationCount * majorScale) / iterationCount);
-                deltaPosition = unitVectors[iterateAxis].clone().multiplyScalar(
-                    grids.labelsOnEdges[key].p[0].distanceTo(grids.labelsOnEdges[key].p[1]) / iterationCount,
+                let deltaPosition = unitVectors[iterateAxis].clone().multiplyScalar(majorScale);
+                let iterationCount = size[iterateAxis] / majorScale;
+                let line = originalEdges[edge];
+
+                if (iterationCount <= 2) {
+                    const originalIterationCount = iterationCount;
+
+                    iterationCount = Math.max(originalIterationCount * 5, 2);
+                    deltaPosition = unitVectors[iterateAxis].clone()
+                        .multiplyScalar((originalIterationCount * majorScale) / iterationCount);
+                }
+
+                let labelShiftDirection = corner[Math.floor(index / 2) * 2] === "+";
+
+                // axis ticks labels
+                for (j = 1; j <= iterationCount - 1; j++) {
+                    p = line[0].clone().add(deltaPosition.clone().multiplyScalar(j)).add(
+                        unitVectors[labelsShiftMap[index]].clone()
+                            .multiplyScalar(minorScale * (labelShiftDirection ? 1 : -1))
+                    );
+
+                    label = Text.create({
+                        position: p.toArray(),
+                        reference_point: 'cc',
+                        color: labelColor,
+                        text: parseFloat((p[iterateAxis]).toFixed(10)).toString(),
+                        size: 0.75,
+                    }, K3D);
+
+                    /* jshint loopfunc: true */
+                    promises.push(label.then((obj) => {
+                        grids.labelsOnPlanes[corner].labels.push(obj);
+                    }));
+                    /* jshint loopfunc: false */
+                }
+
+                // axis label
+                p = (new THREE.Vector3()).lerpVectors(line[0], line[1], 0.5).add(
+                    unitVectors[labelsShiftMap[index]].clone()
+                        .multiplyScalar(minorScale * 2.0 * (labelShiftDirection ? 1 : -1))
                 );
-            }
 
-            for (j = 1; j <= iterationCount - 1; j++) {
-                v = grids.labelsOnEdges[key].v[0].clone().add(deltaValue.clone().multiplyScalar(j));
-                p = grids.labelsOnEdges[key].p[0].clone().add(deltaPosition.clone().multiplyScalar(j));
-
-                label = Text.create({
+                const axisLabel = Text.create({
                     position: p.toArray(),
                     reference_point: 'cc',
                     color: labelColor,
-                    text: parseFloat((v[iterateAxis]).toFixed(15)).toString(),
-                    size: 0.75,
+                    text: K3D.parameters.axes[['x', 'y', 'z'].indexOf(iterateAxis)],
+                    size: 1.0,
                 }, K3D);
 
-                /* jshint loopfunc: true */
-                promises.push(label.then((obj) => {
-                    grids.labelsOnEdges[key].labels.push(obj);
-                }));
-                /* jshint loopfunc: false */
-            }
-
-            // add axis label
-            const middleValue = grids.labelsOnEdges[key].v[0].clone().add(
-                (new THREE.Vector3()).subVectors(grids.labelsOnEdges[key].v[1], grids.labelsOnEdges[key].v[0])
-                    .multiplyScalar(0.5),
-            );
-
-            const middlePosition = grids.labelsOnEdges[key].p[0].clone().add(
-                (new THREE.Vector3()).subVectors(grids.labelsOnEdges[key].p[1], grids.labelsOnEdges[key].p[0])
-                    .multiplyScalar(0.5),
-            );
-
-            const middle = middlePosition.add(
-                (new THREE.Vector3()).subVectors(middlePosition, middleValue).multiplyScalar(2.0),
-            );
-
-            const axisLabel = Text.create({
-                position: middle.toArray(),
-                reference_point: 'cc',
-                color: labelColor,
-                text: K3D.parameters.axes[['x', 'y', 'z'].indexOf(iterateAxis)],
-                size: 1.0,
-            }, K3D);
-
-            axisLabel.then((obj) => {
-                grids.labelsOnEdges[key].labels.push(obj);
+                axisLabel.then((obj) => {
+                    grids.labelsOnPlanes[corner].labels.push(obj);
+                });
             });
-        });
+        }
 
         // create grids
         Object.keys(grids.planes).forEach(function (axis) {
@@ -475,7 +474,7 @@ function rebuildSceneData(K3D, grids, axesHelper, force) {
 
 function refreshGrid(K3D, grids) {
     /* jshint validthis:true */
-    const visiblePlanes = [];
+    let currentCorner = '';
     const cameraDirection = new THREE.Vector3();
 
     this.camera.getWorldDirection(cameraDirection);
@@ -487,21 +486,12 @@ function refreshGrid(K3D, grids) {
         grids.planes[axis][0].obj.visible = dot1 <= dot2 && K3D.parameters.gridVisible;
         grids.planes[axis][1].obj.visible = dot1 > dot2 && K3D.parameters.gridVisible;
 
-        if (grids.planes[axis][0].obj.visible) {
-            visiblePlanes.push(`+${axis}`);
-        }
-
-        if (grids.planes[axis][1].obj.visible) {
-            visiblePlanes.push(`-${axis}`);
-        }
+        currentCorner += (dot1 <= dot2 ? '-' : '+') + axis;
     }, this);
 
-    Object.keys(grids.labelsOnEdges).forEach((key) => {
-        const axes = key.match(/.{2}/g);
-        const shouldBeVisible = _.intersection(axes, visiblePlanes).length === 1;
-
-        grids.labelsOnEdges[key].labels.forEach((label) => {
-            if (shouldBeVisible && K3D.parameters.gridVisible) {
+    Object.keys(grids.labelsOnPlanes).forEach((corner) => {
+        grids.labelsOnPlanes[corner].labels.forEach((label) => {
+            if (corner === currentCorner && K3D.parameters.gridVisible) {
                 label.show();
             } else {
                 label.hide();
@@ -533,7 +523,7 @@ function raycast(K3D, x, y, camera, click, viewMode) {
     });
 
     if (meshes.length > 0) {
-        intersects = intersect.concat(this.raycaster.intersectObjects(meshes));
+        intersects = intersects.concat(this.raycaster.intersectObjects(meshes));
     }
 
     if (intersects.length > 0) {
@@ -573,7 +563,7 @@ module.exports = {
         const ambientLight = new THREE.AmbientLight(0xffffff);
         const grids = {
             planes: {},
-            labelsOnEdges: {},
+            labelsOnPlanes: {},
         };
         const self = this;
 

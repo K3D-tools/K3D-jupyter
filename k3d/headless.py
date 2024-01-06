@@ -69,7 +69,10 @@ class k3d_remote:
                             try:
                                 sync = (o[p] != self.synced_objects[o.id][p]).any()
                             except Exception:
-                                sync = o[p] != self.synced_objects[o.id][p]
+                                try:
+                                    sync = o[p].shape != self.synced_objects[o.id][p].shape
+                                except Exception:
+                                    sync = o[p] != self.synced_objects[o.id][p]
 
                         if sync:
                             if o.id not in objects_diff.keys():
@@ -93,7 +96,8 @@ class k3d_remote:
             return Response(msgpack.packb(diff, use_bin_type=True),
                             mimetype='application/octet-stream')
 
-        while self.browser.execute_script("return typeof(window.headlessK3D) !== 'undefined'") == False:
+        while self.browser.execute_script(
+                "return typeof(window.headlessK3D) !== 'undefined'") == False:
             time.sleep(1)
             self.browser.get(url="http://localhost:" + str(port) + "/headless.html")
 
@@ -149,3 +153,19 @@ def get_headless_driver(no_headless=False):
 
     return webdriver.Chrome(service=ChromeService(ChromeDriverManager().install()),
                             options=options)
+
+
+def get_headless_firefox_driver(no_headless=False):
+    from selenium import webdriver
+    from selenium.webdriver.firefox.service import Service as FirefoxService
+    from webdriver_manager.firefox import GeckoDriverManager
+
+    options = webdriver.FirefoxOptions()
+
+    options.add_argument("--no-sandbox")
+
+    if not no_headless:
+        options.add_argument("--headless")
+
+    return webdriver.Firefox(service=FirefoxService(GeckoDriverManager().install()),
+                             options=options)
