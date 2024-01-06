@@ -153,3 +153,19 @@ def get_headless_driver(no_headless=False):
 
     return webdriver.Chrome(service=ChromeService(ChromeDriverManager().install()),
                             options=options)
+
+
+def get_headless_firefox_driver(no_headless=False):
+    from selenium import webdriver
+    from selenium.webdriver.firefox.service import Service as FirefoxService
+    from webdriver_manager.firefox import GeckoDriverManager
+
+    options = webdriver.FirefoxOptions()
+
+    options.add_argument("--no-sandbox")
+
+    if not no_headless:
+        options.add_argument("--headless")
+
+    return webdriver.Firefox(service=FirefoxService(GeckoDriverManager().install()),
+                             options=options)
