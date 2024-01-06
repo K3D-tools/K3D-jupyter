@@ -68,10 +68,10 @@ class k3d_remote:
                         else:
                             try:
                                 sync = (o[p] != self.synced_objects[o.id][p]).any()
-                            except:
+                            except Exception:
                                 try:
                                     sync = o[p].shape != self.synced_objects[o.id][p].shape
-                                except:
+                                except Exception:
                                     sync = o[p] != self.synced_objects[o.id][p]
 
                         if sync:
