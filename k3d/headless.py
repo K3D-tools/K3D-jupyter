@@ -68,8 +68,11 @@ class k3d_remote:
                         else:
                             try:
                                 sync = (o[p] != self.synced_objects[o.id][p]).any()
-                            except Exception:
-                                sync = o[p] != self.synced_objects[o.id][p]
+                            except:
+                                try:
+                                    sync = o[p].shape != self.synced_objects[o.id][p].shape
+                                except:
+                                    sync = o[p] != self.synced_objects[o.id][p]
 
                         if sync:
                             if o.id not in objects_diff.keys():
@@ -93,7 +96,8 @@ class k3d_remote:
             return Response(msgpack.packb(diff, use_bin_type=True),
                             mimetype='application/octet-stream')
 
-        while self.browser.execute_script("return typeof(window.headlessK3D) !== 'undefined'") == False:
+        while self.browser.execute_script(
+                "return typeof(window.headlessK3D) !== 'undefined'") == False:
             time.sleep(1)
             self.browser.get(url="http://localhost:" + str(port) + "/headless.html")
 
