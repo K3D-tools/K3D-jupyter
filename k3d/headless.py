@@ -93,7 +93,8 @@ class k3d_remote:
             return Response(msgpack.packb(diff, use_bin_type=True),
                             mimetype='application/octet-stream')
 
-        while self.browser.execute_script("return typeof(window.headlessK3D) !== 'undefined'") == False:
+        while self.browser.execute_script(
+                "return typeof(window.headlessK3D) !== 'undefined'") == False:
             time.sleep(1)
             self.browser.get(url="http://localhost:" + str(port) + "/headless.html")
 
@@ -136,8 +137,6 @@ class k3d_remote:
 
 def get_headless_driver(no_headless=False):
     from selenium import webdriver
-    from selenium.webdriver.chrome.service import Service as ChromeService
-    from webdriver_manager.chrome import ChromeDriverManager
 
     options = webdriver.ChromeOptions()
 
@@ -146,5 +145,4 @@ def get_headless_driver(no_headless=False):
     if not no_headless:
         options.add_argument("--headless")
 
-    return webdriver.Chrome(service=ChromeService(ChromeDriverManager().install()),
-                            options=options)
+    return webdriver.Chrome(options=options)
