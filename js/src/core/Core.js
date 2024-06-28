@@ -3,6 +3,7 @@ const msgpack = require('msgpack-lite');
 
 const LilGUI = require('lil-gui').GUI;
 const {viewModes} = require('./lib/viewMode');
+const {cameraUpAxisModes} = require('./lib/cameraUpAxis');
 const _ = require('../lodash');
 const {cameraModes} = require('./lib/cameraMode');
 const loader = require('./lib/Loader');
@@ -14,6 +15,7 @@ const detachWindowGUI = require('./lib/detachWindow');
 const fullscreen = require('./lib/fullscreen');
 const {viewModeGUI} = require('./lib/viewMode');
 const {cameraModeGUI} = require('./lib/cameraMode');
+const {cameraUpAxisGUI} = require('./lib/cameraUpAxis');
 const manipulate = require('./lib/manipulate');
 const {getColorLegend} = require('./lib/colorMapLegend');
 const objectsGUIProvider = require('./lib/objectsGUIprovider');
@@ -132,6 +134,7 @@ function K3D(provider, targetDOMNode, parameters) {
 
         viewModeGUI(GUI.controls, self);
         cameraModeGUI(GUI.controls, self);
+        cameraUpAxisGUI(GUI.controls, self);
         manipulate.manipulateGUI(GUI.controls, self, changeParameters);
 
         GUI.controls.add(self.parameters, 'cameraFov').step(0.1).min(1.0).max(179)
@@ -299,6 +302,7 @@ function K3D(provider, targetDOMNode, parameters) {
             cameraDampingFactor: 0.0,
             name: null,
             cameraFov: 60.0,
+            cameraUpAxis: cameraUpAxisModes.none,
             cameraAnimation: {},
             autoRendering: true,
             axesHelper: 1.0,
@@ -722,14 +726,29 @@ function K3D(provider, targetDOMNode, parameters) {
         self.parameters.cameraDampingFactor = factor;
 
         self.getWorld().changeControls(true);
+    };
+
+    /**
+     * Set camera up axis
+     * @memberof K3D.Core
+     * @param {String} axis
+     */
+    this.setCameraUpAxis = function (axis) {
+        self.parameters.cameraUpAxis = axis;
+
+        self.getWorld().changeControls(true);
 
         if (GUI.controls) {
             GUI.controls.controllers.forEach((controller) => {
-                if (controller.property === 'damping_factor') {
+                if (controller.property === 'cameraUpAxis') {
                     controller.updateDisplay();
                 }
             });
         }
+
+        self.rebuildSceneData(false).then(() => {
+            self.render();
+        });
     };
 
     /**
@@ -1268,6 +1287,7 @@ function K3D(provider, targetDOMNode, parameters) {
     self.setGrid(self.parameters.grid);
     self.setCameraAutoFit(self.parameters.cameraAutoFit);
     self.setCameraDampingFactor(self.parameters.cameraDampingFactor);
+    self.setCameraUpAxis(self.parameters.cameraUpAxis);
     self.setClippingPlanes(self.parameters.clippingPlanes);
     self.setDirectionalLightingIntensity(self.parameters.lighting);
     self.setColorMapLegend(self.parameters.colorbarObjectId);

@@ -40,6 +40,7 @@ module.exports = function (K3D) {
 
             if (array.length === 9) {
                 this.controls.object.up.fromArray(array, 6);
+                this.axesHelper.camera.up.copy(this.controls.object.up);
             }
 
             this.controls.target.fromArray(array, 3);

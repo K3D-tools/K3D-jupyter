@@ -310,6 +310,7 @@ class PlotView extends widgets.DOMWidgetView {
         this.model.on('change:camera_pan_speed', this._setCameraSpeeds, this);
         this.model.on('change:camera_fov', this._setCameraFOV, this);
         this.model.on('change:camera_damping_factor', this._setCameraDampingFactor, this);
+        this.model.on('change:camera_up_axis', this._setCameraUpAxis, this);
         this.model.on('change:axes_helper', this._setAxesHelper, this);
         this.model.on('change:axes_helper_colors', this._setAxesHelperColors, this);
         this.model.on('change:snapshot_type', this._setSnapshotType, this);
@@ -338,6 +339,7 @@ class PlotView extends widgets.DOMWidgetView {
                 cameraPanSpeed: this.model.get('camera_pan_speed'),
                 cameraDampingFactor: this.model.get('camera_damping_factor'),
                 cameraFov: this.model.get('camera_fov'),
+                cameraUpAxis: this.model.get('camera_up_axis'),
                 colorbarObjectId: this.model.get('colorbar_object_id'),
                 cameraAnimation: this.model.get('camera_animation'),
                 name: this.model.get('name'),
@@ -561,6 +563,10 @@ class PlotView extends widgets.DOMWidgetView {
 
     _setCameraDampingFactor() {
         this.K3DInstance.setCameraDampingFactor(this.model.get('camera_damping_factor'));
+    };
+
+    _setCameraUpAxis() {
+        this.K3DInstance.setCameraUpAxis(this.model.get('camera_up_axis'));
     };
 
     _setClippingPlanes() {

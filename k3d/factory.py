@@ -2058,6 +2058,7 @@ def plot(
         camera_zoom_speed=1.2,
         camera_pan_speed=0.3,
         camera_damping_factor=0.0,
+        camera_up_axis='none',
         fps=25.0,
         minimum_fps=-1,
         fps_meter=False,
@@ -2130,6 +2131,18 @@ def plot(
         Camera pan speed, by default 0.3.
     camera_damping_factor : float, optional
         Camera intensity of damping, by default 0.0.
+    camera_up_axis: `str`.
+        Fixed up axis for camera.
+
+        Legal values are:
+
+        :`x`: x axis,
+
+        :`y`: y axis,
+
+        :`z`: z axis,
+
+        :`none`: Handling click_callback and hover_callback on some type of objects.
     fps : float, optional
         Animations FPS, by default 25.0.
     minimum_fps: `Float`.
@@ -2173,6 +2186,7 @@ def plot(
         camera_zoom_speed=camera_zoom_speed,
         camera_damping_factor=camera_damping_factor,
         camera_pan_speed=camera_pan_speed,
+        camera_up_axis=camera_up_axis,
         auto_rendering=auto_rendering,
         fps=fps,
         minimum_fps=minimum_fps,

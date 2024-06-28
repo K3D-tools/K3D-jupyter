@@ -1,7 +1,8 @@
 /* eslint-disable */
+const { setupUpVector } = require('./../../../core/lib/cameraUpAxis');
 
 module.exports = function (THREE) {
-    THREE.TrackballControls = function (object, domElement) {
+    THREE.TrackballControls = function (object, domElement, K3D) {
         const scope = this;
         const STATE = {
             NONE: -1, ROTATE: 0, ZOOM: 1, PAN: 2, TOUCH_ROTATE: 3, TOUCH_ZOOM_PAN: 4,
@@ -46,7 +47,7 @@ module.exports = function (THREE) {
         this.minDistance = 0;
         this.maxDistance = Infinity;
 
-        this.mouseButtons = {LEFT: THREE.MOUSE.ROTATE, MIDDLE: THREE.MOUSE.DOLLY, RIGHT: THREE.MOUSE.PAN};
+        this.mouseButtons = { LEFT: THREE.MOUSE.ROTATE, MIDDLE: THREE.MOUSE.DOLLY, RIGHT: THREE.MOUSE.PAN };
 
         // internals
 
@@ -91,9 +92,9 @@ module.exports = function (THREE) {
 
         // events
 
-        const _changeEvent = {type: 'change'};
-        const _startEvent = {type: 'start'};
-        const _endEvent = {type: 'end'};
+        const _changeEvent = { type: 'change' };
+        const _startEvent = { type: 'start' };
+        const _endEvent = { type: 'end' };
 
         // methods
 
@@ -292,6 +293,8 @@ module.exports = function (THREE) {
         };
 
         this.update = function (silent) {
+            setupUpVector(scope.object, K3D.parameters.cameraUpAxis);
+
             _eye.subVectors(scope.object.position, scope.target);
 
             if (!scope.noRotate) {
@@ -648,7 +651,7 @@ module.exports = function (THREE) {
 
         this.domElement.addEventListener('pointerdown', onPointerDown);
         this.domElement.addEventListener('pointercancel', onPointerCancel);
-        this.domElement.addEventListener('wheel', onMouseWheel, {passive: false});
+        this.domElement.addEventListener('wheel', onMouseWheel, { passive: false });
         this.domElement.addEventListener('contextmenu', contextmenu);
 
         currentDocument.addEventListener('keydown', keydown);
