@@ -8,8 +8,9 @@ width = height = length = 10
 
 
 def f(x, y, z):
-    return np.sin(float(x) / width * np.pi * 2.0), np.cos(float(y) / height * np.pi * 2.0), np.sin(
-        float(z) / length * np.pi * 2.0)
+    return (np.sin(float(x) / width * np.pi * 2.0) * 1.01,
+            np.cos(float(y) / height * np.pi * 2.0) * 1.01,
+            np.sin(float(z) / length * np.pi * 2.0) * 1.01)
 
 
 colors = np.array(
