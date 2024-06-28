@@ -1959,7 +1959,7 @@ def vtk_poly_data(
             poly_data.GetCellData().GetArray(cell_color_attribute[0])
         )
         color_range = cell_color_attribute[1:3]
-    elif volume != []:
+    elif len(volume) > 0:
         color_range = check_attribute_color_range(volume, color_range)
 
     vertices = nps.vtk_to_numpy(poly_data.GetPoints().GetData())

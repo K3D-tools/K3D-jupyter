@@ -162,10 +162,14 @@
                 if (promises.length > 0) {
                     Promise.all(promises).then(function () {
                         window.refreshed = true;
+                    }).catch(function(error)  {
+                        console.error(error);
                     });
                 } else {
                     window.refreshed = true;
                 }
+            } else {
+              console.error('k3dRefresh', req.response);
             }
         }
     });

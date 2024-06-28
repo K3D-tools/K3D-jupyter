@@ -69,7 +69,10 @@ class k3d_remote:
                             try:
                                 sync = (o[p] != self.synced_objects[o.id][p]).any()
                             except Exception:
-                                sync = o[p] != self.synced_objects[o.id][p]
+                                try:
+                                    sync = o[p].shape != self.synced_objects[o.id][p].shape
+                                except Exception:
+                                    sync = o[p] != self.synced_objects[o.id][p]
 
                         if sync:
                             if o.id not in objects_diff.keys():
@@ -137,12 +140,32 @@ class k3d_remote:
 
 def get_headless_driver(no_headless=False):
     from selenium import webdriver
+    from selenium.webdriver.chrome.service import Service as ChromeService
+    from webdriver_manager.chrome import ChromeDriverManager
 
     options = webdriver.ChromeOptions()
+
+    options.add_argument("--no-sandbox")
+    options.add_argument("--disable-crash-reporter")
+
+    if not no_headless:
+        options.add_argument("--headless")
+
+    return webdriver.Chrome(service=ChromeService(ChromeDriverManager().install()),
+                            options=options)
+
+
+def get_headless_firefox_driver(no_headless=False):
+    from selenium import webdriver
+    from selenium.webdriver.firefox.service import Service as FirefoxService
+    from webdriver_manager.firefox import GeckoDriverManager
+
+    options = webdriver.FirefoxOptions()
 
     options.add_argument("--no-sandbox")
 
     if not no_headless:
         options.add_argument("--headless")
 
-    return webdriver.Chrome(options=options)
+    return webdriver.Firefox(service=FirefoxService(GeckoDriverManager().install()),
+                             options=options)
