@@ -46,6 +46,10 @@ def test_marching_cubes_smoothed():
 
     compare('marching_cubes_smoothed')
 
+    iso.shininess = 500.0
+
+    compare('marching_cubes_smoothed_dynamic_shininess')
+
 
 def test_marching_cubes_wireframe():
     global p

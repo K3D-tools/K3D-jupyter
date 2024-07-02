@@ -105,6 +105,10 @@ def test_line_mesh():
 
     compare('line_mesh')
 
+    lines.shininess = 500.0
+
+    compare('line_mesh_dynamic_shininess')
+
 
 def test_line_mesh_clipping_plane():
     global vertices, colors

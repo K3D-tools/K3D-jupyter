@@ -1,10 +1,10 @@
 const THREE = require('three');
 const interactionsHelper = require('../helpers/Interactions');
 const colorMapHelper = require('../../../core/lib/helpers/colorMap');
-const {handleColorMap} = require('../helpers/Fn');
-const {areAllChangesResolve} = require('../helpers/Fn');
-const {commonUpdate} = require('../helpers/Fn');
-const {getSide} = require('../helpers/Fn');
+const { handleColorMap } = require('../helpers/Fn');
+const { areAllChangesResolve } = require('../helpers/Fn');
+const { commonUpdate } = require('../helpers/Fn');
+const { getSide } = require('../helpers/Fn');
 const buffer = require('../../../core/lib/helpers/buffer');
 
 /**
@@ -21,6 +21,7 @@ module.exports = {
             config.wireframe = typeof (config.wireframe) !== 'undefined' ? config.wireframe : false;
             config.flat_shading = typeof (config.flat_shading) !== 'undefined' ? config.flat_shading : true;
             config.opacity = typeof (config.opacity) !== 'undefined' ? config.opacity : 1.0;
+            config.shininess = typeof (config.shininess) !== 'undefined' ? config.shininess : 50.0;
 
             const modelMatrix = new THREE.Matrix4();
             const MaterialConstructor = config.wireframe ? THREE.MeshBasicMaterial : THREE.MeshPhongMaterial;
@@ -55,7 +56,7 @@ module.exports = {
             const material = new MaterialConstructor({
                 color: config.color,
                 emissive: 0,
-                shininess: 50,
+                shininess: config.shininess,
                 specular: 0x111111,
                 side: getSide(config),
                 flatShading: config.flat_shading,
@@ -194,7 +195,7 @@ module.exports = {
         commonUpdate(config, changes, resolvedChanges, obj, K3D);
 
         if (areAllChangesResolve(changes, resolvedChanges)) {
-            return Promise.resolve({json: config, obj});
+            return Promise.resolve({ json: config, obj });
         }
         return false;
     },

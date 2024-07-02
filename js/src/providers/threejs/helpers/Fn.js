@@ -313,6 +313,19 @@ module.exports = {
 
             resolvedChanges.opacity = null;
         }
+
+        if (resolvedChanges.shininess !== null && typeof (changes.shininess) !== 'undefined'
+            && !changes.shininess.timeSeries) {
+            obj.material.shininess = changes.shininess;
+
+            if (obj.material.uniforms && obj.material.uniforms.shininess) {
+                obj.material.uniforms.shininess.value = changes.shininess;
+            }
+
+            obj.material.needsUpdate = true;
+
+            resolvedChanges.opacity = null;
+        }
     },
 
     ensure256size(data) {
