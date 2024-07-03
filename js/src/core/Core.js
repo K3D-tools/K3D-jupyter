@@ -262,6 +262,8 @@ function K3D(provider, targetDOMNode, parameters) {
         'right: 0',
         'pointer-events: none',
         'overflow: hidden',
+        'user-select: none',
+        '-webkit-user-select: none'
     ].join(';');
 
     this.GUI = GUI;
