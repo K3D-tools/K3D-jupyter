@@ -28,6 +28,7 @@ classifiers = [
 dependencies = [
     "ipywidgets>=7.0.0,<9.0.0",
     "msgpack",
+    "deepcomparer",
     "numpy",
     "traitlets",
     "traittypes",

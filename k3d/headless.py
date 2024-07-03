@@ -4,6 +4,7 @@ import logging
 import msgpack
 import threading
 import time
+from deepcomparer import deep_compare
 from base64 import b64decode
 from flask import Flask, send_from_directory
 from werkzeug import Response
@@ -66,13 +67,7 @@ class k3d_remote:
                         if p == 'voxels_group':
                             sync = True  # todo
                         else:
-                            try:
-                                sync = (o[p] != self.synced_objects[o.id][p]).any()
-                            except Exception:
-                                try:
-                                    sync = o[p].shape != self.synced_objects[o.id][p].shape
-                                except Exception:
-                                    sync = o[p] != self.synced_objects[o.id][p]
+                            sync = not deep_compare(o[p], self.synced_objects[o.id][p])
 
                         if sync:
                             if o.id not in objects_diff.keys():
