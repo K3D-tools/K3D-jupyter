@@ -1,4 +1,4 @@
-<!doctype html>
+export default `<!doctype html>
 <html>
 <head>
     <meta charset="utf-8">
@@ -17,25 +17,33 @@
             position: absolute;
         }
     </style>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.6/require.min.js"></script>
-    <script src="https://unpkg.com/k3d@[VERSION]/dist/standalone.js"></script>
+    <script id='fflatejs'>[FFLATE_JS]</script>
+    <script>
+        window.k3dCompressed = '[K3D_SOURCE]';
+
+        function _base64ToArrayBuffer(base64) {
+            var binary_string = window.atob(base64);
+            var len = binary_string.length;
+            var bytes = new Uint8Array(len);
+            for (var i = 0; i < len; i++) {
+                bytes[i] = binary_string.charCodeAt(i);
+            }
+            return bytes;
+        }
+
+        var k3dSource = fflate.strFromU8(
+            fflate.unzlibSync(_base64ToArrayBuffer(window.k3dCompressed))
+        );
+    </script>
+    <script id='requirejs'>[REQUIRE_JS]</script>
 </head>
 <body>
 <div id="canvasTarget"></div>
-
 <script>
     var K3DInstance;
     var data = '[DATA]';
 
-    function _base64ToArrayBuffer(base64) {
-        var binary_string = window.atob(base64);
-        var len = binary_string.length;
-        var bytes = new Uint8Array(len);
-        for (var i = 0; i < len; i++) {
-            bytes[i] = binary_string.charCodeAt(i);
-        }
-        return bytes;
-    }
+    eval(k3dSource);
 
     require(['k3d'], function (lib) {
         try {
@@ -54,4 +62,4 @@
     });
 </script>
 </body>
-</html>
+</html>`;

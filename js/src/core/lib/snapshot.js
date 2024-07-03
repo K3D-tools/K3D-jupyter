@@ -3,9 +3,9 @@ const fflate = require('fflate');
 const requireJsSource = require('../../../../node_modules/requirejs/require?raw');
 const fflateJsSource = require('../../../../node_modules/fflate/umd/index?raw');
 const fileLoader = require('./helpers/fileLoader');
-const templateStandalone = require('./snapshot_standalone.txt');
-const templateOnline = require('./snapshot_online.txt');
-const templateInline = require('./snapshot_inline.txt');
+const templateStandalone = require('./snapshot_standalone').default;
+const templateOnline = require('./snapshot_online').default;
+const templateInline = require('./snapshot_inline').default;
 const semverRange = require('../../version').version;
 const buffer = require('./helpers/buffer');
 
@@ -26,7 +26,8 @@ if (typeof (sourceCode) === 'undefined') {
     }
 
     if (typeof (path) !== 'undefined') {
-        path = path.replace('k3d.js', 'standalone.js').replace('index.js', 'standalone.js');
+        path = path.replaceAll('\\\\', '/').replaceAll('\\', '/');
+        path = path.split('/').slice(0, -1).join('/') + '/standalone.js';
     } else {
         // use npm repository
         path = `https://unpkg.com/k3d@${semverRange}/dist/standalone.js`;
@@ -68,7 +69,7 @@ function getHTMLSnapshot(K3D, compressionLevel) {
 }
 
 function handleFileSelect(K3D, evt) {
-    const {files} = evt.dataTransfer;
+    const { files } = evt.dataTransfer;
     const HTMLSnapshotReader = new FileReader();
     const BinarySnapshotReader = new FileReader();
     const STLReader = new FileReader();
@@ -141,7 +142,7 @@ function snapshotGUI(gui, K3D) {
                 filename = `${K3D.parameters.name}.html`;
             }
 
-            data = new Blob([data], {type: 'text/plain;charset=utf-8'});
+            data = new Blob([data], { type: 'text/plain;charset=utf-8' });
             FileSaver.saveAs(data, filename);
         },
     };

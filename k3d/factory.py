@@ -79,6 +79,7 @@ def lines(
         color_range=[],
         width=0.01,
         shader="thick",
+        shininess=50.0,
         radial_segments=8,
         opacity=1.0,
         name=None,
@@ -123,6 +124,8 @@ def lines(
             :`thick`: thick lines,
 
             :`mesh`: high precision triangle mesh of segments (high quality and GPU load).
+        shininess: `float`.
+            Shininess of object material.
         radial_segments: 'int'.
             Number of segmented faces around the circumference of the tube
         width: `float`.
@@ -155,6 +158,7 @@ def lines(
             color=color,
             width=width,
             shader=shader,
+            shininess=shininess,
             radial_segments=radial_segments,
             colors=colors,
             attribute=attribute,
@@ -180,6 +184,7 @@ def line(
         width=0.01,
         opacity=1.0,
         shader="thick",
+        shininess=50.0,
         radial_segments=8,
         name=None,
         group=None,
@@ -210,6 +215,8 @@ def line(
         Thickness of the lines, by default 0.01.
     shader : {'simple', 'think', 'mesh'}, optional
         Display style of the lines, by default `thick`.
+    shininess: `float`.
+        Shininess of object material.
     radial_segments : int, optional
         Number of segmented faces around the circumference of the tube, by default 8.
     name : str, optional
@@ -251,6 +258,7 @@ def line(
             attribute=attribute,
             color_map=color_map,
             color_range=color_range,
+            shininess=shininess,
             opacity=opacity,
             name=name,
             group=group,
@@ -271,6 +279,7 @@ def marching_cubes(
         opacity_function=[],
         wireframe=False,
         flat_shading=True,
+        shininess=50.0,
         opacity=1.0,
         spacings_x=[],
         spacings_y=[],
@@ -317,6 +326,8 @@ def marching_cubes(
         Display the mesh as wireframe, by default False.
     flat_shading : bool, optional
         Display the mesh with flat shading, by default True.
+    shininess: `float`.
+        Shininess of object material.
     opacity : float, optional
         Opacity of the mesh, by default 1.0.
     spacings_x : list, optional
@@ -368,6 +379,7 @@ def marching_cubes(
             level=level,
             wireframe=wireframe,
             flat_shading=flat_shading,
+            shininess=shininess,
             opacity=opacity,
             name=name,
             group=group,
@@ -390,6 +402,7 @@ def mesh(
         color_range=[],
         wireframe=False,
         flat_shading=True,
+        shininess=50.0,
         opacity=1.0,
         texture=None,
         texture_file_format=None,
@@ -433,6 +446,8 @@ def mesh(
         Display the mesh as wireframe, by default False.
     flat_shading : bool, optional
         Display the mesh with flat shading, by default True.
+    shininess: `float`.
+        Shininess of object material.
     opacity : float, optional
         Opacity of the mesh, by default 1.0.
     texture : bytes, optional
@@ -518,6 +533,7 @@ def mesh(
             color_range=color_range,
             wireframe=wireframe,
             flat_shading=flat_shading,
+            shininess=shininess,
             opacity=opacity,
             volume=volume,
             volume_bounds=volume_bounds,
@@ -541,6 +557,7 @@ def points(
         color=_default_color,
         point_size=1.0,
         point_sizes=[],
+        shininess=50.0,
         shader="3dSpecular",
         opacity=1.0,
         opacities=[],
@@ -569,6 +586,8 @@ def points(
         Diameter of the points, by default 1.0.
     point_sizes : list, optional
         Same-length array of `float` sizes of the points, by default [].
+    shininess: `float`.
+        Shininess of object material.
     shader : {'flat', 'dot', '3d', '3dSpecular', 'mesh'}, optional
         Display style of the points, by default "3dSpecular".
     opacity : float, optional
@@ -623,6 +642,7 @@ def points(
             color=color,
             point_size=point_size,
             point_sizes=point_sizes,
+            shininess=shininess,
             shader=shader,
             opacity=opacity,
             opacities=opacities,
@@ -646,6 +666,7 @@ def stl(
         color=_default_color,
         wireframe=False,
         flat_shading=True,
+        shininess=50.0,
         name=None,
         group=None,
         custom_data=None,
@@ -664,6 +685,8 @@ def stl(
         Display the mesh as wireframe, by default False.
     flat_shading : bool, optional
         Display the mesh with flat shading, by default True.
+    shininess: `float`.
+        Shininess of object material.
     name : str, optional
         Object name, by default None.
     group : str, optional
@@ -689,6 +712,7 @@ def stl(
             color=color,
             wireframe=wireframe,
             flat_shading=flat_shading,
+            shininess=shininess,
             name=name,
             group=group,
             custom_data=custom_data,
@@ -703,6 +727,7 @@ def surface(
         color=_default_color,
         wireframe=False,
         flat_shading=True,
+        shininess=50.0,
         attribute=[],
         color_map=None,
         color_range=[],
@@ -733,6 +758,8 @@ def surface(
         Display the mesh as wireframe, by default False.
     flat_shading : bool, optional
         Display the mesh with flat shading, by default True.
+    shininess: `float`.
+        Shininess of object material.
     attribute: list, optional
         List of values used to apply `color_map`, by default [].
     opacity: `float`.
@@ -772,6 +799,7 @@ def surface(
             color=color,
             wireframe=wireframe,
             flat_shading=flat_shading,
+            shininess=shininess,
             attribute=attribute,
             color_map=color_map,
             color_range=color_range,
@@ -2058,6 +2086,7 @@ def plot(
         camera_zoom_speed=1.2,
         camera_pan_speed=0.3,
         camera_damping_factor=0.0,
+        camera_up_axis='none',
         fps=25.0,
         minimum_fps=-1,
         fps_meter=False,
@@ -2130,6 +2159,18 @@ def plot(
         Camera pan speed, by default 0.3.
     camera_damping_factor : float, optional
         Camera intensity of damping, by default 0.0.
+    camera_up_axis: `str`.
+        Fixed up axis for camera.
+
+        Legal values are:
+
+        :`x`: x axis,
+
+        :`y`: y axis,
+
+        :`z`: z axis,
+
+        :`none`: Handling click_callback and hover_callback on some type of objects.
     fps : float, optional
         Animations FPS, by default 25.0.
     minimum_fps: `Float`.
@@ -2173,6 +2214,7 @@ def plot(
         camera_zoom_speed=camera_zoom_speed,
         camera_damping_factor=camera_damping_factor,
         camera_pan_speed=camera_pan_speed,
+        camera_up_axis=camera_up_axis,
         auto_rendering=auto_rendering,
         fps=fps,
         minimum_fps=minimum_fps,

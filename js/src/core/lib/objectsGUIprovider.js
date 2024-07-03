@@ -140,7 +140,7 @@ function update(K3D, json, GUI, changes) {
 
         K3D.gui_map[json.id].controllersMap = {};
         K3D.gui_map[json.id].listenersId = K3D.on(K3D.events.OBJECT_REMOVED, (id) => {
-            if (id === json.id.toString()) {
+            if (id.toString() === json.id.toString()) {
                 const {listenersId} = K3D.gui_map[json.id];
                 const folder = K3D.gui_map[json.id];
 
@@ -162,7 +162,7 @@ function update(K3D, json, GUI, changes) {
 
     const defaultParams = ['visible', 'outlines', 'wireframe', 'flat_shading', 'use_head', 'head_size', 'line_width',
         'scale', 'font_size', 'font_weight', 'size', 'point_size', 'level', 'samples', 'alpha_coef', 'gradient_step',
-        'shadow_delay', 'focal_length', 'focal_plane', 'on_top', 'max_length', 'label_box', 'is_html'];
+        'shadow_delay', 'focal_length', 'focal_plane', 'on_top', 'max_length', 'label_box', 'is_html', 'shininess'];
 
     const availableParams = defaultParams.concat(['color', 'origin_color', 'origin_color', 'head_color',
         'outlines_color', 'text', 'shader', 'shadow_res', 'shadow', 'ray_samples_count', 'width', 'radial_segments',

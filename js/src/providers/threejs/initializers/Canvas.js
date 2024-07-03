@@ -34,7 +34,7 @@ function addEvents(self, K3D, controls) {
 }
 
 function createTrackballControls(self, K3D) {
-    const controls = new THREE.TrackballControls(self.camera, self.renderer.domElement);
+    const controls = new THREE.TrackballControls(self.camera, self.renderer.domElement, K3D);
 
     controls.type = cameraModes.trackball;
     controls.rotateSpeed = K3D.parameters.cameraRotateSpeed;
@@ -54,7 +54,7 @@ function createTrackballControls(self, K3D) {
 }
 
 function createOrbitControls(self, K3D) {
-    const controls = new THREE.OrbitControls(self.camera, self.renderer.domElement);
+    const controls = new THREE.OrbitControls(self.camera, self.renderer.domElement, K3D);
 
     controls.type = cameraModes.orbit;
     controls.rotateSpeed = K3D.parameters.cameraRotateSpeed;

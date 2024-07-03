@@ -60,6 +60,18 @@ class Plot(widgets.DOMWidget):
             Camera Field of View.
         camera_damping_factor: `Float`.
             Defines the intensity of damping. Default is 0 (disabled).
+        camera_up_axis: `str`.
+            Fixed up axis for camera.
+
+            Legal values are:
+
+            :`x`: x axis,
+
+            :`y`: y axis,
+
+            :`z`: z axis,
+
+            :`none`: Handling click_callback and hover_callback on some type of objects.
         snapshot_type: `string`.
             Can be 'full', 'online' or 'inline'.
         axes: `list`.
@@ -159,6 +171,7 @@ class Plot(widgets.DOMWidget):
     camera_zoom_speed = Float().tag(sync=True)
     camera_pan_speed = Float().tag(sync=True)
     camera_damping_factor = Float().tag(sync=True)
+    camera_up_axis = Unicode().tag(sync=True)
     clipping_planes = ListOrArray(empty_ok=True).tag(sync=True)
     colorbar_object_id = Int(-1).tag(sync=True)
     colorbar_scientific = Bool(False).tag(sync=True)
@@ -203,6 +216,7 @@ class Plot(widgets.DOMWidget):
             camera_rotate_speed=1.0,
             camera_zoom_speed=1.2,
             camera_pan_speed=0.3,
+            camera_up_axis='none',
             snapshot_type='full',
             camera_no_pan=False,
             camera_fov=45.0,
@@ -252,6 +266,7 @@ class Plot(widgets.DOMWidget):
         self.camera_pan_speed = camera_pan_speed
         self.camera_damping_factor = camera_damping_factor
         self.camera_fov = camera_fov
+        self.camera_up_axis = camera_up_axis
         self.axes = axes
         self.axes_helper = axes_helper
         self.axes_helper_colors = axes_helper_colors
@@ -498,6 +513,7 @@ class Plot(widgets.DOMWidget):
             "cameraZoomSpeed": self.camera_zoom_speed,
             "cameraPanSpeed": self.camera_pan_speed,
             "cameraDampingFactor": self.camera_damping_factor,
+            "cameraUpAxis": self.camera_up_axis,
             "name": self.name,
             "height": self.height,
             "cameraFov": self.camera_fov,

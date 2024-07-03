@@ -16,6 +16,7 @@ module.exports = {
         config.color = typeof (config.color) !== 'undefined' ? config.color : 255;
         config.wireframe = typeof (config.wireframe) !== 'undefined' ? config.wireframe : false;
         config.flat_shading = typeof (config.flat_shading) !== 'undefined' ? config.flat_shading : true;
+        config.shininess = typeof (config.shininess) !== 'undefined' ? config.shininess : 50.0;
 
         const loader = new THREE.STLLoader();
         const modelMatrix = new THREE.Matrix4();
@@ -23,7 +24,7 @@ module.exports = {
         let material = new MaterialConstructor({
             color: config.color,
             emissive: 0,
-            shininess: 50,
+            shininess: config.shininess,
             specular: 0x111111,
             flatShading: config.flat_shading,
             side: THREE.DoubleSide,

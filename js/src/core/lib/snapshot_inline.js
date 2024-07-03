@@ -1,4 +1,4 @@
-<div id="canvasTarget_[ID]" class="k3d_plot" style="position: relative;"></div>
+export default `<div id="canvasTarget_[ID]" class="k3d_plot" style="position: relative;"></div>
 
 <script>
   var K3DInstance;
@@ -64,4 +64,4 @@
   } else {
     loadK3D();
   }
-</script>
+</script>`;

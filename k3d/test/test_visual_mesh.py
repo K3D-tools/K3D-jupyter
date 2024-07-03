@@ -78,6 +78,28 @@ def test_mesh_advanced_smoothed():
     compare('mesh_advanced_smoothed')
 
 
+def test_mesh_advanced_shininess():
+    prepare()
+
+    filename = download(
+        'https://github.com/To-Fujita/Babylon.js_3D_Graphics/raw/master/scenes/stl/Cute%20Darth%20Vader.stl')
+
+    reader = vtk.vtkSTLReader()
+    reader.SetFileName(filename)
+    reader.Update()
+
+    mesh = k3d.vtk_poly_data(reader.GetOutput(), color=0x222222, flat_shading=False,
+                             shininess=10.0,
+                             transform=k3d.transform(rotation=[np.pi / 2, 1, 0, 0]))
+    pytest.plot += mesh
+
+    compare('mesh_advanced_shininess')
+
+    mesh.shininess = 500.0
+
+    compare('mesh_advanced_dynamic_shininess')
+
+
 def test_mesh_advanced_opacity():
     prepare()
 

@@ -34,7 +34,7 @@ function K3DTransferFunctionEditor(targetDOMNode, parameters, onChange) {
         opacityFunction.splice(index * 2, 2);
         refreshChart(svg, true);
 
-        onChange({key: 'opacity_function', value: opacityFunction});
+        onChange({ key: 'opacity_function', value: opacityFunction });
         evt.preventDefault();
     }
 
@@ -52,14 +52,14 @@ function K3DTransferFunctionEditor(targetDOMNode, parameters, onChange) {
         refreshChart(svg, true);
         refreshRect(svg, true);
 
-        onChange({key: 'color_map', value: colorMap});
+        onChange({ key: 'color_map', value: colorMap });
         evt.preventDefault();
     }
 
     function makeCircle(cx, cy, r) {
         const circle = document.createElementNS(svg.namespaceURI, 'g');
 
-        [{offset: 1, color: 'white'}, {offset: 0, color: 'black'}].forEach((conf) => {
+        [{ offset: 1, color: 'white' }, { offset: 0, color: 'black' }].forEach((conf) => {
             const c = document.createElementNS(svg.namespaceURI, 'circle');
 
             c.setAttribute('cx', cx + conf.offset);
@@ -111,7 +111,7 @@ function K3DTransferFunctionEditor(targetDOMNode, parameters, onChange) {
                     opacityFunction = ensureArraySorted(opacityFunction, 1);
 
                     refreshChart(dom, false);
-                    onChange({key: 'opacity_function', value: opacityFunction});
+                    onChange({ key: 'opacity_function', value: opacityFunction });
                 }
 
                 if (coord.y > dom.clientHeight - bottomSection + bottomSpacing) {
@@ -138,7 +138,7 @@ function K3DTransferFunctionEditor(targetDOMNode, parameters, onChange) {
                     colorMap = ensureArraySorted(colorMap, 3);
 
                     refreshRect(dom, false);
-                    onChange({key: 'color_map', value: colorMap});
+                    onChange({ key: 'color_map', value: colorMap });
                 }
             }
         }
@@ -175,7 +175,7 @@ function K3DTransferFunctionEditor(targetDOMNode, parameters, onChange) {
                     opacityFunction[index * 2 + 1] = 1.0 - (coord.y - topMargin)
                         / (dom.clientHeight - topMargin - bottomSection);
 
-                    onChange({key: 'opacity_function', value: opacityFunction});
+                    onChange({ key: 'opacity_function', value: opacityFunction });
                 }
 
                 if (draggableElement.classList.contains('colormap')) {
@@ -199,7 +199,7 @@ function K3DTransferFunctionEditor(targetDOMNode, parameters, onChange) {
                     colorMap[index * 4] = colorMap[0] + (coord.x / dom.clientWidth)
                         * (colorMap[colorMap.length - 4] - colorMap[0]);
 
-                    onChange({key: 'color_map', value: colorMap});
+                    onChange({ key: 'color_map', value: colorMap });
                 }
 
                 draggableElement.childNodes.forEach((el, idx) => {
@@ -220,7 +220,7 @@ function K3DTransferFunctionEditor(targetDOMNode, parameters, onChange) {
     function ensureArraySorted(data, propertiesCount) {
         return data.reduce((prev, value, index) => {
             if (index % (1 + propertiesCount) === 0) {
-                prev.push({v: value, p: data.slice(index + 1, index + 1 + propertiesCount)});
+                prev.push({ v: value, p: data.slice(index + 1, index + 1 + propertiesCount) });
             }
 
             return prev;
@@ -273,7 +273,7 @@ function K3DTransferFunctionEditor(targetDOMNode, parameters, onChange) {
 
                         refreshRect(dom, true);
                         refreshChart(dom, true);
-                        onChange({key: 'color_map', value: colorMap});
+                        onChange({ key: 'color_map', value: colorMap });
                         colorPicker.removeEventListener('change', getColor);
                     }
 
@@ -397,23 +397,27 @@ function K3DTransferFunctionEditor(targetDOMNode, parameters, onChange) {
     };
 }
 
-const transferFunctionModel = widgets.DOMWidgetModel.extend({
-    defaults: _.extend(_.result({}, 'widgets.DOMWidgetModel.prototype.defaults'), {
-        _model_name: 'TransferFunctionModel',
-        _view_name: 'TransferFunctionView',
-        _model_module: 'k3d',
-        _view_module: 'k3d',
-        _model_module_version: semverRange,
-        _view_module_version: semverRange,
-    }),
-}, {
-    serializers: _.extend({
+class transferFunctionModel extends widgets.DOMWidgetModel {
+    static serializers = {
+        ...widgets.WidgetModel.serializers,
         color_map: serialize,
         opacity_function: serialize,
-    }, widgets.DOMWidgetModel.serializers),
-});
+    }
 
-const transferFunctionView = widgets.DOMWidgetView.extend({
+    defaults() {
+        return {
+            ...super.defaults(),
+            _model_name: 'TransferFunctionModel',
+            _view_name: 'TransferFunctionView',
+            _model_module: 'k3d',
+            _view_module: 'k3d',
+            _model_module_version: semverRange,
+            _view_module_version: semverRange,
+        };
+    };
+}
+
+class transferFunctionView extends widgets.DOMWidgetView {
     render() {
         const containerEnvelope = window.document.createElement('div');
         const container = window.document.createElement('div');
@@ -434,11 +438,11 @@ const transferFunctionView = widgets.DOMWidgetView.extend({
 
         this.container = container;
         this.on('displayed', this._init, this);
-    },
+    };
 
     remove() {
 
-    },
+    };
 
     _init() {
         const self = this;
@@ -455,13 +459,13 @@ const transferFunctionView = widgets.DOMWidgetView.extend({
                 self.model.set(change.key, {
                     data: new Float32Array(change.value),
                     shape: [change.value.length],
-                }, {updated_view: self});
+                }, { updated_view: self });
                 self.model.save_changes();
             }));
         } catch (e) {
             console.log(e);
         }
-    },
+    };
 
     _setColorMap(widget, change, options) {
         if (options.updated_view === this || this.K3DTransferFunctionEditorInstance.isDragging()) {
@@ -470,7 +474,7 @@ const transferFunctionView = widgets.DOMWidgetView.extend({
 
         const data = Array.from(this.model.get('color_map').data);
         this.K3DTransferFunctionEditorInstance.setColorMap(Array.from(data));
-    },
+    };
 
     _setOpacityFunction(widget, change, options) {
         if (options.updated_view === this || this.K3DTransferFunctionEditorInstance.isDragging()) {
@@ -479,7 +483,7 @@ const transferFunctionView = widgets.DOMWidgetView.extend({
 
         const data = this.model.get('opacity_function').data;
         this.K3DTransferFunctionEditorInstance.setOpacityFunction(Array.from(data));
-    },
+    };
 
     processPhosphorMessage(msg) {
         widgets.DOMWidgetView.prototype.processPhosphorMessage.call(this, msg);
@@ -496,7 +500,7 @@ const transferFunctionView = widgets.DOMWidgetView.extend({
             default:
                 break;
         }
-    },
+    };
 
     handleEvent(event) {
         switch (event.type) {
@@ -507,7 +511,7 @@ const transferFunctionView = widgets.DOMWidgetView.extend({
                 widgets.DOMWidgetView.prototype.handleEvent.call(this, event);
                 break;
         }
-    },
+    };
 
     handleContextMenu() {
         // // Cancel context menu if on renderer:
@@ -515,14 +519,14 @@ const transferFunctionView = widgets.DOMWidgetView.extend({
         //     event.preventDefault();
         //     event.stopPropagation();
         // }
-    },
+    };
 
     handleResize() {
         if (this.K3DTransferFunctionEditorInstance) {
             this.K3DTransferFunctionEditorInstance.refresh();
         }
-    },
-});
+    };
+};
 
 module.exports = {
     transferFunctionModel,

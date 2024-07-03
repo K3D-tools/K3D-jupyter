@@ -151,6 +151,11 @@ def test_lines_mesh():
 
     compare('lines_mesh', camera_factor=0.5)
 
+    lines.shininess = 1500.0
+    lines.width = 0.02
+
+    compare('lines_mesh_dynamic_shininess', camera_factor=0.5)
+
 
 def test_lines_mesh_colors():
     global vertices, indices
@@ -165,6 +170,11 @@ def test_lines_mesh_colors():
     pytest.plot += lines
 
     compare('lines_mesh_colors', camera_factor=0.5)
+
+    lines.shininess = 1500.0
+    lines.width = 0.02
+
+    compare('lines_mesh_colors_dynamic_shininess', camera_factor=0.5)
 
 
 def test_lines_mesh_attribute():

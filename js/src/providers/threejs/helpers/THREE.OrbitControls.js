@@ -1,6 +1,8 @@
+const { setupUpVector } = require('./../../../core/lib/cameraUpAxis');
+
 /* eslint-disable */
 module.exports = function (THREE) {
-    THREE.OrbitControls = function (object, domElement) {
+    THREE.OrbitControls = function (object, domElement, K3D) {
 
         if (domElement !== undefined) {
             this.domElement = domElement;
@@ -144,10 +146,11 @@ module.exports = function (THREE) {
 
         // this method is exposed, but perhaps it would be better if we can make it private...
         this.update = function (silent) {
-
             const offset = new THREE.Vector3();
 
             // so camera.up is the orbit axis
+            setupUpVector(object, K3D.parameters.cameraUpAxis);
+
             const quat = new THREE.Quaternion().setFromUnitVectors(object.up, new THREE.Vector3(0, 1, 0));
             const quatInverse = quat.clone().invert();
 

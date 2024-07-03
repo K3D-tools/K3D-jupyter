@@ -5,15 +5,15 @@ import k3d
 from .plot_compare import prepare, compare
 
 vertices = [
-    -10.0, -15.0, 0.0,
+    -10.0, -15.1, 0.0,
     -10.0, 5.0, 0.0,
     10.0, 5.0, 0.0,
-    -10.0, -15.0, 0.0,
-    10.0, -15.0, 0.0,
+    -10.0, -15.1, 0.0,
+    10.0, -15.1, 0.0,
     -10.0, 5.0, 0.0,
-    0.0, 15.0, 0.0,
+    0.0, 15.1, 0.0,
     10.0, 5.0, 0.0,
-    10.0, -15.0, 0.0
+    10.0, -15.1, 0.0
 ]
 
 colors = [
@@ -104,6 +104,10 @@ def test_line_mesh():
     pytest.plot += lines
 
     compare('line_mesh')
+
+    lines.shininess = 500.0
+
+    compare('line_mesh_dynamic_shininess')
 
 
 def test_line_mesh_clipping_plane():
