@@ -69,14 +69,12 @@ class k3d_remote:
                             sync = True  # todo
                         else:
                             try:
-                                if isinstance(o[p], np.ndarray) and o[p].shape == () and \
-                                        isinstance(self.synced_objects[o.id][p], np.ndarray) and \
-                                        self.synced_objects[o.id][p].shape == ():
-                                    sync = False
-                                else:
+                                sync = (o[p] != self.synced_objects[o.id][p]).any()
+                            except Exception:
+                                try:
+                                    sync = o[p].shape != self.synced_objects[o.id][p].shape
+                                except Exception:
                                     sync = not deep_compare(o[p], self.synced_objects[o.id][p])
-                            except Exception as e:
-                                print(e)
 
                         if sync:
                             if o.id not in objects_diff.keys():
