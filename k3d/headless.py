@@ -2,7 +2,6 @@ import atexit
 import copy
 import logging
 import msgpack
-import numpy as np
 import threading
 import time
 from base64 import b64decode
