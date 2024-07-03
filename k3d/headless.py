@@ -2,10 +2,11 @@ import atexit
 import copy
 import logging
 import msgpack
+import numpy as np
 import threading
 import time
-from deepcomparer import deep_compare
 from base64 import b64decode
+from deepcomparer import deep_compare
 from flask import Flask, send_from_directory
 from werkzeug import Response
 from werkzeug.serving import make_server
@@ -67,7 +68,15 @@ class k3d_remote:
                         if p == 'voxels_group':
                             sync = True  # todo
                         else:
-                            sync = not deep_compare(o[p], self.synced_objects[o.id][p])
+                            try:
+                                if isinstance(o[p], np.ndarray) and o[p].shape == () and \
+                                        isinstance(self.synced_objects[o.id][p], np.ndarray) and \
+                                        self.synced_objects[o.id][p].shape == ():
+                                    sync = False
+                                else:
+                                    sync = not deep_compare(o[p], self.synced_objects[o.id][p])
+                            except Exception as e:
+                                print(e)
 
                         if sync:
                             if o.id not in objects_diff.keys():
