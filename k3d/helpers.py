@@ -127,6 +127,8 @@ def to_json(name, input, obj=None, compression_level=0):
         return array_to_json(np.frombuffer(input, dtype=np.uint8), compression_level)
     elif isinstance(input, np.ndarray):
         return array_to_json(input, compression_level)
+    elif isinstance(input, np.number):
+        return input.tolist()
     else:
         return input
 

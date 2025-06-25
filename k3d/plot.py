@@ -348,7 +348,7 @@ class Plot(widgets.DOMWidget):
         d = np.stack([o.get_bounding_box() for o in self.objects])
 
         return np.dstack(
-            [np.min(d[:, 0::2], axis=0), np.max(d[:, 1::2], axis=0)]
+            [np.nanmin(d[:, 0::2], axis=0), np.nanmax(d[:, 1::2], axis=0)]
         ).flatten()
 
     def get_auto_camera(self, factor=1.5, yaw=25, pitch=15, bounds=None):
