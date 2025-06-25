@@ -102,9 +102,14 @@ class k3d_remote:
             time.sleep(1)
             self.browser.get(url="http://localhost:" + str(port) + "/headless.html")
 
+        self.browser.execute_script(f"window.init({width}, {height});")
+
         atexit.register(self.close)
 
     def sync(self, hold_until_refreshed=False):
+        # import json
+        # print(json.dumps(self.browser.get_log('browser'), indent=2))
+
         self.browser.execute_script("k3dRefresh()")
 
         if hold_until_refreshed:
@@ -148,6 +153,7 @@ def get_headless_driver(no_headless=False):
 
     if not no_headless:
         options.add_argument("--headless")
+        options.add_argument("--enable-unsafe-swiftshader")
 
     return webdriver.Chrome(options=options)
 
@@ -161,5 +167,6 @@ def get_headless_firefox_driver(no_headless=False):
 
     if not no_headless:
         options.add_argument("--headless")
+        options.add_argument("--enable-unsafe-swiftshader")
 
     return webdriver.Firefox(options=options)
