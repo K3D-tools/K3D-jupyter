@@ -24,12 +24,12 @@ jobs:
         run: python -m pip install -e ".[dev,examples]"
       - name: Run tests
         run: cd k3d && python -m pytest
-      - uses: actions/upload-artifact@v3
+      - uses: actions/upload-artifact@v4
         if: ${{ failure() }}
         with:
           name: comparison_results
           path: ./k3d/test/results/*
-      - uses: actions/upload-artifact@v3
+      - uses: actions/upload-artifact@v4
         if: ${{ failure() }}
         with:
           name: npm logs
