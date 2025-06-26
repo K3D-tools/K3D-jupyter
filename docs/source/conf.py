@@ -95,8 +95,8 @@ html_theme_options = {
 
 html_sidebars = {
     "index": ["sidebar_index", "search-field"],
+    "gallery/*": [],
     "**": ["search-field", "sidebar-nav-bs"],
-    "gallery/*": []
 }
 
 # Add any paths that contain custom static files (such as style sheets) here,
@@ -106,16 +106,17 @@ html_static_path = ['_static']
 
 
 def setup(app):
+    shutil.copy('./../js/dist/standalone.js', './source/_static/k3d.js')
     shutil.copy('./../js/dist/standalone.js', './source/_static/standalone.js')
     shutil.copy('./../node_modules/requirejs/require.js', './source/_static/require.js')
 
     try:
         app.add_css_file('style.css')
         app.add_javascript('require.js')
-        app.add_javascript('standalone.js?k3d')
+        app.add_javascript('k3d.js')
     except AttributeError:
         app.add_css_file('style.css')
         app.add_js_file('require.js')
-        app.add_js_file('standalone.js?k3d')
+        app.add_js_file('k3d.js')
 
     app.add_directive('k3d_plot', K3D_Plot)

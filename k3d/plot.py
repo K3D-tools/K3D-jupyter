@@ -118,6 +118,8 @@ class Plot(widgets.DOMWidget):
             :`rotate`: Rotation widget,
 
             :`scale`: Scaling widget.
+        depth_peels: `int`.
+            Set the maximum number of peels to use. Disabled if zero.
         auto_rendering: `Bool`.
             State of auto rendering.
         fps: `Float`.
@@ -173,6 +175,9 @@ class Plot(widgets.DOMWidget):
     camera_damping_factor = Float().tag(sync=True)
     camera_up_axis = Unicode().tag(sync=True)
     clipping_planes = ListOrArray(empty_ok=True).tag(sync=True)
+    slice_viewer_mask_object_ids = ListOrArray(empty_ok=True).tag(sync=True)
+    slice_viewer_object_id = Int(-1).tag(sync=True)
+    slice_viewer_direction = Unicode().tag(sync=True)
     colorbar_object_id = Int(-1).tag(sync=True)
     colorbar_scientific = Bool(False).tag(sync=True)
     rendering_steps = Int(1).tag(sync=True)
@@ -186,8 +191,10 @@ class Plot(widgets.DOMWidget):
     axes_helper_colors = List(minlen=3, maxlen=3,
                               default_value=[0xff0000, 0x00ff00, 0x0000ff]).tag(sync=True)
     mode = Unicode().tag(sync=True)
+    depth_peels = Int().tag(sync=True)
     camera_mode = Unicode().tag(sync=True)
     manipulate_mode = Unicode().tag(sync=True)
+    hidden_object_ids = List().tag(sync=True)
     custom_data = Dict(default_value=None, allow_none=True).tag(sync=True)
 
     objects = []
@@ -233,6 +240,10 @@ class Plot(widgets.DOMWidget):
             grid_color=0xE6E6E6,
             label_color=0x444444,
             custom_data=None,
+            slice_viewer_object_id=-1,
+            slice_viewer_mask_object_ids=[],
+            slice_viewer_direction='z',
+            depth_peels=0,
             *args,
             **kwargs
     ):
@@ -257,6 +268,9 @@ class Plot(widgets.DOMWidget):
         self.time = time
         self.menu_visibility = menu_visibility
         self.colorbar_object_id = colorbar_object_id
+        self.slice_viewer_object_id = slice_viewer_object_id
+        self.slice_viewer_mask_object_ids = slice_viewer_mask_object_ids
+        self.slice_viewer_direction = slice_viewer_direction
         self.rendering_steps = rendering_steps
         self.camera_no_rotate = camera_no_rotate
         self.camera_no_zoom = camera_no_zoom
@@ -277,10 +291,12 @@ class Plot(widgets.DOMWidget):
         self.manipulate_mode = manipulate_mode
         self.auto_rendering = auto_rendering
         self.camera = []
+        self.depth_peels = depth_peels
         self.custom_data = custom_data
 
         self.object_ids = []
         self.objects = []
+        self.hidden_object_ids = []
 
         self.outputs = []
 
@@ -345,6 +361,11 @@ class Plot(widgets.DOMWidget):
         self.send({"msg_type": "reset_camera", "factor": factor})
 
     def get_auto_grid(self):
+        if len(self.objects) == 0:
+            return np.array([self.grid[0], self.grid[3],
+                             self.grid[1], self.grid[4],
+                             self.grid[2], self.grid[5]])
+
         d = np.stack([o.get_bounding_box() for o in self.objects])
 
         return np.dstack(
@@ -472,15 +493,7 @@ class Plot(widgets.DOMWidget):
 
         for name, l in [('objects', self.objects), ('chunkList', voxel_chunks)]:
             for o in l:
-                obj = {}
-                for k, v in o.traits().items():
-                    if "sync" in v.metadata:
-                        if 'to_json' in v.metadata:
-                            obj[k] = v.metadata['to_json'](v.get(o), o)
-                        else:
-                            obj[k] = v.get(o)
-
-                snapshot[name].append(obj)
+                snapshot[name].append(o.get_binary())
 
         return snapshot
 
@@ -503,7 +516,12 @@ class Plot(widgets.DOMWidget):
             "time": self.time,
             "fpsMeter": self.fps_meter,
             "cameraMode": self.camera_mode,
+            "depthPeels": self.depth_peels,
             "colorbarObjectId": self.colorbar_object_id,
+            "sliceViewerObjectId": self.slice_viewer_object_id,
+            "sliceViewerMaskObjectIds": self.slice_viewer_mask_object_ids,
+            "sliceViewerDirection": self.slice_viewer_direction,
+            "hiddenObjectIds": self.hidden_object_ids,
             "axes": self.axes,
             "camera": self.camera,
             "cameraNoRotate": self.camera_no_rotate,

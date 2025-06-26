@@ -35,13 +35,6 @@ def compare(name, only_canvas=True, threshold=0.2, camera_factor=1.0):
 
     if os.path.isfile('./test/references/' + name + '.png'):
         reference = Image.open('./test/references/' + name + '.png')
-    else:
-        if sys.platform == 'win32':
-            if os.path.isfile('./test/references/win32/' + name + '.png'):
-                reference = Image.open('./test/references/win32/' + name + '.png')
-        else:
-            if os.path.isfile('./test/references/linux/' + name + '.png'):
-                reference = Image.open('./test/references/linux/' + name + '.png')
 
     if reference is None:
         reference = Image.new("RGBA", result.size)

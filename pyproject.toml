@@ -79,9 +79,6 @@ artifacts = [
 [tool.hatch.version]
 source = "nodejs"
 
-[tool.hatch.metadata]
-allow-direct-references = true
-
 [tool.hatch.build.targets.wheel.shared-data]
 "k3d/labextension" = "share/jupyter/labextensions/k3d"
 "install.json" = "share/jupyter/labextensions/k3d/install.json"

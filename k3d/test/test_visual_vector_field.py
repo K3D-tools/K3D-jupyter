@@ -41,7 +41,7 @@ def test_vector_field_no_head():
 
     pytest.plot += vector_field
 
-    compare('vector_field_no_head', threshold=3.0)
+    compare('vector_field_no_head')
 
 
 def test_vector_field_scale():
@@ -55,4 +55,4 @@ def test_vector_field_scale():
 
     pytest.plot += vector_field
 
-    compare('vector_field_scale', threshold=3.0)
+    compare('vector_field_scale')

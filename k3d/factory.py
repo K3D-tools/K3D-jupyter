@@ -35,6 +35,7 @@ from .objects import (
     VoxelsGroup,
     VoxelChunk,
     Label,
+    VolumeSlice
 )
 from .plot import Plot
 from .transform import process_transform_arguments
@@ -131,12 +132,12 @@ def lines(
         width: `float`.
             Thickness of the lines.
         opacity: `float`.
-            Opacity of line.
+            Opacity of lines.
         name: `string`.
             A name of a object
         group: `string`.
             A name of a group
-        custom_data: `dict`
+        custom_data: `dict`.
             A object with custom data attached to object.
             """
     if color_map is None:
@@ -411,6 +412,7 @@ def mesh(
         opacity_function=[],
         side="front",
         uvs=None,
+        slice_planes=[],
         name=None,
         group=None,
         custom_data=None,
@@ -542,11 +544,85 @@ def mesh(
             texture=texture,
             uvs=uvs,
             texture_file_format=texture_file_format,
+            slice_planes=slice_planes,
             name=name,
             group=group,
             custom_data=custom_data,
             compression_level=compression_level,
         ),
+        **kwargs
+    )
+
+
+def volume_slice(volume=[], color_map=default_colormap, color_range=[], opacity_function=[],
+                 opacity=1.0, mask=[], active_masks=[], color_map_masks=nice_colors,
+                 mask_opacity=0.5, slice_x=-1, slice_y=-1, slice_z=0, interpolation=1, name=None, group=None,
+                 custom_data=None, compression_level=0, **kwargs):
+    """Create a Volume slice drawable.
+
+    Arguments:
+        volume: `array_like`.
+            3D array of `float`
+        color_map: `list`.
+            A list of float quadruplets (attribute value, R, G, B), sorted by attribute value. The first
+            quadruplet should have value 0.0, the last 1.0; R, G, B are RGB color components in the range 0.0 to 1.0.
+        color_range: `list`.
+            A pair [min_value, max_value], which determines the levels of color attribute mapped
+            to 0 and 1 in the color map respectively.
+        opacity_function: `array`.
+            A list of float tuples (attribute value, opacity), sorted by attribute value. The first
+            typles should have value 0.0, the last 1.0; opacity is in the range 0.0 to 1.0.
+        opacity: `float`.
+            Opacity of slice.
+        slice_x: `int`.
+            Number of slice. -1 for hidden.
+        slice_y: `int`.
+            Number of slice. -1 for hidden.
+        slice_z: `int`.
+            Number of slice. -1 for hidden.
+        interpolation: `int`.
+            Interpolation from 0 to 2.
+        mask: `array_like`.
+            3D array of `int` in range (0, 255).
+        active_masks: `array_like`.
+            List of values from mask.
+        color_map_masks: `list`.
+            Flat array of `int` packed RGB colors (0xff0000 is red, 0xff is blue).
+            The color defined at index i is for voxel value (i+1), e.g.:
+        mask_opacity: `Float`.
+            Mask enhanced coefficient.
+        name: `string`.
+            A name of a object
+        group: `string`.
+            A name of a group
+        custom_data: `dict`.
+            A object with custom data attached to object.
+        kwargs: `dict`.
+            Dictionary arguments to configure transform and model_matrix."""
+
+    color_map = np.array(color_map, np.float32) if type(color_map) is not dict else color_map
+
+    if len(volume) > 0:
+        color_range = check_attribute_color_range(volume, color_range)
+
+    return process_transform_arguments(
+        VolumeSlice(volume=volume,
+                    color_map=color_map,
+                    color_range=color_range,
+                    opacity_function=opacity_function,
+                    opacity=opacity,
+                    slice_x=slice_x,
+                    slice_y=slice_y,
+                    slice_z=slice_z,
+                    interpolation=interpolation,
+                    mask=mask,
+                    mask_opacity=mask_opacity,
+                    active_masks=active_masks,
+                    color_map_masks=color_map_masks,
+                    name=name,
+                    group=group,
+                    custom_data=custom_data,
+                    compression_level=compression_level),
         **kwargs
     )
 
@@ -1878,6 +1954,7 @@ def vtk_poly_data(
         color_attribute=None,
         color_map=None,
         side="front",
+        slice_planes=[],
         wireframe=False,
         opacity=1.0,
         volume=[],
@@ -2018,6 +2095,7 @@ def vtk_poly_data(
             opacity_function=opacity_function,
             side=side,
             flat_shading=flat_shading,
+            slice_planes=slice_planes,
             name=name,
             group=group,
             custom_data=custom_data,
@@ -2073,6 +2151,7 @@ def plot(
         colorbar_object_id=-1,
         camera_fov=60.0,
         time=0.0,
+        depth_peels=0,
         axes=['x', 'y', 'z'],
         axes_helper=1.0,
         axes_helper_colors=[0xff0000, 0x00ff00, 0x0000ff],
@@ -2199,6 +2278,7 @@ def plot(
         menu_visibility=menu_visibility,
         voxel_paint_color=voxel_paint_color,
         grid=grid,
+        depth_peels=depth_peels,
         axes=axes,
         axes_helper=axes_helper,
         axes_helper_colors=axes_helper_colors,

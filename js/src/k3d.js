@@ -83,11 +83,13 @@ class ObjectModel extends widgets.WidgetModel {
         triangles_attribute: serialize,
         vertices: serialize,
         indices: serialize,
-        normals: serialize,
         colors: serialize,
         origins: serialize,
         vectors: serialize,
         opacity: serialize,
+        slice_x: serialize,
+        slice_y: serialize,
+        slice_z: serialize,
         opacities: serialize,
         point_sizes: serialize,
         point_size: serialize,
@@ -113,11 +115,13 @@ class ObjectModel extends widgets.WidgetModel {
         puv: serialize,
         visible: serialize,
         uvs: serialize,
+        mask: serialize,
+        color_map_masks: serialize,
+        active_masks: serialize,
         volume_bounds: serialize,
         spacings_x: serialize,
         spacings_y: serialize,
         spacings_z: serialize,
-        mask: serialize,
         mask_opacities: serialize,
     };
 
@@ -286,6 +290,7 @@ class PlotView extends widgets.DOMWidgetView {
         this.model.on('change:grid_visible', this._setGridVisible, this);
         this.model.on('change:grid_color', this._setGridColor, this);
         this.model.on('change:label_color', this._setLabelColor, this);
+        this.model.on('change:depth_peels', this._setDepthPeels, this);
         this.model.on('change:fps_meter', this._setFpsMeter, this);
         this.model.on('change:fps', this._setFps, this);
         this.model.on('change:screenshot_scale', this._setScreenshotScale, this);
@@ -296,9 +301,12 @@ class PlotView extends widgets.DOMWidgetView {
         this.model.on('change:camera', this._setCamera, this);
         this.model.on('change:camera_animation', this._setCameraAnimation, this);
         this.model.on('change:clipping_planes', this._setClippingPlanes, this);
+        this.model.on('change:slice_viewer_mask_object_ids', this._setSliceViewMaskObjectIds, this);
         this.model.on('change:object_ids', this._onObjectsListChange, this);
         this.model.on('change:menu_visibility', this._setMenuVisibility, this);
         this.model.on('change:colorbar_object_id', this._setColorMapLegend, this);
+        this.model.on('change:slice_viewer_object_id', this._setSliceViewer, this);
+        this.model.on('change:slice_viewer_direction', this._setSliceViewerDirection, this);
         this.model.on('change:colorbar_scientific', this._setColorbarScientific, this);
         this.model.on('change:rendering_steps', this._setRenderingSteps, this);
         this.model.on('change:axes', this._setAxes, this);
@@ -319,6 +327,7 @@ class PlotView extends widgets.DOMWidgetView {
         this.model.on('change:minimum_fps', this._setMinimumFps, this);
         this.model.on('change:camera_mode', this._setCameraMode, this);
         this.model.on('change:manipulate_mode', this._setManipulateMode, this);
+        this.model.on('change:hidden_object_ids', this._setHiddenObjectIds, this);
 
         try {
             this.K3DInstance = new K3D(ThreeJsProvider, this.container, {
@@ -339,14 +348,17 @@ class PlotView extends widgets.DOMWidgetView {
                 cameraPanSpeed: this.model.get('camera_pan_speed'),
                 cameraDampingFactor: this.model.get('camera_damping_factor'),
                 cameraFov: this.model.get('camera_fov'),
-                cameraUpAxis: this.model.get('camera_up_axis'),
                 colorbarObjectId: this.model.get('colorbar_object_id'),
                 cameraAnimation: this.model.get('camera_animation'),
+                sliceViewerMaskObjectIds: this.model.get('slice_viewer_mask_object_ids'),
+                sliceViewerObjectId: this.model.get('slice_viewer_object_id'),
+                sliceViewerDirection: this.model.get('slice_viewer_direction'),
                 name: this.model.get('name'),
                 axes: this.model.get('axes'),
                 axesHelper: this.model.get('axes_helper'),
                 grid: this.model.get('grid'),
                 fps: this.model.get('fps'),
+                depthPeels: this.model.get('depth_peels'),
                 autoRendering: this.model.get('auto_rendering'),
                 gridVisible: this.model.get('grid_visible'),
                 gridColor: this.model.get('grid_color'),
@@ -354,6 +366,7 @@ class PlotView extends widgets.DOMWidgetView {
                 clippingPlanes: this.model.get('clipping_planes'),
                 labelColor: this.model.get('label_color'),
                 voxelPaintColor: this.model.get('voxel_paint_color'),
+                hiddenObjectIds: this.model.get('hidden_object_ids'),
             });
 
             if (this.model.get('camera_auto_fit') === false) {
@@ -452,6 +465,22 @@ class PlotView extends widgets.DOMWidgetView {
     _setLabelColor() {
         this.K3DInstance.setLabelColor(this.model.get('label_color'));
     };
+
+    _setDepthPeels() {
+        this.K3DInstance.setDepthPeels(this.model.get('depth_peels'));
+    }
+
+    _setSliceViewer() {
+        this.K3DInstance.setSliceViewer(this.model.get('slice_viewer_object_id'));
+    }
+
+    _setSliceViewerDirection() {
+        this.K3DInstance.setSliceViewerDirection(this.model.get('slice_viewer_direction'));
+    }
+
+    _setHiddenObjectIds() {
+        this.K3DInstance.setHiddenObjectIds(this.model.get('hidden_object_ids'));
+    }
 
     _setFps() {
         this.K3DInstance.setFps(this.model.get('fps'));
@@ -571,6 +600,10 @@ class PlotView extends widgets.DOMWidgetView {
 
     _setClippingPlanes() {
         this.K3DInstance.setClippingPlanes(this.model.get('clipping_planes'));
+    };
+
+    _setSliceViewMaskObjectIds() {
+        this.K3DInstance.setSliceViewerMaskObjects(this.model.get('slice_viewer_mask_object_ids'));
     };
 
     _onObjectsListChange() {

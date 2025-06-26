@@ -39,7 +39,7 @@ function create(config, K3D) {
     const position = config.vertices.data;
 
     if (attribute && colorRange && colorMap && attribute.length > 0 && colorRange.length > 0 && colorMap.length > 0) {
-        const canvas = colorMapHelper.createCanvasGradient(colorMap, 1024);
+        const canvas = colorMapHelper.createCanvasGradient(colorMap, 1024, 1);
         const texture = new THREE.CanvasTexture(
             canvas,
             THREE.UVMapping,

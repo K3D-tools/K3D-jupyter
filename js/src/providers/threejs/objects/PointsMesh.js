@@ -56,7 +56,7 @@ module.exports = {
                 };
             }
 
-            const canvas = colorMapHelper.createCanvasGradient(colorMap, 1024, opacityFunction);
+            const canvas = colorMapHelper.createCanvasGradient(colorMap, 1024, 1, opacityFunction);
             const colormap = new THREE.CanvasTexture(
                 canvas,
                 THREE.UVMapping,
@@ -184,6 +184,7 @@ module.exports = {
             const canvas = colorMapHelper.createCanvasGradient(
                 (changes.color_map && changes.color_map.data) || config.color_map.data,
                 1024,
+                1,
                 (changes.opacity_function && changes.opacity_function.data) || config.opacity_function.data,
             );
 

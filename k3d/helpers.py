@@ -452,9 +452,9 @@ def get_bounding_box_points(arr, model_matrix):
 
     # fmt: off
     boundary = np.array([
-        np.min(d[0::3]), np.max(d[0::3]),
-        np.min(d[1::3]), np.max(d[1::3]),
-        np.min(d[2::3]), np.max(d[2::3]),
+        np.nanmin(d[0::3]), np.nanmax(d[0::3]),
+        np.nanmin(d[1::3]), np.nanmax(d[1::3]),
+        np.nanmin(d[2::3]), np.nanmax(d[2::3]),
     ])
     # fmt: on
 
@@ -475,3 +475,8 @@ def get_bounding_box_point(position):
         Array of numbers.
     """
     return np.dstack([np.array(position), np.array(position)]).flatten()
+
+
+def unify_color_map(cm):
+    cm[0::4] = (cm[0::4] - np.min(cm[0::4])) / (np.max(cm[0::4]) - np.min(cm[0::4]))
+    return cm

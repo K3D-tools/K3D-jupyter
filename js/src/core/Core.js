@@ -131,7 +131,11 @@ function K3D(provider, targetDOMNode, parameters) {
             self.setFpsMeter(value);
             changeParameters.call(self, 'fps_meter', value);
         });
-
+        GUI.controls.add(self.parameters, 'depthPeels').step(1).min(0).max(16)
+            .onChange((value) => {
+                self.setDepthPeels(value);
+                changeParameters.call(self, 'depth_peels', value);
+            });
         viewModeGUI(GUI.controls, self);
         cameraModeGUI(GUI.controls, self);
         cameraUpAxisGUI(GUI.controls, self);
@@ -290,6 +294,9 @@ function K3D(provider, targetDOMNode, parameters) {
             fpsMeter: false,
             lighting: 1.5,
             time: 0.0,
+            sliceViewerDirection: 'z',
+            sliceViewerObjectId: -1,
+            sliceViewerMaskObjectIds: [],
             colorbarObjectId: -1,
             colorbarScientific: false,
             fps: 25.0,
@@ -309,20 +316,22 @@ function K3D(provider, targetDOMNode, parameters) {
             autoRendering: true,
             axesHelper: 1.0,
             axesHelperColors: [0xff0000, 0x00ff00, 0x0000ff],
+            depthPeels: 0,
             snapshotType: 'full',
             customData: null,
+            hiddenObjectIds: [],
             guiVersion: require('../../package.json').version,
         },
         parameters || {},
         (objValue, srcValue) => (typeof (srcValue) === 'undefined' ? objValue : srcValue),
     );
 
+    let prevDepthPeels = self.parameters.depthPeels;
     this.autoRendering = false;
 
     this.setMinimumFps = function (fpsTarget) {
         self.parameters.minimumFps = fpsTarget;
     };
-
 
     this.startAutoPlay = function () {
         timeSeries.startAutoPlay(self, changeParameters);
@@ -532,9 +541,75 @@ function K3D(provider, targetDOMNode, parameters) {
         self.render();
     };
 
+    this.setSliceViewerMaskObjects = function (objectIds) {
+        objectIds = _.cloneDeep(objectIds);
+        self.parameters.sliceViewerMaskObjectIds.length = 0;
+
+        objectIds.forEach((o) => {
+            self.parameters.sliceViewerMaskObjectIds.push(o);
+        });
+
+        Object.keys(world.ObjectsListJson).forEach((id) => {
+            const flag = self.parameters.sliceViewerMaskObjectIds.indexOf(parseInt(id, 10)) !== -1;
+
+            world.ObjectsListJson[id].volumeSliceMask = flag;
+
+            objectsGUIProvider.update(self, world.ObjectsListJson[id], GUI.objects, {
+                volumeSliceMask: flag,
+            });
+        });
+
+        changeParameters('slice_viewer_mask_object_ids', self.parameters.sliceViewerMaskObjectIds);
+
+        if (world.controls.reslice) {
+            world.controls.reslice();
+        }
+
+        world.controls.update();
+        self.render();
+    };
+
     this.setColorbarScientific = function (flag) {
         self.parameters.colorbarScientific = flag;
         self.render();
+    };
+
+    this.setSliceViewerDirection = function (direction) {
+        self.parameters.sliceViewerDirection = direction;
+        world.controls.update();
+        self.render();
+    };
+
+    this.setSliceViewer = function (v) {
+        const newValue = v.id || v;
+
+        if (self.parameters.sliceViewerObjectId !== newValue) {
+            self.parameters.sliceViewerObjectId = newValue;
+            changeParameters('slice_viewer_object_id', self.parameters.sliceViewerObjectId);
+
+            Object.keys(world.ObjectsListJson).forEach((id) => {
+                if (world.ObjectsListJson[id].sliceViewer) {
+                    world.ObjectsListJson[id].sliceViewer = false;
+                }
+            });
+
+            if (newValue > 0 && typeof (world.ObjectsListJson[newValue]) !== 'undefined') {
+                world.ObjectsListJson[newValue].sliceViewer = true;
+            }
+
+            if (GUI.objects) {
+                Object.keys(GUI.objects.folders).forEach((k) => {
+                    GUI.objects.folders[k].controllers.forEach((controller) => {
+                        if (controller.property === 'sliceViewer') {
+                            controller.updateDisplay();
+                        }
+                    });
+                });
+            }
+
+            world.controls.update();
+            self.render();
+        }
     };
 
     this.setColorMapLegend = function (v) {
@@ -783,6 +858,45 @@ function K3D(provider, targetDOMNode, parameters) {
         self.rebuildSceneData().then(() => {
             self.render();
         });
+    };
+    /**
+     * Set depth peels count of K3D
+     * @memberof K3D.Core
+     * @param {Number} count
+     */
+    this.setDepthPeels = function (count) {
+        self.parameters.depthPeels = count;
+
+        if (GUI.controls) {
+            GUI.controls.controllers.forEach((controller) => {
+                if (controller.property === 'depthPeels') {
+                    controller.updateDisplay();
+                }
+            });
+        }
+
+        if ((prevDepthPeels === 0 && count > 0)
+            || (prevDepthPeels > 0 && count === 0)) {
+            _.values(world.ObjectsListJson).forEach((json) => {
+                if (['Mesh'].indexOf(json.type) !== -1) {
+                    self.reload(json);
+                }
+            });
+        }
+
+        prevDepthPeels = count;
+        self.render();
+    };
+
+
+    /**
+     * Set renderable objects ids
+     * @memberof K3D.Core
+     */
+    this.setHiddenObjectIds = function (list) {
+        self.parameters.hiddenObjectIds = list;
+
+        self.render();
     };
 
     /**
@@ -1234,7 +1348,6 @@ function K3D(provider, targetDOMNode, parameters) {
             removeObjectFromScene(K3DIdentifier);
             delete world.ObjectsListJson[K3DIdentifier];
         });
-
         world.cleanup();
 
         if (fpsMeter) {
@@ -1287,10 +1400,14 @@ function K3D(provider, targetDOMNode, parameters) {
     self.setGridAutoFit(self.parameters.gridAutoFit);
     self.setGridVisible(self.parameters.gridVisible);
     self.setGrid(self.parameters.grid);
+    self.setDepthPeels(self.parameters.depthPeels);
     self.setCameraAutoFit(self.parameters.cameraAutoFit);
     self.setCameraDampingFactor(self.parameters.cameraDampingFactor);
     self.setCameraUpAxis(self.parameters.cameraUpAxis);
     self.setClippingPlanes(self.parameters.clippingPlanes);
+    self.setSliceViewer(self.parameters.sliceViewerObjectId);
+    self.setSliceViewerMaskObjects(self.parameters.sliceViewerMaskObjectIds);
+    self.setSliceViewerDirection(self.parameters.sliceViewerDirection);
     self.setDirectionalLightingIntensity(self.parameters.lighting);
     self.setColorMapLegend(self.parameters.colorbarObjectId);
     self.setColorbarScientific(self.parameters.colorbarScientific);
@@ -1308,6 +1425,7 @@ function K3D(provider, targetDOMNode, parameters) {
     self.setCameraFOV(self.parameters.cameraFov);
     self.setFps(self.parameters.fps);
     self.setViewMode(self.parameters.viewMode);
+    self.setHiddenObjectIds(self.parameters.hiddenObjectIds);
     self.setFpsMeter(self.parameters.fpsMeter);
 
     self.MsgpackCodec = MsgpackCodec;

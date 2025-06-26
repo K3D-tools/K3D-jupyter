@@ -57,6 +57,10 @@ module.exports = function (K3D) {
     this.setCameraToFitScene = function (force, factor) {
         let sceneBoundingBox = new THREE.Box3().setFromArray(K3D.parameters.grid);
 
+        if (K3D.parameters.cameraMode === cameraModes.sliceViewer) {
+            return;
+        }
+
         if (!K3D.parameters.cameraAutoFit && !force) {
             return;
         }

@@ -105,7 +105,7 @@ function deserialize(obj, manager) {
     return deserializedObj;
 }
 
-function serialize_helper(obj) {
+function serialize(obj) {
     if (_.isNumber(obj)) {
         return obj;
     }
@@ -133,14 +133,6 @@ function serialize_helper(obj) {
         }, {});
     }
     return null;
-}
-
-function serialize(obj) {
-    let data = serialize_helper(obj);
-
-    // TODO: convert to base64 if necessary
-
-    return data;
 }
 
 module.exports = {

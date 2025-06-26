@@ -34,7 +34,7 @@ function K3DTransferFunctionEditor(targetDOMNode, parameters, onChange) {
         opacityFunction.splice(index * 2, 2);
         refreshChart(svg, true);
 
-        onChange({ key: 'opacity_function', value: opacityFunction });
+        onChange({key: 'opacity_function', value: opacityFunction});
         evt.preventDefault();
     }
 
@@ -52,14 +52,14 @@ function K3DTransferFunctionEditor(targetDOMNode, parameters, onChange) {
         refreshChart(svg, true);
         refreshRect(svg, true);
 
-        onChange({ key: 'color_map', value: colorMap });
+        onChange({key: 'color_map', value: colorMap});
         evt.preventDefault();
     }
 
     function makeCircle(cx, cy, r) {
         const circle = document.createElementNS(svg.namespaceURI, 'g');
 
-        [{ offset: 1, color: 'white' }, { offset: 0, color: 'black' }].forEach((conf) => {
+        [{offset: 1, color: 'white'}, {offset: 0, color: 'black'}].forEach((conf) => {
             const c = document.createElementNS(svg.namespaceURI, 'circle');
 
             c.setAttribute('cx', cx + conf.offset);
@@ -111,7 +111,7 @@ function K3DTransferFunctionEditor(targetDOMNode, parameters, onChange) {
                     opacityFunction = ensureArraySorted(opacityFunction, 1);
 
                     refreshChart(dom, false);
-                    onChange({ key: 'opacity_function', value: opacityFunction });
+                    onChange({key: 'opacity_function', value: opacityFunction});
                 }
 
                 if (coord.y > dom.clientHeight - bottomSection + bottomSpacing) {
@@ -138,7 +138,7 @@ function K3DTransferFunctionEditor(targetDOMNode, parameters, onChange) {
                     colorMap = ensureArraySorted(colorMap, 3);
 
                     refreshRect(dom, false);
-                    onChange({ key: 'color_map', value: colorMap });
+                    onChange({key: 'color_map', value: colorMap});
                 }
             }
         }
@@ -175,7 +175,7 @@ function K3DTransferFunctionEditor(targetDOMNode, parameters, onChange) {
                     opacityFunction[index * 2 + 1] = 1.0 - (coord.y - topMargin)
                         / (dom.clientHeight - topMargin - bottomSection);
 
-                    onChange({ key: 'opacity_function', value: opacityFunction });
+                    onChange({key: 'opacity_function', value: opacityFunction});
                 }
 
                 if (draggableElement.classList.contains('colormap')) {
@@ -199,7 +199,7 @@ function K3DTransferFunctionEditor(targetDOMNode, parameters, onChange) {
                     colorMap[index * 4] = colorMap[0] + (coord.x / dom.clientWidth)
                         * (colorMap[colorMap.length - 4] - colorMap[0]);
 
-                    onChange({ key: 'color_map', value: colorMap });
+                    onChange({key: 'color_map', value: colorMap});
                 }
 
                 draggableElement.childNodes.forEach((el, idx) => {
@@ -220,7 +220,7 @@ function K3DTransferFunctionEditor(targetDOMNode, parameters, onChange) {
     function ensureArraySorted(data, propertiesCount) {
         return data.reduce((prev, value, index) => {
             if (index % (1 + propertiesCount) === 0) {
-                prev.push({ v: value, p: data.slice(index + 1, index + 1 + propertiesCount) });
+                prev.push({v: value, p: data.slice(index + 1, index + 1 + propertiesCount)});
             }
 
             return prev;
@@ -273,7 +273,7 @@ function K3DTransferFunctionEditor(targetDOMNode, parameters, onChange) {
 
                         refreshRect(dom, true);
                         refreshChart(dom, true);
-                        onChange({ key: 'color_map', value: colorMap });
+                        onChange({key: 'color_map', value: colorMap});
                         colorPicker.removeEventListener('change', getColor);
                     }
 
@@ -459,7 +459,7 @@ class transferFunctionView extends widgets.DOMWidgetView {
                 self.model.set(change.key, {
                     data: new Float32Array(change.value),
                     shape: [change.value.length],
-                }, { updated_view: self });
+                }, {updated_view: self});
                 self.model.save_changes();
             }));
         } catch (e) {

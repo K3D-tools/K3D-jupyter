@@ -54,7 +54,7 @@ module.exports = {
 
             texture.needsUpdate = true;
 
-            const canvas = colorMapHelper.createCanvasGradient(colorMap, 1024, opacityFunction);
+            const canvas = colorMapHelper.createCanvasGradient(colorMap, 1024, 1, opacityFunction);
             const colormap = new THREE.CanvasTexture(
                 canvas,
                 THREE.UVMapping,
@@ -79,6 +79,13 @@ module.exports = {
                 side: THREE.DoubleSide,
                 clipping: true,
             });
+
+            if (K3D.parameters.depthPeels === 0) {
+                material.depthWrite = (config.opacity === 1.0 && opacityFunction === null);
+                material.transparent = (config.opacity !== 1.0 || opacityFunction !== null);
+            } else {
+                material.onBeforeCompile = K3D.colorOnBeforeCompile;
+            }
 
             if (config.puv.data.length === 9) {
                 const positionArray = geometry.attributes.position.array;
@@ -135,6 +142,7 @@ module.exports = {
                 const canvas = colorMapHelper.createCanvasGradient(
                     (changes.color_map && changes.color_map.data) || config.color_map.data,
                     1024,
+                    1,
                     (changes.opacity_function && changes.opacity_function.data) || config.opacity_function.data,
                 );
 

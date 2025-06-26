@@ -28,6 +28,7 @@ from .helpers import (
     sparse_voxels_validation,
 )
 from .validation.stl import AsciiStlData, BinaryStlData
+from .helpers import to_json
 
 EPSILON = np.finfo(np.float32).eps
 
@@ -81,6 +82,15 @@ class VoxelChunk(widgets.Widget):
 
     def __getitem__(self, name):
         return getattr(self, name)
+
+    def get_binary(self):
+        obj = {}
+
+        for k, v in self.traits().items():
+            if "sync" in v.metadata:
+                obj[k] = to_json(k, self[k], self, self["compression_level"])
+
+        return obj
 
 
 class Drawable(widgets.Widget):
@@ -149,6 +159,15 @@ class Drawable(widgets.Widget):
 
     def clone(self):
         return clone_object(self)
+
+    def get_binary(self):
+        obj = {}
+
+        for k, v in self.traits().items():
+            if "sync" in v.metadata:
+                obj[k] = to_json(k, self[k], self, self["compression_level"])
+
+        return obj
 
 
 class DrawableWithVoxelCallback(Drawable):
@@ -612,6 +631,7 @@ class Mesh(DrawableWithCallback):
     opacity_function = TimeSeries(Array(dtype=np.float32)).tag(
         sync=True, **array_serialization_wrap("opacity_function")
     )
+    slice_planes = TimeSeries(ListOrArray(empty_ok=True)).tag(sync=True)
     model_matrix = TimeSeries(Array(dtype=np.float32)).tag(
         sync=True, **array_serialization_wrap("model_matrix")
     )
@@ -661,7 +681,102 @@ class Mesh(DrawableWithCallback):
         return get_bounding_box_points(self.vertices, self.model_matrix)
 
 
-class Points(DrawableWithCallback):
+class VolumeSlice(DrawableWithCallback):
+    """Create a Volume slice drawable.
+
+    Arguments:
+        volume: `array_like`.
+            3D array of `float`
+        color_map: `list`.
+            A list of float quadruplets (attribute value, R, G, B), sorted by attribute value. The first
+            quadruplet should have value 0.0, the last 1.0; R, G, B are RGB color components in the range 0.0 to 1.0.
+        color_range: `list`.
+            A pair [min_value, max_value], which determines the levels of color attribute mapped
+            to 0 and 1 in the color map respectively.
+        opacity_function: `array`.
+            A list of float tuples (attribute value, opacity), sorted by attribute value. The first
+            typles should have value 0.0, the last 1.0; opacity is in the range 0.0 to 1.0.
+        opacity: `float`.
+            Opacity of slice.
+        slice_x: `int`.
+            Number of slice. -1 for hidden.
+        slice_y: `int`.
+            Number of slice. -1 for hidden.
+        slice_z: `int`.
+            Number of slice. -1 for hidden.
+        interpolation: `int`.
+            Interpolation from 0 to 2.
+        mask: `array_like`.
+            3D array of `int` in range (0, 255).
+        active_masks: `array_like`.
+            List of values from mask.
+        color_map_masks: `list`.
+            Flat array of `int` packed RGB colors (0xff0000 is red, 0xff is blue).
+            The color defined at index i is for voxel value (i+1), e.g.:
+        mask_opacity: `Float`.
+            Mask enhanced coefficient.
+        name: `string`.
+            A name of a object
+        kwargs: `dict`.
+            Dictionary arguments to configure transform and model_matrix.
+        model_matrix: `array_like`.
+            4x4 model transform matrix."""
+
+    type = Unicode(read_only=True).tag(sync=True)
+    volume = TimeSeries(Union([Array(), List()])).tag(sync=True, **array_serialization_wrap('volume'))
+    color_map = TimeSeries(Array(dtype=np.float32)).tag(sync=True,
+                                                        **array_serialization_wrap('color_map'))
+    color_range = TimeSeries(ListOrArray(minlen=2, empty_ok=True)).tag(sync=True)
+    opacity_function = TimeSeries(Array(dtype=np.float32)).tag(sync=True,
+                                                               **array_serialization_wrap(
+                                                                   'opacity_function'))
+    opacity = TimeSeries(Float(min=0.0, max=1.0, default_value=1.0)).tag(sync=True)
+    slice_x = TimeSeries(Integer()).tag(sync=True)
+    slice_y = TimeSeries(Integer()).tag(sync=True)
+    slice_z = TimeSeries(Integer()).tag(sync=True)
+    interpolation = TimeSeries(Integer()).tag(sync=True)
+    mask = Array(dtype=np.uint8).tag(sync=True, **array_serialization_wrap('mask'))
+    active_masks = Array(dtype=np.uint8).tag(sync=True, **array_serialization_wrap('active_masks'))
+    color_map_masks = Array(dtype=np.uint32).tag(sync=True,
+                                                 **array_serialization_wrap('color_map_masks'))
+    mask_opacity = TimeSeries(Float()).tag(sync=True)
+    model_matrix = TimeSeries(Array(dtype=np.float32)).tag(sync=True, **array_serialization_wrap(
+        'model_matrix'))
+
+    def __init__(self, **kwargs):
+        super(VolumeSlice, self).__init__(**kwargs)
+
+        self.set_trait('type', 'VolumeSlice')
+
+    @validate('volume')
+    def _validate_volume(self, proposal):
+        if type(proposal['value']) is dict:
+            return proposal['value']
+
+        if type(proposal['value']) is list:
+            return proposal['value']
+
+        if type(proposal['value']) is np.ndarray and proposal['value'].dtype is np.dtype(object):
+            return proposal['value'].tolist()
+
+        if proposal['value'].shape == (0,):
+            return np.array(proposal['value'], dtype=np.float32)
+
+        required = [np.float16, np.float32]
+        actual = proposal['value'].dtype
+
+        if actual not in required:
+            warnings.warn('wrong dtype: %s (%s required)' % (actual, required))
+
+            return proposal['value'].astype(np.float32)
+
+        return proposal['value']
+
+    def get_bounding_box(self):
+        return get_bounding_box(self.model_matrix)
+
+
+class Points(Drawable):
     """
     A point cloud.
 
@@ -1663,6 +1778,7 @@ objects_map = {
     'VectorField': VectorField,
     'Vectors': Vectors,
     'Volume': Volume,
+    'VolumeSlice': VolumeSlice,
     'Voxels': Voxels,
     'VoxelsGroup': VoxelsGroup
 }
@@ -1676,7 +1792,7 @@ def create_object(obj, is_chunk=False):
     }
 
     # force to use current version
-    attributes['_model_module'] = 'k3d_pro'
+    attributes['_model_module'] = 'k3d'
     attributes['_model_module_version'] = version
     attributes['_view_module_version'] = version
 

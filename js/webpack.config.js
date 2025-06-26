@@ -74,7 +74,7 @@ module.exports = [
         // 'module' is the magic requirejs dependency used to set the publicPath
         externals: ['@jupyter-widgets/base', 'module'],
     },
-    { // Embeddable K3D-jupyter bundle
+    { // Embeddable k3d-jupyter bundle
         //
         // This bundle is generally almost identical to the notebook bundle
         // containing the custom widget views and models.
@@ -107,14 +107,15 @@ module.exports = [
     {
         entry: './src/standalone.js',
         output:
-            {
-                filename: 'standalone.js',
-                path: `${__dirname}/../k3d/static`,
-                library: 'k3d',
-                libraryTarget: 'amd',
-                publicPath: `https://unpkg.com/k3d@${version}/dist/`,
-            },
+        {
+            filename: 'standalone.js',
+            path: `${__dirname}/../k3d/static`,
+            library: 'k3d',
+            libraryTarget: 'amd',
+            publicPath: `https://unpkg.com/k3d@${version}/dist/`,
+        },
         mode,
+        devtool: 'source-map',
         module: {
             rules,
         },
@@ -132,13 +133,13 @@ module.exports = [
     {
         entry: './src/standalone.js',
         output:
-            {
-                filename: 'standalone.js',
-                path: `${__dirname}/dist/`,
-                library: 'k3d',
-                libraryTarget: 'amd',
-                publicPath: `https://unpkg.com/k3d@${version}/dist/`,
-            },
+        {
+            filename: 'standalone.js',
+            path: `${__dirname}/dist/`,
+            library: 'k3d',
+            libraryTarget: 'amd',
+            publicPath: `https://unpkg.com/k3d@${version}/dist/`,
+        },
         mode,
         module: {
             rules,

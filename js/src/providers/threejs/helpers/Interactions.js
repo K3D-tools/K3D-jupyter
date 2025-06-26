@@ -2,30 +2,16 @@ const threeMeshBVH = require('three-mesh-bvh');
 const StandardInteractions = require('../interactions/StandardCallback');
 
 module.exports = {
-    init(config, object, K3D, InteractionsCallback, geometry, Intersect) {
+    init(config, object, K3D, InteractionsCallback) {
         object.startInteraction = function () {
             if (!object.interactions) {
-                if (typeof (geometry) === 'undefined') {
-                    geometry = object.geometry;
-                }
-
-                object.geometry.boundsTree = new threeMeshBVH.MeshBVH(geometry);
+                object.geometry.boundsTree = new threeMeshBVH.MeshBVH(object.geometry);
 
                 if (InteractionsCallback) {
                     object.interactions = InteractionsCallback(object, K3D);
                 } else {
                     object.interactions = StandardInteractions(object, K3D);
                 }
-
-                if (typeof (Intersect) !== 'undefined') {
-                    object.interactions.intersect = Intersect(object);
-                }
-
-                // var helper = new threeMeshBVH.MeshBVHVisualizer(object);
-                // helper.depth = 14;
-                // helper.update();
-                //
-                // K3D.getWorld().K3DObjects.add(helper);
             }
         };
 

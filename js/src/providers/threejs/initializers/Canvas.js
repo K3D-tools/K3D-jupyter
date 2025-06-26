@@ -76,7 +76,7 @@ function createOrbitControls(self, K3D) {
 }
 
 function createFlyControls(self, K3D) {
-    const controls = new THREE.TrackballControls(self.camera, self.renderer.domElement);
+    const controls = new THREE.TrackballControls(self.camera, self.renderer.domElement, K3D);
 
     controls.type = cameraModes.fly;
     controls.rotateSpeed = K3D.parameters.cameraRotateSpeed;
@@ -96,6 +96,26 @@ function createFlyControls(self, K3D) {
     return controls;
 }
 
+function createSliceControls(self, K3D) {
+    const controls = new THREE.SliceControls(self.camera, self.renderer.domElement, K3D);
+
+    controls.type = cameraModes.sliceViewer;
+
+    addEvents(self, K3D, controls);
+
+    return controls;
+}
+
+function createVolumeSideControls(self, K3D) {
+    const controls = new THREE.VolumeSidesControls(self.camera, self.renderer.domElement, K3D);
+
+    controls.type = cameraModes.volumeSides;
+
+    addEvents(self, K3D, controls);
+
+    return controls;
+}
+
 function createControls(self, K3D) {
     if (K3D.parameters.cameraMode === cameraModes.trackball) {
         return createTrackballControls(self, K3D);
@@ -105,6 +125,12 @@ function createControls(self, K3D) {
     }
     if (K3D.parameters.cameraMode === cameraModes.fly) {
         return createFlyControls(self, K3D);
+    }
+    if (K3D.parameters.cameraMode === cameraModes.sliceViewer) {
+        return createSliceControls(self, K3D);
+    }
+    if (K3D.parameters.cameraMode === cameraModes.volumeSides) {
+        return createVolumeSideControls(self, K3D);
     }
 
     return null;

@@ -1,5 +1,7 @@
 // jshint maxstatements:false, maxcomplexity:false, maxdepth:false
 
+const planeHelper = require('./helpers/planeGUI');
+
 function changeParameter(K3D, json, key, value, timeSeriesReload) {
     const change = {};
 
@@ -17,6 +19,8 @@ function changeParameter(K3D, json, key, value, timeSeriesReload) {
 }
 
 function update(K3D, json, GUI, changes) {
+    let sliceViewerControllers;
+
     function moveToGroup(config) {
         let parent;
 
@@ -140,7 +144,7 @@ function update(K3D, json, GUI, changes) {
 
         K3D.gui_map[json.id].controllersMap = {};
         K3D.gui_map[json.id].listenersId = K3D.on(K3D.events.OBJECT_REMOVED, (id) => {
-            if (id.toString() === json.id.toString()) {
+            if (id === json.id.toString()) {
                 const {listenersId} = K3D.gui_map[json.id];
                 const folder = K3D.gui_map[json.id];
 
@@ -162,11 +166,37 @@ function update(K3D, json, GUI, changes) {
 
     const defaultParams = ['visible', 'outlines', 'wireframe', 'flat_shading', 'use_head', 'head_size', 'line_width',
         'scale', 'font_size', 'font_weight', 'size', 'point_size', 'level', 'samples', 'alpha_coef', 'gradient_step',
-        'shadow_delay', 'focal_length', 'focal_plane', 'on_top', 'max_length', 'label_box', 'is_html', 'shininess'];
+        'shadow_delay', 'focal_length', 'focal_plane', 'on_top', 'max_length', 'label_box', 'is_html', 'shininess, mask_opacity'];
 
     const availableParams = defaultParams.concat(['color', 'origin_color', 'origin_color', 'head_color',
         'outlines_color', 'text', 'shader', 'shadow_res', 'shadow', 'ray_samples_count', 'width', 'radial_segments',
-        'mesh_detail', 'opacity', 'color_range', 'name', 'group', 'color_map', 'mode']);
+        'mesh_detail', 'opacity', 'color_range', 'name', 'group', 'color_map', 'mode',
+        'direction', 'slice_x', 'slice_y', 'slice_z', 'volumeSliceMask']);
+
+    // handle sliceViewer
+    if (json.type === 'VolumeSlice') {
+        if (K3D.parameters.sliceViewerObjectId === -1) { // auto
+            K3D.setSliceViewer(json);
+            json.sliceViewer = true;
+        }
+
+        sliceViewerControllers = findControllers('sliceViewer');
+
+        if (sliceViewerControllers.length === 0) {
+            json.sliceViewer = (K3D.parameters.sliceViewerObjectId === json.id);
+            addController(K3D.gui_map[json.id], json, 'sliceViewer').onChange((value) => {
+                json.sliceViewer = value;
+
+                if (value) {
+                    K3D.setSliceViewer(json);
+                } else {
+                    K3D.setSliceViewer(0);
+                }
+            });
+        }
+
+        json.sliceViewer = (K3D.parameters.sliceViewerObjectId === json.id);
+    }
 
     ((changes && Object.keys(changes)) || Object.keys(json)).forEach(function (param) {
         let colorMapLegendControllers;
@@ -191,7 +221,7 @@ function update(K3D, json, GUI, changes) {
             moveToGroup(json);
         }
 
-        if (param === 'color_range' && json[param].length === 2) {
+        if (param === 'color_range' && json[param].length >= 2) {
             json[`_${param}_low`] = json[param][0];
             json[`_${param}_high`] = json[param][1];
 
@@ -310,6 +340,33 @@ function update(K3D, json, GUI, changes) {
                     ).onChange(changeParameter.bind(this, K3D, json, param));
                 }
                 break;
+            case 'slice_x':
+                if (json.type === 'VolumeSlice') {
+                    let shape = Array.isArray(json.volume) ? json.volume[0].shape : json.volume.shape;
+
+                    addController(K3D.gui_map[json.id], json, param, -1, shape[2] - 1, 1).onChange(
+                        changeParameter.bind(this, K3D, json, param),
+                    );
+                }
+                break;
+            case 'slice_y':
+                if (json.type === 'VolumeSlice') {
+                    let shape = Array.isArray(json.volume) ? json.volume[0].shape : json.volume.shape;
+
+                    addController(K3D.gui_map[json.id], json, param, -1, shape[1] - 1, 1).onChange(
+                        changeParameter.bind(this, K3D, json, param),
+                    );
+                }
+                break;
+            case 'slice_z':
+                if (json.type === 'VolumeSlice') {
+                    let shape = Array.isArray(json.volume) ? json.volume[0].shape : json.volume.shape;
+
+                    addController(K3D.gui_map[json.id], json, param, -1, shape[0] - 1, 1).onChange(
+                        changeParameter.bind(this, K3D, json, param),
+                    );
+                }
+                break;
             case 'shadow_res':
                 if (json.type === 'Volume') {
                     addController(K3D.gui_map[json.id], json, param, [32, 64, 128, 256, 512]).onChange(
@@ -384,6 +441,40 @@ function update(K3D, json, GUI, changes) {
                 break;
         }
     });
+
+    if (json.type === 'Mesh') {
+        if (typeof (K3D.gui_map[json.id].controllersMap.volumeSliceMask) === 'undefined') {
+            json.volumeSliceMask = K3D.parameters.sliceViewerMaskObjectIds.indexOf(json.id) !== -1;
+
+            addController(K3D.gui_map[json.id], json, 'volumeSliceMask').name('Slice mask').onChange((value) => {
+                let ids = K3D.parameters.sliceViewerMaskObjectIds.slice();
+
+                json.volumeSliceMask = value;
+
+                if (value) {
+                    if (ids.indexOf(json.id) === -1) {
+                        ids.push(json.id);
+                    }
+                } else {
+                    ids = ids.filter((id) => id !== json.id);
+                }
+
+                K3D.setSliceViewerMaskObjects(ids);
+            });
+        }
+
+        if (typeof (K3D.gui_map[json.id].controllersMap.slice_planes) === 'undefined') {
+            K3D.gui_map[json.id].controllersMap.slice_planes = K3D.gui_map[json.id].addFolder('Slice planes');
+        }
+
+        planeHelper.init(
+            K3D,
+            K3D.gui_map[json.id].controllersMap.slice_planes,
+            json.slice_planes,
+            'slicePlanes',
+            changeParameter.bind(null, K3D, json, 'slice_planes'),
+        );
+    }
 
     if (json.type === 'Volume') {
         if (findControllers('refreshLightMap').length === 0) {
