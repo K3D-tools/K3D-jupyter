@@ -107,10 +107,14 @@ class k3d_remote:
         atexit.register(self.close)
 
     def sync(self, hold_until_refreshed=False):
-        # import json
-        # print(json.dumps(self.browser.get_log('browser'), indent=2))
-
-        self.browser.execute_script("k3dRefresh()")
+        # Check if k3dRefresh exists and run only then. Probe up to 5 times before exception.
+        for _ in range(5):
+            if self.browser.execute_script("return typeof(k3dRefresh) !== 'undefined'"):
+                self.browser.execute_script("k3dRefresh()")
+                break
+            time.sleep(0.2)
+        else:
+            raise RuntimeError("k3dRefresh is not defined in the browser after 5 attempts.")
 
         if hold_until_refreshed:
             while self.browser.execute_script("return window.refreshed") == False:
