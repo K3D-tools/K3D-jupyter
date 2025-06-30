@@ -31,6 +31,8 @@ Documentation: [https://k3d-jupyter.org](https://k3d-jupyter.org)
 
 ![volume_rendering](imgs/vr.gif)
 
+![volume_slide_view](imgs/volume_slide.gif)
+
 ![transfer_function_editor](imgs/tf_edit.gif)
 
 ### YouTube:
