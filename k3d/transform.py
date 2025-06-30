@@ -94,7 +94,10 @@ class Transform(object):
 
         # parameter canonicalization and some validation via reshaping
         if value is None:
-            # TODO: maybe forbid for some fields
+            # Forbid None for critical transform fields that should always have valid values
+            if key in ['parent_matrix', 'custom_matrix', 'model_matrix']:
+                raise ValueError(f"Cannot set {key} to None. These fields must have valid matrix values.")
+            # Allow None for optional transform parameters (translation, rotation, scaling, bounds)
             pass
         elif key == 'translation':
             value = np.array(value, dtype=np.float32).reshape(3, 1)

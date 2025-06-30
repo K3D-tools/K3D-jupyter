@@ -65,7 +65,9 @@ class k3d_remote:
                             continue
 
                         if p == 'voxels_group':
-                            sync = True  # todo
+                            # Always sync voxels_group as it's a complex data structure that changes frequently
+                            # Deep comparison would be expensive and the data structure is designed for frequent updates
+                            sync = True
                         else:
                             try:
                                 sync = (o[p] != self.synced_objects[o.id][p]).any()

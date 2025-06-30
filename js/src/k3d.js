@@ -149,9 +149,11 @@ class ObjectModel extends widgets.WidgetModel {
             if (msg.msg_type === 'fetch') {
                 property = this.get(msg.field);
 
-                // hack because of https://github.com/jashkenas/underscore/issues/2692
-                if (_.isObject(property)) {
-                    property.t = Math.random();
+                // Create a unique identifier for objects to ensure proper change detection
+                // This replaces the previous hack that relied on underscore.js behavior
+                if (_.isObject(property) && property !== null) {
+                    // Add a timestamp to force change detection for objects
+                    property._lastModified = Date.now();
                 }
 
                 if (property.data && property.shape) {
