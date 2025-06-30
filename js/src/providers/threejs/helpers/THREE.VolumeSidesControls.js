@@ -629,7 +629,7 @@ module.exports = function (THREE) {
 
         function onPointerUp(event) {
             if (event.pointerType === 'touch') {
-                onTouchEnd(event);
+                onTouchEnd();
             } else {
                 onMouseUp();
             }

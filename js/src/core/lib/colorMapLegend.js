@@ -19,6 +19,7 @@ function getColorLegend(K3D, object) {
     const strokeWidth = 0.5;
     let resizeListenerId = null;
     let i;
+    let colorMap;
 
     if (!K3D.lastColorMap) {
         K3D.lastColorMap = {

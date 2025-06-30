@@ -5,7 +5,7 @@ const Vectors = require('../objects/Vectors');
 const MeshLine = require('../helpers/THREE.MeshLine')(THREE);
 const { viewModes } = require('../../../core/lib/viewMode');
 const { pow10ceil } = require('../../../core/lib/helpers/math');
-const { cameraModes } = require('../../../core/lib/cameraMode')
+const { cameraModes } = require('../../../core/lib/cameraMode');
 let rebuildSceneDataPromises = null;
 
 function generateAxesHelper(K3D, axesHelper) {

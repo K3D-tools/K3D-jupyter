@@ -312,7 +312,7 @@ module.exports = {
                     } else {
                         allDone = false;
                     }
-                })
+                });
 
                 if (allDone) {
                     resolvedChanges.volume = null;

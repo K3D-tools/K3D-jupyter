@@ -429,7 +429,7 @@ module.exports = function (THREE) {
             if (scope.enabled === false) return;
 
             if (event.pointerType === 'touch') {
-                onTouchEnd(event);
+                onTouchEnd();
             } else {
                 onMouseUp();
             }
