@@ -32,7 +32,7 @@ class k3d_remote:
         self.server = make_server("localhost", port, self.api)
 
         self.thread = threading.Thread(target=lambda: self.server.serve_forever(), daemon=True)
-        self.thread.deamon = True
+        self.thread.daemon = True
         self.thread.start()
 
         self.synced_plot = {k: None for k in k3d_plot.get_plot_params().keys()}

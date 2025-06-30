@@ -6,30 +6,34 @@ from ._version import __version__
 from .colormaps import basic_color_maps
 from .colormaps import matplotlib_color_maps
 from .colormaps import paraview_color_maps
-from .factory import (plot,
-                      nice_colors,
-                      line,
-                      lines,
-                      marching_cubes,
-                      mesh,
-                      points,
-                      stl,
-                      surface,
-                      text,
-                      text2d,
-                      texture,
-                      texture_text,
-                      vector_field,
-                      vectors,
-                      voxels,
-                      voxels_group,
-                      volume_slice,
-                      sparse_voxels,
-                      volume,
-                      mip,
-                      label,
-                      vtk_poly_data,
-                      voxel_chunk)
+from .factory import (
+    plot,
+    nice_colors,
+    line,
+    lines,
+    marching_cubes,
+    mesh,
+    points,
+    stl,
+    surface,
+    text,
+    text2d,
+    texture,
+    texture_text,
+    vector_field,
+    vectors,
+    voxels,
+    voxels_group,
+    volume_slice,
+    sparse_voxels,
+    volume,
+    mip,
+    label,
+    vtk_poly_data,
+    voxel_chunk,
+    _default_color,
+    default_colormap
+)
 from .objects import create_object, clone_object
 from .plot import Plot
 from .transfer_function_editor import transfer_function_editor
