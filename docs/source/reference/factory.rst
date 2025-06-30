@@ -23,6 +23,7 @@ Plot objects
     factory.vector_field
     factory.vectors
     factory.volume
+    factory.volume_slice
     factory.voxel_chunk
     factory.voxels
     factory.voxels_group

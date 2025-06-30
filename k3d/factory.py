@@ -554,9 +554,10 @@ def mesh(
     )
 
 
-def volume_slice(volume=[], color_map=default_colormap, color_range=[], opacity_function=[],
-                 opacity=1.0, mask=[], active_masks=[], color_map_masks=nice_colors,
-                 mask_opacity=0.5, slice_x=-1, slice_y=-1, slice_z=0, interpolation=1, name=None, group=None,
+def volume_slice(volume=[], color_map=None, color_range=[], opacity_function=[],
+                 opacity=1.0, mask=[], active_masks=[], color_map_masks=None,
+                 mask_opacity=0.5, slice_x=-1, slice_y=-1, slice_z=0, interpolation=1, name=None,
+                 group=None,
                  custom_data=None, compression_level=0, **kwargs):
     """Create a Volume slice drawable.
 
@@ -581,7 +582,7 @@ def volume_slice(volume=[], color_map=default_colormap, color_range=[], opacity_
         slice_z: `int`.
             Number of slice. -1 for hidden.
         interpolation: `int`.
-            Interpolation from 0 to 2.
+            0 - no interpolation, 1 - linear, 2 - cubic.
         mask: `array_like`.
             3D array of `int` in range (0, 255).
         active_masks: `array_like`.
@@ -599,6 +600,12 @@ def volume_slice(volume=[], color_map=default_colormap, color_range=[], opacity_
             A object with custom data attached to object.
         kwargs: `dict`.
             Dictionary arguments to configure transform and model_matrix."""
+
+    if color_map is None:
+        color_map = default_colormap
+
+    if color_map_masks is None:
+        color_map_masks = nice_colors
 
     color_map = np.array(color_map, np.float32) if type(color_map) is not dict else color_map
 

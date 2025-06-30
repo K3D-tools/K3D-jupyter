@@ -705,7 +705,7 @@ class VolumeSlice(DrawableWithCallback):
         slice_z: `int`.
             Number of slice. -1 for hidden.
         interpolation: `int`.
-            Interpolation from 0 to 2.
+            0 - no interpolation, 1 - linear, 2 - cubic.
         mask: `array_like`.
             3D array of `int` in range (0, 255).
         active_masks: `array_like`.

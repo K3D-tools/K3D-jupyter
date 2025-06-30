@@ -480,3 +480,24 @@ def get_bounding_box_point(position):
 def unify_color_map(cm):
     cm[0::4] = (cm[0::4] - np.min(cm[0::4])) / (np.max(cm[0::4]) - np.min(cm[0::4]))
     return cm
+
+
+def contour(data, bounds, values, clustering_factor=0):
+    import pyvista
+    grid = pyvista.ImageData(dimensions=data.shape[::-1],
+                             spacing=(bounds[1::2] - bounds[::2]) / np.array(data.shape[::-1]),
+                             origin=bounds[::2])
+
+    grid.point_data["values"] = data.flatten()
+    mesh = grid.contour(values, grid.point_data["values"], method='flying_edges')
+
+    mesh.compute_normals(inplace=True)
+
+    if clustering_factor > 1:
+        import pyacvd
+
+        clus = pyacvd.Clustering(mesh)
+        clus.cluster(mesh.n_points // clustering_factor)
+        return clus.create_mesh()
+    else:
+        return mesh
