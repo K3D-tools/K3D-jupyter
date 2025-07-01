@@ -11,7 +11,8 @@ def f(x, y):
     return np.sin(float(x) / width * np.pi * 2.0), np.cos(float(y) / height * np.pi * 2.0)
 
 
-colors = np.array([[(0xFF0000, 0x00FF00) for x in range(width)] for y in range(height)], dtype=np.uint32)
+colors = np.array([[(0xFF0000, 0x00FF00) for x in range(width)] for y in range(height)],
+                  dtype=np.uint32)
 vectors = np.array([[f(x, y) for x in range(width)] for y in range(height)], dtype=np.float32)
 
 

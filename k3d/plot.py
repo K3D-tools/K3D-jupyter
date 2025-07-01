@@ -380,7 +380,8 @@ class Plot(widgets.DOMWidget):
             [np.nanmin(d[:, 0::2], axis=0), np.nanmax(d[:, 1::2], axis=0)]
         ).flatten()
 
-    def get_auto_camera(self, factor: float = 1.5, yaw: float = 25, pitch: float = 15, bounds: Optional[np.ndarray] = None) -> List[float]:
+    def get_auto_camera(self, factor: float = 1.5, yaw: float = 25, pitch: float = 15,
+                        bounds: Optional[np.ndarray] = None) -> List[float]:
         """ Compute the camera vector from the specified parameters. If `bounds`
         is not provided, then the algorithm will obtain it from the available
         meshes.
@@ -420,7 +421,8 @@ class Plot(widgets.DOMWidget):
         be available after the current cell finishes execution."""
         self.send({"msg_type": "fetch_screenshot", "only_canvas": only_canvas})
 
-    def yield_screenshots(self, generator_function: Callable[[], Generator[bytes, None, None]]) -> Callable[[], None]:
+    def yield_screenshots(self, generator_function: Callable[[], Generator[bytes, None, None]]) -> \
+    Callable[[], None]:
         """Decorator for a generator function receiving screenshots via yield."""
 
         @wraps(generator_function)
@@ -449,7 +451,8 @@ class Plot(widgets.DOMWidget):
             {"msg_type": "fetch_snapshot", "compression_level": compression_level}
         )
 
-    def yield_snapshots(self, generator_function: Callable[[], Generator[bytes, None, None]]) -> Callable[[], None]:
+    def yield_snapshots(self, generator_function: Callable[[], Generator[bytes, None, None]]) -> \
+    Callable[[], None]:
         """Decorator for a generator function receiving snapshots via yield."""
 
         @wraps(generator_function)
@@ -468,13 +471,14 @@ class Plot(widgets.DOMWidget):
 
         return inner
 
-    def get_binary_snapshot(self, compression_level: int = 9, voxel_chunks: Optional[List[Any]] = None) -> bytes:
+    def get_binary_snapshot(self, compression_level: int = 9,
+                            voxel_chunks: Optional[List[Any]] = None) -> bytes:
         import zlib
         import msgpack
 
         if voxel_chunks is None:
             voxel_chunks = []
-            
+
         snapshot = self.get_binary_snapshot_objects(voxel_chunks)
         snapshot['plot'] = self.get_plot_params()
 
@@ -499,10 +503,11 @@ class Plot(widgets.DOMWidget):
 
         return data, self.voxel_chunks
 
-    def get_binary_snapshot_objects(self, voxel_chunks: Optional[List[Any]] = None) -> TypingDict[str, List[Any]]:
+    def get_binary_snapshot_objects(self, voxel_chunks: Optional[List[Any]] = None) -> TypingDict[
+        str, List[Any]]:
         if voxel_chunks is None:
             voxel_chunks = []
-            
+
         snapshot = {"objects": [], "chunkList": []}
 
         for name, l in [('objects', self.objects), ('chunkList', voxel_chunks)]:
@@ -557,7 +562,8 @@ class Plot(widgets.DOMWidget):
             "minimumFps": self.minimum_fps,
         }
 
-    def get_snapshot(self, compression_level: int = 9, voxel_chunks: Optional[List[Any]] = None, additional_js_code: str = "") -> str:
+    def get_snapshot(self, compression_level: int = 9, voxel_chunks: Optional[List[Any]] = None,
+                     additional_js_code: str = "") -> str:
         """Produce on the Python side a HTML document with the current plot embedded."""
         import os
         import io
@@ -565,7 +571,7 @@ class Plot(widgets.DOMWidget):
 
         if voxel_chunks is None:
             voxel_chunks = []
-            
+
         dir_path = os.path.dirname(os.path.realpath(__file__))
 
         data = self.get_binary_snapshot(compression_level, voxel_chunks)
@@ -638,10 +644,10 @@ class Plot(widgets.DOMWidget):
         dir_path = os.path.dirname(os.path.realpath(__file__))
 
         return os.path.join(dir_path, "static")
-    
-    def __getstate__(self) -> bytes:            
+
+    def __getstate__(self) -> bytes:
         return self.get_binary_snapshot()
-    
+
     def __setstate__(self, data: bytes) -> None:
         self.__init__()
         self.load_binary_snapshot(data)

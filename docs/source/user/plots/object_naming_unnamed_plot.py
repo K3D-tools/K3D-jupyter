@@ -15,11 +15,11 @@ def generate():
                                   point_size=0.2,
                                   color=0x00ff00)
     plt_points_blue = k3d.points(xs[2] + 0.5,
-                                point_size=0.2,
-                                color=0x0000ff)
+                                 point_size=0.2,
+                                 color=0x0000ff)
     plt_points_yellow = k3d.points(xs[3] - 1.5,
-                                  point_size=0.2,
-                                  color=0xffff00)
+                                   point_size=0.2,
+                                   color=0xffff00)
     plt_points_black = k3d.points(xs[4] + 1,
                                   point_size=0.2,
                                   color=0x000000)

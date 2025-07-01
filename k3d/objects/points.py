@@ -10,15 +10,15 @@ from traitlets import (
 )
 from traittypes import Array
 
-from ..helpers import (
-    array_serialization_wrap,
-    get_bounding_box_points,
-)
 from .base import (
     Drawable,
     TimeSeries,
     ListOrArray,
     EPSILON,
+)
+from ..helpers import (
+    array_serialization_wrap,
+    get_bounding_box_points,
 )
 
 
@@ -126,4 +126,4 @@ class Points(Drawable):
         return proposal["value"]
 
     def get_bounding_box(self):
-        return get_bounding_box_points(self.positions, self.model_matrix) 
+        return get_bounding_box_points(self.positions, self.model_matrix)

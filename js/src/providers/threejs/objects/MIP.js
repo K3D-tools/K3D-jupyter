@@ -3,10 +3,10 @@
 const THREE = require('three');
 const _ = require('../../../lodash');
 const colorMapHelper = require('../../../core/lib/helpers/colorMap');
-const {typedArrayToThree} = require('../helpers/Fn');
-const {areAllChangesResolve} = require('../helpers/Fn');
-const {commonUpdate} = require('../helpers/Fn');
-const {ensure256size} = require('../helpers/Fn');
+const { typedArrayToThree } = require('../helpers/Fn');
+const { areAllChangesResolve } = require('../helpers/Fn');
+const { commonUpdate } = require('../helpers/Fn');
+const { ensure256size } = require('../helpers/Fn');
 
 /**
  * Loader strategy to handle Volume object
@@ -33,7 +33,7 @@ module.exports = {
         let maskEnabled = false;
         let opacityFunction = (config.opacity_function && config.opacity_function.data) || null;
         const colorRange = config.color_range;
-        const {samples} = config;
+        const { samples } = config;
         let jitterTexture;
 
         if (opacityFunction === null) {
@@ -114,7 +114,7 @@ module.exports = {
         }
 
         const uniforms = {
-            maskOpacities: {value: ensure256size(config.mask_opacities.data)},
+            maskOpacities: { value: ensure256size(config.mask_opacities.data) },
             volumeMapSize: {
                 value: new THREE.Vector3(
                     config.volume.shape[2],
@@ -122,17 +122,17 @@ module.exports = {
                     config.volume.shape[0],
                 ),
             },
-            low: {value: colorRange[0]},
-            high: {value: colorRange[1]},
-            gradient_step: {value: config.gradient_step},
-            samples: {value: samples},
-            translation: {value: translation},
-            rotation: {value: rotation},
-            scale: {value: scale},
-            volumeTexture: {type: 't', value: texture},
-            mask: {type: 't', value: mask},
-            colormap: {type: 't', value: colormap},
-            jitterTexture: {type: 't', value: jitterTexture},
+            low: { value: colorRange[0] },
+            high: { value: colorRange[1] },
+            gradient_step: { value: config.gradient_step },
+            samples: { value: samples },
+            translation: { value: translation },
+            rotation: { value: rotation },
+            scale: { value: scale },
+            volumeTexture: { type: 't', value: texture },
+            mask: { type: 't', value: mask },
+            colormap: { type: 't', value: colormap },
+            jitterTexture: { type: 't', value: jitterTexture },
         };
 
         const material = new THREE.ShaderMaterial({
@@ -240,7 +240,7 @@ module.exports = {
         commonUpdate(config, changes, resolvedChanges, obj, K3D);
 
         if (areAllChangesResolve(changes, resolvedChanges)) {
-            return Promise.resolve({json: config, obj});
+            return Promise.resolve({ json: config, obj });
         }
         return false;
     },

@@ -52,9 +52,9 @@ module.exports = function (K3D) {
     const planeGeometry = new THREE.PlaneBufferGeometry(2, 2, 1, 1);
     const compositeMaterial = new THREE.ShaderMaterial({
         uniforms: {
-            uTextureA: {value: null},
-            uTextureB: {value: null},
-            uBlit: {value: 0},
+            uTextureA: { value: null },
+            uTextureB: { value: null },
+            uBlit: { value: 0 },
         },
         vertexShader: require('./shaders/composite.vertex.glsl'),
         fragmentShader: require('./shaders/composite.fragment.glsl'),
@@ -69,11 +69,11 @@ module.exports = function (K3D) {
         blendSrcAlpha: null,
     });
     const globalPeelUniforms = {
-        uLayer: {value: 0},
-        uPrevDepthTexture: {value: null},
-        uPrevColorTexture: {value: null},
-        uScreenSize: {value: new THREE.Vector2(1, 1)},
-        uDepthOffset: {value: 0.0000001},
+        uLayer: { value: 0 },
+        uPrevDepthTexture: { value: null },
+        uPrevColorTexture: { value: null },
+        uScreenSize: { value: new THREE.Vector2(1, 1) },
+        uDepthOffset: { value: 0.0000001 },
     };
     const depthMaterial = new THREE.MeshDepthMaterial();
     const compositePlane = new THREE.Mesh(planeGeometry, compositeMaterial);

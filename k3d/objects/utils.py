@@ -2,11 +2,13 @@
 
 from typing import Any, Dict as TypingDict, Union
 
-from .._version import __version__ as version
-
 # Import all object classes
 from .base import VoxelChunk
 from .geometry import Line, Lines, Mesh, STL, Surface
+from .points import Points
+from .text import Text, Text2d, Label, TextureText
+from .texture import Texture
+from .vectors import VectorField, Vectors
 from .volumetric import (
     MarchingCubes,
     Volume,
@@ -16,11 +18,7 @@ from .volumetric import (
     VoxelsGroup,
     MIP,
 )
-from .text import Text, Text2d, Label, TextureText
-from .vectors import VectorField, Vectors
-from .points import Points
-from .texture import Texture
-
+from .._version import __version__ as version
 
 # Objects mapping for factory functions
 objects_map: TypingDict[str, Any] = {
@@ -98,4 +96,4 @@ def clone_object(obj: Any) -> Any:
         if "sync" in v.metadata and k not in ['id', 'type']:
             param[k] = obj[k]
 
-    return objects_map[obj['type']](**param) 
+    return objects_map[obj['type']](**param)

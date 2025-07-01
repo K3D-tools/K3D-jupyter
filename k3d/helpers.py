@@ -24,7 +24,8 @@ from typing import Union, List as TypingList, Optional, Dict as TypingDict, Any,
 
 # pylint: disable=unused-argument
 # noinspection PyUnusedLocal
-def array_to_json(ar: np.ndarray, compression_level: int = 0, force_contiguous: bool = True) -> Union[str, TypingDict[str, Any]]:
+def array_to_json(ar: np.ndarray, compression_level: int = 0, force_contiguous: bool = True) -> \
+Union[str, TypingDict[str, Any]]:
     """
     Return the serialization of a numpy array.
 
@@ -79,7 +80,8 @@ def array_to_json(ar: np.ndarray, compression_level: int = 0, force_contiguous: 
 
 
 # noinspection PyUnusedLocal
-def json_to_array(value: Optional[TypingDict[str, Any]], obj: Optional[Any] = None) -> Optional[np.ndarray]:
+def json_to_array(value: Optional[TypingDict[str, Any]], obj: Optional[Any] = None) -> Optional[
+    np.ndarray]:
     """
     Return numpy array from serialization.
 
@@ -271,7 +273,9 @@ def minmax(arr: np.ndarray) -> TypingList[float]:
     return [float(np.nanmin(arr)), float(np.nanmax(arr))]
 
 
-def check_attribute_color_range(attribute: Union[np.ndarray, TypingDict[str, np.ndarray]], color_range: Union[TypingList[float], Tuple[float, ...]] = ()) -> TypingList[float]:
+def check_attribute_color_range(attribute: Union[np.ndarray, TypingDict[str, np.ndarray]],
+                                color_range: Union[TypingList[float], Tuple[float, ...]] = ()) -> \
+TypingList[float]:
     """Return color range versus provided attribute.
 
     Parameters
@@ -289,7 +293,7 @@ def check_attribute_color_range(attribute: Union[np.ndarray, TypingDict[str, np.
 
     if color_range is None:
         color_range = []
-    
+
     if len(color_range) == 2:
         return color_range
     elif type(attribute) is dict:
@@ -306,7 +310,8 @@ def check_attribute_color_range(attribute: Union[np.ndarray, TypingDict[str, np.
     return color_range
 
 
-def map_colors(attribute: np.ndarray, color_map: Union[TypingList[TypingList[float]], np.ndarray], color_range: Union[TypingList[float], Tuple[float, ...]] = ()) -> np.ndarray:
+def map_colors(attribute: np.ndarray, color_map: Union[TypingList[TypingList[float]], np.ndarray],
+               color_range: Union[TypingList[float], Tuple[float, ...]] = ()) -> np.ndarray:
     """Return color mapping according to an attribute and a colormap.
 
     The attribute represents the data on which the colormap will be applied.
@@ -345,7 +350,8 @@ def map_colors(attribute: np.ndarray, color_map: Union[TypingList[TypingList[flo
     return colors
 
 
-def bounding_corners(bounds: Union[TypingList[float], np.ndarray], z_bounds: Tuple[float, float] = (0, 1)) -> np.ndarray:
+def bounding_corners(bounds: Union[TypingList[float], np.ndarray],
+                     z_bounds: Tuple[float, float] = (0, 1)) -> np.ndarray:
     """Return corner point coordinates for bounds array.
 
     `z_bounds` assigns Z points coordinates if bounds contains less than 5 items.

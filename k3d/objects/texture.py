@@ -4,19 +4,18 @@ import numpy as np
 from traitlets import (
     Bool,
     Bytes,
-    Float,
     Unicode,
 )
 from traittypes import Array
 
-from ..helpers import (
-    array_serialization_wrap,
-    get_bounding_box,
-)
 from .base import (
     DrawableWithCallback,
     TimeSeries,
     ListOrArray,
+)
+from ..helpers import (
+    array_serialization_wrap,
+    get_bounding_box,
 )
 
 
@@ -79,4 +78,4 @@ class Texture(DrawableWithCallback):
         self.set_trait("type", "Texture")
 
     def get_bounding_box(self):
-        return get_bounding_box(self.model_matrix) 
+        return get_bounding_box(self.model_matrix)

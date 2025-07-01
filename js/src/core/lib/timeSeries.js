@@ -2,7 +2,7 @@
 
 const THREE = require('three');
 const _ = require('../../lodash');
-const {pow10ceil} = require('./helpers/math');
+const { pow10ceil } = require('./helpers/math');
 
 function clone(val) {
     if (typeof (val) === 'object') {
@@ -247,7 +247,7 @@ module.exports = {
             if (json[property] && typeof (json[property].timeSeries) !== 'undefined') {
                 keypoints = Object.keys(json[property]).reduce((p, k) => {
                     if (!Number.isNaN(parseFloat(k))) {
-                        p.push({v: parseFloat(k), k});
+                        p.push({ v: parseFloat(k), k });
                     }
 
                     return p;
@@ -288,7 +288,7 @@ module.exports = {
             }
         });
 
-        return {json: interpolatedJson, changes};
+        return { json: interpolatedJson, changes };
     },
 
     getObjectsWithTimeSeriesAndMinMax,

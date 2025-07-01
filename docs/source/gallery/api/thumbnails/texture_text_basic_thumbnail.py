@@ -23,4 +23,3 @@ def generate():
     headless.close()
 
     return screenshot
-

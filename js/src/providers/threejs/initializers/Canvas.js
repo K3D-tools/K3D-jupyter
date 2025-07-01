@@ -1,6 +1,6 @@
 const THREE = require('three');
-const {cameraModes} = require('../../../core/lib/cameraMode');
-const {recalculateFrustum} = require('../helpers/Fn');
+const { cameraModes } = require('../../../core/lib/cameraMode');
+const { recalculateFrustum } = require('../helpers/Fn');
 
 function addEvents(self, K3D, controls) {
     controls.getCameraArray = function () {
@@ -231,7 +231,7 @@ module.exports = function (K3D) {
             }
         }
 
-        const {targetDOMNode} = K3D.getWorld();
+        const { targetDOMNode } = K3D.getWorld();
 
         if (!targetDOMNode.ownerDocument.contains(targetDOMNode)) {
             K3D.disable();

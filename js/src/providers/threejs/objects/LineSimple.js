@@ -1,11 +1,11 @@
 const THREE = require('three');
-const {colorsToFloat32Array} = require('../../../core/lib/helpers/buffer');
+const { colorsToFloat32Array } = require('../../../core/lib/helpers/buffer');
 const Fn = require('../helpers/Fn');
 
-const {commonUpdate} = Fn;
-const {areAllChangesResolve} = Fn;
-const {getColorsArray} = Fn;
-const {handleColorMap} = Fn;
+const { commonUpdate } = Fn;
+const { areAllChangesResolve } = Fn;
+const { getColorsArray } = Fn;
+const { handleColorMap } = Fn;
 
 /**
  * Loader strategy to handle Line object
@@ -40,7 +40,7 @@ module.exports = {
                     ? colorsToFloat32Array(verticesColors) : getColorsArray(color, position.length / 3)
             );
 
-            material.setValues({vertexColors: THREE.VertexColors});
+            material.setValues({ vertexColors: THREE.VertexColors });
             geometry.setAttribute('color', new THREE.BufferAttribute(colors, 3));
         }
 
@@ -96,7 +96,7 @@ module.exports = {
         commonUpdate(config, changes, resolvedChanges, obj, K3D);
 
         if (areAllChangesResolve(changes, resolvedChanges)) {
-            return Promise.resolve({json: config, obj});
+            return Promise.resolve({ json: config, obj });
         }
         return false;
     },

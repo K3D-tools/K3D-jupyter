@@ -1,6 +1,6 @@
 const THREE = require('three');
-const {cameraModes} = require('../../../core/lib/cameraMode');
-const {recalculateFrustum} = require('../helpers/Fn');
+const { cameraModes } = require('../../../core/lib/cameraMode');
+const { recalculateFrustum } = require('../helpers/Fn');
 
 /**
  * Camera initializer for Three.js library
@@ -31,7 +31,7 @@ module.exports = function (K3D) {
             if (typeof (this.camera.fov) !== 'undefined' && typeof (this.axesHelper.camera.fov) !== 'undefined') {
                 this.camera.fov = fov;
                 this.axesHelper.camera.fov = fov;
-                this.controls.dispatchEvent({type: 'change'});
+                this.controls.dispatchEvent({ type: 'change' });
             }
         }
 

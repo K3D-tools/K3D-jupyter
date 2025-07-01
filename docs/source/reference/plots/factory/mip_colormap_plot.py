@@ -1,7 +1,8 @@
-import k3d
+import SimpleITK as sitk
 import numpy as np
 import os
-import SimpleITK as sitk
+
+import k3d
 from k3d.colormaps import matplotlib_color_maps
 
 

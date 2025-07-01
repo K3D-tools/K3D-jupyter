@@ -13,11 +13,6 @@ from traitlets import (
 )
 from traittypes import Array
 
-from ..helpers import (
-    array_serialization_wrap,
-    get_bounding_box_points,
-)
-from ..validation.stl import AsciiStlData, BinaryStlData
 from .base import (
     Drawable,
     DrawableWithCallback,
@@ -25,6 +20,12 @@ from .base import (
     TimeSeries,
     ListOrArray,
 )
+from ..helpers import (
+    array_serialization_wrap,
+    get_bounding_box_points,
+)
+from ..validation.stl import AsciiStlData, BinaryStlData
+
 
 class Line(Drawable):
     """
@@ -466,4 +467,4 @@ class Surface(DrawableWithCallback):
 
     def get_bounding_box(self):
         from ..helpers import get_bounding_box
-        return get_bounding_box(self.model_matrix) 
+        return get_bounding_box(self.model_matrix)

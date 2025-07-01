@@ -1,5 +1,5 @@
 const THREE = require('three');
-const {createCanvasGradient} = require('../../../core/lib/helpers/colorMap');
+const { createCanvasGradient } = require('../../../core/lib/helpers/colorMap');
 const Float16Array = require('../../../core/lib/helpers/float16Array');
 
 function getSpaceDimensionsFromTargetElement(world) {

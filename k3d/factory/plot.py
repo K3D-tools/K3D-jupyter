@@ -4,7 +4,6 @@ import numpy as np
 from typing import Union, List as TypingList, Optional, Dict as TypingDict, Any, Tuple
 
 from ..plot import Plot
-from .common import _default_color
 
 # Type aliases for better readability
 ArrayLike = Union[TypingList, np.ndarray, Tuple]
@@ -53,7 +52,7 @@ def plot(
         axes = ['x', 'y', 'z']
     if axes_helper_colors is None:
         axes_helper_colors = [0xff0000, 0x00ff00, 0x0000ff]
-        
+
     return Plot(
         antialias=antialias,
         logarithmic_depth_buffer=logarithmic_depth_buffer,
@@ -92,4 +91,4 @@ def plot(
         minimum_fps=minimum_fps,
         fps_meter=fps_meter,
         custom_data=custom_data
-    ) 
+    )

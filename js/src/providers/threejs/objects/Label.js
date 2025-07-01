@@ -1,6 +1,6 @@
 const THREE = require('three');
 let katex = require('katex');
-const {areAllChangesResolve} = require('../helpers/Fn');
+const { areAllChangesResolve } = require('../helpers/Fn');
 
 katex = katex.default || katex;
 
@@ -23,12 +23,12 @@ module.exports = {
             color: config.color,
         });
         const text = config.text || '\\KaTeX';
-        const {color} = config;
+        const { color } = config;
         const maxLength = config.max_length || 1.0;
-        let {position} = config;
+        let { position } = config;
         const size = config.size || 1;
         const object = new THREE.LineSegments(geometry, material);
-        const {overlayDOMNode} = K3D.getWorld();
+        const { overlayDOMNode } = K3D.getWorld();
         const world = K3D.getWorld();
         let domElements = [];
         let i;
@@ -46,7 +46,8 @@ module.exports = {
                 domElement.innerHTML = Array.isArray(text) ? text[i] : text;
                 domElement.style.cssText = 'pointer-events: all';
             } else {
-                domElement.innerHTML = katex.renderToString(Array.isArray(text) ? text[i] : text, {displayMode: true});
+                domElement.innerHTML = katex.renderToString(Array.isArray(text) ? text[i] : text,
+                    { displayMode: true });
             }
 
             domElement.style.position = 'absolute';
@@ -128,7 +129,8 @@ module.exports = {
                             }
 
                             i++;
-                        } while (!fiIsOK && i < maxIteration);
+                        }
+                        while (!fiIsOK && i < maxIteration);
 
                         coord.x = x;
                         coord.y = y;
@@ -204,7 +206,9 @@ module.exports = {
                             break;
                     }
 
-                    v = new THREE.Vector3((coord.x / world.width - 0.5) * 2.0, -(coord.y / world.height - 0.5) * 2.0, coord.z,);
+                    v = new THREE.Vector3((coord.x / world.width - 0.5) * 2.0,
+                        -(coord.y / world.height - 0.5) * 2.0,
+                        coord.z,);
                     v.unproject(world.camera);
 
                     object.positions.set([v.x, v.y, v.z], index * 6 + 3);
@@ -260,7 +264,7 @@ module.exports = {
                     domElement.innerHTML = text;
                     domElement.style.pointerEvents = 'all';
                 } else {
-                    domElement.innerHTML = katex.renderToString(text, {displayMode: true});
+                    domElement.innerHTML = katex.renderToString(text, { displayMode: true });
                     domElement.style.pointerEvents = 'none';
                 }
             });

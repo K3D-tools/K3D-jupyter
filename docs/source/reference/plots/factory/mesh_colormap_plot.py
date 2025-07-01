@@ -1,7 +1,8 @@
-import k3d
 import numpy as np
-from k3d.colormaps import matplotlib_color_maps
 from matplotlib.tri import Triangulation
+
+import k3d
+from k3d.colormaps import matplotlib_color_maps
 
 
 def generate():

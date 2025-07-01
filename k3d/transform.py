@@ -6,7 +6,8 @@ from typing import Union, List as TypingList, Optional, Dict as TypingDict, Any,
 _epsilon = 1e-6
 
 
-def get_bounds_fit_matrix(xmin: float, xmax: float, ymin: float, ymax: float, zmin: float, zmax: float) -> np.ndarray:
+def get_bounds_fit_matrix(xmin: float, xmax: float, ymin: float, ymax: float, zmin: float,
+                          zmax: float) -> np.ndarray:
     """Return a 4x4 transform matrix.
 
     Map the default bounding box [-0.5, 0.5, -0.5, 0.5, -0.5, 0.5] into
@@ -57,8 +58,10 @@ class Transform(object):
     Abstraction of a 4x4 model transformation matrix with hierarchy support.
     """
 
-    def __init__(self, bounds: Optional[TypingList[float]] = None, translation: Optional[TypingList[float]] = None, 
-                 rotation: Optional[TypingList[float]] = None, scaling: Optional[TypingList[float]] = None, 
+    def __init__(self, bounds: Optional[TypingList[float]] = None,
+                 translation: Optional[TypingList[float]] = None,
+                 rotation: Optional[TypingList[float]] = None,
+                 scaling: Optional[TypingList[float]] = None,
                  custom_matrix: Optional[np.ndarray] = None, parent: Optional['Transform'] = None):
         """
         Transform constructor.
@@ -99,7 +102,8 @@ class Transform(object):
         if value is None:
             # Forbid None for critical transform fields that should always have valid values
             if key in ['parent_matrix', 'custom_matrix', 'model_matrix']:
-                raise ValueError(f"Cannot set {key} to None. These fields must have valid matrix values.")
+                raise ValueError(
+                    f"Cannot set {key} to None. These fields must have valid matrix values.")
             # Allow None for optional transform parameters (translation, rotation, scaling, bounds)
             pass
         elif key == 'translation':
@@ -153,9 +157,10 @@ class Transform(object):
                 xmin, xmax = self.bounds
                 ymin, ymax, zmin, zmax = -0.5, 0.5, -0.5, 0.5
             else:
-                raise ValueError('Wrong size of bounds array ({}), should be 4 for 2D or 6 for 3D bounds.'.format(
-                    self.bounds
-                ))
+                raise ValueError(
+                    'Wrong size of bounds array ({}), should be 4 for 2D or 6 for 3D bounds.'.format(
+                        self.bounds
+                    ))
 
             fit_matrix = get_bounds_fit_matrix(
                 xmin, xmax, ymin, ymax, zmin, zmax)
@@ -190,7 +195,8 @@ class Transform(object):
             scaling_matrix = np.identity(4)
 
         self.model_matrix = reduce(np.dot, [
-            translation_matrix, rotation_matrix, scaling_matrix, fit_matrix, self.custom_matrix, self.parent_matrix
+            translation_matrix, rotation_matrix, scaling_matrix, fit_matrix, self.custom_matrix,
+            self.parent_matrix
         ])
 
     def _add_child(self, transform: 'Transform') -> None:
@@ -304,9 +310,12 @@ def process_transform_arguments(drawable: Any, **kwargs: Any) -> Any:
     return drawable
 
 
-def transform(bounds: Optional[TypingList[float]] = None, translation: Optional[TypingList[float]] = None, 
-              rotation: Optional[TypingList[float]] = None, scaling: Optional[TypingList[float]] = None, 
-              custom_matrix: Optional[np.ndarray] = None, parent: Optional[Transform] = None) -> Transform:
+def transform(bounds: Optional[TypingList[float]] = None,
+              translation: Optional[TypingList[float]] = None,
+              rotation: Optional[TypingList[float]] = None,
+              scaling: Optional[TypingList[float]] = None,
+              custom_matrix: Optional[np.ndarray] = None,
+              parent: Optional[Transform] = None) -> Transform:
     """Return a Transform object.
 
     Parameters

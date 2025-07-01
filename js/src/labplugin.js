@@ -2,7 +2,7 @@
 
 const base = require('@jupyter-widgets/base');
 const k3d = require('./index');
-const {version} = require('./version');
+const { version } = require('./version');
 
 module.exports = {
     id: 'jupyter.extensions.k3d',

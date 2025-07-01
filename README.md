@@ -22,7 +22,6 @@ existing libraries as VTK. K3D can be run as:
 Documentation: [https://k3d-jupyter.org](https://k3d-jupyter.org)
 </div>
 
-
 ## Showcase:
 
 ![points_cloud](imgs/points_cloud.gif)

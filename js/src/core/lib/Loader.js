@@ -1,7 +1,7 @@
 const validateAndPrepareObject = require('./helpers/objectValidator');
 const _ = require('../../lodash');
 const timeSeries = require('./timeSeries');
-const {error} = require('./Error');
+const { error } = require('./Error');
 
 /**
  * @method K3D.Loader
@@ -64,7 +64,7 @@ function loader(K3D, data) {
                             's',
                         );
 
-                        return {json, obj: K3DObject};
+                        return { json, obj: K3DObject };
                     })
                     .catch((err) => {
                         console.error(err);

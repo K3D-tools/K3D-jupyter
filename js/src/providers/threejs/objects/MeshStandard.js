@@ -1,10 +1,10 @@
 const THREE = require('three');
 const interactionsHelper = require('../helpers/Interactions');
 const colorMapHelper = require('../../../core/lib/helpers/colorMap');
-const {handleColorMap} = require('../helpers/Fn');
-const {areAllChangesResolve} = require('../helpers/Fn');
-const {commonUpdate} = require('../helpers/Fn');
-const {getSide} = require('../helpers/Fn');
+const { handleColorMap } = require('../helpers/Fn');
+const { areAllChangesResolve } = require('../helpers/Fn');
+const { commonUpdate } = require('../helpers/Fn');
+const { getSide } = require('../helpers/Fn');
 const buffer = require('../../../core/lib/helpers/buffer');
 
 const maximumSlicePlanes = 8;
@@ -327,7 +327,7 @@ module.exports = {
         commonUpdate(config, changes, resolvedChanges, obj, K3D);
 
         if (areAllChangesResolve(changes, resolvedChanges)) {
-            return Promise.resolve({json: config, obj});
+            return Promise.resolve({ json: config, obj });
         }
         return false;
     },

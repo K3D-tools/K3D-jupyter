@@ -3,10 +3,10 @@
 import numpy as np
 from typing import Union, List as TypingList, Optional, Dict as TypingDict, Any, Tuple
 
+from .common import _default_color, default_colormap
 from ..helpers import check_attribute_color_range
 from ..objects import Mesh
 from ..transform import process_transform_arguments
-from .common import _default_color, default_colormap
 
 # Type aliases for better readability
 ArrayLike = Union[TypingList, np.ndarray, Tuple]
@@ -54,7 +54,7 @@ def vtk_poly_data(
         opacity_function = []
     if color_range is None:
         color_range = []
-        
+
     if color_map is None:
         color_map = default_colormap
 
@@ -118,4 +118,4 @@ def vtk_poly_data(
             compression_level=compression_level,
         ),
         **kwargs
-    ) 
+    )

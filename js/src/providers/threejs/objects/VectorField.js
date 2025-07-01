@@ -1,11 +1,11 @@
 const THREE = require('three');
 const BufferGeometryUtils = require('three/examples/jsm/utils/BufferGeometryUtils');
 const buffer = require('../../../core/lib/helpers/buffer');
-const {areAllChangesResolve} = require('../helpers/Fn');
-const {commonUpdate} = require('../helpers/Fn');
+const { areAllChangesResolve } = require('../helpers/Fn');
+const { commonUpdate } = require('../helpers/Fn');
 const MeshLine = require('../helpers/THREE.MeshLine')(THREE);
-const {getTwoColorsArray} = require('../helpers/Fn');
-const {generateArrow} = require('../helpers/Fn');
+const { getTwoColorsArray } = require('../helpers/Fn');
+const { generateArrow } = require('../helpers/Fn');
 
 /**
  * Loader strategy to handle Vector Fields object
@@ -33,7 +33,7 @@ module.exports = {
         let colors = (config.colors && config.colors.data) || null;
         const useHead = config.use_head;
         const headSize = config.head_size;
-        const {scale} = config;
+        const { scale } = config;
         const object = new THREE.Group();
         let x;
         let y;
@@ -43,7 +43,7 @@ module.exports = {
         let destination;
         let heads = null;
         const lineVertices = [];
-        const {colorsToFloat32Array} = buffer;
+        const { colorsToFloat32Array } = buffer;
 
         if (config.vectors.shape.length === 3) {
             // 2d vectors fields
@@ -135,7 +135,7 @@ module.exports = {
         commonUpdate(config, changes, resolvedChanges, obj, K3D);
 
         if (areAllChangesResolve(changes, resolvedChanges)) {
-            return Promise.resolve({json: config, obj});
+            return Promise.resolve({ json: config, obj });
         }
         return false;
     },
@@ -149,7 +149,7 @@ function addHeads(heads, object) {
     object.add(
         new THREE.Mesh(
             heads,
-            new THREE.MeshBasicMaterial({vertexColors: THREE.VertexColors}),
+            new THREE.MeshBasicMaterial({ vertexColors: THREE.VertexColors }),
         ),
     );
 }

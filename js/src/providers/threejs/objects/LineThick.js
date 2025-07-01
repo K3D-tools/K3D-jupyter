@@ -1,13 +1,13 @@
 const THREE = require('three');
-const {colorsToFloat32Array} = require('../../../core/lib/helpers/buffer');
+const { colorsToFloat32Array } = require('../../../core/lib/helpers/buffer');
 const MeshLine = require('../helpers/THREE.MeshLine')(THREE);
 const Fn = require('../helpers/Fn');
 
-const {commonUpdate} = Fn;
-const {areAllChangesResolve} = Fn;
+const { commonUpdate } = Fn;
+const { areAllChangesResolve } = Fn;
 const colorMapHelper = require('../../../core/lib/helpers/colorMap');
 
-const {getColorsArray} = Fn;
+const { getColorsArray } = Fn;
 
 /**
  * Loader strategy to handle Line object
@@ -151,7 +151,7 @@ function update(config, changes, obj, K3D) {
     commonUpdate(config, changes, resolvedChanges, obj, K3D);
 
     if (areAllChangesResolve(changes, resolvedChanges)) {
-        return Promise.resolve({json: config, obj});
+        return Promise.resolve({ json: config, obj });
     }
     return false;
 }

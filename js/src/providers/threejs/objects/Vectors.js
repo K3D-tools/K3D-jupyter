@@ -2,13 +2,13 @@ const THREE = require('three');
 const BufferGeometryUtils = require('three/examples/jsm/utils/BufferGeometryUtils');
 const buffer = require('../../../core/lib/helpers/buffer');
 const MeshLine = require('../helpers/THREE.MeshLine')(THREE);
-const {getTwoColorsArray} = require('../helpers/Fn');
-const {generateArrow} = require('../helpers/Fn');
+const { getTwoColorsArray } = require('../helpers/Fn');
+const { generateArrow } = require('../helpers/Fn');
 const Text = require('./Text');
 const Fn = require('../helpers/Fn');
 
-const {commonUpdate} = Fn;
-const {areAllChangesResolve} = Fn;
+const { commonUpdate } = Fn;
+const { areAllChangesResolve } = Fn;
 
 /**
  * Loader strategy to handle Vectors  object
@@ -39,7 +39,7 @@ module.exports = {
         let destination;
         let i;
         const labelSize = config.label_size;
-        const {labels} = config;
+        const { labels } = config;
         const labelsObjects = [];
         let heads = null;
         const lineVertices = [];
@@ -143,7 +143,7 @@ module.exports = {
         commonUpdate(config, changes, resolvedChanges, obj, K3D);
 
         if (areAllChangesResolve(changes, resolvedChanges)) {
-            return Promise.resolve({json: config, obj});
+            return Promise.resolve({ json: config, obj });
         }
         return false;
     },
@@ -157,7 +157,7 @@ function addHeads(heads, object) {
     object.add(
         new THREE.Mesh(
             heads,
-            new THREE.MeshBasicMaterial({vertexColors: THREE.VertexColors}),
+            new THREE.MeshBasicMaterial({ vertexColors: THREE.VertexColors }),
         ),
     );
 }

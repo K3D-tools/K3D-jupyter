@@ -6,9 +6,9 @@ const pointsCallback = require('../interactions/PointsCallback');
 const pointsIntersect = require('../interactions/PointsIntersect');
 const Fn = require('../helpers/Fn');
 
-const {areAllChangesResolve} = Fn;
-const {commonUpdate} = Fn;
-const {getColorsArray} = Fn;
+const { areAllChangesResolve } = Fn;
+const { commonUpdate } = Fn;
+const { getColorsArray } = Fn;
 
 /**
  * Loader strategy to handle Points object
@@ -31,7 +31,7 @@ module.exports = {
             && config.opacities.data.length === positions.length / 3) ? config.opacities.data : null;
         const sizes = (config.point_sizes && config.point_sizes.data
             && config.point_sizes.data.length === positions.length / 3) ? config.point_sizes.data : null;
-        const {colorsToFloat32Array} = buffer;
+        const { colorsToFloat32Array } = buffer;
         const phongShader = THREE.ShaderLib.phong;
         let i;
         const boundingBoxGeometry = new THREE.BufferGeometry();
@@ -68,9 +68,9 @@ module.exports = {
             colormap.needsUpdate = true;
 
             uniforms = {
-                low: {value: colorRange[0]},
-                high: {value: colorRange[1]},
-                colormap: {type: 't', value: colormap},
+                low: { value: colorRange[0] },
+                high: { value: colorRange[1] },
+                colormap: { type: 't', value: colormap },
             };
             geometry.setAttribute(
                 'attributes',
@@ -101,8 +101,8 @@ module.exports = {
 
         const material = new THREE.ShaderMaterial({
             uniforms: THREE.UniformsUtils.merge([phongShader.uniforms, {
-                shininess: {value: config.shininess},
-                opacity: {value: config.opacity},
+                shininess: { value: config.shininess },
+                opacity: { value: config.opacity },
             }, uniforms]),
             defines: {
                 USE_PER_POINT_OPACITY: (opacities !== null ? 1 : 0),
@@ -217,7 +217,7 @@ module.exports = {
         commonUpdate(config, changes, resolvedChanges, obj, K3D);
 
         if (areAllChangesResolve(changes, resolvedChanges)) {
-            return Promise.resolve({json: config, obj});
+            return Promise.resolve({ json: config, obj });
         }
         return false;
     },

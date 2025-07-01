@@ -16,10 +16,10 @@ def generate():
     bounds = np.array([0, size[2], 0, size[1], 0, size[0]], np.float32)
 
     volume_slice = k3d.volume_slice(img.astype(np.float32),
-                                  slice_z=img.shape[0] // 2,
-                                  slice_y=img.shape[1] // 2,
-                                  slice_x=img.shape[2] // 2,
-                                  bounds=bounds)
+                                    slice_z=img.shape[0] // 2,
+                                    slice_y=img.shape[1] // 2,
+                                    slice_x=img.shape[2] // 2,
+                                    bounds=bounds)
 
     plot = k3d.plot(camera_mode='volume_sides', grid_visible=False, background_color=0)
     plot.menu_visibility = False

@@ -33,6 +33,7 @@ def test_surface():
 
     compare('surface_dynamic_shininess')
 
+
 def test_surface_attribute():
     prepare()
 
@@ -53,7 +54,6 @@ def test_surface_attribute():
     pytest.plot += surface
 
     compare('surface_attribute')
-
 
 
 def test_surface_attribute_low():

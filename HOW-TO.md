@@ -4,18 +4,18 @@
 
 ![image](https://user-images.githubusercontent.com/5256837/178248398-8805dcac-b2e3-4618-a316-30ca01fdd20f.png)
 
-
 ## Add support for new object type
 
 > **Note**
-New object type has to be already supported by the [K3D JS provider](js/src/providers/threejs/objects)
+> New object type has to be already supported by
+> the [K3D JS provider](js/src/providers/threejs/objects)
 (see: [How to add loader strategy for new object type](js/HOW-TO.md)).
 
 1. Add a new object class in `k3d/objects.py`
 
-    ### Requirements
+   ### Requirements
 
-    The new class has to:
+   The new class has to:
     * have a name matching an object type in k3d
     * have a read-only `type` class variable, of type `traitlets.Unicode` with the default value
       set to the above name
@@ -24,7 +24,7 @@ New object type has to be already supported by the [K3D JS provider](js/src/prov
 
 2. Add a new helper function in `k3d/factory.py`
 
-    This new function should:
+   This new function should:
     * have a name matching the object type in k3d using *lower_case_with_underscores* notation
     * accept arbitrary arguments
     * return an instance of the class created in #1

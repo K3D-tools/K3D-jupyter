@@ -62,9 +62,9 @@ function generateGreedyVoxelMesh(chunk, colorMap, voxelSize, calculateOutlines, 
     const outlines = [];
     let quadIndex = 0;
     let outlineIndex = 0;
-    const {width} = voxelSize;
-    const {height} = voxelSize;
-    const {length} = voxelSize;
+    const { width } = voxelSize;
+    const { height } = voxelSize;
+    const { length } = voxelSize;
     const dims = [width, height, length];
     const voxelsIsArray = chunk.voxels instanceof Uint8Array;
     const maxSize = Math.max.apply(null, chunk.size);

@@ -3,9 +3,9 @@
 import numpy as np
 from typing import Union, List as TypingList, Optional, Dict as TypingDict, Any, Tuple
 
+from .common import _default_color
 from ..objects import VectorField, Vectors
 from ..transform import process_transform_arguments
-from .common import _default_color
 
 # Type aliases for better readability
 ArrayLike = Union[TypingList, np.ndarray, Tuple]
@@ -29,7 +29,7 @@ def vector_field(
 ) -> VectorField:
     if colors is None:
         colors = []
-        
+
     return process_transform_arguments(
         VectorField(
             vectors=vectors,
@@ -71,7 +71,7 @@ def vectors(
         colors = []
     if labels is None:
         labels = []
-        
+
     return process_transform_arguments(
         Vectors(
             vectors=vectors if vectors is not None else origins,
@@ -90,4 +90,4 @@ def vectors(
             compression_level=compression_level,
         ),
         **kwargs
-    ) 
+    )

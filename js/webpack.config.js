@@ -107,13 +107,13 @@ module.exports = [
     {
         entry: './src/standalone.js',
         output:
-        {
-            filename: 'standalone.js',
-            path: `${__dirname}/../k3d/static`,
-            library: 'k3d',
-            libraryTarget: 'amd',
-            publicPath: `https://unpkg.com/k3d@${version}/dist/`,
-        },
+            {
+                filename: 'standalone.js',
+                path: `${__dirname}/../k3d/static`,
+                library: 'k3d',
+                libraryTarget: 'amd',
+                publicPath: `https://unpkg.com/k3d@${version}/dist/`,
+            },
         mode,
         devtool: 'source-map',
         module: {
@@ -133,13 +133,13 @@ module.exports = [
     {
         entry: './src/standalone.js',
         output:
-        {
-            filename: 'standalone.js',
-            path: `${__dirname}/dist/`,
-            library: 'k3d',
-            libraryTarget: 'amd',
-            publicPath: `https://unpkg.com/k3d@${version}/dist/`,
-        },
+            {
+                filename: 'standalone.js',
+                path: `${__dirname}/dist/`,
+                library: 'k3d',
+                libraryTarget: 'amd',
+                publicPath: `https://unpkg.com/k3d@${version}/dist/`,
+            },
         mode,
         module: {
             rules,

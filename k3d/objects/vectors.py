@@ -12,14 +12,14 @@ from traitlets import (
 )
 from traittypes import Array
 
+from .base import (
+    Drawable,
+    TimeSeries,
+)
 from ..helpers import (
     array_serialization_wrap,
     get_bounding_box,
     get_bounding_box_points,
-)
-from .base import (
-    Drawable,
-    TimeSeries,
 )
 
 
@@ -158,4 +158,4 @@ class Vectors(Drawable):
     def get_bounding_box(self):
         return get_bounding_box_points(
             np.stack([self.origins, self.vectors]), self.model_matrix
-        ) 
+        )

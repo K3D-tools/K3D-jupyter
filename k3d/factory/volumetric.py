@@ -3,12 +3,12 @@
 import numpy as np
 from typing import Union, List as TypingList, Optional, Dict as TypingDict, Any, Tuple
 
+from .common import _default_color, nice_colors, default_colormap
 from ..helpers import check_attribute_color_range
 from ..objects import (
     Volume, MIP, VolumeSlice, Voxels, SparseVoxels, VoxelsGroup, MarchingCubes, VoxelChunk
 )
 from ..transform import process_transform_arguments
-from .common import _default_color, nice_colors, default_colormap
 
 # Type aliases for better readability
 ArrayLike = Union[TypingList, np.ndarray, Tuple]
@@ -46,7 +46,7 @@ def volume(
         mask = []
     if mask_opacities is None:
         mask_opacities = []
-        
+
     if color_map is None:
         color_map = default_colormap
 
@@ -108,7 +108,7 @@ def mip(
         mask = []
     if mask_opacities is None:
         mask_opacities = []
-        
+
     if color_map is None:
         color_map = default_colormap
 
@@ -171,7 +171,7 @@ def volume_slice(
         mask = []
     if active_masks is None:
         active_masks = []
-        
+
     if color_map is None:
         color_map = default_colormap
 
@@ -306,7 +306,7 @@ def voxels_group(
         voxels_group = []
     if chunks_ids is None:
         chunks_ids = []
-        
+
     if color_map is None:
         color_map = nice_colors
 
@@ -369,7 +369,7 @@ def marching_cubes(
         spacings_y = []
     if spacings_z is None:
         spacings_z = []
-        
+
     if color_map is None:
         color_map = default_colormap
 
@@ -432,4 +432,4 @@ def voxel_chunk(
         coord=np.array(coord, np.uint32),
         multiple=multiple,
         compression_level=compression_level,
-    ) 
+    )

@@ -105,12 +105,12 @@ function addTextureToUniforms(uniforms, config) {
 
         return ret;
 
-    }, {low: [], high: [], volumeTexture: [], volumeSize: []});
+    }, { low: [], high: [], volumeTexture: [], volumeSize: [] });
 
-    uniforms['low'] = {value: d.low};
-    uniforms['high'] = {value: d.high};
-    uniforms['volumeTexture'] = {type: 'tv', value: d.volumeTexture};
-    uniforms['volumeSize'] = {value: d.volumeSize};
+    uniforms['low'] = { value: d.low };
+    uniforms['high'] = { value: d.high };
+    uniforms['volumeTexture'] = { type: 'tv', value: d.volumeTexture };
+    uniforms['volumeSize'] = { value: d.volumeSize };
 }
 
 /**
@@ -200,13 +200,13 @@ module.exports = {
         }
 
         let uniforms = {
-            opacity: {value: config.opacity},
-            mask: {type: 't', value: mask},
-            maskColors: {type: 't', value: maskColors},
-            maskOpacity: {value: config.mask_opacity},
-            activeMasksCount: {value: activeMasksCount},
-            activeMasks: {type: 't', value: activeMasks},
-            colormap: {type: 't', value: colormap},
+            opacity: { value: config.opacity },
+            mask: { type: 't', value: mask },
+            maskColors: { type: 't', value: maskColors },
+            maskOpacity: { value: config.mask_opacity },
+            activeMasksCount: { value: activeMasksCount },
+            activeMasks: { type: 't', value: activeMasks },
+            colormap: { type: 't', value: colormap },
         };
 
         addTextureToUniforms(uniforms, config);
@@ -381,7 +381,7 @@ module.exports = {
         commonUpdate(config, changes, resolvedChanges, obj, K3D);
 
         if (areAllChangesResolve(changes, resolvedChanges)) {
-            return Promise.resolve({json: config, obj});
+            return Promise.resolve({ json: config, obj });
         }
         return false;
     },

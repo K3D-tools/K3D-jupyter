@@ -3,10 +3,10 @@
 import numpy as np
 from typing import Union, List as TypingList, Optional, Dict as TypingDict, Any, Tuple
 
+from .common import default_colormap
 from ..helpers import check_attribute_color_range
 from ..objects import Texture
 from ..transform import process_transform_arguments
-from .common import default_colormap
 
 # Type aliases for better readability
 ArrayLike = Union[TypingList, np.ndarray, Tuple]
@@ -38,7 +38,7 @@ def texture(
         puv = []
     if opacity_function is None:
         opacity_function = []
-        
+
     if color_map is None:
         color_map = default_colormap
     color_map = np.array(color_map, np.float32)
@@ -61,4 +61,4 @@ def texture(
             compression_level=compression_level,
         ),
         **kwargs
-    ) 
+    )

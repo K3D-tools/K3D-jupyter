@@ -25,9 +25,11 @@ class TF_editor(widgets.DOMWidget):
 
     # read-write
     color_map = Array(dtype=np.float32).tag(sync=True, **array_serialization_wrap('color_map'))
-    opacity_function = Array(dtype=np.float32).tag(sync=True, **array_serialization_wrap('opacity_function'))
+    opacity_function = Array(dtype=np.float32).tag(sync=True,
+                                                   **array_serialization_wrap('opacity_function'))
 
-    def __init__(self, height: int, color_map: np.ndarray, opacity_function: np.ndarray, *args: Any, **kwargs: Any) -> None:
+    def __init__(self, height: int, color_map: np.ndarray, opacity_function: np.ndarray, *args: Any,
+                 **kwargs: Any) -> None:
         super(TF_editor, self).__init__()
 
         self.height = height
@@ -82,7 +84,9 @@ class TF_editor(widgets.DOMWidget):
         return proposal['value']
 
 
-def transfer_function_editor(color_map: np.ndarray = paraview_color_maps.Jet, opacity_function: Optional[np.ndarray] = None, height: int = 300) -> TF_editor:
+def transfer_function_editor(color_map: np.ndarray = paraview_color_maps.Jet,
+                             opacity_function: Optional[np.ndarray] = None,
+                             height: int = 300) -> TF_editor:
     """Create a K3D Transfer function editor widget.
 
     Arguments:
@@ -96,6 +100,7 @@ def transfer_function_editor(color_map: np.ndarray = paraview_color_maps.Jet, op
             typles should have value 0.0, the last 1.0; opacity is in the range 0.0 to 1.0.
     """
     if opacity_function is None:
-        opacity_function = np.array([np.min(color_map[::4]), 0.0, np.max(color_map[::4]), 1.0], dtype=np.float32)
+        opacity_function = np.array([np.min(color_map[::4]), 0.0, np.max(color_map[::4]), 1.0],
+                                    dtype=np.float32)
 
     return TF_editor(height, color_map, opacity_function)

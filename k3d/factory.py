@@ -1,7 +1,8 @@
 # Re-export all factory functions from submodules
 from .factory.common import _default_color, nice_colors, default_colormap
 from .factory.geometry import line, lines, mesh, surface, stl
-from .factory.volumetric import volume, mip, volume_slice, voxels, sparse_voxels, voxels_group, marching_cubes, voxel_chunk
+from .factory.volumetric import volume, mip, volume_slice, voxels, sparse_voxels, voxels_group, \
+    marching_cubes, voxel_chunk
 from .factory.text import text, text2d, label, texture_text
 from .factory.vectors import vector_field, vectors
 from .factory.points import points

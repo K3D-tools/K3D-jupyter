@@ -2,9 +2,9 @@
 
 from typing import Union, List as TypingList, Optional, Dict as TypingDict, Any, Tuple
 
+from .common import _default_color
 from ..objects import Text, Text2d, Label, TextureText
 from ..transform import process_transform_arguments
-from .common import _default_color
 
 # Type aliases for better readability
 ArrayLike = Union[TypingList, Tuple]
@@ -27,7 +27,7 @@ def text(
 ) -> Text:
     if position is None:
         position = [0, 0, 0]
-        
+
     return process_transform_arguments(
         Text(
             position=position,
@@ -140,4 +140,4 @@ def texture_text(
             compression_level=compression_level,
         ),
         **kwargs
-    ) 
+    )

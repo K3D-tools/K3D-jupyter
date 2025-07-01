@@ -579,4 +579,4 @@ class VoxelsGroup(DrawableWithVoxelCallback):
         self.set_trait("type", "VoxelsGroup")
 
     def get_bounding_box(self):
-        return get_bounding_box(self.model_matrix) 
+        return get_bounding_box(self.model_matrix)

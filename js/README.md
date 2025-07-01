@@ -6,7 +6,7 @@
 * grunt + plugins
 
 > **Note**  
-Run `npm install` before any usage or to update dependencies
+> Run `npm install` before any usage or to update dependencies
 
 ## Available commands
 

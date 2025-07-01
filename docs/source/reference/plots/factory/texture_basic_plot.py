@@ -1,5 +1,6 @@
-import k3d
 import os
+
+import k3d
 
 
 def generate():

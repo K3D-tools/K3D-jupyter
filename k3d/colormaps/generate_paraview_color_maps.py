@@ -6,7 +6,6 @@ response = urllib.request.urlopen(
 data = json.loads(response.read().decode('utf8'))
 
 with open('paraview_color_maps.py', 'w') as file:
-
     file.write("""\"\"\"
 ParaView colormaps.
 \"\"\"

@@ -1,6 +1,5 @@
 import os
 import pytest
-import sys
 from PIL import Image
 from io import BytesIO
 from pixelmatch.contrib.PIL import pixelmatch

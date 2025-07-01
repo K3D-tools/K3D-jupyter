@@ -81,9 +81,9 @@ module.exports = function (THREE) {
 
         // events
 
-        const changeEvent = {type: 'change'};
-        const startEvent = {type: 'start'};
-        const endEvent = {type: 'end'};
+        const changeEvent = { type: 'change' };
+        const startEvent = { type: 'start' };
+        const endEvent = { type: 'end' };
 
         // methods
 
@@ -601,7 +601,7 @@ module.exports = function (THREE) {
 
         this.domElement.addEventListener('pointerdown', onPointerDown);
         this.domElement.addEventListener('pointercancel', onPointerCancel);
-        this.domElement.addEventListener('wheel', onMouseWheel, {passive: false});
+        this.domElement.addEventListener('wheel', onMouseWheel, { passive: false });
         this.domElement.addEventListener('contextmenu', contextmenu);
 
         // force an update at start

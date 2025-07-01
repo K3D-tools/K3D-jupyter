@@ -29,4 +29,4 @@ nice_colors = (
     0x000000,
 )
 
-default_colormap = matplotlib_color_maps.Inferno 
+default_colormap = matplotlib_color_maps.Inferno

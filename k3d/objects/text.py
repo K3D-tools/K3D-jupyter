@@ -9,15 +9,15 @@ from traitlets import (
 )
 from traittypes import Array
 
-from ..helpers import (
-    array_serialization_wrap,
-    get_bounding_box_point,
-)
 from .base import (
     Drawable,
     TimeSeries,
     SingleOrList,
     EPSILON,
+)
+from ..helpers import (
+    array_serialization_wrap,
+    get_bounding_box_point,
 )
 
 
@@ -53,7 +53,8 @@ class Text(Drawable):
 
     type = Unicode(read_only=True).tag(sync=True)
     text = TimeSeries(SingleOrList(Unicode())).tag(sync=True)
-    position = TimeSeries(Array(dtype=np.float32)).tag(sync=True, **array_serialization_wrap("position"))
+    position = TimeSeries(Array(dtype=np.float32)).tag(sync=True,
+                                                       **array_serialization_wrap("position"))
     is_html = Bool(False).tag(sync=True)
     color = Int(min=0, max=0xFFFFFF).tag(sync=True)
     reference_point = Unicode().tag(sync=True)
@@ -101,7 +102,8 @@ class Text2d(Drawable):
 
     type = Unicode(read_only=True).tag(sync=True)
     text = TimeSeries(SingleOrList(Unicode())).tag(sync=True)
-    position = TimeSeries(Array(dtype=np.float32)).tag(sync=True, **array_serialization_wrap("position"))
+    position = TimeSeries(Array(dtype=np.float32)).tag(sync=True,
+                                                       **array_serialization_wrap("position"))
     is_html = Bool(False).tag(sync=True)
     color = Int(min=0, max=0xFFFFFF).tag(sync=True)
     reference_point = Unicode().tag(sync=True)
@@ -149,7 +151,8 @@ class Label(Drawable):
     mode = Unicode().tag(sync=True)
     text = TimeSeries(SingleOrList(Unicode())).tag(sync=True)
     is_html = Bool(False).tag(sync=True)
-    position = TimeSeries(Array(dtype=np.float32)).tag(sync=True, **array_serialization_wrap("position"))
+    position = TimeSeries(Array(dtype=np.float32)).tag(sync=True,
+                                                       **array_serialization_wrap("position"))
     color = Int(min=0, max=0xFFFFFF).tag(sync=True)
     max_length = Float(min=0, max=1.0).tag(sync=True)
     size = TimeSeries(Float(min=EPSILON, default_value=1.0)).tag(sync=True)
@@ -200,7 +203,8 @@ class TextureText(Drawable):
 
     type = Unicode(read_only=True).tag(sync=True)
     text = TimeSeries(SingleOrList(Unicode())).tag(sync=True)
-    position = TimeSeries(Array(dtype=np.float32)).tag(sync=True, **array_serialization_wrap("position"))
+    position = TimeSeries(Array(dtype=np.float32)).tag(sync=True,
+                                                       **array_serialization_wrap("position"))
     color = TimeSeries(Int(min=0, max=0xFFFFFF)).tag(sync=True)
     size = TimeSeries(Float(min=EPSILON, default_value=1.0)).tag(sync=True)
     font_face = Unicode().tag(sync=True)
@@ -216,4 +220,4 @@ class TextureText(Drawable):
         self.set_trait("type", "TextureText")
 
     def get_bounding_box(self):
-        return get_bounding_box_point(self.position) 
+        return get_bounding_box_point(self.position)

@@ -1,7 +1,7 @@
 import os
+import pyvista as pv
 
 import k3d
-import pyvista as pv
 
 
 def generate():

@@ -1,10 +1,10 @@
 const THREE = require('three');
 const interactionsHelper = require('../helpers/Interactions');
 const colorMapHelper = require('../../../core/lib/helpers/colorMap');
-const {typedArrayToThree} = require('../helpers/Fn');
-const {areAllChangesResolve} = require('../helpers/Fn');
-const {commonUpdate} = require('../helpers/Fn');
-const {getSide} = require('../helpers/Fn');
+const { typedArrayToThree } = require('../helpers/Fn');
+const { areAllChangesResolve } = require('../helpers/Fn');
+const { commonUpdate } = require('../helpers/Fn');
+const { getSide } = require('../helpers/Fn');
 
 /**
  * Loader strategy to handle Mesh object
@@ -62,11 +62,11 @@ module.exports = {
 
         const material = new THREE.ShaderMaterial({
             uniforms: {
-                opacity: {value: config.opacity},
-                low: {value: colorRange[0]},
-                high: {value: colorRange[1]},
-                volumeTexture: {type: 't', value: texture},
-                colormap: {type: 't', value: colormap},
+                opacity: { value: config.opacity },
+                low: { value: colorRange[0] },
+                high: { value: colorRange[1] },
+                volumeTexture: { type: 't', value: texture },
+                colormap: { type: 't', value: colormap },
                 b1: {
                     type: 'v3',
                     value: new THREE.Vector3(
@@ -157,7 +157,7 @@ module.exports = {
         commonUpdate(config, changes, resolvedChanges, obj, K3D);
 
         if (areAllChangesResolve(changes, resolvedChanges)) {
-            return Promise.resolve({json: config, obj});
+            return Promise.resolve({ json: config, obj });
         }
         return false;
     },

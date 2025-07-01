@@ -5,6 +5,7 @@ import os
 import k3d
 from k3d.helpers import contour
 
+
 def generate():
     filepath = os.path.join(os.path.abspath(os.path.dirname(__file__)),
                             '../../assets/factory/heart.mhd')
@@ -31,7 +32,7 @@ def generate():
                                     slice_x=215,
                                     bounds=bounds,
                                     mask=mask.astype(np.uint8),
-                                    active_masks= np.unique(mask)[1:],
+                                    active_masks=np.unique(mask)[1:],
                                     color_map_masks=k3d.nice_colors,
                                     mask_opacity=0.75)
 

@@ -5,7 +5,7 @@
  * @memberof K3D.Providers.ThreeJS.Initializers
  */
 
-const {getSpaceDimensionsFromTargetElement} = require('../helpers/Fn');
+const { getSpaceDimensionsFromTargetElement } = require('../helpers/Fn');
 
 module.exports = function () {
     const dimensions = getSpaceDimensionsFromTargetElement(this);

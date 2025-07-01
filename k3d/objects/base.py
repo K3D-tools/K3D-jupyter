@@ -2,20 +2,15 @@
 
 import ipywidgets as widgets
 import numpy as np
-import warnings
 from traitlets import (
     Any,
     Bool,
-    Bytes,
     Dict,
-    Float,
     Int,
     Integer,
     List,
-    TraitError,
     Unicode,
     Union,
-    validate,
 )
 from traittypes import Array
 
@@ -23,9 +18,6 @@ from .._version import __version__ as version
 from ..helpers import (
     array_serialization_wrap,
     callback_serialization_wrap,
-    get_bounding_box_point,
-    get_bounding_box_points,
-    get_bounding_box,
     to_json,
 )
 
@@ -261,4 +253,4 @@ class Group(Drawable):
     def __assert_drawable(arg):
         assert isinstance(arg, Drawable)
 
-        return arg 
+        return arg

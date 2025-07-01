@@ -1,7 +1,7 @@
 const THREE = require('three');
 const interactionsHelper = require('../helpers/Interactions');
-const {areAllChangesResolve} = require('../helpers/Fn');
-const {commonUpdate} = require('../helpers/Fn');
+const { areAllChangesResolve } = require('../helpers/Fn');
+const { commonUpdate } = require('../helpers/Fn');
 const buffer = require('../../../core/lib/helpers/buffer');
 
 /**
@@ -45,7 +45,7 @@ module.exports = {
             geometry.computeBoundingBox();
 
             image.onload = function () {
-                material = new THREE.MeshBasicMaterial({color: 0xffffff, side: THREE.DoubleSide, map: texture});
+                material = new THREE.MeshBasicMaterial({ color: 0xffffff, side: THREE.DoubleSide, map: texture });
                 object = new THREE.Mesh(geometry, material);
 
                 interactionsHelper.init(config, object, K3D);
@@ -80,7 +80,7 @@ module.exports = {
         commonUpdate(config, changes, resolvedChanges, obj, K3D);
 
         if (areAllChangesResolve(changes, resolvedChanges)) {
-            return Promise.resolve({json: config, obj});
+            return Promise.resolve({ json: config, obj });
         }
         return false;
     },
