@@ -143,7 +143,7 @@ class Vectors(Drawable):
     head_color = Int(min=0, max=0xFFFFFF).tag(sync=True)
     use_head = Bool().tag(sync=True)
     head_size = Float(min=1e-6, default_value=1.0).tag(sync=True)
-    labels = List().tag(sync=True)
+    labels = List(default_value=[]).tag(sync=True)
     label_size = Float(min=1e-6, default_value=1.0).tag(sync=True)
     line_width = Float(min=1e-6, default_value=0.01).tag(sync=True)
     model_matrix = TimeSeries(Array(dtype=np.float32)).tag(

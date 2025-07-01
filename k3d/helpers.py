@@ -9,6 +9,7 @@ from traitlets import TraitError
 from urllib.request import urlopen
 
 from ._protocol import get_protocol
+from typing import Union, List, Optional, Dict, Any, Tuple
 
 
 # import logging
@@ -211,7 +212,7 @@ def minmax(arr):
     return [float(np.nanmin(arr)), float(np.nanmax(arr))]
 
 
-def check_attribute_color_range(attribute, color_range=()):
+def check_attribute_color_range(attribute: Union[np.ndarray, Dict[str, np.ndarray]], color_range: Union[List[float], Tuple[float, ...]] = ()) -> List[float]:
     """Return color range versus provided attribute.
 
     Parameters
@@ -227,6 +228,9 @@ def check_attribute_color_range(attribute, color_range=()):
         Color range.
     """
 
+    if color_range is None:
+        color_range = []
+    
     if len(color_range) == 2:
         return color_range
     elif type(attribute) is dict:
@@ -243,10 +247,10 @@ def check_attribute_color_range(attribute, color_range=()):
     return color_range
 
 
-def map_colors(attribute, color_map, color_range=()):
+def map_colors(attribute: np.ndarray, color_map: Union[List[List[float]], np.ndarray], color_range: Union[List[float], Tuple[float, ...]] = ()) -> np.ndarray:
     """Return color mapping according to an attribute and a colormap.
 
-    The attribute represents the data on which the colormap will be apply.
+    The attribute represents the data on which the colormap will be applied.
     The color range allows to constraint the colormap between two values.
 
     Parameters
@@ -282,7 +286,7 @@ def map_colors(attribute, color_map, color_range=()):
     return colors
 
 
-def bounding_corners(bounds, z_bounds=(0, 1)):
+def bounding_corners(bounds: Union[List[float], np.ndarray], z_bounds: Tuple[float, float] = (0, 1)) -> np.ndarray:
     """Return corner point coordinates for bounds array.
 
     `z_bounds` assigns Z points coordinates if bounds contains less than 5 items.
@@ -305,7 +309,7 @@ def bounding_corners(bounds, z_bounds=(0, 1)):
     )
 
 
-def min_bounding_dimension(bounds):
+def min_bounding_dimension(bounds: Union[List[float], np.ndarray]) -> float:
     """Return the minimal dimension along axis in a bounds array.
 
     `bounds` must be of the form [min_x, max_x, min_y, max_y, min_z, max_z].
@@ -380,7 +384,7 @@ def sparse_voxels_validation():
     return validator
 
 
-def quad(w, h):
+def quad(w: float, h: float) -> Tuple[np.ndarray, np.ndarray]:
     """Return the vertices and indices of a `w` * `h` quadrilateral.
 
     Parameters

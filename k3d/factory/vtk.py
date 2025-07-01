@@ -1,10 +1,18 @@
 """Factory function for VTK PolyData objects."""
 
 import numpy as np
+from typing import Union, List, Optional, Dict, Any, Tuple
+
 from ..helpers import check_attribute_color_range
 from ..objects import Mesh
 from ..transform import process_transform_arguments
 from .common import _default_color, default_colormap
+
+# Type aliases for better readability
+ArrayLike = Union[List, np.ndarray, Tuple]
+ColorMap = Union[List[List[float]], Dict[str, Any], np.ndarray]
+ColorRange = List[float]
+OpacityFunction = List[float]
 
 # Optional dependency
 try:
@@ -16,26 +24,37 @@ except ImportError:
 
 
 def vtk_poly_data(
-        poly_data,
-        color=_default_color,
-        color_attribute=None,
-        color_map=None,
-        side="front",
-        slice_planes=[],
-        wireframe=False,
-        opacity=1.0,
-        volume=[],
-        volume_bounds=[],
-        opacity_function=[],
-        color_range=[],
-        cell_color_attribute=None,
-        flat_shading=True,
-        name=None,
-        group=None,
-        custom_data=None,
-        compression_level=0,
-        **kwargs
-):
+        poly_data: Any,  # vtk.vtkPolyData
+        color: int = _default_color,
+        color_attribute: Optional[Tuple[str, float, float]] = None,
+        color_map: Optional[ColorMap] = None,
+        side: str = "front",
+        slice_planes: ArrayLike = None,
+        wireframe: bool = False,
+        opacity: float = 1.0,
+        volume: ArrayLike = None,
+        volume_bounds: ArrayLike = None,
+        opacity_function: OpacityFunction = None,
+        color_range: ColorRange = None,
+        cell_color_attribute: Optional[Tuple[str, float, float]] = None,
+        flat_shading: bool = True,
+        name: Optional[str] = None,
+        group: Optional[str] = None,
+        custom_data: Optional[Dict[str, Any]] = None,
+        compression_level: int = 0,
+        **kwargs: Any
+) -> Mesh:
+    if slice_planes is None:
+        slice_planes = []
+    if volume is None:
+        volume = []
+    if volume_bounds is None:
+        volume_bounds = []
+    if opacity_function is None:
+        opacity_function = []
+    if color_range is None:
+        color_range = []
+        
     if color_map is None:
         color_map = default_colormap
 

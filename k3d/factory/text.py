@@ -1,25 +1,33 @@
 """Factory functions for text and label objects."""
 
+from typing import Union, List, Optional, Dict, Any, Tuple
+
 from ..objects import Text, Text2d, Label, TextureText
 from ..transform import process_transform_arguments
 from .common import _default_color
 
+# Type aliases for better readability
+ArrayLike = Union[List, Tuple]
+
 
 def text(
-        text,
-        position=[0, 0, 0],
-        color=_default_color,
-        reference_point="lb",
-        on_top=True,
-        size=1.0,
-        label_box=True,
-        is_html=False,
-        name=None,
-        group=None,
-        custom_data=None,
-        compression_level=0,
-        **kwargs
-):
+        text: str,
+        position: ArrayLike = None,
+        color: int = _default_color,
+        reference_point: str = "lb",
+        on_top: bool = True,
+        size: float = 1.0,
+        label_box: bool = True,
+        is_html: bool = False,
+        name: Optional[str] = None,
+        group: Optional[str] = None,
+        custom_data: Optional[Dict[str, Any]] = None,
+        compression_level: int = 0,
+        **kwargs: Any
+) -> Text:
+    if position is None:
+        position = [0, 0, 0]
+        
     return process_transform_arguments(
         Text(
             position=position,
@@ -40,18 +48,18 @@ def text(
 
 
 def text2d(
-        text,
-        position=(0, 0),
-        color=_default_color,
-        size=1.0,
-        reference_point="lt",
-        label_box=True,
-        is_html=False,
-        name=None,
-        group=None,
-        custom_data=None,
-        compression_level=0,
-):
+        text: str,
+        position: Tuple[float, float] = (0, 0),
+        color: int = _default_color,
+        size: float = 1.0,
+        reference_point: str = "lt",
+        label_box: bool = True,
+        is_html: bool = False,
+        name: Optional[str] = None,
+        group: Optional[str] = None,
+        custom_data: Optional[Dict[str, Any]] = None,
+        compression_level: int = 0,
+) -> Text2d:
     return Text2d(
         position=position,
         reference_point=reference_point,
@@ -68,21 +76,21 @@ def text2d(
 
 
 def label(
-        text,
-        position=(0, 0, 0),
-        color=_default_color,
-        on_top=True,
-        size=1.0,
-        max_length=0.8,
-        mode="dynamic",
-        is_html=False,
-        label_box=True,
-        name=None,
-        group=None,
-        custom_data=None,
-        compression_level=0,
-        **kwargs
-):
+        text: str,
+        position: Tuple[float, float, float] = (0, 0, 0),
+        color: int = _default_color,
+        on_top: bool = True,
+        size: float = 1.0,
+        max_length: float = 0.8,
+        mode: str = "dynamic",
+        is_html: bool = False,
+        label_box: bool = True,
+        name: Optional[str] = None,
+        group: Optional[str] = None,
+        custom_data: Optional[Dict[str, Any]] = None,
+        compression_level: int = 0,
+        **kwargs: Any
+) -> Label:
     return process_transform_arguments(
         Label(
             position=position,
@@ -104,19 +112,19 @@ def label(
 
 
 def texture_text(
-        text,
-        position=(0, 0, 0),
-        color=_default_color,
-        font_weight=400,
-        font_face="Courier New",
-        font_size=68,
-        size=1.0,
-        name=None,
-        group=None,
-        custom_data=None,
-        compression_level=0,
-        **kwargs
-):
+        text: str,
+        position: Tuple[float, float, float] = (0, 0, 0),
+        color: int = _default_color,
+        font_weight: int = 400,
+        font_face: str = "Courier New",
+        font_size: int = 68,
+        size: float = 1.0,
+        name: Optional[str] = None,
+        group: Optional[str] = None,
+        custom_data: Optional[Dict[str, Any]] = None,
+        compression_level: int = 0,
+        **kwargs: Any
+) -> TextureText:
     return process_transform_arguments(
         TextureText(
             text=text,

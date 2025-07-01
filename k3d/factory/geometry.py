@@ -2,33 +2,39 @@
 
 import numpy as np
 import six
+from typing import Union, List, Optional, Dict, Any, Tuple
 
+from .common import _default_color, default_colormap
 from ..helpers import check_attribute_color_range
 from ..objects import Line, Lines, Mesh, STL, Surface
 from ..transform import process_transform_arguments
-from .common import _default_color, default_colormap
+
+# Type aliases for better readability
+ArrayLike = Union[List, np.ndarray, Tuple]
+ColorMap = Union[List[List[float]], Dict[str, Any], np.ndarray]
+ColorRange = List[float]
 
 
 def lines(
-        vertices,
-        indices,
-        indices_type="triangle",
-        color=_default_color,
-        colors=[],  # lgtm [py/similar-function]
-        attribute=[],
-        color_map=None,
-        color_range=[],
-        width=0.01,
-        shader="thick",
-        shininess=50.0,
-        radial_segments=8,
-        opacity=1.0,
-        name=None,
-        group=None,
-        custom_data=None,
-        compression_level=0,
-        **kwargs
-):
+        vertices: ArrayLike,
+        indices: ArrayLike,
+        indices_type: str = "triangle",
+        color: int = _default_color,
+        colors: List[int] = None,  # lgtm [py/similar-function]
+        attribute: ArrayLike = None,
+        color_map: Optional[ColorMap] = None,
+        color_range: ColorRange = None,
+        width: float = 0.01,
+        shader: str = "thick",
+        shininess: float = 50.0,
+        radial_segments: int = 8,
+        opacity: float = 1.0,
+        name: Optional[str] = None,
+        group: Optional[str] = None,
+        custom_data: Optional[Dict[str, Any]] = None,
+        compression_level: int = 0,
+        **kwargs: Any
+) -> Lines:
     """Create a Line drawable for plotting segments and polylines.
 
     Arguments:
@@ -80,6 +86,12 @@ def lines(
         custom_data: `dict`.
             A object with custom data attached to object.
             """
+    if colors is None:
+        colors = []
+    if attribute is None:
+        attribute = []
+    if color_range is None:
+        color_range = []
     if color_map is None:
         color_map = default_colormap
 
@@ -116,23 +128,23 @@ def lines(
 
 
 def line(
-        vertices,
-        color=_default_color,
-        colors=[],  # lgtm [py/similar-function]
-        attribute=[],
-        color_map=None,
-        color_range=[],
-        width=0.01,
-        opacity=1.0,
-        shader="thick",
-        shininess=50.0,
-        radial_segments=8,
-        name=None,
-        group=None,
-        custom_data=None,
-        compression_level=0,
-        **kwargs
-):
+        vertices: ArrayLike,
+        color: int = _default_color,
+        colors: List[int] = None,  # lgtm [py/similar-function]
+        attribute: ArrayLike = None,
+        color_map: Optional[ColorMap] = None,
+        color_range: ColorRange = None,
+        width: float = 0.01,
+        opacity: float = 1.0,
+        shader: str = "thick",
+        shininess: float = 50.0,
+        radial_segments: int = 8,
+        name: Optional[str] = None,
+        group: Optional[str] = None,
+        custom_data: Optional[Dict[str, Any]] = None,
+        compression_level: int = 0,
+        **kwargs: Any
+) -> Line:
     """Create a Line drawable for plotting segments and polylines.
 
     Parameters
@@ -176,6 +188,13 @@ def line(
     Line
         Line Drawable.
     """
+    if colors is None:
+        colors = []
+    if attribute is None:
+        attribute = []
+    if color_range is None:
+        color_range = []
+
     if color_map is None:
         color_map = default_colormap
     color_map = (
@@ -199,7 +218,6 @@ def line(
             attribute=attribute,
             color_map=color_map,
             color_range=color_range,
-            shininess=shininess,
             opacity=opacity,
             name=name,
             group=group,
@@ -211,34 +229,34 @@ def line(
 
 
 def mesh(
-        vertices,
-        indices,
-        normals=[],
-        color=_default_color,
-        colors=[],
-        attribute=[],
-        color_map=None,
+        vertices: ArrayLike,
+        indices: ArrayLike,
+        normals: ArrayLike = None,
+        color: int = _default_color,
+        colors: List[int] = None,
+        attribute: ArrayLike = None,
+        color_map: Optional[ColorMap] = None,
         # lgtm [py/similar-function]
-        color_range=[],
-        wireframe=False,
-        flat_shading=True,
-        shininess=50.0,
-        opacity=1.0,
-        texture=None,
-        texture_file_format=None,
-        volume=[],
-        volume_bounds=[],
-        opacity_function=[],
-        side="front",
-        uvs=None,
-        slice_planes=[],
-        name=None,
-        group=None,
-        custom_data=None,
-        compression_level=0,
-        triangles_attribute=[],
-        **kwargs
-):
+        color_range: ColorRange = None,
+        wireframe: bool = False,
+        flat_shading: bool = True,
+        shininess: float = 50.0,
+        opacity: float = 1.0,
+        texture: Optional[bytes] = None,
+        texture_file_format: Optional[str] = None,
+        volume: ArrayLike = None,
+        volume_bounds: ArrayLike = None,
+        opacity_function: ArrayLike = None,
+        side: str = "front",
+        uvs: Optional[ArrayLike] = None,
+        slice_planes: ArrayLike = None,
+        name: Optional[str] = None,
+        group: Optional[str] = None,
+        custom_data: Optional[Dict[str, Any]] = None,
+        compression_level: int = 0,
+        triangles_attribute: ArrayLike = None,
+        **kwargs: Any
+) -> Mesh:
     """Create a Mesh drawable from 3D triangles.
 
     Parameters
@@ -305,6 +323,26 @@ def mesh(
     Mesh
         Mesh Drawable
     """
+    # Ensure arraylike attributes are initialized as [] if None
+    if colors is None:
+        colors = []
+    if slice_planes is None:
+        slice_planes = []
+    if normals is None:
+        normals = []
+    if attribute is None:
+        attribute = []
+    if triangles_attribute is None:
+        triangles_attribute = []
+    if volume is None:
+        volume = []
+    if volume_bounds is None:
+        volume_bounds = []
+    if opacity_function is None:
+        opacity_function = []
+    if uvs is None:
+        uvs = []
+
     if color_map is None:
         color_map = default_colormap
     color_map = (
@@ -375,17 +413,17 @@ def mesh(
 
 # noinspection PyShadowingNames
 def stl(
-        stl,
-        color=_default_color,
-        wireframe=False,
-        flat_shading=True,
-        shininess=50.0,
-        name=None,
-        group=None,
-        custom_data=None,
-        compression_level=0,
-        **kwargs
-):
+        stl: Union[str, bytes],
+        color: int = _default_color,
+        wireframe: bool = False,
+        flat_shading: bool = True,
+        shininess: float = 50.0,
+        name: Optional[str] = None,
+        group: Optional[str] = None,
+        custom_data: Optional[Dict[str, Any]] = None,
+        compression_level: int = 0,
+        **kwargs: Any
+) -> STL:
     """Create an STL drawable for data in STereoLitograpy format.
 
     Parameters
@@ -436,21 +474,21 @@ def stl(
 
 
 def surface(
-        heights,
-        color=_default_color,
-        wireframe=False,
-        flat_shading=True,
-        shininess=50.0,
-        attribute=[],
-        color_map=None,
-        color_range=[],
-        opacity=1.0,
-        name=None,
-        group=None,
-        custom_data=None,
-        compression_level=0,
-        **kwargs
-):
+        heights: ArrayLike,
+        color: int = _default_color,
+        wireframe: bool = False,
+        flat_shading: bool = True,
+        shininess: float = 50.0,
+        attribute: ArrayLike = None,
+        color_map: Optional[ColorMap] = None,
+        color_range: ColorRange = None,
+        opacity: float = 1.0,
+        name: Optional[str] = None,
+        group: Optional[str] = None,
+        custom_data: Optional[Dict[str, Any]] = None,
+        compression_level: int = 0,
+        **kwargs: Any
+) -> Surface:
     """Create a Surface drawable.
 
     Plot a 2d function: z = f(x, y).
@@ -500,6 +538,11 @@ def surface(
     Surface
         Surface Drawable.
     """
+    if attribute is None:
+        attribute = []
+    if color_range is None:
+        color_range = []
+
     if color_map is None:
         color_map = default_colormap
     color_map = np.array(color_map, np.float32)
@@ -523,4 +566,4 @@ def surface(
             compression_level=compression_level,
         ),
         **kwargs
-    ) 
+    )

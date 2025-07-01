@@ -75,7 +75,12 @@ function deserialize(obj, manager) {
         return null;
     }
     if (typeof (obj) === 'string' && obj.substring(0, 7) === 'base64_') {
-        obj = msgpack.decode(buffer.base64ToArrayBuffer(obj.substring(7)), { codec: MsgpackCodec });
+        try {
+            obj = msgpack.decode(buffer.base64ToArrayBuffer(obj.substring(7)), { codec: MsgpackCodec });
+        } catch (error) {
+            console.error('K3D: Failed to deserialize base64 data:', error.message);
+            throw new Error('Invalid base64 data in serialization: ' + error.message);
+        }
     }
     if (typeof (obj) === 'string' || typeof (obj) === 'boolean') {
         return obj;

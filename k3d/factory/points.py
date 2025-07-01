@@ -1,33 +1,54 @@
 """Factory function for point cloud objects."""
 
 import numpy as np
+from typing import Union, List, Optional, Dict, Any, Tuple
+
 from ..helpers import check_attribute_color_range
 from ..objects import Points
 from ..transform import process_transform_arguments
 from .common import _default_color, default_colormap
 
+# Type aliases for better readability
+ArrayLike = Union[List, np.ndarray, Tuple]
+ColorMap = Union[List[List[float]], Dict[str, Any], np.ndarray]
+ColorRange = List[float]
+OpacityFunction = List[float]
+
 
 def points(
-        positions,
-        colors=[],
-        color=_default_color,
-        point_size=1.0,
-        point_sizes=[],
-        shininess=50.0,
-        shader="3dSpecular",
-        opacity=1.0,
-        opacities=[],
-        attribute=[],
-        color_map=None,
-        color_range=[],
-        opacity_function=[],
-        name=None,
-        group=None,
-        custom_data=None,
-        compression_level=0,
-        mesh_detail=2,
-        **kwargs
-):
+        positions: ArrayLike,
+        colors: List[int] = None,
+        color: int = _default_color,
+        point_size: float = 1.0,
+        point_sizes: ArrayLike = None,
+        shininess: float = 50.0,
+        shader: str = "3dSpecular",
+        opacity: float = 1.0,
+        opacities: ArrayLike = None,
+        attribute: ArrayLike = None,
+        color_map: Optional[ColorMap] = None,
+        color_range: ColorRange = None,
+        opacity_function: OpacityFunction = None,
+        name: Optional[str] = None,
+        group: Optional[str] = None,
+        custom_data: Optional[Dict[str, Any]] = None,
+        compression_level: int = 0,
+        mesh_detail: int = 2,
+        **kwargs: Any
+) -> Points:
+    if colors is None:
+        colors = []
+    if point_sizes is None:
+        point_sizes = []
+    if opacities is None:
+        opacities = []
+    if attribute is None:
+        attribute = []
+    if color_range is None:
+        color_range = []
+    if opacity_function is None:
+        opacity_function = []
+        
     if color_map is None:
         color_map = default_colormap
 

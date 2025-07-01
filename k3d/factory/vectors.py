@@ -1,27 +1,35 @@
 """Factory functions for vector and vector field objects."""
 
 import numpy as np
+from typing import Union, List, Optional, Dict, Any, Tuple
+
 from ..objects import VectorField, Vectors
 from ..transform import process_transform_arguments
 from .common import _default_color
 
+# Type aliases for better readability
+ArrayLike = Union[List, np.ndarray, Tuple]
+
 
 def vector_field(
-        vectors,
-        colors=[],
-        origin_color=None,
-        head_color=None,
-        color=_default_color,
-        use_head=True,
-        head_size=1.0,
-        scale=1.0,
-        line_width=0.01,
-        name=None,
-        group=None,
-        custom_data=None,
-        compression_level=0,
-        **kwargs
-):
+        vectors: ArrayLike,
+        colors: List[int] = None,
+        origin_color: Optional[int] = None,
+        head_color: Optional[int] = None,
+        color: int = _default_color,
+        use_head: bool = True,
+        head_size: float = 1.0,
+        scale: float = 1.0,
+        line_width: float = 0.01,
+        name: Optional[str] = None,
+        group: Optional[str] = None,
+        custom_data: Optional[Dict[str, Any]] = None,
+        compression_level: int = 0,
+        **kwargs: Any
+) -> VectorField:
+    if colors is None:
+        colors = []
+        
     return process_transform_arguments(
         VectorField(
             vectors=vectors,
@@ -42,23 +50,28 @@ def vector_field(
 
 
 def vectors(
-        origins,
-        vectors=None,
-        colors=[],
-        origin_color=None,
-        head_color=None,
-        color=_default_color,
-        use_head=True,
-        head_size=1.0,
-        labels=[],
-        label_size=1.0,
-        line_width=0.01,
-        name=None,
-        group=None,
-        custom_data=None,
-        compression_level=0,
-        **kwargs
-):
+        origins: ArrayLike,
+        vectors: Optional[ArrayLike] = None,
+        colors: List[int] = None,
+        origin_color: Optional[int] = None,
+        head_color: Optional[int] = None,
+        color: int = _default_color,
+        use_head: bool = True,
+        head_size: float = 1.0,
+        labels: List[str] = None,
+        label_size: float = 1.0,
+        line_width: float = 0.01,
+        name: Optional[str] = None,
+        group: Optional[str] = None,
+        custom_data: Optional[Dict[str, Any]] = None,
+        compression_level: int = 0,
+        **kwargs: Any
+) -> Vectors:
+    if colors is None:
+        colors = []
+    if labels is None:
+        labels = []
+        
     return process_transform_arguments(
         Vectors(
             vectors=vectors if vectors is not None else origins,

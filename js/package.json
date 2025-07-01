@@ -58,7 +58,7 @@
     "@jupyter-widgets/base": "^4.1.0",
     "fflate": "^0.7.3",
     "file-saver": "^2.0.5",
-    "katex": "^0.15.6",
+    "katex": "^0.16.22",
     "lil-gui": "^0.16.1",
     "lodash": "^4.17.21",
     "msgpack-lite": "^0.1.26",

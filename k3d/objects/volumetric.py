@@ -555,8 +555,8 @@ class VoxelsGroup(DrawableWithVoxelCallback):
 
     _hold_remeshing = Bool(default_value=False).tag(sync=True)
 
-    voxels_group = List().tag(sync=True, **array_serialization_wrap("voxels_group"))
-    chunks_ids = List().tag(sync=True)
+    voxels_group = List(default_value=[]).tag(sync=True, **array_serialization_wrap("voxels_group"))
+    chunks_ids = List(default_value=[]).tag(sync=True)
 
     space_size = Array(dtype=np.uint32).tag(
         sync=True, **array_serialization_wrap("space_size")

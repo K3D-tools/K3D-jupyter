@@ -1,11 +1,12 @@
 import numpy as np
 import weakref
 from functools import reduce
+from typing import Union, List, Optional, Dict, Any, Tuple
 
 _epsilon = 1e-6
 
 
-def get_bounds_fit_matrix(xmin, xmax, ymin, ymax, zmin, zmax):
+def get_bounds_fit_matrix(xmin: float, xmax: float, ymin: float, ymax: float, zmin: float, zmax: float) -> np.ndarray:
     """Return a 4x4 transform matrix.
 
     Map the default bounding box [-0.5, 0.5, -0.5, 0.5, -0.5, 0.5] into
@@ -56,7 +57,9 @@ class Transform(object):
     Abstraction of a 4x4 model transformation matrix with hierarchy support.
     """
 
-    def __init__(self, bounds=None, translation=None, rotation=None, scaling=None, custom_matrix=None, parent=None):
+    def __init__(self, bounds: Optional[List[float]] = None, translation: Optional[List[float]] = None, 
+                 rotation: Optional[List[float]] = None, scaling: Optional[List[float]] = None, 
+                 custom_matrix: Optional[np.ndarray] = None, parent: Optional['Transform'] = None):
         """
         Transform constructor.
 
@@ -79,8 +82,8 @@ class Transform(object):
         if parent is not None:
             parent._add_child(self)
 
-        self.drawables = []
-        self.children = []
+        self.drawables: List[weakref.ref] = []
+        self.children: List[weakref.ref] = []
         self.parent_matrix = parent.model_matrix if parent else np.identity(
             4, dtype=np.float32)
         self.custom_matrix = custom_matrix if custom_matrix is not None else np.identity(
@@ -88,7 +91,7 @@ class Transform(object):
         self.model_matrix = np.identity(4, dtype=np.float32)
         self._recompute_matrix()
 
-    def __setattr__(self, key, value):
+    def __setattr__(self, key: str, value: Any) -> None:
         """Set attributes with conversion to ndarray where needed."""
         is_set = hasattr(self, key)  # == False in constructor
 
@@ -129,12 +132,12 @@ class Transform(object):
             self._recompute_matrix()
             self._notify_dependants()
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return 'Transform(bounds={!r}, translation={!r}, rotation={!r}, scaling={!r})'.format(
             self.bounds, self.translation, self.rotation, self.scaling
         )
 
-    def _recompute_matrix(self):
+    def _recompute_matrix(self) -> None:
         # this method shouldn't modify any fields except self.model_matrix
 
         if self.bounds is None or len(self.bounds) == 0:
@@ -190,14 +193,14 @@ class Transform(object):
             translation_matrix, rotation_matrix, scaling_matrix, fit_matrix, self.custom_matrix, self.parent_matrix
         ])
 
-    def _add_child(self, transform):
+    def _add_child(self, transform: 'Transform') -> None:
         self.children.append(weakref.ref(transform))
 
-    def add_drawable(self, drawable):
+    def add_drawable(self, drawable: Any) -> None:
         """Register a Drawable to have its model_matrix overwritten after changes to the transform or its parent."""
         self.drawables.append(weakref.ref(drawable))
 
-    def parent_updated(self):
+    def parent_updated(self) -> None:
         """Read updated parent transform matrix and update own model_matrix.
 
         This method should be normally only called by parent Transform to notify its children.
@@ -207,7 +210,7 @@ class Transform(object):
         self._recompute_matrix()
         self._notify_dependants()
 
-    def _notify_dependants(self):
+    def _notify_dependants(self) -> None:
         extant_children = []
         for child_ref in self.children:
             child = child_ref()
@@ -225,7 +228,7 @@ class Transform(object):
         self.drawables[:] = extant_drawables
 
 
-def process_transform_arguments(drawable, **kwargs):
+def process_transform_arguments(drawable: Any, **kwargs: Any) -> Any:
     """Create a Transform to apply to a drawable.
 
     Parameters
@@ -301,7 +304,9 @@ def process_transform_arguments(drawable, **kwargs):
     return drawable
 
 
-def transform(bounds=None, translation=None, rotation=None, scaling=None, custom_matrix=None, parent=None):
+def transform(bounds: Optional[List[float]] = None, translation: Optional[List[float]] = None, 
+              rotation: Optional[List[float]] = None, scaling: Optional[List[float]] = None, 
+              custom_matrix: Optional[np.ndarray] = None, parent: Optional[Transform] = None) -> Transform:
     """Return a Transform object.
 
     Parameters

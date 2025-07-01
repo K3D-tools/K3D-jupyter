@@ -181,7 +181,6 @@ function K3D(provider, targetDOMNode, parameters) {
 
     function removeObjectFromScene(id) {
         let object = self.Provider.Helpers.getObjectById(world, id);
-
         if (object) {
             world.K3DObjects.remove(object);
             delete world.ObjectsById[id];
@@ -192,22 +191,18 @@ function K3D(provider, targetDOMNode, parameters) {
 
             if (object.geometry) {
                 object.geometry.dispose();
-                object.geometry = undefined;
             }
 
             if (object.material && object.material.map) {
                 object.material.map.dispose();
-                object.material.map = undefined;
             }
 
             if (object.material) {
                 object.material.dispose();
-                object.material = undefined;
             }
 
             if (object.mesh) {
                 object.mesh.dispose();
-                object.mesh = undefined;
             }
 
             object = undefined;
@@ -1293,34 +1288,39 @@ function K3D(provider, targetDOMNode, parameters) {
      * @memberof K3D.Core
      */
     this.setSnapshot = function (data) {
-        if (typeof (data) === 'string') {
-            data = fflate.unzlibSync(new Uint8Array(base64ToArrayBuffer(data)));
-        }
+        try {
+            if (typeof (data) === 'string') {
+                data = fflate.unzlibSync(new Uint8Array(base64ToArrayBuffer(data)));
+            }
 
-        if (data instanceof Uint8Array) {
-            data = msgpack.decode(data, {codec: MsgpackCodec});
-        }
+            if (data instanceof Uint8Array) {
+                data = msgpack.decode(data, {codec: MsgpackCodec});
+            }
 
-        Object.keys(data.chunkList).forEach((k) => {
-            const chunk = data.chunkList[k];
-            world.chunkList[chunk.id] = {
-                attributes: Object.keys(chunk).reduce((prev, p) => {
-                    prev[p] = serialize.deserialize(chunk[p]);
-                    return prev;
-                }, {}),
-            };
-        });
-
-        data.objects.forEach((o) => {
-            Object.keys(o).forEach((k) => {
-                o[k] = serialize.deserialize(o[k]);
+            Object.keys(data.chunkList).forEach((k) => {
+                const chunk = data.chunkList[k];
+                world.chunkList[chunk.id] = {
+                    attributes: Object.keys(chunk).reduce((prev, p) => {
+                        prev[p] = serialize.deserialize(chunk[p]);
+                        return prev;
+                    }, {}),
+                };
             });
-        });
 
-        return self.load({objects: data.objects}).then(() => self.refreshAfterObjectsChange(
-            false,
-            true,
-        ));
+            data.objects.forEach((o) => {
+                Object.keys(o).forEach((k) => {
+                    o[k] = serialize.deserialize(o[k]);
+                });
+            });
+
+            return self.load({objects: data.objects}).then(() => self.refreshAfterObjectsChange(
+                false,
+                true,
+            ));
+        } catch (error) {
+            console.error('K3D: Failed to set snapshot:', error.message);
+            throw new Error('Invalid snapshot data: ' + error.message);
+        }
     };
 
     /**

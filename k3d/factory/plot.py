@@ -1,49 +1,59 @@
 """Factory functions for creating Plot widgets."""
 
 import numpy as np
+from typing import Union, List, Optional, Dict, Any, Tuple
+
 from ..plot import Plot
 from .common import _default_color
 
+# Type aliases for better readability
+ArrayLike = Union[List, np.ndarray, Tuple]
+
 
 def plot(
-        height=512,
-        antialias=3,
-        logarithmic_depth_buffer=True,
-        background_color=0xffffff,
-        camera_auto_fit=True,
-        grid_auto_fit=True,
-        grid_visible=True,
-        screenshot_scale=2.0,
-        grid=(-1, -1, -1, 1, 1, 1),
-        grid_color=0xe6e6e6,
-        label_color=0x444444,
-        lighting=1.5,
-        menu_visibility=True,
-        voxel_paint_color=0,
-        colorbar_object_id=-1,
-        camera_fov=60.0,
-        time=0.0,
-        depth_peels=0,
-        axes=['x', 'y', 'z'],
-        axes_helper=1.0,
-        axes_helper_colors=[0xff0000, 0x00ff00, 0x0000ff],
-        camera_mode="trackball",
-        snapshot_type='full',
-        auto_rendering=True,
-        camera_no_zoom=False,
-        camera_no_rotate=False,
-        camera_no_pan=False,
-        camera_rotate_speed=1.0,
-        camera_zoom_speed=1.2,
-        camera_pan_speed=0.3,
-        camera_damping_factor=0.0,
-        camera_up_axis='none',
-        fps=25.0,
-        minimum_fps=-1,
-        fps_meter=False,
-        name=None,
-        custom_data=None
-):
+        height: int = 512,
+        antialias: int = 3,
+        logarithmic_depth_buffer: bool = True,
+        background_color: int = 0xffffff,
+        camera_auto_fit: bool = True,
+        grid_auto_fit: bool = True,
+        grid_visible: bool = True,
+        screenshot_scale: float = 2.0,
+        grid: Tuple[float, float, float, float, float, float] = (-1, -1, -1, 1, 1, 1),
+        grid_color: int = 0xe6e6e6,
+        label_color: int = 0x444444,
+        lighting: float = 1.5,
+        menu_visibility: bool = True,
+        voxel_paint_color: int = 0,
+        colorbar_object_id: int = -1,
+        camera_fov: float = 60.0,
+        time: float = 0.0,
+        depth_peels: int = 0,
+        axes: List[str] = None,
+        axes_helper: float = 1.0,
+        axes_helper_colors: List[int] = None,
+        camera_mode: str = "trackball",
+        snapshot_type: str = 'full',
+        auto_rendering: bool = True,
+        camera_no_zoom: bool = False,
+        camera_no_rotate: bool = False,
+        camera_no_pan: bool = False,
+        camera_rotate_speed: float = 1.0,
+        camera_zoom_speed: float = 1.2,
+        camera_pan_speed: float = 0.3,
+        camera_damping_factor: float = 0.0,
+        camera_up_axis: str = 'none',
+        fps: float = 25.0,
+        minimum_fps: float = -1,
+        fps_meter: bool = False,
+        name: Optional[str] = None,
+        custom_data: Optional[Dict[str, Any]] = None
+) -> Plot:
+    if axes is None:
+        axes = ['x', 'y', 'z']
+    if axes_helper_colors is None:
+        axes_helper_colors = [0xff0000, 0x00ff00, 0x0000ff]
+        
     return Plot(
         antialias=antialias,
         logarithmic_depth_buffer=logarithmic_depth_buffer,

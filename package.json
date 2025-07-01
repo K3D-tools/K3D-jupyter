@@ -41,9 +41,10 @@
   },
   "dependencies": {
     "@jupyter-widgets/base": "^4 || ^5 || ^6",
+    "copy-webpack-plugin": "^11.0.0",
     "fflate": "^0.7.3",
     "file-saver": "^2.0.5",
-    "katex": "^0.15.6",
+    "katex": "^0.16.22",
     "lil-gui": "^0.16.1",
     "lodash": "^4.17.21",
     "msgpack-lite": "^0.1.26",
@@ -52,8 +53,7 @@
     "screenfull": "^6.0.1",
     "stats.js": "^0.17.0",
     "three": "^0.140.2",
-    "three-mesh-bvh": "^0.5.11",
-    "copy-webpack-plugin": "^11.0.0"
+    "three-mesh-bvh": "^0.5.11"
   },
   "devDependencies": {
     "@jupyterlab/builder": "^3.4.2",

@@ -52,6 +52,12 @@ class ListOrArray(List):
         self._empty_ok = kwargs.pop("empty_ok", False)
         List.__init__(self, *args, **kwargs)
 
+    def validate(self, obj, value):
+        """Validate the value, handling None by converting to empty list."""
+        if value is None:
+            return []
+        return super(ListOrArray, self).validate(obj, value)
+
     def validate_elements(self, obj, value):
         if self._empty_ok and len(value) == 0:
             return list(value)

@@ -145,7 +145,7 @@ class Plot(widgets.DOMWidget):
     height = Int().tag(sync=True)
 
     # readonly (not to be modified directly)
-    object_ids = List().tag(sync=True)
+    object_ids = List(default_value=[]).tag(sync=True)
 
     # read-write
     camera_auto_fit = Bool(True).tag(sync=True)
@@ -165,7 +165,7 @@ class Plot(widgets.DOMWidget):
     background_color = Int().tag(sync=True)
     voxel_paint_color = Int().tag(sync=True)
     camera = ListOrArray(minlen=9, maxlen=9, empty_ok=True).tag(sync=True)
-    camera_animation = TimeSeries(List()).tag(sync=True)
+    camera_animation = TimeSeries(List(default_value=[])).tag(sync=True)
     camera_no_rotate = Bool(False).tag(sync=True)
     camera_no_zoom = Bool(False).tag(sync=True)
     camera_no_pan = Bool(False).tag(sync=True)
@@ -194,7 +194,7 @@ class Plot(widgets.DOMWidget):
     depth_peels = Int().tag(sync=True)
     camera_mode = Unicode().tag(sync=True)
     manipulate_mode = Unicode().tag(sync=True)
-    hidden_object_ids = List().tag(sync=True)
+    hidden_object_ids = List(default_value=[]).tag(sync=True)
     custom_data = Dict(default_value=None, allow_none=True).tag(sync=True)
 
     objects = []
@@ -460,10 +460,13 @@ class Plot(widgets.DOMWidget):
 
         return inner
 
-    def get_binary_snapshot(self, compression_level=9, voxel_chunks=[]):
+    def get_binary_snapshot(self, compression_level=9, voxel_chunks=None):
         import zlib
         import msgpack
 
+        if voxel_chunks is None:
+            voxel_chunks = []
+            
         snapshot = self.get_binary_snapshot_objects(voxel_chunks)
         snapshot['plot'] = self.get_plot_params()
 
@@ -488,7 +491,10 @@ class Plot(widgets.DOMWidget):
 
         return data, self.voxel_chunks
 
-    def get_binary_snapshot_objects(self, voxel_chunks=[]):
+    def get_binary_snapshot_objects(self, voxel_chunks=None):
+        if voxel_chunks is None:
+            voxel_chunks = []
+            
         snapshot = {"objects": [], "chunkList": []}
 
         for name, l in [('objects', self.objects), ('chunkList', voxel_chunks)]:
@@ -543,12 +549,15 @@ class Plot(widgets.DOMWidget):
             "minimumFps": self.minimum_fps,
         }
 
-    def get_snapshot(self, compression_level=9, voxel_chunks=[], additional_js_code=""):
+    def get_snapshot(self, compression_level=9, voxel_chunks=None, additional_js_code=""):
         """Produce on the Python side a HTML document with the current plot embedded."""
         import os
         import io
         import zlib
 
+        if voxel_chunks is None:
+            voxel_chunks = []
+            
         dir_path = os.path.dirname(os.path.realpath(__file__))
 
         data = self.get_binary_snapshot(compression_level, voxel_chunks)

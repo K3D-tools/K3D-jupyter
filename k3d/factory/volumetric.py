@@ -1,6 +1,8 @@
 """Factory functions for volumetric and voxel-based objects."""
 
 import numpy as np
+from typing import Union, List, Optional, Dict, Any, Tuple
+
 from ..helpers import check_attribute_color_range
 from ..objects import (
     Volume, MIP, VolumeSlice, Voxels, SparseVoxels, VoxelsGroup, MarchingCubes, VoxelChunk
@@ -8,30 +10,43 @@ from ..objects import (
 from ..transform import process_transform_arguments
 from .common import _default_color, nice_colors, default_colormap
 
+# Type aliases for better readability
+ArrayLike = Union[List, np.ndarray, Tuple]
+ColorMap = Union[List[List[float]], Dict[str, Any], np.ndarray]
+ColorRange = List[float]
+OpacityFunction = List[float]
+
 
 def volume(
-        volume,
-        color_map=None,
-        opacity_function=None,
-        color_range=[],
-        samples=512.0,
-        alpha_coef=50.0,
-        gradient_step=0.005,
-        shadow="off",
-        interpolation=True,
-        shadow_delay=500,
-        shadow_res=128,
-        focal_length=0.0,
-        focal_plane=100.0,
-        ray_samples_count=16,
-        mask=[],
-        mask_opacities=[],
-        name=None,
-        group=None,
-        custom_data=None,
-        compression_level=0,
-        **kwargs
-):
+        volume: ArrayLike,
+        color_map: Optional[ColorMap] = None,
+        opacity_function: Optional[OpacityFunction] = None,
+        color_range: ColorRange = None,
+        samples: float = 512.0,
+        alpha_coef: float = 50.0,
+        gradient_step: float = 0.005,
+        shadow: str = "off",
+        interpolation: bool = True,
+        shadow_delay: int = 500,
+        shadow_res: int = 128,
+        focal_length: float = 0.0,
+        focal_plane: float = 100.0,
+        ray_samples_count: int = 16,
+        mask: ArrayLike = None,
+        mask_opacities: ArrayLike = None,
+        name: Optional[str] = None,
+        group: Optional[str] = None,
+        custom_data: Optional[Dict[str, Any]] = None,
+        compression_level: int = 0,
+        **kwargs: Any
+) -> Volume:
+    if color_range is None:
+        color_range = []
+    if mask is None:
+        mask = []
+    if mask_opacities is None:
+        mask_opacities = []
+        
     if color_map is None:
         color_map = default_colormap
 
@@ -72,21 +87,28 @@ def volume(
 
 
 def mip(
-        volume,
-        color_map=None,
-        opacity_function=None,
-        color_range=[],
-        samples=512.0,
-        gradient_step=0.005,
-        interpolation=True,
-        mask=[],
-        mask_opacities=[],
-        name=None,
-        group=None,
-        custom_data=None,
-        compression_level=0,
-        **kwargs
-):
+        volume: ArrayLike,
+        color_map: Optional[ColorMap] = None,
+        opacity_function: Optional[OpacityFunction] = None,
+        color_range: ColorRange = None,
+        samples: float = 512.0,
+        gradient_step: float = 0.005,
+        interpolation: bool = True,
+        mask: ArrayLike = None,
+        mask_opacities: ArrayLike = None,
+        name: Optional[str] = None,
+        group: Optional[str] = None,
+        custom_data: Optional[Dict[str, Any]] = None,
+        compression_level: int = 0,
+        **kwargs: Any
+) -> MIP:
+    if color_range is None:
+        color_range = []
+    if mask is None:
+        mask = []
+    if mask_opacities is None:
+        mask_opacities = []
+        
     if color_map is None:
         color_map = default_colormap
 
@@ -119,11 +141,37 @@ def mip(
     )
 
 
-def volume_slice(volume=[], color_map=None, color_range=[], opacity_function=[],
-                 opacity=1.0, mask=[], active_masks=[], color_map_masks=None,
-                 mask_opacity=0.5, slice_x=-1, slice_y=-1, slice_z=0, interpolation=1, name=None,
-                 group=None,
-                 custom_data=None, compression_level=0, **kwargs):
+def volume_slice(
+        volume: ArrayLike = None,
+        color_map: Optional[ColorMap] = None,
+        color_range: ColorRange = None,
+        opacity_function: OpacityFunction = None,
+        opacity: float = 1.0,
+        mask: ArrayLike = None,
+        active_masks: ArrayLike = None,
+        color_map_masks: Optional[ColorMap] = None,
+        mask_opacity: float = 0.5,
+        slice_x: int = -1,
+        slice_y: int = -1,
+        slice_z: int = 0,
+        interpolation: int = 1,
+        name: Optional[str] = None,
+        group: Optional[str] = None,
+        custom_data: Optional[Dict[str, Any]] = None,
+        compression_level: int = 0,
+        **kwargs: Any
+) -> VolumeSlice:
+    if volume is None:
+        volume = []
+    if color_range is None:
+        color_range = []
+    if opacity_function is None:
+        opacity_function = []
+    if mask is None:
+        mask = []
+    if active_masks is None:
+        active_masks = []
+        
     if color_map is None:
         color_map = default_colormap
 
@@ -158,19 +206,19 @@ def volume_slice(volume=[], color_map=None, color_range=[], opacity_function=[],
 
 
 def voxels(
-        voxels,
-        color_map=None,
-        wireframe=False,
-        outlines=True,
-        outlines_color=0,
-        opacity=1.0,
-        bounds=None,
-        name=None,
-        group=None,
-        custom_data=None,
-        compression_level=0,
-        **kwargs
-):
+        voxels: ArrayLike,
+        color_map: Optional[ColorMap] = None,
+        wireframe: bool = False,
+        outlines: bool = True,
+        outlines_color: int = 0,
+        opacity: float = 1.0,
+        bounds: Optional[ArrayLike] = None,
+        name: Optional[str] = None,
+        group: Optional[str] = None,
+        custom_data: Optional[Dict[str, Any]] = None,
+        compression_level: int = 0,
+        **kwargs: Any
+) -> Voxels:
     if color_map is None:
         color_map = nice_colors
 
@@ -198,20 +246,20 @@ def voxels(
 
 
 def sparse_voxels(
-        sparse_voxels,
-        space_size,
-        color_map=None,
-        wireframe=False,
-        outlines=True,
-        outlines_color=0,
-        opacity=1.0,
-        bounds=None,
-        name=None,
-        group=None,
-        custom_data=None,
-        compression_level=0,
-        **kwargs
-):
+        sparse_voxels: ArrayLike,
+        space_size: ArrayLike,
+        color_map: Optional[ColorMap] = None,
+        wireframe: bool = False,
+        outlines: bool = True,
+        outlines_color: int = 0,
+        opacity: float = 1.0,
+        bounds: Optional[ArrayLike] = None,
+        name: Optional[str] = None,
+        group: Optional[str] = None,
+        custom_data: Optional[Dict[str, Any]] = None,
+        compression_level: int = 0,
+        **kwargs: Any
+) -> SparseVoxels:
     if color_map is None:
         color_map = nice_colors
 
@@ -240,20 +288,25 @@ def sparse_voxels(
 
 
 def voxels_group(
-        space_size,
-        voxels_group=[],
-        chunks_ids=[],
-        color_map=None,
-        wireframe=False,
-        outlines=True,
-        outlines_color=0,
-        opacity=1.0,
-        name=None,
-        group=None,
-        custom_data=None,
-        compression_level=0,
-        **kwargs
-):
+        space_size: ArrayLike,
+        voxels_group: List[Dict[str, Any]] = None,
+        chunks_ids: List[int] = None,
+        color_map: Optional[ColorMap] = None,
+        wireframe: bool = False,
+        outlines: bool = True,
+        outlines_color: int = 0,
+        opacity: float = 1.0,
+        name: Optional[str] = None,
+        group: Optional[str] = None,
+        custom_data: Optional[Dict[str, Any]] = None,
+        compression_level: int = 0,
+        **kwargs: Any
+) -> VoxelsGroup:
+    if voxels_group is None:
+        voxels_group = []
+    if chunks_ids is None:
+        chunks_ids = []
+        
     if color_map is None:
         color_map = nice_colors
 
@@ -284,26 +337,39 @@ def voxels_group(
 
 
 def marching_cubes(
-        scalar_field,
-        level,
-        color=_default_color,
-        attribute=[],
-        color_map=None,
-        color_range=[],
-        opacity_function=[],
-        wireframe=False,
-        flat_shading=True,
-        shininess=50.0,
-        opacity=1.0,
-        spacings_x=[],
-        spacings_y=[],
-        spacings_z=[],
-        name=None,
-        group=None,
-        custom_data=None,
-        compression_level=0,
-        **kwargs
-):
+        scalar_field: ArrayLike,
+        level: float,
+        color: int = _default_color,
+        attribute: ArrayLike = None,
+        color_map: Optional[ColorMap] = None,
+        color_range: ColorRange = None,
+        opacity_function: OpacityFunction = None,
+        wireframe: bool = False,
+        flat_shading: bool = True,
+        shininess: float = 50.0,
+        opacity: float = 1.0,
+        spacings_x: ArrayLike = None,
+        spacings_y: ArrayLike = None,
+        spacings_z: ArrayLike = None,
+        name: Optional[str] = None,
+        group: Optional[str] = None,
+        custom_data: Optional[Dict[str, Any]] = None,
+        compression_level: int = 0,
+        **kwargs: Any
+) -> MarchingCubes:
+    if attribute is None:
+        attribute = []
+    if color_range is None:
+        color_range = []
+    if opacity_function is None:
+        opacity_function = []
+    if spacings_x is None:
+        spacings_x = []
+    if spacings_y is None:
+        spacings_y = []
+    if spacings_z is None:
+        spacings_z = []
+        
     if color_map is None:
         color_map = default_colormap
 
@@ -337,7 +403,12 @@ def marching_cubes(
     )
 
 
-def voxel_chunk(voxels, coord, multiple=1, compression_level=0):
+def voxel_chunk(
+        voxels: ArrayLike,
+        coord: ArrayLike,
+        multiple: int = 1,
+        compression_level: int = 0
+) -> VoxelChunk:
     """Create a VoxelChunk object for selective updating voxels.
     
     Args:
