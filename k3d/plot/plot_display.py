@@ -1,6 +1,7 @@
 import ipywidgets as widgets
 from typing import Any
 
+
 class PlotDisplayMixin:
     def display(self, **kwargs: Any) -> None:
         """Show plot inside ipywidgets.Output()."""
@@ -32,4 +33,4 @@ class PlotDisplayMixin:
         for output in self.outputs:
             output.clear_output()
 
-        self.outputs = [] 
+        self.outputs = []

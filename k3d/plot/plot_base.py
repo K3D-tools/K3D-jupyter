@@ -1,9 +1,12 @@
 import ipywidgets as widgets
-from traitlets import Unicode, Bool, Int, List, Float, Dict
-from typing import Any, Dict as TypingDict, List as TypingList, Optional
+from traitlets import Bool, Dict, Float, Int, List, Unicode
+from typing import Any
+from typing import Dict as TypingDict
+from typing import List as TypingList
+from typing import Optional
 
 from .._version import __version__ as version
-from ..objects import ListOrArray, TimeSeries, Drawable
+from ..objects import Drawable, ListOrArray, TimeSeries
 
 
 class PlotBase(widgets.DOMWidget):
@@ -65,8 +68,9 @@ class PlotBase(widgets.DOMWidget):
     name = Unicode(default_value=None, allow_none=True).tag(sync=True)
     axes = List(minlen=3, maxlen=3, default_value=["x", "y", "z"]).tag(sync=True)
     axes_helper = Float().tag(sync=True)
-    axes_helper_colors = List(minlen=3, maxlen=3,
-                              default_value=[0xff0000, 0x00ff00, 0x0000ff]).tag(sync=True)
+    axes_helper_colors = List(
+        minlen=3, maxlen=3, default_value=[0xFF0000, 0x00FF00, 0x0000FF]
+    ).tag(sync=True)
     mode = Unicode().tag(sync=True)
     depth_peels = Int().tag(sync=True)
     camera_mode = Unicode().tag(sync=True)
@@ -100,8 +104,8 @@ class PlotBase(widgets.DOMWidget):
             camera_rotate_speed: float = 1.0,
             camera_zoom_speed: float = 1.2,
             camera_pan_speed: float = 0.3,
-            camera_up_axis: str = 'none',
-            snapshot_type: str = 'full',
+            camera_up_axis: str = "none",
+            snapshot_type: str = "full",
             camera_no_pan: bool = False,
             camera_fov: float = 45.0,
             camera_damping_factor: float = 0.0,
@@ -119,17 +123,17 @@ class PlotBase(widgets.DOMWidget):
             custom_data: Optional[TypingDict[str, Any]] = None,
             slice_viewer_object_id: int = -1,
             slice_viewer_mask_object_ids: TypingList[int] = None,
-            slice_viewer_direction: str = 'z',
+            slice_viewer_direction: str = "z",
             depth_peels: int = 0,
             *args: Any,
-            **kwargs: Any
+            **kwargs: Any,
     ) -> None:
         super().__init__()
 
         if axes is None:
             axes = ["x", "y", "z"]
         if axes_helper_colors is None:
-            axes_helper_colors = [0xff0000, 0x00ff00, 0x0000ff]
+            axes_helper_colors = [0xFF0000, 0x00FF00, 0x0000FF]
         if slice_viewer_mask_object_ids is None:
             slice_viewer_mask_object_ids = []
 

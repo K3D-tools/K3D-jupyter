@@ -2,24 +2,12 @@
 
 import ipywidgets as widgets
 import numpy as np
-from traitlets import (
-    Any,
-    Bool,
-    Dict,
-    Int,
-    Integer,
-    List,
-    Unicode,
-    Union,
-)
+from traitlets import Any, Bool, Dict, Int, Integer, List, Unicode, Union
 from traittypes import Array
 
 from .._version import __version__ as version
-from ..helpers import (
-    array_serialization_wrap,
-    callback_serialization_wrap,
-    to_json,
-)
+from ..helpers import (array_serialization_wrap, callback_serialization_wrap,
+                       to_json)
 
 EPSILON = np.finfo(np.float32).eps
 
@@ -58,15 +46,14 @@ class ListOrArray(List):
 
 class VoxelChunk(widgets.Widget):
     """Voxel chunk class for selective updating voxels."""
+
     _model_name = Unicode("ChunkModel").tag(sync=True)
     _model_module = Unicode("k3d").tag(sync=True)
     _model_module_version = Unicode(version).tag(sync=True)
 
     id = Int().tag(sync=True)
-    voxels = Array(dtype=np.uint8).tag(
-        sync=True, **array_serialization_wrap("voxels"))
-    coord = Array(dtype=np.uint32).tag(
-        sync=True, **array_serialization_wrap("coord"))
+    voxels = Array(dtype=np.uint8).tag(sync=True, **array_serialization_wrap("voxels"))
+    coord = Array(dtype=np.uint32).tag(sync=True, **array_serialization_wrap("coord"))
     multiple = Int().tag(sync=True)
     compression_level = Integer().tag(sync=True)
 
@@ -156,6 +143,7 @@ class Drawable(widgets.Widget):
 
     def clone(self):
         from .utils import clone_object
+
         return clone_object(self)
 
     def get_binary(self):

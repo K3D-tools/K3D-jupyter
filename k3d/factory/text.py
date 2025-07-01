@@ -1,9 +1,12 @@
 """Factory functions for text and label objects."""
 
-from typing import Union, List as TypingList, Optional, Dict as TypingDict, Any, Tuple
+from typing import Any
+from typing import Dict as TypingDict
+from typing import List as TypingList
+from typing import Optional, Tuple, Union
 
 from .common import _default_color
-from ..objects import Text, Text2d, Label, TextureText
+from ..objects import Label, Text, Text2d, TextureText
 from ..transform import process_transform_arguments
 
 # Type aliases for better readability
@@ -23,7 +26,7 @@ def text(
         group: Optional[str] = None,
         custom_data: Optional[TypingDict[str, Any]] = None,
         compression_level: int = 0,
-        **kwargs: Any
+        **kwargs: Any,
 ) -> Text:
     if position is None:
         position = [0, 0, 0]
@@ -43,7 +46,7 @@ def text(
             custom_data=custom_data,
             compression_level=compression_level,
         ),
-        **kwargs
+        **kwargs,
     )
 
 
@@ -89,7 +92,7 @@ def label(
         group: Optional[str] = None,
         custom_data: Optional[TypingDict[str, Any]] = None,
         compression_level: int = 0,
-        **kwargs: Any
+        **kwargs: Any,
 ) -> Label:
     return process_transform_arguments(
         Label(
@@ -107,7 +110,7 @@ def label(
             custom_data=custom_data,
             compression_level=compression_level,
         ),
-        **kwargs
+        **kwargs,
     )
 
 
@@ -123,7 +126,7 @@ def texture_text(
         group: Optional[str] = None,
         custom_data: Optional[TypingDict[str, Any]] = None,
         compression_level: int = 0,
-        **kwargs: Any
+        **kwargs: Any,
 ) -> TextureText:
     return process_transform_arguments(
         TextureText(
@@ -139,5 +142,5 @@ def texture_text(
             custom_data=custom_data,
             compression_level=compression_level,
         ),
-        **kwargs
+        **kwargs,
     )

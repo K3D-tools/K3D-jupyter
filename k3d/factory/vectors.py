@@ -1,7 +1,10 @@
 """Factory functions for vector and vector field objects."""
 
 import numpy as np
-from typing import Union, List as TypingList, Optional, Dict as TypingDict, Any, Tuple
+from typing import Any
+from typing import Dict as TypingDict
+from typing import List as TypingList
+from typing import Optional, Tuple, Union
 
 from .common import _default_color
 from ..objects import VectorField, Vectors
@@ -25,7 +28,7 @@ def vector_field(
         group: Optional[str] = None,
         custom_data: Optional[TypingDict[str, Any]] = None,
         compression_level: int = 0,
-        **kwargs: Any
+        **kwargs: Any,
 ) -> VectorField:
     if colors is None:
         colors = []
@@ -45,7 +48,7 @@ def vector_field(
             custom_data=custom_data,
             compression_level=compression_level,
         ),
-        **kwargs
+        **kwargs,
     )
 
 
@@ -65,7 +68,7 @@ def vectors(
         group: Optional[str] = None,
         custom_data: Optional[TypingDict[str, Any]] = None,
         compression_level: int = 0,
-        **kwargs: Any
+        **kwargs: Any,
 ) -> Vectors:
     if colors is None:
         colors = []
@@ -89,5 +92,5 @@ def vectors(
             custom_data=custom_data,
             compression_level=compression_level,
         ),
-        **kwargs
+        **kwargs,
     )

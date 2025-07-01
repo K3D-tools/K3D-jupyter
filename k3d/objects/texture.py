@@ -1,22 +1,11 @@
 """Texture objects for K3D."""
 
 import numpy as np
-from traitlets import (
-    Bool,
-    Bytes,
-    Unicode,
-)
+from traitlets import Bool, Bytes, Unicode
 from traittypes import Array
 
-from .base import (
-    DrawableWithCallback,
-    TimeSeries,
-    ListOrArray,
-)
-from ..helpers import (
-    array_serialization_wrap,
-    get_bounding_box,
-)
+from .base import DrawableWithCallback, ListOrArray, TimeSeries
+from ..helpers import array_serialization_wrap, get_bounding_box
 
 
 class Texture(DrawableWithCallback):
@@ -54,12 +43,10 @@ class Texture(DrawableWithCallback):
     """
 
     type = Unicode(read_only=True).tag(sync=True)
-    binary = Bytes(allow_none=True).tag(
-        sync=True, **array_serialization_wrap("binary"))
+    binary = Bytes(allow_none=True).tag(sync=True, **array_serialization_wrap("binary"))
     file_format = Unicode(allow_none=True).tag(sync=True)
     attribute = Array().tag(sync=True, **array_serialization_wrap("attribute"))
-    puv = Array(dtype=np.float32).tag(
-        sync=True, **array_serialization_wrap("puv"))
+    puv = Array(dtype=np.float32).tag(sync=True, **array_serialization_wrap("puv"))
     color_map = Array(dtype=np.float32).tag(
         sync=True, **array_serialization_wrap("color_map")
     )

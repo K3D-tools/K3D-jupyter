@@ -1,26 +1,12 @@
 """Vector objects for K3D."""
 
 import numpy as np
-from traitlets import (
-    Bool,
-    Float,
-    Int,
-    List,
-    TraitError,
-    Unicode,
-    validate,
-)
+from traitlets import Bool, Float, Int, List, TraitError, Unicode, validate
 from traittypes import Array
 
-from .base import (
-    Drawable,
-    TimeSeries,
-)
-from ..helpers import (
-    array_serialization_wrap,
-    get_bounding_box,
-    get_bounding_box_points,
-)
+from .base import Drawable, TimeSeries
+from ..helpers import (array_serialization_wrap, get_bounding_box,
+                       get_bounding_box_points)
 
 
 class VectorField(Drawable):
@@ -62,8 +48,7 @@ class VectorField(Drawable):
     vectors = Array(dtype=np.float32).tag(
         sync=True, **array_serialization_wrap("vectors")
     )
-    colors = Array(dtype=np.uint32).tag(
-        sync=True, **array_serialization_wrap("colors"))
+    colors = Array(dtype=np.uint32).tag(sync=True, **array_serialization_wrap("colors"))
     origin_color = Int(min=0, max=0xFFFFFF).tag(sync=True)
     head_color = Int(min=0, max=0xFFFFFF).tag(sync=True)
     use_head = Bool().tag(sync=True)
@@ -137,8 +122,7 @@ class Vectors(Drawable):
     vectors = Array(dtype=np.float32).tag(
         sync=True, **array_serialization_wrap("vectors")
     )
-    colors = Array(dtype=np.uint32).tag(
-        sync=True, **array_serialization_wrap("colors"))
+    colors = Array(dtype=np.uint32).tag(sync=True, **array_serialization_wrap("colors"))
     origin_color = Int(min=0, max=0xFFFFFF).tag(sync=True)
     head_color = Int(min=0, max=0xFFFFFF).tag(sync=True)
     use_head = Bool().tag(sync=True)

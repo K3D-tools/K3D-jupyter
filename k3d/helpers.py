@@ -1,23 +1,28 @@
 """Utilities module."""
+
 import base64
 import itertools
+import logging
 import msgpack
 import numpy as np
 import os
 import zlib
 from traitlets import TraitError
+from typing import Any
+from typing import Dict as TypingDict
+from typing import List as TypingList
+from typing import Optional, Tuple, Union
 from urllib.request import urlopen
-import logging
 
 from ._protocol import get_protocol
-from typing import Union, List as TypingList, Optional, Dict as TypingDict, Any, Tuple, Callable
-
 
 # Set up module-level logger
 logger = logging.getLogger(__name__)
 if not logger.hasHandlers():
     handler = logging.StreamHandler()
-    formatter = logging.Formatter('[%(asctime)s] %(levelname)s in %(module)s: %(message)s')
+    formatter = logging.Formatter(
+        "[%(asctime)s] %(levelname)s in %(module)s: %(message)s"
+    )
     handler.setFormatter(formatter)
     logger.addHandler(handler)
 logger.setLevel(logging.INFO)
@@ -25,8 +30,9 @@ logger.setLevel(logging.INFO)
 
 # pylint: disable=unused-argument
 # noinspection PyUnusedLocal
-def array_to_json(ar: np.ndarray, compression_level: int = 0, force_contiguous: bool = True) -> \
-Union[str, TypingDict[str, Any]]:
+def array_to_json(
+        ar: np.ndarray, compression_level: int = 0, force_contiguous: bool = True
+) -> Union[str, TypingDict[str, Any]]:
     """
     Return the serialization of a numpy array.
 
@@ -77,15 +83,18 @@ Union[str, TypingDict[str, Any]]:
             "shape": ar.shape,
         }
 
-    if get_protocol() == 'text':
-        return 'base64_' + base64.b64encode(msgpack.packb(ret, use_bin_type=True)).decode('ascii')
+    if get_protocol() == "text":
+        return "base64_" + base64.b64encode(
+            msgpack.packb(ret, use_bin_type=True)
+        ).decode("ascii")
     else:
         return ret
 
 
 # noinspection PyUnusedLocal
-def json_to_array(value: Optional[TypingDict[str, Any]], obj: Optional[Any] = None) -> Optional[
-    np.ndarray]:
+def json_to_array(
+        value: Optional[TypingDict[str, Any]], obj: Optional[Any] = None
+) -> Optional[np.ndarray]:
     """
     Return numpy array from serialization.
 
@@ -113,7 +122,9 @@ def json_to_array(value: Optional[TypingDict[str, Any]], obj: Optional[Any] = No
     return None
 
 
-def to_json(name: str, input: Any, obj: Optional[Any] = None, compression_level: int = 0) -> Any:
+def to_json(
+        name: str, input: Any, obj: Optional[Any] = None, compression_level: int = 0
+) -> Any:
     """
     Return JSON object serialization.
 
@@ -176,13 +187,15 @@ def from_json(input: Any, obj: Optional[Any] = None) -> Any:
     Any
         Deserialized object.
     """
-    if isinstance(input, str) and input[0:7] == 'base64_':
+    if isinstance(input, str) and input[0:7] == "base64_":
         input = msgpack.unpackb(base64.b64decode(input[7:]))
 
-    if isinstance(input, dict) \
-            and "dtype" in input \
-            and ("data" in input or "compressed_data" in input) \
-            and "shape" in input:
+    if (
+            isinstance(input, dict)
+            and "dtype" in input
+            and ("data" in input or "compressed_data" in input)
+            and "shape" in input
+    ):
         return json_to_array(input, obj)
     elif isinstance(input, list):
         return [from_json(i, obj) for i in input]
@@ -280,9 +293,10 @@ def minmax(arr: np.ndarray) -> TypingList[float]:
     return [float(np.nanmin(arr)), float(np.nanmax(arr))]
 
 
-def check_attribute_color_range(attribute: Union[np.ndarray, TypingDict[str, np.ndarray]],
-                                color_range: Union[TypingList[float], Tuple[float, ...]] = ()) -> \
-TypingList[float]:
+def check_attribute_color_range(
+        attribute: Union[np.ndarray, TypingDict[str, np.ndarray]],
+        color_range: Union[TypingList[float], Tuple[float, ...]] = (),
+) -> TypingList[float]:
     """Return color range versus provided attribute.
 
     Parameters
@@ -317,8 +331,11 @@ TypingList[float]:
     return color_range
 
 
-def map_colors(attribute: np.ndarray, color_map: Union[TypingList[TypingList[float]], np.ndarray],
-               color_range: Union[TypingList[float], Tuple[float, ...]] = ()) -> np.ndarray:
+def map_colors(
+        attribute: np.ndarray,
+        color_map: Union[TypingList[TypingList[float]], np.ndarray],
+        color_range: Union[TypingList[float], Tuple[float, ...]] = (),
+) -> np.ndarray:
     """Return color mapping according to an attribute and a colormap.
 
     The attribute represents the data on which the colormap will be applied.
@@ -347,9 +364,9 @@ def map_colors(attribute: np.ndarray, color_map: Union[TypingList[TypingList[flo
 
     red, green, blue = [
         np.array(
-            255 * np.interp(attribute,
-                            xp=map_array[:, 0], fp=map_array[:, i + 1]),
-            dtype=np.int32)
+            255 * np.interp(attribute, xp=map_array[:, 0], fp=map_array[:, i + 1]),
+            dtype=np.int32,
+        )
         for i in range(3)
     ]
 
@@ -357,8 +374,9 @@ def map_colors(attribute: np.ndarray, color_map: Union[TypingList[TypingList[flo
     return colors
 
 
-def bounding_corners(bounds: Union[TypingList[float], np.ndarray],
-                     z_bounds: Tuple[float, float] = (0, 1)) -> np.ndarray:
+def bounding_corners(
+        bounds: Union[TypingList[float], np.ndarray], z_bounds: Tuple[float, float] = (0, 1)
+) -> np.ndarray:
     """Return corner point coordinates for bounds array.
 
     `z_bounds` assigns Z points coordinates if bounds contains less than 5 items.
@@ -376,8 +394,7 @@ def bounding_corners(bounds: Union[TypingList[float], np.ndarray],
         Corner points coordinates.
     """
     return np.array(
-        list(itertools.product(bounds[:2],
-                               bounds[2:4], bounds[4:] or z_bounds))
+        list(itertools.product(bounds[:2], bounds[2:4], bounds[4:] or z_bounds))
     )
 
 
@@ -416,8 +433,7 @@ def shape_validation(*dimensions):
     def validator(trait, value):
         if np.shape(value) != dimensions:
             raise TraitError(
-                "Expected an array of shape %s and got %s" % (
-                    dimensions, value.shape)
+                "Expected an array of shape %s and got %s" % (dimensions, value.shape)
             )
 
         return value
@@ -448,8 +464,7 @@ def sparse_voxels_validation():
             )
 
         if (value.astype(np.int16) < 0).any():
-            raise TraitError(
-                "Voxel coordinates and values must be non-negative")
+            raise TraitError("Voxel coordinates and values must be non-negative")
 
         return value
 
@@ -474,8 +489,7 @@ def quad(w: float, h: float) -> Tuple[np.ndarray, np.ndarray]:
     w /= 2
     h /= 2
 
-    vertices = np.array([-w, -h, -0, w, -h, 0, w, h, 0, -w, h, 0],
-                        dtype=np.float32)
+    vertices = np.array([-w, -h, -0, w, -h, 0, w, h, 0, -w, h, 0], dtype=np.float32)
     indices = np.array([0, 1, 2, 0, 2, 3], dtype=np.uint32)
 
     return vertices, indices
@@ -560,12 +574,15 @@ def unify_color_map(cm):
 
 def contour(data, bounds, values, clustering_factor=0):
     import pyvista
-    grid = pyvista.ImageData(dimensions=data.shape[::-1],
-                             spacing=(bounds[1::2] - bounds[::2]) / np.array(data.shape[::-1]),
-                             origin=bounds[::2])
+
+    grid = pyvista.ImageData(
+        dimensions=data.shape[::-1],
+        spacing=(bounds[1::2] - bounds[::2]) / np.array(data.shape[::-1]),
+        origin=bounds[::2],
+    )
 
     grid.point_data["values"] = data.flatten()
-    mesh = grid.contour(values, grid.point_data["values"], method='flying_edges')
+    mesh = grid.contour(values, grid.point_data["values"], method="flying_edges")
 
     mesh.compute_normals(inplace=True)
 

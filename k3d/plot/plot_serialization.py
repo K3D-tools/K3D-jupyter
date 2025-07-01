@@ -1,6 +1,7 @@
 class PlotSerializationMixin:
     def get_static_path(self) -> str:
         import os
+
         dir_path = os.path.dirname(os.path.realpath(__file__))
         return os.path.join(dir_path, "../static")
 

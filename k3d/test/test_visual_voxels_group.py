@@ -3,7 +3,7 @@ import pytest
 import skimage.measure
 
 import k3d
-from .plot_compare import prepare, compare
+from .plot_compare import compare, prepare
 
 
 def generate(dim):
@@ -34,14 +34,20 @@ data = generate(dim)
 chunk_size = 16
 voxelsGroup = []
 
-for z, y, x in zip(*np.where(
-        skimage.measure.block_reduce(data, (chunk_size, chunk_size, chunk_size), np.max) > 0)):
+for z, y, x in zip(
+        *np.where(
+            skimage.measure.block_reduce(data, (chunk_size, chunk_size, chunk_size), np.max)
+            > 0
+        )
+):
     chunk = {
-        "voxels": data[z * chunk_size:(z + 1) * chunk_size,
-                  y * chunk_size:(y + 1) * chunk_size,
-                  x * chunk_size:(x + 1) * chunk_size],
+        "voxels": data[
+                  z * chunk_size: (z + 1) * chunk_size,
+                  y * chunk_size: (y + 1) * chunk_size,
+                  x * chunk_size: (x + 1) * chunk_size,
+                  ],
         "coord": np.array([x, y, z]) * chunk_size,
-        "multiple": 1
+        "multiple": 1,
     }
 
     voxelsGroup.append(chunk)
@@ -57,11 +63,11 @@ def test_voxels_group():
 
     pytest.plot += obj
 
-    compare('voxels_group')
+    compare("voxels_group")
 
     obj.opacity = 0.5
 
-    compare('voxels_group_dynamic_opacity')
+    compare("voxels_group_dynamic_opacity")
 
 
 def test_voxels_group_wireframe():
@@ -74,7 +80,7 @@ def test_voxels_group_wireframe():
 
     pytest.plot += obj
 
-    compare('voxels_group_wireframe', camera_factor=0.5)
+    compare("voxels_group_wireframe", camera_factor=0.5)
 
 
 def test_voxels_group_opacity():
@@ -87,4 +93,4 @@ def test_voxels_group_opacity():
 
     pytest.plot += obj
 
-    compare('voxels_group_opacity')
+    compare("voxels_group_opacity")

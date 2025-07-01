@@ -1,7 +1,10 @@
 """Factory function for texture objects."""
 
 import numpy as np
-from typing import Union, List as TypingList, Optional, Dict as TypingDict, Any, Tuple
+from typing import Any
+from typing import Dict as TypingDict
+from typing import List as TypingList
+from typing import Optional, Tuple, Union
 
 from .common import default_colormap
 from ..helpers import check_attribute_color_range
@@ -28,7 +31,7 @@ def texture(
         group: Optional[str] = None,
         custom_data: Optional[TypingDict[str, Any]] = None,
         compression_level: int = 0,
-        **kwargs: Any
+        **kwargs: Any,
 ) -> Texture:
     if color_range is None:
         color_range = []
@@ -60,5 +63,5 @@ def texture(
             custom_data=custom_data,
             compression_level=compression_level,
         ),
-        **kwargs
+        **kwargs,
     )

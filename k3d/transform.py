@@ -1,13 +1,16 @@
 import numpy as np
 import weakref
 from functools import reduce
-from typing import Union, List as TypingList, Optional, Dict as TypingDict, Any, Tuple
+from typing import Any
+from typing import List as TypingList
+from typing import Optional
 
 _epsilon = 1e-6
 
 
-def get_bounds_fit_matrix(xmin: float, xmax: float, ymin: float, ymax: float, zmin: float,
-                          zmax: float) -> np.ndarray:
+def get_bounds_fit_matrix(
+        xmin: float, xmax: float, ymin: float, ymax: float, zmin: float, zmax: float
+) -> np.ndarray:
     """Return a 4x4 transform matrix mapping the default bounding box [-0.5, 0.5, ...] into a custom bounding box.
 
     Parameters
@@ -25,13 +28,14 @@ def get_bounds_fit_matrix(xmin: float, xmax: float, ymin: float, ymax: float, zm
         try:
             float(value)
         except (TypeError, ValueError):
-            raise TypeError('%s: expected float, %s given' %
-                            (name, type(value).__name__))
+            raise TypeError(
+                "%s: expected float, %s given" % (name, type(value).__name__)
+            )
     # Create diagonal scaling matrix and set translation
     matrix = np.diagflat(
-        np.array((xmax - xmin, ymax - ymin, zmax - zmin, 1.0), np.float32, order='C'))
-    matrix[0:3, 3] = ((xmax + xmin) / 2.0, (ymax + ymin) /
-                      2.0, (zmax + zmin) / 2.0)
+        np.array((xmax - xmin, ymax - ymin, zmax - zmin, 1.0), np.float32, order="C")
+    )
+    matrix[0:3, 3] = ((xmax + xmin) / 2.0, (ymax + ymin) / 2.0, (zmax + zmin) / 2.0)
     return matrix
 
 
@@ -42,11 +46,15 @@ class Transform(object):
     Supports translation, rotation (as quaternion), scaling, custom matrix, and parent-child relationships.
     """
 
-    def __init__(self, bounds: Optional[TypingList[float]] = None,
-                 translation: Optional[TypingList[float]] = None,
-                 rotation: Optional[TypingList[float]] = None,
-                 scaling: Optional[TypingList[float]] = None,
-                 custom_matrix: Optional[np.ndarray] = None, parent: Optional['Transform'] = None):
+    def __init__(
+            self,
+            bounds: Optional[TypingList[float]] = None,
+            translation: Optional[TypingList[float]] = None,
+            rotation: Optional[TypingList[float]] = None,
+            scaling: Optional[TypingList[float]] = None,
+            custom_matrix: Optional[np.ndarray] = None,
+            parent: Optional["Transform"] = None,
+    ):
         """
         Initialize a Transform object.
 
@@ -78,10 +86,14 @@ class Transform(object):
             parent._add_child(self)
         self.drawables: TypingList[weakref.ref] = []
         self.children: TypingList[weakref.ref] = []
-        self.parent_matrix = parent.model_matrix if parent else np.identity(
-            4, dtype=np.float32)
-        self.custom_matrix = custom_matrix if custom_matrix is not None else np.identity(
-            4, dtype=np.float32)
+        self.parent_matrix = (
+            parent.model_matrix if parent else np.identity(4, dtype=np.float32)
+        )
+        self.custom_matrix = (
+            custom_matrix
+            if custom_matrix is not None
+            else np.identity(4, dtype=np.float32)
+        )
         self.model_matrix = np.identity(4, dtype=np.float32)
         self._recompute_matrix()
 
@@ -91,15 +103,16 @@ class Transform(object):
         # parameter canonicalization and some validation via reshaping
         if value is None:
             # Forbid None for critical transform fields that should always have valid values
-            if key in ['parent_matrix', 'custom_matrix', 'model_matrix']:
+            if key in ["parent_matrix", "custom_matrix", "model_matrix"]:
                 raise ValueError(
-                    f"Cannot set {key} to None. These fields must have valid matrix values.")
+                    f"Cannot set {key} to None. These fields must have valid matrix values."
+                )
             # Allow None for optional transform parameters (translation, rotation, scaling, bounds)
             pass
-        elif key == 'translation':
+        elif key == "translation":
             # Ensure translation is a 3x1 column vector
             value = np.array(value, dtype=np.float32).reshape(3, 1)
-        elif key == 'rotation':
+        elif key == "rotation":
             # Convert rotation to quaternion, normalize, and ensure valid axis
             value = np.array(value, dtype=np.float32).reshape(4)
             value[0] = np.fmod(value[0], 2.0 * np.pi)
@@ -111,22 +124,23 @@ class Transform(object):
             if abs(norm - needed_norm) > _epsilon:
                 if norm < _epsilon:
                     raise ValueError(
-                        'Norm of (x, y, z) part of quaternion too close to zero')
+                        "Norm of (x, y, z) part of quaternion too close to zero"
+                    )
                 value[1:4] = value[1:4] / norm * needed_norm
             # assert abs(np.linalg.norm(value) - 1.0) < _epsilon
-        elif key == 'scaling':
+        elif key == "scaling":
             # Ensure scaling is a 3-element vector
             value = np.array(value, dtype=np.float32).reshape(3)
-        elif key in ['parent_matrix', 'custom_matrix', 'model_matrix']:
+        elif key in ["parent_matrix", "custom_matrix", "model_matrix"]:
             # Ensure all matrices are 4x4
             value = np.array(value, dtype=np.float32).reshape((4, 4))
         super(Transform, self).__setattr__(key, value)
-        if is_set and key != 'model_matrix':
+        if is_set and key != "model_matrix":
             self._recompute_matrix()
             self._notify_dependants()
 
     def __repr__(self) -> str:
-        return 'Transform(bounds={!r}, translation={!r}, rotation={!r}, scaling={!r})'.format(
+        return "Transform(bounds={!r}, translation={!r}, rotation={!r}, scaling={!r})".format(
             self.bounds, self.translation, self.rotation, self.scaling
         )
 
@@ -147,32 +161,49 @@ class Transform(object):
                 ymin, ymax, zmin, zmax = -0.5, 0.5, -0.5, 0.5
             else:
                 raise ValueError(
-                    'Wrong size of bounds array ({}), should be 4 for 2D or 6 for 3D bounds.'.format(
+                    "Wrong size of bounds array ({}), should be 4 for 2D or 6 for 3D bounds.".format(
                         self.bounds
-                    ))
-            fit_matrix = get_bounds_fit_matrix(
-                xmin, xmax, ymin, ymax, zmin, zmax)
+                    )
+                )
+            fit_matrix = get_bounds_fit_matrix(xmin, xmax, ymin, ymax, zmin, zmax)
         # Build translation matrix
         if self.translation is not None:
-            translation_matrix = np.vstack((
-                np.hstack((np.identity(3), np.array(
-                    self.translation).reshape(3, 1))),
-                np.array([0., 0., 0., 1.]).reshape(1, 4)
-            ))
+            translation_matrix = np.vstack(
+                (
+                    np.hstack(
+                        (np.identity(3), np.array(self.translation).reshape(3, 1))
+                    ),
+                    np.array([0.0, 0.0, 0.0, 1.0]).reshape(1, 4),
+                )
+            )
         else:
             translation_matrix = np.identity(4)
         # Build rotation matrix from quaternion
         if self.rotation is not None:
             a, b, c, d = self.rotation
-            rotation_matrix = np.array([
-                [a * a + b * b - c * c - d * d, 2 *
-                 (b * c - a * d), 2 * (b * d + a * c), 0.],
-                [2 * (b * c + a * d), a * a - b * b + c *
-                 c - d * d, 2 * (c * d - a * b), 0.],
-                [2 * (b * d - a * c), 2 * (c * d + a * b),
-                 a * a - b * b - c * c + d * d, 0.],
-                [0., 0., 0., 1.]
-            ])
+            rotation_matrix = np.array(
+                [
+                    [
+                        a * a + b * b - c * c - d * d,
+                        2 * (b * c - a * d),
+                        2 * (b * d + a * c),
+                        0.0,
+                    ],
+                    [
+                        2 * (b * c + a * d),
+                        a * a - b * b + c * c - d * d,
+                        2 * (c * d - a * b),
+                        0.0,
+                    ],
+                    [
+                        2 * (b * d - a * c),
+                        2 * (c * d + a * b),
+                        a * a - b * b - c * c + d * d,
+                        0.0,
+                    ],
+                    [0.0, 0.0, 0.0, 1.0],
+                ]
+            )
         else:
             rotation_matrix = np.identity(4)
         # Build scaling matrix
@@ -181,12 +212,19 @@ class Transform(object):
         else:
             scaling_matrix = np.identity(4)
         # Compose all matrices in the correct order
-        self.model_matrix = reduce(np.dot, [
-            translation_matrix, rotation_matrix, scaling_matrix, fit_matrix, self.custom_matrix,
-            self.parent_matrix
-        ])
+        self.model_matrix = reduce(
+            np.dot,
+            [
+                translation_matrix,
+                rotation_matrix,
+                scaling_matrix,
+                fit_matrix,
+                self.custom_matrix,
+                self.parent_matrix,
+            ],
+        )
 
-    def _add_child(self, transform: 'Transform') -> None:
+    def _add_child(self, transform: "Transform") -> None:
         self.children.append(weakref.ref(transform))
 
     def add_drawable(self, drawable: Any) -> None:
@@ -266,27 +304,26 @@ def process_transform_arguments(drawable: Any, **kwargs: Any) -> Any:
     ValueError
         Provided transform argument is not a Transform object.
     """
-    if 'transform' in kwargs:
-        transform = kwargs['transform']
+    if "transform" in kwargs:
+        transform = kwargs["transform"]
         if not isinstance(transform, Transform):
-            raise ValueError(
-                'Provided transform argument is not a Transform object')
+            raise ValueError("Provided transform argument is not a Transform object")
     else:
         separate_bounds = [
-            kwargs.get('xmin', -0.5),
-            kwargs.get('xmax', 0.5),
-            kwargs.get('ymin', -0.5),
-            kwargs.get('ymax', 0.5),
-            kwargs.get('zmin', -0.5),
-            kwargs.get('zmax', 0.5)
+            kwargs.get("xmin", -0.5),
+            kwargs.get("xmax", 0.5),
+            kwargs.get("ymin", -0.5),
+            kwargs.get("ymax", 0.5),
+            kwargs.get("zmin", -0.5),
+            kwargs.get("zmax", 0.5),
         ]
 
         transform_kwargs = dict(
-            bounds=kwargs.get('bounds', separate_bounds),
-            translation=kwargs.get('translation'),
-            rotation=kwargs.get('rotation'),
-            scaling=kwargs.get('scaling'),
-            custom_matrix=kwargs.get('model_matrix')
+            bounds=kwargs.get("bounds", separate_bounds),
+            translation=kwargs.get("translation"),
+            rotation=kwargs.get("rotation"),
+            scaling=kwargs.get("scaling"),
+            custom_matrix=kwargs.get("model_matrix"),
         )
         transform = Transform(**transform_kwargs)
 
@@ -297,12 +334,14 @@ def process_transform_arguments(drawable: Any, **kwargs: Any) -> Any:
     return drawable
 
 
-def transform(bounds: Optional[TypingList[float]] = None,
-              translation: Optional[TypingList[float]] = None,
-              rotation: Optional[TypingList[float]] = None,
-              scaling: Optional[TypingList[float]] = None,
-              custom_matrix: Optional[np.ndarray] = None,
-              parent: Optional[Transform] = None) -> Transform:
+def transform(
+        bounds: Optional[TypingList[float]] = None,
+        translation: Optional[TypingList[float]] = None,
+        rotation: Optional[TypingList[float]] = None,
+        scaling: Optional[TypingList[float]] = None,
+        custom_matrix: Optional[np.ndarray] = None,
+        parent: Optional[Transform] = None,
+) -> Transform:
     """Return a Transform object.
 
     Parameters

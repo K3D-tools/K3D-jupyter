@@ -1,25 +1,11 @@
 """Points objects for K3D."""
 
 import numpy as np
-from traitlets import (
-    Float,
-    Int,
-    TraitError,
-    Unicode,
-    validate,
-)
+from traitlets import Float, Int, TraitError, Unicode, validate
 from traittypes import Array
 
-from .base import (
-    Drawable,
-    TimeSeries,
-    ListOrArray,
-    EPSILON,
-)
-from ..helpers import (
-    array_serialization_wrap,
-    get_bounding_box_points,
-)
+from .base import EPSILON, Drawable, ListOrArray, TimeSeries
+from ..helpers import array_serialization_wrap, get_bounding_box_points
 
 
 class Points(Drawable):
@@ -78,13 +64,11 @@ class Points(Drawable):
         sync=True, **array_serialization_wrap("colors")
     )
     color = TimeSeries(Int(min=0, max=0xFFFFFF)).tag(sync=True)
-    point_size = TimeSeries(
-        Float(min=EPSILON, default_value=1.0)).tag(sync=True)
+    point_size = TimeSeries(Float(min=EPSILON, default_value=1.0)).tag(sync=True)
     point_sizes = TimeSeries(Array(dtype=np.float32)).tag(
         sync=True, **array_serialization_wrap("point_sizes")
     )
-    opacity = TimeSeries(
-        Float(min=0.0, max=1.0, default_value=1.0)).tag(sync=True)
+    opacity = TimeSeries(Float(min=0.0, max=1.0, default_value=1.0)).tag(sync=True)
     opacities = TimeSeries(Array(dtype=np.float32)).tag(
         sync=True, **array_serialization_wrap("opacities")
     )

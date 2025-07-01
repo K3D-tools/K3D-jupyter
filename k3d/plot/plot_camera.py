@@ -1,5 +1,5 @@
 import numpy as np
-from typing import Optional, List
+from typing import List, Optional
 
 
 class PlotCameraMixin:
@@ -11,9 +11,16 @@ class PlotCameraMixin:
 
     def get_auto_grid(self) -> np.ndarray:
         if len(self.objects) == 0:
-            return np.array([self.grid[0], self.grid[3],
-                             self.grid[1], self.grid[4],
-                             self.grid[2], self.grid[5]])
+            return np.array(
+                [
+                    self.grid[0],
+                    self.grid[3],
+                    self.grid[1],
+                    self.grid[4],
+                    self.grid[2],
+                    self.grid[5],
+                ]
+            )
 
         d = np.stack([o.get_bounding_box() for o in self.objects])
 
@@ -21,9 +28,14 @@ class PlotCameraMixin:
             [np.nanmin(d[:, 0::2], axis=0), np.nanmax(d[:, 1::2], axis=0)]
         ).flatten()
 
-    def get_auto_camera(self, factor: float = 1.5, yaw: float = 25, pitch: float = 15,
-                        bounds: Optional[np.ndarray] = None) -> List[float]:
-        """ Compute the camera vector from the specified parameters. If `bounds`
+    def get_auto_camera(
+            self,
+            factor: float = 1.5,
+            yaw: float = 25,
+            pitch: float = 15,
+            bounds: Optional[np.ndarray] = None,
+    ) -> List[float]:
+        """Compute the camera vector from the specified parameters. If `bounds`
         is not provided, then the algorithm will obtain it from the available
         meshes.
         """
@@ -52,4 +64,4 @@ class PlotCameraMixin:
             up[0],
             up[1],
             up[2],
-            ]
+        ]

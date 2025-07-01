@@ -1,7 +1,10 @@
 """Factory function for point cloud objects."""
 
 import numpy as np
-from typing import Union, List as TypingList, Optional, Dict as TypingDict, Any, Tuple
+from typing import Any
+from typing import Dict as TypingDict
+from typing import List as TypingList
+from typing import Optional, Tuple, Union
 
 from .common import _default_color, default_colormap
 from ..helpers import check_attribute_color_range
@@ -34,7 +37,7 @@ def points(
         custom_data: Optional[TypingDict[str, Any]] = None,
         compression_level: int = 0,
         mesh_detail: int = 2,
-        **kwargs: Any
+        **kwargs: Any,
 ) -> Points:
     if colors is None:
         colors = []
@@ -78,5 +81,5 @@ def points(
             custom_data=custom_data,
             compression_level=compression_level,
         ),
-        **kwargs
+        **kwargs,
     )

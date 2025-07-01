@@ -1,6 +1,5 @@
 import json
 from pathlib import Path
-from typing import NoReturn
 
 __all__ = ["__version__"]
 

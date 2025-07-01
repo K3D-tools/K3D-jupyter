@@ -1,7 +1,10 @@
 """Factory function for VTK PolyData objects."""
 
 import numpy as np
-from typing import Union, List as TypingList, Optional, Dict as TypingDict, Any, Tuple
+from typing import Any
+from typing import Dict as TypingDict
+from typing import List as TypingList
+from typing import Optional, Tuple, Union
 
 from .common import _default_color, default_colormap
 from ..helpers import check_attribute_color_range
@@ -42,7 +45,7 @@ def vtk_poly_data(
         group: Optional[str] = None,
         custom_data: Optional[TypingDict[str, Any]] = None,
         compression_level: int = 0,
-        **kwargs: Any
+        **kwargs: Any,
 ) -> Mesh:
     if slice_planes is None:
         slice_planes = []
@@ -61,7 +64,13 @@ def vtk_poly_data(
     if vtk is None:
         raise RuntimeError("vtk module is not available")
 
-    if (max(poly_data.GetPolys().GetMaxCellSize(), poly_data.GetStrips().GetMaxCellSize()) > 3):
+    if (
+            max(
+                poly_data.GetPolys().GetMaxCellSize(),
+                poly_data.GetStrips().GetMaxCellSize(),
+            )
+            > 3
+    ):
         cut_triangles = vtk.vtkTriangleFilter()
         cut_triangles.SetInputData(poly_data)
         cut_triangles.Update()
@@ -84,8 +93,7 @@ def vtk_poly_data(
         color_range = check_attribute_color_range(volume, color_range)
 
     vertices = nps.vtk_to_numpy(poly_data.GetPoints().GetData())
-    indices = nps.vtk_to_numpy(
-        poly_data.GetPolys().GetData()).reshape(-1, 4)[:, 1:4]
+    indices = nps.vtk_to_numpy(poly_data.GetPolys().GetData()).reshape(-1, 4)[:, 1:4]
     volume_bounds = (
         np.array(volume_bounds, np.float32)
         if type(volume_bounds) is not dict
@@ -117,5 +125,5 @@ def vtk_poly_data(
             custom_data=custom_data,
             compression_level=compression_level,
         ),
-        **kwargs
+        **kwargs,
     )

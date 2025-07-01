@@ -4,109 +4,65 @@ This package contains all the drawable objects for K3D visualization.
 """
 
 # Base classes and utilities
-from .base import (
-    Drawable,
-    DrawableWithCallback,
-    DrawableWithVoxelCallback,
-    Group,
-    VoxelChunk,
-    TimeSeries,
-    SingleOrList,
-    ListOrArray,
-    EPSILON,
-)
+from .base import (EPSILON, Drawable, DrawableWithCallback,
+                   DrawableWithVoxelCallback, Group, ListOrArray, SingleOrList,
+                   TimeSeries, VoxelChunk)
 # Geometric objects
-from .geometry import (
-    Line,
-    Lines,
-    Mesh,
-    STL,
-    Surface,
-)
+from .geometry import STL, Line, Lines, Mesh, Surface
 # Points objects
-from .points import (
-    Points,
-)
+from .points import Points
 # Text objects
-from .text import (
-    Text,
-    Text2d,
-    Label,
-    TextureText,
-)
+from .text import Label, Text, Text2d, TextureText
 # Texture objects
-from .texture import (
-    Texture,
-)
+from .texture import Texture
 # Utility functions
-from .utils import (
-    create_object,
-    clone_object,
-    objects_map,
-)
+from .utils import clone_object, create_object, objects_map
 # Vector objects
-from .vectors import (
-    VectorField,
-    Vectors,
-)
+from .vectors import VectorField, Vectors
 # Volumetric objects
-from .volumetric import (
-    MarchingCubes,
-    Volume,
-    VolumeSlice,
-    Voxels,
-    SparseVoxels,
-    VoxelsGroup,
-    MIP,
-)
+from .volumetric import (MIP, MarchingCubes, SparseVoxels, Volume, VolumeSlice,
+                         Voxels, VoxelsGroup)
 
 # Export all object classes for backward compatibility
 __all__ = [
     # Base classes
-    'Drawable',
-    'DrawableWithCallback',
-    'DrawableWithVoxelCallback',
-    'Group',
-    'VoxelChunk',
-    'TimeSeries',
-    'SingleOrList',
-    'ListOrArray',
-    'EPSILON',
-
+    "Drawable",
+    "DrawableWithCallback",
+    "DrawableWithVoxelCallback",
+    "Group",
+    "VoxelChunk",
+    "TimeSeries",
+    "SingleOrList",
+    "ListOrArray",
+    "EPSILON",
     # Geometric objects
-    'Line',
-    'Lines',
-    'Mesh',
-    'STL',
-    'Surface',
-
+    "Line",
+    "Lines",
+    "Mesh",
+    "STL",
+    "Surface",
     # Volumetric objects
-    'MarchingCubes',
-    'Volume',
-    'VolumeSlice',
-    'Voxels',
-    'SparseVoxels',
-    'VoxelsGroup',
-    'MIP',
-
+    "MarchingCubes",
+    "Volume",
+    "VolumeSlice",
+    "Voxels",
+    "SparseVoxels",
+    "VoxelsGroup",
+    "MIP",
     # Text objects
-    'Text',
-    'Text2d',
-    'Label',
-    'TextureText',
-
+    "Text",
+    "Text2d",
+    "Label",
+    "TextureText",
     # Vector objects
-    'VectorField',
-    'Vectors',
-
+    "VectorField",
+    "Vectors",
     # Points objects
-    'Points',
-
+    "Points",
     # Texture objects
-    'Texture',
-
+    "Texture",
     # Utility functions
-    'create_object',
-    'clone_object',
-    'objects_map',
+    "create_object",
+    "clone_object",
+    "objects_map",
 ]

@@ -2,28 +2,12 @@
 
 import numpy as np
 import warnings
-from traitlets import (
-    Bool,
-    Bytes,
-    Float,
-    Int,
-    TraitError,
-    Unicode,
-    validate,
-)
+from traitlets import Bool, Bytes, Float, Int, TraitError, Unicode, validate
 from traittypes import Array
 
-from .base import (
-    Drawable,
-    DrawableWithCallback,
-    EPSILON,
-    TimeSeries,
-    ListOrArray,
-)
-from ..helpers import (
-    array_serialization_wrap,
-    get_bounding_box_points,
-)
+from .base import (EPSILON, Drawable, DrawableWithCallback, ListOrArray,
+                   TimeSeries)
+from ..helpers import array_serialization_wrap, get_bounding_box_points
 from ..validation.stl import AsciiStlData, BinaryStlData
 
 
@@ -170,7 +154,9 @@ class Lines(Drawable):
     vertices = TimeSeries(Array(dtype=np.float32)).tag(
         sync=True, **array_serialization_wrap("vertices")
     )
-    indices = Array(dtype=np.float32).tag(sync=True, **array_serialization_wrap("indices"))
+    indices = Array(dtype=np.float32).tag(
+        sync=True, **array_serialization_wrap("indices")
+    )
     indices_type = TimeSeries(Unicode()).tag(sync=True)
     colors = TimeSeries(Array(dtype=np.uint32)).tag(
         sync=True, **array_serialization_wrap("colors")
@@ -295,15 +281,14 @@ class Mesh(DrawableWithCallback):
     flat_shading = TimeSeries(Bool()).tag(sync=True)
     shininess = TimeSeries(Float(default_value=50.0)).tag(sync=True)
     side = TimeSeries(Unicode()).tag(sync=True)
-    opacity = TimeSeries(
-        Float(min=0.0, max=1.0, default_value=1.0)).tag(sync=True)
-    volume = TimeSeries(Array()).tag(
-        sync=True, **array_serialization_wrap("volume"))
+    opacity = TimeSeries(Float(min=0.0, max=1.0, default_value=1.0)).tag(sync=True)
+    volume = TimeSeries(Array()).tag(sync=True, **array_serialization_wrap("volume"))
     volume_bounds = TimeSeries(Array(dtype=np.float32)).tag(
         sync=True, **array_serialization_wrap("volume_bounds")
     )
     texture = Bytes(allow_none=True).tag(
-        sync=True, **array_serialization_wrap("texture"))
+        sync=True, **array_serialization_wrap("texture")
+    )
     texture_file_format = Unicode(allow_none=True).tag(sync=True)
     uvs = TimeSeries(Array()).tag(sync=True, **array_serialization_wrap("uvs"))
     opacity_function = TimeSeries(Array(dtype=np.float32)).tag(
@@ -386,8 +371,9 @@ class STL(Drawable):
 
     type = Unicode(read_only=True).tag(sync=True)
     text = AsciiStlData(allow_none=True, default_value=None).tag(sync=True)
-    binary = BinaryStlData(allow_none=True,
-                           default_value=None).tag(sync=True, **array_serialization_wrap("binary"))
+    binary = BinaryStlData(allow_none=True, default_value=None).tag(
+        sync=True, **array_serialization_wrap("binary")
+    )
     color = Int(min=0, max=0xFFFFFF).tag(sync=True)
     wireframe = Bool().tag(sync=True)
     flat_shading = Bool().tag(sync=True)
@@ -467,4 +453,5 @@ class Surface(DrawableWithCallback):
 
     def get_bounding_box(self):
         from ..helpers import get_bounding_box
+
         return get_bounding_box(self.model_matrix)

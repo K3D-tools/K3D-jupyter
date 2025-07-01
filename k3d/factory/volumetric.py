@@ -1,13 +1,15 @@
 """Factory functions for volumetric and voxel-based objects."""
 
 import numpy as np
-from typing import Union, List as TypingList, Optional, Dict as TypingDict, Any, Tuple
+from typing import Any
+from typing import Dict as TypingDict
+from typing import List as TypingList
+from typing import Optional, Tuple, Union
 
-from .common import _default_color, nice_colors, default_colormap
+from .common import _default_color, default_colormap, nice_colors
 from ..helpers import check_attribute_color_range
-from ..objects import (
-    Volume, MIP, VolumeSlice, Voxels, SparseVoxels, VoxelsGroup, MarchingCubes, VoxelChunk
-)
+from ..objects import (MIP, MarchingCubes, SparseVoxels, Volume, VolumeSlice,
+                       VoxelChunk, Voxels, VoxelsGroup)
 from ..transform import process_transform_arguments
 
 # Type aliases for better readability
@@ -38,7 +40,7 @@ def volume(
         group: Optional[str] = None,
         custom_data: Optional[TypingDict[str, Any]] = None,
         compression_level: int = 0,
-        **kwargs: Any
+        **kwargs: Any,
 ) -> Volume:
     if color_range is None:
         color_range = []
@@ -82,7 +84,7 @@ def volume(
             custom_data=custom_data,
             ray_samples_count=ray_samples_count,
         ),
-        **kwargs
+        **kwargs,
     )
 
 
@@ -100,7 +102,7 @@ def mip(
         group: Optional[str] = None,
         custom_data: Optional[TypingDict[str, Any]] = None,
         compression_level: int = 0,
-        **kwargs: Any
+        **kwargs: Any,
 ) -> MIP:
     if color_range is None:
         color_range = []
@@ -137,7 +139,7 @@ def mip(
             custom_data=custom_data,
             compression_level=compression_level,
         ),
-        **kwargs
+        **kwargs,
     )
 
 
@@ -159,7 +161,7 @@ def volume_slice(
         group: Optional[str] = None,
         custom_data: Optional[TypingDict[str, Any]] = None,
         compression_level: int = 0,
-        **kwargs: Any
+        **kwargs: Any,
 ) -> VolumeSlice:
     if volume is None:
         volume = []
@@ -178,30 +180,34 @@ def volume_slice(
     if color_map_masks is None:
         color_map_masks = nice_colors
 
-    color_map = np.array(color_map, np.float32) if type(color_map) is not dict else color_map
+    color_map = (
+        np.array(color_map, np.float32) if type(color_map) is not dict else color_map
+    )
 
     if len(volume) > 0:
         color_range = check_attribute_color_range(volume, color_range)
 
     return process_transform_arguments(
-        VolumeSlice(volume=volume,
-                    color_map=color_map,
-                    color_range=color_range,
-                    opacity_function=opacity_function,
-                    opacity=opacity,
-                    slice_x=slice_x,
-                    slice_y=slice_y,
-                    slice_z=slice_z,
-                    interpolation=interpolation,
-                    mask=mask,
-                    mask_opacity=mask_opacity,
-                    active_masks=active_masks,
-                    color_map_masks=color_map_masks,
-                    name=name,
-                    group=group,
-                    custom_data=custom_data,
-                    compression_level=compression_level),
-        **kwargs
+        VolumeSlice(
+            volume=volume,
+            color_map=color_map,
+            color_range=color_range,
+            opacity_function=opacity_function,
+            opacity=opacity,
+            slice_x=slice_x,
+            slice_y=slice_y,
+            slice_z=slice_z,
+            interpolation=interpolation,
+            mask=mask,
+            mask_opacity=mask_opacity,
+            active_masks=active_masks,
+            color_map_masks=color_map_masks,
+            name=name,
+            group=group,
+            custom_data=custom_data,
+            compression_level=compression_level,
+        ),
+        **kwargs,
     )
 
 
@@ -217,7 +223,7 @@ def voxels(
         group: Optional[str] = None,
         custom_data: Optional[TypingDict[str, Any]] = None,
         compression_level: int = 0,
-        **kwargs: Any
+        **kwargs: Any,
 ) -> Voxels:
     if color_map is None:
         color_map = nice_colors
@@ -241,7 +247,7 @@ def voxels(
             custom_data=custom_data,
             compression_level=compression_level,
         ),
-        **kwargs
+        **kwargs,
     )
 
 
@@ -258,7 +264,7 @@ def sparse_voxels(
         group: Optional[str] = None,
         custom_data: Optional[TypingDict[str, Any]] = None,
         compression_level: int = 0,
-        **kwargs: Any
+        **kwargs: Any,
 ) -> SparseVoxels:
     if color_map is None:
         color_map = nice_colors
@@ -283,7 +289,7 @@ def sparse_voxels(
             custom_data=custom_data,
             compression_level=compression_level,
         ),
-        **kwargs
+        **kwargs,
     )
 
 
@@ -300,7 +306,7 @@ def voxels_group(
         group: Optional[str] = None,
         custom_data: Optional[TypingDict[str, Any]] = None,
         compression_level: int = 0,
-        **kwargs: Any
+        **kwargs: Any,
 ) -> VoxelsGroup:
     if voxels_group is None:
         voxels_group = []
@@ -332,7 +338,7 @@ def voxels_group(
             custom_data=custom_data,
             compression_level=compression_level,
         ),
-        **kwargs
+        **kwargs,
     )
 
 
@@ -355,7 +361,7 @@ def marching_cubes(
         group: Optional[str] = None,
         custom_data: Optional[TypingDict[str, Any]] = None,
         compression_level: int = 0,
-        **kwargs: Any
+        **kwargs: Any,
 ) -> MarchingCubes:
     if attribute is None:
         attribute = []
@@ -399,18 +405,15 @@ def marching_cubes(
             custom_data=custom_data,
             compression_level=compression_level,
         ),
-        **kwargs
+        **kwargs,
     )
 
 
 def voxel_chunk(
-        voxels: ArrayLike,
-        coord: ArrayLike,
-        multiple: int = 1,
-        compression_level: int = 0
+        voxels: ArrayLike, coord: ArrayLike, multiple: int = 1, compression_level: int = 0
 ) -> VoxelChunk:
     """Create a VoxelChunk object for selective updating voxels.
-    
+
     Parameters
     ----------
     voxels : array_like
@@ -421,7 +424,7 @@ def voxel_chunk(
         Multiple factor, by default 1.
     compression_level : int, optional
         Compression level for the chunk, by default 0.
-        
+
     Returns
     -------
     VoxelChunk

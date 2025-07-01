@@ -1,16 +1,21 @@
 from __future__ import print_function
 
 from .plot_base import PlotBase
-from .plot_objects import PlotObjectsMixin
-from .plot_display import PlotDisplayMixin
 from .plot_camera import PlotCameraMixin
-from .plot_snapshot import PlotSnapshotMixin
+from .plot_display import PlotDisplayMixin
+from .plot_objects import PlotObjectsMixin
 from .plot_serialization import PlotSerializationMixin
-from .._version import __version__ as version
+from .plot_snapshot import PlotSnapshotMixin
 
 
-class Plot(PlotBase, PlotObjectsMixin, PlotDisplayMixin, PlotCameraMixin, PlotSnapshotMixin,
-           PlotSerializationMixin):
+class Plot(
+    PlotBase,
+    PlotObjectsMixin,
+    PlotDisplayMixin,
+    PlotCameraMixin,
+    PlotSnapshotMixin,
+    PlotSerializationMixin,
+):
     """
     Main K3D widget.
 
@@ -128,4 +133,5 @@ class Plot(PlotBase, PlotObjectsMixin, PlotDisplayMixin, PlotCameraMixin, PlotSn
         objects: `list`.
             List of `k3d.objects.Drawable` currently included in the plot, not to be changed directly.
     """
+
     pass

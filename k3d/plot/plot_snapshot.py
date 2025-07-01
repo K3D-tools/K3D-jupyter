@@ -1,6 +1,8 @@
 import base64
 from functools import wraps
-from typing import Any, Callable, Generator, List, Optional, Dict as TypingDict
+from typing import Any, Callable
+from typing import Dict as TypingDict
+from typing import Generator, List, Optional
 
 from ..objects import create_object
 
@@ -14,8 +16,9 @@ class PlotSnapshotMixin:
         be available after the current cell finishes execution."""
         self.send({"msg_type": "fetch_screenshot", "only_canvas": only_canvas})
 
-    def yield_screenshots(self, generator_function: Callable[[], Generator[bytes, None, None]]) -> \
-    Callable[[], None]:
+    def yield_screenshots(
+            self, generator_function: Callable[[], Generator[bytes, None, None]]
+    ) -> Callable[[], None]:
         """Decorator for a generator function receiving screenshots via yield."""
 
         @wraps(generator_function)
@@ -39,10 +42,13 @@ class PlotSnapshotMixin:
         The result is a string: a HTML document with this plot embedded.
         This function requires a round-trip of websocket messages. The result will
         be available after the current cell finishes execution."""
-        self.send({"msg_type": "fetch_snapshot", "compression_level": compression_level})
+        self.send(
+            {"msg_type": "fetch_snapshot", "compression_level": compression_level}
+        )
 
-    def yield_snapshots(self, generator_function: Callable[[], Generator[bytes, None, None]]) -> \
-    Callable[[], None]:
+    def yield_snapshots(
+            self, generator_function: Callable[[], Generator[bytes, None, None]]
+    ) -> Callable[[], None]:
         """Decorator for a generator function receiving snapshots via yield."""
 
         @wraps(generator_function)
@@ -60,51 +66,62 @@ class PlotSnapshotMixin:
 
         return inner
 
-    def get_binary_snapshot(self, compression_level: int = 9,
-                            voxel_chunks: Optional[List[Any]] = None) -> bytes:
+    def get_binary_snapshot(
+            self, compression_level: int = 9, voxel_chunks: Optional[List[Any]] = None
+    ) -> bytes:
         import zlib
+
         import msgpack
+
         if voxel_chunks is None:
             voxel_chunks = []
         snapshot = self.get_binary_snapshot_objects(voxel_chunks)
-        snapshot['plot'] = self.get_plot_params()
+        snapshot["plot"] = self.get_plot_params()
         data = msgpack.packb(snapshot, use_bin_type=True)
         return zlib.compress(data, compression_level)
 
     def load_binary_snapshot(self, data: bytes) -> tuple:
         import zlib
+
         import msgpack
+
         data = msgpack.unpackb(zlib.decompress(data))
         self.voxel_chunks = []
-        if 'objects' in data.keys():
-            for o in data['objects']:
+        if "objects" in data.keys():
+            for o in data["objects"]:
                 self += create_object(o)
-        if 'chunkList' in data.keys():
-            for o in data['chunkList']:
+        if "chunkList" in data.keys():
+            for o in data["chunkList"]:
                 self.voxel_chunks.append(create_object(o, True))
         return data, self.voxel_chunks
 
-    def get_binary_snapshot_objects(self, voxel_chunks: Optional[List[Any]] = None) -> TypingDict[
-        str, List[Any]]:
+    def get_binary_snapshot_objects(
+            self, voxel_chunks: Optional[List[Any]] = None
+    ) -> TypingDict[str, List[Any]]:
         if voxel_chunks is None:
             voxel_chunks = []
         snapshot = {"objects": [], "chunkList": []}
-        for name, l in [('objects', self.objects), ('chunkList', voxel_chunks)]:
+        for name, l in [("objects", self.objects), ("chunkList", voxel_chunks)]:
             for o in l:
                 snapshot[name].append(o.get_binary())
         return snapshot
 
-    def get_snapshot(self, compression_level: int = 9, voxel_chunks: Optional[List[Any]] = None,
-                     additional_js_code: str = "") -> str:
+    def get_snapshot(
+            self,
+            compression_level: int = 9,
+            voxel_chunks: Optional[List[Any]] = None,
+            additional_js_code: str = "",
+    ) -> str:
         """Produce on the Python side a HTML document with the current plot embedded."""
-        import os
         import io
+        import os
         import zlib
+
         if voxel_chunks is None:
             voxel_chunks = []
         dir_path = os.path.dirname(os.path.realpath(__file__))
         data = self.get_binary_snapshot(compression_level, voxel_chunks)
-        if self.snapshot_type == 'full':
+        if self.snapshot_type == "full":
             f = io.open(
                 os.path.join(dir_path, "static", "snapshot_standalone.txt"),
                 mode="r",
@@ -139,12 +156,12 @@ class PlotSnapshotMixin:
             template = template.replace("[FFLATE_JS]", f.read())
             f.close()
         else:
-            if self.snapshot_type == 'online':
-                template_file = 'snapshot_online.txt'
-            elif self.snapshot_type == 'inline':
-                template_file = 'snapshot_inline.txt'
+            if self.snapshot_type == "online":
+                template_file = "snapshot_online.txt"
+            elif self.snapshot_type == "inline":
+                template_file = "snapshot_inline.txt"
             else:
-                raise Exception('Unknown snapshot_type')
+                raise Exception("Unknown snapshot_type")
             f = io.open(
                 os.path.join(dir_path, "static", template_file),
                 mode="r",

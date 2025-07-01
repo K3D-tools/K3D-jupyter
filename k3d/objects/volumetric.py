@@ -2,30 +2,14 @@
 
 import numpy as np
 import warnings
-from traitlets import (
-    Bool,
-    Float,
-    Int,
-    List,
-    Unicode,
-    validate,
-)
+from traitlets import Bool, Float, Int, List, Unicode, validate
 from traittypes import Array
 
-from ..helpers import (
-    array_serialization_wrap,
-    get_bounding_box,
-    get_bounding_box_points,
-    shape_validation,
-    sparse_voxels_validation,
-)
-from .base import (
-    Drawable,
-    DrawableWithCallback,
-    DrawableWithVoxelCallback,
-    TimeSeries,
-    ListOrArray,
-)
+from .base import (Drawable, DrawableWithCallback, DrawableWithVoxelCallback,
+                   ListOrArray, TimeSeries)
+from ..helpers import (array_serialization_wrap, get_bounding_box,
+                       shape_validation,
+                       sparse_voxels_validation)
 
 
 class MarchingCubes(DrawableWithCallback):
@@ -101,8 +85,7 @@ class MarchingCubes(DrawableWithCallback):
     wireframe = Bool().tag(sync=True)
     flat_shading = Bool().tag(sync=True)
     shininess = TimeSeries(Float(default_value=50.0)).tag(sync=True)
-    opacity = TimeSeries(
-        Float(min=0.0, max=1.0, default_value=1.0)).tag(sync=True)
+    opacity = TimeSeries(Float(min=0.0, max=1.0, default_value=1.0)).tag(sync=True)
     model_matrix = TimeSeries(Array(dtype=np.float32)).tag(
         sync=True, **array_serialization_wrap("model_matrix")
     )
@@ -158,54 +141,61 @@ class VolumeSlice(DrawableWithCallback):
             4x4 model transform matrix."""
 
     type = Unicode(read_only=True).tag(sync=True)
-    volume = TimeSeries(Array()).tag(sync=True, **array_serialization_wrap('volume'))
-    color_map = TimeSeries(Array(dtype=np.float32)).tag(sync=True,
-                                                        **array_serialization_wrap('color_map'))
+    volume = TimeSeries(Array()).tag(sync=True, **array_serialization_wrap("volume"))
+    color_map = TimeSeries(Array(dtype=np.float32)).tag(
+        sync=True, **array_serialization_wrap("color_map")
+    )
     color_range = TimeSeries(ListOrArray(minlen=2, empty_ok=True)).tag(sync=True)
-    opacity_function = TimeSeries(Array(dtype=np.float32)).tag(sync=True,
-                                                               **array_serialization_wrap(
-                                                                   'opacity_function'))
+    opacity_function = TimeSeries(Array(dtype=np.float32)).tag(
+        sync=True, **array_serialization_wrap("opacity_function")
+    )
     opacity = TimeSeries(Float(min=0.0, max=1.0, default_value=1.0)).tag(sync=True)
     slice_x = TimeSeries(Int()).tag(sync=True)
     slice_y = TimeSeries(Int()).tag(sync=True)
     slice_z = TimeSeries(Int()).tag(sync=True)
     interpolation = TimeSeries(Int()).tag(sync=True)
-    mask = Array(dtype=np.uint8).tag(sync=True, **array_serialization_wrap('mask'))
-    active_masks = Array(dtype=np.uint8).tag(sync=True, **array_serialization_wrap('active_masks'))
-    color_map_masks = Array(dtype=np.uint32).tag(sync=True,
-                                                 **array_serialization_wrap('color_map_masks'))
+    mask = Array(dtype=np.uint8).tag(sync=True, **array_serialization_wrap("mask"))
+    active_masks = Array(dtype=np.uint8).tag(
+        sync=True, **array_serialization_wrap("active_masks")
+    )
+    color_map_masks = Array(dtype=np.uint32).tag(
+        sync=True, **array_serialization_wrap("color_map_masks")
+    )
     mask_opacity = TimeSeries(Float()).tag(sync=True)
-    model_matrix = TimeSeries(Array(dtype=np.float32)).tag(sync=True, **array_serialization_wrap(
-        'model_matrix'))
+    model_matrix = TimeSeries(Array(dtype=np.float32)).tag(
+        sync=True, **array_serialization_wrap("model_matrix")
+    )
 
     def __init__(self, **kwargs):
         super(VolumeSlice, self).__init__(**kwargs)
 
-        self.set_trait('type', 'VolumeSlice')
+        self.set_trait("type", "VolumeSlice")
 
-    @validate('volume')
+    @validate("volume")
     def _validate_volume(self, proposal):
-        if type(proposal['value']) is dict:
-            return proposal['value']
+        if type(proposal["value"]) is dict:
+            return proposal["value"]
 
-        if type(proposal['value']) is list:
-            return proposal['value']
+        if type(proposal["value"]) is list:
+            return proposal["value"]
 
-        if type(proposal['value']) is np.ndarray and proposal['value'].dtype is np.dtype(object):
-            return proposal['value'].tolist()
+        if type(proposal["value"]) is np.ndarray and proposal[
+            "value"
+        ].dtype is np.dtype(object):
+            return proposal["value"].tolist()
 
-        if proposal['value'].shape == (0,):
-            return np.array(proposal['value'], dtype=np.float32)
+        if proposal["value"].shape == (0,):
+            return np.array(proposal["value"], dtype=np.float32)
 
         required = [np.float16, np.float32]
-        actual = proposal['value'].dtype
+        actual = proposal["value"].dtype
 
         if actual not in required:
-            warnings.warn('wrong dtype: %s (%s required)' % (actual, required))
+            warnings.warn("wrong dtype: %s (%s required)" % (actual, required))
 
-            return proposal['value'].astype(np.float32)
+            return proposal["value"].astype(np.float32)
 
-        return proposal['value']
+        return proposal["value"]
 
     def get_bounding_box(self):
         return get_bounding_box(self.model_matrix)
@@ -259,8 +249,7 @@ class Volume(Drawable):
     """
 
     type = Unicode(read_only=True).tag(sync=True)
-    volume = TimeSeries(Array()).tag(
-        sync=True, **array_serialization_wrap("volume"))
+    volume = TimeSeries(Array()).tag(sync=True, **array_serialization_wrap("volume"))
     color_map = TimeSeries(Array(dtype=np.float32)).tag(
         sync=True, **array_serialization_wrap("color_map")
     )
@@ -274,17 +263,16 @@ class Volume(Drawable):
     alpha_coef = TimeSeries(Float()).tag(sync=True)
     gradient_step = TimeSeries(Float()).tag(sync=True)
     shadow = TimeSeries(Unicode()).tag(sync=True)
-    shadow_res = TimeSeries(
-        Int(min=31, max=513, default_value=128)).tag(sync=True)
+    shadow_res = TimeSeries(Int(min=31, max=513, default_value=128)).tag(sync=True)
     shadow_delay = TimeSeries(Float()).tag(sync=True)
-    ray_samples_count = TimeSeries(
-        Int(min=1, max=128, default_value=16)).tag(sync=True)
+    ray_samples_count = TimeSeries(Int(min=1, max=128, default_value=16)).tag(sync=True)
     focal_length = TimeSeries(Float()).tag(sync=True)
     focal_plane = TimeSeries(Float()).tag(sync=True)
     interpolation = TimeSeries(Bool()).tag(sync=True)
-    mask = Array(dtype=np.uint8).tag(sync=True, **array_serialization_wrap('mask'))
-    mask_opacities = TimeSeries(Array(dtype=np.float32)).tag(sync=True, **array_serialization_wrap(
-        'mask_opacities'))
+    mask = Array(dtype=np.uint8).tag(sync=True, **array_serialization_wrap("mask"))
+    mask_opacities = TimeSeries(Array(dtype=np.float32)).tag(
+        sync=True, **array_serialization_wrap("mask_opacities")
+    )
     model_matrix = TimeSeries(Array(dtype=np.float32)).tag(
         sync=True, **array_serialization_wrap("model_matrix")
     )
@@ -355,8 +343,7 @@ class MIP(Drawable):
     """
 
     type = Unicode(read_only=True).tag(sync=True)
-    volume = TimeSeries(Array()).tag(
-        sync=True, **array_serialization_wrap("volume"))
+    volume = TimeSeries(Array()).tag(sync=True, **array_serialization_wrap("volume"))
     color_map = TimeSeries(Array(dtype=np.float32)).tag(
         sync=True, **array_serialization_wrap("color_map")
     )
@@ -369,9 +356,10 @@ class MIP(Drawable):
     gradient_step = TimeSeries(Float()).tag(sync=True)
     samples = TimeSeries(Float()).tag(sync=True)
     interpolation = TimeSeries(Bool()).tag(sync=True)
-    mask = Array(dtype=np.uint8).tag(sync=True, **array_serialization_wrap('mask'))
-    mask_opacities = TimeSeries(Array(dtype=np.float32)).tag(sync=True, **array_serialization_wrap(
-        'mask_opacities'))
+    mask = Array(dtype=np.uint8).tag(sync=True, **array_serialization_wrap("mask"))
+    mask_opacities = TimeSeries(Array(dtype=np.float32)).tag(
+        sync=True, **array_serialization_wrap("mask_opacities")
+    )
     model_matrix = TimeSeries(Array(dtype=np.float32)).tag(
         sync=True, **array_serialization_wrap("model_matrix")
     )
@@ -441,16 +429,14 @@ class Voxels(DrawableWithVoxelCallback):
     """
 
     type = Unicode(read_only=True).tag(sync=True)
-    voxels = Array(dtype=np.uint8).tag(
-        sync=True, **array_serialization_wrap("voxels"))
+    voxels = Array(dtype=np.uint8).tag(sync=True, **array_serialization_wrap("voxels"))
     color_map = Array(dtype=np.uint32).tag(
         sync=True, **array_serialization_wrap("voxels")
     )
     wireframe = Bool().tag(sync=True)
     outlines = Bool().tag(sync=True)
     outlines_color = Int(min=0, max=0xFFFFFF).tag(sync=True)
-    opacity = TimeSeries(
-        Float(min=0.0, max=1.0, default_value=1.0)).tag(sync=True)
+    opacity = TimeSeries(Float(min=0.0, max=1.0, default_value=1.0)).tag(sync=True)
     model_matrix = TimeSeries(Array(dtype=np.float32)).tag(
         sync=True, **array_serialization_wrap("model_matrix")
     )
@@ -509,8 +495,7 @@ class SparseVoxels(DrawableWithVoxelCallback):
     wireframe = Bool().tag(sync=True)
     outlines = Bool().tag(sync=True)
     outlines_color = Int(min=0, max=0xFFFFFF).tag(sync=True)
-    opacity = TimeSeries(
-        Float(min=0.0, max=1.0, default_value=1.0)).tag(sync=True)
+    opacity = TimeSeries(Float(min=0.0, max=1.0, default_value=1.0)).tag(sync=True)
     model_matrix = TimeSeries(Array(dtype=np.float32)).tag(
         sync=True, **array_serialization_wrap("model_matrix")
     )
@@ -555,7 +540,9 @@ class VoxelsGroup(DrawableWithVoxelCallback):
 
     _hold_remeshing = Bool(default_value=False).tag(sync=True)
 
-    voxels_group = List(default_value=[]).tag(sync=True, **array_serialization_wrap("voxels_group"))
+    voxels_group = List(default_value=[]).tag(
+        sync=True, **array_serialization_wrap("voxels_group")
+    )
     chunks_ids = List(default_value=[]).tag(sync=True)
 
     space_size = Array(dtype=np.uint32).tag(
@@ -567,8 +554,7 @@ class VoxelsGroup(DrawableWithVoxelCallback):
     wireframe = Bool().tag(sync=True)
     outlines = Bool().tag(sync=True)
     outlines_color = Int(min=0, max=0xFFFFFF).tag(sync=True)
-    opacity = TimeSeries(
-        Float(min=0.0, max=1.0, default_value=1.0)).tag(sync=True)
+    opacity = TimeSeries(Float(min=0.0, max=1.0, default_value=1.0)).tag(sync=True)
     model_matrix = TimeSeries(Array(dtype=np.float32)).tag(
         sync=True, **array_serialization_wrap("model_matrix")
     )

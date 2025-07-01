@@ -2,11 +2,14 @@
 
 import numpy as np
 import six
-from typing import Union, List as TypingList, Optional, Dict as TypingDict, Any, Tuple
+from typing import Any
+from typing import Dict as TypingDict
+from typing import List as TypingList
+from typing import Optional, Tuple, Union
 
 from .common import _default_color, default_colormap
 from ..helpers import check_attribute_color_range
-from ..objects import Line, Lines, Mesh, STL, Surface
+from ..objects import STL, Line, Lines, Mesh, Surface
 from ..transform import process_transform_arguments
 
 # Type aliases for better readability
@@ -33,7 +36,7 @@ def lines(
         group: Optional[str] = None,
         custom_data: Optional[TypingDict[str, Any]] = None,
         compression_level: int = 0,
-        **kwargs: Any
+        **kwargs: Any,
 ) -> Lines:
     """
     Create a Line drawable for plotting segments and polylines.
@@ -119,7 +122,7 @@ def lines(
             custom_data=custom_data,
             compression_level=compression_level,
         ),
-        **kwargs
+        **kwargs,
     )
 
 
@@ -139,7 +142,7 @@ def line(
         group: Optional[str] = None,
         custom_data: Optional[TypingDict[str, Any]] = None,
         compression_level: int = 0,
-        **kwargs: Any
+        **kwargs: Any,
 ) -> Line:
     """
     Create a Line drawable for plotting segments and polylines.
@@ -192,12 +195,10 @@ def line(
     if color_map is None:
         color_map = default_colormap
     color_map = (
-        np.array(color_map, np.float32) if type(
-            color_map) is not dict else color_map
+        np.array(color_map, np.float32) if type(color_map) is not dict else color_map
     )
     attribute = (
-        np.array(attribute, np.float32) if type(
-            attribute) is not dict else attribute
+        np.array(attribute, np.float32) if type(attribute) is not dict else attribute
     )
     color_range = check_attribute_color_range(attribute, color_range)
 
@@ -218,7 +219,7 @@ def line(
             custom_data=custom_data,
             compression_level=compression_level,
         ),
-        **kwargs
+        **kwargs,
     )
 
 
@@ -249,7 +250,7 @@ def mesh(
         custom_data: Optional[TypingDict[str, Any]] = None,
         compression_level: int = 0,
         triangles_attribute: ArrayLike = None,
-        **kwargs: Any
+        **kwargs: Any,
 ) -> Mesh:
     """Create a Mesh drawable from 3D triangles.
 
@@ -340,18 +341,13 @@ def mesh(
     if color_map is None:
         color_map = default_colormap
     color_map = (
-        np.array(color_map, np.float32) if type(
-            color_map) is not dict else color_map
+        np.array(color_map, np.float32) if type(color_map) is not dict else color_map
     )
     uvs = np.array(uvs, np.float32) if type(uvs) is not dict else color_map
     attribute = (
-        np.array(attribute, np.float32) if type(
-            attribute) is not dict else attribute
+        np.array(attribute, np.float32) if type(attribute) is not dict else attribute
     )
-    normals = (
-        np.array(normals, np.float32) if type(
-            normals) is not dict else normals
-    )
+    normals = np.array(normals, np.float32) if type(normals) is not dict else normals
     triangles_attribute = (
         np.array(triangles_attribute, np.float32)
         if type(triangles_attribute) is not dict
@@ -367,8 +363,7 @@ def mesh(
         color_range = check_attribute_color_range(attribute, color_range)
 
     if len(triangles_attribute) > 0:
-        color_range = check_attribute_color_range(
-            triangles_attribute, color_range)
+        color_range = check_attribute_color_range(triangles_attribute, color_range)
 
     if len(volume) > 0:
         color_range = check_attribute_color_range(volume, color_range)
@@ -401,7 +396,7 @@ def mesh(
             custom_data=custom_data,
             compression_level=compression_level,
         ),
-        **kwargs
+        **kwargs,
     )
 
 
@@ -416,7 +411,7 @@ def stl(
         group: Optional[str] = None,
         custom_data: Optional[TypingDict[str, Any]] = None,
         compression_level: int = 0,
-        **kwargs: Any
+        **kwargs: Any,
 ) -> STL:
     """Create an STL drawable for data in STereoLitograpy format.
 
@@ -463,7 +458,7 @@ def stl(
             custom_data=custom_data,
             compression_level=compression_level,
         ),
-        **kwargs
+        **kwargs,
     )
 
 
@@ -481,7 +476,7 @@ def surface(
         group: Optional[str] = None,
         custom_data: Optional[TypingDict[str, Any]] = None,
         compression_level: int = 0,
-        **kwargs: Any
+        **kwargs: Any,
 ) -> Surface:
     """Create a Surface drawable.
 
@@ -559,5 +554,5 @@ def surface(
             custom_data=custom_data,
             compression_level=compression_level,
         ),
-        **kwargs
+        **kwargs,
     )
