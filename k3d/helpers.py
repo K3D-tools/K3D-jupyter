@@ -7,19 +7,20 @@ import os
 import zlib
 from traitlets import TraitError
 from urllib.request import urlopen
+import logging
 
 from ._protocol import get_protocol
 from typing import Union, List as TypingList, Optional, Dict as TypingDict, Any, Tuple, Callable
 
 
-# import logging
-# from pprint import pprint, pformat
-#
-# logger = logging.getLogger()
-# logger.setLevel(logging.INFO)
-# fh = logging.FileHandler('k3d.log')
-# fh.setLevel(logging.INFO)
-# logger.addHandler(fh)
+# Set up module-level logger
+logger = logging.getLogger(__name__)
+if not logger.hasHandlers():
+    handler = logging.StreamHandler()
+    formatter = logging.Formatter('[%(asctime)s] %(levelname)s in %(module)s: %(message)s')
+    handler.setFormatter(formatter)
+    logger.addHandler(handler)
+logger.setLevel(logging.INFO)
 
 
 # pylint: disable=unused-argument
@@ -49,11 +50,14 @@ Union[str, TypingDict[str, Any]]:
         If the dtype is unsupported.
     """
     if ar.dtype.kind not in ["u", "i", "f"]:  # ints and floats
-        raise ValueError("Unsupported dtype: %s" % ar.dtype)
+        logger.error(f"Unsupported dtype: {ar.dtype}")
+        raise ValueError(f"Unsupported dtype: {ar.dtype}")
 
     if ar.dtype == np.float64:  # WebGL does not support float64
+        logger.info("Converting float64 array to float32 for WebGL compatibility.")
         ar = ar.astype(np.float32)
     elif ar.dtype == np.int64:  # JS does not support int64
+        logger.info("Converting int64 array to int32 for JS compatibility.")
         ar = ar.astype(np.int32)
 
     # make sure it's contiguous
@@ -247,13 +251,16 @@ def download(url: str) -> str:
         File path.
     """
     basename = os.path.basename(url)
-
     if os.path.exists(basename):
+        logger.info(f"File already exists locally: {basename}")
         return basename
-
-    with urlopen(url) as response, open(basename, "wb") as output:
-        output.write(response.read())
-
+    try:
+        with urlopen(url) as response, open(basename, "wb") as output:
+            output.write(response.read())
+        logger.info(f"Downloaded file from {url} to {basename}")
+    except Exception as e:
+        logger.error(f"Failed to download {url}: {e}")
+        raise
     return basename
 
 

@@ -33,14 +33,20 @@ if (typeof (sourceCode) === 'undefined') {
         path = `https://unpkg.com/k3d@${semverRange}/dist/standalone.js`;
     }
 
-    fileLoader(path, (data) => {
-        data = fflate.strToU8(data);
-        sourceCode = buffer.arrayBufferToBase64(fflate.zlibSync(data));
-    }, (error) => {
-        console.error('K3D: Failed to load source code:', error.message);
+    try {
+        fileLoader(path, (data) => {
+            data = fflate.strToU8(data);
+            sourceCode = buffer.arrayBufferToBase64(fflate.zlibSync(data));
+        }, (error) => {
+            console.error('K3D: Failed to load source code:', error.message);
+            // Fallback to empty source code
+            sourceCode = '';
+        });
+    } catch (error) {
+        error('K3D Error', 'Failed to load source code: ' + error.message);
         // Fallback to empty source code
         sourceCode = '';
-    });
+    }
 }
 
 function getHTMLSnapshot(K3D, compressionLevel) {

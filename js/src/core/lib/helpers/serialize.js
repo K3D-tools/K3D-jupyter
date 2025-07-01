@@ -3,6 +3,7 @@ const _ = require('../../../lodash');
 const Float16Array = require('./float16Array');
 const msgpack = require('msgpack-lite');
 const buffer = require('./buffer');
+const { error } = require('../Error');
 
 const typesToArray = {
     int8: Int8Array,
@@ -77,9 +78,9 @@ function deserialize(obj, manager) {
     if (typeof (obj) === 'string' && obj.substring(0, 7) === 'base64_') {
         try {
             obj = msgpack.decode(buffer.base64ToArrayBuffer(obj.substring(7)), { codec: MsgpackCodec });
-        } catch (error) {
-            console.error('K3D: Failed to deserialize base64 data:', error.message);
-            throw new Error('Invalid base64 data in serialization: ' + error.message);
+        } catch (err) {
+            error('K3D Error', 'Failed to deserialize base64 data: ' + err.message);
+            throw new Error('Invalid base64 data in serialization: ' + err.message);
         }
     }
     if (typeof (obj) === 'string' || typeof (obj) === 'boolean') {

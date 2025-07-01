@@ -12,9 +12,14 @@ from werkzeug.serving import make_server
 
 from .helpers import to_json
 
-log = logging.getLogger('werkzeug')
-log.setLevel(logging.ERROR)
-
+# Set up module-level logger
+logger = logging.getLogger(__name__)
+if not logger.hasHandlers():
+    handler = logging.StreamHandler()
+    formatter = logging.Formatter('[%(asctime)s] %(levelname)s in %(module)s: %(message)s')
+    handler.setFormatter(formatter)
+    logger.addHandler(handler)
+logger.setLevel(logging.INFO)
 
 # logging.basicConfig(filename='test.log', level=logging.DEBUG)
 
@@ -49,55 +54,51 @@ class k3d_remote:
 
         @self.api.route('/', methods=['POST'])
         def generate():
-            current_plot_params = self.k3d_plot.get_plot_params()
-            plot_diff = {k: current_plot_params[k] for k in current_plot_params.keys()
-                         if current_plot_params[k] != self.synced_plot[k] and k != 'minimumFps'}
-
-            objects_diff = {}
-
-            for o in self.k3d_plot.objects:
-                if o.id not in self.synced_objects:
-                    objects_diff[o.id] = {k: to_json(k, o[k], o) for k in o.keys if
-                                          not k.startswith('_')}
-                else:
-                    for p in o.keys:
-                        if p.startswith('_'):
-                            continue
-
-                        if p == 'voxels_group':
-                            # Always sync voxels_group as it's a complex data structure that changes frequently
-                            # Deep comparison would be expensive and the data structure is designed for frequent updates
-                            sync = True
-                        else:
-                            try:
-                                sync = (o[p] != self.synced_objects[o.id][p]).any()
-                            except Exception:
+            try:
+                current_plot_params = self.k3d_plot.get_plot_params()
+                plot_diff = {k: current_plot_params[k] for k in current_plot_params.keys()
+                             if current_plot_params[k] != self.synced_plot[k] and k != 'minimumFps'}
+                objects_diff = {}
+                for o in self.k3d_plot.objects:
+                    if o.id not in self.synced_objects:
+                        objects_diff[o.id] = {k: to_json(k, o[k], o) for k in o.keys if
+                                              not k.startswith('_')}
+                    else:
+                        for p in o.keys:
+                            if p.startswith('_'):
+                                continue
+                            if p == 'voxels_group':
+                                sync = True
+                            else:
                                 try:
-                                    sync = o[p].shape != self.synced_objects[o.id][p].shape
-                                except Exception:
-                                    sync = not deep_compare(o[p], self.synced_objects[o.id][p])
-
-                        if sync:
-                            if o.id not in objects_diff.keys():
-                                objects_diff[o.id] = {"id": o.id, "type": o.type}
-
-                            objects_diff[o.id][p] = to_json(p, o[p], o)
-
-            for k in self.synced_objects.keys():
-                if k not in self.k3d_plot.object_ids:
-                    objects_diff[k] = None  # to remove from plot
-
-            diff = {
-                "plot_diff": plot_diff,
-                "objects_diff": objects_diff
-            }
-
-            self.synced_objects = {v.id: {k: copy.deepcopy(v[k]) for k in v.keys} for v in
-                                   self.k3d_plot.objects}
-            self.synced_plot = current_plot_params
-
-            return Response(msgpack.packb(diff, use_bin_type=True),
-                            mimetype='application/octet-stream')
+                                    sync = (o[p] != self.synced_objects[o.id][p]).any()
+                                except Exception as e:
+                                    logger.warning(f"Comparison failed for object {o.id} property {p}: {e}")
+                                    try:
+                                        sync = o[p].shape != self.synced_objects[o.id][p].shape
+                                    except Exception as e2:
+                                        logger.warning(f"Shape comparison failed for object {o.id} property {p}: {e2}")
+                                        sync = not deep_compare(o[p], self.synced_objects[o.id][p])
+                            if sync:
+                                if o.id not in objects_diff.keys():
+                                    objects_diff[o.id] = {"id": o.id, "type": o.type}
+                                objects_diff[o.id][p] = to_json(p, o[p], o)
+                for k in self.synced_objects.keys():
+                    if k not in self.k3d_plot.object_ids:
+                        objects_diff[k] = None  # to remove from plot
+                diff = {
+                    "plot_diff": plot_diff,
+                    "objects_diff": objects_diff
+                }
+                self.synced_objects = {v.id: {k: copy.deepcopy(v[k]) for k in v.keys} for v in
+                                       self.k3d_plot.objects}
+                self.synced_plot = current_plot_params
+                logger.info("Generated plot diff and objects diff for sync.")
+                return Response(msgpack.packb(diff, use_bin_type=True),
+                                mimetype='application/octet-stream')
+            except Exception as e:
+                logger.error(f"Error in generate route: {e}")
+                raise
 
         while self.browser.execute_script(
                 "return typeof(window.headlessK3D) !== 'undefined'") == False:
@@ -113,9 +114,11 @@ class k3d_remote:
         for _ in range(5):
             if self.browser.execute_script("return typeof(k3dRefresh) !== 'undefined'"):
                 self.browser.execute_script("k3dRefresh()")
+                logger.info("k3dRefresh executed in browser.")
                 break
             time.sleep(0.2)
         else:
+            logger.error("k3dRefresh is not defined in the browser after 5 attempts.")
             raise RuntimeError("k3dRefresh is not defined in the browser after 5 attempts.")
 
         if hold_until_refreshed:

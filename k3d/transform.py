@@ -8,54 +8,38 @@ _epsilon = 1e-6
 
 def get_bounds_fit_matrix(xmin: float, xmax: float, ymin: float, ymax: float, zmin: float,
                           zmax: float) -> np.ndarray:
-    """Return a 4x4 transform matrix.
-
-    Map the default bounding box [-0.5, 0.5, -0.5, 0.5, -0.5, 0.5] into
-    a custom bounding box [xmin, xmax, ymin, ymax, zmin, zmax].
+    """Return a 4x4 transform matrix mapping the default bounding box [-0.5, 0.5, ...] into a custom bounding box.
 
     Parameters
     ----------
-    xmin : float
-        Lower x bound.
-    xmax : float
-        Upper x bound.
-    ymin : float
-        Lower y bound.
-    ymax : float
-        Upper y bound.
-    zmin : float
-        Lower z bound.
-    zmax : float
-        Upper z bound.
+    xmin, xmax, ymin, ymax, zmin, zmax : float
+        Bounds for the target box.
 
     Returns
     -------
     ndarray
-        Transform matrix.
-
-    Raises
-    ------
-    TypeError
-        Expected float.
+        4x4 transformation matrix.
     """
+    # Validate all arguments are floats
     for name, value in locals().copy().items():
         try:
             float(value)
         except (TypeError, ValueError):
             raise TypeError('%s: expected float, %s given' %
                             (name, type(value).__name__))
-
+    # Create diagonal scaling matrix and set translation
     matrix = np.diagflat(
         np.array((xmax - xmin, ymax - ymin, zmax - zmin, 1.0), np.float32, order='C'))
     matrix[0:3, 3] = ((xmax + xmin) / 2.0, (ymax + ymin) /
                       2.0, (zmax + zmin) / 2.0)
-
     return matrix
 
 
 class Transform(object):
     """
     Abstraction of a 4x4 model transformation matrix with hierarchy support.
+
+    Supports translation, rotation (as quaternion), scaling, custom matrix, and parent-child relationships.
     """
 
     def __init__(self, bounds: Optional[TypingList[float]] = None,
@@ -64,15 +48,24 @@ class Transform(object):
                  scaling: Optional[TypingList[float]] = None,
                  custom_matrix: Optional[np.ndarray] = None, parent: Optional['Transform'] = None):
         """
-        Transform constructor.
+        Initialize a Transform object.
 
-        :param bounds: List[float] (xmin, xmax, ymin, ymax, zmin, zmax)
-        :param translation: List[float] (dx, dy, dz) - translation vector
-        :param rotation: List[float] (gamma, axis_x, axis_y, axis_z) - angle in radians, then rotation axis vector
-        :param scaling: List[float] (s_x, s_y, s_z) - 3 scaling coefficients
-        :param custom_matrix: np.array - 4x4 arbitrary transform matrix
-        :param parent: `Transform` optional parent transform, which is applied before this transform
+        Parameters
+        ----------
+        bounds : list of float, optional
+            Bounding box as [xmin, xmax, ymin, ymax, zmin, zmax].
+        translation : list of float, optional
+            Translation vector [dx, dy, dz].
+        rotation : list of float, optional
+            Quaternion as [gamma, axis_x, axis_y, axis_z].
+        scaling : list of float, optional
+            Scaling coefficients [sx, sy, sz].
+        custom_matrix : np.ndarray, optional
+            4x4 custom transformation matrix.
+        parent : Transform, optional
+            Parent transform for hierarchy.
         """
+        # Validate and assign parameters
         self.bounds = bounds
         assert translation is None or len(translation) == 3
         self.translation = translation
@@ -80,11 +73,9 @@ class Transform(object):
         self.rotation = rotation
         assert scaling is None or len(scaling) == 3
         self.scaling = scaling
-
         self.parent = parent
         if parent is not None:
             parent._add_child(self)
-
         self.drawables: TypingList[weakref.ref] = []
         self.children: TypingList[weakref.ref] = []
         self.parent_matrix = parent.model_matrix if parent else np.identity(
@@ -95,9 +86,8 @@ class Transform(object):
         self._recompute_matrix()
 
     def __setattr__(self, key: str, value: Any) -> None:
-        """Set attributes with conversion to ndarray where needed."""
+        """Set attributes with conversion to ndarray where needed. Triggers matrix recomputation on update."""
         is_set = hasattr(self, key)  # == False in constructor
-
         # parameter canonicalization and some validation via reshaping
         if value is None:
             # Forbid None for critical transform fields that should always have valid values
@@ -107,16 +97,15 @@ class Transform(object):
             # Allow None for optional transform parameters (translation, rotation, scaling, bounds)
             pass
         elif key == 'translation':
+            # Ensure translation is a 3x1 column vector
             value = np.array(value, dtype=np.float32).reshape(3, 1)
         elif key == 'rotation':
+            # Convert rotation to quaternion, normalize, and ensure valid axis
             value = np.array(value, dtype=np.float32).reshape(4)
             value[0] = np.fmod(value[0], 2.0 * np.pi)
-
             if value[0] < 0.0:
                 value[0] += 2.0 * np.pi
-
             value[0] = np.cos(value[0] / 2)
-
             norm = np.linalg.norm(value[1:4])
             needed_norm = np.sqrt(1 - value[0] * value[0])
             if abs(norm - needed_norm) > _epsilon:
@@ -126,12 +115,12 @@ class Transform(object):
                 value[1:4] = value[1:4] / norm * needed_norm
             # assert abs(np.linalg.norm(value) - 1.0) < _epsilon
         elif key == 'scaling':
+            # Ensure scaling is a 3-element vector
             value = np.array(value, dtype=np.float32).reshape(3)
         elif key in ['parent_matrix', 'custom_matrix', 'model_matrix']:
+            # Ensure all matrices are 4x4
             value = np.array(value, dtype=np.float32).reshape((4, 4))
-
         super(Transform, self).__setattr__(key, value)
-
         if is_set and key != 'model_matrix':
             self._recompute_matrix()
             self._notify_dependants()
@@ -142,8 +131,8 @@ class Transform(object):
         )
 
     def _recompute_matrix(self) -> None:
+        """Recompute the model matrix from all transform parameters."""
         # this method shouldn't modify any fields except self.model_matrix
-
         if self.bounds is None or len(self.bounds) == 0:
             fit_matrix = np.identity(4)
         else:
@@ -161,10 +150,9 @@ class Transform(object):
                     'Wrong size of bounds array ({}), should be 4 for 2D or 6 for 3D bounds.'.format(
                         self.bounds
                     ))
-
             fit_matrix = get_bounds_fit_matrix(
                 xmin, xmax, ymin, ymax, zmin, zmax)
-
+        # Build translation matrix
         if self.translation is not None:
             translation_matrix = np.vstack((
                 np.hstack((np.identity(3), np.array(
@@ -173,10 +161,9 @@ class Transform(object):
             ))
         else:
             translation_matrix = np.identity(4)
-
+        # Build rotation matrix from quaternion
         if self.rotation is not None:
             a, b, c, d = self.rotation
-
             rotation_matrix = np.array([
                 [a * a + b * b - c * c - d * d, 2 *
                  (b * c - a * d), 2 * (b * d + a * c), 0.],
@@ -188,12 +175,12 @@ class Transform(object):
             ])
         else:
             rotation_matrix = np.identity(4)
-
+        # Build scaling matrix
         if self.scaling is not None:
             scaling_matrix = np.diag(np.append(self.scaling, 1.0))
         else:
             scaling_matrix = np.identity(4)
-
+        # Compose all matrices in the correct order
         self.model_matrix = reduce(np.dot, [
             translation_matrix, rotation_matrix, scaling_matrix, fit_matrix, self.custom_matrix,
             self.parent_matrix
