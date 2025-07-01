@@ -1,7 +1,7 @@
 """Factory functions for volumetric and voxel-based objects."""
 
 import numpy as np
-from typing import Union, List, Optional, Dict, Any, Tuple
+from typing import Union, List as TypingList, Optional, Dict as TypingDict, Any, Tuple
 
 from ..helpers import check_attribute_color_range
 from ..objects import (
@@ -11,10 +11,10 @@ from ..transform import process_transform_arguments
 from .common import _default_color, nice_colors, default_colormap
 
 # Type aliases for better readability
-ArrayLike = Union[List, np.ndarray, Tuple]
-ColorMap = Union[List[List[float]], Dict[str, Any], np.ndarray]
-ColorRange = List[float]
-OpacityFunction = List[float]
+ArrayLike = Union[TypingList, np.ndarray, Tuple]
+ColorMap = Union[TypingList[TypingList[float]], TypingDict[str, Any], np.ndarray]
+ColorRange = TypingList[float]
+OpacityFunction = TypingList[float]
 
 
 def volume(
@@ -36,7 +36,7 @@ def volume(
         mask_opacities: ArrayLike = None,
         name: Optional[str] = None,
         group: Optional[str] = None,
-        custom_data: Optional[Dict[str, Any]] = None,
+        custom_data: Optional[TypingDict[str, Any]] = None,
         compression_level: int = 0,
         **kwargs: Any
 ) -> Volume:
@@ -98,7 +98,7 @@ def mip(
         mask_opacities: ArrayLike = None,
         name: Optional[str] = None,
         group: Optional[str] = None,
-        custom_data: Optional[Dict[str, Any]] = None,
+        custom_data: Optional[TypingDict[str, Any]] = None,
         compression_level: int = 0,
         **kwargs: Any
 ) -> MIP:
@@ -157,7 +157,7 @@ def volume_slice(
         interpolation: int = 1,
         name: Optional[str] = None,
         group: Optional[str] = None,
-        custom_data: Optional[Dict[str, Any]] = None,
+        custom_data: Optional[TypingDict[str, Any]] = None,
         compression_level: int = 0,
         **kwargs: Any
 ) -> VolumeSlice:
@@ -215,7 +215,7 @@ def voxels(
         bounds: Optional[ArrayLike] = None,
         name: Optional[str] = None,
         group: Optional[str] = None,
-        custom_data: Optional[Dict[str, Any]] = None,
+        custom_data: Optional[TypingDict[str, Any]] = None,
         compression_level: int = 0,
         **kwargs: Any
 ) -> Voxels:
@@ -256,7 +256,7 @@ def sparse_voxels(
         bounds: Optional[ArrayLike] = None,
         name: Optional[str] = None,
         group: Optional[str] = None,
-        custom_data: Optional[Dict[str, Any]] = None,
+        custom_data: Optional[TypingDict[str, Any]] = None,
         compression_level: int = 0,
         **kwargs: Any
 ) -> SparseVoxels:
@@ -289,8 +289,8 @@ def sparse_voxels(
 
 def voxels_group(
         space_size: ArrayLike,
-        voxels_group: List[Dict[str, Any]] = None,
-        chunks_ids: List[int] = None,
+        voxels_group: TypingList[TypingDict[str, Any]] = None,
+        chunks_ids: TypingList[int] = None,
         color_map: Optional[ColorMap] = None,
         wireframe: bool = False,
         outlines: bool = True,
@@ -298,7 +298,7 @@ def voxels_group(
         opacity: float = 1.0,
         name: Optional[str] = None,
         group: Optional[str] = None,
-        custom_data: Optional[Dict[str, Any]] = None,
+        custom_data: Optional[TypingDict[str, Any]] = None,
         compression_level: int = 0,
         **kwargs: Any
 ) -> VoxelsGroup:
@@ -353,7 +353,7 @@ def marching_cubes(
         spacings_z: ArrayLike = None,
         name: Optional[str] = None,
         group: Optional[str] = None,
-        custom_data: Optional[Dict[str, Any]] = None,
+        custom_data: Optional[TypingDict[str, Any]] = None,
         compression_level: int = 0,
         **kwargs: Any
 ) -> MarchingCubes:
@@ -411,14 +411,21 @@ def voxel_chunk(
 ) -> VoxelChunk:
     """Create a VoxelChunk object for selective updating voxels.
     
-    Args:
-        voxels: Array of voxel data
-        coord: Coordinates for the chunk
-        multiple: Multiple factor
-        compression_level: Compression level for the chunk
+    Parameters
+    ----------
+    voxels : array_like
+        Array of voxel data.
+    coord : array_like
+        Coordinates for the chunk.
+    multiple : int, optional
+        Multiple factor, by default 1.
+    compression_level : int, optional
+        Compression level for the chunk, by default 0.
         
-    Returns:
-        VoxelChunk object
+    Returns
+    -------
+    VoxelChunk
+        VoxelChunk object.
     """
     return VoxelChunk(
         voxels=np.array(voxels, np.uint8),

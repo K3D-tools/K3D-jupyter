@@ -1,5 +1,6 @@
 import numpy as np
 from itertools import product
+from typing import List as TypingList, Dict as TypingDict, Union
 
 import k3d
 
@@ -8,12 +9,12 @@ class PlatonicSolid(object):
     """Base class for platonic solids."""
 
     @property
-    def mesh(self):
+    def mesh(self) -> k3d.objects.geometry.Mesh:
         """Return k3d.mesh object of the solid."""
         return k3d.mesh(self.vertices, self.indices, side='double')
 
     @property
-    def points(self):
+    def points(self) -> k3d.objects.points.Points:
         """Return k3d.points object of solid vertices."""
         return k3d.points(self.vertices, point_size=np.sqrt(np.sum((self.vertices[0] - self.vertices[1]) ** 2)) / 20)
 
@@ -22,15 +23,20 @@ class Dodecahedron(PlatonicSolid):
     """Create a dodecahedron solid.
     """
 
-    def __init__(self, origin=[0, 0, 0], size=1):
+    def __init__(self, origin: Union[TypingList[float], np.ndarray] = [0, 0, 0], size: float = 1) -> None:
         """Inits Dodecahedron with an origin and a size.
 
-        Args:
-            origin (list, optional): The position of centroid of the solid. Defaults to [0, 0, 0].
-            size (int, optional): The size*sqrt(3) is the distance of each vertex of the solid. Defaults to 1.
+        Parameters
+        ----------
+        origin : list, optional
+            The position of centroid of the solid, by default [0, 0, 0].
+        size : int, optional
+            The size*sqrt(3) is the distance of each vertex of the solid, by default 1.
 
-        Raises:
-            TypeError: Origin should have 3 coordinates.
+        Raises
+        ------
+        TypeError
+            Origin should have 3 coordinates.
         """
         origin = np.array(origin, dtype=np.float32)
 
@@ -60,15 +66,20 @@ class Cube(PlatonicSolid):
     """Create a cube.
     """
 
-    def __init__(self, origin=[0, 0, 0], size=1):
+    def __init__(self, origin: Union[TypingList[float], np.ndarray] = [0, 0, 0], size: float = 1) -> None:
         """Inits Cube with an origin and a size.
 
-        Args:
-            origin (list, optional): The position of centroid of the solid. Defaults to [0, 0, 0].
-            size (int, optional): The size*sqrt(3) is the distance of each vertex from centroid of the solid. Defaults to 1.
+        Parameters
+        ----------
+        origin : list, optional
+            The position of centroid of the solid, by default [0, 0, 0].
+        size : int, optional
+            The size*sqrt(3) is the distance of each vertex from centroid of the solid, by default 1.
 
-        Raises:
-            TypeError: Origin attribute should have 3 coordinates.
+        Raises
+        ------
+        TypeError
+            Origin attribute should have 3 coordinates.
         """
         origin = np.array(origin, dtype=np.float32)
 
@@ -89,15 +100,20 @@ class Icosahedron(PlatonicSolid):
     """Create a icosahedron solid.
     """
 
-    def __init__(self, origin=[0, 0, 0], size=1):
+    def __init__(self, origin: Union[TypingList[float], np.ndarray] = [0, 0, 0], size: float = 1) -> None:
         """Inits Icosahedron with an origne and a size.
 
-        Args:
-            origin (list, optional): The position of centroid of the solid. Defaults to [0, 0, 0].
-            size (int, optional): The size of the solid. Defaults to 1.
+        Parameters
+        ----------
+        origin : list, optional
+            The position of centroid of the solid, by default [0, 0, 0].
+        size : int, optional
+            The size of the solid, by default 1.
 
-        Raises:
-            TypeError: Origin attribute should have 3 coordinates.
+        Raises
+        ------
+        TypeError
+            Origin attribute should have 3 coordinates.
         """
         origin = np.array(origin, dtype=np.float32)
 
@@ -123,15 +139,20 @@ class Octahedron(PlatonicSolid):
     """Create a octahedron solid.
     """
 
-    def __init__(self, origin=[0, 0, 0], size=1):
+    def __init__(self, origin: Union[TypingList[float], np.ndarray] = [0, 0, 0], size: float = 1) -> None:
         """Inits Octahedron with an origin and a size
 
-        Args:
-            origin (list, optional): The position of centroid of the solid. Defaults to [0, 0, 0].
-            size (int, optional): The distance of each vertex from centroid of the solid. Defaults to 1.
+        Parameters
+        ----------
+        origin : list, optional
+            The position of centroid of the solid, by default [0, 0, 0].
+        size : int, optional
+            The distance of each vertex from centroid of the solid, by default 1.
 
-        Raises:
-            TypeError: Origin attribute should have 3 coordinates.
+        Raises
+        ------
+        TypeError
+            Origin attribute should have 3 coordinates.
         """
         origin = np.array(origin, dtype=np.float32)
 
@@ -153,15 +174,20 @@ class Tetrahedron(PlatonicSolid):
     """Create a tetrahedron solid.
     """
 
-    def __init__(self, origin=[0, 0, 0], size=1):
+    def __init__(self, origin: Union[TypingList[float], np.ndarray] = [0, 0, 0], size: float = 1) -> None:
         """Inits Tetrahedron with an origin and a size.
 
-        Args:
-            origin (list, optional): The position of centroid of the solid. Defaults to [0, 0, 0].
-            size (int, optional): The size*sqrt(3) is the distance of each vertex from centroid of the solid. Defaults to 1.
+        Parameters
+        ----------
+        origin : list, optional
+            The position of centroid of the solid, by default [0, 0, 0].
+        size : int, optional
+            The size*sqrt(3) is the distance of each vertex from centroid of the solid, by default 1.
 
-        Raises:
-            TypeError: Origin attribute should have 3 coordinates.
+        Raises
+        ------
+        TypeError
+            Origin attribute should have 3 coordinates.
         """
         origin = np.array(origin, dtype=np.float32)
 

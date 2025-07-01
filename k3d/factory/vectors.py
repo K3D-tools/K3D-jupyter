@@ -1,19 +1,19 @@
 """Factory functions for vector and vector field objects."""
 
 import numpy as np
-from typing import Union, List, Optional, Dict, Any, Tuple
+from typing import Union, List as TypingList, Optional, Dict as TypingDict, Any, Tuple
 
 from ..objects import VectorField, Vectors
 from ..transform import process_transform_arguments
 from .common import _default_color
 
 # Type aliases for better readability
-ArrayLike = Union[List, np.ndarray, Tuple]
+ArrayLike = Union[TypingList, np.ndarray, Tuple]
 
 
 def vector_field(
         vectors: ArrayLike,
-        colors: List[int] = None,
+        colors: TypingList[int] = None,
         origin_color: Optional[int] = None,
         head_color: Optional[int] = None,
         color: int = _default_color,
@@ -23,7 +23,7 @@ def vector_field(
         line_width: float = 0.01,
         name: Optional[str] = None,
         group: Optional[str] = None,
-        custom_data: Optional[Dict[str, Any]] = None,
+        custom_data: Optional[TypingDict[str, Any]] = None,
         compression_level: int = 0,
         **kwargs: Any
 ) -> VectorField:
@@ -52,18 +52,18 @@ def vector_field(
 def vectors(
         origins: ArrayLike,
         vectors: Optional[ArrayLike] = None,
-        colors: List[int] = None,
+        colors: TypingList[int] = None,
         origin_color: Optional[int] = None,
         head_color: Optional[int] = None,
         color: int = _default_color,
         use_head: bool = True,
         head_size: float = 1.0,
-        labels: List[str] = None,
+        labels: TypingList[str] = None,
         label_size: float = 1.0,
         line_width: float = 0.01,
         name: Optional[str] = None,
         group: Optional[str] = None,
-        custom_data: Optional[Dict[str, Any]] = None,
+        custom_data: Optional[TypingDict[str, Any]] = None,
         compression_level: int = 0,
         **kwargs: Any
 ) -> Vectors:

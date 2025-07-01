@@ -1,7 +1,7 @@
 """Factory function for VTK PolyData objects."""
 
 import numpy as np
-from typing import Union, List, Optional, Dict, Any, Tuple
+from typing import Union, List as TypingList, Optional, Dict as TypingDict, Any, Tuple
 
 from ..helpers import check_attribute_color_range
 from ..objects import Mesh
@@ -9,10 +9,10 @@ from ..transform import process_transform_arguments
 from .common import _default_color, default_colormap
 
 # Type aliases for better readability
-ArrayLike = Union[List, np.ndarray, Tuple]
-ColorMap = Union[List[List[float]], Dict[str, Any], np.ndarray]
-ColorRange = List[float]
-OpacityFunction = List[float]
+ArrayLike = Union[TypingList, np.ndarray, Tuple]
+ColorMap = Union[TypingList[TypingList[float]], TypingDict[str, Any], np.ndarray]
+ColorRange = TypingList[float]
+OpacityFunction = TypingList[float]
 
 # Optional dependency
 try:
@@ -40,7 +40,7 @@ def vtk_poly_data(
         flat_shading: bool = True,
         name: Optional[str] = None,
         group: Optional[str] = None,
-        custom_data: Optional[Dict[str, Any]] = None,
+        custom_data: Optional[TypingDict[str, Any]] = None,
         compression_level: int = 0,
         **kwargs: Any
 ) -> Mesh:

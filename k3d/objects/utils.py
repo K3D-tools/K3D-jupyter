@@ -1,5 +1,7 @@
 """Utility functions and objects map for K3D objects."""
 
+from typing import Any, Dict as TypingDict, Union
+
 from .._version import __version__ as version
 
 # Import all object classes
@@ -21,7 +23,7 @@ from .texture import Texture
 
 
 # Objects mapping for factory functions
-objects_map = {
+objects_map: TypingDict[str, Any] = {
     'Line': Line,
     'Label': Label,
     'Lines': Lines,
@@ -45,15 +47,20 @@ objects_map = {
 }
 
 
-def create_object(obj, is_chunk=False):
+def create_object(obj: TypingDict[str, Any], is_chunk: bool = False) -> Union[VoxelChunk, Any]:
     """Create an object from a dictionary representation.
     
-    Args:
-        obj: Dictionary containing object data
-        is_chunk: Whether this is a voxel chunk object
+    Parameters
+    ----------
+    obj : dict
+        Dictionary containing object data.
+    is_chunk : bool, optional
+        Whether this is a voxel chunk object, by default False.
         
-    Returns:
-        The created object instance
+    Returns
+    -------
+    object
+        The created object instance.
     """
     from ..helpers import from_json
 
@@ -72,16 +79,20 @@ def create_object(obj, is_chunk=False):
         return objects_map[obj['type']](**attributes)
 
 
-def clone_object(obj):
+def clone_object(obj: Any) -> Any:
     """Clone an existing object.
     
-    Args:
-        obj: The object to clone
+    Parameters
+    ----------
+    obj : object
+        The object to clone.
         
-    Returns:
-        A new instance of the same object type with copied attributes
+    Returns
+    -------
+    object
+        A new instance of the same object type with copied attributes.
     """
-    param = {}
+    param: TypingDict[str, Any] = {}
 
     for k, v in obj.traits().items():
         if "sync" in v.metadata and k not in ['id', 'type']:

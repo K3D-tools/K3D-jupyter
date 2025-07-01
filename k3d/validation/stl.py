@@ -1,5 +1,6 @@
 import re
 import struct
+from typing import Any
 
 from traitlets import Bytes, Unicode, TraitError
 
@@ -36,7 +37,7 @@ ascii_stl = re.compile(stl_re, re.VERBOSE)
 
 
 class AsciiStlData(Unicode):
-    def validate(self, owner, stl):
+    def validate(self, owner: Any, stl: str) -> str:
         stl = super(AsciiStlData, self).validate(owner, stl)
 
         if ascii_stl.match(stl) is None:
@@ -50,7 +51,7 @@ class BinaryStlData(Bytes):
     COUNT_SIZE = 4
     FACET_SIZE = 50
 
-    def validate(self, owner, stl):
+    def validate(self, owner: Any, stl: bytes) -> bytes:
         stl = super(BinaryStlData, self).validate(owner, stl)
 
         if len(stl) < self.HEADER + self.COUNT_SIZE:

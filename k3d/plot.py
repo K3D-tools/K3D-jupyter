@@ -6,6 +6,7 @@ import numpy as np
 from IPython.display import display
 from functools import wraps
 from traitlets import Unicode, Bool, Int, List, Float, Dict
+from typing import Any, Dict as TypingDict, List as TypingList, Optional, Union, Generator, Callable
 
 from ._version import __version__ as version
 from .objects import (ListOrArray, Drawable, TimeSeries, create_object)
@@ -197,57 +198,64 @@ class Plot(widgets.DOMWidget):
     hidden_object_ids = List(default_value=[]).tag(sync=True)
     custom_data = Dict(default_value=None, allow_none=True).tag(sync=True)
 
-    objects = []
+    objects: List[Drawable] = []
 
     def __init__(
             self,
-            antialias=3,
-            logarithmic_depth_buffer=True,
-            background_color=0xFFFFFF,
-            camera_auto_fit=True,
-            grid_auto_fit=True,
-            grid_visible=True,
-            height=512,
-            voxel_paint_color=0,
-            grid=(-1, -1, -1, 1, 1, 1),
-            screenshot_scale=2.0,
-            lighting=1.5,
-            time=0.0,
-            fps_meter=False,
-            menu_visibility=True,
-            colorbar_object_id=-1,
-            rendering_steps=1,
-            axes=["x", "y", "z"],
-            camera_no_rotate=False,
-            camera_no_zoom=False,
-            camera_rotate_speed=1.0,
-            camera_zoom_speed=1.2,
-            camera_pan_speed=0.3,
-            camera_up_axis='none',
-            snapshot_type='full',
-            camera_no_pan=False,
-            camera_fov=45.0,
-            camera_damping_factor=0.0,
-            axes_helper=1.0,
-            axes_helper_colors=[0xff0000, 0x00ff00, 0x0000ff],
-            name=None,
-            mode="view",
-            camera_mode="trackball",
-            manipulate_mode="translate",
-            auto_rendering=True,
-            fps=25.0,
-            minimum_fps=-1,
-            grid_color=0xE6E6E6,
-            label_color=0x444444,
-            custom_data=None,
-            slice_viewer_object_id=-1,
-            slice_viewer_mask_object_ids=[],
-            slice_viewer_direction='z',
-            depth_peels=0,
-            *args,
-            **kwargs
-    ):
+            antialias: int = 3,
+            logarithmic_depth_buffer: bool = True,
+            background_color: int = 0xFFFFFF,
+            camera_auto_fit: bool = True,
+            grid_auto_fit: bool = True,
+            grid_visible: bool = True,
+            height: int = 512,
+            voxel_paint_color: int = 0,
+            grid: tuple = (-1, -1, -1, 1, 1, 1),
+            screenshot_scale: float = 2.0,
+            lighting: float = 1.5,
+            time: float = 0.0,
+            fps_meter: bool = False,
+            menu_visibility: bool = True,
+            colorbar_object_id: int = -1,
+            rendering_steps: int = 1,
+            axes: List[str] = None,
+            camera_no_rotate: bool = False,
+            camera_no_zoom: bool = False,
+            camera_rotate_speed: float = 1.0,
+            camera_zoom_speed: float = 1.2,
+            camera_pan_speed: float = 0.3,
+            camera_up_axis: str = 'none',
+            snapshot_type: str = 'full',
+            camera_no_pan: bool = False,
+            camera_fov: float = 45.0,
+            camera_damping_factor: float = 0.0,
+            axes_helper: float = 1.0,
+            axes_helper_colors: List[int] = None,
+            name: Optional[str] = None,
+            mode: str = "view",
+            camera_mode: str = "trackball",
+            manipulate_mode: str = "translate",
+            auto_rendering: bool = True,
+            fps: float = 25.0,
+            minimum_fps: float = -1,
+            grid_color: int = 0xE6E6E6,
+            label_color: int = 0x444444,
+            custom_data: Optional[TypingDict[str, Any]] = None,
+            slice_viewer_object_id: int = -1,
+            slice_viewer_mask_object_ids: List[int] = None,
+            slice_viewer_direction: str = 'z',
+            depth_peels: int = 0,
+            *args: Any,
+            **kwargs: Any
+    ) -> None:
         super(Plot, self).__init__()
+
+        if axes is None:
+            axes = ["x", "y", "z"]
+        if axes_helper_colors is None:
+            axes_helper_colors = [0xff0000, 0x00ff00, 0x0000ff]
+        if slice_viewer_mask_object_ids is None:
+            slice_viewer_mask_object_ids = []
 
         self.antialias = antialias
         self.logarithmic_depth_buffer = logarithmic_depth_buffer
@@ -298,9 +306,9 @@ class Plot(widgets.DOMWidget):
         self.objects = []
         self.hidden_object_ids = []
 
-        self.outputs = []
+        self.outputs: List[widgets.Output] = []
 
-    def __iadd__(self, objs):
+    def __iadd__(self, objs: Drawable) -> 'Plot':
         """Add Drawable to plot."""
         assert isinstance(objs, Drawable)
 
@@ -311,7 +319,7 @@ class Plot(widgets.DOMWidget):
 
         return self
 
-    def __isub__(self, objs):
+    def __isub__(self, objs: Drawable) -> 'Plot':
         """Remove Drawable from plot."""
         assert isinstance(objs, Drawable)
 
@@ -322,7 +330,7 @@ class Plot(widgets.DOMWidget):
 
         return self
 
-    def display(self, **kwargs):
+    def display(self, **kwargs: Any) -> None:
         """Show plot inside ipywidgets.Output()."""
         output = widgets.Output()
 
@@ -333,34 +341,34 @@ class Plot(widgets.DOMWidget):
 
         display(output)
 
-    def render(self):
+    def render(self) -> None:
         """Trigger rendering on demand.
 
         Useful when self.auto_rendering == False."""
         self.send({"msg_type": "render"})
 
-    def start_auto_play(self):
+    def start_auto_play(self) -> None:
         """Start animation of plot with objects using TimeSeries."""
         self.send({"msg_type": "start_auto_play"})
 
-    def stop_auto_play(self):
+    def stop_auto_play(self) -> None:
         """Stop animation of plot with objects using TimeSeries."""
         self.send({"msg_type": "stop_auto_play"})
 
-    def close(self):
+    def close(self) -> None:
         """Remove plot from all its ipywidgets.Output()-s."""
         for output in self.outputs:
             output.clear_output()
 
         self.outputs = []
 
-    def camera_reset(self, factor=1.5):
+    def camera_reset(self, factor: float = 1.5) -> None:
         """Trigger auto-adjustment of camera.
 
         Useful when self.camera_auto_fit == False."""
         self.send({"msg_type": "reset_camera", "factor": factor})
 
-    def get_auto_grid(self):
+    def get_auto_grid(self) -> np.ndarray:
         if len(self.objects) == 0:
             return np.array([self.grid[0], self.grid[3],
                              self.grid[1], self.grid[4],
@@ -372,7 +380,7 @@ class Plot(widgets.DOMWidget):
             [np.nanmin(d[:, 0::2], axis=0), np.nanmax(d[:, 1::2], axis=0)]
         ).flatten()
 
-    def get_auto_camera(self, factor=1.5, yaw=25, pitch=15, bounds=None):
+    def get_auto_camera(self, factor: float = 1.5, yaw: float = 25, pitch: float = 15, bounds: Optional[np.ndarray] = None) -> List[float]:
         """ Compute the camera vector from the specified parameters. If `bounds`
         is not provided, then the algorithm will obtain it from the available
         meshes.
@@ -404,7 +412,7 @@ class Plot(widgets.DOMWidget):
             up[2],
         ]
 
-    def fetch_screenshot(self, only_canvas=False):
+    def fetch_screenshot(self, only_canvas: bool = False) -> None:
         """Request creating a PNG screenshot on the JS side and saving it in self.screenshot
 
         The result is a string of a PNG file in base64 encoding.
@@ -412,14 +420,14 @@ class Plot(widgets.DOMWidget):
         be available after the current cell finishes execution."""
         self.send({"msg_type": "fetch_screenshot", "only_canvas": only_canvas})
 
-    def yield_screenshots(self, generator_function):
+    def yield_screenshots(self, generator_function: Callable[[], Generator[bytes, None, None]]) -> Callable[[], None]:
         """Decorator for a generator function receiving screenshots via yield."""
 
         @wraps(generator_function)
-        def inner():
+        def inner() -> None:
             generator = generator_function()
 
-            def send_new_value(change):
+            def send_new_value(change: Any) -> None:
                 try:
                     generator.send(base64.b64decode(change.new))
                 except StopIteration:
@@ -431,7 +439,7 @@ class Plot(widgets.DOMWidget):
 
         return inner
 
-    def fetch_snapshot(self, compression_level=9):
+    def fetch_snapshot(self, compression_level: int = 9) -> None:
         """Request creating a HTML snapshot on the JS side and saving it in self.snapshot
 
         The result is a string: a HTML document with this plot embedded.
@@ -441,14 +449,14 @@ class Plot(widgets.DOMWidget):
             {"msg_type": "fetch_snapshot", "compression_level": compression_level}
         )
 
-    def yield_snapshots(self, generator_function):
+    def yield_snapshots(self, generator_function: Callable[[], Generator[bytes, None, None]]) -> Callable[[], None]:
         """Decorator for a generator function receiving snapshots via yield."""
 
         @wraps(generator_function)
-        def inner():
+        def inner() -> None:
             generator = generator_function()
 
-            def send_new_value(change):
+            def send_new_value(change: Any) -> None:
                 try:
                     generator.send(base64.b64decode(change.new))
                 except StopIteration:
@@ -460,7 +468,7 @@ class Plot(widgets.DOMWidget):
 
         return inner
 
-    def get_binary_snapshot(self, compression_level=9, voxel_chunks=None):
+    def get_binary_snapshot(self, compression_level: int = 9, voxel_chunks: Optional[List[Any]] = None) -> bytes:
         import zlib
         import msgpack
 
@@ -474,7 +482,7 @@ class Plot(widgets.DOMWidget):
 
         return zlib.compress(data, compression_level)
 
-    def load_binary_snapshot(self, data):
+    def load_binary_snapshot(self, data: bytes) -> tuple:
         import zlib
         import msgpack
 
@@ -491,7 +499,7 @@ class Plot(widgets.DOMWidget):
 
         return data, self.voxel_chunks
 
-    def get_binary_snapshot_objects(self, voxel_chunks=None):
+    def get_binary_snapshot_objects(self, voxel_chunks: Optional[List[Any]] = None) -> TypingDict[str, List[Any]]:
         if voxel_chunks is None:
             voxel_chunks = []
             
@@ -503,7 +511,7 @@ class Plot(widgets.DOMWidget):
 
         return snapshot
 
-    def get_plot_params(self):
+    def get_plot_params(self) -> TypingDict[str, Any]:
         return {
             "cameraAutoFit": self.camera_auto_fit,
             "viewMode": self.mode,
@@ -549,7 +557,7 @@ class Plot(widgets.DOMWidget):
             "minimumFps": self.minimum_fps,
         }
 
-    def get_snapshot(self, compression_level=9, voxel_chunks=None, additional_js_code=""):
+    def get_snapshot(self, compression_level: int = 9, voxel_chunks: Optional[List[Any]] = None, additional_js_code: str = "") -> str:
         """Produce on the Python side a HTML document with the current plot embedded."""
         import os
         import io
@@ -624,16 +632,16 @@ class Plot(widgets.DOMWidget):
 
         return template
 
-    def get_static_path(self):
+    def get_static_path(self) -> str:
         import os
 
         dir_path = os.path.dirname(os.path.realpath(__file__))
 
         return os.path.join(dir_path, "static")
     
-    def __getstate__(self):            
+    def __getstate__(self) -> bytes:            
         return self.get_binary_snapshot()
     
-    def __setstate__(self,data):
+    def __setstate__(self, data: bytes) -> None:
         self.__init__()
         self.load_binary_snapshot(data)

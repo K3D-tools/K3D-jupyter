@@ -9,7 +9,7 @@ from traitlets import TraitError
 from urllib.request import urlopen
 
 from ._protocol import get_protocol
-from typing import Union, List, Optional, Dict, Any, Tuple
+from typing import Union, List as TypingList, Optional, Dict as TypingDict, Any, Tuple, Callable
 
 
 # import logging
@@ -24,8 +24,9 @@ from typing import Union, List, Optional, Dict, Any, Tuple
 
 # pylint: disable=unused-argument
 # noinspection PyUnusedLocal
-def array_to_json(ar, compression_level=0, force_contiguous=True):
-    """Return the serialization of a numpy array.
+def array_to_json(ar: np.ndarray, compression_level: int = 0, force_contiguous: bool = True) -> Union[str, TypingDict[str, Any]]:
+    """
+    Return the serialization of a numpy array.
 
     Parameters
     ----------
@@ -38,13 +39,13 @@ def array_to_json(ar, compression_level=0, force_contiguous=True):
 
     Returns
     -------
-    dict
-        Binary data of the array with its dtype and shape.
+    dict or str
+        Binary data of the array with its dtype and shape, or a base64 string if protocol is 'text'.
 
     Raises
     ------
     ValueError
-        Unsupported dtype.
+        If the dtype is unsupported.
     """
     if ar.dtype.kind not in ["u", "i", "f"]:  # ints and floats
         raise ValueError("Unsupported dtype: %s" % ar.dtype)
@@ -78,8 +79,9 @@ def array_to_json(ar, compression_level=0, force_contiguous=True):
 
 
 # noinspection PyUnusedLocal
-def json_to_array(value, obj=None):
-    """Return numpy array from serialization.
+def json_to_array(value: Optional[TypingDict[str, Any]], obj: Optional[Any] = None) -> Optional[np.ndarray]:
+    """
+    Return numpy array from serialization.
 
     Parameters
     ----------
@@ -90,7 +92,7 @@ def json_to_array(value, obj=None):
 
     Returns
     -------
-    ndarray
+    ndarray or None
         Numpy array or None.
     """
     if value:
@@ -105,8 +107,26 @@ def json_to_array(value, obj=None):
     return None
 
 
-def to_json(name, input, obj=None, compression_level=0):
-    """Return JSON object serialization."""
+def to_json(name: str, input: Any, obj: Optional[Any] = None, compression_level: int = 0) -> Any:
+    """
+    Return JSON object serialization.
+
+    Parameters
+    ----------
+    name : str
+        Name of the property.
+    input : Any
+        Input data to serialize.
+    obj : Any, optional
+        Object containing property, by default None.
+    compression_level : int, optional
+        Compression level, by default 0.
+
+    Returns
+    -------
+    Any
+        Serialized JSON object.
+    """
     if hasattr(obj, "compression_level"):
         compression_level = obj.compression_level
 
@@ -134,8 +154,22 @@ def to_json(name, input, obj=None, compression_level=0):
         return input
 
 
-def from_json(input, obj=None):
-    """Return JSON object deserialization."""
+def from_json(input: Any, obj: Optional[Any] = None) -> Any:
+    """
+    Return JSON object deserialization.
+
+    Parameters
+    ----------
+    input : Any
+        Input data to deserialize.
+    obj : Any, optional
+        Object, by default None.
+
+    Returns
+    -------
+    Any
+        Deserialized object.
+    """
     if isinstance(input, str) and input[0:7] == 'base64_':
         input = msgpack.unpackb(base64.b64decode(input[7:]))
 
@@ -156,24 +190,49 @@ def from_json(input, obj=None):
         return input
 
 
-def array_serialization_wrap(name):
-    """Return a wrap of the serialization and deserialization functions for array objects."""
+def array_serialization_wrap(name: str) -> TypingDict[str, Any]:
+    """
+    Return a wrap of the serialization and deserialization functions for array objects.
+
+    Parameters
+    ----------
+    name : str
+        Name of the property.
+
+    Returns
+    -------
+    dict
+        Dictionary with 'to_json' and 'from_json' functions.
+    """
     return {
         "to_json": (lambda input, obj: to_json(name, input, obj)),
         "from_json": from_json,
     }
 
 
-def callback_serialization_wrap(name):
-    """Return a wrap of the serialization and deserialization functions for mouse actions."""
+def callback_serialization_wrap(name: str) -> TypingDict[str, Any]:
+    """
+    Return a wrap of the serialization and deserialization functions for mouse actions.
+
+    Parameters
+    ----------
+    name : str
+        Name of the property.
+
+    Returns
+    -------
+    dict
+        Dictionary with 'to_json' and 'from_json' functions.
+    """
     return {
         "to_json": (lambda input, obj: obj[name] is not None),
         "from_json": from_json,
     }
 
 
-def download(url):
-    """Retrieve the file at url, save it locally and return its name.
+def download(url: str) -> str:
+    """
+    Retrieve the file at url, save it locally and return its name.
 
     Parameters
     ----------
@@ -196,7 +255,7 @@ def download(url):
     return basename
 
 
-def minmax(arr):
+def minmax(arr: np.ndarray) -> TypingList[float]:
     """Return the minimum and maximum value of an array.
 
     Parameters
@@ -212,7 +271,7 @@ def minmax(arr):
     return [float(np.nanmin(arr)), float(np.nanmax(arr))]
 
 
-def check_attribute_color_range(attribute: Union[np.ndarray, Dict[str, np.ndarray]], color_range: Union[List[float], Tuple[float, ...]] = ()) -> List[float]:
+def check_attribute_color_range(attribute: Union[np.ndarray, TypingDict[str, np.ndarray]], color_range: Union[TypingList[float], Tuple[float, ...]] = ()) -> TypingList[float]:
     """Return color range versus provided attribute.
 
     Parameters
@@ -247,7 +306,7 @@ def check_attribute_color_range(attribute: Union[np.ndarray, Dict[str, np.ndarra
     return color_range
 
 
-def map_colors(attribute: np.ndarray, color_map: Union[List[List[float]], np.ndarray], color_range: Union[List[float], Tuple[float, ...]] = ()) -> np.ndarray:
+def map_colors(attribute: np.ndarray, color_map: Union[TypingList[TypingList[float]], np.ndarray], color_range: Union[TypingList[float], Tuple[float, ...]] = ()) -> np.ndarray:
     """Return color mapping according to an attribute and a colormap.
 
     The attribute represents the data on which the colormap will be applied.
@@ -286,7 +345,7 @@ def map_colors(attribute: np.ndarray, color_map: Union[List[List[float]], np.nda
     return colors
 
 
-def bounding_corners(bounds: Union[List[float], np.ndarray], z_bounds: Tuple[float, float] = (0, 1)) -> np.ndarray:
+def bounding_corners(bounds: Union[TypingList[float], np.ndarray], z_bounds: Tuple[float, float] = (0, 1)) -> np.ndarray:
     """Return corner point coordinates for bounds array.
 
     `z_bounds` assigns Z points coordinates if bounds contains less than 5 items.
@@ -309,7 +368,7 @@ def bounding_corners(bounds: Union[List[float], np.ndarray], z_bounds: Tuple[flo
     )
 
 
-def min_bounding_dimension(bounds: Union[List[float], np.ndarray]) -> float:
+def min_bounding_dimension(bounds: Union[TypingList[float], np.ndarray]) -> float:
     """Return the minimal dimension along axis in a bounds array.
 
     `bounds` must be of the form [min_x, max_x, min_y, max_y, min_z, max_z].

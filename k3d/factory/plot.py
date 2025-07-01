@@ -1,13 +1,13 @@
 """Factory functions for creating Plot widgets."""
 
 import numpy as np
-from typing import Union, List, Optional, Dict, Any, Tuple
+from typing import Union, List as TypingList, Optional, Dict as TypingDict, Any, Tuple
 
 from ..plot import Plot
 from .common import _default_color
 
 # Type aliases for better readability
-ArrayLike = Union[List, np.ndarray, Tuple]
+ArrayLike = Union[TypingList, np.ndarray, Tuple]
 
 
 def plot(
@@ -29,9 +29,9 @@ def plot(
         camera_fov: float = 60.0,
         time: float = 0.0,
         depth_peels: int = 0,
-        axes: List[str] = None,
+        axes: TypingList[str] = None,
         axes_helper: float = 1.0,
-        axes_helper_colors: List[int] = None,
+        axes_helper_colors: TypingList[int] = None,
         camera_mode: str = "trackball",
         snapshot_type: str = 'full',
         auto_rendering: bool = True,
@@ -47,7 +47,7 @@ def plot(
         minimum_fps: float = -1,
         fps_meter: bool = False,
         name: Optional[str] = None,
-        custom_data: Optional[Dict[str, Any]] = None
+        custom_data: Optional[TypingDict[str, Any]] = None
 ) -> Plot:
     if axes is None:
         axes = ['x', 'y', 'z']

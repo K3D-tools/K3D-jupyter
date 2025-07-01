@@ -122,8 +122,6 @@ class TransformControls extends Object3D {
         const rotationAngle = 0;
         const eye = new Vector3();
 
-        // TODO: remove properties unused in plane and gizmo
-
         defineProperty('worldPosition', worldPosition);
         defineProperty('worldPositionStart', worldPositionStart);
         defineProperty('worldQuaternion', worldQuaternion);
@@ -479,8 +477,6 @@ class TransformControls extends Object3D {
     getRaycaster() {
         return _raycaster;
     }
-
-    // TODO: deprecate
 
     getMode() {
         return this.mode;
@@ -1025,8 +1021,6 @@ class TransformControlsGizmo extends Object3D {
             }
 
             handle.scale.set(1, 1, 1).multiplyScalar(factor * this.size / 4);
-
-            // TODO: simplify helpers and consider decoupling from gizmo
 
             if (handle.tag === 'helper') {
                 handle.visible = false;

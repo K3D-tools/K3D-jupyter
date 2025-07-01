@@ -2,7 +2,7 @@
 
 import numpy as np
 import six
-from typing import Union, List, Optional, Dict, Any, Tuple
+from typing import Union, List as TypingList, Optional, Dict as TypingDict, Any, Tuple
 
 from .common import _default_color, default_colormap
 from ..helpers import check_attribute_color_range
@@ -10,9 +10,9 @@ from ..objects import Line, Lines, Mesh, STL, Surface
 from ..transform import process_transform_arguments
 
 # Type aliases for better readability
-ArrayLike = Union[List, np.ndarray, Tuple]
-ColorMap = Union[List[List[float]], Dict[str, Any], np.ndarray]
-ColorRange = List[float]
+ArrayLike = Union[TypingList, np.ndarray, Tuple]
+ColorMap = Union[TypingList[TypingList[float]], TypingDict[str, Any], np.ndarray]
+ColorRange = TypingList[float]
 
 
 def lines(
@@ -20,7 +20,7 @@ def lines(
         indices: ArrayLike,
         indices_type: str = "triangle",
         color: int = _default_color,
-        colors: List[int] = None,  # lgtm [py/similar-function]
+        colors: TypingList[int] = None,  # lgtm [py/similar-function]
         attribute: ArrayLike = None,
         color_map: Optional[ColorMap] = None,
         color_range: ColorRange = None,
@@ -31,61 +31,57 @@ def lines(
         opacity: float = 1.0,
         name: Optional[str] = None,
         group: Optional[str] = None,
-        custom_data: Optional[Dict[str, Any]] = None,
+        custom_data: Optional[TypingDict[str, Any]] = None,
         compression_level: int = 0,
         **kwargs: Any
 ) -> Lines:
-    """Create a Line drawable for plotting segments and polylines.
+    """
+    Create a Line drawable for plotting segments and polylines.
 
-    Arguments:
-        vertices: `array_like`.
-            Array with (x, y, z) coordinates of segment endpoints.
-        indices: `array_like`.
-            Array of vertex indices: int pair of indices from vertices array.
-        indices_type: `str`.
-            Interpretation of indices array
-            Legal values are:
+    Parameters
+    ----------
+    vertices : array_like
+        Array with (x, y, z) coordinates of segment endpoints.
+    indices : array_like
+        Array of vertex indices: int pair or triple of indices from vertices array.
+    indices_type : {'segment', 'triangle'}, optional
+        Interpretation of indices array. 'segment' for pairs, 'triangle' for triples. Default is 'triangle'.
+    color : int, optional
+        Packed RGB color of the lines (0xff0000 is red, 0xff is blue) when `colors` is empty. Default is _default_color.
+    colors : array_like, optional
+        Array of int: packed RGB colors (0xff0000 is red, 0xff is blue) when attribute, color_map and color_range are empty. Default is [].
+    attribute : array_like, optional
+        Array of float attribute for the color mapping, corresponding to each vertex. Default is [].
+    color_map : list, optional
+        A list of float quadruplets (attribute value, R, G, B), sorted by attribute value. The first quadruplet should have value 0.0, the last 1.0; R, G, B are RGB color components in the range 0.0 to 1.0. Default is default_colormap.
+    color_range : list, optional
+        A pair [min_value, max_value], which determines the levels of color attribute mapped to 0 and 1 in the color map respectively. Default is [].
+    width : float, optional
+        Thickness of the lines. Default is 0.01.
+    shader : {'simple', 'thick', 'mesh'}, optional
+        Display style (name of the shader used) of the lines. Default is 'thick'.
+    shininess : float, optional
+        Shininess of object material. Default is 50.0.
+    radial_segments : int, optional
+        Number of segmented faces around the circumference of the tube. Default is 8.
+    opacity : float, optional
+        Opacity of lines. Default is 1.0.
+    name : str, optional
+        A name of the object. Default is None.
+    group : str, optional
+        A name of a group. Default is None.
+    custom_data : dict, optional
+        An object with custom data attached to object. Default is None.
+    compression_level : int, optional
+        Level of compression [-1, 9]. Default is 0.
+    **kwargs
+        Additional keyword arguments passed to process_transform_arguments.
 
-            :`segment`: indices contains pair of values,
-
-            :`triangle`: indices contains triple of values
-        color: `int`.
-            Packed RGB color of the lines (0xff0000 is red, 0xff is blue) when `colors` is empty.
-        colors: `array_like`.
-            Array of int: packed RGB colors (0xff0000 is red, 0xff is blue) when attribute,
-            color_map and color_range are empty.
-        attribute: `array_like`.
-            Array of float attribute for the color mapping, coresponding to each vertex.
-        color_map: `list`.
-            A list of float quadruplets (attribute value, R, G, B), sorted by attribute value. The first
-            quadruplet should have value 0.0, the last 1.0; R, G, B are RGB color components in the range 0.0 to 1.0.
-        color_range: `list`.
-            A pair [min_value, max_value], which determines the levels of color attribute mapped
-            to 0 and 1 in the color map respectively.
-        shader: `str`.
-            Display style (name of the shader used) of the lines.
-            Legal values are:
-
-            :`simple`: simple lines,
-
-            :`thick`: thick lines,
-
-            :`mesh`: high precision triangle mesh of segments (high quality and GPU load).
-        shininess: `float`.
-            Shininess of object material.
-        radial_segments: 'int'.
-            Number of segmented faces around the circumference of the tube
-        width: `float`.
-            Thickness of the lines.
-        opacity: `float`.
-            Opacity of lines.
-        name: `string`.
-            A name of a object
-        group: `string`.
-            A name of a group
-        custom_data: `dict`.
-            A object with custom data attached to object.
-            """
+    Returns
+    -------
+    Lines
+        The created Lines drawable object.
+    """
     if colors is None:
         colors = []
     if attribute is None:
@@ -130,7 +126,7 @@ def lines(
 def line(
         vertices: ArrayLike,
         color: int = _default_color,
-        colors: List[int] = None,  # lgtm [py/similar-function]
+        colors: TypingList[int] = None,  # lgtm [py/similar-function]
         attribute: ArrayLike = None,
         color_map: Optional[ColorMap] = None,
         color_range: ColorRange = None,
@@ -141,11 +137,12 @@ def line(
         radial_segments: int = 8,
         name: Optional[str] = None,
         group: Optional[str] = None,
-        custom_data: Optional[Dict[str, Any]] = None,
+        custom_data: Optional[TypingDict[str, Any]] = None,
         compression_level: int = 0,
         **kwargs: Any
 ) -> Line:
-    """Create a Line drawable for plotting segments and polylines.
+    """
+    Create a Line drawable for plotting segments and polylines.
 
     Parameters
     ----------
@@ -155,38 +152,35 @@ def line(
         Hex color of the lines when `colors` is empty, by default _default_color.
     colors : list, optional
         Array of Hex colors when attribute, color_map and color_range are empty, by default [].
-    attribute: list, optional
+    attribute : list, optional
         List of values used to apply `color_map`, by default [].
     color_map : list, optional
-        List of `float` quadruplets (attribute value, R, G, B) sorted by attribute value, by default None.
-        The first quadruplet should have value 0.0, the last 1.0;
-        R, G, B are RGB color components in the range 0.0 to 1.0.
+        List of `float` quadruplets (attribute value, R, G, B) sorted by attribute value, by default None. The first quadruplet should have value 0.0, the last 1.0; R, G, B are RGB color components in the range 0.0 to 1.0.
     color_range : list, optional
-        [min_value, max_value] pair determining the levels of color attribute mapped
-        to 0 and 1 in the colormap, by default [].
+        [min_value, max_value] pair determining the levels of color attribute mapped to 0 and 1 in the colormap, by default [].
     width : float, optional
         Thickness of the lines, by default 0.01.
-    shader : {'simple', 'think', 'mesh'}, optional
-        Display style of the lines, by default `thick`.
-    shininess: `float`.
-        Shininess of object material.
+    shader : {'simple', 'thick', 'mesh'}, optional
+        Display style of the lines, by default 'thick'.
+    shininess : float, optional
+        Shininess of object material, by default 50.0.
     radial_segments : int, optional
         Number of segmented faces around the circumference of the tube, by default 8.
     name : str, optional
         Object name, by default None.
     group : str, optional
         Name of a group, by default None.
-    custom_data: `dict`
-        A object with custom data attached to object.
+    custom_data : dict, optional
+        An object with custom data attached to object, by default None.
     compression_level : int, optional
         Level of data compression [-1, 9], by default 0.
     **kwargs
-        For other keyword-only arguments, see :ref:`process_transform_arguments`.
+        Additional keyword arguments passed to process_transform_arguments.
 
     Returns
     -------
     Line
-        Line Drawable.
+        The created Line drawable object.
     """
     if colors is None:
         colors = []
@@ -233,7 +227,7 @@ def mesh(
         indices: ArrayLike,
         normals: ArrayLike = None,
         color: int = _default_color,
-        colors: List[int] = None,
+        colors: TypingList[int] = None,
         attribute: ArrayLike = None,
         color_map: Optional[ColorMap] = None,
         # lgtm [py/similar-function]
@@ -252,7 +246,7 @@ def mesh(
         slice_planes: ArrayLike = None,
         name: Optional[str] = None,
         group: Optional[str] = None,
-        custom_data: Optional[Dict[str, Any]] = None,
+        custom_data: Optional[TypingDict[str, Any]] = None,
         compression_level: int = 0,
         triangles_attribute: ArrayLike = None,
         **kwargs: Any
@@ -420,7 +414,7 @@ def stl(
         shininess: float = 50.0,
         name: Optional[str] = None,
         group: Optional[str] = None,
-        custom_data: Optional[Dict[str, Any]] = None,
+        custom_data: Optional[TypingDict[str, Any]] = None,
         compression_level: int = 0,
         **kwargs: Any
 ) -> STL:
@@ -485,7 +479,7 @@ def surface(
         opacity: float = 1.0,
         name: Optional[str] = None,
         group: Optional[str] = None,
-        custom_data: Optional[Dict[str, Any]] = None,
+        custom_data: Optional[TypingDict[str, Any]] = None,
         compression_level: int = 0,
         **kwargs: Any
 ) -> Surface:

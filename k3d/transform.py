@@ -1,7 +1,7 @@
 import numpy as np
 import weakref
 from functools import reduce
-from typing import Union, List, Optional, Dict, Any, Tuple
+from typing import Union, List as TypingList, Optional, Dict as TypingDict, Any, Tuple
 
 _epsilon = 1e-6
 
@@ -57,8 +57,8 @@ class Transform(object):
     Abstraction of a 4x4 model transformation matrix with hierarchy support.
     """
 
-    def __init__(self, bounds: Optional[List[float]] = None, translation: Optional[List[float]] = None, 
-                 rotation: Optional[List[float]] = None, scaling: Optional[List[float]] = None, 
+    def __init__(self, bounds: Optional[TypingList[float]] = None, translation: Optional[TypingList[float]] = None, 
+                 rotation: Optional[TypingList[float]] = None, scaling: Optional[TypingList[float]] = None, 
                  custom_matrix: Optional[np.ndarray] = None, parent: Optional['Transform'] = None):
         """
         Transform constructor.
@@ -82,8 +82,8 @@ class Transform(object):
         if parent is not None:
             parent._add_child(self)
 
-        self.drawables: List[weakref.ref] = []
-        self.children: List[weakref.ref] = []
+        self.drawables: TypingList[weakref.ref] = []
+        self.children: TypingList[weakref.ref] = []
         self.parent_matrix = parent.model_matrix if parent else np.identity(
             4, dtype=np.float32)
         self.custom_matrix = custom_matrix if custom_matrix is not None else np.identity(
@@ -304,8 +304,8 @@ def process_transform_arguments(drawable: Any, **kwargs: Any) -> Any:
     return drawable
 
 
-def transform(bounds: Optional[List[float]] = None, translation: Optional[List[float]] = None, 
-              rotation: Optional[List[float]] = None, scaling: Optional[List[float]] = None, 
+def transform(bounds: Optional[TypingList[float]] = None, translation: Optional[TypingList[float]] = None, 
+              rotation: Optional[TypingList[float]] = None, scaling: Optional[TypingList[float]] = None, 
               custom_matrix: Optional[np.ndarray] = None, parent: Optional[Transform] = None) -> Transform:
     """Return a Transform object.
 

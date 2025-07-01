@@ -1,10 +1,11 @@
 import json
 from pathlib import Path
+from typing import NoReturn
 
 __all__ = ["__version__"]
 
 
-def _fetchVersion():
+def _fetchVersion() -> str:
     HERE = Path(__file__).parent.resolve()
 
     for settings in HERE.rglob("package.json"):

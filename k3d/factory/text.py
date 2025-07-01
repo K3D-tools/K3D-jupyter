@@ -1,13 +1,13 @@
 """Factory functions for text and label objects."""
 
-from typing import Union, List, Optional, Dict, Any, Tuple
+from typing import Union, List as TypingList, Optional, Dict as TypingDict, Any, Tuple
 
 from ..objects import Text, Text2d, Label, TextureText
 from ..transform import process_transform_arguments
 from .common import _default_color
 
 # Type aliases for better readability
-ArrayLike = Union[List, Tuple]
+ArrayLike = Union[TypingList, Tuple]
 
 
 def text(
@@ -21,7 +21,7 @@ def text(
         is_html: bool = False,
         name: Optional[str] = None,
         group: Optional[str] = None,
-        custom_data: Optional[Dict[str, Any]] = None,
+        custom_data: Optional[TypingDict[str, Any]] = None,
         compression_level: int = 0,
         **kwargs: Any
 ) -> Text:
@@ -57,7 +57,7 @@ def text2d(
         is_html: bool = False,
         name: Optional[str] = None,
         group: Optional[str] = None,
-        custom_data: Optional[Dict[str, Any]] = None,
+        custom_data: Optional[TypingDict[str, Any]] = None,
         compression_level: int = 0,
 ) -> Text2d:
     return Text2d(
@@ -87,7 +87,7 @@ def label(
         label_box: bool = True,
         name: Optional[str] = None,
         group: Optional[str] = None,
-        custom_data: Optional[Dict[str, Any]] = None,
+        custom_data: Optional[TypingDict[str, Any]] = None,
         compression_level: int = 0,
         **kwargs: Any
 ) -> Label:
@@ -121,7 +121,7 @@ def texture_text(
         size: float = 1.0,
         name: Optional[str] = None,
         group: Optional[str] = None,
-        custom_data: Optional[Dict[str, Any]] = None,
+        custom_data: Optional[TypingDict[str, Any]] = None,
         compression_level: int = 0,
         **kwargs: Any
 ) -> TextureText:

@@ -1,5 +1,6 @@
 import json
 from pathlib import Path
+from typing import List as TypingList, Dict as TypingDict, Any
 
 from ._protocol import switch_to_binary_protocol, switch_to_text_protocol
 from ._version import __version__
@@ -45,14 +46,14 @@ with (HERE / "labextension" / "package.json").open() as fid:
     data = json.load(fid)
 
 
-def _jupyter_labextension_paths():
+def _jupyter_labextension_paths() -> TypingList[TypingDict[str, str]]:
     return [{
         "src": "labextension",
         "dest": data["name"]
     }]
 
 
-def _jupyter_nbextension_paths():
+def _jupyter_nbextension_paths() -> TypingList[TypingDict[str, str]]:
     return [{
         'section': 'notebook',
         'src': 'static',
