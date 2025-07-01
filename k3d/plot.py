@@ -33,9 +33,9 @@ class Plot(widgets.DOMWidget):
         grid_visible: `bool`.
             Enable or disable grid.
         screenshot_scale: `Float`.
-            Multipiler to screenshot resolution.
+            Multiplier to screenshot resolution.
         voxel_paint_color: `int`.
-            The (initial) int value to be inserted when editing voxels.
+            The (initial) integer value to be inserted when editing voxels.
         label_color: `int`.
             Packed RGB color of the labels (0xff0000 is red, 0xff is blue).
         lighting: `Float`.

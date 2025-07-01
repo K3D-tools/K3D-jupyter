@@ -12,7 +12,7 @@ Features
 --------
 
 K3D-jupyter includes many features, making it a lightweight and efficient tool for a
-diversity of applications. |br|
+diverse range of applications. |br|
 Some examples of use cases could be:
 
  - Photorealistic volume rendering for data on regular grids.
@@ -26,7 +26,7 @@ Some examples of use cases could be:
    points in web browsers.
 
    For example, point cloud data coming from 3D scanners or for
-   real-time visualization of tracers particles in fluid dynamics.
+   real-time visualization of tracer particles in fluid dynamics.
 
  - Display meshes with scalar attributes with dynamic update
    and animation.
@@ -48,7 +48,7 @@ custom `pixel shaders <pixelshaders>`_) access.
 The ipywidgets_ architecture allows for communication of these two parts.
 K3D-jupyter exposes this communication and allows for easy dataset updates on existing plots. |br|
 For example, if :code:`plt_points` is an :ref:`points` object,
-then a simple assignment on the backend
+then a simple assignment in the backend
 
 .. code-block:: python3
 
@@ -58,10 +58,10 @@ will trigger the data transfer of points positions to the front-end and update t
 
 One of the most attractive aspects of this architecture is
 that the backend process can run on arbitrary remote infrastructure,
-like in HPC_ centres where large scale simulations are performed or
+like in HPC_ centers where large scale simulations are performed or
 large datasets are available.
 
-Then is it possible to use the `Jupyter Notebook`_ as a remote display for visualizing that data.
+Then it is possible to use the `Jupyter Notebook`_ as a remote display for visualizing that data.
 As the frontend is on the users' computer, the interactivity of 3D
 inspection is very good and can achieve fast updates on the whole
 dataset.
@@ -79,7 +79,7 @@ much more sophisticated visualization pipelines.
 
 An example could be an unstructured volumetric grid with some scalar field.
 K3D does not support this kind of data, but it can be preprocessed using PyVista_ to --
-for example -- mesh it with colour coded values.
+for example -- mesh it with color coded values.
 Moreover, if such preprocessing produced a mesh with a small or moderate number of
 triangles (:math:`<10^5`), then it could be interactively explored by
 linking to other widgets.

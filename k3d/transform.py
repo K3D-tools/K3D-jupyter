@@ -251,7 +251,7 @@ def process_transform_arguments(drawable: Any, **kwargs: Any) -> Any:
         zmax : float
             Upper bound in z dimsension.
         bounds: array_like
-            Dimensions bounds taking precedence over seperate bound arguments,
+            Dimensions bounds taking precedence over separate bound arguments,
             [xmin, xmax, ymin, ymax, zmin, zmax] or [xmin, xmax, ymin, ymax].
         translation : array_like
             [tx, ty, tz] translation vector.
@@ -312,7 +312,7 @@ def transform(bounds: Optional[List[float]] = None, translation: Optional[List[f
     Parameters
     ----------
     bounds: array_like, optional
-            Dimensions bounds taking precedence over seperate bound arguments, by default None.
+            Dimensions bounds taking precedence over separate bound arguments, by default None.
             [xmin, xmax, ymin, ymax, zmin, zmax] or [xmin, xmax, ymin, ymax].
     translation : array_like, optional
         [tx, ty, tz] translation vector, by default None.
