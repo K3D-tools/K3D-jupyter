@@ -106,16 +106,21 @@ module.exports = {
             }, uniforms]),
             defines: {
                 USE_PER_POINT_OPACITY: (opacities !== null ? 1 : 0),
-                USE_COLOR_MAP: useColorMap,
+                USE_COLOR_MAP: useColorMap
             },
             vertexShader: require('./shaders/PointsMesh.vertex.glsl'),
             fragmentShader: require('./shaders/PointsMesh.fragment.glsl'),
-            depthWrite: (config.opacity === 1.0 && opacities === null),
             transparent: (config.opacity !== 1.0 || opacities !== null),
             lights: true,
             clipping: true,
             vertexColors: THREE.VertexColors,
         });
+
+        if (K3D.parameters.depthPeels === 0) {
+            material.depthWrite = (config.opacity === 1.0 && opacities === null);
+        } else {
+            material.onBeforeCompile = K3D.colorOnBeforeCompile;
+        }
 
         const object = new THREE.InstancedMesh(geometry, material, positions.length / 3);
         object.instanceMatrix.setUsage(THREE.DynamicDrawUsage);

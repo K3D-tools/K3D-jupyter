@@ -95,15 +95,15 @@ module.exports = {
             ]),
             defines: {
                 USE_SPECULAR: (shader === '3dSpecular' ? 1 : 0),
+                PROVIDED_FRAG_COORD_Z: 1,
                 USE_COLOR_MAP: useColorMap,
                 USE_PER_POINT_OPACITY: (opacities !== null ? 1 : 0),
                 USE_PER_POINT_SIZE: (sizes !== null ? 1 : 0),
             },
             vertexShader,
             fragmentShader,
-            opacity: config.opacity,
-            depthWrite: (config.opacity === 1.0 && opacities === null),
             transparent: (config.opacity !== 1.0 || opacities !== null),
+            opacity: config.opacity,
             lights: true,
             clipping: true,
             extensions: {
@@ -111,6 +111,11 @@ module.exports = {
             },
         });
 
+        if (K3D.parameters.depthPeels === 0) {
+            material.depthWrite = (config.opacity === 1.0 && opacities === null);
+        } else {
+            material.onBeforeCompile = K3D.colorOnBeforeCompile;
+        }
         // monkey-patching for imitate THREE.PointsMaterial
         material.size = config.point_size;
         material.color = new THREE.Color(1.0, 1.0, 1.0);

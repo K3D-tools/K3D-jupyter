@@ -4,13 +4,21 @@ const error = require('../../../core/lib/Error').error;
 const getSSAAChunkedRender = require('../helpers/SSAAChunkedRender');
 
 function depthOnBeforeCompile(globalPeelUniforms, shader) {
+    if (typeof (shader.defines) == 'undefined') {
+        shader.defines = {};
+    }
+
+    if (typeof (shader.defines.PROVIDED_FRAG_COORD_Z) == 'undefined') {
+        shader.defines.PROVIDED_FRAG_COORD_Z = 0;
+    }
+
     shader.uniforms.uScreenSize = globalPeelUniforms.uScreenSize;
     shader.uniforms.uPrevDepthTexture = globalPeelUniforms.uPrevDepthTexture;
     shader.uniforms.uLayer = globalPeelUniforms.uLayer;
     shader.uniforms.uDepthOffset = globalPeelUniforms.uDepthOffset;
 
     shader.fragmentShader = require('./shaders/depthShader.fragment.header.glsl') + shader.fragmentShader;
-    shader.fragmentShader = shader.fragmentShader.replace(/}$/gm, require('./shaders/depthShader.fragment.tail.glsl'));
+    shader.fragmentShader = shader.fragmentShader.replace(/}(?![\s\S]*})/gm, require('./shaders/depthShader.fragment.tail.glsl'));
 }
 
 function colorOnBeforeCompile(globalPeelUniforms, shader) {
@@ -196,9 +204,7 @@ module.exports = function (K3D) {
         self.renderer.clear();
 
         // STAGE II - enable stencil and color
-        if (K3D.parameters.depthPeels < 8) {
-            gl.enable(gl.STENCIL_TEST);
-        }
+        gl.enable(gl.STENCIL_TEST);
 
         gl.colorMask(true, true, true, true);
         gl.stencilFunc(gl.ALWAYS, 1, 0xff);

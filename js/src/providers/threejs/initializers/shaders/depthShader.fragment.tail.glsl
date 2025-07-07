@@ -3,8 +3,15 @@ if (uLayer != 0){
 
     float prevDepth = unpackRGBAToDepth(texture2D(uPrevDepthTexture, screenPos));
 
+
+    #if (PROVIDED_FRAG_COORD_Z > 0)
+    if (prevDepth + uDepthOffset - FragCoordZ >= 0.){
+        discard;
+    }
+    #else
     if (prevDepth + uDepthOffset - gl_FragCoord.z >= 0.){
         discard;
     }
+    #endif
 }
 }
