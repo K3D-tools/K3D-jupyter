@@ -33,17 +33,25 @@ function getVoxelChunkObject(K3D, config, voxelSize, chunkStructure) {
     geometry.computeBoundingSphere();
     geometry.computeBoundingBox();
 
+    material = new MaterialConstructor({
+        vertexColors: THREE.VertexColors,
+        flatShading: true,
+        opacity: config.opacity,
+        side: THREE.DoubleSide,
+        wireframe: config.wireframe,
+    });
+
+    if (K3D.parameters.depthPeels === 0) {
+        material.depthWrite = config.opacity === 1.0;
+        material.transparent = config.opacity !== 1.0;
+    } else {
+        material.blending = THREE.NoBlending;
+        material.onBeforeCompile = K3D.colorOnBeforeCompile;
+    }
+
     voxelsChunkObject.add(new THREE.Mesh(
         geometry,
-        new MaterialConstructor({
-            vertexColors: THREE.VertexColors,
-            flatShading: true,
-            opacity: config.opacity,
-            depthWrite: config.opacity === 1.0,
-            transparent: config.opacity !== 1.0,
-            side: THREE.DoubleSide,
-            wireframe: config.wireframe,
-        }),
+        material
     ));
 
     if (config.outlines && !config.wireframe) {
