@@ -5,13 +5,14 @@ from io import BytesIO
 from pixelmatch.contrib.PIL import pixelmatch
 
 
-def prepare():
+def prepare(depth_peels=0):
     while len(pytest.plot.objects) > 0:
         pytest.plot -= pytest.plot.objects[-1]
 
     pytest.plot.clipping_planes = []
     pytest.plot.colorbar_object_id = 0
     pytest.plot.grid_visible = True
+    pytest.plot.depth_peels = depth_peels
     pytest.plot.camera_mode = "trackball"
     pytest.plot.camera = [2, -3, 0.2, 0.0, 0.0, 0.0, 0, 0, 1]
     pytest.headless.sync(hold_until_refreshed=True)

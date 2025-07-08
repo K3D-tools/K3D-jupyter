@@ -144,7 +144,7 @@ function update(K3D, json, GUI, changes) {
 
         K3D.gui_map[json.id].controllersMap = {};
         K3D.gui_map[json.id].listenersId = K3D.on(K3D.events.OBJECT_REMOVED, (id) => {
-            if (id === json.id.toString()) {
+            if (id.toString() === json.id.toString()) {
                 const { listenersId } = K3D.gui_map[json.id];
                 const folder = K3D.gui_map[json.id];
 

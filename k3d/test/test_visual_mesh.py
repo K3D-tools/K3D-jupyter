@@ -147,9 +147,38 @@ def test_mesh_advanced_opacity():
 
     compare("mesh_advanced_opacity")
 
+def test_mesh_advanced_opacity_depth_peels():
+    prepare(depth_peels=8)
+
+    filename = download(
+        "https://github.com/To-Fujita/Babylon.js_3D_Graphics/raw/master/scenes/stl/Cute%20Darth%20Vader.stl"
+    )
+
+    reader = vtk.vtkSTLReader()
+    reader.SetFileName(filename)
+    reader.Update()
+
+    mesh1 = k3d.vtk_poly_data(
+        reader.GetOutput(),
+        color=0x00ff00,
+        flat_shading=False,
+        opacity=0.5,
+        transform=k3d.transform(rotation=[np.pi / 2, 1, 0, 0]),
+    )
+    mesh2 = k3d.vtk_poly_data(
+        reader.GetOutput(),
+        color=0xff0000,
+        flat_shading=False,
+        opacity=0.5,
+        transform=k3d.transform(rotation=[np.pi / 2, 1, 0, 0], translation=[25,0,0]),
+    )
+    pytest.plot += mesh1
+    pytest.plot += mesh2
+
+    compare("test_mesh_advanced_opacity_depth_peels")
 
 def test_mesh_advanced_wireframe():
-    prepare()
+    prepare(depth_peels=0)
 
     filename = download(
         "https://github.com/To-Fujita/Babylon.js_3D_Graphics/raw/master/scenes/stl/Cute%20Darth%20Vader.stl"

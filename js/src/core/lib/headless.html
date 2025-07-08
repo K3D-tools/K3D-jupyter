@@ -34,6 +34,10 @@
     return buf;
   }
 
+  function isPromise(obj) {
+    return obj instanceof Promise;
+  }
+
   var K3DInstance, pingFailed = 0;
 
   window.refreshed = false;
@@ -128,47 +132,53 @@
             // manipulate_mode: "setManipulateMode"
           };
 
+          let promises = [];
+
           Object.keys(data.plot_diff).forEach(function (k) {
             if (map[k]) {
-              K3DInstance[map[k]](data.plot_diff[k]);
+              let ret = K3DInstance[map[k]](data.plot_diff[k]);
+
+              if (isPromise(ret)) {
+                promises.push(ret);
+              }
             } else {
               K3DInstance.parameters[k] = data.plot_diff[k];
             }
           });
 
-          let promises = [];
+          Promise.all(promises).then(function () {
+            Object.keys(data.objects_diff).forEach(function (k) {
+              let diff = data.objects_diff[k];
 
-          Object.keys(data.objects_diff).forEach(function (k) {
-            let diff = data.objects_diff[k];
+              if (diff === null) {
+                K3DInstance.removeObject(k);
+                return;
+              }
 
-            if (diff === null) {
-              K3DInstance.removeObject(k);
-              return;
-            }
+              let json = K3DInstance.getWorld().ObjectsListJson[diff.id] || {};
+              let load = Object.keys(json).length === 0;
 
-            let json = K3DInstance.getWorld().ObjectsListJson[diff.id] || {};
-            let load = Object.keys(json).length === 0;
+              Object.keys(diff).forEach((k) => {
+                json[k] = diff[k] = K3DInstance.serialize.deserialize(diff[k]);
+              });
 
-            Object.keys(diff).forEach((k) => {
-              json[k] = diff[k] = K3DInstance.serialize.deserialize(diff[k]);
+              if (load) {
+                promises.push(K3DInstance.load({objects: [json]}));
+              } else {
+                promises.push(K3DInstance.reload(json, diff));
+              }
             });
 
-            if (load) {
-              promises.push(K3DInstance.load({objects: [json]}));
+            if (promises.length > 0) {
+              Promise.all(promises).then(function () {
+                window.refreshed = true;
+              }).catch(function (error) {
+                console.error(error);
+              });
             } else {
-              promises.push(K3DInstance.reload(json, diff));
+              window.refreshed = true;
             }
           });
-
-          if (promises.length > 0) {
-            Promise.all(promises).then(function () {
-              window.refreshed = true;
-            }).catch(function (error) {
-              console.error(error);
-            });
-          } else {
-            window.refreshed = true;
-          }
         } else {
           console.error('k3dRefresh', req.response);
         }

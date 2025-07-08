@@ -107,6 +107,32 @@ def test_marching_cubes_non_uniformly_spaced():
     compare("marching_cubes_non_uniformly_spaced")
 
 
+def test_marching_cubes_opacity_depth_peels():
+    global p, a
+
+    prepare(depth_peels=8)
+
+    iso = k3d.marching_cubes(p, level=0.0, opacity=0.8, attribute=a,
+                             color_map=k3d.matplotlib_color_maps.Inferno)
+
+    pytest.plot += iso
+
+    compare("test_marching_cubes_opacity_depth_peels")
+
+
+def test_marching_cubes_opacity():
+    global p, a
+
+    prepare()
+
+    iso = k3d.marching_cubes(p, level=0.0, opacity=0.8, attribute=a,
+                             color_map=k3d.matplotlib_color_maps.Inferno)
+
+    pytest.plot += iso
+
+    compare("test_marching_cubes_opacity")
+
+
 def test_marching_cubes_with_attribute():
     global p, a
 

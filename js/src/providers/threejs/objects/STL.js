@@ -48,14 +48,6 @@ module.exports = {
             });
         }
 
-        if (K3D.parameters.depthPeels === 0) {
-            material.depthWrite = config.opacity === 1.0;
-            material.transparent = config.opacity !== 1.0;
-        } else {
-            material.blending = THREE.NoBlending;
-            material.onBeforeCompile = K3D.colorOnBeforeCompile;
-        }
-
         if (config.flat_shading === false) {
             geometry = BufferGeometryUtils.mergeVertices(geometry);
             geometry.computeVertexNormals();

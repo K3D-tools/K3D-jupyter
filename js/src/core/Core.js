@@ -860,6 +860,8 @@ function K3D(provider, targetDOMNode, parameters) {
      * @param {Number} count
      */
     this.setDepthPeels = function (count) {
+        let objectsPromieses = [];
+
         self.parameters.depthPeels = count;
 
         if (GUI.controls) {
@@ -872,15 +874,17 @@ function K3D(provider, targetDOMNode, parameters) {
 
         if ((prevDepthPeels === 0 && count > 0)
             || (prevDepthPeels > 0 && count === 0)) {
+
             _.values(world.ObjectsListJson).forEach((json) => {
-                if (['Mesh'].indexOf(json.type) !== -1) {
-                    self.reload(json);
-                }
+                objectsPromieses.push(self.reload(json));
             });
         }
 
         prevDepthPeels = count;
-        self.render();
+
+        return Promise.all(objectsPromieses).then(function () {
+            self.render();
+        });
     };
 
 
