@@ -54,8 +54,6 @@ module.exports = {
                 flatShading: config.flat_shading,
                 wireframe: config.wireframe,
                 opacity: config.opacity,
-                depthWrite: config.opacity === 1.0,
-                transparent: config.opacity !== 1.0,
             });
             let geometry = new THREE.BufferGeometry();
             let positions = [];
@@ -120,13 +118,19 @@ module.exports = {
                     side: getSide(config),
                     vertexShader: require('./shaders/MarchingCubesVolume.vertex.glsl'),
                     fragmentShader: require('./shaders/MarchingCubesVolume.fragment.glsl'),
-                    depthWrite: (config.opacity === 1.0 && opacityFunction === null),
-                    transparent: (config.opacity !== 1.0 || opacityFunction !== null),
                     wireframe: config.wireframe,
                     flatShading: config.flat_shading,
                     lights: true,
                     clipping: true
                 });
+            }
+
+            if (K3D.parameters.depthPeels === 0) {
+                material.depthWrite = (config.opacity === 1.0 && opacityFunction === null);
+                material.transparent = (config.opacity !== 1.0 || opacityFunction !== null);
+            } else {
+                material.blending = THREE.NoBlending;
+                material.onBeforeCompile = K3D.colorOnBeforeCompile;
             }
 
             if (spacingsX && spacingsY && spacingsZ) {

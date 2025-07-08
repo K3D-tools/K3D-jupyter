@@ -87,11 +87,17 @@ module.exports = {
             side: getSide(config),
             vertexShader: require('./shaders/MeshVolume.vertex.glsl'),
             fragmentShader: require('./shaders/MeshVolume.fragment.glsl'),
-            depthWrite: (config.opacity === 1.0 && opacityFunction === null),
-            transparent: (config.opacity !== 1.0 || opacityFunction !== null),
             lights: false,
             clipping: true,
         });
+
+        if (K3D.parameters.depthPeels === 0) {
+            material.depthWrite = (config.opacity === 1.0 && opacityFunction === null);
+            material.transparent = (config.opacity !== 1.0 || opacityFunction !== null);
+        } else {
+            material.blending = THREE.NoBlending;
+            material.onBeforeCompile = K3D.colorOnBeforeCompile;
+        }
 
         if (config.flat_shading === false) {
             geometry.computeVertexNormals();

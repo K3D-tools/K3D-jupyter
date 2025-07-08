@@ -11,7 +11,7 @@ const { commonUpdate } = require('../helpers/Fn');
  * @return {Object} 3D object ready to render
  */
 module.exports = {
-    create(config) {
+    create(config, K3D) {
         config.visible = typeof (config.visible) !== 'undefined' ? config.visible : true;
         config.color = typeof (config.color) !== 'undefined' ? config.color : 255;
         config.wireframe = typeof (config.wireframe) !== 'undefined' ? config.wireframe : false;
@@ -46,6 +46,14 @@ module.exports = {
                 vertexColors: THREE.VertexColors,
                 wireframe: config.wireframe,
             });
+        }
+
+        if (K3D.parameters.depthPeels === 0) {
+            material.depthWrite = config.opacity === 1.0;
+            material.transparent = config.opacity !== 1.0;
+        } else {
+            material.blending = THREE.NoBlending;
+            material.onBeforeCompile = K3D.colorOnBeforeCompile;
         }
 
         if (config.flat_shading === false) {
