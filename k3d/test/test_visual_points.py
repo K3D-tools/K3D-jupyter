@@ -191,6 +191,36 @@ def test_points_mesh_high_detail():
 
     compare("points_mesh_high_detail")
 
+def test_points_mesh_high_detail_no_depth_peels():
+    prepare()
+
+    points = k3d.points(
+        np.array([[1, 0, 0], [0, 0, 0]]),
+        shader="mesh",
+        opacity=0.95,
+        point_size=2.0,
+        mesh_detail=8,
+        color=0xFF0000,
+    )
+
+    pytest.plot += points
+
+    compare("points_mesh_high_detail_no_depth_peels")
+def test_points_mesh_high_detail_depth_peels():
+    prepare(depth_peels=8)
+
+    points = k3d.points(
+        np.array([[1, 0, 0], [0, 0, 0]]),
+        shader="mesh",
+        opacity=0.95,
+        point_size=2.0,
+        mesh_detail=8,
+        color=0xFF0000,
+    )
+
+    pytest.plot += points
+
+    compare("points_mesh_high_detail_depth_peels")
 
 def test_points_dot():
     global v, s

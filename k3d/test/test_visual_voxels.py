@@ -51,6 +51,27 @@ def test_voxels():
 
     compare("voxels_dynamic_opacity")
 
+def test_voxels_no_depth_peels():
+    global color_map, voxels
+
+    prepare()
+
+    obj = k3d.voxels(voxels.astype(np.uint8), color_map, opacity=0.9, outlines=False)
+
+    pytest.plot += obj
+
+    compare("voxels_no_depth_peels")
+
+def test_voxels_depth_peels():
+    global color_map, voxels
+
+    prepare(depth_peels=8)
+
+    obj = k3d.voxels(voxels.astype(np.uint8), color_map, opacity=0.9, outlines=False)
+
+    pytest.plot += obj
+
+    compare("voxels_depth_peels")
 
 def test_voxels_sparse():
     global color_map, voxels

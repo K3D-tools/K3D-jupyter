@@ -216,3 +216,87 @@ def test_line_advanced():
         )
 
     compare("line_advanced")
+
+
+def test_line_mesh_opacity_no_depth_peels():
+    import math
+
+    prepare()
+
+    for i in range(10):
+        v = []
+        s = []
+
+        for fi in np.arange(0, 2 * math.pi, 0.01):
+            v.append(
+                [
+                    math.sin(fi * 4 + i),
+                    math.cos(fi * 7 + i),
+                    math.cos(fi * 3) + fi * 1.5,
+                ]
+            )
+            s.append(math.sin(fi * i))
+
+        pytest.plot += k3d.line(
+            v,
+            shader="mesh",
+            opacity=0.25,
+            attribute=s,
+            color_range=[-1, 1],
+            color_map=k3d.basic_color_maps.Jet,
+            width=0.06,
+        )
+
+    pytest.plot.camera = [-0.052159935763831905,
+                          3.1673584843034166,
+                          5.356722426260206,
+                          -2.8759241104125977e-05,
+                          1.1920928955078125e-07,
+                          5.431476727128029,
+                          -0.996488124472286,
+                          0.037236633436333995,
+                          -0.07499900610035434]
+
+    compare("line_mesh_opacity_no_depth_peels", camera_factor=0.35)
+
+
+def test_line_mesh_opacity_depth_peels():
+    import math
+
+    prepare(depth_peels=8)
+
+    for i in range(10):
+        v = []
+        s = []
+
+        for fi in np.arange(0, 2 * math.pi, 0.01):
+            v.append(
+                [
+                    math.sin(fi * 4 + i),
+                    math.cos(fi * 7 + i),
+                    math.cos(fi * 3) + fi * 1.5,
+                ]
+            )
+            s.append(math.sin(fi * i))
+
+        pytest.plot += k3d.line(
+            v,
+            shader="mesh",
+            opacity=0.25,
+            attribute=s,
+            color_range=[-1, 1],
+            color_map=k3d.basic_color_maps.Jet,
+            width=0.06,
+        )
+
+    pytest.plot.camera = [-0.052159935763831905,
+                          3.1673584843034166,
+                          5.356722426260206,
+                          -2.8759241104125977e-05,
+                          1.1920928955078125e-07,
+                          5.431476727128029,
+                          -0.996488124472286,
+                          0.037236633436333995,
+                          -0.07499900610035434]
+
+    compare("line_mesh_opacity_depth_peels", camera_factor=0.35)

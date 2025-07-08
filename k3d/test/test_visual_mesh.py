@@ -147,6 +147,7 @@ def test_mesh_advanced_opacity():
 
     compare("mesh_advanced_opacity")
 
+
 def test_mesh_advanced_opacity_depth_peels():
     prepare(depth_peels=8)
 
@@ -170,12 +171,13 @@ def test_mesh_advanced_opacity_depth_peels():
         color=0xff0000,
         flat_shading=False,
         opacity=0.5,
-        transform=k3d.transform(rotation=[np.pi / 2, 1, 0, 0], translation=[25,0,0]),
+        transform=k3d.transform(rotation=[np.pi / 2, 1, 0, 0], translation=[25, 0, 0]),
     )
     pytest.plot += mesh1
     pytest.plot += mesh2
 
     compare("test_mesh_advanced_opacity_depth_peels")
+
 
 def test_mesh_advanced_wireframe():
     prepare(depth_peels=0)
@@ -310,3 +312,97 @@ def test_mesh_volume_data():
     pytest.plot += mesh
 
     compare("mesh_volume_data")
+
+
+def test_mesh_volume_data_no_depth_peels():
+    prepare(depth_peels=0)
+
+    filename = download(
+        "https://github.com/To-Fujita/Babylon.js_3D_Graphics/raw/master/scenes/stl/Cute%20Darth%20Vader.stl"
+    )
+
+    reader = vtk.vtkSTLReader()
+    reader.SetFileName(filename)
+    reader.Update()
+    poly = reader.GetOutput()
+
+    reader = vtk.vtkXMLImageDataReader()
+    reader.SetFileName("./test/assets/volume.vti")
+    reader.Update()
+    vti = reader.GetOutput()
+
+    x, y, z = vti.GetDimensions()
+    volume_data = (
+        numpy_support.vtk_to_numpy(vti.GetPointData().GetArray(0))
+        .reshape(-1, y, x)
+        .astype(np.float32)
+    )
+
+    mesh1 = k3d.vtk_poly_data(
+        poly,
+        volume=volume_data,
+        flat_shading=False,
+        opacity=0.5,
+        transform=k3d.transform(rotation=[np.pi / 2, 1, 0, 0]),
+        volume_bounds=[-50, 150, -200, 100, -50, 250],
+    )
+    mesh2 = k3d.vtk_poly_data(
+        poly,
+        volume=volume_data,
+        flat_shading=False,
+        opacity=0.5,
+        transform=k3d.transform(rotation=[np.pi / 2, 1, 0, 0], translation=[25, 0, 0]),
+        volume_bounds=[-50, 150, -200, 100, -50, 250],
+    )
+
+    pytest.plot += mesh1
+    pytest.plot += mesh2
+
+    compare("mesh_volume_data_no_depth_peels")
+
+
+def test_mesh_volume_data_depth_peels():
+    prepare(depth_peels=8)
+
+    filename = download(
+        "https://github.com/To-Fujita/Babylon.js_3D_Graphics/raw/master/scenes/stl/Cute%20Darth%20Vader.stl"
+    )
+
+    reader = vtk.vtkSTLReader()
+    reader.SetFileName(filename)
+    reader.Update()
+    poly = reader.GetOutput()
+
+    reader = vtk.vtkXMLImageDataReader()
+    reader.SetFileName("./test/assets/volume.vti")
+    reader.Update()
+    vti = reader.GetOutput()
+
+    x, y, z = vti.GetDimensions()
+    volume_data = (
+        numpy_support.vtk_to_numpy(vti.GetPointData().GetArray(0))
+        .reshape(-1, y, x)
+        .astype(np.float32)
+    )
+
+    mesh1 = k3d.vtk_poly_data(
+        poly,
+        volume=volume_data,
+        flat_shading=False,
+        opacity=0.5,
+        transform=k3d.transform(rotation=[np.pi / 2, 1, 0, 0]),
+        volume_bounds=[-50, 150, -200, 100, -50, 250],
+    )
+    mesh2 = k3d.vtk_poly_data(
+        poly,
+        volume=volume_data,
+        flat_shading=False,
+        opacity=0.5,
+        transform=k3d.transform(rotation=[np.pi / 2, 1, 0, 0], translation=[25, 0, 0]),
+        volume_bounds=[-50, 150, -200, 100, -50, 250],
+    )
+
+    pytest.plot += mesh1
+    pytest.plot += mesh2
+
+    compare("mesh_volume_data_depth_peels")

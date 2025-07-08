@@ -83,14 +83,26 @@ def test_voxels_group_wireframe():
     compare("voxels_group_wireframe", camera_factor=0.5)
 
 
-def test_voxels_group_opacity():
+def test_voxels_group_no_depth_peels():
     global voxelsGroup, data
 
     prepare()
 
     space_size = np.array(data.shape, dtype=np.uint32)[::-1]
-    obj = k3d.voxels_group(space_size, voxelsGroup, opacity=0.5)
+    obj = k3d.voxels_group(space_size, voxelsGroup, opacity=0.85)
 
     pytest.plot += obj
 
-    compare("voxels_group_opacity")
+    compare("voxels_group_no_depth_peels", camera_factor=0.5)
+
+def test_voxels_group_depth_peels():
+    global voxelsGroup, data
+
+    prepare(depth_peels=8)
+
+    space_size = np.array(data.shape, dtype=np.uint32)[::-1]
+    obj = k3d.voxels_group(space_size, voxelsGroup, opacity=0.85)
+
+    pytest.plot += obj
+
+    compare("voxels_group_depth_peels", camera_factor=0.5)

@@ -246,3 +246,45 @@ def test_lines_mesh_attribute_segment():
     pytest.plot += lines
 
     compare("lines_mesh_attribute_segment", camera_factor=0.5)
+
+
+def test_lines_mesh_attribute_no_depth_peels():
+    global vertices, indices
+
+    prepare()
+
+    lines = k3d.lines(
+        vertices,
+        indices,
+        flat_shading=False,
+        shader="mesh",
+        opacity=0.95,
+        width=0.003,
+        color=0xFF,
+        attribute=phi,
+        color_map=k3d.matplotlib_color_maps.twilight,
+    )
+    pytest.plot += lines
+
+    compare("lines_mesh_attribute_no_depth_peels", camera_factor=0.5)
+
+
+def test_lines_mesh_attribute_depth_peels():
+    global vertices, indices
+
+    prepare(depth_peels=8)
+
+    lines = k3d.lines(
+        vertices,
+        indices,
+        flat_shading=False,
+        shader="mesh",
+        opacity=0.95,
+        width=0.003,
+        color=0xFF,
+        attribute=phi,
+        color_map=k3d.matplotlib_color_maps.twilight,
+    )
+    pytest.plot += lines
+
+    compare("lines_mesh_attribute_depth_peels", camera_factor=0.5)
