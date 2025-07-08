@@ -35,7 +35,7 @@ void main(void)
     #endif
 
     gl_FragDepthEXT = depth;
-    float FragCoordZ = pos.z;
+    float fragCoordZ = pos.z;
 
     vec3 normal = vec3(impostorSpaceCoordinate, normalizedDepth);
 

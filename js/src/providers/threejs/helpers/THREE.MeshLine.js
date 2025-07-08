@@ -217,7 +217,7 @@ module.exports = function (THREE) {
         this.geometry.setIndex(this.attributes.index);
     };
 
-    function MeshLineMaterial(parameters) {
+    function MeshLineMaterial(parameters, K3D) {
         const vertexShaderSource = [
             'precision highp float;',
             '',
@@ -371,6 +371,9 @@ module.exports = function (THREE) {
             fragmentShader: fragmentShaderSource.join('\r\n'),
             clipping: true,
         });
+
+        parameters.transparent = this.opacity !== 1.0;
+        material.depthWrite = this.opacity === 1.0;
 
         delete parameters.lineWidth;
         delete parameters.map;

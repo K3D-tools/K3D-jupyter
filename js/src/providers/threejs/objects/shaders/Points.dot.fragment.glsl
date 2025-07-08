@@ -15,7 +15,7 @@ void main(void)
     vec4 color = vColor;
     color.a *= opacity;
 
-    float FragCoordZ = mvPosition.z;
+    float fragCoordZ = mvPosition.z;
 
     gl_FragColor = color;
 }

@@ -110,7 +110,6 @@ module.exports = {
             },
             vertexShader: require('./shaders/PointsMesh.vertex.glsl'),
             fragmentShader: require('./shaders/PointsMesh.fragment.glsl'),
-            transparent: (config.opacity !== 1.0 || opacities !== null),
             lights: true,
             clipping: true,
             vertexColors: THREE.VertexColors,
@@ -118,8 +117,10 @@ module.exports = {
 
         if (K3D.parameters.depthPeels === 0) {
             material.depthWrite = (config.opacity === 1.0 && opacities === null);
+            material.transparent = (config.opacity !== 1.0 || opacities !== null);
         } else {
             material.onBeforeCompile = K3D.colorOnBeforeCompile;
+            material.blending = THREE.NoBlending;
         }
 
         const object = new THREE.InstancedMesh(geometry, material, positions.length / 3);

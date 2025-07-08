@@ -23,11 +23,10 @@ function create(config, K3D) {
         color: new THREE.Color(1, 1, 1),
         opacity: config.opacity,
         sizeAttenuation: true,
-        transparent: true,
         lineWidth: config.width,
         resolution: new THREE.Vector2(K3D.getWorld().width, K3D.getWorld().height),
         side: THREE.DoubleSide,
-    });
+    }, K3D);
     const verticesColors = (config.colors && config.colors.data) || null;
     const color = new THREE.Color(config.color);
     let colors = null;

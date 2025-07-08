@@ -410,7 +410,7 @@ function rebuildSceneData(K3D, grids, axesHelper, force) {
                     lineWidth: minorScale * 0.05,
                     resolution: new THREE.Vector2(K3D.getWorld().width, K3D.getWorld().height),
                     side: THREE.DoubleSide,
-                });
+                }, K3D);
 
                 iterableAxes.forEach((iterateAxis) => {
                     const delta = unitVectors[iterateAxis].clone().multiplyScalar(minorScale);

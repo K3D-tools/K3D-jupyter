@@ -5,7 +5,7 @@ if (uLayer != 0){
 
 
     #if (PROVIDED_FRAG_COORD_Z > 0)
-    if (prevDepth + uDepthOffset - FragCoordZ >= 0.){
+    if (prevDepth + uDepthOffset - fragCoordZ  >= 0.){
         discard;
     }
     #else

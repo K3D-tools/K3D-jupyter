@@ -102,7 +102,6 @@ module.exports = {
             },
             vertexShader,
             fragmentShader,
-            transparent: (config.opacity !== 1.0 || opacities !== null),
             opacity: config.opacity,
             lights: true,
             clipping: true,
@@ -111,11 +110,9 @@ module.exports = {
             },
         });
 
-        if (K3D.parameters.depthPeels === 0) {
-            material.depthWrite = (config.opacity === 1.0 && opacities === null);
-        } else {
-            material.onBeforeCompile = K3D.colorOnBeforeCompile;
-        }
+        material.depthWrite = (config.opacity === 1.0 && opacities === null);
+        material.transparent = (config.opacity !== 1.0 || opacities !== null);
+
         // monkey-patching for imitate THREE.PointsMaterial
         material.size = config.point_size;
         material.color = new THREE.Color(1.0, 1.0, 1.0);

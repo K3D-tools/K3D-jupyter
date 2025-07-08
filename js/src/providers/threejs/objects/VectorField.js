@@ -101,7 +101,7 @@ module.exports = {
             lineWidth: config.line_width,
             resolution: new THREE.Vector2(K3D.getWorld().width, K3D.getWorld().height),
             side: THREE.DoubleSide,
-        });
+        }, K3D);
 
         line.setGeometry(new Float32Array(lineVertices), true, null, colors);
         line.geometry.computeBoundingSphere();

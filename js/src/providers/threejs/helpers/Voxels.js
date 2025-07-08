@@ -59,7 +59,7 @@ function getVoxelChunkObject(K3D, config, voxelSize, chunkStructure) {
             lineWidth,
             resolution: new THREE.Vector2(K3D.getWorld().width, K3D.getWorld().height),
             side: THREE.DoubleSide,
-        });
+        }, K3D);
 
         material.userData = { outline: true };
 
