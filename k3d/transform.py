@@ -108,7 +108,6 @@ class Transform(object):
                     f"Cannot set {key} to None. These fields must have valid matrix values."
                 )
             # Allow None for optional transform parameters (translation, rotation, scaling, bounds)
-            pass
         elif key == "translation":
             # Ensure translation is a 3x1 column vector
             value = np.array(value, dtype=np.float32).reshape(3, 1)

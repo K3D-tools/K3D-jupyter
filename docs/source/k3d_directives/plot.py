@@ -25,10 +25,10 @@ class K3D_Plot(SphinxDirective):
         filename = self.options.get('filename')
         path = self.env.doc2path(self.env.docname)
         code_path = os.path.join(os.path.dirname(path), filename)
+        image_filepath = os.path.join(os.path.dirname(path),
+                                      os.path.splitext(os.path.basename(filename))[0] + '.png')
 
         if 'screenshot' in self.options:
-            image_filepath = os.path.join(os.path.dirname(path),
-                                          os.path.splitext(os.path.basename(filename))[0] + '.png')
             if os.path.isfile(image_filepath):
                 return []
 
