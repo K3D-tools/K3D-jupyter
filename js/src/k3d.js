@@ -22,6 +22,10 @@ function runOnEveryPlot(id, cb) {
         }
     });
 }
+function evalInContext() {
+    let K3DInstance = this.K3DInstance;
+    eval(this.K3DInstance.parameters.additionalJsCode);
+}
 
 class ChunkModel extends widgets.WidgetModel {
     static serializers = {
@@ -440,11 +444,6 @@ class PlotView extends widgets.DOMWidgetView {
             }
         });
 
-        function evalInContext() {
-            let K3DInstance = this.K3DInstance;
-            eval(this.K3DInstance.parameters.additionalJsCode);
-        }
-
         evalInContext.call(this);
     };
 
@@ -496,6 +495,7 @@ class PlotView extends widgets.DOMWidgetView {
 
     _setAdditionalJsCode() {
         this.K3DInstance.setAdditionalJsCode(this.model.get('additional_js_code'));
+        evalInContext.call(this);
     }
 
     _setFps() {
