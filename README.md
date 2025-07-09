@@ -4,7 +4,7 @@
 [![Downloads](https://static.pepy.tech/badge/k3d/month)](https://pepy.tech/project/k3d)
 [![Anaconda-Server Badge](https://anaconda.org/conda-forge/k3d/badges/downloads.svg)](https://anaconda.org/conda-forge/k3d)
 [![CodeQL](https://github.com/K3D-tools/K3D-jupyter/workflows/CodeQL/badge.svg)](https://github.com/K3D-tools/K3D-jupyter/actions)
-![GitHub Sponsor](https://img.shields.io/github/sponsors/K3D-tools?label=Sponsor&logo=GitHub)
+[![GitHub Sponsor](https://img.shields.io/github/sponsors/K3D-tools?label=Sponsor&logo=GitHub)](https://github.com/sponsors/K3D-tools)
 
 <div>
 
