@@ -1,9 +1,9 @@
 const THREE = require('three');
 const interactionsHelper = require('../helpers/Interactions');
 const colorMapHelper = require('../../../core/lib/helpers/colorMap');
-const {areAllChangesResolve} = require('../helpers/Fn');
-const {commonUpdate} = require('../helpers/Fn');
-const {typedArrayToThree} = require('../helpers/Fn');
+const { areAllChangesResolve } = require('../helpers/Fn');
+const { commonUpdate } = require('../helpers/Fn');
+const { typedArrayToThree } = require('../helpers/Fn');
 
 /**
  * Loader strategy to handle Texture object
@@ -54,7 +54,7 @@ module.exports = {
 
             texture.needsUpdate = true;
 
-            const canvas = colorMapHelper.createCanvasGradient(colorMap, 1024, opacityFunction);
+            const canvas = colorMapHelper.createCanvasGradient(colorMap, 1024, 1, opacityFunction);
             const colormap = new THREE.CanvasTexture(
                 canvas,
                 THREE.UVMapping,
@@ -66,10 +66,10 @@ module.exports = {
             colormap.needsUpdate = true;
 
             const uniforms = {
-                low: {value: colorRange[0]},
-                high: {value: colorRange[1]},
-                map: {type: 't', value: texture},
-                colormap: {type: 't', value: colormap},
+                low: { value: colorRange[0] },
+                high: { value: colorRange[1] },
+                map: { type: 't', value: texture },
+                colormap: { type: 't', value: colormap },
             };
 
             const material = new THREE.ShaderMaterial({
@@ -79,6 +79,13 @@ module.exports = {
                 side: THREE.DoubleSide,
                 clipping: true,
             });
+
+            if (K3D.parameters.depthPeels === 0) {
+                material.depthWrite = (config.opacity === 1.0 && opacityFunction === null);
+                material.transparent = (config.opacity !== 1.0 || opacityFunction !== null);
+            } else {
+                material.onBeforeCompile = K3D.colorOnBeforeCompile;
+            }
 
             if (config.puv.data.length === 9) {
                 const positionArray = geometry.attributes.position.array;
@@ -135,6 +142,7 @@ module.exports = {
                 const canvas = colorMapHelper.createCanvasGradient(
                     (changes.color_map && changes.color_map.data) || config.color_map.data,
                     1024,
+                    1,
                     (changes.opacity_function && changes.opacity_function.data) || config.opacity_function.data,
                 );
 
@@ -160,7 +168,7 @@ module.exports = {
         commonUpdate(config, changes, resolvedChanges, obj, K3D);
 
         if (areAllChangesResolve(changes, resolvedChanges)) {
-            return Promise.resolve({json: config, obj});
+            return Promise.resolve({ json: config, obj });
         }
         return false;
     },

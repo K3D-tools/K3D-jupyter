@@ -1,6 +1,6 @@
 const THREE = require('three');
 let katex = require('katex');
-const {areAllChangesResolve} = require('../helpers/Fn');
+const { areAllChangesResolve } = require('../helpers/Fn');
 
 
 katex = katex.default || katex;
@@ -19,12 +19,12 @@ module.exports = {
         config.color = typeof (config.color) !== 'undefined' ? config.color : 0;
 
         const text = config.text || '\\KaTeX';
-        const {color} = config;
+        const { color } = config;
         const referencePoint = config.reference_point || 'lb';
-        let {position} = config;
+        let { position } = config;
         const size = config.size || 1;
         const object = new THREE.Object3D();
-        const {overlayDOMNode} = K3D.getWorld();
+        const { overlayDOMNode } = K3D.getWorld();
         const world = K3D.getWorld();
         let domElements = [];
         let i;
@@ -44,7 +44,8 @@ module.exports = {
                 domElement.innerHTML = Array.isArray(text) ? text[i] : text;
                 domElement.style.cssText = 'pointer-events: all';
             } else {
-                domElement.innerHTML = katex.renderToString(Array.isArray(text) ? text[i] : text, {displayMode: true});
+                domElement.innerHTML = katex.renderToString(Array.isArray(text) ? text[i] : text,
+                    { displayMode: true });
             }
 
             if (position.data) {
@@ -150,7 +151,7 @@ module.exports = {
                     domElement.innerHTML = text;
                     domElement.style.pointerEvents = 'all';
                 } else {
-                    domElement.innerHTML = katex.renderToString(text, {displayMode: true});
+                    domElement.innerHTML = katex.renderToString(text, { displayMode: true });
                     domElement.style.pointerEvents = 'none';
                 }
             });
@@ -165,7 +166,7 @@ module.exports = {
         }
 
         if (areAllChangesResolve(changes, resolvedChanges)) {
-            return Promise.resolve({json: config, obj});
+            return Promise.resolve({ json: config, obj });
         }
         return false;
     }

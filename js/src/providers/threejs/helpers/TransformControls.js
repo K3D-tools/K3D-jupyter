@@ -33,10 +33,10 @@ const _unit = {
     Z: new Vector3(0, 0, 1),
 };
 
-const _changeEvent = {type: 'change'};
-const _mouseDownEvent = {type: 'mouseDown'};
-const _mouseUpEvent = {type: 'mouseUp', mode: null};
-const _objectChangeEvent = {type: 'objectChange'};
+const _changeEvent = { type: 'change' };
+const _mouseDownEvent = { type: 'mouseDown' };
+const _mouseUpEvent = { type: 'mouseUp', mode: null };
+const _objectChangeEvent = { type: 'objectChange' };
 
 class TransformControls extends Object3D {
     constructor(camera, domElement) {
@@ -77,7 +77,7 @@ class TransformControls extends Object3D {
                         _plane[propName] = value;
                         _gizmo[propName] = value;
 
-                        scope.dispatchEvent({type: `${propName}-changed`, value});
+                        scope.dispatchEvent({ type: `${propName}-changed`, value });
                         scope.dispatchEvent(_changeEvent);
                     }
                 },
@@ -121,8 +121,6 @@ class TransformControls extends Object3D {
         const rotationAxis = new Vector3();
         const rotationAngle = 0;
         const eye = new Vector3();
-
-        // TODO: remove properties unused in plane and gizmo
 
         defineProperty('worldPosition', worldPosition);
         defineProperty('worldPositionStart', worldPositionStart);
@@ -479,8 +477,6 @@ class TransformControls extends Object3D {
     getRaycaster() {
         return _raycaster;
     }
-
-    // TODO: deprecate
 
     getMode() {
         return this.mode;
@@ -1026,8 +1022,6 @@ class TransformControlsGizmo extends Object3D {
 
             handle.scale.set(1, 1, 1).multiplyScalar(factor * this.size / 4);
 
-            // TODO: simplify helpers and consider decoupling from gizmo
-
             if (handle.tag === 'helper') {
                 handle.visible = false;
 
@@ -1314,4 +1308,4 @@ class TransformControlsPlane extends Mesh {
 
 TransformControlsPlane.prototype.isTransformControlsPlane = true;
 
-export {TransformControls, TransformControlsGizmo, TransformControlsPlane};
+export { TransformControls, TransformControlsGizmo, TransformControlsPlane };

@@ -1,12 +1,13 @@
-import k3d
 import numpy as np
+
+import k3d
 
 
 def generate():
     voxels = np.array([[[0, 1],
                         [1, 2]],
-                      [[2, 2],
-                       [1, 1]]])
+                       [[2, 2],
+                        [1, 1]]])
 
     chunk1 = k3d.voxel_chunk(voxels, [0, 0, 0])
     chunk2 = k3d.voxel_chunk(voxels, [3, 3, 3])
@@ -15,7 +16,7 @@ def generate():
               'coord': chunk1['coord'],
               'multiple': chunk1['multiple']},
              {'voxels': chunk2['voxels'],
-             'coord': chunk2['coord'],
+              'coord': chunk2['coord'],
               'multiple': chunk2['multiple']}]
 
     ids = [chunk1['id'], chunk2['id']]

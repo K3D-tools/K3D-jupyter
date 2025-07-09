@@ -56,7 +56,7 @@ function getArrayFromRenderTarget(renderer, rt) {
 module.exports = function (renderer, scene, camera, rt, fullWidth, fullHeight, chunkHeights, sampleLevel, render) {
     return new Promise((resolve) => {
         const jitterOffsets = JitterVectors[Math.max(0, Math.min(sampleLevel, 5))];
-        const {autoClear} = renderer;
+        const { autoClear } = renderer;
         const copyShader = THREE.CopyShader;
         const copyUniforms = THREE.UniformsUtils.clone(copyShader.uniforms);
         const copyMaterial = new THREE.ShaderMaterial({
@@ -101,7 +101,7 @@ module.exports = function (renderer, scene, camera, rt, fullWidth, fullHeight, c
 
         chunkHeights.forEach((c) => {
             p = p.then(() => {
-                const {width} = rt;
+                const { width } = rt;
                 const height = c[1];
 
                 for (let i = 0; i < jitterOffsets.length; i++) {

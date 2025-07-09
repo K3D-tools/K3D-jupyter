@@ -2,7 +2,6 @@ import k3d
 
 
 def generate():
-
     plt_text_0_0 = k3d.text2d('(0,0)',
                               position=(0, 0),
                               reference_point='lt')

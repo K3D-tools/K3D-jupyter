@@ -1,7 +1,8 @@
-import k3d
 import numpy as np
-from k3d.colormaps import matplotlib_color_maps
 from matplotlib.tri import Triangulation
+
+import k3d
+from k3d.colormaps import matplotlib_color_maps
 from k3d.headless import k3d_remote, get_headless_driver
 
 
@@ -29,7 +30,7 @@ def generate():
                     grid_visible=False,
                     axes_helper=0)
     plot += plt_mesh
-    
+
     plot.camera = [0, -4, 1,
                    0, 0, 0,
                    0, 0, 1]

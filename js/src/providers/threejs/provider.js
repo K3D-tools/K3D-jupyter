@@ -4,6 +4,8 @@ const threeMeshBVH = require('three-mesh-bvh');
 require('./helpers/THREE.STLLoader')(THREE);
 require('./helpers/THREE.CopyShader')(THREE);
 require('./helpers/THREE.TrackballControls')(THREE);
+require('./helpers/THREE.SliceControls')(THREE);
+require('./helpers/THREE.VolumeSidesControls')(THREE);
 require('./helpers/THREE.OrbitControls')(THREE);
 
 THREE.TransformControls = require('./helpers/TransformControls').TransformControls;
@@ -66,6 +68,7 @@ module.exports = {
         Volume: require('./objects/Volume'),
         MIP: require('./objects/MIP'),
         Label: require('./objects/Label'),
+        VolumeSlice: require('./objects/VolumeSlice'),
     },
     /**
      * @namespace Interactions

@@ -4,7 +4,12 @@ SHELL ["/bin/bash", "--login", "-c"]
 
 RUN apt-get update
 RUN apt-get install -y -qq curl
-RUN apt-get install -y libglib2.0-0 libnss3 libgconf-2-4 libfontconfig1 chromium-driver
+RUN apt-get install -y libglib2.0-0 libnss3 libgconf-2-4 libfontconfig1 wget
+
+# google chrome
+RUN wget https://dl.google.com/linux/direct/google-chrome-stable_current_amd64.deb
+RUN dpkg --install google-chrome-stable_current_amd64.deb || apt-get -f install -y
+
 
 RUN curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/master/install.sh | bash
 RUN nvm install v16

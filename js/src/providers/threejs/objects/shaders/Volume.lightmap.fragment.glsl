@@ -130,7 +130,6 @@ void main() {
     vec3 textcoord_end = localPosition - backoff * lightDirection / scale.xyz;
     vec3 textcoord_delta = textcoord_end - textcoord_start;
 
-    // @TODO: protection. Sometimes strange situation happen and sampleCount is out the limit
     int sampleCount = min(int(length(textcoord_delta) * reducedSamples), int(reducedSamples * 1.8));
 
     textcoord_delta = textcoord_delta / float(sampleCount);

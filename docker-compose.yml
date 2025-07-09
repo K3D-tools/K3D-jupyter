@@ -1,9 +1,9 @@
-services:
-  k3d-build:
-    image: k3d-build:latest
-    container_name: k3d-build
-    build:
-      dockerfile: Dockerfile
-      context: .
-    volumes:
+services :
+  k3d-build :
+    image : k3d-build:latest
+    container_name : k3d-build
+    build :
+      dockerfile : Dockerfile
+      context : .
+    volumes :
       - ./:/opt/app/src:delegated

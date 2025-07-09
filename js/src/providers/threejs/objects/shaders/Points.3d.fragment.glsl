@@ -34,8 +34,8 @@ void main(void)
     float depth = ((gl_DepthRange.diff * pos.z) + gl_DepthRange.near + gl_DepthRange.far) / 2.0;
     #endif
 
-    if (depth < gl_FragDepthEXT) discard;
     gl_FragDepthEXT = depth;
+    float fragCoordZ = pos.z;
 
     vec3 normal = vec3(impostorSpaceCoordinate, normalizedDepth);
 

@@ -33,17 +33,25 @@ function getVoxelChunkObject(K3D, config, voxelSize, chunkStructure) {
     geometry.computeBoundingSphere();
     geometry.computeBoundingBox();
 
+    material = new MaterialConstructor({
+        vertexColors: THREE.VertexColors,
+        flatShading: true,
+        opacity: config.opacity,
+        side: THREE.DoubleSide,
+        wireframe: config.wireframe,
+    });
+
+    if (K3D.parameters.depthPeels === 0) {
+        material.depthWrite = config.opacity === 1.0;
+        material.transparent = config.opacity !== 1.0;
+    } else {
+        material.blending = THREE.NoBlending;
+        material.onBeforeCompile = K3D.colorOnBeforeCompile;
+    }
+
     voxelsChunkObject.add(new THREE.Mesh(
         geometry,
-        new MaterialConstructor({
-            vertexColors: THREE.VertexColors,
-            flatShading: true,
-            opacity: config.opacity,
-            depthWrite: config.opacity === 1.0,
-            transparent: config.opacity !== 1.0,
-            side: THREE.DoubleSide,
-            wireframe: config.wireframe,
-        }),
+        material
     ));
 
     if (config.outlines && !config.wireframe) {
@@ -59,9 +67,9 @@ function getVoxelChunkObject(K3D, config, voxelSize, chunkStructure) {
             lineWidth,
             resolution: new THREE.Vector2(K3D.getWorld().width, K3D.getWorld().height),
             side: THREE.DoubleSide,
-        });
+        }, K3D);
 
-        material.userData = {outline: true};
+        material.userData = { outline: true };
 
         line.setGeometry(new Float32Array(chunkStructure.outlines), true);
         line.geometry.computeBoundingSphere();
@@ -111,9 +119,9 @@ module.exports = {
             const rollOverMesh = new THREE.Mesh(
                 new THREE.BoxGeometry(1.2 / size[0], 1.2 / size[1], 1.2 / size[2])
                     .translate(0.5 / size[0], 0.5 / size[1], 0.5 / size[2]),
-                new THREE.MeshBasicMaterial({color: 0xff0000, opacity: 0.5, transparent: true}),
+                new THREE.MeshBasicMaterial({ color: 0xff0000, opacity: 0.5, transparent: true }),
             );
-            const {colorsToFloat32Array} = buffer;
+            const { colorsToFloat32Array } = buffer;
             let viewModelistenerId;
             let resizelistenerId;
 
@@ -128,7 +136,7 @@ module.exports = {
             colorMap = colorsToFloat32Array(colorMap);
 
             object.holdRemeshing = config._hold_remeshing || false;
-            object.voxelSize = {width: size[0], height: size[1], length: size[2]};
+            object.voxelSize = { width: size[0], height: size[1], length: size[2] };
 
             object.rebuildChunk = function () {
                 rebuildChunk(object, forRebuild);

@@ -12,8 +12,8 @@ module.exports = function (THREE) {
 
         uniforms: {
 
-            tDiffuse: {value: null},
-            opacity: {value: 1.0},
+            tDiffuse: { value: null },
+            opacity: { value: 1.0 },
 
         },
 

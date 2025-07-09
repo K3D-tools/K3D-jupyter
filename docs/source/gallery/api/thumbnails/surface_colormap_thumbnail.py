@@ -1,5 +1,6 @@
-import k3d
 import numpy as np
+
+import k3d
 from k3d.colormaps import matplotlib_color_maps
 from k3d.headless import k3d_remote, get_headless_driver
 
@@ -9,7 +10,7 @@ def generate():
     y = np.linspace(-5, 5, 100, dtype=np.float32)
 
     x, y = np.meshgrid(x, y)
-    f = ((x**2 - 1) * (y**2 - 4) + x**2 + y**2 - 5) / (x**2 + y**2 + 1)**2
+    f = ((x ** 2 - 1) * (y ** 2 - 4) + x ** 2 + y ** 2 - 5) / (x ** 2 + y ** 2 + 1) ** 2
 
     plt_surface = k3d.surface(f * 2,
                               xmin=-5, xmax=5,
@@ -36,4 +37,3 @@ def generate():
     headless.close()
 
     return screenshot
-

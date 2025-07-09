@@ -1,10 +1,10 @@
 import re
 import struct
-
-from traitlets import Bytes, Unicode, TraitError
+from traitlets import Bytes, TraitError, Unicode
+from typing import Any
 
 # reference to https://stackoverflow.com/a/385597/1338797
-float_re = r'''
+float_re = r"""
 (?:
     [-+]? # optional sign
     (?:
@@ -15,32 +15,38 @@ float_re = r'''
     # followed by optional exponent part if desired
     (?: [Ee] [+-]? \d+ ) ?
 )
-'''
+"""
 
-stl_re = r'''
-    solid .* \n  # header
-    (?:
-        \s* facet \s normal (?: \s ''' + float_re + r''' ){3}
+stl_re = (
+        r"""
+        solid .* \n  # header
+        (?:
+            \s* facet \s normal (?: \s """
+        + float_re
+        + r""" ){3}
         \s* outer \s loop
         (?:
-            \s* vertex (?: \s ''' + float_re + r''' ){3}
+            \s* vertex (?: \s """
+        + float_re
+        + r""" ){3}
         ){3}
         \s* endloop
         \s* endfacet
     ) + # at least 1 facet.
     \s* endsolid (?: .*)?
     \s* $ # allow trailing WS
-'''
+"""
+)
 
 ascii_stl = re.compile(stl_re, re.VERBOSE)
 
 
 class AsciiStlData(Unicode):
-    def validate(self, owner, stl):
+    def validate(self, owner: Any, stl: str) -> str:
         stl = super(AsciiStlData, self).validate(owner, stl)
 
         if ascii_stl.match(stl) is None:
-            raise TraitError('Given string is not valid ASCII STL data.')
+            raise TraitError("Given string is not valid ASCII STL data.")
 
         return stl
 
@@ -50,24 +56,28 @@ class BinaryStlData(Bytes):
     COUNT_SIZE = 4
     FACET_SIZE = 50
 
-    def validate(self, owner, stl):
+    def validate(self, owner: Any, stl: bytes) -> bytes:
         stl = super(BinaryStlData, self).validate(owner, stl)
 
         if len(stl) < self.HEADER + self.COUNT_SIZE:
             raise TraitError(
-                'Given bytestring is too short ({}) for Binary STL data.'
-                .format(len(stl))
+                "Given bytestring is too short ({}) for Binary STL data.".format(
+                    len(stl)
+                )
             )
 
-        (num_facets,) = struct.unpack('<I', stl[self.HEADER: self.HEADER + self.COUNT_SIZE])
+        (num_facets,) = struct.unpack(
+            "<I", stl[self.HEADER: self.HEADER + self.COUNT_SIZE]
+        )
 
         expected_size = self.HEADER + self.COUNT_SIZE + num_facets * self.FACET_SIZE
 
         if len(stl) != expected_size:
             raise TraitError(
-                'Given bytestring has wrong length ({}) for Binary STL data. '
-                'For {} facets {} bytes were expected.'
-                .format(len(stl), num_facets, expected_size)
+                "Given bytestring has wrong length ({}) for Binary STL data. "
+                "For {} facets {} bytes were expected.".format(
+                    len(stl), num_facets, expected_size
+                )
             )
 
         return stl

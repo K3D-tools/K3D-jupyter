@@ -3,6 +3,7 @@ const _ = require('../../../lodash');
 const Float16Array = require('./float16Array');
 const msgpack = require('msgpack-lite');
 const buffer = require('./buffer');
+const { error } = require('../Error');
 
 const typesToArray = {
     int8: Int8Array,
@@ -48,15 +49,23 @@ function deserializeArray(obj) {
 }
 
 function serializeArray(obj) {
+    let dtype;
+
+    if (obj.data.constructor.name === 'DataView') {
+        dtype = obj.dtype;
+    } else {
+        dtype = _.invert(typesToArray)[obj.data.constructor]
+    }
+
     if (obj.compression_level && obj.compression_level > 0) {
         return {
-            dtype: _.invert(typesToArray)[obj.data.constructor],
+            dtype: dtype,
             compressed_data: fflate.zlibSync(obj.data.buffer, { level: obj.compression_level }),
             shape: obj.shape,
         };
     }
     return {
-        dtype: _.invert(typesToArray)[obj.data.constructor],
+        dtype: dtype,
         data: obj.data,
         shape: obj.shape,
     };
@@ -67,7 +76,12 @@ function deserialize(obj, manager) {
         return null;
     }
     if (typeof (obj) === 'string' && obj.substring(0, 7) === 'base64_') {
-        obj = msgpack.decode(buffer.base64ToArrayBuffer(obj.substring(7)), { codec: MsgpackCodec });
+        try {
+            obj = msgpack.decode(buffer.base64ToArrayBuffer(obj.substring(7)), { codec: MsgpackCodec });
+        } catch (err) {
+            error('K3D Error', 'Failed to deserialize base64 data: ' + err.message);
+            throw new Error('Invalid base64 data in serialization: ' + err.message);
+        }
     }
     if (typeof (obj) === 'string' || typeof (obj) === 'boolean') {
         return obj;
@@ -105,7 +119,7 @@ function deserialize(obj, manager) {
     return deserializedObj;
 }
 
-function serialize_helper(obj) {
+function serialize(obj) {
     if (_.isNumber(obj)) {
         return obj;
     }
@@ -133,14 +147,6 @@ function serialize_helper(obj) {
         }, {});
     }
     return null;
-}
-
-function serialize(obj) {
-    let data = serialize_helper(obj);
-
-    // TODO: convert to base64 if necessary
-
-    return data;
 }
 
 module.exports = {

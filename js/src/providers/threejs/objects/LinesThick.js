@@ -1,13 +1,13 @@
 const THREE = require('three');
-const {colorsToFloat32Array} = require('../../../core/lib/helpers/buffer');
+const { colorsToFloat32Array } = require('../../../core/lib/helpers/buffer');
 const MeshLine = require('../helpers/THREE.MeshLine')(THREE);
 const Fn = require('../helpers/Fn');
 
-const {commonUpdate} = Fn;
-const {areAllChangesResolve} = Fn;
+const { commonUpdate } = Fn;
+const { areAllChangesResolve } = Fn;
 const colorMapHelper = require('../../../core/lib/helpers/colorMap');
 
-const {getColorsArray} = Fn;
+const { getColorsArray } = Fn;
 
 /**
  * Loader strategy to handle Lines object
@@ -23,11 +23,10 @@ function create(config, K3D) {
         color: new THREE.Color(1, 1, 1),
         opacity: config.opacity,
         sizeAttenuation: true,
-        transparent: true,
         lineWidth: config.width,
         resolution: new THREE.Vector2(K3D.getWorld().width, K3D.getWorld().height),
         side: THREE.DoubleSide,
-    });
+    }, K3D);
     let verticesColors = (config.colors && config.colors.data) || null;
     const color = new THREE.Color(config.color);
     let uvs = null;
@@ -106,7 +105,7 @@ function create(config, K3D) {
     attribute = new Float32Array(attribute);
 
     if (colorRange && colorMap && attribute.length > 0 && colorRange.length > 0 && colorMap.length > 0) {
-        const canvas = colorMapHelper.createCanvasGradient(colorMap, 1024);
+        const canvas = colorMapHelper.createCanvasGradient(colorMap, 1024, 1);
         const texture = new THREE.CanvasTexture(
             canvas,
             THREE.UVMapping,
@@ -216,7 +215,7 @@ function update(config, changes, obj, K3D) {
     commonUpdate(config, changes, resolvedChanges, obj, K3D);
 
     if (areAllChangesResolve(changes, resolvedChanges)) {
-        return Promise.resolve({json: config, obj});
+        return Promise.resolve({ json: config, obj });
     }
     return false;
 }

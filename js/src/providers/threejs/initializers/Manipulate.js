@@ -1,5 +1,5 @@
 const THREE = require('three');
-const {viewModes} = require('../../../core/lib/viewMode');
+const { viewModes } = require('../../../core/lib/viewMode');
 
 /**
  * Manipulate service initializer for Three.js library

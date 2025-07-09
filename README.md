@@ -10,8 +10,8 @@
 <img src="https://k3d-jupyter.org/_static/logo.png" width="25%" align="right">
 
 K3D lets you create 3D plots backed by WebGL with high-level API (surfaces, isosurfaces, voxels,
-mesh, cloud points, vtk objects, volume renderer, colormaps, etc). The primary aim of K3D-jupyter is
-to be easy for use as stand alone package like matplotlib, but also to allow interoperation with
+mesh, point clouds, vtk objects, volume renderer, colormaps, etc). The primary aim of K3D-jupyter is
+to be easy to use as a standalone package like matplotlib, but also to allow interoperation with
 existing libraries as VTK. K3D can be run as:
 
 - Jupyter Notebook extension 🚀
@@ -22,7 +22,6 @@ existing libraries as VTK. K3D can be run as:
 Documentation: [https://k3d-jupyter.org](https://k3d-jupyter.org)
 </div>
 
-
 ## Showcase:
 
 ![points_cloud](imgs/points_cloud.gif)
@@ -30,6 +29,8 @@ Documentation: [https://k3d-jupyter.org](https://k3d-jupyter.org)
 ![streamlines](imgs/streamlines.gif)
 
 ![volume_rendering](imgs/vr.gif)
+
+![volume_slide_view](imgs/volume_slide.gif)
 
 ![transfer_function_editor](imgs/tf_edit.gif)
 
@@ -85,7 +86,7 @@ After that you need to activate custom widgets and switch k3d to text protocol:
 
 ### Installing directly from GitHub
 
-To install directy from this repository (requires git and node.js + npm to build):
+To install directly from this repository (requires git and node.js + npm to build):
 
     $ pip install git+https://github.com/K3D-tools/K3D-jupyter
 
@@ -113,7 +114,7 @@ K3D-jupyter follows the Python Software Foundation Code of Conduct in everything
 
 ## Kudos
 
-- Travis is ❤️
+- Jupyter is my ❤️
 - OpenDreamKit is 🚀
 - Three.js is 🥇
 

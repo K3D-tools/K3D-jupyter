@@ -5,7 +5,7 @@ const Vectors = require('../objects/Vectors');
 const MeshLine = require('../helpers/THREE.MeshLine')(THREE);
 const { viewModes } = require('../../../core/lib/viewMode');
 const { pow10ceil } = require('../../../core/lib/helpers/math');
-
+const { cameraModes } = require('../../../core/lib/cameraMode');
 let rebuildSceneDataPromises = null;
 
 function generateAxesHelper(K3D, axesHelper) {
@@ -410,7 +410,7 @@ function rebuildSceneData(K3D, grids, axesHelper, force) {
                     lineWidth: minorScale * 0.05,
                     resolution: new THREE.Vector2(K3D.getWorld().width, K3D.getWorld().height),
                     side: THREE.DoubleSide,
-                });
+                }, K3D);
 
                 iterableAxes.forEach((iterateAxis) => {
                     const delta = unitVectors[iterateAxis].clone().multiplyScalar(minorScale);
@@ -566,6 +566,7 @@ module.exports = {
             labelsOnPlanes: {},
         };
         const self = this;
+        this.lastMouseCoord = null;
 
         this.lights = [];
         this.raycaster = new THREE.Raycaster();
@@ -643,22 +644,89 @@ module.exports = {
             self.backLight.visible = value > 0.0;
         };
 
-        K3D.on(K3D.events.MOUSE_MOVE, (coord) => {
-            if (K3D.parameters.viewMode !== viewModes.view) {
-                if (raycast.call(self, K3D, coord.x, coord.y, self.camera, false, K3D.parameters.viewMode)
-                    && !K3D.autoRendering) {
-                    K3D.render();
+        function cb(click, coord) {
+            if (typeof (coord) === 'undefined') {
+                if (self.lastMouseCoord === null) {
+                    return;
                 }
+                coord = self.lastMouseCoord;
             }
-        });
+            self.lastMouseCoord = coord;
 
-        K3D.on(K3D.events.MOUSE_CLICK, (coord) => {
             if (K3D.parameters.viewMode !== viewModes.view) {
-                if (raycast.call(self, K3D, coord.x, coord.y, self.camera, true, K3D.parameters.viewMode)
+                if (K3D.parameters.cameraMode === cameraModes.volumeSides) {
+                    if (coord.x < 0 && coord.y > 0) {
+                        K3D.getWorld().controls.beforeRender(0);
+                        if (raycast.call(
+                                self,
+                                K3D,
+                                (coord.x + 0.5) * 2,
+                                (coord.y - 0.5) * 2,
+                                self.camera,
+                                click,
+                                K3D.parameters.viewMode,
+                            )
+                            && !K3D.autoRendering) {
+                            K3D.render();
+                        }
+                        K3D.getWorld().controls.afterRender(0);
+                    } else if (coord.x < 0 && coord.y < 0) {
+                        K3D.getWorld().controls.beforeRender(1);
+                        if (raycast.call(
+                                self,
+                                K3D,
+                                (coord.x + 0.5) * 2,
+                                (1.0 + coord.y * 2.0),
+                                self.camera,
+                                click,
+                                K3D.parameters.viewMode,
+                            )
+                            && !K3D.autoRendering) {
+                            K3D.render();
+                        }
+                        K3D.getWorld().controls.afterRender(1);
+                    } else if (coord.x > 0 && coord.y > 0) {
+                        K3D.getWorld().controls.beforeRender(2);
+                        if (raycast.call(
+                                self,
+                                K3D,
+                                (coord.x * 2.0 - 1.0),
+                                (coord.y - 0.5) * 2,
+                                self.camera,
+                                click,
+                                K3D.parameters.viewMode,
+                            )
+                            && !K3D.autoRendering) {
+                            K3D.render();
+                        }
+                        K3D.getWorld().controls.afterRender(2);
+                    } else if (coord.x > 0 && coord.y < 0) {
+                        K3D.getWorld().controls.beforeRender(3);
+                        if (raycast.call(
+                                self,
+                                K3D,
+                                (coord.x * 2.0 - 1.0),
+                                (1.0 + coord.y * 2.0),
+                                self.camera,
+                                click,
+                                K3D.parameters.viewMode,
+                            )
+                            && !K3D.autoRendering) {
+                            K3D.render();
+                        }
+                        K3D.getWorld().controls.afterRender(3);
+                    }
+                } else if (raycast.call(self, K3D, coord.x, coord.y, self.camera, click, K3D.parameters.viewMode)
                     && !K3D.autoRendering) {
                     K3D.render();
                 }
             }
+        }
+
+        K3D.on(K3D.events.MOUSE_MOVE, cb.bind(this, false));
+        K3D.on(K3D.events.MOUSE_CLICK, cb.bind(this, true));
+        K3D.on(K3D.events.RENDERED, function () {
+            setTimeout(cb.bind(this, false), 0);
         });
 
         K3D.on(K3D.events.RESIZED, function () {

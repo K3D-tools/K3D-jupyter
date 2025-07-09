@@ -1,7 +1,7 @@
 import os
+import pyvista as pv
 
 import k3d
-import pyvista as pv
 from k3d.colormaps import matplotlib_color_maps
 from k3d.headless import k3d_remote, get_headless_driver
 

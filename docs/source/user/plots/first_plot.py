@@ -1,5 +1,6 @@
 import k3d
 
+
 def generate():
     plot = k3d.plot()
     plot += k3d.line([[0, 0, 0],

@@ -1,7 +1,7 @@
 const THREE = require('three');
 const BufferGeometryUtils = require('three/examples/jsm/utils/BufferGeometryUtils');
-const {areAllChangesResolve} = require('../helpers/Fn');
-const {commonUpdate} = require('../helpers/Fn');
+const { areAllChangesResolve } = require('../helpers/Fn');
+const { commonUpdate } = require('../helpers/Fn');
 
 /**
  * Loader strategy to handle STL object
@@ -11,7 +11,7 @@ const {commonUpdate} = require('../helpers/Fn');
  * @return {Object} 3D object ready to render
  */
 module.exports = {
-    create(config) {
+    create(config, K3D) {
         config.visible = typeof (config.visible) !== 'undefined' ? config.visible : true;
         config.color = typeof (config.color) !== 'undefined' ? config.color : 255;
         config.wireframe = typeof (config.wireframe) !== 'undefined' ? config.wireframe : false;
@@ -30,8 +30,8 @@ module.exports = {
             side: THREE.DoubleSide,
             wireframe: config.wireframe,
         });
-        const {text} = config;
-        const {binary} = config;
+        const { text } = config;
+        const { binary } = config;
         let geometry;
 
         if (text === null || typeof (text) === 'undefined') {
@@ -72,7 +72,7 @@ module.exports = {
         commonUpdate(config, changes, resolvedChanges, obj, K3D);
 
         if (areAllChangesResolve(changes, resolvedChanges)) {
-            return Promise.resolve({json: config, obj});
+            return Promise.resolve({ json: config, obj });
         }
         return false;
     },

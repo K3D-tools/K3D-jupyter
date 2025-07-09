@@ -1,5 +1,5 @@
 const THREE = require('three');
-const {createCanvasGradient} = require('../../../core/lib/helpers/colorMap');
+const { createCanvasGradient } = require('../../../core/lib/helpers/colorMap');
 const Float16Array = require('../../../core/lib/helpers/float16Array');
 
 function getSpaceDimensionsFromTargetElement(world) {
@@ -203,7 +203,7 @@ module.exports = {
         let uvs;
         let i;
 
-        const canvas = createCanvasGradient(colorMap, 1024);
+        const canvas = createCanvasGradient(colorMap, 1024, 1);
 
         const texture = new THREE.CanvasTexture(
             canvas,
@@ -261,9 +261,8 @@ module.exports = {
         ));
     },
 
-    commonUpdate(config, changes, resolvedChanges, obj) {
-        if (resolvedChanges.model_matrix !== null && typeof (changes.model_matrix) !== 'undefined'
-            && !changes.model_matrix.timeSeries) {
+    commonUpdate(config, changes, resolvedChanges, obj, K3D) {
+        if (resolvedChanges.model_matrix !== null && typeof (changes.model_matrix) !== 'undefined' && !changes.model_matrix.timeSeries) {
             const modelMatrix = new THREE.Matrix4();
 
             modelMatrix.set.apply(modelMatrix, changes.model_matrix.data);
@@ -287,15 +286,13 @@ module.exports = {
             resolvedChanges.model_matrix = null;
         }
 
-        if (resolvedChanges.visible !== null && typeof (changes.visible) !== 'undefined'
-            && !changes.visible.timeSeries) {
+        if (resolvedChanges.visible !== null && typeof (changes.visible) !== 'undefined' && !changes.visible.timeSeries) {
             obj.visible = changes.visible;
 
             resolvedChanges.visible = null;
         }
 
-        if (resolvedChanges.opacity !== null && typeof (changes.opacity) !== 'undefined'
-            && !changes.opacity.timeSeries) {
+        if (resolvedChanges.opacity !== null && typeof (changes.opacity) !== 'undefined' && !changes.opacity.timeSeries) {
             obj.material.opacity = changes.opacity;
 
             obj.material.side = getSide({
@@ -306,8 +303,10 @@ module.exports = {
                 obj.material.uniforms.opacity.value = changes.opacity;
             }
 
-            obj.material.depthWrite = changes.opacity === 1.0;
-            obj.material.transparent = changes.opacity !== 1.0;
+            if (K3D.parameters.depthPeels === 0) {
+                obj.material.depthWrite = changes.opacity === 1.0;
+                obj.material.transparent = changes.opacity !== 1.0;
+            }
 
             obj.material.needsUpdate = true;
 

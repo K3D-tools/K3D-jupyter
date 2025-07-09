@@ -2,10 +2,10 @@ const fflate = require('fflate');
 const msgpack = require('msgpack-lite');
 
 const LilGUI = require('lil-gui').GUI;
-const {viewModes} = require('./lib/viewMode');
-const {cameraUpAxisModes} = require('./lib/cameraUpAxis');
+const { viewModes } = require('./lib/viewMode');
+const { cameraUpAxisModes } = require('./lib/cameraUpAxis');
 const _ = require('../lodash');
-const {cameraModes} = require('./lib/cameraMode');
+const { cameraModes } = require('./lib/cameraMode');
 const loader = require('./lib/Loader');
 const serialize = require('./lib/helpers/serialize');
 const screenshot = require('./lib/screenshot');
@@ -13,17 +13,17 @@ const snapshot = require('./lib/snapshot');
 const resetCameraGUI = require('./lib/resetCamera');
 const detachWindowGUI = require('./lib/detachWindow');
 const fullscreen = require('./lib/fullscreen');
-const {viewModeGUI} = require('./lib/viewMode');
-const {cameraModeGUI} = require('./lib/cameraMode');
-const {cameraUpAxisGUI} = require('./lib/cameraUpAxis');
+const { viewModeGUI } = require('./lib/viewMode');
+const { cameraModeGUI } = require('./lib/cameraMode');
+const { cameraUpAxisGUI } = require('./lib/cameraUpAxis');
 const manipulate = require('./lib/manipulate');
-const {getColorLegend} = require('./lib/colorMapLegend');
+const { getColorLegend } = require('./lib/colorMapLegend');
 const objectsGUIProvider = require('./lib/objectsGUIprovider');
 const clippingPlanesGUIProvider = require('./lib/clippingPlanesGUIProvider');
 const timeSeries = require('./lib/timeSeries');
-const {base64ToArrayBuffer} = require('./lib/helpers/buffer');
+const { base64ToArrayBuffer } = require('./lib/helpers/buffer');
 
-const MsgpackCodec = msgpack.createCodec({preset: true});
+const MsgpackCodec = msgpack.createCodec({ preset: true });
 
 const Float16Array = require('./lib/helpers/float16Array');
 
@@ -131,7 +131,11 @@ function K3D(provider, targetDOMNode, parameters) {
             self.setFpsMeter(value);
             changeParameters.call(self, 'fps_meter', value);
         });
-
+        GUI.controls.add(self.parameters, 'depthPeels').step(1).min(0).max(16)
+            .onChange((value) => {
+                self.setDepthPeels(value);
+                changeParameters.call(self, 'depth_peels', value);
+            });
         viewModeGUI(GUI.controls, self);
         cameraModeGUI(GUI.controls, self);
         cameraUpAxisGUI(GUI.controls, self);
@@ -177,7 +181,6 @@ function K3D(provider, targetDOMNode, parameters) {
 
     function removeObjectFromScene(id) {
         let object = self.Provider.Helpers.getObjectById(world, id);
-
         if (object) {
             world.K3DObjects.remove(object);
             delete world.ObjectsById[id];
@@ -188,22 +191,18 @@ function K3D(provider, targetDOMNode, parameters) {
 
             if (object.geometry) {
                 object.geometry.dispose();
-                object.geometry = undefined;
             }
 
             if (object.material && object.material.map) {
                 object.material.map.dispose();
-                object.material.map = undefined;
             }
 
             if (object.material) {
                 object.material.dispose();
-                object.material = undefined;
             }
 
             if (object.mesh) {
                 object.mesh.dispose();
-                object.mesh = undefined;
             }
 
             object = undefined;
@@ -289,10 +288,14 @@ function K3D(provider, targetDOMNode, parameters) {
             clippingPlanes: [],
             fpsMeter: false,
             lighting: 1.5,
-            time: 0.0,
+            sliceViewerDirection: 'z',
+            sliceViewerObjectId: -1,
+            sliceViewerMaskObjectIds: [],
             colorbarObjectId: -1,
             colorbarScientific: false,
             fps: 25.0,
+            time: 0.0,
+            timeSpeed: 1.0,
             axes: ['x', 'y', 'z'],
             minimumFps: -1,
             cameraNoRotate: false,
@@ -309,20 +312,23 @@ function K3D(provider, targetDOMNode, parameters) {
             autoRendering: true,
             axesHelper: 1.0,
             axesHelperColors: [0xff0000, 0x00ff00, 0x0000ff],
+            depthPeels: 0,
             snapshotType: 'full',
             customData: null,
+            additionalJsCode: '',
+            hiddenObjectIds: [],
             guiVersion: require('../../package.json').version,
         },
         parameters || {},
         (objValue, srcValue) => (typeof (srcValue) === 'undefined' ? objValue : srcValue),
     );
 
+    let prevDepthPeels = self.parameters.depthPeels;
     this.autoRendering = false;
 
     this.setMinimumFps = function (fpsTarget) {
         self.parameters.minimumFps = fpsTarget;
     };
-
 
     this.startAutoPlay = function () {
         timeSeries.startAutoPlay(self, changeParameters);
@@ -336,13 +342,21 @@ function K3D(provider, targetDOMNode, parameters) {
         self.parameters.fps = fps;
 
         if (GUI.controls) {
-            GUI.controls.controllers.forEach((controller) => {
-                if (controller.property === 'fps') {
-                    controller.updateDisplay();
-                }
-            });
+            GUI.controls.controllersMap.fps.updateDisplay();
         }
     };
+
+    this.setTimeSpeed = function (timeSpeed) {
+        self.parameters.timeSpeed = timeSpeed;
+
+        if (GUI.controls) {
+            GUI.controls.controllersMap.timeSpeed.updateDisplay();
+        }
+    }
+
+    this.setAdditionalJsCode = function (additionalJsCode) {
+        self.parameters.additionalJsCode = additionalJsCode;
+    }
 
     this.setFpsMeter = function (state) {
         let Stats;
@@ -532,9 +546,75 @@ function K3D(provider, targetDOMNode, parameters) {
         self.render();
     };
 
+    this.setSliceViewerMaskObjects = function (objectIds) {
+        objectIds = _.cloneDeep(objectIds);
+        self.parameters.sliceViewerMaskObjectIds.length = 0;
+
+        objectIds.forEach((o) => {
+            self.parameters.sliceViewerMaskObjectIds.push(o);
+        });
+
+        Object.keys(world.ObjectsListJson).forEach((id) => {
+            const flag = self.parameters.sliceViewerMaskObjectIds.indexOf(parseInt(id, 10)) !== -1;
+
+            world.ObjectsListJson[id].volumeSliceMask = flag;
+
+            objectsGUIProvider.update(self, world.ObjectsListJson[id], GUI.objects, {
+                volumeSliceMask: flag,
+            });
+        });
+
+        changeParameters('slice_viewer_mask_object_ids', self.parameters.sliceViewerMaskObjectIds);
+
+        if (world.controls.reslice) {
+            world.controls.reslice();
+        }
+
+        world.controls.update();
+        self.render();
+    };
+
     this.setColorbarScientific = function (flag) {
         self.parameters.colorbarScientific = flag;
         self.render();
+    };
+
+    this.setSliceViewerDirection = function (direction) {
+        self.parameters.sliceViewerDirection = direction;
+        world.controls.update();
+        self.render();
+    };
+
+    this.setSliceViewer = function (v) {
+        const newValue = v.id || v;
+
+        if (self.parameters.sliceViewerObjectId !== newValue) {
+            self.parameters.sliceViewerObjectId = newValue;
+            changeParameters('slice_viewer_object_id', self.parameters.sliceViewerObjectId);
+
+            Object.keys(world.ObjectsListJson).forEach((id) => {
+                if (world.ObjectsListJson[id].sliceViewer) {
+                    world.ObjectsListJson[id].sliceViewer = false;
+                }
+            });
+
+            if (newValue > 0 && typeof (world.ObjectsListJson[newValue]) !== 'undefined') {
+                world.ObjectsListJson[newValue].sliceViewer = true;
+            }
+
+            if (GUI.objects) {
+                Object.keys(GUI.objects.folders).forEach((k) => {
+                    GUI.objects.folders[k].controllers.forEach((controller) => {
+                        if (controller.property === 'sliceViewer') {
+                            controller.updateDisplay();
+                        }
+                    });
+                });
+            }
+
+            world.controls.update();
+            self.render();
+        }
     };
 
     this.setColorMapLegend = function (v) {
@@ -784,6 +864,49 @@ function K3D(provider, targetDOMNode, parameters) {
             self.render();
         });
     };
+    /**
+     * Set depth peels count of K3D
+     * @memberof K3D.Core
+     * @param {Number} count
+     */
+    this.setDepthPeels = function (count) {
+        let objectsPromieses = [];
+
+        self.parameters.depthPeels = count;
+
+        if (GUI.controls) {
+            GUI.controls.controllers.forEach((controller) => {
+                if (controller.property === 'depthPeels') {
+                    controller.updateDisplay();
+                }
+            });
+        }
+
+        if ((prevDepthPeels === 0 && count > 0)
+            || (prevDepthPeels > 0 && count === 0)) {
+
+            _.values(world.ObjectsListJson).forEach((json) => {
+                objectsPromieses.push(self.reload(json));
+            });
+        }
+
+        prevDepthPeels = count;
+
+        return Promise.all(objectsPromieses).then(function () {
+            self.render();
+        });
+    };
+
+
+    /**
+     * Set renderable objects ids
+     * @memberof K3D.Core
+     */
+    this.setHiddenObjectIds = function (list) {
+        self.parameters.hiddenObjectIds = list;
+
+        self.render();
+    };
 
     /**
      * Set labels color of K3D
@@ -1008,11 +1131,7 @@ function K3D(provider, targetDOMNode, parameters) {
         }
 
         if (GUI.controls) {
-            GUI.controls.controllers.forEach((controller) => {
-                if (controller.property === 'time') {
-                    controller.updateDisplay();
-                }
-            });
+            GUI.controls.controllersMap.time.updateDisplay();
         }
 
         return Promise.all(promises).then(() => self.refreshAfterObjectsChange(true));
@@ -1071,7 +1190,7 @@ function K3D(provider, targetDOMNode, parameters) {
             return Promise.resolve(true);
         }
 
-        const data = {objects: [json]};
+        const data = { objects: [json] };
 
         if (changes !== null) {
             data.changes = [changes];
@@ -1168,9 +1287,9 @@ function K3D(provider, targetDOMNode, parameters) {
                     chunkList,
                     plot,
                 },
-                {codec: MsgpackCodec},
+                { codec: MsgpackCodec },
             ),
-            {level: compressionLevel},
+            { level: compressionLevel },
         );
     };
 
@@ -1179,34 +1298,39 @@ function K3D(provider, targetDOMNode, parameters) {
      * @memberof K3D.Core
      */
     this.setSnapshot = function (data) {
-        if (typeof (data) === 'string') {
-            data = fflate.unzlibSync(new Uint8Array(base64ToArrayBuffer(data)));
-        }
+        try {
+            if (typeof (data) === 'string') {
+                data = fflate.unzlibSync(new Uint8Array(base64ToArrayBuffer(data)));
+            }
 
-        if (data instanceof Uint8Array) {
-            data = msgpack.decode(data, {codec: MsgpackCodec});
-        }
+            if (data instanceof Uint8Array) {
+                data = msgpack.decode(data, { codec: MsgpackCodec });
+            }
 
-        Object.keys(data.chunkList).forEach((k) => {
-            const chunk = data.chunkList[k];
-            world.chunkList[chunk.id] = {
-                attributes: Object.keys(chunk).reduce((prev, p) => {
-                    prev[p] = serialize.deserialize(chunk[p]);
-                    return prev;
-                }, {}),
-            };
-        });
-
-        data.objects.forEach((o) => {
-            Object.keys(o).forEach((k) => {
-                o[k] = serialize.deserialize(o[k]);
+            Object.keys(data.chunkList).forEach((k) => {
+                const chunk = data.chunkList[k];
+                world.chunkList[chunk.id] = {
+                    attributes: Object.keys(chunk).reduce((prev, p) => {
+                        prev[p] = serialize.deserialize(chunk[p]);
+                        return prev;
+                    }, {}),
+                };
             });
-        });
 
-        return self.load({objects: data.objects}).then(() => self.refreshAfterObjectsChange(
-            false,
-            true,
-        ));
+            data.objects.forEach((o) => {
+                Object.keys(o).forEach((k) => {
+                    o[k] = serialize.deserialize(o[k]);
+                });
+            });
+
+            return self.load({ objects: data.objects }).then(() => self.refreshAfterObjectsChange(
+                false,
+                true,
+            ));
+        } catch (error) {
+            console.error('K3D: Failed to set snapshot:', error.message);
+            throw new Error('Invalid snapshot data: ' + error.message);
+        }
     };
 
     /**
@@ -1234,7 +1358,6 @@ function K3D(provider, targetDOMNode, parameters) {
             removeObjectFromScene(K3DIdentifier);
             delete world.ObjectsListJson[K3DIdentifier];
         });
-
         world.cleanup();
 
         if (fpsMeter) {
@@ -1284,13 +1407,20 @@ function K3D(provider, targetDOMNode, parameters) {
     self.setClearColor(self.parameters.clearColor);
     self.setMenuVisibility(self.parameters.menuVisibility);
     self.setTime(self.parameters.time);
+    self.setFps(self.parameters.fps);
+    self.setTimeSpeed(self.parameters.timeSpeed);
+    self.setAdditionalJsCode(self.parameters.additionalJsCode);
     self.setGridAutoFit(self.parameters.gridAutoFit);
     self.setGridVisible(self.parameters.gridVisible);
     self.setGrid(self.parameters.grid);
+    self.setDepthPeels(self.parameters.depthPeels);
     self.setCameraAutoFit(self.parameters.cameraAutoFit);
     self.setCameraDampingFactor(self.parameters.cameraDampingFactor);
     self.setCameraUpAxis(self.parameters.cameraUpAxis);
     self.setClippingPlanes(self.parameters.clippingPlanes);
+    self.setSliceViewer(self.parameters.sliceViewerObjectId);
+    self.setSliceViewerMaskObjects(self.parameters.sliceViewerMaskObjectIds);
+    self.setSliceViewerDirection(self.parameters.sliceViewerDirection);
     self.setDirectionalLightingIntensity(self.parameters.lighting);
     self.setColorMapLegend(self.parameters.colorbarObjectId);
     self.setColorbarScientific(self.parameters.colorbarScientific);
@@ -1306,8 +1436,8 @@ function K3D(provider, targetDOMNode, parameters) {
         self.parameters.cameraPanSpeed,
     );
     self.setCameraFOV(self.parameters.cameraFov);
-    self.setFps(self.parameters.fps);
     self.setViewMode(self.parameters.viewMode);
+    self.setHiddenObjectIds(self.parameters.hiddenObjectIds);
     self.setFpsMeter(self.parameters.fpsMeter);
 
     self.MsgpackCodec = MsgpackCodec;

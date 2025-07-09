@@ -74,7 +74,7 @@ module.exports = [
         // 'module' is the magic requirejs dependency used to set the publicPath
         externals: ['@jupyter-widgets/base', 'module'],
     },
-    { // Embeddable K3D-jupyter bundle
+    { // Embeddable k3d-jupyter bundle
         //
         // This bundle is generally almost identical to the notebook bundle
         // containing the custom widget views and models.
@@ -115,6 +115,7 @@ module.exports = [
                 publicPath: `https://unpkg.com/k3d@${version}/dist/`,
             },
         mode,
+        devtool: 'source-map',
         module: {
             rules,
         },

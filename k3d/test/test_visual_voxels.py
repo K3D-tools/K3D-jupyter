@@ -1,16 +1,19 @@
 import numpy as np
 import pytest
-from math import sqrt, sin, cos
+from math import cos, sin, sqrt
 
 import k3d
-from .plot_compare import prepare, compare
+from .plot_compare import compare, prepare
 
-color_map = (0xffff00, 0xff0000, 0x00ff00)
+color_map = (0xFFFF00, 0xFF0000, 0x00FF00)
 
 
 def r(x, y, z, width=100, height=100, length=100):
-    r = sqrt((x - width / 2) * (x - width / 2) + (y - height / 2) * (y - height / 2) + (
-            z - length / 2) * (z - length / 2))
+    r = sqrt(
+        (x - width / 2) * (x - width / 2)
+        + (y - height / 2) * (y - height / 2)
+        + (z - length / 2) * (z - length / 2)
+    )
     r += sin(x / 2) * 3
     r += cos(y / 10) * 5
 
@@ -18,12 +21,19 @@ def r(x, y, z, width=100, height=100, length=100):
 
 
 def f(x, y, z, width=100, height=100, length=100):
-    return 0 if r(x, y, z, width, height, length) > width / 2 else (
-        1 if z + sin(x / 20) * 10 > length / 2 else 2)
+    return (
+        0
+        if r(x, y, z, width, height, length) > width / 2
+        else (1 if z + sin(x / 20) * 10 > length / 2 else 2)
+    )
 
 
 voxels = np.array(
-    [[[f(x, y, z, 100, 100, 100) for x in range(100)] for y in range(100)] for z in range(100)])
+    [
+        [[f(x, y, z, 100, 100, 100) for x in range(100)] for y in range(100)]
+        for z in range(100)
+    ]
+)
 
 
 def test_voxels():
@@ -35,12 +45,33 @@ def test_voxels():
 
     pytest.plot += obj
 
-    compare('voxels')
+    compare("voxels")
 
     obj.opacity = 0.5
 
-    compare('voxels_dynamic_opacity')
+    compare("voxels_dynamic_opacity")
 
+def test_voxels_no_depth_peels():
+    global color_map, voxels
+
+    prepare()
+
+    obj = k3d.voxels(voxels.astype(np.uint8), color_map, opacity=0.9, outlines=False)
+
+    pytest.plot += obj
+
+    compare("voxels_no_depth_peels")
+
+def test_voxels_depth_peels():
+    global color_map, voxels
+
+    prepare(depth_peels=8)
+
+    obj = k3d.voxels(voxels.astype(np.uint8), color_map, opacity=0.9, outlines=False)
+
+    pytest.plot += obj
+
+    compare("voxels_depth_peels")
 
 def test_voxels_sparse():
     global color_map, voxels
@@ -53,18 +84,21 @@ def test_voxels_sparse():
         if val != 0:
             z, y, x = np.where(voxels == val)
             sparse_data.append(
-                np.dstack((x, y, z, np.full(x.shape, val))).reshape(-1, 4).astype(np.uint16))
+                np.dstack((x, y, z, np.full(x.shape, val)))
+                .reshape(-1, 4)
+                .astype(np.uint16)
+            )
 
     sparse_data = np.vstack(sparse_data)
     obj = k3d.sparse_voxels(sparse_data, (100, 100, 100), color_map, outlines=False)
 
     pytest.plot += obj
 
-    compare('voxels_sparse')
+    compare("voxels_sparse")
 
     obj.opacity = 0.5
 
-    compare('voxels_sparse_dynamic_opacity')
+    compare("voxels_sparse_dynamic_opacity")
 
 
 def test_voxels_wireframe():
@@ -76,7 +110,7 @@ def test_voxels_wireframe():
 
     pytest.plot += obj
 
-    compare('voxels_wireframe')
+    compare("voxels_wireframe")
 
 
 def test_voxels_outline():
@@ -88,11 +122,11 @@ def test_voxels_outline():
 
     pytest.plot += obj
 
-    compare('voxels_outline')
+    compare("voxels_outline")
 
-    obj.outlines_color = 0xff0000
+    obj.outlines_color = 0xFF0000
 
-    compare('voxels_outline_dynamic_outlines_color')
+    compare("voxels_outline_dynamic_outlines_color")
 
 
 def test_voxels_outline_opacity():
@@ -104,7 +138,7 @@ def test_voxels_outline_opacity():
 
     pytest.plot += obj
 
-    compare('voxels_outline_opacity')
+    compare("voxels_outline_opacity")
 
 
 def test_voxels_outline_clipping_plane():
@@ -115,11 +149,9 @@ def test_voxels_outline_clipping_plane():
     obj = k3d.voxels(voxels.astype(np.uint8), color_map, outlines=True)
 
     pytest.plot += obj
-    pytest.plot.clipping_planes = [
-        [-1, 0, -1, 50]
-    ]
+    pytest.plot.clipping_planes = [[-1, 0, -1, 50]]
 
-    compare('voxels_outline_clipping_plane')
+    compare("voxels_outline_clipping_plane")
 
 
 def test_voxels_box():
@@ -129,11 +161,17 @@ def test_voxels_box():
 
     width, height, length = 200, 50, 100
     box_voxels = voxels = np.array(
-        [[[f(x, y, z, width, height, length) for x in range(width)] for y in range(height)] for z in
-         range(length)])
+        [
+            [
+                [f(x, y, z, width, height, length) for x in range(width)]
+                for y in range(height)
+            ]
+            for z in range(length)
+        ]
+    )
 
     obj = k3d.voxels(box_voxels.astype(np.uint8), color_map, outlines=True)
 
     pytest.plot += obj
 
-    compare('voxels_box')
+    compare("voxels_box")

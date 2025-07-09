@@ -217,7 +217,7 @@ module.exports = function (THREE) {
         this.geometry.setIndex(this.attributes.index);
     };
 
-    function MeshLineMaterial(parameters) {
+    function MeshLineMaterial(parameters, K3D) {
         const vertexShaderSource = [
             'precision highp float;',
             '',
@@ -356,21 +356,24 @@ module.exports = function (THREE) {
 
         material = new THREE.ShaderMaterial({
             uniforms: {
-                lineWidth: {type: 'f', value: this.lineWidth},
-                map: {type: 't', value: this.map},
-                useMap: {type: 'f', value: this.useMap},
-                color: {type: 'c', value: this.color},
-                opacity: {type: 'f', value: this.opacity},
-                resolution: {type: 'v2', value: this.resolution},
-                sizeAttenuation: {type: 'f', value: this.sizeAttenuation},
-                near: {type: 'f', value: this.near},
-                far: {type: 'f', value: this.far},
-                visibility: {type: 'f', value: this.visibility},
+                lineWidth: { type: 'f', value: this.lineWidth },
+                map: { type: 't', value: this.map },
+                useMap: { type: 'f', value: this.useMap },
+                color: { type: 'c', value: this.color },
+                opacity: { type: 'f', value: this.opacity },
+                resolution: { type: 'v2', value: this.resolution },
+                sizeAttenuation: { type: 'f', value: this.sizeAttenuation },
+                near: { type: 'f', value: this.near },
+                far: { type: 'f', value: this.far },
+                visibility: { type: 'f', value: this.visibility },
             },
             vertexShader: vertexShaderSource.join('\r\n'),
             fragmentShader: fragmentShaderSource.join('\r\n'),
             clipping: true,
         });
+
+        parameters.transparent = this.opacity !== 1.0;
+        material.depthWrite = this.opacity === 1.0;
 
         delete parameters.lineWidth;
         delete parameters.map;

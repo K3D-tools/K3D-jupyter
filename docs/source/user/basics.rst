@@ -117,7 +117,7 @@ Control menu
 ------------
 
 The plot scene contains a :ref:`K3D panel <panel>` in its right top corner a foldable menu,
-providing access to the most usefull plot options and listing all objects
+providing access to the most useful plot options and listing all objects
 you added to the scene.
 
 
@@ -136,7 +136,7 @@ The default ``Trackball`` mode works as follows:
 
 To return to the default camera position, press the ``Reset camera`` button.
 
-Fullscreen and detachted mode
+Fullscreen and detached mode
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 You can switch the plot to fullscreen mode using the
@@ -165,14 +165,14 @@ however, its synchronization might be a little bit delayed -- it relies
 on an internal asynchronous traitlets_ mechanism.
 
 Snapshot is a live version of a scene in the form of stand-alone
-HTML file. Similarily to snapshots, you can either press the ``Snapshot HTML``
+HTML file. Similarly to snapshots, you can either press the ``Snapshot HTML``
 button or do it programmatically using:
 
 .. code:: python3
 
     plot.get_snapshot()
 
-In this case, you will have to write the ouput into an HTML file:
+In this case, you will have to write the output into an HTML file:
 
 .. code:: python3
 
@@ -184,7 +184,7 @@ Plot options
 ------------
 
 When you create a new plot using the :ref:`plot` function,
-you can specify several options which control the behaviour and appearance of the
+you can specify several options which control the behavior and appearance of the
 plot, such as:
 
 -  ``height`` - the vertical size of the plot widget
@@ -193,7 +193,7 @@ plot, such as:
 -  ``background_color`` - RGB value of the background color packed into a
    single integer.
 
-For example, to modify the background colour, you can do:
+For example, to modify the background color, you can do:
 
 .. code:: ipython3
 

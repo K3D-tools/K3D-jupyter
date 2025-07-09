@@ -19,6 +19,7 @@ function getColorLegend(K3D, object) {
     const strokeWidth = 0.5;
     let resizeListenerId = null;
     let i;
+    let colorMap;
 
     if (!K3D.lastColorMap) {
         K3D.lastColorMap = {
@@ -70,7 +71,27 @@ function getColorLegend(K3D, object) {
         'font-family: KaTeX_Main',
     ].join(';');
 
-    colorMapHelper.createSVGGradient(svg, `colormap${object.id}`, object.color_map.data);
+    if (Array.isArray(object.volume)) {
+        let d = object.color_map.data;
+        let tupleSize = (3 + object.volume.length);
+
+        let values = new Set(d.filter(function (el, i) {
+            return i % tupleSize == 0;
+        }));
+
+        colorMap = Array.from(values).map(function (v) {
+            for (let i = 0; i < d.length; i += tupleSize) {
+                if (d[i] === v) {
+                    return [v, d[i + tupleSize - 3], d[i + tupleSize - 2], d[i + tupleSize - 1]];
+                }
+            }
+        }).flat();
+
+    } else {
+        colorMap = object.color_map.data;
+    }
+
+    colorMapHelper.createSVGGradient(svg, `colormap${object.id}`, colorMap);
 
     rect.setAttribute('stroke-width', strokeWidth.toString(10));
     rect.setAttribute('stroke-linecap', 'square');
@@ -83,6 +104,8 @@ function getColorLegend(K3D, object) {
 
     svg.appendChild(rect);
 
+    range[0] = Math.min(object.color_range[0], object.color_range[1]);
+    range[1] = Math.max(object.color_range[0], object.color_range[1]);
 
     const colorRange = range[1] - range[0];
     majorScale = mathHelper.pow10ceil(Math.abs(colorRange)) / 10.0;

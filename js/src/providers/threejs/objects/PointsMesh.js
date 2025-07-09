@@ -6,9 +6,9 @@ const pointsCallback = require('../interactions/PointsCallback');
 const pointsIntersect = require('../interactions/PointsIntersect');
 const Fn = require('../helpers/Fn');
 
-const {areAllChangesResolve} = Fn;
-const {commonUpdate} = Fn;
-const {getColorsArray} = Fn;
+const { areAllChangesResolve } = Fn;
+const { commonUpdate } = Fn;
+const { getColorsArray } = Fn;
 
 /**
  * Loader strategy to handle Points object
@@ -31,7 +31,7 @@ module.exports = {
             && config.opacities.data.length === positions.length / 3) ? config.opacities.data : null;
         const sizes = (config.point_sizes && config.point_sizes.data
             && config.point_sizes.data.length === positions.length / 3) ? config.point_sizes.data : null;
-        const {colorsToFloat32Array} = buffer;
+        const { colorsToFloat32Array } = buffer;
         const phongShader = THREE.ShaderLib.phong;
         let i;
         const boundingBoxGeometry = new THREE.BufferGeometry();
@@ -56,7 +56,7 @@ module.exports = {
                 };
             }
 
-            const canvas = colorMapHelper.createCanvasGradient(colorMap, 1024, opacityFunction);
+            const canvas = colorMapHelper.createCanvasGradient(colorMap, 1024, 1, opacityFunction);
             const colormap = new THREE.CanvasTexture(
                 canvas,
                 THREE.UVMapping,
@@ -68,9 +68,9 @@ module.exports = {
             colormap.needsUpdate = true;
 
             uniforms = {
-                low: {value: colorRange[0]},
-                high: {value: colorRange[1]},
-                colormap: {type: 't', value: colormap},
+                low: { value: colorRange[0] },
+                high: { value: colorRange[1] },
+                colormap: { type: 't', value: colormap },
             };
             geometry.setAttribute(
                 'attributes',
@@ -101,21 +101,27 @@ module.exports = {
 
         const material = new THREE.ShaderMaterial({
             uniforms: THREE.UniformsUtils.merge([phongShader.uniforms, {
-                shininess: {value: config.shininess},
-                opacity: {value: config.opacity},
+                shininess: { value: config.shininess },
+                opacity: { value: config.opacity },
             }, uniforms]),
             defines: {
                 USE_PER_POINT_OPACITY: (opacities !== null ? 1 : 0),
-                USE_COLOR_MAP: useColorMap,
+                USE_COLOR_MAP: useColorMap
             },
             vertexShader: require('./shaders/PointsMesh.vertex.glsl'),
             fragmentShader: require('./shaders/PointsMesh.fragment.glsl'),
-            depthWrite: (config.opacity === 1.0 && opacities === null),
-            transparent: (config.opacity !== 1.0 || opacities !== null),
             lights: true,
             clipping: true,
             vertexColors: THREE.VertexColors,
         });
+
+        if (K3D.parameters.depthPeels === 0) {
+            material.depthWrite = (config.opacity === 1.0 && opacities === null);
+            material.transparent = (config.opacity !== 1.0 || opacities !== null);
+        } else {
+            material.onBeforeCompile = K3D.colorOnBeforeCompile;
+            material.blending = THREE.NoBlending;
+        }
 
         const object = new THREE.InstancedMesh(geometry, material, positions.length / 3);
         object.instanceMatrix.setUsage(THREE.DynamicDrawUsage);
@@ -184,6 +190,7 @@ module.exports = {
             const canvas = colorMapHelper.createCanvasGradient(
                 (changes.color_map && changes.color_map.data) || config.color_map.data,
                 1024,
+                1,
                 (changes.opacity_function && changes.opacity_function.data) || config.opacity_function.data,
             );
 
@@ -216,7 +223,7 @@ module.exports = {
         commonUpdate(config, changes, resolvedChanges, obj, K3D);
 
         if (areAllChangesResolve(changes, resolvedChanges)) {
-            return Promise.resolve({json: config, obj});
+            return Promise.resolve({ json: config, obj });
         }
         return false;
     },

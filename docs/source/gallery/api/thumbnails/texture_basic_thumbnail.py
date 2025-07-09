@@ -1,5 +1,6 @@
-import k3d
 import os
+
+import k3d
 from k3d.headless import k3d_remote, get_headless_driver
 
 

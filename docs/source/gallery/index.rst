@@ -75,7 +75,6 @@ Showcase
     :filename: showcase/thumbnails/tractogram_thumbnail.py
     :screenshot:
 
-
 .. raw:: html
 
     <div class="grid-container">
@@ -196,6 +195,10 @@ API
    :filename: api/thumbnails/vtk_colormap_thumbnail.py
    :screenshot:
 
+.. k3d_plot::
+    :filename: api/thumbnails/volume_slice_thumbnail.py
+    :screenshot:
+
 .. raw:: html
 
     <div class="grid-container">
@@ -268,6 +271,9 @@ API
    :width: 155
    :target: ../reference/factory.vtk_poly_data.html#colormap
 
+.. image:: volume_slice_thumbnail.png
+   :width: 155
+   :target: ../reference/factory.volume_slice.html#outline-mask
 .. raw:: html
 
     </div>

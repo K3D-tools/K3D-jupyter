@@ -1,5 +1,6 @@
-import k3d
 import numpy as np
+
+import k3d
 
 
 def generate():
@@ -8,9 +9,9 @@ def generate():
     R = 1
     r = 0.5
 
-    eq_heart = (x**2 + (9/4 * y**2) + z**2 - 1)**3 - \
-        (x**2 * z**3) - (9/200 * y**2 * z**3)
-    eq_torus = (x**2 + y**2 + z**2 + R**2 - r**2)**2 - 4 * R**2 * (x**2 + y**2)
+    eq_heart = (x ** 2 + (9 / 4 * y ** 2) + z ** 2 - 1) ** 3 - \
+               (x ** 2 * z ** 3) - (9 / 200 * y ** 2 * z ** 3)
+    eq_torus = (x ** 2 + y ** 2 + z ** 2 + R ** 2 - r ** 2) ** 2 - 4 * R ** 2 * (x ** 2 + y ** 2)
 
     voxels_heart = np.zeros_like(eq_heart).astype(np.uint8)
     voxels_torus = np.zeros_like(eq_torus).astype(np.uint8)

@@ -1,90 +1,90 @@
 {
-  "name": "k3d",
-  "version": "2.17.0",
-  "description": "3D visualization library",
-  "keywords": [
+  "name" : "k3d",
+  "version" : "2.17.0",
+  "description" : "3D visualization library",
+  "keywords" : [
     "jupyter",
     "jupyterlab",
     "jupyterlab-extension",
     "widgets"
   ],
-  "homepage": "https://github.com/K3D-tools/K3D-jupyter.git",
-  "bugs": {
-    "url": "https://github.com/K3D-tools/K3D-jupyter.git/issues"
+  "homepage" : "https://github.com/K3D-tools/K3D-jupyter.git",
+  "bugs" : {
+    "url" : "https://github.com/K3D-tools/K3D-jupyter.git/issues"
   },
-  "license": "MIT",
-  "author": {
-    "name": "k3d team",
-    "email": "artur.trzesiok@gmail.com"
+  "license" : "MIT",
+  "author" : {
+    "name" : "k3d team",
+    "email" : "artur.trzesiok@gmail.com"
   },
-  "files": [
+  "files" : [
     "js/src/**/*.{d.ts,eot,gif,html,jpg,js,js.map,json,png,svg,woff2,ttf}"
   ],
-  "main": "js/src/labplugin.js",
-  "repository": {
-    "type": "git",
-    "url": "https://github.com/K3D-tools/K3D-jupyter"
+  "main" : "js/src/labplugin.js",
+  "repository" : {
+    "type" : "git",
+    "url" : "https://github.com/K3D-tools/K3D-jupyter"
   },
-  "scripts": {
-    "build": "jlpm run build:nbextension && jlpm run build:labextension:dev",
-    "build:prod": "jlpm run build:labextension && jlpm run build:nbextension",
-    "build:labextension": "jupyter labextension build .",
-    "build:labextension:dev": "jupyter labextension build --development True .",
-    "build:nbextension": "cd js && jlpm install && jlpm build",
-    "clean:labextension": "rimraf k3d/labextension",
-    "clean:all": "jlpm run clean:labextension",
-    "install:extension": "jupyter labextension develop --overwrite .",
-    "prepare": "jlpm run build:prod",
-    "prettier": "prettier --write \"**/*{.js,.jsx,.css,.json,.md}\"",
-    "watch": "watch:labextension",
-    "watch:labextension": "jupyter labextension watch ."
+  "scripts" : {
+    "build" : "jlpm run build:nbextension && jlpm run build:labextension:dev",
+    "build:prod" : "jlpm run build:labextension && jlpm run build:nbextension",
+    "build:labextension" : "jupyter labextension build .",
+    "build:labextension:dev" : "jupyter labextension build --development True .",
+    "build:nbextension" : "cd js && jlpm install && jlpm build",
+    "clean:labextension" : "rimraf k3d/labextension",
+    "clean:all" : "jlpm run clean:labextension",
+    "install:extension" : "jupyter labextension develop --overwrite .",
+    "prepare" : "jlpm run build:prod",
+    "prettier" : "prettier --write \"**/*{.js,.jsx,.css,.json,.md}\"",
+    "watch" : "watch:labextension",
+    "watch:labextension" : "jupyter labextension watch ."
   },
-  "dependencies": {
-    "@jupyter-widgets/base": "^4 || ^5 || ^6",
-    "fflate": "^0.7.3",
-    "file-saver": "^2.0.5",
-    "katex": "^0.15.6",
-    "lil-gui": "^0.16.1",
-    "lodash": "^4.17.21",
-    "msgpack-lite": "^0.1.26",
-    "rasterizehtml": "^1.3.1",
-    "requirejs": "^2.3.6",
-    "screenfull": "^6.0.1",
-    "stats.js": "^0.17.0",
-    "three": "^0.140.2",
-    "three-mesh-bvh": "^0.5.11",
-    "copy-webpack-plugin": "^11.0.0"
+  "dependencies" : {
+    "@jupyter-widgets/base" : "^4 || ^5 || ^6",
+    "copy-webpack-plugin" : "^11.0.0",
+    "fflate" : "^0.7.3",
+    "file-saver" : "^2.0.5",
+    "katex" : "^0.16.22",
+    "lil-gui" : "^0.16.1",
+    "lodash" : "^4.17.21",
+    "msgpack-lite" : "^0.1.26",
+    "rasterizehtml" : "^1.3.1",
+    "requirejs" : "^2.3.6",
+    "screenfull" : "^6.0.1",
+    "stats.js" : "^0.17.0",
+    "three" : "^0.140.2",
+    "three-mesh-bvh" : "^0.5.11"
   },
-  "devDependencies": {
-    "@jupyterlab/builder": "^3.4.2",
-    "prettier": "^2.6.2",
-    "rimraf": "^3.0.2",
-    "style-loader": "^3.3.1"
+  "devDependencies" : {
+    "@jupyterlab/builder" : "^3.4.2",
+    "prettier" : "^2.6.2",
+    "rimraf" : "^3.0.2",
+    "style-loader" : "^3.3.1"
   },
-  "jupyterlab": {
-    "extension": true,
-    "outputDir": "k3d/labextension",
-    "webpackConfig": "./lab-webpack.config.js",
-    "discovery": {
-      "kernel": [
+  "jupyterlab" : {
+    "extension" : true,
+    "outputDir" : "k3d/labextension",
+    "webpackConfig" : "./lab-webpack.config.js",
+    "discovery" : {
+      "kernel" : [
         {
-          "kernel_spec": {
-            "language": "^python"
+          "kernel_spec" : {
+            "language" : "^python"
           },
-          "base": {
-            "name": "k3d"
+          "base" : {
+            "name" : "k3d"
           },
-          "managers": [
+          "managers" : [
             "pip",
             "conda"
           ]
         }
       ]
     },
-    "sharedPackages": {
-      "@jupyter-widgets/base": {
-        "bundled": false,
-        "singleton": true
+    "sharedPackages" : {
+      "@jupyter-widgets/base" : {
+        "bundled" : false,
+        "singleton" : true
       }
     }
   }

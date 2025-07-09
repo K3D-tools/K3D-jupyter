@@ -1,10 +1,10 @@
 const THREE = require('three');
 const interactionsHelper = require('../helpers/Interactions');
 const colorMapHelper = require('../../../core/lib/helpers/colorMap');
-const {typedArrayToThree} = require('../helpers/Fn');
-const {areAllChangesResolve} = require('../helpers/Fn');
-const {commonUpdate} = require('../helpers/Fn');
-const {getSide} = require('../helpers/Fn');
+const { typedArrayToThree } = require('../helpers/Fn');
+const { areAllChangesResolve } = require('../helpers/Fn');
+const { commonUpdate } = require('../helpers/Fn');
+const { getSide } = require('../helpers/Fn');
 
 /**
  * Loader strategy to handle Mesh object
@@ -30,7 +30,7 @@ module.exports = {
             opacityFunction = config.opacity_function.data;
         }
 
-        const canvas = colorMapHelper.createCanvasGradient(colorMap, 1024, opacityFunction);
+        const canvas = colorMapHelper.createCanvasGradient(colorMap, 1024, 1, opacityFunction);
         const colormap = new THREE.CanvasTexture(
             canvas,
             THREE.UVMapping,
@@ -62,11 +62,11 @@ module.exports = {
 
         const material = new THREE.ShaderMaterial({
             uniforms: {
-                opacity: {value: config.opacity},
-                low: {value: colorRange[0]},
-                high: {value: colorRange[1]},
-                volumeTexture: {type: 't', value: texture},
-                colormap: {type: 't', value: colormap},
+                opacity: { value: config.opacity },
+                low: { value: colorRange[0] },
+                high: { value: colorRange[1] },
+                volumeTexture: { type: 't', value: texture },
+                colormap: { type: 't', value: colormap },
                 b1: {
                     type: 'v3',
                     value: new THREE.Vector3(
@@ -87,11 +87,17 @@ module.exports = {
             side: getSide(config),
             vertexShader: require('./shaders/MeshVolume.vertex.glsl'),
             fragmentShader: require('./shaders/MeshVolume.fragment.glsl'),
-            depthWrite: (config.opacity === 1.0 && opacityFunction === null),
-            transparent: (config.opacity !== 1.0 || opacityFunction !== null),
             lights: false,
             clipping: true,
         });
+
+        if (K3D.parameters.depthPeels === 0) {
+            material.depthWrite = (config.opacity === 1.0 && opacityFunction === null);
+            material.transparent = (config.opacity !== 1.0 || opacityFunction !== null);
+        } else {
+            material.blending = THREE.NoBlending;
+            material.onBeforeCompile = K3D.colorOnBeforeCompile;
+        }
 
         if (config.flat_shading === false) {
             geometry.computeVertexNormals();
@@ -142,6 +148,7 @@ module.exports = {
                 const canvas = colorMapHelper.createCanvasGradient(
                     (changes.color_map && changes.color_map.data) || config.color_map.data,
                     1024,
+                    1,
                     (changes.opacity_function && changes.opacity_function.data) || config.opacity_function.data,
                 );
 
@@ -156,7 +163,7 @@ module.exports = {
         commonUpdate(config, changes, resolvedChanges, obj, K3D);
 
         if (areAllChangesResolve(changes, resolvedChanges)) {
-            return Promise.resolve({json: config, obj});
+            return Promise.resolve({ json: config, obj });
         }
         return false;
     },

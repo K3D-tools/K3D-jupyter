@@ -1,0 +1,25 @@
+include README.md
+include pyproject.toml
+include jupyter-config/k3d.json
+recursive-include k3d/static *
+include k3d/k3d_extension.json
+include setupbase.py
+
+include package.json
+include install.json
+include ts*.json
+include yarn.lock
+
+graft k3d/labextension
+
+# Javascript files
+graft lib
+graft style
+prune **/node_modules
+
+# Patterns to exclude from any directory
+global-exclude *~
+global-exclude *.pyc
+global-exclude *.pyo
+global-exclude .git
+global-exclude .ipynb_checkpoints

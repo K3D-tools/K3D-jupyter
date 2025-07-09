@@ -7,7 +7,7 @@ const TFEdit = require('./transferFunctionEditor');
 const serialize = require('./core/lib/helpers/serialize');
 const ThreeJsProvider = require('./providers/threejs/provider');
 const CreateK3DAndLoadBinarySnapshot = require('./standalone').CreateK3DAndLoadBinarySnapshot;
-const {viewModes} = require('./core/lib/viewMode');
+const { viewModes } = require('./core/lib/viewMode');
 
 const semverRange = require('./version').version;
 
@@ -21,6 +21,10 @@ function runOnEveryPlot(id, cb) {
             cb(plot, plot.K3DInstance.getObjectById(id));
         }
     });
+}
+function evalInContext() {
+    let K3DInstance = this.K3DInstance;
+    eval(this.K3DInstance.parameters.additionalJsCode);
 }
 
 class ChunkModel extends widgets.WidgetModel {
@@ -83,11 +87,13 @@ class ObjectModel extends widgets.WidgetModel {
         triangles_attribute: serialize,
         vertices: serialize,
         indices: serialize,
-        normals: serialize,
         colors: serialize,
         origins: serialize,
         vectors: serialize,
         opacity: serialize,
+        slice_x: serialize,
+        slice_y: serialize,
+        slice_z: serialize,
         opacities: serialize,
         point_sizes: serialize,
         point_size: serialize,
@@ -113,11 +119,13 @@ class ObjectModel extends widgets.WidgetModel {
         puv: serialize,
         visible: serialize,
         uvs: serialize,
+        mask: serialize,
+        color_map_masks: serialize,
+        active_masks: serialize,
         volume_bounds: serialize,
         spacings_x: serialize,
         spacings_y: serialize,
         spacings_z: serialize,
-        mask: serialize,
         mask_opacities: serialize,
     };
 
@@ -145,9 +153,11 @@ class ObjectModel extends widgets.WidgetModel {
             if (msg.msg_type === 'fetch') {
                 property = this.get(msg.field);
 
-                // hack because of https://github.com/jashkenas/underscore/issues/2692
-                if (_.isObject(property)) {
-                    property.t = Math.random();
+                // Create a unique identifier for objects to ensure proper change detection
+                // This replaces the previous hack that relied on underscore.js behavior
+                if (_.isObject(property) && property !== null) {
+                    // Add a timestamp to force change detection for objects
+                    property._lastModified = Date.now();
                 }
 
                 if (property.data && property.shape) {
@@ -237,19 +247,19 @@ class PlotView extends widgets.DOMWidgetView {
         this.model.lastCameraSync = (new Date()).getTime();
 
         this.model.on('msg:custom', function (obj) {
-            const {model} = this;
+            const { model } = this;
 
             if (obj.msg_type === 'fetch_screenshot') {
                 this.K3DInstance.getScreenshot(this.K3DInstance.parameters.screenshotScale, obj.only_canvas)
                     .then((canvas) => {
                         const data = canvas.toDataURL().split(',')[1];
 
-                        model.save('screenshot', data, {patch: true});
+                        model.save('screenshot', data, { patch: true });
                     });
             }
 
             if (obj.msg_type === 'fetch_snapshot') {
-                model.save('snapshot', this.K3DInstance.getHTMLSnapshot(obj.compression_level), {patch: true});
+                model.save('snapshot', this.K3DInstance.getHTMLSnapshot(obj.compression_level), { patch: true });
             }
 
             if (obj.msg_type === 'start_auto_play') {
@@ -282,12 +292,14 @@ class PlotView extends widgets.DOMWidgetView {
         this.model.on('change:camera_auto_fit', this._setCameraAutoFit, this);
         this.model.on('change:lighting', this._setDirectionalLightingIntensity, this);
         this.model.on('change:time', this._setTime, this);
+        this.model.on('change:fps', this._setFps, this);
+        this.model.on('change:time_speed', this._setTimeSpeed, this);
         this.model.on('change:grid_auto_fit', this._setGridAutoFit, this);
         this.model.on('change:grid_visible', this._setGridVisible, this);
         this.model.on('change:grid_color', this._setGridColor, this);
         this.model.on('change:label_color', this._setLabelColor, this);
+        this.model.on('change:depth_peels', this._setDepthPeels, this);
         this.model.on('change:fps_meter', this._setFpsMeter, this);
-        this.model.on('change:fps', this._setFps, this);
         this.model.on('change:screenshot_scale', this._setScreenshotScale, this);
         this.model.on('change:voxel_paint_color', this._setVoxelPaintColor, this);
         this.model.on('change:background_color', this._setBackgroundColor, this);
@@ -296,9 +308,12 @@ class PlotView extends widgets.DOMWidgetView {
         this.model.on('change:camera', this._setCamera, this);
         this.model.on('change:camera_animation', this._setCameraAnimation, this);
         this.model.on('change:clipping_planes', this._setClippingPlanes, this);
+        this.model.on('change:slice_viewer_mask_object_ids', this._setSliceViewMaskObjectIds, this);
         this.model.on('change:object_ids', this._onObjectsListChange, this);
         this.model.on('change:menu_visibility', this._setMenuVisibility, this);
         this.model.on('change:colorbar_object_id', this._setColorMapLegend, this);
+        this.model.on('change:slice_viewer_object_id', this._setSliceViewer, this);
+        this.model.on('change:slice_viewer_direction', this._setSliceViewerDirection, this);
         this.model.on('change:colorbar_scientific', this._setColorbarScientific, this);
         this.model.on('change:rendering_steps', this._setRenderingSteps, this);
         this.model.on('change:axes', this._setAxes, this);
@@ -319,6 +334,8 @@ class PlotView extends widgets.DOMWidgetView {
         this.model.on('change:minimum_fps', this._setMinimumFps, this);
         this.model.on('change:camera_mode', this._setCameraMode, this);
         this.model.on('change:manipulate_mode', this._setManipulateMode, this);
+        this.model.on('change:hidden_object_ids', this._setHiddenObjectIds, this);
+        this.model.on('change:additional_js_code', this._setAdditionalJsCode, this);
 
         try {
             this.K3DInstance = new K3D(ThreeJsProvider, this.container, {
@@ -339,14 +356,17 @@ class PlotView extends widgets.DOMWidgetView {
                 cameraPanSpeed: this.model.get('camera_pan_speed'),
                 cameraDampingFactor: this.model.get('camera_damping_factor'),
                 cameraFov: this.model.get('camera_fov'),
-                cameraUpAxis: this.model.get('camera_up_axis'),
                 colorbarObjectId: this.model.get('colorbar_object_id'),
                 cameraAnimation: this.model.get('camera_animation'),
+                sliceViewerMaskObjectIds: this.model.get('slice_viewer_mask_object_ids'),
+                sliceViewerObjectId: this.model.get('slice_viewer_object_id'),
+                sliceViewerDirection: this.model.get('slice_viewer_direction'),
                 name: this.model.get('name'),
                 axes: this.model.get('axes'),
                 axesHelper: this.model.get('axes_helper'),
                 grid: this.model.get('grid'),
                 fps: this.model.get('fps'),
+                depthPeels: this.model.get('depth_peels'),
                 autoRendering: this.model.get('auto_rendering'),
                 gridVisible: this.model.get('grid_visible'),
                 gridColor: this.model.get('grid_color'),
@@ -354,6 +374,8 @@ class PlotView extends widgets.DOMWidgetView {
                 clippingPlanes: this.model.get('clipping_planes'),
                 labelColor: this.model.get('label_color'),
                 voxelPaintColor: this.model.get('voxel_paint_color'),
+                hiddenObjectIds: this.model.get('hidden_object_ids'),
+                additionalJsCode: this.model.get('additional_js_code')
             });
 
             if (this.model.get('camera_auto_fit') === false) {
@@ -368,14 +390,14 @@ class PlotView extends widgets.DOMWidgetView {
         this.K3DInstance.setChunkList(chunkList);
 
         this.model.get('object_ids').forEach(function (id) {
-            this.renderPromises.push(this.K3DInstance.load({objects: [objectsList[id].attributes]}));
+            this.renderPromises.push(this.K3DInstance.load({ objects: [objectsList[id].attributes] }));
         }, this);
 
         this.cameraChangeId = this.K3DInstance.on(this.K3DInstance.events.CAMERA_CHANGE, (control) => {
             if (self.model._comm_live) {
                 if ((new Date()).getTime() - self.model.lastCameraSync > 200) {
                     self.model.lastCameraSync = (new Date()).getTime();
-                    self.model.save('camera', control, {patch: true});
+                    self.model.save('camera', control, { patch: true });
                 }
             }
         });
@@ -387,18 +409,18 @@ class PlotView extends widgets.DOMWidgetView {
                 }
 
                 if (objectsList[change.id]) {
-                    objectsList[change.id].save(change.key, change.value, {patch: true});
+                    objectsList[change.id].save(change.key, change.value, { patch: true });
                 }
             }
         });
 
         this.GUIParametersChanges = this.K3DInstance.on(this.K3DInstance.events.PARAMETERS_CHANGE, (change) => {
-            self.model.save(change.key, change.value, {patch: true});
+            self.model.save(change.key, change.value, { patch: true });
         });
 
         this.voxelsCallback = this.K3DInstance.on(this.K3DInstance.events.VOXELS_CALLBACK, (param) => {
             if (objectsList[param.object.K3DIdentifier]) {
-                objectsList[param.object.K3DIdentifier].send({msg_type: 'click_callback', coord: param.coord});
+                objectsList[param.object.K3DIdentifier].send({ msg_type: 'click_callback', coord: param.coord });
             }
         });
 
@@ -421,6 +443,8 @@ class PlotView extends widgets.DOMWidgetView {
                 );
             }
         });
+
+        evalInContext.call(this);
     };
 
     _setDirectionalLightingIntensity() {
@@ -453,9 +477,35 @@ class PlotView extends widgets.DOMWidgetView {
         this.K3DInstance.setLabelColor(this.model.get('label_color'));
     };
 
+    _setDepthPeels() {
+        this.K3DInstance.setDepthPeels(this.model.get('depth_peels'));
+    }
+
+    _setSliceViewer() {
+        this.K3DInstance.setSliceViewer(this.model.get('slice_viewer_object_id'));
+    }
+
+    _setSliceViewerDirection() {
+        this.K3DInstance.setSliceViewerDirection(this.model.get('slice_viewer_direction'));
+    }
+
+    _setHiddenObjectIds() {
+        this.K3DInstance.setHiddenObjectIds(this.model.get('hidden_object_ids'));
+    }
+
+    _setAdditionalJsCode() {
+        this.K3DInstance.setAdditionalJsCode(this.model.get('additional_js_code'));
+        evalInContext.call(this);
+    }
+
     _setFps() {
         this.K3DInstance.setFps(this.model.get('fps'));
     };
+
+    _setTimeSpeed() {
+        this.K3DInstance.setTimeSpeed(this.model.get('time_speed'));
+    };
+
 
     _setFpsMeter() {
         this.K3DInstance.setFpsMeter(this.model.get('fps_meter'));
@@ -573,6 +623,10 @@ class PlotView extends widgets.DOMWidgetView {
         this.K3DInstance.setClippingPlanes(this.model.get('clipping_planes'));
     };
 
+    _setSliceViewMaskObjectIds() {
+        this.K3DInstance.setSliceViewerMaskObjects(this.model.get('slice_viewer_mask_object_ids'));
+    };
+
     _onObjectsListChange() {
         const oldObjectId = this.model.previous('object_ids');
         const newObjectId = this.model.get('object_ids');
@@ -582,7 +636,7 @@ class PlotView extends widgets.DOMWidgetView {
         }, this);
 
         _.difference(newObjectId, oldObjectId).forEach(function (id) {
-            this.renderPromises.push(this.K3DInstance.load({objects: [objectsList[id].attributes]}));
+            this.renderPromises.push(this.K3DInstance.load({ objects: [objectsList[id].attributes] }));
         }, this);
     };
 

@@ -10,7 +10,7 @@ function toColor(val) {
     return Math.round((val * 255));
 }
 
-function mergeColorMapWithOpacity(colormap, opacity) {
+function mergeColorMapWithOpacity(colormap, opacity, dim) {
     const merged = {};
     let sortedKeys;
     let i;
@@ -55,11 +55,11 @@ function mergeColorMapWithOpacity(colormap, opacity) {
         return a * (1 - t) + b * t;
     }
 
-    for (i = 0; i < colormap.length; i += 4) {
+    for (i = 0; i < colormap.length; i += 3 + dim) {
         merged[colormap[i]] = {
-            r: colormap[i + 1],
-            g: colormap[i + 2],
-            b: colormap[i + 3],
+            r: colormap[i + dim],
+            g: colormap[i + dim + 1],
+            b: colormap[i + dim + 2],
         };
     }
 
@@ -119,7 +119,7 @@ function createSVGGradient(svg, id, colormap, opacity, horizontal) {
         grad.setAttribute('y2', '0');
     }
 
-    const data = mergeColorMapWithOpacity(colormap, opacity);
+    const data = mergeColorMapWithOpacity(colormap, opacity, 1);
 
     const min = data[0];
     const max = data[data.length - 5];
@@ -143,13 +143,13 @@ function createSVGGradient(svg, id, colormap, opacity, horizontal) {
     return defs.appendChild(grad);
 }
 
-function createCanvasGradient(colorMap, size, opacityFunction) {
+function createCanvasGradient1d(colorMap, size, opacityFunction) {
     const canvas = document.createElement('canvas');
     const ctx = canvas.getContext('2d');
     let segment;
     let i;
 
-    const merged = mergeColorMapWithOpacity(colorMap, opacityFunction);
+    const merged = mergeColorMapWithOpacity(colorMap, opacityFunction, 1);
     canvas.height = 1;
     canvas.width = size;
 
@@ -175,6 +175,103 @@ function createCanvasGradient(colorMap, size, opacityFunction) {
     ctx.fillRect(0, 0, canvas.width, canvas.height);
 
     return canvas;
+}
+
+function createCanvasGradient2d(colorMap, size, opacityFunction) {
+    const canvas = document.createElement('canvas');
+    const ctx = canvas.getContext('2d');
+    canvas.height = size;
+    canvas.width = size;
+    const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+
+
+    function drawRect(v1, v2, v3, v4, sx, sy, w, h) {
+        let data = imageData.data;
+
+        sx = Math.round(sx);
+        sy = Math.round(sy);
+        w = Math.round(w);
+        h = Math.round(h);
+
+        for (let y = sy; y < sy + h; y++) {
+            let t1 = (y - sy) / h;
+
+            let i1r = v1[2] * (1 - t1) + v4[2] * t1;
+            let i1g = v1[3] * (1 - t1) + v4[3] * t1;
+            let i1b = v1[4] * (1 - t1) + v4[4] * t1;
+
+            let i2r = v2[2] * (1 - t1) + v3[2] * t1;
+            let i2g = v2[3] * (1 - t1) + v3[3] * t1;
+            let i2b = v2[4] * (1 - t1) + v3[4] * t1;
+
+            for (let x = sx; x < sx + w; x++) {
+                let t2 = (x - sx) / w;
+
+                let r = i1r * (1 - t2) + i2r * t2;
+                let g = i1g * (1 - t2) + i2g * t2;
+                let b = i1b * (1 - t2) + i2b * t2;
+
+                let ptr = ((size - 1 - y) * size + x) * 4;
+
+                data[ptr] = r * 255;
+                data[ptr + 1] = g * 255;
+                data[ptr + 2] = b * 255;
+                data[ptr + 3] = 255;
+            }
+        }
+    }
+
+
+    const cm = [];
+    let tmp = Array.from(colorMap);
+    while (tmp.length) cm.push(tmp.splice(0, 5));
+
+    let v1 = Array.from(new Set(cm.map(function (v) {
+        return v[0];
+    })));
+    let v2 = Array.from(new Set(cm.map(function (v) {
+        return v[1];
+    })));
+
+    for (let x = 0; x < v1.length - 1; x++) {
+        for (let y = 0; y < v2.length - 1; y++) {
+            let c1 = cm.filter(function (v) {
+                return v[0] == v1[x] && v[1] == v2[y]
+            })[0];
+            let c2 = cm.filter(function (v) {
+                return v[0] == v1[x + 1] && v[1] == v2[y]
+            })[0];
+            let c3 = cm.filter(function (v) {
+                return v[0] == v1[x + 1] && v[1] == v2[y + 1]
+            })[0];
+            let c4 = cm.filter(function (v) {
+                return v[0] == v1[x] && v[1] == v2[y + 1]
+            })[0];
+
+            drawRect(c1, c2, c3, c4,
+                v1[x] * size, v2[y] * size,
+                (v1[x + 1] - v1[x]) * size, (v2[y + 1] - v2[y]) * size);
+        }
+    }
+
+    ctx.putImageData(imageData, 0, 0);
+
+    // canvas.style = "position: absolute;";
+    // document.body.append(canvas);
+    return canvas;
+}
+
+
+function createCanvasGradient(colorMap, size, dim, opacityFunction) {
+    if (dim === 1) {
+        return createCanvasGradient1d(colorMap, size, opacityFunction);
+    }
+
+    if (dim === 2) {
+        return createCanvasGradient2d(colorMap, size, opacityFunction);
+    }
+
+    throw Error("Not supported");
 }
 
 function createCanvasColorList(values) {

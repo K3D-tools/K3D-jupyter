@@ -3,11 +3,11 @@
 const THREE = require('three');
 const _ = require('../../../lodash');
 const colorMapHelper = require('../../../core/lib/helpers/colorMap');
-const {closestPowOfTwo} = require('../helpers/Fn');
-const {typedArrayToThree} = require('../helpers/Fn');
-const {areAllChangesResolve} = require('../helpers/Fn');
-const {commonUpdate} = require('../helpers/Fn');
-const {ensure256size} = require('../helpers/Fn');
+const { closestPowOfTwo } = require('../helpers/Fn');
+const { typedArrayToThree } = require('../helpers/Fn');
+const { areAllChangesResolve } = require('../helpers/Fn');
+const { commonUpdate } = require('../helpers/Fn');
+const { ensure256size } = require('../helpers/Fn');
 
 /**
  * Loader strategy to handle Volume object
@@ -43,7 +43,7 @@ module.exports = {
         const colorMap = (config.color_map && config.color_map.data) || null;
         let opacityFunction = (config.opacity_function && config.opacity_function.data) || null;
         const colorRange = config.color_range;
-        const {samples} = config;
+        const { samples } = config;
         let mask = null;
         let maskEnabled = false;
         let sceneRTT;
@@ -109,7 +109,7 @@ module.exports = {
         jitterTexture.generateMipmaps = false;
         jitterTexture.needsUpdate = true;
 
-        const canvas = colorMapHelper.createCanvasGradient(colorMap, 1024, opacityFunction);
+        const canvas = colorMapHelper.createCanvasGradient(colorMap, 1024, 1, opacityFunction);
         const colormap = new THREE.CanvasTexture(
             canvas,
             THREE.UVMapping,
@@ -153,8 +153,8 @@ module.exports = {
         }
 
         const uniforms = {
-            maskOpacities: {value: ensure256size(config.mask_opacities.data)},
-            lightMapSize: {value: new THREE.Vector3(lightMapSize, lightMapSize, lightMapSize)},
+            maskOpacities: { value: ensure256size(config.mask_opacities.data) },
+            lightMapSize: { value: new THREE.Vector3(lightMapSize, lightMapSize, lightMapSize) },
             volumeMapSize: {
                 value: new THREE.Vector3(
                     config.volume.shape[2],
@@ -162,22 +162,22 @@ module.exports = {
                     config.volume.shape[0],
                 ),
             },
-            lightMapRenderTargetSize: {value: new THREE.Vector2(lightMapRenderTargetSize, lightMapRenderTargetSize)},
-            low: {value: colorRange[0]},
-            high: {value: colorRange[1]},
-            samples: {value: samples},
-            alpha_coef: {value: config.alpha_coef},
-            gradient_step: {value: config.gradient_step},
-            translation: {value: translation},
-            rotation: {value: rotation},
-            shadowTexture: {type: 't', value: (textureRTT ? textureRTT.texture : null)},
-            focal_length: {value: config.focal_length},
-            focal_plane: {value: config.focal_plane},
-            scale: {value: scale},
-            volumeTexture: {type: 't', value: texture},
-            mask: {type: 't', value: mask},
-            colormap: {type: 't', value: colormap},
-            jitterTexture: {type: 't', value: jitterTexture},
+            lightMapRenderTargetSize: { value: new THREE.Vector2(lightMapRenderTargetSize, lightMapRenderTargetSize) },
+            low: { value: colorRange[0] },
+            high: { value: colorRange[1] },
+            samples: { value: samples },
+            alpha_coef: { value: config.alpha_coef },
+            gradient_step: { value: config.gradient_step },
+            translation: { value: translation },
+            rotation: { value: rotation },
+            shadowTexture: { type: 't', value: (textureRTT ? textureRTT.texture : null) },
+            focal_length: { value: config.focal_length },
+            focal_plane: { value: config.focal_plane },
+            scale: { value: scale },
+            volumeTexture: { type: 't', value: texture },
+            mask: { type: 't', value: mask },
+            colormap: { type: 't', value: colormap },
+            jitterTexture: { type: 't', value: jitterTexture },
         };
 
         const material = new THREE.ShaderMaterial({
@@ -219,7 +219,7 @@ module.exports = {
                         uniforms,
                         THREE.UniformsLib.lights,
                         {
-                            lightDirection: {type: 'v3', value: new THREE.Vector3()},
+                            lightDirection: { type: 'v3', value: new THREE.Vector3() },
                         },
                     ),
                     defines: {
@@ -252,7 +252,7 @@ module.exports = {
 
             object.refreshLightMap = function (direction) {
                 if (textureRTT) {
-                    const {renderer} = K3D.getWorld();
+                    const { renderer } = K3D.getWorld();
                     const cameraPosition = new THREE.Vector3();
 
                     if (direction) {
@@ -398,6 +398,7 @@ module.exports = {
             const canvas = colorMapHelper.createCanvasGradient(
                 (changes.color_map && changes.color_map.data) || config.color_map.data,
                 1024,
+                1,
                 (changes.opacity_function && changes.opacity_function.data) || config.opacity_function.data,
             );
 
@@ -423,7 +424,7 @@ module.exports = {
         commonUpdate(config, changes, resolvedChanges, obj, K3D);
 
         if (areAllChangesResolve(changes, resolvedChanges)) {
-            return Promise.resolve({json: config, obj});
+            return Promise.resolve({ json: config, obj });
         }
         return false;
     },

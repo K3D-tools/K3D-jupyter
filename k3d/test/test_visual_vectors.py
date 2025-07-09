@@ -2,7 +2,7 @@ import numpy as np
 import pytest
 
 import k3d
-from .plot_compare import prepare, compare
+from .plot_compare import compare, prepare
 
 
 def test_vectors():
@@ -10,12 +10,12 @@ def test_vectors():
 
     origins = [1.0, 1.0, 0.5, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
     vectors = [1.0, 0.0, 0.0, 1.0, 1.0, 0.0, 1.0, 1.0, 1.0]
-    colors = [0xff0000, 0x0000ff, 0x0000ff, 0xff0000, 0x0000ff, 0xff0000]
+    colors = [0xFF0000, 0x0000FF, 0x0000FF, 0xFF0000, 0x0000FF, 0xFF0000]
 
     vectors = k3d.vectors(origins, vectors, colors=colors, labels=[], label_size=1.5)
     pytest.plot += vectors
 
-    compare('vectors')
+    compare("vectors")
 
 
 def test_vectors_labels():
@@ -23,17 +23,18 @@ def test_vectors_labels():
 
     origins = [1.2, 1.2, 0.5, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
     vectors = [1.5, 0.0, 0.0, 1.5, 1.5, 0.0, 1.5, 1.5, 1.5]
-    colors = [0xff0000, 0x0000ff, 0x0000ff, 0xff0000, 0x0000ff, 0xff0000]
+    colors = [0xFF0000, 0x0000FF, 0x0000FF, 0xFF0000, 0x0000FF, 0xFF0000]
 
-    vectors = k3d.vectors(origins, vectors, colors=colors, label_size=1.5,
-                          labels=['aa', 'bb', 'cc'])
+    vectors = k3d.vectors(
+        origins, vectors, colors=colors, label_size=1.5, labels=["aa", "bb", "cc"]
+    )
     pytest.plot += vectors
 
-    compare('vectors_labels', False)
+    compare("vectors_labels", False)
 
     vectors.head_size = 3.0
 
-    compare('vectors_labels_dynamic_head_size', False)
+    compare("vectors_labels_dynamic_head_size", False)
 
 
 def test_vectors_advance():
@@ -45,7 +46,9 @@ def test_vectors_advance():
     z = np.linspace(-5, 5, n)
     xx, yy, zz = np.meshgrid(x, y, z)
     uu, vv, ww = zz, yy, xx
-    xx, yy, zz, uu, vv, ww = [t.flatten().astype(np.float32) for t in [xx, yy, zz, uu, vv, ww]]
+    xx, yy, zz, uu, vv, ww = [
+        t.flatten().astype(np.float32) for t in [xx, yy, zz, uu, vv, ww]
+    ]
     scale = 0.25
     magnitude = np.sqrt(uu ** 2 + vv ** 2 + ww ** 2)
     vectors = np.array((uu, vv, ww)).T * scale
@@ -64,4 +67,4 @@ def test_vectors_advance():
 
     pytest.plot += vector_field
 
-    compare('vectors_advance')
+    compare("vectors_advance")

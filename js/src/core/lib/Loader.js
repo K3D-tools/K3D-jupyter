@@ -1,7 +1,7 @@
 const validateAndPrepareObject = require('./helpers/objectValidator');
 const _ = require('../../lodash');
 const timeSeries = require('./timeSeries');
-const {error} = require('./Error');
+const { error } = require('./Error');
 
 /**
  * @method K3D.Loader
@@ -64,11 +64,10 @@ function loader(K3D, data) {
                             's',
                         );
 
-                        return {json, obj: K3DObject};
+                        return { json, obj: K3DObject };
                     })
                     .catch((err) => {
-                        console.error(err);
-                        error('Loader Error', `Object of type "${json.type}" was not loaded.`);
+                        error('Loader Error', `Object of type "${json.type}" was not loaded. ${err.message}`);
                     });
             }
 
@@ -77,7 +76,7 @@ function loader(K3D, data) {
 
         return Promise.all(objectsPromieses);
     } catch (e) {
-        error('Loader Error', 'K3D Loader failed, please consult browser error console!', false);
+        error('Loader Error', 'K3D Loader failed, please consult browser error console! ' + e.message, false);
         throw e;
     }
 }

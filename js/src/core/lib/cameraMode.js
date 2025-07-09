@@ -2,6 +2,8 @@ const cameraModes = {
     trackball: 'trackball',
     fly: 'fly',
     orbit: 'orbit',
+    sliceViewer: 'slice_viewer',
+    volumeSides: 'volume_sides',
 };
 
 function cameraModeGUI(gui, K3D) {
@@ -9,6 +11,8 @@ function cameraModeGUI(gui, K3D) {
         Trackball: cameraModes.trackball,
         Orbit: cameraModes.orbit,
         Fly: cameraModes.fly,
+        SliceViewer: cameraModes.sliceViewer,
+        VolumeSides: cameraModes.volumeSides,
     }).name('Camera').onChange(
         (mode) => {
             K3D.setCameraMode(mode);

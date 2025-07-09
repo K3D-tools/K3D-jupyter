@@ -16,7 +16,7 @@ const { handleColorMap } = Fn;
  * @return {Object} 3D object ready to render
  */
 module.exports = {
-    create(config) {
+    create(config, K3D) {
         config.radial_segments = typeof (config.radial_segments) !== 'undefined' ? config.radial_segments : 8;
         config.width = typeof (config.width) !== 'undefined' ? config.width : 0.1;
         config.opacity = typeof (config.opacity) !== 'undefined' ? config.opacity : 1.0;
@@ -29,8 +29,7 @@ module.exports = {
             side: THREE.DoubleSide,
             wireframe: false,
             opacity: config.opacity,
-            depthWrite: config.opacity === 1.0,
-            transparent: config.opacity !== 1.0,
+            transparent: config.opacity !== 1.0
         });
         const radialSegments = config.radial_segments;
         const { width } = config;
@@ -44,6 +43,12 @@ module.exports = {
 
         if (verticesColors && verticesColors.length === position.length / 3) {
             verticesColors = colorsToFloat32Array(verticesColors);
+        }
+
+        if (K3D.parameters.depthPeels === 0) {
+            material.depthWrite = config.opacity === 1.0;
+        } else {
+            material.onBeforeCompile = K3D.colorOnBeforeCompile;
         }
 
         const geometry = streamLine(position, attribute, width, radialSegments, color, verticesColors, colorRange);

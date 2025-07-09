@@ -1,5 +1,6 @@
-import k3d
 import numpy as np
+
+import k3d
 from k3d.colormaps import matplotlib_color_maps
 from k3d.headless import k3d_remote, get_headless_driver
 

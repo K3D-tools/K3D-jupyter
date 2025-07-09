@@ -65,7 +65,7 @@ module.exports = {
                 };
             }
 
-            const canvas = colorMapHelper.createCanvasGradient(colorMap, 1024, opacityFunction);
+            const canvas = colorMapHelper.createCanvasGradient(colorMap, 1024, 1, opacityFunction);
             const colormap = new THREE.CanvasTexture(
                 canvas,
                 THREE.UVMapping,
@@ -95,6 +95,7 @@ module.exports = {
             ]),
             defines: {
                 USE_SPECULAR: (shader === '3dSpecular' ? 1 : 0),
+                PROVIDED_FRAG_COORD_Z: 1,
                 USE_COLOR_MAP: useColorMap,
                 USE_PER_POINT_OPACITY: (opacities !== null ? 1 : 0),
                 USE_PER_POINT_SIZE: (sizes !== null ? 1 : 0),
@@ -102,14 +103,15 @@ module.exports = {
             vertexShader,
             fragmentShader,
             opacity: config.opacity,
-            depthWrite: (config.opacity === 1.0 && opacities === null),
-            transparent: (config.opacity !== 1.0 || opacities !== null),
             lights: true,
             clipping: true,
             extensions: {
                 fragDepth: true,
             },
         });
+
+        material.depthWrite = (config.opacity === 1.0 && opacities === null);
+        material.transparent = (config.opacity !== 1.0 || opacities !== null);
 
         // monkey-patching for imitate THREE.PointsMaterial
         material.size = config.point_size;
@@ -171,6 +173,7 @@ module.exports = {
             const canvas = colorMapHelper.createCanvasGradient(
                 (changes.color_map && changes.color_map.data) || config.color_map.data,
                 1024,
+                1,
                 (changes.opacity_function && changes.opacity_function.data) || config.opacity_function.data,
             );
 

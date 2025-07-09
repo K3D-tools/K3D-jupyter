@@ -2,7 +2,7 @@ import numpy as np
 import pytest
 
 import k3d
-from .plot_compare import prepare, compare
+from .plot_compare import compare, prepare
 
 N = 100
 
@@ -16,12 +16,20 @@ y = (c + a * np.cos(theta)) * np.sin(phi)
 z = a * np.sin(theta)
 
 vertices = np.dstack([x, y, z]).astype(np.float32)
-indices = (np.stack([
-    np.arange(N * N - N - 1) + 0, np.arange(N * N - N - 1) + N, np.arange(N * N - N - 1) + N + 1,
-    np.arange(N * N - N - 1) + 0, np.arange(N * N - N - 1) + N + 1, np.arange(N * N - N - 1) + 1
-]).T).astype(np.uint32)
+indices = (
+    np.stack(
+        [
+            np.arange(N * N - N - 1) + 0,
+            np.arange(N * N - N - 1) + N,
+            np.arange(N * N - N - 1) + N + 1,
+            np.arange(N * N - N - 1) + 0,
+            np.arange(N * N - N - 1) + N + 1,
+            np.arange(N * N - N - 1) + 1,
+        ]
+    ).T
+).astype(np.uint32)
 
-colors = np.linspace(0, 0xffffff, N * N).astype(np.uint32)
+colors = np.linspace(0, 0xFFFFFF, N * N).astype(np.uint32)
 
 
 def test_lines_simple():
@@ -29,12 +37,12 @@ def test_lines_simple():
 
     prepare()
 
-    lines = k3d.lines(vertices, indices, flat_shading=False,
-                      shader='simple',
-                      color=0xff)
+    lines = k3d.lines(
+        vertices, indices, flat_shading=False, shader="simple", color=0xFF
+    )
     pytest.plot += lines
 
-    compare('lines_simple', camera_factor=0.5)
+    compare("lines_simple", camera_factor=0.5)
 
 
 def test_lines_simple_colors():
@@ -42,12 +50,12 @@ def test_lines_simple_colors():
 
     prepare()
 
-    lines = k3d.lines(vertices, indices, flat_shading=False,
-                      shader='simple',
-                      colors=colors)
+    lines = k3d.lines(
+        vertices, indices, flat_shading=False, shader="simple", colors=colors
+    )
     pytest.plot += lines
 
-    compare('lines_simple_colors', camera_factor=0.5)
+    compare("lines_simple_colors", camera_factor=0.5)
 
 
 def test_lines_simple_attribute():
@@ -55,13 +63,17 @@ def test_lines_simple_attribute():
 
     prepare()
 
-    lines = k3d.lines(vertices, indices, flat_shading=False,
-                      shader='simple',
-                      attribute=phi,
-                      color_map=k3d.matplotlib_color_maps.twilight)
+    lines = k3d.lines(
+        vertices,
+        indices,
+        flat_shading=False,
+        shader="simple",
+        attribute=phi,
+        color_map=k3d.matplotlib_color_maps.twilight,
+    )
     pytest.plot += lines
 
-    compare('lines_simple_attribute', camera_factor=0.5)
+    compare("lines_simple_attribute", camera_factor=0.5)
 
 
 def test_lines_simple_attribute_segment():
@@ -69,14 +81,18 @@ def test_lines_simple_attribute_segment():
 
     prepare()
 
-    lines = k3d.lines(vertices, indices, flat_shading=False,
-                      shader='simple',
-                      attribute=phi,
-                      indices_type='segment',
-                      color_map=k3d.matplotlib_color_maps.twilight)
+    lines = k3d.lines(
+        vertices,
+        indices,
+        flat_shading=False,
+        shader="simple",
+        attribute=phi,
+        indices_type="segment",
+        color_map=k3d.matplotlib_color_maps.twilight,
+    )
     pytest.plot += lines
 
-    compare('lines_simple_attribute_segment', camera_factor=0.5)
+    compare("lines_simple_attribute_segment", camera_factor=0.5)
 
 
 def test_lines_thick():
@@ -84,13 +100,12 @@ def test_lines_thick():
 
     prepare()
 
-    lines = k3d.lines(vertices, indices, flat_shading=False,
-                      shader='thick',
-                      width=0.003,
-                      color=0xff)
+    lines = k3d.lines(
+        vertices, indices, flat_shading=False, shader="thick", width=0.003, color=0xFF
+    )
     pytest.plot += lines
 
-    compare('lines_thick', camera_factor=0.5)
+    compare("lines_thick", camera_factor=0.5)
 
 
 def test_lines_thick_colors():
@@ -98,13 +113,17 @@ def test_lines_thick_colors():
 
     prepare()
 
-    lines = k3d.lines(vertices, indices, flat_shading=False,
-                      shader='thick',
-                      width=0.003,
-                      colors=colors)
+    lines = k3d.lines(
+        vertices,
+        indices,
+        flat_shading=False,
+        shader="thick",
+        width=0.003,
+        colors=colors,
+    )
     pytest.plot += lines
 
-    compare('lines_thick_colors', camera_factor=0.5)
+    compare("lines_thick_colors", camera_factor=0.5)
 
 
 def test_lines_thick_attribute():
@@ -112,14 +131,18 @@ def test_lines_thick_attribute():
 
     prepare()
 
-    lines = k3d.lines(vertices, indices, flat_shading=False,
-                      shader='thick',
-                      width=0.003,
-                      attribute=phi,
-                      color_map=k3d.matplotlib_color_maps.twilight)
+    lines = k3d.lines(
+        vertices,
+        indices,
+        flat_shading=False,
+        shader="thick",
+        width=0.003,
+        attribute=phi,
+        color_map=k3d.matplotlib_color_maps.twilight,
+    )
     pytest.plot += lines
 
-    compare('lines_thick_attribute', camera_factor=0.5)
+    compare("lines_thick_attribute", camera_factor=0.5)
 
 
 def test_lines_thick_attribute_segment():
@@ -127,15 +150,19 @@ def test_lines_thick_attribute_segment():
 
     prepare()
 
-    lines = k3d.lines(vertices, indices, flat_shading=False,
-                      shader='thick',
-                      width=0.003,
-                      attribute=phi,
-                      indices_type='segment',
-                      color_map=k3d.matplotlib_color_maps.twilight)
+    lines = k3d.lines(
+        vertices,
+        indices,
+        flat_shading=False,
+        shader="thick",
+        width=0.003,
+        attribute=phi,
+        indices_type="segment",
+        color_map=k3d.matplotlib_color_maps.twilight,
+    )
     pytest.plot += lines
 
-    compare('lines_thick_attribute_segment', camera_factor=0.5)
+    compare("lines_thick_attribute_segment", camera_factor=0.5)
 
 
 def test_lines_mesh():
@@ -143,18 +170,17 @@ def test_lines_mesh():
 
     prepare()
 
-    lines = k3d.lines(vertices, indices, flat_shading=False,
-                      shader='mesh',
-                      width=0.003,
-                      color=0xff)
+    lines = k3d.lines(
+        vertices, indices, flat_shading=False, shader="mesh", width=0.003, color=0xFF
+    )
     pytest.plot += lines
 
-    compare('lines_mesh', camera_factor=0.5)
+    compare("lines_mesh", camera_factor=0.5)
 
     lines.shininess = 1500.0
     lines.width = 0.02
 
-    compare('lines_mesh_dynamic_shininess', camera_factor=0.5)
+    compare("lines_mesh_dynamic_shininess", camera_factor=0.5)
 
 
 def test_lines_mesh_colors():
@@ -162,19 +188,23 @@ def test_lines_mesh_colors():
 
     prepare()
 
-    lines = k3d.lines(vertices, indices, flat_shading=False,
-                      shader='mesh',
-                      width=0.003,
-                      color=0xff,
-                      colors=colors)
+    lines = k3d.lines(
+        vertices,
+        indices,
+        flat_shading=False,
+        shader="mesh",
+        width=0.003,
+        color=0xFF,
+        colors=colors,
+    )
     pytest.plot += lines
 
-    compare('lines_mesh_colors', camera_factor=0.5)
+    compare("lines_mesh_colors", camera_factor=0.5)
 
     lines.shininess = 1500.0
     lines.width = 0.02
 
-    compare('lines_mesh_colors_dynamic_shininess', camera_factor=0.5)
+    compare("lines_mesh_colors_dynamic_shininess", camera_factor=0.5)
 
 
 def test_lines_mesh_attribute():
@@ -182,15 +212,19 @@ def test_lines_mesh_attribute():
 
     prepare()
 
-    lines = k3d.lines(vertices, indices, flat_shading=False,
-                      shader='mesh',
-                      width=0.003,
-                      color=0xff,
-                      attribute=phi,
-                      color_map=k3d.matplotlib_color_maps.twilight)
+    lines = k3d.lines(
+        vertices,
+        indices,
+        flat_shading=False,
+        shader="mesh",
+        width=0.003,
+        color=0xFF,
+        attribute=phi,
+        color_map=k3d.matplotlib_color_maps.twilight,
+    )
     pytest.plot += lines
 
-    compare('lines_mesh_attribute', camera_factor=0.5)
+    compare("lines_mesh_attribute", camera_factor=0.5)
 
 
 def test_lines_mesh_attribute_segment():
@@ -198,13 +232,59 @@ def test_lines_mesh_attribute_segment():
 
     prepare()
 
-    lines = k3d.lines(vertices, indices, flat_shading=False,
-                      shader='mesh',
-                      width=0.003,
-                      color=0xff,
-                      attribute=phi,
-                      indices_type='segment',
-                      color_map=k3d.matplotlib_color_maps.twilight)
+    lines = k3d.lines(
+        vertices,
+        indices,
+        flat_shading=False,
+        shader="mesh",
+        width=0.003,
+        color=0xFF,
+        attribute=phi,
+        indices_type="segment",
+        color_map=k3d.matplotlib_color_maps.twilight,
+    )
     pytest.plot += lines
 
-    compare('lines_mesh_attribute_segment', camera_factor=0.5)
+    compare("lines_mesh_attribute_segment", camera_factor=0.5)
+
+
+def test_lines_mesh_attribute_no_depth_peels():
+    global vertices, indices
+
+    prepare()
+
+    lines = k3d.lines(
+        vertices,
+        indices,
+        flat_shading=False,
+        shader="mesh",
+        opacity=0.95,
+        width=0.003,
+        color=0xFF,
+        attribute=phi,
+        color_map=k3d.matplotlib_color_maps.twilight,
+    )
+    pytest.plot += lines
+
+    compare("lines_mesh_attribute_no_depth_peels", camera_factor=0.5)
+
+
+def test_lines_mesh_attribute_depth_peels():
+    global vertices, indices
+
+    prepare(depth_peels=8)
+
+    lines = k3d.lines(
+        vertices,
+        indices,
+        flat_shading=False,
+        shader="mesh",
+        opacity=0.95,
+        width=0.003,
+        color=0xFF,
+        attribute=phi,
+        color_map=k3d.matplotlib_color_maps.twilight,
+    )
+    pytest.plot += lines
+
+    compare("lines_mesh_attribute_depth_peels", camera_factor=0.5)

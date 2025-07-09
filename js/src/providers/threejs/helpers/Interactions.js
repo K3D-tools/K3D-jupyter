@@ -21,11 +21,6 @@ module.exports = {
                     object.interactions.intersect = Intersect(object);
                 }
 
-                // var helper = new threeMeshBVH.MeshBVHVisualizer(object);
-                // helper.depth = 14;
-                // helper.update();
-                //
-                // K3D.getWorld().K3DObjects.add(helper);
             }
         };
 
