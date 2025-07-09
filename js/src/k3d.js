@@ -331,6 +331,7 @@ class PlotView extends widgets.DOMWidgetView {
         this.model.on('change:camera_mode', this._setCameraMode, this);
         this.model.on('change:manipulate_mode', this._setManipulateMode, this);
         this.model.on('change:hidden_object_ids', this._setHiddenObjectIds, this);
+        this.model.on('change:additional_js_code', this._setAdditionalJsCode, this);
 
         try {
             this.K3DInstance = new K3D(ThreeJsProvider, this.container, {
@@ -370,6 +371,7 @@ class PlotView extends widgets.DOMWidgetView {
                 labelColor: this.model.get('label_color'),
                 voxelPaintColor: this.model.get('voxel_paint_color'),
                 hiddenObjectIds: this.model.get('hidden_object_ids'),
+                additionalJsCode: this.model.get('additional_js_code')
             });
 
             if (this.model.get('camera_auto_fit') === false) {
@@ -437,6 +439,13 @@ class PlotView extends widgets.DOMWidgetView {
                 );
             }
         });
+
+        function evalInContext() {
+            let K3DInstance = this.K3DInstance;
+            eval(this.K3DInstance.parameters.additionalJsCode);
+        }
+
+        evalInContext.call(this);
     };
 
     _setDirectionalLightingIntensity() {
@@ -483,6 +492,10 @@ class PlotView extends widgets.DOMWidgetView {
 
     _setHiddenObjectIds() {
         this.K3DInstance.setHiddenObjectIds(this.model.get('hidden_object_ids'));
+    }
+
+    _setAdditionalJsCode() {
+        this.K3DInstance.setAdditionalJsCode(this.model.get('additional_js_code'));
     }
 
     _setFps() {

@@ -173,7 +173,8 @@ class PlotSnapshotMixin:
             template = template.replace("[HEIGHT]", str(self.height))
             template = template.replace("[ID]", str(id(self)))
         template = template.replace("[DATA]", base64.b64encode(data).decode("utf-8"))
-        template = template.replace("[ADDITIONAL]", additional_js_code)
+        template = template.replace("[ADDITIONAL]",
+                                    self.additional_js_code + '\n' + additional_js_code)
         return template
 
     def get_plot_params(self) -> dict:
@@ -221,4 +222,5 @@ class PlotSnapshotMixin:
             "customData": self.custom_data,
             "fps": self.fps,
             "minimumFps": self.minimum_fps,
+            "additionalJsCode": self.additional_js_code
         }

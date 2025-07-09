@@ -315,6 +315,7 @@ function K3D(provider, targetDOMNode, parameters) {
             depthPeels: 0,
             snapshotType: 'full',
             customData: null,
+            additionalJsCode: '',
             hiddenObjectIds: [],
             guiVersion: require('../../package.json').version,
         },
@@ -351,6 +352,10 @@ function K3D(provider, targetDOMNode, parameters) {
         if (GUI.controls) {
             GUI.controls.controllersMap.timeSpeed.updateDisplay();
         }
+    }
+
+    this.setAdditionalJsCode = function (additionalJsCode) {
+        self.parameters.additionalJsCode = additionalJsCode;
     }
 
     this.setFpsMeter = function (state) {
@@ -1404,6 +1409,7 @@ function K3D(provider, targetDOMNode, parameters) {
     self.setTime(self.parameters.time);
     self.setFps(self.parameters.fps);
     self.setTimeSpeed(self.parameters.timeSpeed);
+    self.setAdditionalJsCode(self.parameters.additionalJsCode);
     self.setGridAutoFit(self.parameters.gridAutoFit);
     self.setGridVisible(self.parameters.gridVisible);
     self.setGrid(self.parameters.grid);

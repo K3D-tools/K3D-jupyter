@@ -75,6 +75,7 @@ class PlotBase(widgets.DOMWidget):
     mode = Unicode().tag(sync=True)
     depth_peels = Int().tag(sync=True)
     camera_mode = Unicode().tag(sync=True)
+    additional_js_code = Unicode().tag(sync=True)
     manipulate_mode = Unicode().tag(sync=True)
     hidden_object_ids = List(default_value=[]).tag(sync=True)
     custom_data = Dict(default_value=None, allow_none=True).tag(sync=True)
@@ -127,6 +128,7 @@ class PlotBase(widgets.DOMWidget):
             slice_viewer_mask_object_ids: TypingList[int] = None,
             slice_viewer_direction: str = "z",
             depth_peels: int = 0,
+            additional_js_code: str = '',
             *args: Any,
             **kwargs: Any,
     ) -> None:
@@ -184,6 +186,7 @@ class PlotBase(widgets.DOMWidget):
         self.camera = []
         self.depth_peels = depth_peels
         self.custom_data = custom_data
+        self.additional_js_code = additional_js_code
 
         self.object_ids = []
         self.objects = []

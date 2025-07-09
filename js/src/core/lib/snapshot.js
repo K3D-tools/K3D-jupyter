@@ -73,7 +73,7 @@ function getHTMLSnapshot(K3D, compressionLevel) {
 
     filecontent = filecontent.split('[DATA]').join(data);
     filecontent = filecontent.split('[TIMESTAMP]').join(timestamp);
-    filecontent = filecontent.split('[ADDITIONAL]').join('//[ADDITIONAL]');
+    filecontent = filecontent.split('[ADDITIONAL]').join(K3D.parameters.additionalJsCode);
 
     return filecontent;
 }

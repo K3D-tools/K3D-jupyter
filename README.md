@@ -114,7 +114,7 @@ K3D-jupyter follows the Python Software Foundation Code of Conduct in everything
 
 ## Kudos
 
-- Travis is ❤️
+- Jupyter is my ❤️
 - OpenDreamKit is 🚀
 - Three.js is 🥇
 

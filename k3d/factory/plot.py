@@ -49,6 +49,8 @@ def plot(
         minimum_fps: float = -1,
         fps_meter: bool = False,
         name: Optional[str] = None,
+        time_speed: float = 1.0,
+        additional_js_code: str = '',
         custom_data: Optional[TypingDict[str, Any]] = None,
 ) -> Plot:
     if axes is None:
@@ -92,6 +94,8 @@ def plot(
         auto_rendering=auto_rendering,
         fps=fps,
         minimum_fps=minimum_fps,
+        time_speed=time_speed,
+        additional_js_code=additional_js_code,
         fps_meter=fps_meter,
         custom_data=custom_data,
     )

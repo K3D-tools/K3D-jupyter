@@ -132,6 +132,8 @@ class Plot(
             If negative then disabled. Set target FPS to adaptative resolution.
         objects: `list`.
             List of `k3d.objects.Drawable` currently included in the plot, not to be changed directly.
+        additional_js_code: `str`.
+            Additional Js code that will be run after plot is initialized
     """
 
     pass
