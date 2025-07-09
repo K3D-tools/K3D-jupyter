@@ -82,8 +82,10 @@ class Plot(
             Axes helper size.
         axes_helper_colors: `List`.
             List of triple packed RGB color of the axes helper (0xff0000 is red, 0xff is blue).
-        time: `list`.
+        time: `float`.
             Time value (used in TimeSeries)
+        time_speed: `float`.
+            Time speed (used in TimeSeries)
         name: `string`.
             Name of the plot. Used to filenames of snapshot/screenshot etc.
         mode: `str`.

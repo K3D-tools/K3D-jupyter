@@ -288,13 +288,14 @@ function K3D(provider, targetDOMNode, parameters) {
             clippingPlanes: [],
             fpsMeter: false,
             lighting: 1.5,
-            time: 0.0,
             sliceViewerDirection: 'z',
             sliceViewerObjectId: -1,
             sliceViewerMaskObjectIds: [],
             colorbarObjectId: -1,
             colorbarScientific: false,
             fps: 25.0,
+            time: 0.0,
+            timeSpeed: 1.0,
             axes: ['x', 'y', 'z'],
             minimumFps: -1,
             cameraNoRotate: false,
@@ -340,13 +341,17 @@ function K3D(provider, targetDOMNode, parameters) {
         self.parameters.fps = fps;
 
         if (GUI.controls) {
-            GUI.controls.controllers.forEach((controller) => {
-                if (controller.property === 'fps') {
-                    controller.updateDisplay();
-                }
-            });
+            GUI.controls.controllersMap.fps.updateDisplay();
         }
     };
+
+    this.setTimeSpeed = function (timeSpeed) {
+        self.parameters.timeSpeed = timeSpeed;
+
+        if (GUI.controls) {
+            GUI.controls.controllersMap.timeSpeed.updateDisplay();
+        }
+    }
 
     this.setFpsMeter = function (state) {
         let Stats;
@@ -1121,11 +1126,7 @@ function K3D(provider, targetDOMNode, parameters) {
         }
 
         if (GUI.controls) {
-            GUI.controls.controllers.forEach((controller) => {
-                if (controller.property === 'time') {
-                    controller.updateDisplay();
-                }
-            });
+            GUI.controls.controllersMap.time.updateDisplay();
         }
 
         return Promise.all(promises).then(() => self.refreshAfterObjectsChange(true));
@@ -1401,6 +1402,8 @@ function K3D(provider, targetDOMNode, parameters) {
     self.setClearColor(self.parameters.clearColor);
     self.setMenuVisibility(self.parameters.menuVisibility);
     self.setTime(self.parameters.time);
+    self.setFps(self.parameters.fps);
+    self.setTimeSpeed(self.parameters.timeSpeed);
     self.setGridAutoFit(self.parameters.gridAutoFit);
     self.setGridVisible(self.parameters.gridVisible);
     self.setGrid(self.parameters.grid);
@@ -1427,7 +1430,6 @@ function K3D(provider, targetDOMNode, parameters) {
         self.parameters.cameraPanSpeed,
     );
     self.setCameraFOV(self.parameters.cameraFov);
-    self.setFps(self.parameters.fps);
     self.setViewMode(self.parameters.viewMode);
     self.setHiddenObjectIds(self.parameters.hiddenObjectIds);
     self.setFpsMeter(self.parameters.fpsMeter);

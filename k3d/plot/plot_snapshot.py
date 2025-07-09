@@ -119,7 +119,7 @@ class PlotSnapshotMixin:
 
         if voxel_chunks is None:
             voxel_chunks = []
-        dir_path = os.path.dirname(os.path.realpath(__file__))
+        dir_path = os.path.dirname(os.path.realpath(__file__)) + '/../'
         data = self.get_binary_snapshot(compression_level, voxel_chunks)
         if self.snapshot_type == "full":
             f = io.open(
@@ -193,6 +193,7 @@ class PlotSnapshotMixin:
             "clippingPlanes": self.clipping_planes,
             "lighting": self.lighting,
             "time": self.time,
+            "time_speed": self.time_speed,
             "fpsMeter": self.fps_meter,
             "cameraMode": self.camera_mode,
             "depthPeels": self.depth_peels,

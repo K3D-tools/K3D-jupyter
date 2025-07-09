@@ -4,6 +4,9 @@ const THREE = require('three');
 const _ = require('../../lodash');
 const { pow10ceil } = require('./helpers/math');
 
+let startTick;
+let animationGUI;
+
 function clone(val) {
     if (typeof (val) === 'object') {
         if (val.data) {
@@ -167,8 +170,9 @@ function interpolate(a, b, f, property) {
 }
 
 function startAutoPlay(K3D, changeParameters) {
-    let startTick = null;
     let frameIndex = -1;
+
+    startTick = null
 
     if (K3D.autoPlayed) {
         return;
@@ -182,21 +186,23 @@ function startAutoPlay(K3D, changeParameters) {
         }
 
         if (startTick === null) {
-            startTick = time - K3D.parameters.time * 1000.0;
+            startTick = time - K3D.parameters.time * 1000.0 / K3D.parameters.timeSpeed;
         }
 
         let t = (time - startTick) / 1000.0;
         const currentFrame = Math.round(t * K3D.parameters.fps);
 
         if (currentFrame !== frameIndex) {
-            if (t > K3D.GUI.controls.controllersMap.time._max) {
-                t -= K3D.GUI.controls.controllersMap.time._max;
-                startTick = time + t;
+            let newT = t * K3D.parameters.timeSpeed;
+
+            if (newT > K3D.GUI.controls.controllersMap.time._max) {
+                newT -= K3D.GUI.controls.controllersMap.time._max;
+                startTick = time - newT;
             }
 
-            K3D.setTime(t);
+            K3D.setTime(newT);
             frameIndex = currentFrame;
-            changeParameters('time', t);
+            changeParameters('time', newT);
         }
 
         requestAnimationFrame(loop);
@@ -220,17 +226,10 @@ module.exports = {
     refreshTimeScale(K3D, GUI) {
         const timeSeriesInfo = getObjectsWithTimeSeriesAndMinMax(K3D);
 
-        GUI.controls.controllers.forEach((controller) => {
-            if (controller.property === 'time') {
-                controller.min(timeSeriesInfo.min).max(timeSeriesInfo.max)
-                    .step(pow10ceil(timeSeriesInfo.max - timeSeriesInfo.min) / 10000.0);
-            }
+        GUI.controls.controllersMap.time.min(timeSeriesInfo.min).max(timeSeriesInfo.max)
+            .step(pow10ceil(timeSeriesInfo.max - timeSeriesInfo.min) / 10000.0);
 
-            if (['togglePlay', 'fps', 'time'].indexOf(controller.property) !== -1) {
-                controller.domElement.hidden = timeSeriesInfo.min === timeSeriesInfo.max;
-                controller.updateDisplay();
-            }
-        });
+        animationGUI.domElement.hidden = timeSeriesInfo.min === timeSeriesInfo.max;
     },
 
     interpolateTimeSeries(json, time) {
@@ -306,18 +305,27 @@ module.exports = {
 
         gui.controllersMap = gui.controllersMap || {};
 
-        gui.controllersMap.time = gui.add(K3D.parameters, 'time').min(0).max(1).name('time')
+        animationGUI = gui.addFolder('Animation').close();
+
+        gui.controllersMap.time = animationGUI.add(K3D.parameters, 'time').min(0).max(1).name('time')
             .onChange((value) => {
                 K3D.setTime(value);
                 changeParameters('time', value);
             });
 
-        gui.controllersMap.fps = gui.add(K3D.parameters, 'fps').min(0).max(120).name('fps')
+        gui.controllersMap.fps = animationGUI.add(K3D.parameters, 'fps').min(0).max(120).name('fps')
             .onChange((value) => {
                 changeParameters('fps', value);
             });
 
-        gui.controllersMap.autoPlay = gui.add(obj, 'togglePlay').name('Play loop');
+        gui.controllersMap.timeSpeed = animationGUI.add(K3D.parameters, 'timeSpeed').min(0.1).max(5).step(0.01).name(
+            'timeSpeed')
+            .onChange((value) => {
+                startTick = null;
+                changeParameters('timeSpeed', value);
+            });
+
+        gui.controllersMap.autoPlay = animationGUI.add(obj, 'togglePlay').name('Play loop');
     },
 
     startAutoPlay,

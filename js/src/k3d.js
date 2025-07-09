@@ -288,13 +288,14 @@ class PlotView extends widgets.DOMWidgetView {
         this.model.on('change:camera_auto_fit', this._setCameraAutoFit, this);
         this.model.on('change:lighting', this._setDirectionalLightingIntensity, this);
         this.model.on('change:time', this._setTime, this);
+        this.model.on('change:fps', this._setFps, this);
+        this.model.on('change:time_speed', this._setTimeSpeed, this);
         this.model.on('change:grid_auto_fit', this._setGridAutoFit, this);
         this.model.on('change:grid_visible', this._setGridVisible, this);
         this.model.on('change:grid_color', this._setGridColor, this);
         this.model.on('change:label_color', this._setLabelColor, this);
         this.model.on('change:depth_peels', this._setDepthPeels, this);
         this.model.on('change:fps_meter', this._setFpsMeter, this);
-        this.model.on('change:fps', this._setFps, this);
         this.model.on('change:screenshot_scale', this._setScreenshotScale, this);
         this.model.on('change:voxel_paint_color', this._setVoxelPaintColor, this);
         this.model.on('change:background_color', this._setBackgroundColor, this);
@@ -487,6 +488,11 @@ class PlotView extends widgets.DOMWidgetView {
     _setFps() {
         this.K3DInstance.setFps(this.model.get('fps'));
     };
+
+    _setTimeSpeed() {
+        this.K3DInstance.setTimeSpeed(this.model.get('time_speed'));
+    };
+
 
     _setFpsMeter() {
         this.K3DInstance.setFpsMeter(this.model.get('fps_meter'));
