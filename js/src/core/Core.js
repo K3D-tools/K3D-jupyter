@@ -352,11 +352,11 @@ function K3D(provider, targetDOMNode, parameters) {
         if (GUI.controls) {
             GUI.controls.controllersMap.timeSpeed.updateDisplay();
         }
-    }
+    };
 
     this.setAdditionalJsCode = function (additionalJsCode) {
         self.parameters.additionalJsCode = additionalJsCode;
-    }
+    };
 
     this.setFpsMeter = function (state) {
         let Stats;
