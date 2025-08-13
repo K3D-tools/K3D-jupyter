@@ -64,6 +64,20 @@ examples = [
     "vtk"
 ]
 
+[dependency-groups]
+docs = [
+    "six",
+    "ipywidgets>=7.0.1",
+    "traittypes",
+    "traitlets",
+    "numpy",
+    "jupyter_sphinx",
+    "pydata_sphinx_theme",
+    "pyvista",
+    "SimpleITK",
+    "sphinx-copybutton",
+]
+
 [project.license]
 file = "LICENSE.txt"
 
