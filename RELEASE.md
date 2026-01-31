@@ -1,5 +1,7 @@
 # To release a new version of K3D on PyPI:
 
+docker-compose run --rm k3d-build
+
 git add and git commit
 rm -rf build
 rm -rf dist

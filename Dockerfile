@@ -17,7 +17,7 @@ RUN npm install -g webpack webpack-cli
 
 COPY requirements.txt .
 RUN pip install -r requirements.txt
-RUN pip install pytest pixelmatch flask selenium webdriver-manager chromedriver-binary scikit-image vtk
+RUN pip install pytest pixelmatch flask selenium webdriver-manager chromedriver-binary scikit-image vtk build twine
 
 WORKDIR /opt/app/src
 

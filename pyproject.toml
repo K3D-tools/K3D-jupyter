@@ -2,7 +2,7 @@
 requires = [
     "hatchling>=1.10.0",
     "hatch-nodejs-version>=0.3.0",
-    "jupyterlab~=3.0",
+    "jupyterlab>=4.0.0",
 ]
 build-backend = "hatchling.build"
 
@@ -138,7 +138,7 @@ build-function = "hatch_jupyter_builder.npm_builder"
 path = "."
 build_cmd = "build:prod"
 npm = [
-    "jlpm",
+    "npm",
 ]
 
 
