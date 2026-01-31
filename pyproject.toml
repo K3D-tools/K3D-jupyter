@@ -136,7 +136,7 @@ build-function = "hatch_jupyter_builder.npm_builder"
 
 [tool.hatch.build.hooks.jupyter-builder.build-kwargs]
 path = "js"
-build_cmd = "build:prod"
+build_cmd = "build"
 npm = [
     "npm",
 ]
