@@ -1,4 +1,6 @@
 const CopyPlugin = require('copy-webpack-plugin');
+const path = require('path');
+const fs = require('fs');
 const version = require('./package.json').version;
 // var Visualizer = require('webpack-visualizer-plugin2');
 
@@ -119,47 +121,47 @@ module.exports = [
         module: {
             rules,
         },
-        plugins: [new CopyPlugin({
-            patterns: [
-                { from: './src/core/lib/headless.html', to: `${__dirname}/../k3d/static` },
-                { from: './src/core/lib/snapshot_standalone.txt', to: `${__dirname}/../k3d/static` },
-                { from: './src/core/lib/snapshot_online.txt', to: `${__dirname}/../k3d/static` },
-                { from: './src/core/lib/snapshot_inline.txt', to: `${__dirname}/../k3d/static` },
-                { from: './node_modules/requirejs/require.js', to: `${__dirname}/../k3d/static` },
-                { from: './node_modules/fflate/umd/index.js', to: `${__dirname}/../k3d/static/fflate.js` },
-            ],
-        })],
-    },
-    {
-        entry: './src/standalone.js',
-        output:
+        plugins: [
+            new CopyPlugin({
+                patterns: [
+                    { from: './src/core/lib/headless.html' },
+                    { from: './src/core/lib/snapshot_standalone.txt' },
+                    { from: './src/core/lib/snapshot_online.txt' },
+                    { from: './src/core/lib/snapshot_inline.txt' },
+                    { from: './node_modules/requirejs/require.js' },
+                    { from: './node_modules/fflate/umd/index.js', to: 'fflate.js' },
+                    // Copy package.json to labextension folder
+                    { from: './package.json', to: '../labextension' },
+                ],
+            }),
+            // Custom plugin to copy built standalone.js to other locations
             {
-                filename: 'standalone.js',
-                path: `${__dirname}/dist/`,
-                library: 'k3d',
-                libraryTarget: 'amd',
-                publicPath: `https://unpkg.com/k3d@${version}/dist/`,
-            },
-        mode,
-        module: {
-            rules,
-        },
-        plugins,
-    },
-    {
-        entry: './src/standalone.js',
-        output:
-            {
-                filename: 'standalone.js',
-                path: `${__dirname}/../k3d/labextension/static/`,
-                library: 'k3d',
-                libraryTarget: 'amd',
-                publicPath: `https://unpkg.com/k3d@${version}/dist/`,
-            },
-        mode,
-        module: {
-            rules,
-        },
-        plugins,
+                apply: (compiler) => {
+                    compiler.hooks.afterEmit.tap('CopyBuildPlugin', (compilation) => {
+                        const outputPath = compiler.options.output.path;
+                        const files = ['standalone.js', 'standalone.js.map'];
+                        const targets = [
+                            path.resolve(__dirname, 'dist'),
+                            path.resolve(__dirname, '../k3d/labextension/static')
+                        ];
+                        
+                        targets.forEach(targetDir => {
+                             if (!fs.existsSync(targetDir)) {
+                                 fs.mkdirSync(targetDir, { recursive: true });
+                             }
+                        });
+
+                        files.forEach(file => {
+                            const src = path.join(outputPath, file);
+                            if (fs.existsSync(src)) {
+                                targets.forEach(targetDir => {
+                                    fs.copyFileSync(src, path.join(targetDir, file));
+                                });
+                            }
+                        });
+                    });
+                }
+            }
+        ],
     },
 ];
