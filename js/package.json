@@ -17,7 +17,7 @@
     "jupyterlab-extension"
   ],
   "scripts": {
-    "build": "webpack",
+    "build": "webpack --mode=production",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "jupyterlab": {

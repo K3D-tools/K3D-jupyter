@@ -7,3 +7,10 @@ services :
       context : .
     volumes :
       - ./:/opt/app/src:delegated
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [gpu]

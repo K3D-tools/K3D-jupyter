@@ -185,7 +185,7 @@ class k3d_remote:
             self.browser = None
 
 
-def get_headless_driver(no_headless=False):
+def get_headless_driver(no_headless=False, gpu=False):
     from selenium import webdriver
 
     options = webdriver.ChromeOptions()
@@ -193,8 +193,13 @@ def get_headless_driver(no_headless=False):
     options.add_argument("--no-sandbox")
 
     if not no_headless:
-        options.add_argument("--headless")
-        options.add_argument("--enable-unsafe-swiftshader")
+        if gpu:
+            options.add_argument("--headless=new")
+            options.add_argument("--ignore-gpu-blocklist")
+            options.add_argument("--enable-webgl")
+        else:
+            options.add_argument("--headless")
+            options.add_argument("--enable-unsafe-swiftshader")
 
     return webdriver.Chrome(options=options)
 

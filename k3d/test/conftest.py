@@ -14,6 +14,10 @@ import k3d
 from k3d.headless import get_headless_driver, k3d_remote
 
 
+def pytest_addoption(parser):
+    parser.addoption("--gpu", action="store_true", default=False, help="run tests with GPU support")
+
+
 def pytest_configure(config):
     """
     Allows plugins and conftest files to perform initial configuration.
@@ -33,7 +37,8 @@ def pytest_sessionstart(session):
         screenshot_scale=1.0, antialias=2, camera_auto_fit=False, colorbar_object_id=0
     )
     print(pytest.plot.get_static_path())
-    driver = get_headless_driver()
+    gpu = session.config.getoption("--gpu")
+    driver = get_headless_driver(gpu=gpu)
     driver.set_script_timeout(120)
     pytest.headless = k3d_remote(pytest.plot, driver)
     pytest.headless.browser.execute_script("window.randomMul = 0.0;")
