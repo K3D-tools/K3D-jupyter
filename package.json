@@ -56,7 +56,7 @@
     "three-mesh-bvh" : "^0.5.11"
   },
   "devDependencies" : {
-    "@jupyterlab/builder" : "^3.4.2",
+    "@jupyterlab/builder" : "^4.5.4",
     "prettier" : "^2.6.2",
     "rimraf" : "^3.0.2",
     "style-loader" : "^3.3.1"
