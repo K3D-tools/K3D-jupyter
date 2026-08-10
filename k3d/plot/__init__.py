@@ -7,12 +7,16 @@ from .plot_snapshot import PlotSnapshotMixin
 
 
 class Plot(
-    PlotBase,
+    # Mixins must precede PlotBase. PlotBase is a DOMWidget, so listing it first puts the
+    # whole ipywidgets/traitlets chain ahead of the mixins in the MRO, and anything they
+    # define that also exists upstream becomes dead code - close() silently resolved to
+    # Widget.close, and __getstate__/__setstate__ to HasTraits', breaking pickling.
     PlotObjectsMixin,
     PlotDisplayMixin,
     PlotCameraMixin,
     PlotSnapshotMixin,
     PlotSerializationMixin,
+    PlotBase,
 ):
     """
     Main K3D widget.

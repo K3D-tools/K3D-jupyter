@@ -110,7 +110,7 @@ class PlotBase(widgets.DOMWidget):
             camera_up_axis: str = "none",
             snapshot_type: str = "full",
             camera_no_pan: bool = False,
-            camera_fov: float = 45.0,
+            camera_fov: float = 60.0,  # matches the k3d.plot() factory default
             camera_damping_factor: float = 0.0,
             axes_helper: float = 1.0,
             axes_helper_colors: TypingList[int] = None,
@@ -132,7 +132,10 @@ class PlotBase(widgets.DOMWidget):
             *args: Any,
             **kwargs: Any,
     ) -> None:
-        super().__init__()
+        # Forward to HasTraits so that synced traits without an explicit parameter here
+        # (camera, clipping_planes, camera_animation, hidden_object_ids, ...) can be set at
+        # construction, and so a misspelled name raises instead of being silently dropped.
+        super().__init__(*args, **kwargs)
 
         if axes is None:
             axes = ["x", "y", "z"]
@@ -183,13 +186,18 @@ class PlotBase(widgets.DOMWidget):
         self.camera_mode = camera_mode
         self.manipulate_mode = manipulate_mode
         self.auto_rendering = auto_rendering
-        self.camera = []
+        if "camera" not in kwargs:  # do not clobber a camera passed to the constructor
+            self.camera = []
         self.depth_peels = depth_peels
         self.custom_data = custom_data
         self.additional_js_code = additional_js_code
 
         self.object_ids = []
         self.objects = []
-        self.hidden_object_ids = []
+        if "hidden_object_ids" not in kwargs:
+            self.hidden_object_ids = []
 
         self.outputs: TypingList[widgets.Output] = []
+        # Populated by load_binary_snapshot; initialised here so that reading it before any
+        # load does not raise AttributeError and so get_binary_snapshot can default to it.
+        self.voxel_chunks: TypingList[Any] = []

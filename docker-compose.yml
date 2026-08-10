@@ -7,6 +7,23 @@ services :
       context : .
     volumes :
       - ./:/opt/app/src:delegated
+      # The bind mount above brings the whole repo in, including host build output and a
+      # host-platform node_modules. Both must be shadowed, or a bundle built on the host
+      # (e.g. on Windows) is what the Linux test run actually loads - which silently fails
+      # the image-comparison suite: a Windows-built standalone.js differs from a
+      # container-built one by ~68 kB and breaks the text/KaTeX reference tests.
+      #
+      # Named volumes: expensive to rebuild, so they persist between runs.
+      - k3d-js-node-modules:/opt/app/src/js/node_modules
+      - k3d-root-node-modules:/opt/app/src/node_modules
+      # Anonymous volumes: build output, recreated empty on every `run --rm`, so a run can
+      # never pick up a stale or foreign-platform artifact. Webpack regenerates all of it
+      # (conftest.py runs `npm run build` before the suite).
+      - /opt/app/src/k3d/static
+      - /opt/app/src/k3d/labextension
+      - /opt/app/src/js/dist
+    # Needed only by `pytest --gpu`, which switches headless.py to real GPU rendering.
+    # The default (no --gpu) renders via SwiftShader regardless of this reservation.
     deploy:
       resources:
         reservations:
@@ -14,3 +31,7 @@ services :
             - driver: nvidia
               count: 1
               capabilities: [gpu]
+
+volumes:
+  k3d-js-node-modules:
+  k3d-root-node-modules:
