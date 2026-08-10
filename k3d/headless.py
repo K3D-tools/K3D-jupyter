@@ -224,7 +224,9 @@ class k3d_remote:
             self.server = None
 
         if self.browser is not None:
-            self.browser.close()
+            # quit(), not close(): close() only closes the current window and leaves the
+            # WebDriver session plus the chromedriver/browser processes behind.
+            self.browser.quit()
             self.browser = None
 
 

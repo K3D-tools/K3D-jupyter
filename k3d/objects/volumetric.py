@@ -431,7 +431,7 @@ class Voxels(DrawableWithVoxelCallback):
     type = Unicode(read_only=True).tag(sync=True)
     voxels = Array(dtype=np.uint8).tag(sync=True, **array_serialization_wrap("voxels"))
     color_map = Array(dtype=np.uint32).tag(
-        sync=True, **array_serialization_wrap("voxels")
+        sync=True, **array_serialization_wrap("color_map")
     )
     wireframe = Bool().tag(sync=True)
     outlines = Bool().tag(sync=True)

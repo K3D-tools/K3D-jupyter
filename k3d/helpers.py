@@ -65,6 +65,9 @@ def array_to_json(
     elif ar.dtype == np.int64:  # JS does not support int64
         logger.info("Converting int64 array to int32 for JS compatibility.")
         ar = ar.astype(np.int32)
+    elif ar.dtype == np.uint64:  # the JS deserializer has no uint64 typed array
+        logger.info("Converting uint64 array to uint32 for JS compatibility.")
+        ar = ar.astype(np.uint32)
 
     # make sure it's contiguous
     if force_contiguous and not ar.flags["C_CONTIGUOUS"]:
@@ -463,7 +466,9 @@ def sparse_voxels_validation():
                 "Expected an array of shape (N, 4) and got %s" % (value.shape,)
             )
 
-        if (value.astype(np.int16) < 0).any():
+        # Compare in the value's own dtype. Casting to int16 made every legitimate
+        # uint16 coordinate in 32768..65535 look negative.
+        if (np.asarray(value) < 0).any():
             raise TraitError("Voxel coordinates and values must be non-negative")
 
         return value
@@ -511,8 +516,11 @@ def get_bounding_box(model_matrix, boundary=[-0.5, 0.5, -0.5, 0.5, -0.5, 0.5]):
     ndarray
         Model matrix boundaries.
     """
-    b_min = np.array([boundary[0], boundary[2], boundary[4], 0])
-    b_max = np.array([boundary[1], boundary[3], boundary[5], 0])
+    # Homogeneous coordinate must be 1: these are points, not directions. With 0 the
+    # matrix's translation column is discarded and every transformed object reports an
+    # un-translated bounding box, which then mis-frames the auto camera.
+    b_min = np.array([boundary[0], boundary[2], boundary[4], 1])
+    b_max = np.array([boundary[1], boundary[3], boundary[5], 1])
 
     b_min = model_matrix.dot(b_min)
     b_max = model_matrix.dot(b_max)

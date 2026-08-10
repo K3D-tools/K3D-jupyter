@@ -210,16 +210,18 @@ class Transform(object):
             scaling_matrix = np.diag(np.append(self.scaling, 1.0))
         else:
             scaling_matrix = np.identity(4)
-        # Compose all matrices in the correct order
+        # world = parent @ local, so the parent matrix goes leftmost. With it rightmost the
+        # child's own scaling/rotation was applied to the parent's displacement, e.g. moving
+        # a parent by [1,0,0] moved a 2x-scaled child by [2,0,0].
         self.model_matrix = reduce(
             np.dot,
             [
+                self.parent_matrix,
                 translation_matrix,
                 rotation_matrix,
                 scaling_matrix,
                 fit_matrix,
                 self.custom_matrix,
-                self.parent_matrix,
             ],
         )
 

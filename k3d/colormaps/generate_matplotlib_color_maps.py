@@ -1,5 +1,16 @@
 import numpy as np
-from matplotlib import cm, pyplot
+from matplotlib import pyplot
+
+try:  # matplotlib >= 3.5
+    from matplotlib import colormaps as _colormaps
+
+    def _get_cmap(name):
+        return _colormaps[name]
+except ImportError:  # older matplotlib
+    from matplotlib import cm
+
+    def _get_cmap(name):
+        return cm.get_cmap(name)
 
 min_samples = 256
 
@@ -15,7 +26,7 @@ For more information, see
     )
 
     for name in sorted(pyplot.colormaps()):
-        cmap = cm.get_cmap(name)
+        cmap = _get_cmap(name)
         name_c = name.capitalize()
         if name_c == name:
             file.write("{} = [ \n".format(name))
