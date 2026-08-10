@@ -22,6 +22,11 @@ def prepare(depth_peels=0):
     pytest.plot.depth_peels = depth_peels
     pytest.plot.camera_mode = "trackball"
     pytest.plot.camera = [2, -3, 0.2, 0.0, 0.0, 0.0, 0, 0, 1]
+    # The whole session shares one plot, so anything a test changes leaks into every later
+    # test. These two were missing here, so a single test setting a background colour or FOV
+    # silently broke every reference comparison that followed it.
+    pytest.plot.background_color = 0xFFFFFF
+    pytest.plot.camera_fov = 60.0
     pytest.headless.sync(hold_until_refreshed=True)
     pytest.headless.camera_reset()
 

@@ -235,6 +235,21 @@ class PlotView extends widgets.DOMWidgetView {
         this.K3DInstance.off(this.K3DInstance.events.VOXELS_CALLBACK, this.voxelsCallback);
         this.K3DInstance.off(this.K3DInstance.events.OBJECT_HOVERED, this.objectHoverCallback);
         this.K3DInstance.off(this.K3DInstance.events.OBJECT_CLICKED, this.objectClickCallback);
+
+        // _init binds ~45 handlers on the model ('msg:custom' plus every change:*), all with
+        // this view as context. They are registered directly rather than via listenTo, so
+        // nothing else drops them: the view, its K3D instance and the whole WebGL scene stayed
+        // reachable, and each subsequent trait change still ran the dead view's handler.
+        this.model.off(null, null, this);
+
+        if (this.cameraSyncTimeout !== null && typeof this.cameraSyncTimeout !== 'undefined') {
+            clearTimeout(this.cameraSyncTimeout);
+            this.cameraSyncTimeout = null;
+        }
+
+        this.K3DInstance.disable();
+
+        super.remove();
     };
 
     _init() {
@@ -393,12 +408,40 @@ class PlotView extends widgets.DOMWidgetView {
             this.renderPromises.push(this.K3DInstance.load({ objects: [objectsList[id].attributes] }));
         }, this);
 
+        this.cameraSyncTimeout = null;
+        this.pendingCamera = null;
+
         this.cameraChangeId = this.K3DInstance.on(this.K3DInstance.events.CAMERA_CHANGE, (control) => {
-            if (self.model._comm_live) {
-                if ((new Date()).getTime() - self.model.lastCameraSync > 200) {
-                    self.model.lastCameraSync = (new Date()).getTime();
-                    self.model.save('camera', control, { patch: true });
-                }
+            if (!self.model._comm_live) {
+                return;
+            }
+
+            const now = (new Date()).getTime();
+            const sinceLast = now - self.model.lastCameraSync;
+
+            if (sinceLast > 200) {
+                self.model.lastCameraSync = now;
+                self.pendingCamera = null;
+                self.model.save('camera', control, { patch: true });
+                return;
+            }
+
+            // Trailing edge. The leading-edge-only throttle dropped every event inside the
+            // window, and the last event of an interaction almost always falls there - so the
+            // final camera position never reached Python. At most one timer is pending, so a
+            // drag does not allocate per frame.
+            self.pendingCamera = control;
+
+            if (self.cameraSyncTimeout === null) {
+                self.cameraSyncTimeout = setTimeout(() => {
+                    self.cameraSyncTimeout = null;
+
+                    if (self.pendingCamera && self.model._comm_live) {
+                        self.model.lastCameraSync = (new Date()).getTime();
+                        self.model.save('camera', self.pendingCamera, { patch: true });
+                        self.pendingCamera = null;
+                    }
+                }, 200 - sinceLast);
             }
         });
 

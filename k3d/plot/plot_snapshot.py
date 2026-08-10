@@ -26,7 +26,9 @@ _PLOT_PARAMS = (
     ("clippingPlanes", "clipping_planes"),
     ("lighting", "lighting"),
     ("time", "time"),
-    ("time_speed", "time_speed"),
+    # camelCase like every other key: Core.js defines and consumes `timeSpeed`, so the
+    # snake_case spelling was merged as an unused extra property and the setting never applied.
+    ("timeSpeed", "time_speed"),
     ("fpsMeter", "fps_meter"),
     ("cameraMode", "camera_mode"),
     ("depthPeels", "depth_peels"),
@@ -270,6 +272,9 @@ class PlotSnapshotMixin:
     def set_plot_params(self, params: TypingDict[str, Any]) -> None:
         """Apply settings produced by get_plot_params. Unknown keys are ignored."""
         by_key = dict(_PLOT_PARAMS)
+        # Snapshots written before timeSpeed was corrected carry the snake_case key.
+        by_key.setdefault("time_speed", "time_speed")
+
         for key, value in params.items():
             trait = by_key.get(key)
             if trait is not None:

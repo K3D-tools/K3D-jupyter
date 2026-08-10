@@ -42,8 +42,17 @@ function CreateK3DAndLoadBinarySnapshot(data, targetDOMNode) {
             if (!err) {
                 data = decompressData;
             }
-            // Decode the data using msgpack
-            data = msgpackDecode(data);
+
+            // msgpackDecode used to sit outside the try: on corrupt input it threw inside this
+            // callback, so the surrounding Promise neither resolved nor rejected and the caller
+            // waited forever.
+            try {
+                data = msgpackDecode(data);
+            } catch (e) {
+                console.error('K3D: failed to decode snapshot data', e);
+                return reject(e);
+            }
+
             try {
                 // Create the K3D instance with the decoded plot
                 K3DInstance = new K3D(
@@ -65,6 +74,10 @@ function CreateK3DAndLoadBinarySnapshot(data, targetDOMNode) {
                     }
                 }, 10);
                 return resolve(K3DInstance);
+            }).catch((e) => {
+                // Without this a rejected setSnapshot left the outer Promise pending forever.
+                console.error('K3D: failed to apply snapshot', e);
+                return reject(e);
             });
         });
     });

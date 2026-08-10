@@ -68,6 +68,12 @@ function loader(K3D, data) {
                     })
                     .catch((err) => {
                         error('Loader Error', `Object of type "${json.type}" was not loaded. ${err.message}`);
+
+                        // Deliberate sentinel: the batch keeps loading its other objects, and
+                        // consumers skip falsy entries. Returning undefined implicitly used to
+                        // make Core.load/reload throw on `object.json`, masking the real error
+                        // above with a TypeError and rejecting the whole load.
+                        return null;
                     });
             }
 
