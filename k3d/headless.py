@@ -26,15 +26,47 @@ logger.setLevel(logging.INFO)
 
 # logging.basicConfig(filename='test.log', level=logging.DEBUG)
 
+# Bounds for the two browser-polling loops below. Without them a JS-side error means the
+# awaited flag is never set and the loop spins forever - in CI that burns the whole job
+# timeout instead of failing with the actual error.
+DEFAULT_STARTUP_TIMEOUT = 60.0
+DEFAULT_REFRESH_TIMEOUT = 120.0
+
+
+def _browser_errors(driver):
+    """Best-effort JS console errors, to explain a timeout instead of just reporting one."""
+    try:
+        entries = driver.get_log("browser")
+    except Exception:
+        return ""  # not supported by every driver (e.g. Firefox)
+
+    messages = [
+        e.get("message", "") for e in entries if e.get("level") in ("SEVERE", "ERROR")
+    ]
+    if not messages:
+        return ""
+
+    return " Browser console errors: " + " | ".join(messages[-5:])
+
 
 class k3d_remote:
-    def __init__(self, k3d_plot, driver, width=1280, height=720, port=8080):
+    def __init__(
+            self,
+            k3d_plot,
+            driver,
+            width=1280,
+            height=720,
+            port=8080,
+            startup_timeout=DEFAULT_STARTUP_TIMEOUT,
+            refresh_timeout=DEFAULT_REFRESH_TIMEOUT,
+    ):
 
         driver.set_window_size(width, height)
 
         self.port = port
         self.browser = driver
         self.k3d_plot = k3d_plot
+        self.refresh_timeout = refresh_timeout
 
         self.api = Flask(__name__)
 
@@ -123,12 +155,16 @@ class k3d_remote:
                 logger.error(f"Error in generate route: {e}")
                 raise
 
-        while (
-                self.browser.execute_script(
-                    "return typeof(window.headlessK3D) !== 'undefined'"
-                )
-                == False
+        deadline = time.monotonic() + startup_timeout
+        while not self.browser.execute_script(
+                "return typeof(window.headlessK3D) !== 'undefined'"
         ):
+            if time.monotonic() > deadline:
+                raise TimeoutError(
+                    "window.headlessK3D was not defined within %g s - headless.html "
+                    "failed to load or the bundle raised.%s"
+                    % (startup_timeout, _browser_errors(self.browser))
+                )
             time.sleep(1)
             self.browser.get(url="http://localhost:" + str(port) + "/headless.html")
 
@@ -151,7 +187,14 @@ class k3d_remote:
             )
 
         if hold_until_refreshed:
-            while self.browser.execute_script("return window.refreshed") == False:
+            deadline = time.monotonic() + self.refresh_timeout
+            while not self.browser.execute_script("return window.refreshed"):
+                if time.monotonic() > deadline:
+                    raise TimeoutError(
+                        "window.refreshed was not set within %g s - the render never "
+                        "completed.%s"
+                        % (self.refresh_timeout, _browser_errors(self.browser))
+                    )
                 time.sleep(0.1)
 
     def get_browser_screenshot(self):

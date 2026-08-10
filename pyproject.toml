@@ -24,6 +24,8 @@ classifiers = [
     "Programming Language :: Python :: 3.8",
     "Programming Language :: Python :: 3.9",
     "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
 ]
 dependencies = [
     "ipywidgets>=7.0.0,<9.0.0",
@@ -124,19 +126,25 @@ artifacts = [
 ]
 
 [tool.hatch.build.hooks.jupyter-builder]
+# These must be real outputs of the federated labextension build, not files that happen to
+# exist in the source tree, otherwise a broken build passes the check silently.
+# static/style.js and static/remoteEntry.*.js are emitted only by `jupyter labextension build`.
 ensured-targets = [
-    "k3d/labextension/package.json",
-    "js/src/index.js",
+    "k3d/labextension/static/style.js",
+    "k3d/static/index.js",
 ]
-skip-if-exists = ["k3d/labextension/package.json"]
+skip-if-exists = ["k3d/labextension/static/style.js"]
 dependencies = [
     "hatch-jupyter-builder>=0.6.2",
 ]
 build-function = "hatch_jupyter_builder.npm_builder"
 
 [tool.hatch.build.hooks.jupyter-builder.build-kwargs]
-path = "js"
-build_cmd = "build"
+# Run the ROOT build, not js/'s: `build:prod` is `jupyter labextension build .` followed by
+# the nbextension webpack build. Building only js/ produces the nbextension bundle and
+# leaves share/jupyter/labextensions/k3d without its remoteEntry, i.e. dead in JupyterLab.
+path = "."
+build_cmd = "build:prod"
 npm = [
     "npm",
 ]

@@ -20,12 +20,24 @@ from .transform import transform
 
 HERE = Path(__file__).parent.resolve()
 
-with (HERE / "labextension" / "package.json").open() as fid:
-    data = json.load(fid)
+
+def _labextension_name() -> str:
+    """Name of the built labextension, falling back to the package name.
+
+    `k3d/labextension/` is a build artifact and is gitignored, so it does not exist in a
+    source checkout that has not been built yet. Reading it eagerly at module scope made
+    `import k3d` fail outright in that state (and inside any environment where the
+    directory is absent), which broke plain source use and test collection.
+    """
+    try:
+        with (HERE / "labextension" / "package.json").open() as fid:
+            return str(json.load(fid)["name"])
+    except (OSError, ValueError, KeyError):
+        return "k3d"
 
 
 def _jupyter_labextension_paths() -> TypingList[TypingDict[str, str]]:
-    return [{"src": "labextension", "dest": data["name"]}]
+    return [{"src": "labextension", "dest": _labextension_name()}]
 
 
 def _jupyter_nbextension_paths() -> TypingList[TypingDict[str, str]]:

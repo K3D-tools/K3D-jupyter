@@ -130,8 +130,11 @@ module.exports = [
                     { from: './src/core/lib/snapshot_inline.txt' },
                     { from: './node_modules/requirejs/require.js' },
                     { from: './node_modules/fflate/umd/index.js', to: 'fflate.js' },
-                    // Copy package.json to labextension folder
-                    { from: './package.json', to: '../labextension' },
+                    // NOTE: do not copy js/package.json into ../labextension. That directory is
+                    // owned by `jupyter labextension build` (see the root package.json), and its
+                    // package.json carries the jupyterlab._build metadata pointing at
+                    // static/remoteEntry.*.js. Overwriting it strips _build, and JupyterLab then
+                    // silently skips the extension.
                 ],
             }),
             // Custom plugin to copy built standalone.js to other locations

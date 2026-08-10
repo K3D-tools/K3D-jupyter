@@ -34,9 +34,18 @@ def pytest_configure(config):
                  process = subprocess.Popen("npm run build", cwd=js_dir, shell=True)
              else:
                  process = subprocess.Popen(["npm", "run", "build"], cwd=js_dir)
-             process.wait()
+             returncode = process.wait()
         except FileNotFoundError:
              print("Skipping webpack build (npm not found or js dir missing)")
+        else:
+             # A failed build leaves the previous bundle in place, so the whole suite would
+             # silently test stale JS and its pass/fail would say nothing about this commit.
+             if returncode != 0:
+                 pytest.exit(
+                     "webpack build failed (npm run build exited %d) - refusing to run "
+                     "the suite against a stale JS bundle" % returncode,
+                     returncode=1,
+                 )
     else:
         print(f"Skipping webpack build: {js_dir} not found")
 
