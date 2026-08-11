@@ -63,7 +63,9 @@ function mergeColorMapWithOpacity(colormap, opacity, dim) {
         };
     }
 
-    if (!opacity) {
+    // An empty array is truthy, and falling through leaves every stop without an alpha, which
+    // interpolates into a 0 -> 1 ramp instead of staying opaque.
+    if (!opacity || opacity.length === 0) {
         sortedKeys = Object.keys(merged).map(parseFloat).sort((a, b) => a - b);
         opacity = [sortedKeys[0], 1.0, sortedKeys[sortedKeys.length - 1], 1.0];
     }

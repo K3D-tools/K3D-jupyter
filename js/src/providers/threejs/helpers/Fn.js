@@ -199,11 +199,11 @@ module.exports = {
         return heads;
     },
 
-    handleColorMap(geometry, colorMap, colorRange, attributes, material) {
+    handleColorMap(geometry, colorMap, colorRange, attributes, material, opacityFunction) {
         let uvs;
         let i;
 
-        const canvas = createCanvasGradient(colorMap, 1024, 1);
+        const canvas = createCanvasGradient(colorMap, 1024, 1, opacityFunction);
 
         const texture = new THREE.CanvasTexture(
             canvas,

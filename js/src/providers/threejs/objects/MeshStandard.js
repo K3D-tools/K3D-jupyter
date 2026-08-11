@@ -56,6 +56,8 @@ module.exports = {
             const colorRange = config.color_range;
             const colorMap = (config.color_map && config.color_map.data) || null;
             const attribute = (config.attribute && config.attribute.data) || null;
+            const opacityFunction = (config.opacity_function && config.opacity_function.data) || null;
+            const hasOpacityFunction = opacityFunction !== null && opacityFunction.length > 0;
             const triangleAttribute = (config.triangles_attribute && config.triangles_attribute.data) || null;
             const normals = (config.normals && config.normals.data) || null;
             const vertices = (config.vertices && config.vertices.data) || null;
@@ -89,8 +91,8 @@ module.exports = {
             });
 
             if (K3D.parameters.depthPeels === 0) {
-                material.depthWrite = config.opacity === 1.0;
-                material.transparent = config.opacity !== 1.0;
+                material.depthWrite = config.opacity === 1.0 && !hasOpacityFunction;
+                material.transparent = config.opacity !== 1.0 || hasOpacityFunction;
             } else {
                 material.blending = THREE.NoBlending;
                 material.onBeforeCompile = K3D.colorOnBeforeCompile;
@@ -202,7 +204,7 @@ module.exports = {
                 attribute && colorRange && colorMap && attribute.length > 0
                 && colorRange.length > 0 && colorMap.length > 0
             ) {
-                handleColorMap(geometry, colorMap, colorRange, attribute, material);
+                handleColorMap(geometry, colorMap, colorRange, attribute, material, opacityFunction);
                 finish();
             } else if (
                 triangleAttribute && colorRange && colorMap && triangleAttribute.length > 0
@@ -215,7 +217,7 @@ module.exports = {
                     preparedtriangleAttribute[i] = triangleAttribute[Math.floor(i / 3)];
                 }
 
-                handleColorMap(geometry, colorMap, colorRange, preparedtriangleAttribute, material);
+                handleColorMap(geometry, colorMap, colorRange, preparedtriangleAttribute, material, opacityFunction);
                 finish();
             } else if (textureImage && textureFileFormat && uvs) {
                 image = document.createElement('img');
@@ -282,11 +284,21 @@ module.exports = {
                 resolvedChanges.attribute = null;
             }
 
-            if (typeof (changes.color_map) !== 'undefined' && !changes.color_map.timeSeries) {
+            const colorMapChanged = typeof (changes.color_map) !== 'undefined' && !changes.color_map.timeSeries;
+            const opacityFunctionChanged = typeof (changes.opacity_function) !== 'undefined'
+                && !changes.opacity_function.timeSeries;
+
+            if (colorMapChanged || opacityFunctionChanged) {
+                if (opacityFunctionChanged && obj.material.transparent === false) {
+                    return false;
+                }
+
                 const canvas = colorMapHelper.createCanvasGradient(
                     (changes.color_map && changes.color_map.data) || config.color_map.data,
                     1024,
-                    1
+                    1,
+                    (changes.opacity_function && changes.opacity_function.data)
+                        || (config.opacity_function && config.opacity_function.data),
                 );
 
                 obj.material.map.image = canvas;
@@ -294,6 +306,7 @@ module.exports = {
                 obj.material.needsUpdate = true;
 
                 resolvedChanges.color_map = null;
+                resolvedChanges.opacity_function = null;
             }
         }
 
