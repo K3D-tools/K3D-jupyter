@@ -95,7 +95,8 @@ class Line(Drawable):
         actual = proposal["value"].size
         if actual != 0 and required != actual:
             raise TraitError(
-                "colors has wrong size: %s (%s required)" % (actual, required)
+                "colors has wrong size: %s (%s required, one per vertex rather than per segment)"
+                % (actual, required)
             )
         return proposal["value"]
 
@@ -197,7 +198,8 @@ class Lines(Drawable):
         actual = proposal["value"].size
         if actual != 0 and required != actual:
             raise TraitError(
-                "colors has wrong size: %s (%s required)" % (actual, required)
+                "colors has wrong size: %s (%s required, one per vertex rather than per segment)"
+                % (actual, required)
             )
         return proposal["value"]
 
@@ -315,7 +317,7 @@ class Mesh(DrawableWithCallback):
         actual = proposal["value"].size
         if actual != 0 and required != actual:
             raise TraitError(
-                "colors has wrong size: %s (%s required)" % (actual, required)
+                "colors has wrong size: %s (%s required, one per vertex)" % (actual, required)
             )
         return proposal["value"]
 
