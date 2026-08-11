@@ -50,6 +50,14 @@ RUN pip install -r requirements.txt
 RUN pip install pytest pixelmatch flask selenium webdriver-manager scikit-image vtk build twine \
         jupyterlab hatch-jupyter-builder
 
+# The source tree arrives as a bind mount, so this link dangles at build time and resolves once
+# the mount is in place - JupyterLab reads it when the server starts. Doing it here rather than
+# with `jupyter labextension develop` keeps it across containers: `docker compose run --rm` gives
+# a fresh filesystem every time, and without the link every session reports
+# "No version of module k3d is registered".
+RUN mkdir -p /usr/local/share/jupyter/labextensions \
+    && ln -s /opt/app/src/k3d/labextension /usr/local/share/jupyter/labextensions/k3d
+
 WORKDIR /opt/app/src
 
 CMD ["/bin/bash"]

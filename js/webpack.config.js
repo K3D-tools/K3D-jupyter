@@ -137,7 +137,9 @@ module.exports = [
                     // silently skips the extension.
                 ],
             }),
-            // Custom plugin to copy built standalone.js to other locations
+            // Copy standalone.js next to the labextension: the snapshot button loads it from
+            // there to embed into the exported HTML. `jupyter labextension build` cleans that
+            // directory, so this has to run after it - see build:prod in the root package.json.
             {
                 apply: (compiler) => {
                     compiler.hooks.afterEmit.tap('CopyBuildPlugin', (compilation) => {
