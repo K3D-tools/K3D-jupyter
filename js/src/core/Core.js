@@ -1409,6 +1409,11 @@ function K3D(provider, targetDOMNode, parameters) {
      * @memberof K3D.Core
      */
     this.disable = function () {
+        // The autoplay loop reschedules itself through requestAnimationFrame, so it outlives the
+        // instance and keeps driving setTime on a destroyed GUI and a lost GL context. Stop it
+        // before the GUI goes away, since stopAutoPlay relabels its button.
+        self.stopAutoPlay();
+
         this.disabling = true;
         if (this.gui) {
             this.gui.destroy();
