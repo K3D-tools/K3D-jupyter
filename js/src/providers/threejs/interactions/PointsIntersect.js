@@ -75,7 +75,7 @@ module.exports = {
                                 point: worldPoint,
                                 distance: raycaster.ray.origin.distanceTo(worldPoint),
                                 index: triangleIndex
-                            }
+                            };
                         }
                     }
                 }

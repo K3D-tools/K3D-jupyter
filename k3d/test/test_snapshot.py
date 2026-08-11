@@ -46,7 +46,7 @@ class TestBinarySnapshot(unittest.TestCase):
         p.grid = np.array([-1, -1, -1, 1, 1, 1])
         p.camera = np.array(CAMERA, dtype=np.float32)
 
-        self.assertTrue(len(p.get_binary_snapshot()) > 0)
+        self.assertGreater(len(p.get_binary_snapshot()), 0)
 
     def test_preserves_voxel_chunks(self):
         chunk = voxel_chunk(np.ones((2, 2, 2), dtype=np.uint8), coord=[0, 0, 0])
