@@ -74,28 +74,30 @@ For a development installation:
     cd K3D-jupyter
     pip install -e .
 
-Then, if required, JupyterLab installation:
+An editable install does not place the JupyterLab extension in the environment, so register
+the built directory in place:
 
 .. code-block:: bash
 
-    jupyter labextension install ./js
+    jupyter labextension develop --overwrite .
 
 --------------------
 JupyterLab extension
 --------------------
 
-If required, you can install the JupyterLab extension:
-
-.. note::
-    Do not run this within K3D-jupyter directory.
+Nothing has to be installed by hand. The wheel ships a pre-built (federated) extension and
+places it in the environment, where JupyterLab and Notebook 7 discover it on their own.
 
 .. code-block:: bash
 
-    jupyter labextension install @jupyter-widgets/jupyterlab-manager
-    jupyter labextension install k3d
+    jupyter labextension list
 
-.. important::
-    Please notice that support for JupyterLab is still experimental.
+should report ``k3d`` as ``enabled OK``. If it does not, or if the browser console shows
+``No version of module k3d is registered``, see :doc:`frontend`.
+
+.. note::
+    ``jupyter labextension install`` belonged to JupyterLab 2 and 3, where extensions were
+    built from npm sources into the application. That command no longer exists in JupyterLab 4.
 
 .. Links
 .. _PyPi: https://pypi.org/project/k3d/

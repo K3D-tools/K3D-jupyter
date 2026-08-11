@@ -45,4 +45,5 @@ First plot
 
     why
     install
+    frontend
     usage
