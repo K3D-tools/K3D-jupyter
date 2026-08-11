@@ -26,11 +26,12 @@
     "url": "https://github.com/K3D-tools/K3D-jupyter"
   },
   "scripts": {
-    "build": "npm run build:nbextension && npm run build:labextension:dev",
-    "build:prod": "npm run build:labextension && npm run build:nbextension",
+    "build": "npm run install:js && npm run build:nbextension && npm run build:labextension:dev",
+    "build:prod": "npm run install:js && npm run build:labextension && npm run build:nbextension",
     "build:labextension": "jupyter labextension build .",
     "build:labextension:dev": "jupyter labextension build --development True .",
-    "build:nbextension": "cd js && jlpm install && jlpm build",
+    "install:js": "cd js && jlpm install",
+    "build:nbextension": "cd js && jlpm build",
     "clean:labextension": "rimraf k3d/labextension",
     "clean:all": "npm run clean:labextension",
     "install:extension": "jupyter labextension develop --overwrite .",
