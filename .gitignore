@@ -28,3 +28,4 @@ k3d/labextension/
 /docs/source/_static/require.js
 /docs/source/_static/k3d.js
 .yarn
+build.cmd
