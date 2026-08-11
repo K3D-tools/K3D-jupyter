@@ -4,6 +4,7 @@ from .plot_display import PlotDisplayMixin
 from .plot_objects import PlotObjectsMixin
 from .plot_serialization import PlotSerializationMixin
 from .plot_snapshot import PlotSnapshotMixin
+from .plot_time import PlotTimeMixin
 
 
 class Plot(
@@ -12,6 +13,7 @@ class Plot(
     PlotCameraMixin,
     PlotSnapshotMixin,
     PlotSerializationMixin,
+    PlotTimeMixin,
     PlotBase,
 ):
     """

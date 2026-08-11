@@ -61,6 +61,36 @@ function getObjectsWithTimeSeriesAndMinMax(K3D) {
     };
 }
 
+function getTimeSeriesTimes(K3D) {
+    const times = new Set();
+    const world = K3D.getWorld();
+
+    Object.keys(world.ObjectsListJson).forEach((id) => {
+        const obj = world.ObjectsListJson[id];
+
+        Object.keys(obj).forEach((property) => {
+            if (obj[property] && typeof (obj[property].timeSeries) !== 'undefined') {
+                Object.keys(obj[property]).forEach((t) => {
+                    if (!Number.isNaN(parseFloat(t))) {
+                        times.add(parseFloat(t));
+                    }
+                });
+            }
+        });
+    });
+
+    // The trait defaults to an empty array, whose keys would read as times 0, 1, 2...
+    if (!Array.isArray(K3D.parameters.cameraAnimation)) {
+        Object.keys(K3D.parameters.cameraAnimation).forEach((t) => {
+            if (!Number.isNaN(parseFloat(t))) {
+                times.add(parseFloat(t));
+            }
+        });
+    }
+
+    return Array.from(times).sort((a, b) => a - b);
+}
+
 function interpolate(a, b, f, property) {
     let i;
     let interpolated;
@@ -169,6 +199,7 @@ function startAutoPlay(K3D, changeParameters) {
     }
 
     K3D.autoPlayed = true;
+    K3D.dispatch(K3D.events.AUTO_PLAY_CHANGE, true);
 
     const fallbackMaxT = getObjectsWithTimeSeriesAndMinMax(K3D).max;
 
@@ -216,6 +247,7 @@ function stopAutoPlay(K3D) {
     }
 
     K3D.autoPlayed = false;
+    K3D.dispatch(K3D.events.AUTO_PLAY_CHANGE, false);
 
     if (K3D.GUI && K3D.GUI.controls) {
         K3D.GUI.controls.controllersMap.autoPlay.name('Play loop');
@@ -299,6 +331,7 @@ module.exports = {
     },
 
     getObjectsWithTimeSeriesAndMinMax,
+    getTimeSeriesTimes,
 
     timeSeriesGUI(gui, K3D, changeParameters) {
         const obj = {
@@ -308,6 +341,12 @@ module.exports = {
                 } else {
                     startAutoPlay(K3D, changeParameters);
                 }
+            },
+            previousFrame() {
+                changeParameters('time', K3D.stepFrame(-1));
+            },
+            nextFrame() {
+                changeParameters('time', K3D.stepFrame(1));
             },
         };
 
@@ -319,8 +358,24 @@ module.exports = {
 
         gui.controllersMap.time = animationGUI.add(K3D.parameters, 'time').min(0).max(1).name('time')
             .onChange((value) => {
-                K3D.setTime(value);
-                changeParameters('time', value);
+                let time = value;
+
+                // Snapped here rather than in setTime, which the autoplay loop drives with
+                // continuous values.
+                if (!K3D.parameters.timeInterpolation) {
+                    const times = getTimeSeriesTimes(K3D);
+
+                    if (times.length > 0) {
+                        // setValue would fire onChange again; setTime's updateDisplay moves
+                        // the slider instead.
+                        time = times.reduce((closest, t) => (
+                            Math.abs(t - value) < Math.abs(closest - value) ? t : closest
+                        ), times[0]);
+                    }
+                }
+
+                K3D.setTime(time);
+                changeParameters('time', time);
             });
 
         gui.controllersMap.fps = animationGUI.add(K3D.parameters, 'fps').min(0).max(120).name('fps')
@@ -335,6 +390,8 @@ module.exports = {
                 changeParameters('timeSpeed', value);
             });
 
+        gui.controllersMap.previousFrame = animationGUI.add(obj, 'previousFrame').name('Previous frame');
+        gui.controllersMap.nextFrame = animationGUI.add(obj, 'nextFrame').name('Next frame');
         gui.controllersMap.autoPlay = animationGUI.add(obj, 'togglePlay').name('Play loop');
     },
 

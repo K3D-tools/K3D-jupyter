@@ -375,6 +375,39 @@ function K3D(provider, targetDOMNode, parameters) {
         }
     };
 
+    this.getTimeSeriesInfo = function () {
+        const info = timeSeries.getObjectsWithTimeSeriesAndMinMax(self);
+
+        return {
+            min: info.min,
+            max: info.max,
+            times: timeSeries.getTimeSeriesTimes(self),
+        };
+    };
+
+    this.stepFrame = function (step) {
+        const times = timeSeries.getTimeSeriesTimes(self);
+
+        if (times.length === 0) {
+            return self.parameters.time;
+        }
+
+        let nearest = 0;
+
+        for (let i = 1; i < times.length; i++) {
+            if (Math.abs(times[i] - self.parameters.time)
+                < Math.abs(times[nearest] - self.parameters.time)) {
+                nearest = i;
+            }
+        }
+
+        const index = Math.min(Math.max(nearest + step, 0), times.length - 1);
+
+        self.setTime(times[index]);
+
+        return self.parameters.time;
+    };
+
     this.setTimeInterpolation = function (timeInterpolation) {
         self.parameters.timeInterpolation = timeInterpolation;
 
@@ -1207,6 +1240,8 @@ function K3D(provider, targetDOMNode, parameters) {
             GUI.controls.controllersMap.time.updateDisplay();
         }
 
+        dispatch(self.events.TIME_CHANGE, self.parameters.time);
+
         return Promise.all(promises).then(() => self.refreshAfterObjectsChange(true));
     };
 
@@ -1551,6 +1586,10 @@ K3D.prototype.events = {
     OBJECT_HOVERED: 'objectHovered',
     OBJECT_CLICKED: 'objectClicked',
     PARAMETERS_CHANGE: 'parametersChange',
+    // Not PARAMETERS_CHANGE: that one is written back to the model, so a time set from the
+    // kernel would be echoed back. Fires per frame during playback, so listeners stay cheap.
+    TIME_CHANGE: 'timeChange',
+    AUTO_PLAY_CHANGE: 'autoPlayChange',
     VOXELS_CALLBACK: 'voxelsCallback',
     MOUSE_MOVE: 'mouseMove',
     MOUSE_CLICK: 'mouseClick',

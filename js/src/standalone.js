@@ -3,6 +3,7 @@ const fflate = require('fflate');
 const TFEdit = require('./transferFunctionEditor');
 const serialize = require('./core/lib/helpers/serialize');
 const K3D = require('./core/Core');
+const timeSeries = require('./core/lib/timeSeries');
 const ThreeJsProvider = require('./providers/threejs/provider');
 const _ = require('./lodash');
 
@@ -85,6 +86,12 @@ function CreateK3DAndLoadBinarySnapshot(data, targetDOMNode) {
  */
 module.exports = {
     K3D,
+    // Deliberately narrow: public API, not the whole module.
+    timeSeries: {
+        interpolateTimeSeries: timeSeries.interpolateTimeSeries,
+        getObjectsWithTimeSeriesAndMinMax: timeSeries.getObjectsWithTimeSeriesAndMinMax,
+        getTimeSeriesTimes: timeSeries.getTimeSeriesTimes,
+    },
     msgpackDecode,
     serialize,
     CreateK3DAndLoadBinarySnapshot,

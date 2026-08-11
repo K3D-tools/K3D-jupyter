@@ -81,3 +81,17 @@ def test_time_series_unequal_frame_sizes():
 
     # Blending is undefined here, so the nearer keyframe is shown whole.
     compare("time_series_unequal_frame_a", camera_factor=None)
+
+
+def test_stepping_lands_exactly_on_a_keyframe():
+    prepare()
+    pytest.plot += _points(POSITIONS_B)
+
+    compare("time_series_frame_a", camera_factor=None)
+
+    pytest.plot.time = 0.6
+
+    assert pytest.plot.previous_frame() == 0.0
+
+    # Same reference as time 0.0: a step has to land on the frame, not near it.
+    compare("time_series_frame_a", camera_factor=None)
