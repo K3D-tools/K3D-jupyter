@@ -65,6 +65,7 @@ module.exports = function (K3D) {
             world.K3DObjects.children.forEach((obj) => {
                 if (obj.transformControls) {
                     obj.transformControls.detach();
+                    world.scene.remove(obj.transformControls);
                     obj.transformControls.dispose();
                     delete obj.transformControls;
                 }

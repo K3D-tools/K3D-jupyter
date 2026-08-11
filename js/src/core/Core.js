@@ -195,6 +195,14 @@ function K3D(provider, targetDOMNode, parameters) {
                 object.onRemove();
             }
 
+            // Deleting an object in manipulate mode would otherwise leave its gizmo in the scene.
+            if (object.transformControls) {
+                object.transformControls.detach();
+                world.scene.remove(object.transformControls);
+                object.transformControls.dispose();
+                delete object.transformControls;
+            }
+
             // Voxels, vectors and labels nest their meshes in a group, which carries no geometry
             // or material of its own, so disposing only the top level released nothing for them.
             object.traverse((node) => {
