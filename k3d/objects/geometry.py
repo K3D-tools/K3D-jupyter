@@ -237,7 +237,7 @@ class Mesh(DrawableWithCallback):
         opacity: `float`.
             Opacity of mesh.
         volume: `array_like`.
-            3D array of `float`
+            3D array of `float`, indexed as [z, y, x].
         volume_bounds: `array_like`.
             6-element tuple specifying the bounds of the volume data (x0, x1, y0, y1, z0, z1)
         texture: `bytes`.
