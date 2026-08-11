@@ -50,6 +50,14 @@ RUN pip install -r requirements.txt
 RUN pip install pytest pixelmatch flask selenium webdriver-manager scikit-image vtk build twine \
         jupyterlab hatch-jupyter-builder
 
+# `cd docs && make html` needs these. pyvista and SimpleITK are imported by gallery thumbnail
+# scripts, so the build fails on the first one without them rather than skipping the page.
+# make is absent from the slim base image; kept in its own layer so that adding it does not
+# invalidate the pinned Chrome download above.
+RUN apt-get update && apt-get install -y -qq make && rm -rf /var/lib/apt/lists/*
+COPY docs/requirements.txt docs-requirements.txt
+RUN pip install -r docs-requirements.txt
+
 # The source tree arrives as a bind mount, so this link dangles at build time and resolves once
 # the mount is in place - JupyterLab reads it when the server starts. Doing it here rather than
 # with `jupyter labextension develop` keeps it across containers: `docker compose run --rm` gives
