@@ -221,6 +221,7 @@ class PlotView extends widgets.DOMWidgetView {
         ].join(';');
 
         containerEnvelope.appendChild(container);
+        this.el.classList.add('k3d-plot');
         this.el.appendChild(containerEnvelope);
 
         this.container = container;
