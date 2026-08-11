@@ -27,6 +27,7 @@ _PLOT_PARAMS = (
     ("lighting", "lighting"),
     ("time", "time"),
     ("timeSpeed", "time_speed"),
+    ("timeInterpolation", "time_interpolation"),
     ("fpsMeter", "fps_meter"),
     ("cameraMode", "camera_mode"),
     ("depthPeels", "depth_peels"),

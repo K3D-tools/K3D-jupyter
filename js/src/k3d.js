@@ -306,6 +306,7 @@ class PlotView extends widgets.DOMWidgetView {
         this.model.on('change:time', this._setTime, this);
         this.model.on('change:fps', this._setFps, this);
         this.model.on('change:time_speed', this._setTimeSpeed, this);
+        this.model.on('change:time_interpolation', this._setTimeInterpolation, this);
         this.model.on('change:grid_auto_fit', this._setGridAutoFit, this);
         this.model.on('change:grid_visible', this._setGridVisible, this);
         this.model.on('change:grid_color', this._setGridColor, this);
@@ -378,6 +379,7 @@ class PlotView extends widgets.DOMWidgetView {
                 axesHelper: this.model.get('axes_helper'),
                 grid: this.model.get('grid'),
                 fps: this.model.get('fps'),
+                timeInterpolation: this.model.get('time_interpolation'),
                 depthPeels: this.model.get('depth_peels'),
                 autoRendering: this.model.get('auto_rendering'),
                 gridVisible: this.model.get('grid_visible'),
@@ -540,6 +542,10 @@ class PlotView extends widgets.DOMWidgetView {
 
     _setTimeSpeed() {
         this.K3DInstance.setTimeSpeed(this.model.get('time_speed'));
+    };
+
+    _setTimeInterpolation() {
+        this.K3DInstance.setTimeInterpolation(this.model.get('time_interpolation'));
     };
 
 

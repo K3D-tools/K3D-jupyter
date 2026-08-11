@@ -64,8 +64,6 @@ function getObjectsWithTimeSeriesAndMinMax(K3D) {
 function interpolate(a, b, f, property) {
     let i;
     let interpolated;
-    let minLength;
-    let maxLength;
 
     if (property === 'model_matrix') {
         const matrix = new THREE.Matrix4();
@@ -112,12 +110,17 @@ function interpolate(a, b, f, property) {
     }
 
     if (a.data) {
-        minLength = Math.min(a.data.length, b.data.length);
-        maxLength = Math.max(a.data.length, b.data.length);
-        interpolated = new a.data.constructor(maxLength);
+        // Frames of different size cannot be blended: the result would hold maxLength values
+        // while shape still described the earlier frame. Snap to the nearer keyframe so that
+        // data and shape keep describing the same thing.
+        if (a.data.length !== b.data.length) {
+            return (f > 0.5) ? b : a;
+        }
+
+        interpolated = new a.data.constructor(a.data.length);
 
         if (property === 'colors') {
-            for (i = 0; i < minLength; i++) {
+            for (i = 0; i < interpolated.length; i++) {
                 let r1 = (a.data[i] & 255);
                 let r2 = (b.data[i] & 255);
                 let g1 = ((a.data[i] >> 8) & 255);
@@ -132,14 +135,8 @@ function interpolate(a, b, f, property) {
                 interpolated[i] = (bf << 16) | (gf << 8) | rf;
             }
         } else {
-            for (i = 0; i < minLength; i++) {
+            for (i = 0; i < interpolated.length; i++) {
                 interpolated[i] = a.data[i] + f * (b.data[i] - a.data[i]);
-            }
-        }
-
-        if (minLength !== maxLength) {
-            for (i = minLength; i < maxLength; i++) {
-                interpolated[i] = a.data[i] || b.data[i];
             }
         }
 
@@ -149,18 +146,14 @@ function interpolate(a, b, f, property) {
         };
     }
 
-    minLength = Math.min(a.length, b.length);
-    maxLength = Math.max(a.length, b.length);
-    interpolated = Array(maxLength);
+    if (a.length !== b.length) {
+        return (f > 0.5) ? b : a;
+    }
+
+    interpolated = Array(a.length);
 
     for (i = 0; i < interpolated.length; i++) {
         interpolated[i] = a[i] + f * (b[i] - a[i]);
-    }
-
-    if (minLength !== maxLength) {
-        for (i = minLength; i < maxLength; i++) {
-            interpolated[i] = a[i] || b[i];
-        }
     }
 
     return interpolated;
@@ -241,7 +234,7 @@ module.exports = {
         }
     },
 
-    interpolateTimeSeries(json, time) {
+    interpolateTimeSeries(json, time, interpolation = true) {
         const interpolatedJson = {};
         const changes = {};
 
@@ -274,6 +267,12 @@ module.exports = {
                         }
 
                         if (keypoints[i].v > time && i > 0) {
+                            if (!interpolation) {
+                                interpolatedJson[property] = json[property][keypoints[i - 1].k];
+
+                                break;
+                            }
+
                             a = keypoints[i - 1].v;
                             b = keypoints[i].v;
                             f = (time - a) / (b - a);

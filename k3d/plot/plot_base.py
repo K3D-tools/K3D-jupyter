@@ -40,6 +40,7 @@ class PlotBase(widgets.DOMWidget):
     screenshot_scale = Float().tag(sync=True)
     time = Float().tag(sync=True)
     time_speed = Float().tag(sync=True)
+    time_interpolation = Bool(True).tag(sync=True)
     grid = ListOrArray((-1, -1, -1, 1, 1, 1), minlen=6, maxlen=6).tag(sync=True)
     grid_color = Int().tag(sync=True)
     label_color = Int().tag(sync=True)
@@ -97,6 +98,7 @@ class PlotBase(widgets.DOMWidget):
             lighting: float = 1.5,
             time: float = 0.0,
             time_speed: float = 1.0,
+            time_interpolation: bool = True,
             fps_meter: bool = False,
             menu_visibility: bool = True,
             colorbar_object_id: int = -1,
@@ -159,6 +161,7 @@ class PlotBase(widgets.DOMWidget):
         self.lighting = lighting
         self.time = time
         self.time_speed = time_speed
+        self.time_interpolation = time_interpolation
         self.menu_visibility = menu_visibility
         self.colorbar_object_id = colorbar_object_id
         self.slice_viewer_object_id = slice_viewer_object_id

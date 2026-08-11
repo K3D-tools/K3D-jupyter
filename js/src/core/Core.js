@@ -316,6 +316,7 @@ function K3D(provider, targetDOMNode, parameters) {
             fps: 25.0,
             time: 0.0,
             timeSpeed: 1.0,
+            timeInterpolation: true,
             axes: ['x', 'y', 'z'],
             minimumFps: -1,
             cameraNoRotate: false,
@@ -372,6 +373,13 @@ function K3D(provider, targetDOMNode, parameters) {
         if (GUI.controls) {
             GUI.controls.controllersMap.timeSpeed.updateDisplay();
         }
+    };
+
+    this.setTimeInterpolation = function (timeInterpolation) {
+        self.parameters.timeInterpolation = timeInterpolation;
+
+        // Re-apply the current time so the change shows without waiting for the next tick.
+        self.setTime(self.parameters.time);
     };
 
     this.setAdditionalJsCode = function (additionalJsCode) {

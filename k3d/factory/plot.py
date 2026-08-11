@@ -50,6 +50,7 @@ def plot(
         fps_meter: bool = False,
         name: Optional[str] = None,
         time_speed: float = 1.0,
+        time_interpolation: bool = True,
         additional_js_code: str = '',
         custom_data: Optional[TypingDict[str, Any]] = None,
 ) -> Plot:
@@ -95,6 +96,7 @@ def plot(
         fps=fps,
         minimum_fps=minimum_fps,
         time_speed=time_speed,
+        time_interpolation=time_interpolation,
         additional_js_code=additional_js_code,
         fps_meter=fps_meter,
         custom_data=custom_data,

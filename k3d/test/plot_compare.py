@@ -27,6 +27,8 @@ def prepare(depth_peels=0):
     pytest.plot.camera = [2, -3, 0.2, 0.0, 0.0, 0.0, 0, 0, 1]
     pytest.plot.background_color = 0xFFFFFF
     pytest.plot.camera_fov = 60.0
+    pytest.plot.time = 0.0
+    pytest.plot.time_interpolation = True
     pytest.headless.sync(hold_until_refreshed=True)
     pytest.headless.camera_reset()
 

@@ -31,7 +31,9 @@ function loader(K3D, data) {
 
             startTime = new Date().getTime();
 
-            const interpolated = timeSeries.interpolateTimeSeries(json, K3D.parameters.time);
+            const interpolated = timeSeries.interpolateTimeSeries(
+                json, K3D.parameters.time, K3D.parameters.timeInterpolation,
+            );
             const changes = (data.changes && data.changes[i]) || interpolated.changes || {};
 
             if (objectProvider.update && !_.isEmpty(changes)) {
