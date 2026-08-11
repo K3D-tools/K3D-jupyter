@@ -195,17 +195,23 @@ function K3D(provider, targetDOMNode, parameters) {
                 object.onRemove();
             }
 
-            if (object.geometry) {
-                object.geometry.dispose();
-            }
+            // Voxels, vectors and labels nest their meshes in a group, which carries no geometry
+            // or material of its own, so disposing only the top level released nothing for them.
+            object.traverse((node) => {
+                if (node.geometry) {
+                    node.geometry.dispose();
+                }
 
-            if (object.material && object.material.map) {
-                object.material.map.dispose();
-            }
+                if (node.material) {
+                    [].concat(node.material).forEach((material) => {
+                        if (material.map) {
+                            material.map.dispose();
+                        }
 
-            if (object.material) {
-                object.material.dispose();
-            }
+                        material.dispose();
+                    });
+                }
+            });
 
             if (object.mesh) {
                 object.mesh.dispose();
