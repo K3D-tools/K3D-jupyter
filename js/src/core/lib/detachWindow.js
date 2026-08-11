@@ -24,16 +24,13 @@ function detachWindowGUI(gui, K3D) {
             return prev;
         }, []);
 
-        // Capture before disable(), which drops the old instance's subscriptions.
         const previousListeners = K3D.getListeners();
 
         K3D.disable();
         newK3D.load({ objects });
         newK3D.setCamera(K3D.getWorld().controls.getCameraArray());
 
-        // The assign below replaces on/off/dispatch with the new instance's, which close over
-        // a fresh listeners map - so everything registered by PlotView (camera sync, hover and
-        // click callbacks, ...) would silently stop firing after a detach/attach.
+
         newK3D.adoptListeners(previousListeners);
 
         _.assign(K3D, newK3D);

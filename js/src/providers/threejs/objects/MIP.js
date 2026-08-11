@@ -162,7 +162,16 @@ module.exports = {
         object.updateMatrixWorld();
 
         object.onRemove = function () {
+            if (object.material.uniforms.volumeTexture.value) {
+                object.material.uniforms.volumeTexture.value.dispose();
+            }
             object.material.uniforms.volumeTexture.value = undefined;
+
+            if (object.material.uniforms.mask && object.material.uniforms.mask.value) {
+                object.material.uniforms.mask.value.dispose();
+                object.material.uniforms.mask.value = undefined;
+            }
+
             object.material.uniforms.colormap.value.dispose();
             object.material.uniforms.colormap.value = undefined;
             jitterTexture.dispose();
@@ -183,8 +192,13 @@ module.exports = {
         }
 
         if (typeof (changes.volume) !== 'undefined' && !changes.volume.timeSeries) {
-            if (obj.material.uniforms.volumeTexture.value.image.data.constructor === changes.volume.data.constructor) {
-                obj.material.uniforms.volumeTexture.value.image.data = changes.volume.data;
+            const image = obj.material.uniforms.volumeTexture.value.image;
+
+            if (image.data.constructor === changes.volume.data.constructor
+                && image.width === changes.volume.shape[2]
+                && image.height === changes.volume.shape[1]
+                && image.depth === changes.volume.shape[0]) {
+                image.data = changes.volume.data;
                 obj.material.uniforms.volumeTexture.value.needsUpdate = true;
 
                 resolvedChanges.volume = null;

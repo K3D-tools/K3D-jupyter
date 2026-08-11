@@ -43,8 +43,6 @@ if (typeof (sourceCode) === 'undefined') {
             sourceCode = '';
         });
     } catch (e) {
-        // Was `catch (error) { error(...) }`: the caught value shadowed the intended helper
-        // (which this module does not even import), so the handler itself threw a TypeError.
         console.error('K3D: Failed to load source code:', e.message);
         // Fallback to empty source code
         sourceCode = '';
@@ -92,8 +90,6 @@ function handleFileSelect(K3D, evt) {
     HTMLSnapshotReader.onload = function (event) {
         const snapshot = K3D.extractSnapshot(event.target.result);
 
-        // extractSnapshot returns null when the file carries no data assignment at all;
-        // dereferencing [1] blindly threw on any other HTML dropped onto the plot.
         if (snapshot && snapshot[1]) {
             K3D.setSnapshot(snapshot[1]);
         } else {
@@ -102,8 +98,7 @@ function handleFileSelect(K3D, evt) {
     };
 
     BinarySnapshotReader.onload = function (event) {
-        // fflate needs a Uint8Array; handing it the raw ArrayBuffer made every binary drop
-        // fail with 'invalid zlib data'. The view is free - it does not copy the buffer.
+        // fflate needs a Uint8Array, not the raw ArrayBuffer the reader returns.
         K3D.setSnapshot(fflate.unzlibSync(new Uint8Array(event.target.result)));
     };
 

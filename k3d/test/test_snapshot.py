@@ -12,10 +12,8 @@ CAMERA = [3.0, -4.0, 2.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0]
 class TestBinarySnapshot(unittest.TestCase):
     """get_binary_snapshot / load_binary_snapshot round-trips.
 
-    This had no coverage at all: get_binary_snapshot was only called by plot_compare to dump
-    a .k3d artifact when a test failed, and its output was never loaded back. Two asymmetries
-    lived here unnoticed - the saved plot parameters and the chunkList were both dropped on
-    load.
+    Both directions have to stay symmetric: everything the snapshot stores - the objects, the
+    plot parameters and the chunkList - has to come back on load.
     """
 
     @staticmethod
@@ -44,8 +42,6 @@ class TestBinarySnapshot(unittest.TestCase):
             self.assertEqual(restored.get_plot_params()[key], value, msg=key)
 
     def test_accepts_numpy_plot_params(self):
-        # grid/camera are ListOrArray traits and accept ndarrays, but numpy scalars cannot
-        # be msgpack-packed, so export used to raise TypeError.
         p = plot()
         p.grid = np.array([-1, -1, -1, 1, 1, 1])
         p.camera = np.array(CAMERA, dtype=np.float32)

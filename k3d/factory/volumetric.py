@@ -59,8 +59,6 @@ def volume(
     )
 
     if opacity_function is None:
-        # color_map may be a TimeSeries dict, which cannot be sliced; derive the default
-        # ramp from the union of its frames in that case.
         if type(color_map) is dict:
             values = np.concatenate(
                 [np.asarray(frame, np.float32)[::4] for frame in color_map.values()]

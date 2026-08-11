@@ -43,9 +43,6 @@ function CreateK3DAndLoadBinarySnapshot(data, targetDOMNode) {
                 data = decompressData;
             }
 
-            // msgpackDecode used to sit outside the try: on corrupt input it threw inside this
-            // callback, so the surrounding Promise neither resolved nor rejected and the caller
-            // waited forever.
             try {
                 data = msgpackDecode(data);
             } catch (e) {
@@ -75,7 +72,6 @@ function CreateK3DAndLoadBinarySnapshot(data, targetDOMNode) {
                 }, 10);
                 return resolve(K3DInstance);
             }).catch((e) => {
-                // Without this a rejected setSnapshot left the outer Promise pending forever.
                 console.error('K3D: failed to apply snapshot', e);
                 return reject(e);
             });

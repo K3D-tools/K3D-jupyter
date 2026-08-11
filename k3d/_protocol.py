@@ -7,8 +7,6 @@ if sys.version_info >= (3, 8):
 
     ProtocolName = Literal["text", "binary"]
 else:
-    # typing.Literal was added in Python 3.8; on 3.7 fall back to plain str so that
-    # `import k3d` keeps working. Type checkers run on 3.8+ and still get the narrowing.
     ProtocolName = str
 
 _protocol: ProtocolName = "binary"

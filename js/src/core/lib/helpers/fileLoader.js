@@ -1,9 +1,8 @@
 /**
  * Fetch a URL and hand the response to `callback`.
  *
- * `onError` is optional but real: callers (snapshot.js) always passed a third argument that
- * could never fire, because this used to invoke `callback` for every finished request no
- * matter the HTTP status - so a 404 was delivered as if it were the file.
+ * `callback` runs only for a successful response; an error status goes to `onError`, so a 404
+ * body is never mistaken for the file.
  *
  * @param {String} url
  * @param {Function} callback  called with the response body on success

@@ -154,8 +154,6 @@ class Lines(Drawable):
     vertices = TimeSeries(Array(dtype=np.float32)).tag(
         sync=True, **array_serialization_wrap("vertices")
     )
-    # Vertex indices are integers; float32 cannot represent values above 2^24 exactly, so
-    # large indices silently collided. Matches Mesh.indices.
     indices = Array(dtype=np.uint32).tag(
         sync=True, **array_serialization_wrap("indices")
     )
@@ -292,9 +290,6 @@ class Mesh(DrawableWithCallback):
         sync=True, **array_serialization_wrap("texture")
     )
     texture_file_format = Unicode(allow_none=True).tag(sync=True)
-    # dtype matters here: with a bare Array() a TimeSeries dict is coerced into a 0-d
-    # object array, which to_json then cannot walk (it indexes the array with the frame
-    # key). Texture coordinates are floats anyway, so pin float32 like the sibling traits.
     uvs = TimeSeries(Array(dtype=np.float32)).tag(
         sync=True, **array_serialization_wrap("uvs")
     )

@@ -236,10 +236,6 @@ class PlotView extends widgets.DOMWidgetView {
         this.K3DInstance.off(this.K3DInstance.events.OBJECT_HOVERED, this.objectHoverCallback);
         this.K3DInstance.off(this.K3DInstance.events.OBJECT_CLICKED, this.objectClickCallback);
 
-        // _init binds ~45 handlers on the model ('msg:custom' plus every change:*), all with
-        // this view as context. They are registered directly rather than via listenTo, so
-        // nothing else drops them: the view, its K3D instance and the whole WebGL scene stayed
-        // reachable, and each subsequent trait change still ran the dead view's handler.
         this.model.off(null, null, this);
 
         if (this.cameraSyncTimeout !== null && typeof this.cameraSyncTimeout !== 'undefined') {
@@ -426,10 +422,6 @@ class PlotView extends widgets.DOMWidgetView {
                 return;
             }
 
-            // Trailing edge. The leading-edge-only throttle dropped every event inside the
-            // window, and the last event of an interaction almost always falls there - so the
-            // final camera position never reached Python. At most one timer is pending, so a
-            // drag does not allocate per frame.
             self.pendingCamera = control;
 
             if (self.cameraSyncTimeout === null) {

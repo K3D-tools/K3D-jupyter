@@ -38,8 +38,6 @@ def pytest_configure(config):
         except FileNotFoundError:
              print("Skipping webpack build (npm not found or js dir missing)")
         else:
-             # A failed build leaves the previous bundle in place, so the whole suite would
-             # silently test stale JS and its pass/fail would say nothing about this commit.
              if returncode != 0:
                  pytest.exit(
                      "webpack build failed (npm run build exited %d) - refusing to run "

@@ -115,6 +115,20 @@ module.exports = {
 
         object.updateMatrixWorld();
 
+        object.onRemove = function () {
+            const { uniforms } = object.material;
+
+            if (uniforms.volumeTexture && uniforms.volumeTexture.value) {
+                uniforms.volumeTexture.value.dispose();
+                uniforms.volumeTexture.value = undefined;
+            }
+
+            if (uniforms.colormap && uniforms.colormap.value) {
+                uniforms.colormap.value.dispose();
+                uniforms.colormap.value = undefined;
+            }
+        };
+
         return Promise.resolve(object);
     },
 

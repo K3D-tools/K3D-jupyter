@@ -241,6 +241,7 @@ module.exports = function (K3D) {
             self.renderer.domElement.removeEventListener('pointermove', onDocumentMouseMove);
             self.renderer.domElement.removeEventListener('pointerdown', onDocumentMouseDown);
             self.renderer.domElement.removeEventListener('pointerup', onDocumentMouseUp);
+            window.removeEventListener('visibilitychange', onVisibilityChange);
             self.controls.dispose();
 
             return;
@@ -264,7 +265,8 @@ module.exports = function (K3D) {
     function onDocumentMouseUp(event) {
         const coordinate = getCoordinate(event);
 
-        if (mouseCoordOnDown.x === coordinate.x && mouseCoordOnDown.y === coordinate.y) {
+        if (mouseCoordOnDown
+            && mouseCoordOnDown.x === coordinate.x && mouseCoordOnDown.y === coordinate.y) {
             K3D.dispatch(K3D.events.MOUSE_CLICK, coordinate);
         }
     }
@@ -288,9 +290,11 @@ module.exports = function (K3D) {
         }
     });
 
-    window.addEventListener('visibilitychange', () => {
+    function onVisibilityChange() {
         lastFrameTime = null;
-    });
+    }
+
+    window.addEventListener('visibilitychange', onVisibilityChange);
 
     this.changeControls = function (force) {
         if (self.controls.type === K3D.parameters.cameraMode && !force) {

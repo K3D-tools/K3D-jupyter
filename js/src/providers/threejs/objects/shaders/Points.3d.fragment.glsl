@@ -11,6 +11,10 @@ uniform mat4 projectionMatrix;
 varying vec4 vColor;
 varying vec4 mvPosition;
 
+#if (USE_PER_POINT_SIZE == 1)
+varying float vPointSize;
+#endif
+
 void main(void)
 {
     #include <clipping_planes_fragment>
@@ -21,7 +25,12 @@ void main(void)
     if (distanceFromCenter > 1.0) discard;
 
     float normalizedDepth = sqrt(1.0 - distanceFromCenter * distanceFromCenter);
+
+    #if (USE_PER_POINT_SIZE == 1)
+    float depthOfFragment = normalizedDepth * vPointSize * 0.5;
+    #else
     float depthOfFragment = normalizedDepth * size * 0.5;
+    #endif
 
     vec4 pos = vec4(mvPosition.xyz, 1.0);
     pos.z += depthOfFragment;

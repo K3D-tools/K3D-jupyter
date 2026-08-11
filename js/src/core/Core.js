@@ -113,7 +113,8 @@ function K3D(provider, targetDOMNode, parameters) {
 
             if (fullscreen.isAvailable()) {
                 // Keep the remover: initializeGUI runs again every time the menu is re-shown,
-                // and the listener sits on the main window holding on to this instance.
+                // and the listener it installs sits on the main window and captures this
+                // instance.
                 removeFullscreenListener = fullscreen.initialize(
                     world.targetDOMNode, GUI.controls, currentWindow, self,
                 );
@@ -531,9 +532,9 @@ function K3D(provider, targetDOMNode, parameters) {
                 removeFullscreenListener = null;
             }
 
-            // Drop the per-object OBJECT_REMOVED listeners before losing the map that holds
-            // their ids. Left registered they threw on the next removal, and every orphan
-            // added work to each subsequent dispatch.
+            // Drop the per-object OBJECT_REMOVED listeners while their ids are still
+            // reachable: each one looks its folder up in gui_map, and every listener left
+            // behind also costs work on every later dispatch.
             Object.keys(self.gui_map).forEach((id) => {
                 const folder = self.gui_map[id];
 
@@ -1054,8 +1055,8 @@ function K3D(provider, targetDOMNode, parameters) {
 
     /**
      * Current event subscriptions, so a replacement instance can take them over.
-     * Used by detachWindow, which builds a new Core and copies it onto the old object -
-     * without this the subscriptions made on the original instance silently stop firing.
+     * detachWindow builds a new Core and copies it onto the old object; its on/off/dispatch
+     * close over a fresh listeners map, so the subscriptions have to be carried across.
      * @memberof K3D.Core
      * @returns {Object}
      */
@@ -1197,9 +1198,6 @@ function K3D(provider, targetDOMNode, parameters) {
     this.load = function (json) {
         return loader(self, json).then((objects) => {
             objects.forEach((object) => {
-                // Loader yields null for an object it failed to create (already reported).
-                // Skipping here beats throwing on object.json and losing the whole batch;
-                // an in-loop guard avoids allocating a filtered copy on this path.
                 if (!object) { return; }
 
                 objectsGUIProvider.update(self, object.json, GUI.objects, null);
@@ -1253,7 +1251,7 @@ function K3D(provider, targetDOMNode, parameters) {
 
         return loader(self, data).then((objects) => {
             objects.forEach((object) => {
-                if (!object) { return; }  // failed to create; already reported by the Loader
+                if (!object) { return; }  // Loader could not create it; already reported
 
                 if (timeSeriesReload !== true) {
                     objectsGUIProvider.update(self, object.json, GUI.objects, changes);
@@ -1397,8 +1395,6 @@ function K3D(provider, targetDOMNode, parameters) {
      * @returns {Object|undefined}
      */
     this.extractSnapshot = function (data) {
-        // Inline snapshots name the variable data_<id>, so accept that spelling too;
-        // matching only `var data = ...` made k3d's own inline snapshots unloadable.
         return data.match(/var data(?:_[^\s=]+)? = '(.+)';/mi);
     };
 
@@ -1421,9 +1417,6 @@ function K3D(provider, targetDOMNode, parameters) {
 
         if (fpsMeter) {
             fpsMeter.domElement.remove();
-            // Must be nulled, not just detached: the rAF loop in setFpsMeter keeps
-            // re-scheduling itself for as long as this variable is truthy, so a disabled plot
-            // otherwise burns a frame callback forever.
             fpsMeter = null;
         }
 

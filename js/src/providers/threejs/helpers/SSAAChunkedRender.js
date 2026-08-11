@@ -156,6 +156,8 @@ module.exports = function (renderer, scene, camera, rt, fullWidth, fullHeight, c
             renderer.autoClear = autoClear;
             renderer.setClearColor(oldClearColor, oldClearAlpha);
             sampleRenderTarget.dispose();
+            copyMaterial.dispose();
+            quad2.geometry.dispose();
 
             resolve(fullresImage);
         });

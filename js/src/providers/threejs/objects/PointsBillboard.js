@@ -194,6 +194,7 @@ module.exports = {
         }
 
         if (typeof (changes.colors) !== 'undefined' && !changes.colors.timeSeries
+            && obj.geometry.attributes.color
             && changes.colors.data.length === obj.geometry.attributes.color.array.length / 3) {
             obj.geometry.attributes.color.array.set(colorsToFloat32Array(changes.colors.data));
             obj.geometry.attributes.color.needsUpdate = true;

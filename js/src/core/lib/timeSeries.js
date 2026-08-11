@@ -4,10 +4,6 @@ const THREE = require('three');
 const _ = require('../../lodash');
 const { pow10ceil } = require('./helpers/math');
 
-// Per-plot animation state lives on the K3D instance, not in module scope: these used to be
-// module globals, so two plots in one notebook shared one startTick and one animationGUI -
-// each plot's autoplay reset the other's clock and hid the other's folder.
-
 function clone(val) {
     if (typeof (val) === 'object') {
         if (val.data) {
@@ -181,9 +177,6 @@ function startAutoPlay(K3D, changeParameters) {
 
     K3D.autoPlayed = true;
 
-    // Loop length without the GUI. Resolved once here rather than per frame: with
-    // menu_visibility=False there is no controllersMap to read, and scanning the objects on
-    // every frame would be far too costly for the render loop.
     const fallbackMaxT = getObjectsWithTimeSeriesAndMinMax(K3D).max;
 
     function loop(time) {
@@ -231,8 +224,6 @@ function stopAutoPlay(K3D) {
 
     K3D.autoPlayed = false;
 
-    // Reachable from Python via the start_auto_play/stop_auto_play messages, which do not
-    // require a visible menu - so the GUI may legitimately be absent here.
     if (K3D.GUI && K3D.GUI.controls) {
         K3D.GUI.controls.controllersMap.autoPlay.name('Play loop');
     }

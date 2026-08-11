@@ -132,9 +132,6 @@ class PlotBase(widgets.DOMWidget):
             *args: Any,
             **kwargs: Any,
     ) -> None:
-        # Forward to HasTraits so that synced traits without an explicit parameter here
-        # (camera, clipping_planes, camera_animation, hidden_object_ids, ...) can be set at
-        # construction, and so a misspelled name raises instead of being silently dropped.
         super().__init__(*args, **kwargs)
 
         if axes is None:
@@ -186,7 +183,7 @@ class PlotBase(widgets.DOMWidget):
         self.camera_mode = camera_mode
         self.manipulate_mode = manipulate_mode
         self.auto_rendering = auto_rendering
-        if "camera" not in kwargs:  # do not clobber a camera passed to the constructor
+        if "camera" not in kwargs:
             self.camera = []
         self.depth_peels = depth_peels
         self.custom_data = custom_data
@@ -198,6 +195,6 @@ class PlotBase(widgets.DOMWidget):
             self.hidden_object_ids = []
 
         self.outputs: TypingList[widgets.Output] = []
-        # Populated by load_binary_snapshot; initialised here so that reading it before any
-        # load does not raise AttributeError and so get_binary_snapshot can default to it.
+        # Populated by load_binary_snapshot. Initialised here so it can be read before any
+        # load and so get_binary_snapshot can default to it.
         self.voxel_chunks: TypingList[Any] = []

@@ -43,6 +43,7 @@ function create(config, K3D) {
     let positions = [];
     let attribute = [];
     let colors = [];
+    const edgeVertices = [];
 
     const verticesCount = vertices.length / 3;
 
@@ -73,6 +74,8 @@ function create(config, K3D) {
 
                 const o1 = offsets[j][0] * 3;
                 const o2 = offsets[j][1] * 3;
+
+                edgeVertices.push(offsets[j][0], offsets[j][1]);
 
                 positions.push(
                     vertices[o1],
@@ -139,6 +142,9 @@ function create(config, K3D) {
     object.userData.lastPositions = new Float32Array(positions);
     object.userData.lastUVs = uvs;
     object.userData.lastColors = verticesColors;
+    object.userData.edgeVertices = new Uint32Array(edgeVertices);
+    object.userData.attributeLength = attr ? attr.length : 0;
+    object.userData.verticesLength = vertices.length;
 
     modelMatrix.set.apply(modelMatrix, config.model_matrix.data);
     object.applyMatrix4(modelMatrix);
@@ -168,40 +174,67 @@ function update(config, changes, obj, K3D) {
     const colors = obj.userData.lastColors;
     const resolvedChanges = {};
 
+    let uvsRecomputed = false;
+
     if (typeof (obj.geometry.attributes.uv) !== 'undefined') {
-        if (typeof (changes.color_range) !== 'undefined' && !changes.color_range.timeSeries) {
-            obj.material.uniforms.low.value = changes.color_range[0];
-            obj.material.uniforms.high.value = changes.color_range[1];
+        const source = obj.userData.edgeVertices;
+        const renormalise = (attribute, range) => {
+            const low = range[0];
+            const span = range[1] - low;
 
-            resolvedChanges.color_range = null;
-        }
-
-        if (typeof (changes.attribute) !== 'undefined' && !changes.attribute.timeSeries) {
-            if (changes.attribute.data.length !== obj.geometry.attributes.uv.array.length) {
-                return false;
-            }
-
-            uvs = new Float32Array(changes.attribute.data.length);
+            uvs = new Float32Array(source.length);
 
             for (let i = 0; i < uvs.length; i++) {
-                uvs[i] = (changes.attribute.data[i] - config.color_range[0])
-                    / (config.color_range[1] - config.color_range[0]);
+                uvs[i] = (attribute[source[i]] - low) / span;
             }
 
             obj.userData.lastUVs = uvs;
+            uvsRecomputed = true;
+        };
+
+        if (typeof (changes.color_range) !== 'undefined' && !changes.color_range.timeSeries) {
+            const attribute = (config.attribute && config.attribute.data) || null;
+
+            if (source && attribute && attribute.length === obj.userData.attributeLength) {
+                renormalise(attribute, changes.color_range);
+                resolvedChanges.color_range = null;
+            }
+        }
+
+        if (typeof (changes.attribute) !== 'undefined' && !changes.attribute.timeSeries) {
+            if (!source || changes.attribute.data.length !== obj.userData.attributeLength) {
+                return false;
+            }
+
+            renormalise(changes.attribute.data, config.color_range);
         }
     }
 
     if (typeof (changes.vertices) !== 'undefined' && !changes.vertices.timeSeries) {
-        if (changes.vertices.data.length !== positions.length) {
+        const map = obj.userData.edgeVertices;
+
+        if (!map || changes.vertices.data.length !== obj.userData.verticesLength) {
             return false;
         }
 
-        positions = changes.vertices.data;
+        const incoming = changes.vertices.data;
+
+        positions = new Float32Array(map.length * 3);
+
+        for (let i = 0; i < map.length; i++) {
+            const from = map[i] * 3;
+            const to = i * 3;
+
+            positions[to] = incoming[from];
+            positions[to + 1] = incoming[from + 1];
+            positions[to + 2] = incoming[from + 2];
+        }
+
         obj.userData.lastPositions = positions;
     }
 
-    if (typeof (changes.attribute) !== 'undefined' || typeof (changes.vertices) !== 'undefined') {
+    if (uvsRecomputed || typeof (changes.attribute) !== 'undefined'
+        || typeof (changes.vertices) !== 'undefined') {
         obj.userData.meshLine.setGeometry(positions, true, null, colors, uvs);
         obj.geometry.attributes.position.needsUpdate = true;
 

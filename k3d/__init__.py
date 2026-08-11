@@ -24,10 +24,8 @@ HERE = Path(__file__).parent.resolve()
 def _labextension_name() -> str:
     """Name of the built labextension, falling back to the package name.
 
-    `k3d/labextension/` is a build artifact and is gitignored, so it does not exist in a
-    source checkout that has not been built yet. Reading it eagerly at module scope made
-    `import k3d` fail outright in that state (and inside any environment where the
-    directory is absent), which broke plain source use and test collection.
+    `k3d/labextension/` is a build artifact and is gitignored, so it is absent in a source
+    checkout that has not been built yet - hence the lazy read and the fallback.
     """
     try:
         with (HERE / "labextension" / "package.json").open() as fid:

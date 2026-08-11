@@ -395,13 +395,14 @@ module.exports = function (THREE) {
         }
 
         function onPointerUp(event) {
-            if (scope.enabled === false) return;
-
-            if (event.pointerType === 'touch') {
-                onTouchEnd(event);
-            } else {
-                onMouseUp();
+            if (scope.enabled !== false) {
+                if (event.pointerType === 'touch') {
+                    onTouchEnd(event);
+                } else {
+                    onMouseUp();
+                }
             }
+
             removePointer(event);
 
             if (scope._pointers.length === 0) {
@@ -419,7 +420,7 @@ module.exports = function (THREE) {
         function keydown(event) {
             if (scope.enabled === false) return;
 
-            currentWindow.removeEventListener('keydown', keydown);
+            currentDocument.removeEventListener('keydown', keydown);
 
             if (_keyState !== STATE.NONE) {
                 // nothing
@@ -437,7 +438,7 @@ module.exports = function (THREE) {
 
             _keyState = STATE.NONE;
 
-            currentWindow.addEventListener('keydown', keydown);
+            currentDocument.addEventListener('keydown', keydown);
         }
 
         function onMouseDown(event) {
@@ -530,18 +531,18 @@ module.exports = function (THREE) {
             switch (scope._pointers.length) {
                 case 1:
                     _state = STATE.TOUCH_ROTATE;
-                    _moveCurr.copy(getMouseOnCircle(scope._pointers[0].pageX, scope._pointers[0].pageY));
+                    _moveCurr.copy(getMouseOnCircle(scope._pointers[0].offsetX, scope._pointers[0].offsetY));
                     _movePrev.copy(_moveCurr);
                     break;
 
                 default: // 2 or more
                     _state = STATE.TOUCH_ZOOM_PAN;
-                    const dx = scope._pointers[0].pageX - scope._pointers[1].pageX;
-                    const dy = scope._pointers[0].pageY - scope._pointers[1].pageY;
+                    const dx = scope._pointers[0].offsetX - scope._pointers[1].offsetX;
+                    const dy = scope._pointers[0].offsetY - scope._pointers[1].offsetY;
                     _touchZoomDistanceEnd = _touchZoomDistanceStart = Math.sqrt(dx * dx + dy * dy);
 
-                    const x = (scope._pointers[0].pageX + scope._pointers[1].pageX) / 2;
-                    const y = (scope._pointers[0].pageY + scope._pointers[1].pageY) / 2;
+                    const x = (scope._pointers[0].offsetX + scope._pointers[1].offsetX) / 2;
+                    const y = (scope._pointers[0].offsetY + scope._pointers[1].offsetY) / 2;
                     _panStart.copy(getMouseOnScreen(x, y));
                     _panEnd.copy(_panStart);
                     break;

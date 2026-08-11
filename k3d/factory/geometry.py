@@ -538,8 +538,6 @@ def surface(
     color_map = (
         np.array(color_map, np.float32) if type(color_map) is not dict else color_map
     )
-    # Surface.attribute is a TimeSeries trait, so a dict is a valid animated value and must
-    # be passed through instead of fed to np.array (which raises on dicts).
     attribute = (
         np.array(attribute, np.float32) if type(attribute) is not dict else attribute
     )

@@ -1,14 +1,14 @@
 """Guard the `requires-python = ">=3.7"` claim in pyproject.toml.
 
-The package advertises Python 3.7 support but CI runs newer interpreters, so nothing otherwise
-stops a 3.8+-only construct from slipping in and breaking `import k3d` on 3.7 (this happened
-once already with `typing.Literal`). These checks need no 3.7 interpreter: they parse the
-sources with `feature_version=(3, 7)` and inspect imports.
+The package advertises Python 3.7 support but CI runs newer interpreters, so nothing else
+stops a 3.8+-only construct from slipping in and breaking `import k3d` on 3.7. These checks
+need no 3.7 interpreter: they parse the sources with `feature_version=(3, 7)` and inspect
+imports.
 
-Version-guarded imports are fine and must not be flagged - that is exactly how
-`k3d/_protocol.py` keeps `typing.Literal` while still importing on 3.7. So the import check is
-AST-based rather than a text search: an import only counts if it executes unconditionally,
-i.e. it is not inside an `if sys.version_info ...` branch or a `try/except ImportError`.
+Version-guarded imports are fine and must not be flagged - that is how `k3d/_protocol.py`
+keeps `typing.Literal` while still importing on 3.7. Hence the AST-based import check rather
+than a text search: an import only counts if it executes unconditionally, i.e. it is not
+inside an `if sys.version_info ...` branch or a `try/except ImportError`.
 
 If the project ever drops 3.7, delete this file and raise requires-python instead.
 """
@@ -137,7 +137,6 @@ def _unguarded_post_37_imports(tree):
 
 
 def test_sources_were_found():
-    # A silently empty file list would make every check below pass vacuously.
     assert len(SOURCES) > 10, SOURCES
 
 

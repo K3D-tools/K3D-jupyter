@@ -26,8 +26,6 @@ _PLOT_PARAMS = (
     ("clippingPlanes", "clipping_planes"),
     ("lighting", "lighting"),
     ("time", "time"),
-    # camelCase like every other key: Core.js defines and consumes `timeSpeed`, so the
-    # snake_case spelling was merged as an unused extra property and the setting never applied.
     ("timeSpeed", "time_speed"),
     ("fpsMeter", "fps_meter"),
     ("cameraMode", "camera_mode"),
@@ -63,9 +61,8 @@ _PLOT_PARAMS = (
 def _msgpack_safe(value: Any) -> Any:
     """Return `value` with numpy types replaced by plain Python equivalents.
 
-    The grid/camera/clipping_planes traits are ListOrArray and accept ndarrays, but casting
-    one to a list leaves numpy scalars behind, and msgpack cannot pack those - snapshot
-    export raised `TypeError: can not serialize 'numpy.int64' object`.
+    The grid/camera/clipping_planes traits are ListOrArray and accept ndarrays, and casting one
+    to a list leaves numpy scalars behind, which msgpack cannot pack.
     """
     if isinstance(value, np.ndarray):
         return value.tolist()
@@ -122,9 +119,9 @@ class PlotSnapshotMixin:
     ) -> Callable[[], None]:
         """Decorator for a generator function receiving snapshots via yield.
 
-        The generator receives the HTML document as a `str`. Unlike screenshots, the frontend
-        stores this trait as raw HTML (js/src/k3d.js sets it from getHTMLSnapshot), so it must
-        not be base64-decoded - doing so produced mojibake or raised binascii.Error.
+        The generator receives the HTML document as a `str`: unlike screenshots, the frontend
+        stores this trait as raw HTML (js/src/k3d.js sets it from getHTMLSnapshot), so there is
+        nothing to base64-decode.
         """
 
         @wraps(generator_function)
@@ -150,8 +147,6 @@ class PlotSnapshotMixin:
         import msgpack
 
         if voxel_chunks is None:
-            # Default to the chunks a previous load_binary_snapshot left on the plot, so the
-            # natural load -> save round-trip no longer silently drops chunkList data.
             voxel_chunks = getattr(self, "voxel_chunks", [])
         snapshot = self.get_binary_snapshot_objects(voxel_chunks)
         snapshot["plot"] = self.get_plot_params()
@@ -166,9 +161,6 @@ class PlotSnapshotMixin:
         data = msgpack.unpackb(zlib.decompress(data))
         self.voxel_chunks = []
         if "plot" in data.keys():
-            # get_binary_snapshot stores these; without restoring them a round-trip reverted
-            # camera, colors, grid and every other setting to defaults, while the JS
-            # standalone viewer reading the same bytes honoured them.
             self.set_plot_params(data["plot"])
         if "objects" in data.keys():
             for o in data["objects"]:
@@ -272,7 +264,7 @@ class PlotSnapshotMixin:
     def set_plot_params(self, params: TypingDict[str, Any]) -> None:
         """Apply settings produced by get_plot_params. Unknown keys are ignored."""
         by_key = dict(_PLOT_PARAMS)
-        # Snapshots written before timeSpeed was corrected carry the snake_case key.
+        # Snapshots written by older versions carry the snake_case spelling of timeSpeed.
         by_key.setdefault("time_speed", "time_speed")
 
         for key, value in params.items():

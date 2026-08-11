@@ -323,7 +323,7 @@ module.exports = {
 
             obj.material.needsUpdate = true;
 
-            resolvedChanges.opacity = null;
+            resolvedChanges.shininess = null;
         }
     },
 

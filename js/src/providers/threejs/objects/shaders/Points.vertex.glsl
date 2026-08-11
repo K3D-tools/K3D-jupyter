@@ -9,6 +9,7 @@ attribute float opacities;
 
 #if (USE_PER_POINT_SIZE == 1)
 attribute float sizes;
+varying float vPointSize;
 #endif
 
 #if (USE_COLOR_MAP == 1)
@@ -35,6 +36,7 @@ void main() {
 
     #if (USE_PER_POINT_SIZE == 1)
     gl_PointSize = sizes * (scale / -mvPosition.z) / fovCorrection;
+    vPointSize = sizes;
     #else
     gl_PointSize = size * (scale / -mvPosition.z) / fovCorrection;
     #endif

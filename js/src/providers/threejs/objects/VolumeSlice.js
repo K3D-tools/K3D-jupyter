@@ -248,6 +248,30 @@ module.exports = {
 
         interactionsHelper.init(config, object, K3D, interactionsVolumeSlice);
 
+        object.onRemove = function () {
+            const { uniforms } = object.material;
+
+            ['volumeTexture', 'mask', 'colormap', 'activeMasks', 'maskColors'].forEach((name) => {
+                const uniform = uniforms[name];
+
+                if (!uniform || !uniform.value) {
+                    return;
+                }
+
+                if (Array.isArray(uniform.value)) {
+                    uniform.value.forEach((texture) => {
+                        if (texture && texture.dispose) {
+                            texture.dispose();
+                        }
+                    });
+                } else if (uniform.value.dispose) {
+                    uniform.value.dispose();
+                }
+
+                uniform.value = undefined;
+            });
+        };
+
         return Promise.resolve(object);
     },
 
@@ -321,8 +345,10 @@ module.exports = {
         }
 
         if (typeof (changes.mask) !== 'undefined' && !changes.mask.timeSeries) {
-            if (obj.material.uniforms.mask.value.image.data.length > 0
-                && obj.material.uniforms.mask.value.image.data.constructor === changes.mask.data.constructor) {
+            const maskValue = obj.material.uniforms.mask.value;
+
+            if (maskValue && maskValue.image && maskValue.image.data.length > 0
+                && maskValue.image.data.constructor === changes.mask.data.constructor) {
                 obj.material.uniforms.mask.value.image.data = changes.mask.data;
                 obj.material.uniforms.mask.value.needsUpdate = true;
 

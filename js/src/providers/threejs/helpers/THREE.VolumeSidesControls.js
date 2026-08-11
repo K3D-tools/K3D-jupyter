@@ -605,6 +605,8 @@ module.exports = function (THREE) {
         // listeners
 
         function onPointerDown(event) {
+            if (scope.enabled === false) return;
+
             if (_pointers.length === 0) {
                 scope.domElement.setPointerCapture(event.pointerId);
             }
@@ -620,6 +622,8 @@ module.exports = function (THREE) {
         }
 
         function onPointerMove(event) {
+            if (scope.enabled === false) return;
+
             if (event.pointerType === 'touch') {
                 onTouchMove(event);
             } else {
@@ -736,6 +740,8 @@ module.exports = function (THREE) {
         }
 
         function onMouseWheel(event) {
+            if (scope.enabled === false) return;
+
             event.preventDefault();
 
             switch (event.deltaMode) {
@@ -772,6 +778,10 @@ module.exports = function (THREE) {
 
             scope.domElement.removeEventListener('pointermove', onPointerMove);
             scope.domElement.removeEventListener('pointerup', onPointerUp);
+
+            if (trackBall && trackBall.dispose) {
+                trackBall.dispose();
+            }
         };
 
         this.domElement.addEventListener('pointerdown', onPointerDown);

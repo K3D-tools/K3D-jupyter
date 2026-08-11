@@ -150,9 +150,8 @@ function update(K3D, json, GUI, changes) {
             const folder = K3D.gui_map[json.id];
 
             if (!folder) {
-                // setMenuVisibility(false) destroys the GUI and resets gui_map but used to
-                // leave this listener registered; destructuring the missing entry then threw
-                // synchronously inside Core.removeObject. Drop the stale listener instead.
+                // The GUI can be torn down while this listener is still registered
+                // (setMenuVisibility(false) clears gui_map), so there is nothing to destroy.
                 K3D.off(K3D.events.OBJECT_REMOVED, listenerId);
                 return;
             }
@@ -177,8 +176,7 @@ function update(K3D, json, GUI, changes) {
     const defaultParams = ['visible', 'outlines', 'wireframe', 'flat_shading', 'use_head', 'head_size', 'line_width',
         'scale', 'font_size', 'font_weight', 'size', 'point_size', 'level', 'samples', 'alpha_coef', 'gradient_step',
         'shadow_delay', 'focal_length', 'focal_plane', 'on_top', 'max_length', 'label_box', 'is_html',
-        // These were one comma-joined string, so indexOf() never matched either name and
-        // neither parameter ever got a GUI controller.
+        // One entry per parameter - these are matched with indexOf().
         'shininess', 'mask_opacity'];
 
     const availableParams = defaultParams.concat(['color', 'origin_color', 'origin_color', 'head_color',
@@ -284,10 +282,6 @@ function update(K3D, json, GUI, changes) {
                     );
                 }
             } else if (json.type === 'Line') {
-                // The last two conditions used to read json.colors.color_range /
-                // json.colors.color_map - properties of the wrong object. For a widget-created
-                // line color_range is always defined (default []), so the test never held and
-                // the colour picker never appeared.
                 if ((typeof (json.colors) === 'undefined' || json.colors.length === 0)
                     && (typeof (json.attribute) === 'undefined' || json.attribute.length === 0)
                     && (typeof (json.color_range) === 'undefined' || json.color_range.length === 0)

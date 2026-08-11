@@ -313,7 +313,16 @@ module.exports = {
                 quadRTT.material.uniforms.volumeTexture.value = undefined;
             }
 
+            if (object.material.uniforms.volumeTexture.value) {
+                object.material.uniforms.volumeTexture.value.dispose();
+            }
             object.material.uniforms.volumeTexture.value = undefined;
+
+            if (object.material.uniforms.mask && object.material.uniforms.mask.value) {
+                object.material.uniforms.mask.value.dispose();
+                object.material.uniforms.mask.value = undefined;
+            }
+
             object.material.uniforms.colormap.value.dispose();
             object.material.uniforms.colormap.value = undefined;
             jitterTexture.dispose();

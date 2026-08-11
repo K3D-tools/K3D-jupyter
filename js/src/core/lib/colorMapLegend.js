@@ -30,10 +30,6 @@ function getColorLegend(K3D, object) {
     }
 
     if (typeof (object) !== 'object') {
-        // Switching the legend off goes through here: the GUI checkbox calls
-        // setColorMapLegend(0) and Core.removeObject calls setColorMapLegend(-1). Returning
-        // early without removing the node left the colorbar SVG on screen for good, and the
-        // stale lastColorMap then suppressed regeneration when it was switched back on.
         if (K3D.colorMapNode) {
             K3D.getWorld().targetDOMNode.removeChild(K3D.colorMapNode);
             K3D.colorMapNode = null;

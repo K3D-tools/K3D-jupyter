@@ -62,10 +62,20 @@ module.exports = {
 
         if (typeof (obj.geometry.attributes.uv) !== 'undefined') {
             if (typeof (changes.color_range) !== 'undefined' && !changes.color_range.timeSeries) {
-                obj.material.uniforms.low.value = changes.color_range[0];
-                obj.material.uniforms.high.value = changes.color_range[1];
+                const attribute = (config.attribute && config.attribute.data) || null;
+                const uv = obj.geometry.attributes.uv.array;
 
-                resolvedChanges.color_range = null;
+                if (attribute && attribute.length === uv.length) {
+                    const low = changes.color_range[0];
+                    const span = changes.color_range[1] - low;
+
+                    for (let i = 0; i < uv.length; i++) {
+                        uv[i] = (attribute[i] - low) / span;
+                    }
+
+                    obj.geometry.attributes.uv.needsUpdate = true;
+                    resolvedChanges.color_range = null;
+                }
             }
 
             if (typeof (changes.attribute) !== 'undefined' && !changes.attribute.timeSeries

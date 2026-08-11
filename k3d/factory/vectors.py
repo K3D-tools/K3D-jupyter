@@ -78,10 +78,6 @@ def vectors(
     return process_transform_arguments(
         Vectors(
             vectors=vectors if vectors is not None else origins,
-            # In the one-argument form the single array IS the vectors, and the origins
-            # default to zeros of the same shape. `np.zeros_like(vectors)` would be
-            # np.zeros_like(None) here - a 0-d object array that the float32 trait
-            # collapses to the scalar 0.
             origins=origins
             if vectors is not None
             else np.zeros_like(origins, dtype=np.float32),

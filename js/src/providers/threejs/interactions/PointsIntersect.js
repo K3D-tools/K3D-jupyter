@@ -21,9 +21,8 @@ module.exports = {
 
             const inverseMatrix = new THREE.Matrix4();
             inverseMatrix.copy(object.matrixWorld).invert();
-            raycaster.ray.applyMatrix4(inverseMatrix);
 
-            const { ray } = raycaster;
+            const ray = raycaster.ray.clone().applyMatrix4(inverseMatrix);
             let closestDistance = Infinity;
 
             let threshold = object.material.size / 2.0 || 1;
@@ -69,10 +68,12 @@ module.exports = {
                         if (distanceToPoint < closestDistance) {
                             closestDistance = distanceToPoint;
 
+                            const worldPoint = triangle.a.clone().applyMatrix4(object.matrixWorld);
+
                             ret = {
                                 object: object,
-                                point: triangle.a,
-                                distance: distanceToPoint,
+                                point: worldPoint,
+                                distance: raycaster.ray.origin.distanceTo(worldPoint),
                                 index: triangleIndex
                             }
                         }

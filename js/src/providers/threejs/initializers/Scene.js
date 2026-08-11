@@ -152,6 +152,17 @@ function cleanup(grids, gridScene) {
     Object.keys(grids.planes).forEach((axis) => {
         grids.planes[axis].forEach((plane) => {
             gridScene.remove(plane.obj);
+
+            if (plane.obj) {
+                if (plane.obj.geometry) {
+                    plane.obj.geometry.dispose();
+                }
+
+                if (plane.obj.material) {
+                    plane.obj.material.dispose();
+                }
+            }
+
             delete plane.obj;
         });
     });
@@ -524,6 +535,10 @@ function raycast(K3D, x, y, camera, click, viewMode) {
 
     if (meshes.length > 0) {
         intersects = intersects.concat(this.raycaster.intersectObjects(meshes));
+    }
+
+    if (intersects.length > 1) {
+        intersects.sort((a, b) => a.distance - b.distance);
     }
 
     if (intersects.length > 0) {

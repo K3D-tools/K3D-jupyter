@@ -26,9 +26,6 @@ logger.setLevel(logging.INFO)
 
 # logging.basicConfig(filename='test.log', level=logging.DEBUG)
 
-# Bounds for the two browser-polling loops below. Without them a JS-side error means the
-# awaited flag is never set and the loop spins forever - in CI that burns the whole job
-# timeout instead of failing with the actual error.
 DEFAULT_STARTUP_TIMEOUT = 60.0
 DEFAULT_REFRESH_TIMEOUT = 120.0
 
@@ -224,8 +221,8 @@ class k3d_remote:
             self.server = None
 
         if self.browser is not None:
-            # quit(), not close(): close() only closes the current window and leaves the
-            # WebDriver session plus the chromedriver/browser processes behind.
+            # quit(), not close(): close() only closes the current window and would leave the
+            # WebDriver session and the chromedriver/browser processes behind.
             self.browser.quit()
             self.browser = None
 

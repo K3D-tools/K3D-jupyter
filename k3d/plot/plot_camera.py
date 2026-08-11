@@ -44,9 +44,6 @@ class PlotCameraMixin:
         center = (bounds[::2] + bounds[1::2]) / 2.0
         radius = 0.5 * np.sum(np.abs(bounds[::2] - bounds[1::2]) ** 2) ** 0.5
         if not radius > 0.0:
-            # Degenerate scene (single point, or every object at the same spot) - and NaN
-            # bounds land here too. Without a fallback the eye coincides with the target and
-            # three.js' lookAt produces a NaN view matrix, i.e. a black canvas.
             radius = 0.5
         cam_distance = radius * factor / np.sin(np.deg2rad(self.camera_fov / 2.0))
 
