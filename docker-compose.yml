@@ -7,6 +7,12 @@ services :
       context : .
     volumes :
       - ./:/opt/app/src:delegated
+    ports :
+      # `docker compose run` publishes nothing unless --service-ports is passed, and jupyter has
+      # to bind 0.0.0.0 to be reachable through the mapping:
+      #   docker compose run --rm --service-ports k3d-build bash
+      #   jupyter lab --ip=0.0.0.0 --port=8888 --allow-root --no-browser
+      - "8888:8888"
     deploy:
       resources:
         reservations:
