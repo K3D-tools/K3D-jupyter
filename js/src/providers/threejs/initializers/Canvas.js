@@ -146,6 +146,7 @@ module.exports = function (K3D) {
     const self = this;
     let mouseCoordOnDown;
     let lastFrameTime = null;
+    let wasAttached = false;
     const intervals = new Float32Array(64);
     let intervalsPtr = 0;
     let qualityFactor = 1.0;
@@ -232,8 +233,13 @@ module.exports = function (K3D) {
         }
 
         const { targetDOMNode } = K3D.getWorld();
+        const attached = targetDOMNode.ownerDocument.contains(targetDOMNode);
 
-        if (!targetDOMNode.ownerDocument.contains(targetDOMNode)) {
+        // refresh() runs once from this initializer, so a bare "not in the document" test would
+        // tear down a host that inserts its subtree later, Panel among them.
+        if (attached) {
+            wasAttached = true;
+        } else if (wasAttached) {
             K3D.disable();
         }
 

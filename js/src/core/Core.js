@@ -1475,7 +1475,11 @@ function K3D(provider, targetDOMNode, parameters) {
             removeObjectFromScene(K3DIdentifier);
             delete world.ObjectsListJson[K3DIdentifier];
         });
-        world.cleanup();
+
+        // Reachable from the Canvas initializer, before Scene defines cleanup.
+        if (world.cleanup) {
+            world.cleanup();
+        }
 
         if (fpsMeter) {
             fpsMeter.domElement.remove();
@@ -1488,7 +1492,11 @@ function K3D(provider, targetDOMNode, parameters) {
         }
 
         listeners = {};
-        this.resizeObserver.disconnect();
+
+        if (this.resizeObserver) {
+            this.resizeObserver.disconnect();
+        }
+
         world.renderer.removeContextLossListener();
         world.renderer.forceContextLoss();
     };
