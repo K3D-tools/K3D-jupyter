@@ -107,9 +107,8 @@ call returns the new time.
     plot.previous_frame()  # -> 0.2
     plot.step_frame(3)     # three frames forward
 
-The :ref:`K3D panel <panel>` has *Previous frame* and *Next frame* in its ``Animation`` section
-for the same thing. With ``time_interpolation`` off, the time slider snaps to the nearest
-keyframe, since a continuous slider would otherwise stop between two of them.
+With ``time_interpolation`` off, the time slider in the :ref:`K3D panel <panel>` snaps to the
+nearest keyframe, since a continuous slider would otherwise stop between two of them.
 
 See ``examples/time_series_frame_stepping.ipynb`` for the whole flow, including wiring the steps
 to your own ipywidgets buttons.

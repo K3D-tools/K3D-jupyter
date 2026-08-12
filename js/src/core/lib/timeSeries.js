@@ -342,12 +342,6 @@ module.exports = {
                     startAutoPlay(K3D, changeParameters);
                 }
             },
-            previousFrame() {
-                changeParameters('time', K3D.stepFrame(-1));
-            },
-            nextFrame() {
-                changeParameters('time', K3D.stepFrame(1));
-            },
         };
 
         gui.controllersMap = gui.controllersMap || {};
@@ -390,8 +384,6 @@ module.exports = {
                 changeParameters('timeSpeed', value);
             });
 
-        gui.controllersMap.previousFrame = animationGUI.add(obj, 'previousFrame').name('Previous frame');
-        gui.controllersMap.nextFrame = animationGUI.add(obj, 'nextFrame').name('Next frame');
         gui.controllersMap.autoPlay = animationGUI.add(obj, 'togglePlay').name('Play loop');
     },
 
