@@ -12,8 +12,10 @@ RESULTS_DIR = os.path.join(TEST_DIR, "results")
 def prepare(depth_peels=0):
     # mode is not a synced trait, so it can only be reset in the page. A plot left in manipulate
     # mode attaches a gizmo to every object of every later test.
+    # Reset in the page, not through the plot: a change made in the browser is invisible to the
+    # sync diff, so assigning the same value on the plot produces no diff and never arrives.
     pytest.headless.browser.execute_script(
-        "if (K3DInstance) { K3DInstance.setViewMode('view'); }"
+        "if (K3DInstance) { K3DInstance.setViewMode('view'); K3DInstance.setTime(0); }"
     )
 
     while len(pytest.plot.objects) > 0:

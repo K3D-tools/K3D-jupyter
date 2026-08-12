@@ -100,7 +100,7 @@ if (!controller) {
 } else {
     controller.setValue(0.4);
 
-    Promise.resolve().then(() => {
+    Promise.resolve(K3DInstance.setTime(K3DInstance.parameters.time)).then(() => {
         done({time: K3DInstance.parameters.time});
     });
 }
@@ -119,3 +119,11 @@ def test_slider_snaps_to_a_keyframe_only_when_stepping():
 
     stepped = pytest.headless.browser.execute_async_script(SNAP)
     assert stepped["time"] == 0.5
+
+    # Driving the slider is a change the kernel never learns about, and the sync diff cannot
+    # reset what it does not know changed. Removing it here is safe: the next prepare() drops
+    # the same object on the Python side.
+    pytest.headless.browser.execute_script(
+        "Object.keys(K3DInstance.getWorld().ObjectsListJson)"
+        "    .forEach((id) => K3DInstance.removeObject(id));"
+    )
