@@ -107,7 +107,7 @@ module.exports = {
             && colorMap.length > 0) {
             handleColorMap(geometry, colorMap, colorRange, attribute, material);
         } else {
-            material.setValues({ vertexColors: THREE.VertexColors });
+            material.setValues({ vertexColors: true });
             geometry.setAttribute('color', new THREE.BufferAttribute(colors, 3));
         }
 

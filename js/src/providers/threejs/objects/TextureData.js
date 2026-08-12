@@ -15,7 +15,7 @@ const { typedArrayToThree } = require('../helpers/Fn');
 module.exports = {
     create(config, K3D) {
         return new Promise((resolve) => {
-            const geometry = new THREE.PlaneBufferGeometry(1, 1);
+            const geometry = new THREE.PlaneGeometry(1, 1);
             const modelMatrix = new THREE.Matrix4();
             const colorMap = (config.color_map && config.color_map.data) || null;
             let opacityFunction = (config.opacity_function && config.opacity_function.data) || null;
@@ -84,6 +84,7 @@ module.exports = {
                 material.depthWrite = (config.opacity === 1.0 && opacityFunction === null);
                 material.transparent = (config.opacity !== 1.0 || opacityFunction !== null);
             } else {
+                material.blending = THREE.NoBlending;
                 material.onBeforeCompile = K3D.colorOnBeforeCompile;
             }
 

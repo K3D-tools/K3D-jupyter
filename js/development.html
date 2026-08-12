@@ -58,9 +58,42 @@
       ).then(function (ret) {
         K3DInstance = ret;
 
-        // setTimeout(function () {
-        //   K3DInstance.resetCamera(1.5);
-        // }, 500);
+        K3DInstance.setFpsMeter(true);
+
+        var frame = 0;
+        var initialTime = performance.now();
+        var framesSinceRotation = 0;
+        var rotationIndex = 0;
+        var twoPi = Math.PI * 2;
+        
+        function rotate() {
+            var time = (performance.now() - initialTime) * 0.001;
+            var radius = 250.0;
+            
+            var x = Math.sin(time) * radius;
+            var y = Math.cos(time) * radius;
+            var z = 1.0;
+
+            if (K3DInstance) {
+                K3DInstance.setCamera([x, y, z, 0.5, 0.5, 0.5, 0, 0, 1]);
+            }
+            
+            var currentRotationIndex = Math.floor(time / twoPi);
+            if (currentRotationIndex !== rotationIndex) {
+                var rotationsCompleted = currentRotationIndex - rotationIndex;
+                var durationMs = rotationsCompleted * twoPi * 1000;
+                console.log("FPS (full rotation): " + (framesSinceRotation * 1000 / durationMs).toFixed(2));
+                rotationIndex = currentRotationIndex;
+                framesSinceRotation = 0;
+            }
+
+            frame++;
+            framesSinceRotation++;
+            
+            requestAnimationFrame(rotate);
+        }
+        
+        // rotate();
 
         // K3DInstance.on(K3DInstance.events.OBJECT_HOVERED, (params) => {
         //   console.log(params);
@@ -68,12 +101,13 @@
 
         // setTimeout(function () {
         //   let jsons = ret.getWorld().ObjectsListJson;
-        //
+        
         //   Object.keys(jsons).forEach(function(id) {
-        //     jsons[id].group = null;
-        //     K3DInstance.reload(jsons[id], {group: null});
+        //     jsons[id].samples = 10000;
+        //     jsons[id].shadow = 'off';
+        //     K3DInstance.reload(jsons[id]);
         //   });
-        // }, 5000);
+        // }, 500);
       });
     });
   });

@@ -27,7 +27,7 @@ void main(void)
     pos.z += depthOfFragment;
     pos = projectionMatrix * pos;
 
-    #ifdef USE_LOGDEPTHBUF_EXT
+    #ifdef USE_LOGARITHMIC_DEPTH_BUFFER
     float depth = log2(1.0 + pos.w) * logDepthBufFC * 0.5;
     #else
     pos = pos / pos.w;

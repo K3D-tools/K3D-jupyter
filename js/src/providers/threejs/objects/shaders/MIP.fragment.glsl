@@ -167,25 +167,29 @@ void main() {
 
     // LIGHT
     #if NUM_DIR_LIGHTS > 0
-    vec4 addedLights = vec4(ambientLightColor / PI, 1.0);
+    vec4 addedLights = vec4(ambientLightColor * RECIPROCAL_PI, 1.0);
     vec3 normal = worldGetNormal(px, maxTextcoord);
 
     vec3 lightDirection;
+    vec3 lightColor;
+    vec3 specularColor = vec3(0.0);
     float lightingIntensity;
 
     #pragma unroll_loop_start
     for (int i = 0; i < NUM_DIR_LIGHTS; i++) {
         lightDirection = -directionalLights[i].direction;
+        lightColor = directionalLights[i].color * RECIPROCAL_PI;
         lightingIntensity = clamp(dot(-lightDirection, normal), 0.0, 1.0);
-        addedLights.rgb += directionalLights[i].color / PI * (0.05 + 0.95 * lightingIntensity);
+        addedLights.rgb += lightColor * (0.05 + 0.95 * lightingIntensity);
 
         #if (USE_SPECULAR == 1)
-        pxColor.rgb += directionalLights[i].color / PI * pow(lightingIntensity, 50.0) * pxColor.a;
+        specularColor += lightColor * pow(lightingIntensity, 50.0) * pxColor.a;
         #endif
     }
     #pragma unroll_loop_end
 
     pxColor.rgb *= addedLights.xyz;
+    pxColor.rgb += specularColor;
     #endif
 
     gl_FragColor = pxColor;

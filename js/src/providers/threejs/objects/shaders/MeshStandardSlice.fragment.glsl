@@ -10,7 +10,6 @@ varying vec3 vNormal;
 #include <common>
 #include <color_pars_fragment>
 #include <uv_pars_fragment>
-#include <uv2_pars_fragment>
 #include <map_pars_fragment>
 #include <alphamap_pars_fragment>
 #include <aomap_pars_fragment>
@@ -45,7 +44,7 @@ void main() {
     // accumulation (baked indirect lighting only)
     #ifdef USE_LIGHTMAP
 
-    reflectedLight.indirectDiffuse += texture2D(lightMap, vUv2).xyz * lightMapIntensity;
+    reflectedLight.indirectDiffuse += texture2D(lightMap, vUv).xyz * lightMapIntensity;
 
     #else
 
@@ -66,7 +65,7 @@ void main() {
 
     #include <premultiplied_alpha_fragment>
     #include <tonemapping_fragment>
-    #include <encodings_fragment>
+    #include <colorspace_fragment>
     #include <fog_fragment>
 
 }

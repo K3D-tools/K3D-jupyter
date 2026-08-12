@@ -15,7 +15,6 @@ if (window.require) {
 }
 
 require('katex/dist/katex.min.css');
-require('lil-gui/dist/lil-gui.css');
 
 // Export the required load_ipython_extension
 module.exports = {

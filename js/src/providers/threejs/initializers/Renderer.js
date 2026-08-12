@@ -57,7 +57,7 @@ module.exports = function (K3D) {
     const targets = [];
     let depthStencilBuffer;
     const compositeScene = new THREE.Scene();
-    const planeGeometry = new THREE.PlaneBufferGeometry(2, 2, 1, 1);
+    const planeGeometry = new THREE.PlaneGeometry(2, 2, 1, 1);
     const compositeMaterial = new THREE.ShaderMaterial({
         uniforms: {
             uTextureA: { value: null },
@@ -96,6 +96,10 @@ module.exports = function (K3D) {
         canvas,
         context,
     });
+
+    // three r152 turned colour management on and made sRGB the default output. K3D composites its
+    // own render targets, so the encode would land only on part of the pipeline - keep it linear.
+    self.renderer.outputColorSpace = THREE.LinearSRGBColorSpace;
 
     if (!context) {
         if (typeof WebGL2RenderingContext !== 'undefined') {

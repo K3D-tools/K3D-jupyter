@@ -23,7 +23,7 @@ module.exports = {
         config.interpolation = typeof (config.interpolation) !== 'undefined' ? config.interpolation : true;
 
         const randomMul = typeof (window.randomMul) !== 'undefined' ? window.randomMul : 255.0;
-        const geometry = new THREE.BoxBufferGeometry(1, 1, 1);
+        const geometry = new THREE.BoxGeometry(1, 1, 1);
         const modelMatrix = new THREE.Matrix4();
         const translation = new THREE.Vector3();
         const rotation = new THREE.Quaternion();

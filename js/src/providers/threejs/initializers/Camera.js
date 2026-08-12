@@ -123,7 +123,7 @@ module.exports = function (K3D) {
         const sceneBoundingSphere = sceneBoundingBox.getBoundingSphere(new THREE.Sphere());
 
         const camDistance = (sceneBoundingSphere.radius * factor) / Math.sin(
-            THREE.Math.degToRad(K3D.parameters.cameraFov / 2.0),
+            THREE.MathUtils.degToRad(K3D.parameters.cameraFov / 2.0),
         );
 
         this.camera.position.subVectors(

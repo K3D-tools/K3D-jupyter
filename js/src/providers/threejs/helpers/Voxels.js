@@ -34,7 +34,7 @@ function getVoxelChunkObject(K3D, config, voxelSize, chunkStructure) {
     geometry.computeBoundingBox();
 
     material = new MaterialConstructor({
-        vertexColors: THREE.VertexColors,
+        vertexColors: true,
         flatShading: true,
         opacity: config.opacity,
         side: THREE.DoubleSide,

@@ -195,7 +195,7 @@ module.exports = {
             if (colors !== null && colors.length > 0) {
                 material.setValues({
                     color: 0xffffff,
-                    vertexColors: THREE.VertexColors,
+                    vertexColors: true,
                 });
 
                 geometry.setAttribute('color', new THREE.BufferAttribute(buffer.colorsToFloat32Array(colors), 3));

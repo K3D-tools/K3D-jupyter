@@ -410,7 +410,7 @@ module.exports = function (THREE) {
             );
 
             sliceDistance = (up.length() * 0.5) / Math.tan(
-                THREE.Math.degToRad(K3D.parameters.cameraFov / 2.0),
+                THREE.MathUtils.degToRad(K3D.parameters.cameraFov / 2.0),
             );
             const camDistance = sliceDistance * (1.0 + _zoomPanCurrent[axis].z * 0.5);
 

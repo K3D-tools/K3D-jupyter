@@ -40,7 +40,7 @@ module.exports = {
                     ? colorsToFloat32Array(verticesColors) : getColorsArray(color, position.length / 3)
             );
 
-            material.setValues({ vertexColors: THREE.VertexColors });
+            material.setValues({ vertexColors: true });
             geometry.setAttribute('color', new THREE.BufferAttribute(colors, 3));
         }
 

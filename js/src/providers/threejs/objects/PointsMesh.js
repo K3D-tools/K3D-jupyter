@@ -35,7 +35,7 @@ module.exports = {
         const phongShader = THREE.ShaderLib.phong;
         let i;
         const boundingBoxGeometry = new THREE.BufferGeometry();
-        const geometry = new THREE.IcosahedronBufferGeometry(config.point_size * 0.5, meshDetail);
+        const geometry = new THREE.IcosahedronGeometry(config.point_size * 0.5, meshDetail);
         const colorMap = (config.color_map && config.color_map.data) || null;
         let opacityFunction = (config.opacity_function && config.opacity_function.data) || null;
         const colorRange = config.color_range;
@@ -112,7 +112,7 @@ module.exports = {
             fragmentShader: require('./shaders/PointsMesh.fragment.glsl'),
             lights: true,
             clipping: true,
-            vertexColors: THREE.VertexColors,
+            vertexColors: true,
         });
 
         if (K3D.parameters.depthPeels === 0) {

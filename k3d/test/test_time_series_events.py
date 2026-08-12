@@ -98,6 +98,9 @@ const controller = K3DInstance.GUI.controls.controllersMap.time;
 if (!controller) {
     done({error: 'no time controller'});
 } else {
+    // setValue is a no-op when the value is unchanged, so drive it from a different one -
+    // otherwise the second call in a test would never reach onChange.
+    controller.setValue(0.0);
     controller.setValue(0.4);
 
     Promise.resolve(K3DInstance.setTime(K3DInstance.parameters.time)).then(() => {

@@ -243,12 +243,13 @@ void main() {
                     // LIGHT
                     #if NUM_DIR_LIGHTS > 0
                     if (pxColor.a > 0.0) {
-                        vec4 addedLights = vec4(ambientLightColor / PI, 1.0);
+                        vec4 addedLights = vec4(ambientLightColor * RECIPROCAL_PI, 1.0);
                         vec3 specularColor = vec3(0.0);
 
                         vec3 normal = worldGetNormal(px * maskOpacity, textcoord);
 
                         vec3 lightDirection;
+                        vec3 lightColor;
                         float lightingIntensity;
 
                         vec3 lightReflect;
@@ -257,15 +258,16 @@ void main() {
                         #pragma unroll_loop_start
                         for (int i = 0; i < NUM_DIR_LIGHTS; i++) {
                             lightDirection = directionalLights[i].direction;
+                            lightColor = directionalLights[i].color * RECIPROCAL_PI;
                             lightingIntensity = clamp(dot(lightDirection, normal), 0.0, 1.0);
-                            addedLights.rgb += directionalLights[i].color / PI * (0.2 + 0.8 * lightingIntensity) * (1.0 - shadow);
+                            addedLights.rgb += lightColor * (0.2 + 0.8 * lightingIntensity) * (1.0 - shadow);
 
                             lightReflect = normalize(reflect(lightDirection, normal));
                             specularFactor = dot(direction, lightReflect);
 
                             if (specularFactor > 0.0)
                             specularColor += 0.002 * scaled_px * (1.0 / step) *
-                            directionalLights[i].color / PI * pow(specularFactor, 250.0) *
+                            lightColor * pow(specularFactor, 250.0) *
                             pxColor.a * (1.0 - shadow);
                         }
                         #pragma unroll_loop_end

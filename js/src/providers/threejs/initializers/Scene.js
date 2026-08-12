@@ -469,7 +469,7 @@ function rebuildSceneData(K3D, grids, axesHelper, force) {
 
     const fullSceneDiameter = fullSceneBoundingBox.getSize(new THREE.Vector3()).length();
 
-    const camDistance = (fullSceneDiameter / 2.0) / Math.sin(THREE.Math.degToRad(K3D.parameters.cameraFov / 2.0));
+    const camDistance = (fullSceneDiameter / 2.0) / Math.sin(THREE.MathUtils.degToRad(K3D.parameters.cameraFov / 2.0));
 
     this.camera.far = (camDistance + fullSceneDiameter / 2) * 5.0;
     this.camera.near = fullSceneDiameter * 0.0001;
@@ -569,12 +569,13 @@ function raycast(K3D, x, y, camera, click, viewMode) {
 module.exports = {
     Init(K3D) {
         const initialLightIntensity = {
-            ambient: 0.2,
-            key: 0.4,
-            head: 0.15,
-            fill: 0.15,
-            back: 0.1,
+            ambient: 0.2 * Math.PI,
+            key: 0.4 * Math.PI,
+            head: 0.15 * Math.PI,
+            fill: 0.15 * Math.PI,
+            back: 0.1 * Math.PI,
         };
+        const unlitAmbient = Math.PI;
         const ambientLight = new THREE.AmbientLight(0xffffff);
         const grids = {
             planes: {},
@@ -643,7 +644,8 @@ module.exports = {
 
         this.recalculateLights = function (value) {
             if (value <= 1.0) {
-                ambientLight.intensity = 1.0 - (1.0 - initialLightIntensity.ambient) * value;
+                ambientLight.intensity = unlitAmbient
+                    - (unlitAmbient - initialLightIntensity.ambient) * value;
             } else {
                 ambientLight.intensity = initialLightIntensity.ambient;
             }

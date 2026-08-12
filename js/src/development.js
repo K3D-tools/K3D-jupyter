@@ -1,5 +1,4 @@
 require('katex/dist/katex.min.css');
-require('lil-gui/dist/lil-gui.css');
 
 module.exports = {
     K3D: require('./core/Core'),

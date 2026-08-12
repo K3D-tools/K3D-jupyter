@@ -26,6 +26,14 @@ const rules = [
 
 const mode = 'production';
 
+// lil-gui 0.21 added an exports field whose `require` condition serves the UMD build, and its
+// anonymous define() breaks the AMD loader the notebook extension runs on.
+const resolve = {
+    alias: {
+        'lil-gui': path.resolve(__dirname, 'node_modules/lil-gui/dist/lil-gui.esm.js'),
+    },
+};
+
 const plugins = [];
 
 // plugins.push(new Visualizer({
@@ -47,6 +55,7 @@ module.exports = [
             path: `${__dirname}/../k3d/static`,
             libraryTarget: 'amd',
         },
+        resolve,
         module: {
             rules,
         },
@@ -70,6 +79,7 @@ module.exports = [
         mode,
         plugins,
         devtool: 'source-map',
+        resolve,
         module: {
             rules,
         },
@@ -99,6 +109,7 @@ module.exports = [
         },
         mode,
         devtool: 'source-map',
+        resolve,
         module: {
             rules,
         },
@@ -118,6 +129,7 @@ module.exports = [
             },
         mode,
         devtool: 'source-map',
+        resolve,
         module: {
             rules,
         },

@@ -19,7 +19,6 @@ attribute float attributes;
 
 #include <common>
 #include <uv_pars_vertex>
-#include <uv2_pars_vertex>
 #include <displacementmap_pars_vertex>
 #include <envmap_pars_vertex>
 #include <color_pars_vertex>
@@ -32,7 +31,6 @@ attribute float attributes;
 
 void main() {
     #include <uv_vertex>
-    #include <uv2_vertex>
 
     perPointOpacity = 1.0;
 
@@ -45,9 +43,9 @@ void main() {
     vec4 finalSphereColor = texture2D(colormap, vec2(scaled_px, 0.5));
 
     perPointOpacity = finalSphereColor.a * perPointOpacity;
-    vColor = finalSphereColor.rgb;
+    vColor = vec4(finalSphereColor.rgb, 1.0);
     #else
-    vColor = color.rgb;
+    vColor = vec4(color.rgb, 1.0);
     #endif
 
     #include <beginnormal_vertex>

@@ -49,6 +49,8 @@ module.exports = {
         if (K3D.parameters.depthPeels === 0) {
             material.depthWrite = config.opacity === 1.0;
         } else {
+            material.transparent = false;
+            material.blending = THREE.NoBlending;
             material.onBeforeCompile = K3D.colorOnBeforeCompile;
         }
 
@@ -105,13 +107,13 @@ module.exports = {
             }
         }
 
-        const geometry = BufferGeometryUtils.mergeBufferGeometries(g);
+        const geometry = BufferGeometryUtils.mergeGeometries(g);
 
         if (attribute && colorRange && colorMap && attribute.length > 0 && colorRange.length > 0
             && colorMap.length > 0) {
             handleColorMap(geometry, colorMap, colorRange, null, material);
         } else {
-            material.setValues({ vertexColors: THREE.VertexColors });
+            material.setValues({ vertexColors: true });
         }
 
         geometry.computeBoundingSphere();

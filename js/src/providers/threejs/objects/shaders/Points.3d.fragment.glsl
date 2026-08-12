@@ -4,7 +4,6 @@
 #include <lights_pars_begin>
 
 uniform float size;
-uniform float specular;
 uniform float opacity;
 uniform mat4 projectionMatrix;
 
@@ -36,7 +35,7 @@ void main(void)
     pos.z += depthOfFragment;
     pos = projectionMatrix * pos;
 
-    #ifdef USE_LOGDEPTHBUF_EXT
+    #ifdef USE_LOGARITHMIC_DEPTH_BUFFER
     float depth = log2(1.0 + pos.w) * logDepthBufFC * 0.5;
     #else
     pos = pos / pos.w;
@@ -48,20 +47,23 @@ void main(void)
 
     vec3 normal = vec3(impostorSpaceCoordinate, normalizedDepth);
 
-    vec4 addedLights = vec4(ambientLightColor / PI, 1.0);
+    vec4 addedLights = vec4(ambientLightColor * RECIPROCAL_PI, 1.0);
     vec4 finalSphereColor = vColor;
+    vec3 specularColor = vec3(0.0);
 
     finalSphereColor.a *= opacity;
 
     for (int l = 0; l < NUM_DIR_LIGHTS; l++) {
         vec3 lightDirection = -directionalLights[l].direction;
+        vec3 lightColor = directionalLights[l].color * RECIPROCAL_PI;
         float lightingIntensity = clamp(dot(-lightDirection, normal), 0.0, 1.0);
-        addedLights.rgb += directionalLights[l].color / PI * (0.05 + 0.95 * lightingIntensity);
+        addedLights.rgb += lightColor * (0.05 + 0.95 * lightingIntensity);
 
         #if (USE_SPECULAR == 1)
-        finalSphereColor.rgb += directionalLights[l].color / PI * pow(lightingIntensity, 80.0);
+        specularColor += lightColor * pow(lightingIntensity, 80.0);
         #endif
     }
 
     gl_FragColor = finalSphereColor * addedLights;
+    gl_FragColor.rgb += specularColor;
 }

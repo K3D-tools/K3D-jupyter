@@ -17,7 +17,6 @@ MsgpackCodec.addExtPacker(0x20, Float16Array, (val) => val);
 MsgpackCodec.addExtUnpacker(0x20, (val) => Float16Array(val.buffer));
 
 require('katex/dist/katex.min.css');
-require('lil-gui/dist/lil-gui.css');
 
 /**
  * Decode msgpack data using the custom codec.
