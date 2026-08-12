@@ -1,5 +1,5 @@
 const fflate = require('fflate');
-const msgpack = require('msgpack-lite');
+const msgpack = require('./lib/helpers/msgpackCodec');
 
 const LilGUI = require('lil-gui').GUI;
 const { viewModes } = require('./lib/viewMode');
@@ -23,14 +23,9 @@ const clippingPlanesGUIProvider = require('./lib/clippingPlanesGUIProvider');
 const timeSeries = require('./lib/timeSeries');
 const { base64ToArrayBuffer } = require('./lib/helpers/buffer');
 
-const MsgpackCodec = msgpack.createCodec({ preset: true });
-
 const Float16Array = require('./lib/helpers/float16Array');
 
 window.Float16Array = Float16Array;
-
-MsgpackCodec.addExtPacker(0x20, Float16Array, (val) => val);
-MsgpackCodec.addExtUnpacker(0x20, (val) => Float16Array(val.buffer));
 
 /**
  * @constructor Core
@@ -1399,7 +1394,6 @@ function K3D(provider, targetDOMNode, parameters) {
                     chunkList,
                     plot,
                 },
-                { codec: MsgpackCodec },
             ),
             { level: compressionLevel },
         );
@@ -1416,7 +1410,7 @@ function K3D(provider, targetDOMNode, parameters) {
             }
 
             if (data instanceof Uint8Array) {
-                data = msgpack.decode(data, { codec: MsgpackCodec });
+                data = msgpack.decode(data);
             }
 
             Object.keys(data.chunkList).forEach((k) => {
@@ -1571,7 +1565,7 @@ function K3D(provider, targetDOMNode, parameters) {
     self.setHiddenObjectIds(self.parameters.hiddenObjectIds);
     self.setFpsMeter(self.parameters.fpsMeter);
 
-    self.MsgpackCodec = MsgpackCodec;
+    self.MsgpackCodec = msgpack.codec;
     self.msgpack = msgpack;
     self.serialize = serialize;
 

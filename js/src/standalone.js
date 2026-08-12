@@ -1,4 +1,4 @@
-const msgpack = require('msgpack-lite');
+const msgpack = require('./core/lib/helpers/msgpackCodec');
 const fflate = require('fflate');
 const TFEdit = require('./transferFunctionEditor');
 const serialize = require('./core/lib/helpers/serialize');
@@ -7,14 +7,9 @@ const timeSeries = require('./core/lib/timeSeries');
 const ThreeJsProvider = require('./providers/threejs/provider');
 const _ = require('./lodash');
 
-const MsgpackCodec = msgpack.createCodec({ preset: true });
-
 const Float16Array = require('./core/lib/helpers/float16Array');
 
 window.Float16Array = Float16Array;
-
-MsgpackCodec.addExtPacker(0x20, Float16Array, (val) => val);
-MsgpackCodec.addExtUnpacker(0x20, (val) => Float16Array(val.buffer));
 
 require('katex/dist/katex.min.css');
 
@@ -24,7 +19,7 @@ require('katex/dist/katex.min.css');
  * @returns {Object} Decoded object.
  */
 function msgpackDecode(data) {
-    return msgpack.decode(data, { codec: MsgpackCodec });
+    return msgpack.decode(data);
 }
 
 /**

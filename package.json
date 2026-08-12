@@ -47,7 +47,7 @@
     "katex": "^0.18.4",
     "lil-gui": "^0.21.0",
     "lodash": "^4.18.1",
-    "msgpack-lite": "^0.1.26",
+    "@msgpack/msgpack": "^3.1.3",
     "rasterizehtml": "^1.4.1",
     "requirejs": "^2.3.8",
     "screenfull": "^6.0.2",
