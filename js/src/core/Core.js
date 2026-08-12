@@ -582,10 +582,7 @@ function K3D(provider, targetDOMNode, parameters) {
                 removeFullscreenListener = null;
             }
 
-            // Drop the per-object OBJECT_REMOVED listeners while their ids are still
-            // reachable: each one looks its folder up in gui_map, and every listener left
-            // behind also costs work on every later dispatch.
-            Object.keys(self.gui_map).forEach((id) => {
+            Object.keys(self.gui_map || {}).forEach((id) => {
                 const folder = self.gui_map[id];
 
                 if (folder && folder.listenersId) {
