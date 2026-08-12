@@ -95,7 +95,7 @@ html_theme_options = {
 
 html_sidebars = {
     "index": ["sidebar_index", "search-field"],
-    "gallery/*": [],
+    "gallery/index": [],
     "**": ["search-field", "sidebar-nav-bs"],
 }
 

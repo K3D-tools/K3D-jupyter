@@ -68,7 +68,6 @@ examples = [
 
 [dependency-groups]
 docs = [
-    "six",
     "ipywidgets>=7.0.1",
     "traittypes",
     "traitlets",
