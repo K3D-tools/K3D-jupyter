@@ -1,7 +1,6 @@
 """Factory functions for geometric objects."""
 
 import numpy as np
-import six
 from typing import Any
 from typing import Dict as TypingDict
 from typing import List as TypingList
@@ -444,7 +443,7 @@ def stl(
     STL
         STL Drawable.
     """
-    plain = isinstance(stl, six.string_types)
+    plain = isinstance(stl, str)
 
     return process_transform_arguments(
         STL(
