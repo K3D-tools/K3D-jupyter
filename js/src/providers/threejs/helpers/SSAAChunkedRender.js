@@ -78,7 +78,7 @@ module.exports = function (renderer, scene, camera, rt, fullWidth, fullHeight, c
 
         const camera2 = new THREE.OrthographicCamera(-1, 1, 1, -1, 0, 1);
         const scene2 = new THREE.Scene();
-        const quad2 = new THREE.Mesh(new THREE.PlaneBufferGeometry(2, 2), copyMaterial);
+        const quad2 = new THREE.Mesh(new THREE.PlaneGeometry(2, 2), copyMaterial);
 
         quad2.frustumCulled = false;
         scene2.add(quad2);
@@ -156,6 +156,8 @@ module.exports = function (renderer, scene, camera, rt, fullWidth, fullHeight, c
             renderer.autoClear = autoClear;
             renderer.setClearColor(oldClearColor, oldClearAlpha);
             sampleRenderTarget.dispose();
+            copyMaterial.dispose();
+            quad2.geometry.dispose();
 
             resolve(fullresImage);
         });

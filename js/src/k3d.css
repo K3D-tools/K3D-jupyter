@@ -1,3 +1,10 @@
+/* In a flex row (ipywidgets HBox) an item's width comes from its content, and the plot declares
+   only a height, so it would collapse to zero. A stylesheet rule rather than an inline style, so
+   anything set through plot.layout still wins. */
+.k3d-plot {
+  width: 100%;
+}
+
 .katex-display {
   margin: 0.25em 0 !important;
 }

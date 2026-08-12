@@ -4,7 +4,76 @@ from typing import Any, Callable
 from typing import Dict as TypingDict
 from typing import Generator, List, Optional
 
+import numpy as np
+
 from ..objects import create_object
+
+# Snapshot key -> trait name. One mapping used for both saving and restoring, so the JS-facing
+# key names cannot drift apart from the Python side.
+_PLOT_PARAMS = (
+    ("cameraAutoFit", "camera_auto_fit"),
+    ("viewMode", "mode"),
+    ("menuVisibility", "menu_visibility"),
+    ("gridAutoFit", "grid_auto_fit"),
+    ("gridVisible", "grid_visible"),
+    ("grid", "grid"),
+    ("gridColor", "grid_color"),
+    ("labelColor", "label_color"),
+    ("antialias", "antialias"),
+    ("logarithmicDepthBuffer", "logarithmic_depth_buffer"),
+    ("screenshotScale", "screenshot_scale"),
+    ("clearColor", "background_color"),
+    ("clippingPlanes", "clipping_planes"),
+    ("lighting", "lighting"),
+    ("time", "time"),
+    ("timeSpeed", "time_speed"),
+    ("timeInterpolation", "time_interpolation"),
+    ("fpsMeter", "fps_meter"),
+    ("cameraMode", "camera_mode"),
+    ("depthPeels", "depth_peels"),
+    ("colorbarObjectId", "colorbar_object_id"),
+    ("sliceViewerObjectId", "slice_viewer_object_id"),
+    ("sliceViewerMaskObjectIds", "slice_viewer_mask_object_ids"),
+    ("sliceViewerDirection", "slice_viewer_direction"),
+    ("hiddenObjectIds", "hidden_object_ids"),
+    ("axes", "axes"),
+    ("camera", "camera"),
+    ("cameraNoRotate", "camera_no_rotate"),
+    ("cameraNoZoom", "camera_no_zoom"),
+    ("cameraNoPan", "camera_no_pan"),
+    ("cameraRotateSpeed", "camera_rotate_speed"),
+    ("cameraZoomSpeed", "camera_zoom_speed"),
+    ("cameraPanSpeed", "camera_pan_speed"),
+    ("cameraDampingFactor", "camera_damping_factor"),
+    ("cameraUpAxis", "camera_up_axis"),
+    ("name", "name"),
+    ("height", "height"),
+    ("cameraFov", "camera_fov"),
+    ("axesHelper", "axes_helper"),
+    ("axesHelperColors", "axes_helper_colors"),
+    ("cameraAnimation", "camera_animation"),
+    ("customData", "custom_data"),
+    ("fps", "fps"),
+    ("minimumFps", "minimum_fps"),
+    ("additionalJsCode", "additional_js_code"),
+)
+
+
+def _msgpack_safe(value: Any) -> Any:
+    """Return `value` with numpy types replaced by plain Python equivalents.
+
+    The grid/camera/clipping_planes traits are ListOrArray and accept ndarrays, and casting one
+    to a list leaves numpy scalars behind, which msgpack cannot pack.
+    """
+    if isinstance(value, np.ndarray):
+        return value.tolist()
+    if isinstance(value, np.generic):
+        return value.item()
+    if isinstance(value, dict):
+        return {k: _msgpack_safe(v) for k, v in value.items()}
+    if isinstance(value, (list, tuple)):
+        return [_msgpack_safe(v) for v in value]
+    return value
 
 
 class PlotSnapshotMixin:
@@ -47,9 +116,14 @@ class PlotSnapshotMixin:
         )
 
     def yield_snapshots(
-            self, generator_function: Callable[[], Generator[bytes, None, None]]
+            self, generator_function: Callable[[], Generator[str, None, None]]
     ) -> Callable[[], None]:
-        """Decorator for a generator function receiving snapshots via yield."""
+        """Decorator for a generator function receiving snapshots via yield.
+
+        The generator receives the HTML document as a `str`: unlike screenshots, the frontend
+        stores this trait as raw HTML (js/src/k3d.js sets it from getHTMLSnapshot), so there is
+        nothing to base64-decode.
+        """
 
         @wraps(generator_function)
         def inner() -> None:
@@ -57,7 +131,7 @@ class PlotSnapshotMixin:
 
             def send_new_value(change: Any) -> None:
                 try:
-                    generator.send(base64.b64decode(change.new))
+                    generator.send(change.new)
                 except StopIteration:
                     self.unobserve(send_new_value, "snapshot")
 
@@ -74,7 +148,7 @@ class PlotSnapshotMixin:
         import msgpack
 
         if voxel_chunks is None:
-            voxel_chunks = []
+            voxel_chunks = getattr(self, "voxel_chunks", [])
         snapshot = self.get_binary_snapshot_objects(voxel_chunks)
         snapshot["plot"] = self.get_plot_params()
         data = msgpack.packb(snapshot, use_bin_type=True)
@@ -87,6 +161,8 @@ class PlotSnapshotMixin:
 
         data = msgpack.unpackb(zlib.decompress(data))
         self.voxel_chunks = []
+        if "plot" in data.keys():
+            self.set_plot_params(data["plot"])
         if "objects" in data.keys():
             for o in data["objects"]:
                 self += create_object(o)
@@ -118,7 +194,7 @@ class PlotSnapshotMixin:
         import zlib
 
         if voxel_chunks is None:
-            voxel_chunks = []
+            voxel_chunks = getattr(self, "voxel_chunks", [])
         dir_path = os.path.dirname(os.path.realpath(__file__)) + '/../'
         data = self.get_binary_snapshot(compression_level, voxel_chunks)
         if self.snapshot_type == "full":
@@ -178,49 +254,21 @@ class PlotSnapshotMixin:
         return template
 
     def get_plot_params(self) -> dict:
+        """Plot settings in the wire format shared with the JS side.
+
+        Values are normalised to plain Python so they can be msgpack-packed directly.
+        """
         return {
-            "cameraAutoFit": self.camera_auto_fit,
-            "viewMode": self.mode,
-            "menuVisibility": self.menu_visibility,
-            "gridAutoFit": self.grid_auto_fit,
-            "gridVisible": self.grid_visible,
-            "grid": self.grid,
-            "gridColor": self.grid_color,
-            "labelColor": self.label_color,
-            "antialias": self.antialias,
-            "logarithmicDepthBuffer": self.logarithmic_depth_buffer,
-            "screenshotScale": self.screenshot_scale,
-            "clearColor": self.background_color,
-            "clippingPlanes": self.clipping_planes,
-            "lighting": self.lighting,
-            "time": self.time,
-            "time_speed": self.time_speed,
-            "fpsMeter": self.fps_meter,
-            "cameraMode": self.camera_mode,
-            "depthPeels": self.depth_peels,
-            "colorbarObjectId": self.colorbar_object_id,
-            "sliceViewerObjectId": self.slice_viewer_object_id,
-            "sliceViewerMaskObjectIds": self.slice_viewer_mask_object_ids,
-            "sliceViewerDirection": self.slice_viewer_direction,
-            "hiddenObjectIds": self.hidden_object_ids,
-            "axes": self.axes,
-            "camera": self.camera,
-            "cameraNoRotate": self.camera_no_rotate,
-            "cameraNoZoom": self.camera_no_zoom,
-            "cameraNoPan": self.camera_no_pan,
-            "cameraRotateSpeed": self.camera_rotate_speed,
-            "cameraZoomSpeed": self.camera_zoom_speed,
-            "cameraPanSpeed": self.camera_pan_speed,
-            "cameraDampingFactor": self.camera_damping_factor,
-            "cameraUpAxis": self.camera_up_axis,
-            "name": self.name,
-            "height": self.height,
-            "cameraFov": self.camera_fov,
-            "axesHelper": self.axes_helper,
-            "axesHelperColors": self.axes_helper_colors,
-            "cameraAnimation": self.camera_animation,
-            "customData": self.custom_data,
-            "fps": self.fps,
-            "minimumFps": self.minimum_fps,
-            "additionalJsCode": self.additional_js_code
+            key: _msgpack_safe(getattr(self, trait)) for key, trait in _PLOT_PARAMS
         }
+
+    def set_plot_params(self, params: TypingDict[str, Any]) -> None:
+        """Apply settings produced by get_plot_params. Unknown keys are ignored."""
+        by_key = dict(_PLOT_PARAMS)
+        # Snapshots written by older versions carry the snake_case spelling of timeSpeed.
+        by_key.setdefault("time_speed", "time_speed")
+
+        for key, value in params.items():
+            trait = by_key.get(key)
+            if trait is not None:
+                setattr(self, trait, value)

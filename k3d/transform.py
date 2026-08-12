@@ -210,16 +210,16 @@ class Transform(object):
             scaling_matrix = np.diag(np.append(self.scaling, 1.0))
         else:
             scaling_matrix = np.identity(4)
-        # Compose all matrices in the correct order
+
         self.model_matrix = reduce(
             np.dot,
             [
+                self.parent_matrix,
                 translation_matrix,
                 rotation_matrix,
                 scaling_matrix,
                 fit_matrix,
                 self.custom_matrix,
-                self.parent_matrix,
             ],
         )
 

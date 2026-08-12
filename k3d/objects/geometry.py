@@ -95,7 +95,8 @@ class Line(Drawable):
         actual = proposal["value"].size
         if actual != 0 and required != actual:
             raise TraitError(
-                "colors has wrong size: %s (%s required)" % (actual, required)
+                "colors has wrong size: %s (%s required, one per vertex rather than per segment)"
+                % (actual, required)
             )
         return proposal["value"]
 
@@ -154,7 +155,7 @@ class Lines(Drawable):
     vertices = TimeSeries(Array(dtype=np.float32)).tag(
         sync=True, **array_serialization_wrap("vertices")
     )
-    indices = Array(dtype=np.float32).tag(
+    indices = Array(dtype=np.uint32).tag(
         sync=True, **array_serialization_wrap("indices")
     )
     indices_type = TimeSeries(Unicode()).tag(sync=True)
@@ -197,7 +198,8 @@ class Lines(Drawable):
         actual = proposal["value"].size
         if actual != 0 and required != actual:
             raise TraitError(
-                "colors has wrong size: %s (%s required)" % (actual, required)
+                "colors has wrong size: %s (%s required, one per vertex rather than per segment)"
+                % (actual, required)
             )
         return proposal["value"]
 
@@ -237,7 +239,7 @@ class Mesh(DrawableWithCallback):
         opacity: `float`.
             Opacity of mesh.
         volume: `array_like`.
-            3D array of `float`
+            3D array of `float`, indexed as [z, y, x].
         volume_bounds: `array_like`.
             6-element tuple specifying the bounds of the volume data (x0, x1, y0, y1, z0, z1)
         texture: `bytes`.
@@ -290,7 +292,9 @@ class Mesh(DrawableWithCallback):
         sync=True, **array_serialization_wrap("texture")
     )
     texture_file_format = Unicode(allow_none=True).tag(sync=True)
-    uvs = TimeSeries(Array()).tag(sync=True, **array_serialization_wrap("uvs"))
+    uvs = TimeSeries(Array(dtype=np.float32)).tag(
+        sync=True, **array_serialization_wrap("uvs")
+    )
     opacity_function = TimeSeries(Array(dtype=np.float32)).tag(
         sync=True, **array_serialization_wrap("opacity_function")
     )
@@ -313,7 +317,7 @@ class Mesh(DrawableWithCallback):
         actual = proposal["value"].size
         if actual != 0 and required != actual:
             raise TraitError(
-                "colors has wrong size: %s (%s required)" % (actual, required)
+                "colors has wrong size: %s (%s required, one per vertex)" % (actual, required)
             )
         return proposal["value"]
 

@@ -150,14 +150,14 @@ module.exports = {
 };
 
 function addHeads(heads, object) {
-    heads = BufferGeometryUtils.mergeBufferGeometries(heads);
+    heads = BufferGeometryUtils.mergeGeometries(heads);
     heads.computeBoundingSphere();
     heads.computeBoundingBox();
 
     object.add(
         new THREE.Mesh(
             heads,
-            new THREE.MeshBasicMaterial({ vertexColors: THREE.VertexColors }),
+            new THREE.MeshBasicMaterial({ vertexColors: true }),
         ),
     );
 }

@@ -33,7 +33,7 @@ module.exports = {
 
         const randomMul = typeof (window.randomMul) !== 'undefined' ? window.randomMul : 255.0;
         const gl = K3D.getWorld().renderer.getContext();
-        const geometry = new THREE.BoxBufferGeometry(1, 1, 1);
+        const geometry = new THREE.BoxGeometry(1, 1, 1);
         const modelMatrix = new THREE.Matrix4();
         const translation = new THREE.Vector3();
         const rotation = new THREE.Quaternion();
@@ -213,7 +213,7 @@ module.exports = {
         if (config.shadow !== 'off') {
             sceneRTT = new THREE.Scene();
             quadRTT = new THREE.Mesh(
-                new THREE.PlaneBufferGeometry(lightMapRenderTargetSize, lightMapRenderTargetSize),
+                new THREE.PlaneGeometry(lightMapRenderTargetSize, lightMapRenderTargetSize),
                 new THREE.ShaderMaterial({
                     uniforms: _.merge(
                         uniforms,
@@ -313,7 +313,16 @@ module.exports = {
                 quadRTT.material.uniforms.volumeTexture.value = undefined;
             }
 
+            if (object.material.uniforms.volumeTexture.value) {
+                object.material.uniforms.volumeTexture.value.dispose();
+            }
             object.material.uniforms.volumeTexture.value = undefined;
+
+            if (object.material.uniforms.mask && object.material.uniforms.mask.value) {
+                object.material.uniforms.mask.value.dispose();
+                object.material.uniforms.mask.value = undefined;
+            }
+
             object.material.uniforms.colormap.value.dispose();
             object.material.uniforms.colormap.value = undefined;
             jitterTexture.dispose();

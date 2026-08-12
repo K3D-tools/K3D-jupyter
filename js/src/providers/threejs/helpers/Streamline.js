@@ -166,7 +166,7 @@ module.exports = function (points, attributes, radius, radialSegments, color, ve
 
                 vec2 = vec2.divideScalar(r);
 
-                theta = Math.acos(THREE.Math.clamp(lastTangent.clone().dot(tangent), -1, 1));
+                theta = Math.acos(THREE.MathUtils.clamp(lastTangent.clone().dot(tangent), -1, 1));
                 mat = new THREE.Matrix4().makeRotationAxis(vec2, theta);
             }
         }

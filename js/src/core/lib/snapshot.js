@@ -1,7 +1,7 @@
 const FileSaver = require('file-saver');
 const fflate = require('fflate');
-const requireJsSource = require('../../../../node_modules/requirejs/require?raw');
-const fflateJsSource = require('../../../../node_modules/fflate/umd/index?raw');
+const requireJsSource = require('../../../node_modules/requirejs/require?raw');
+const fflateJsSource = require('../../../node_modules/fflate/umd/index?raw');
 const fileLoader = require('./helpers/fileLoader');
 const templateStandalone = require('./snapshot_standalone').default;
 const templateOnline = require('./snapshot_online').default;
@@ -42,8 +42,8 @@ if (typeof (sourceCode) === 'undefined') {
             // Fallback to empty source code
             sourceCode = '';
         });
-    } catch (error) {
-        error('K3D Error', 'Failed to load source code: ' + error.message);
+    } catch (e) {
+        console.error('K3D: Failed to load source code:', e.message);
         // Fallback to empty source code
         sourceCode = '';
     }
@@ -90,13 +90,16 @@ function handleFileSelect(K3D, evt) {
     HTMLSnapshotReader.onload = function (event) {
         const snapshot = K3D.extractSnapshot(event.target.result);
 
-        if (snapshot[1]) {
+        if (snapshot && snapshot[1]) {
             K3D.setSnapshot(snapshot[1]);
+        } else {
+            console.error('K3D: dropped HTML file does not contain a K3D snapshot');
         }
     };
 
     BinarySnapshotReader.onload = function (event) {
-        K3D.setSnapshot(fflate.unzlibSync(event.target.result));
+        // fflate needs a Uint8Array, not the raw ArrayBuffer the reader returns.
+        K3D.setSnapshot(fflate.unzlibSync(new Uint8Array(event.target.result)));
     };
 
     STLReader.onload = function (event) {

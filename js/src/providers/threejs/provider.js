@@ -1,4 +1,9 @@
 const THREE = require('three');
+
+// K3D composites its own render targets, so three's sRGB output (on by default since r152) would
+// cover only part of the pipeline.
+THREE.ColorManagement.enabled = false;
+
 const threeMeshBVH = require('three-mesh-bvh');
 
 require('./helpers/THREE.STLLoader')(THREE);

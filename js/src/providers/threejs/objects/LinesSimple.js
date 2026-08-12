@@ -36,6 +36,7 @@ module.exports = {
         let positions = [];
         let attribute = [];
         let colors = [];
+        const edgeVertices = [];
         const jump = config.indices_type === 'segment' ? 2 : 3;
         let offsets;
 
@@ -68,6 +69,8 @@ module.exports = {
 
                     const o1 = offsets[j][0] * 3;
                     const o2 = offsets[j][1] * 3;
+
+                    edgeVertices.push(offsets[j][0], offsets[j][1]);
 
                     positions.push(
                         vertices[o1],
@@ -104,11 +107,15 @@ module.exports = {
             && colorMap.length > 0) {
             handleColorMap(geometry, colorMap, colorRange, attribute, material);
         } else {
-            material.setValues({ vertexColors: THREE.VertexColors });
+            material.setValues({ vertexColors: true });
             geometry.setAttribute('color', new THREE.BufferAttribute(colors, 3));
         }
 
         geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+
+        object.userData.edgeVertices = new Uint32Array(edgeVertices);
+        object.userData.attributeLength = attr ? attr.length : 0;
+        object.userData.verticesLength = vertices.length;
 
         geometry.computeBoundingSphere();
         geometry.computeBoundingBox();
@@ -125,30 +132,54 @@ module.exports = {
         const resolvedChanges = {};
 
         if (typeof (obj.geometry.attributes.uv) !== 'undefined') {
-            if (typeof (changes.color_range) !== 'undefined' && !changes.color_range.timeSeries) {
-                obj.material.uniforms.low.value = changes.color_range[0];
-                obj.material.uniforms.high.value = changes.color_range[1];
+            const source = obj.userData.edgeVertices;
+            const uv = obj.geometry.attributes.uv.array;
 
-                resolvedChanges.color_range = null;
-            }
+            const renormalise = (attribute, range) => {
+                const low = range[0];
+                const span = range[1] - low;
 
-            if (typeof (changes.attribute) !== 'undefined' && !changes.attribute.timeSeries
-                && changes.attribute.data.length === obj.geometry.attributes.uv.array.length) {
-                const data = obj.geometry.attributes.uv.array;
-
-                for (let i = 0; i < data.length; i++) {
-                    data[i] = (changes.attribute.data[i] - config.color_range[0])
-                        / (config.color_range[1] - config.color_range[0]);
+                for (let i = 0; i < uv.length; i++) {
+                    uv[i] = (attribute[source[i]] - low) / span;
                 }
 
                 obj.geometry.attributes.uv.needsUpdate = true;
+            };
+
+            if (typeof (changes.color_range) !== 'undefined' && !changes.color_range.timeSeries) {
+                // A plain MeshBasicMaterial has no .uniforms; the colormap lives in the uvs.
+                const attribute = (config.attribute && config.attribute.data) || null;
+
+                if (source && attribute && attribute.length === obj.userData.attributeLength) {
+                    renormalise(attribute, changes.color_range);
+                    resolvedChanges.color_range = null;
+                }
+            }
+
+            if (typeof (changes.attribute) !== 'undefined' && !changes.attribute.timeSeries
+                && source && changes.attribute.data.length === obj.userData.attributeLength) {
+                renormalise(changes.attribute.data, config.color_range);
                 resolvedChanges.attribute = null;
             }
         }
 
         if (typeof (changes.vertices) !== 'undefined' && !changes.vertices.timeSeries
-            && changes.vertices.data.length === obj.geometry.attributes.position.array.length) {
-            obj.geometry.attributes.position.array.set(changes.vertices.data);
+            && obj.userData.edgeVertices
+            && changes.vertices.data.length === obj.userData.verticesLength) {
+
+            const map = obj.userData.edgeVertices;
+            const incoming = changes.vertices.data;
+            const target = obj.geometry.attributes.position.array;
+
+            for (let i = 0; i < map.length; i++) {
+                const from = map[i] * 3;
+                const to = i * 3;
+
+                target[to] = incoming[from];
+                target[to + 1] = incoming[from + 1];
+                target[to + 2] = incoming[from + 2];
+            }
+
             obj.geometry.attributes.position.needsUpdate = true;
 
             obj.geometry.computeBoundingSphere();

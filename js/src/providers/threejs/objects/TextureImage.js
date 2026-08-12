@@ -14,7 +14,7 @@ const buffer = require('../../../core/lib/helpers/buffer');
 module.exports = {
     create(config, K3D) {
         return new Promise((resolve) => {
-            const geometry = new THREE.PlaneBufferGeometry(1, 1);
+            const geometry = new THREE.PlaneGeometry(1, 1);
             const modelMatrix = new THREE.Matrix4();
             const texture = new THREE.Texture();
             let material;

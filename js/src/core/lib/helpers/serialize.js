@@ -1,7 +1,7 @@
 const fflate = require('fflate');
 const _ = require('../../../lodash');
 const Float16Array = require('./float16Array');
-const msgpack = require('msgpack-lite');
+const msgpack = require('./msgpackCodec');
 const buffer = require('./buffer');
 const { error } = require('../Error');
 
@@ -16,13 +16,20 @@ const typesToArray = {
     float32: Float32Array,
     float64: Float64Array,
 };
-const MsgpackCodec = msgpack.createCodec({ preset: true });
-MsgpackCodec.addExtPacker(0x20, Float16Array, (val) => val);
-MsgpackCodec.addExtUnpacker(0x20, (val) => Float16Array(val.buffer));
 
 
 function isNumeric(n) {
     return !Number.isNaN(parseFloat(n)) && Number.isFinite(parseFloat(n));
+}
+
+// A decoded payload can be a view into the whole message rather than a buffer of its own, so
+// its offset and length have to be honoured before it is reinterpreted as a typed array.
+function exactBuffer(view) {
+    if (view.byteOffset === 0 && view.byteLength === view.buffer.byteLength) {
+        return view.buffer;
+    }
+
+    return view.buffer.slice(view.byteOffset, view.byteOffset + view.byteLength);
 }
 
 function deserializeArray(obj) {
@@ -30,12 +37,14 @@ function deserializeArray(obj) {
 
     if (typeof (obj.data) !== 'undefined') {
         return {
-            data: new typesToArray[obj.dtype](obj.data.buffer),
+            data: new typesToArray[obj.dtype](exactBuffer(obj.data)),
             shape: obj.shape,
         };
     }
     if (typeof (obj.compressed_data) !== 'undefined') {
-        data = new typesToArray[obj.dtype](fflate.unzlibSync(new Uint8Array(obj.compressed_data.buffer)).buffer);
+        data = new typesToArray[obj.dtype](
+            exactBuffer(fflate.unzlibSync(new Uint8Array(exactBuffer(obj.compressed_data)))),
+        );
 
         console.log(`K3D: Receive: ${data.byteLength} bytes compressed to ${
             obj.compressed_data.byteLength} bytes`);
@@ -77,7 +86,7 @@ function deserialize(obj, manager) {
     }
     if (typeof (obj) === 'string' && obj.substring(0, 7) === 'base64_') {
         try {
-            obj = msgpack.decode(buffer.base64ToArrayBuffer(obj.substring(7)), { codec: MsgpackCodec });
+            obj = msgpack.decode(buffer.base64ToArrayBuffer(obj.substring(7)));
         } catch (err) {
             error('K3D Error', 'Failed to deserialize base64 data: ' + err.message);
             throw new Error('Invalid base64 data in serialization: ' + err.message);

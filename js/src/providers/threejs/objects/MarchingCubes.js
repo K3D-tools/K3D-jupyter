@@ -223,6 +223,24 @@ module.exports = {
                     object.applyMatrix4(modelMatrix);
                     object.updateMatrixWorld();
 
+                    object.onRemove = function () {
+                        const uniforms = object.material.uniforms;
+
+                        if (!uniforms) {
+                            return;
+                        }
+
+                        if (uniforms.volumeTexture && uniforms.volumeTexture.value) {
+                            uniforms.volumeTexture.value.dispose();
+                            uniforms.volumeTexture.value = undefined;
+                        }
+
+                        if (uniforms.colormap && uniforms.colormap.value) {
+                            uniforms.colormap.value.dispose();
+                            uniforms.colormap.value = undefined;
+                        }
+                    };
+
                     resolve(object);
                 },
             );
@@ -243,7 +261,7 @@ module.exports = {
                 obj.material.uniforms.volumeTexture.value.image.data = changes.attribute.data;
                 obj.material.uniforms.volumeTexture.value.needsUpdate = true;
 
-                resolvedChanges.volume = null;
+                resolvedChanges.attribute = null;
             }
         }
 
@@ -255,9 +273,10 @@ module.exports = {
             resolvedChanges.color_range = null;
         }
 
-        if (obj.material.uniforms &&
-            (typeof (changes.color_map) !== 'undefined' && !changes.color_map.timeSeries)
-            || (typeof (changes.opacity_function) !== 'undefined' && !changes.opacity_function.timeSeries)) {
+        if (obj.material.uniforms
+            && ((typeof (changes.color_map) !== 'undefined' && !changes.color_map.timeSeries)
+                || (typeof (changes.opacity_function) !== 'undefined'
+                    && !changes.opacity_function.timeSeries))) {
             if (!(changes.opacity_function && obj.material.transparent === false)) {
                 const canvas = colorMapHelper.createCanvasGradient(
                     (changes.color_map && changes.color_map.data) || config.color_map.data,

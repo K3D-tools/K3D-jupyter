@@ -43,7 +43,7 @@ module.exports = {
         if (geometry.hasColors) {
             material = new THREE.MeshPhongMaterial({
                 opacity: geometry.alpha,
-                vertexColors: THREE.VertexColors,
+                vertexColors: true,
                 wireframe: config.wireframe,
             });
         }

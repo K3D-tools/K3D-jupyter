@@ -14,14 +14,38 @@ import k3d
 from k3d.headless import get_headless_driver, k3d_remote
 
 
+def pytest_addoption(parser):
+    parser.addoption("--gpu", action="store_true", default=False, help="run tests with GPU support")
+
+
 def pytest_configure(config):
     """
     Allows plugins and conftest files to perform initial configuration.
     This hook is called for every plugin and initial conftest
     file after command line options have been parsed.
     """
-    process = subprocess.Popen("webpack", cwd=os.path.abspath("./../js/"), shell=True)
-    process.wait()
+    # Only run webpack if the directory exists (e.g. not in installed package)
+    js_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), "../../js"))
+    if os.path.exists(js_dir) and os.path.isdir(js_dir):
+        # Check if webpack is installed/available before trying to run it
+        try:
+             # use npm run build which is cross-platform and uses project's webpack
+             if sys.platform == "win32":
+                 process = subprocess.Popen("npm run build", cwd=js_dir, shell=True)
+             else:
+                 process = subprocess.Popen(["npm", "run", "build"], cwd=js_dir)
+             returncode = process.wait()
+        except FileNotFoundError:
+             print("Skipping webpack build (npm not found or js dir missing)")
+        else:
+             if returncode != 0:
+                 pytest.exit(
+                     "webpack build failed (npm run build exited %d) - refusing to run "
+                     "the suite against a stale JS bundle" % returncode,
+                     returncode=1,
+                 )
+    else:
+        print(f"Skipping webpack build: {js_dir} not found")
 
 
 def pytest_sessionstart(session):
@@ -33,7 +57,8 @@ def pytest_sessionstart(session):
         screenshot_scale=1.0, antialias=2, camera_auto_fit=False, colorbar_object_id=0
     )
     print(pytest.plot.get_static_path())
-    driver = get_headless_driver()
+    gpu = session.config.getoption("--gpu")
+    driver = get_headless_driver(gpu=gpu)
     driver.set_script_timeout(120)
     pytest.headless = k3d_remote(pytest.plot, driver)
     pytest.headless.browser.execute_script("window.randomMul = 0.0;")

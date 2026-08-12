@@ -105,7 +105,7 @@ class Points(Drawable):
         actual = proposal["value"].size
         if actual != 0 and required != actual:
             raise TraitError(
-                "colors has wrong size: %s (%s required)" % (actual, required)
+                "colors has wrong size: %s (%s required, one per point)" % (actual, required)
             )
         return proposal["value"]
 

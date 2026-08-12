@@ -143,30 +143,41 @@ function update(K3D, json, GUI, changes) {
         K3D.gui_map[json.id] = parent.addFolder(`${json.type} #${K3D.gui_counts[json.type]}`).close();
 
         K3D.gui_map[json.id].controllersMap = {};
-        K3D.gui_map[json.id].listenersId = K3D.on(K3D.events.OBJECT_REMOVED, (id) => {
-            if (id.toString() === json.id.toString()) {
-                const { listenersId } = K3D.gui_map[json.id];
-                const folder = K3D.gui_map[json.id];
 
-                folder.destroy();
+        const listenerId = K3D.on(K3D.events.OBJECT_REMOVED, (id) => {
+            if (id.toString() !== json.id.toString()) { return; }
 
-                if (json.group !== null && K3D.gui_groups[json.group]) {
-                    if (K3D.gui_groups[json.group].children.length === 0) {
-                        K3D.gui_groups[json.group].destroy();
-                        delete K3D.gui_groups[json.group];
-                    }
-                }
+            const folder = K3D.gui_map[json.id];
 
-                delete K3D.gui_map[json.id];
-
-                K3D.off(K3D.events.OBJECT_REMOVED, listenersId);
+            if (!folder) {
+                // The GUI can be torn down while this listener is still registered
+                // (setMenuVisibility(false) clears gui_map), so there is nothing to destroy.
+                K3D.off(K3D.events.OBJECT_REMOVED, listenerId);
+                return;
             }
+
+            folder.destroy();
+
+            if (json.group !== null && K3D.gui_groups[json.group]) {
+                if (K3D.gui_groups[json.group].children.length === 0) {
+                    K3D.gui_groups[json.group].destroy();
+                    delete K3D.gui_groups[json.group];
+                }
+            }
+
+            delete K3D.gui_map[json.id];
+
+            K3D.off(K3D.events.OBJECT_REMOVED, listenerId);
         });
+
+        K3D.gui_map[json.id].listenersId = listenerId;
     }
 
     const defaultParams = ['visible', 'outlines', 'wireframe', 'flat_shading', 'use_head', 'head_size', 'line_width',
         'scale', 'font_size', 'font_weight', 'size', 'point_size', 'level', 'samples', 'alpha_coef', 'gradient_step',
-        'shadow_delay', 'focal_length', 'focal_plane', 'on_top', 'max_length', 'label_box', 'is_html', 'shininess, mask_opacity'];
+        'shadow_delay', 'focal_length', 'focal_plane', 'on_top', 'max_length', 'label_box', 'is_html',
+        // One entry per parameter - these are matched with indexOf().
+        'shininess', 'mask_opacity'];
 
     const availableParams = defaultParams.concat(['color', 'origin_color', 'origin_color', 'head_color',
         'outlines_color', 'text', 'shader', 'shadow_res', 'shadow', 'ray_samples_count', 'width', 'radial_segments',
@@ -273,8 +284,8 @@ function update(K3D, json, GUI, changes) {
             } else if (json.type === 'Line') {
                 if ((typeof (json.colors) === 'undefined' || json.colors.length === 0)
                     && (typeof (json.attribute) === 'undefined' || json.attribute.length === 0)
-                    && (typeof (json.color_range) === 'undefined' || json.colors.color_range === 0)
-                    && (typeof (json.color_map) === 'undefined' || json.colors.color_map === 0)) {
+                    && (typeof (json.color_range) === 'undefined' || json.color_range.length === 0)
+                    && (typeof (json.color_map) === 'undefined' || json.color_map.length === 0)) {
                     addColorController(K3D.gui_map[json.id], json, param).onChange(
                         changeParameter.bind(this, K3D, json, param),
                     );

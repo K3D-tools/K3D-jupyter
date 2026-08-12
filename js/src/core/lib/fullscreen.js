@@ -14,12 +14,18 @@ function fullscreenGUI(container, gui, currentWindow, K3D) {
         }
     });
 
-    currentWindow.addEventListener(screenfull.raw.fullscreenchange, () => {
+    const onFullscreenChange = () => {
         obj.fullscreen = screenfull.isFullscreen;
 
         controller.updateDisplay();
         currentWindow.dispatchEvent(new Event('resize'));
-    });
+    };
+
+    currentWindow.addEventListener(screenfull.raw.fullscreenchange, onFullscreenChange);
+
+    return function removeFullscreenListener() {
+        currentWindow.removeEventListener(screenfull.raw.fullscreenchange, onFullscreenChange);
+    };
 }
 
 module.exports = {

@@ -43,6 +43,8 @@ class PlotCameraMixin:
             bounds = self.get_auto_grid()
         center = (bounds[::2] + bounds[1::2]) / 2.0
         radius = 0.5 * np.sum(np.abs(bounds[::2] - bounds[1::2]) ** 2) ** 0.5
+        if not radius > 0.0:
+            radius = 0.5
         cam_distance = radius * factor / np.sin(np.deg2rad(self.camera_fov / 2.0))
 
         x = np.sin(np.deg2rad(pitch)) * np.cos(np.deg2rad(yaw))

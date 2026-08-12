@@ -30,6 +30,13 @@ function getColorLegend(K3D, object) {
     }
 
     if (typeof (object) !== 'object') {
+        if (K3D.colorMapNode) {
+            K3D.getWorld().targetDOMNode.removeChild(K3D.colorMapNode);
+            K3D.colorMapNode = null;
+        }
+
+        K3D.lastColorMap.objectId = null;
+
         return;
     }
 

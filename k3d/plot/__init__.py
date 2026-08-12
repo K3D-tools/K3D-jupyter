@@ -4,15 +4,17 @@ from .plot_display import PlotDisplayMixin
 from .plot_objects import PlotObjectsMixin
 from .plot_serialization import PlotSerializationMixin
 from .plot_snapshot import PlotSnapshotMixin
+from .plot_time import PlotTimeMixin
 
 
 class Plot(
-    PlotBase,
     PlotObjectsMixin,
     PlotDisplayMixin,
     PlotCameraMixin,
     PlotSnapshotMixin,
     PlotSerializationMixin,
+    PlotTimeMixin,
+    PlotBase,
 ):
     """
     Main K3D widget.

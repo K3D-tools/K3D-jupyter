@@ -31,7 +31,9 @@ function loader(K3D, data) {
 
             startTime = new Date().getTime();
 
-            const interpolated = timeSeries.interpolateTimeSeries(json, K3D.parameters.time);
+            const interpolated = timeSeries.interpolateTimeSeries(
+                json, K3D.parameters.time, K3D.parameters.timeInterpolation,
+            );
             const changes = (data.changes && data.changes[i]) || interpolated.changes || {};
 
             if (objectProvider.update && !_.isEmpty(changes)) {
@@ -68,6 +70,8 @@ function loader(K3D, data) {
                     })
                     .catch((err) => {
                         error('Loader Error', `Object of type "${json.type}" was not loaded. ${err.message}`);
+
+                        return null;
                     });
             }
 

@@ -11,10 +11,14 @@ function prepareParam(param) {
     const isFloat16 = texture.type === THREE.HalfFloatType;
     const volumeData = texture.source.data;
 
-    const origin = param.object.position.clone().sub(param.object.scale.clone().divideScalar(2));
-    const coord = param.point.clone().sub(origin).divide(param.object.scale).multiply(
+    const local = param.object.worldToLocal(param.point.clone()).addScalar(0.5);
+    const coord = local.multiply(
         new THREE.Vector3(volumeData.width - 1, volumeData.height - 1, volumeData.depth - 1),
     ).round();
+
+    coord.x = Math.min(Math.max(coord.x, 0), volumeData.width - 1);
+    coord.y = Math.min(Math.max(coord.y, 0), volumeData.height - 1);
+    coord.z = Math.min(Math.max(coord.z, 0), volumeData.depth - 1);
 
     let value = volumeData.data[coord.z * volumeData.width * volumeData.height
     + coord.y * volumeData.width

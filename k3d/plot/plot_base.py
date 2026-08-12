@@ -40,6 +40,7 @@ class PlotBase(widgets.DOMWidget):
     screenshot_scale = Float().tag(sync=True)
     time = Float().tag(sync=True)
     time_speed = Float().tag(sync=True)
+    time_interpolation = Bool(True).tag(sync=True)
     grid = ListOrArray((-1, -1, -1, 1, 1, 1), minlen=6, maxlen=6).tag(sync=True)
     grid_color = Int().tag(sync=True)
     label_color = Int().tag(sync=True)
@@ -97,6 +98,7 @@ class PlotBase(widgets.DOMWidget):
             lighting: float = 1.5,
             time: float = 0.0,
             time_speed: float = 1.0,
+            time_interpolation: bool = True,
             fps_meter: bool = False,
             menu_visibility: bool = True,
             colorbar_object_id: int = -1,
@@ -110,7 +112,7 @@ class PlotBase(widgets.DOMWidget):
             camera_up_axis: str = "none",
             snapshot_type: str = "full",
             camera_no_pan: bool = False,
-            camera_fov: float = 45.0,
+            camera_fov: float = 60.0,  # matches the k3d.plot() factory default
             camera_damping_factor: float = 0.0,
             axes_helper: float = 1.0,
             axes_helper_colors: TypingList[int] = None,
@@ -132,7 +134,7 @@ class PlotBase(widgets.DOMWidget):
             *args: Any,
             **kwargs: Any,
     ) -> None:
-        super().__init__()
+        super().__init__(*args, **kwargs)
 
         if axes is None:
             axes = ["x", "y", "z"]
@@ -159,6 +161,7 @@ class PlotBase(widgets.DOMWidget):
         self.lighting = lighting
         self.time = time
         self.time_speed = time_speed
+        self.time_interpolation = time_interpolation
         self.menu_visibility = menu_visibility
         self.colorbar_object_id = colorbar_object_id
         self.slice_viewer_object_id = slice_viewer_object_id
@@ -183,13 +186,18 @@ class PlotBase(widgets.DOMWidget):
         self.camera_mode = camera_mode
         self.manipulate_mode = manipulate_mode
         self.auto_rendering = auto_rendering
-        self.camera = []
+        if "camera" not in kwargs:
+            self.camera = []
         self.depth_peels = depth_peels
         self.custom_data = custom_data
         self.additional_js_code = additional_js_code
 
         self.object_ids = []
         self.objects = []
-        self.hidden_object_ids = []
+        if "hidden_object_ids" not in kwargs:
+            self.hidden_object_ids = []
 
         self.outputs: TypingList[widgets.Output] = []
+        # Populated by load_binary_snapshot. Initialised here so it can be read before any
+        # load and so get_binary_snapshot can default to it.
+        self.voxel_chunks: TypingList[Any] = []

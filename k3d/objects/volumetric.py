@@ -21,7 +21,7 @@ class MarchingCubes(DrawableWithCallback):
 
     Attributes:
         scalar_field: `array_like`.
-            A 3D scalar field of values.
+            A 3D scalar field of values, indexed as [z, y, x].
         level: `float`.
             Value at the computed isosurface.
         spacings_x: `array_like`.
@@ -104,7 +104,7 @@ class VolumeSlice(DrawableWithCallback):
 
     Arguments:
         volume: `array_like`.
-            3D array of `float`
+            3D array of `float`, indexed as [z, y, x].
         color_map: `list`.
             A list of float quadruplets (attribute value, R, G, B), sorted by attribute value. The first
             quadruplet should have value 0.0, the last 1.0; R, G, B are RGB color components in the range 0.0 to 1.0.
@@ -125,7 +125,7 @@ class VolumeSlice(DrawableWithCallback):
         interpolation: `int`.
             0 - no interpolation, 1 - linear, 2 - cubic.
         mask: `array_like`.
-            3D array of `int` in range (0, 255).
+            3D array of `int` in range (0, 255), indexed as [z, y, x].
         active_masks: `array_like`.
             List of values from mask.
         color_map_masks: `list`.
@@ -210,7 +210,7 @@ class Volume(Drawable):
 
     Attributes:
         volume: `array_like`.
-            3D array of `float`.
+            3D array of `float`, indexed as [z, y, x].
         color_map: `array_like`.
             A list of float quadruplets (attribute value, R, G, B), sorted by attribute value. The first
             quadruplet should have value 0.0, the last 1.0; R, G, B are RGB color components in the range 0.0 to 1.0.
@@ -241,7 +241,7 @@ class Volume(Drawable):
         interpolation: `bool`.
             Whether volume raycasting should interpolate data or not.
         mask: `array_like`.
-            3D array of `int` in range (0, 255).
+            3D array of `int` in range (0, 255), indexed as [z, y, x].
         mask_opacities: `array_like`.
             List of opacity values for mask.
         model_matrix: `array_like`.
@@ -320,7 +320,7 @@ class MIP(Drawable):
 
     Attributes:
         volume: `array_like`.
-            3D array of `float`.
+            3D array of `float`, indexed as [z, y, x].
         color_map: `array_like`.
             A list of float quadruplets (attribute value, R, G, B), sorted by attribute value. The first
             quadruplet should have value 0.0, the last 1.0; R, G, B are RGB color components in the range 0.0 to 1.0.
@@ -335,7 +335,7 @@ class MIP(Drawable):
         gradient_step: `float`
             Gradient light step.
         mask: `array_like`.
-            3D array of `int` in range (0, 255).
+            3D array of `int` in range (0, 255), indexed as [z, y, x].
         mask_opacities: `array_like`.
             List of opacity values for mask.
         model_matrix: `array_like`.
@@ -401,7 +401,7 @@ class Voxels(DrawableWithVoxelCallback):
 
     Attributes:
         voxels: `array_like`.
-            3D array of `int` in range (0, 255).
+            3D array of `int` in range (0, 255), indexed as [z, y, x].
             0 means empty voxel, 1 and above refer to consecutive color_map entries.
         color_map: `array_like`.
             Flat array of `int` packed RGB colors (0xff0000 is red, 0xff is blue).
@@ -431,7 +431,7 @@ class Voxels(DrawableWithVoxelCallback):
     type = Unicode(read_only=True).tag(sync=True)
     voxels = Array(dtype=np.uint8).tag(sync=True, **array_serialization_wrap("voxels"))
     color_map = Array(dtype=np.uint32).tag(
-        sync=True, **array_serialization_wrap("voxels")
+        sync=True, **array_serialization_wrap("color_map")
     )
     wireframe = Bool().tag(sync=True)
     outlines = Bool().tag(sync=True)

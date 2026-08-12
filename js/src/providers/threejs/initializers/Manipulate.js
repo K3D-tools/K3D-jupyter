@@ -16,15 +16,6 @@ module.exports = function (K3D) {
                     const control = new THREE.TransformControls(world.camera, world.renderer.domElement);
 
                     control.addEventListener('change', () => {
-                        // K3D.dispatch(K3D.events.OBJECT_CHANGE, {
-                        //     id: obj.K3DIdentifier,
-                        //     key: 'model_matrix',
-                        //     value: {
-                        //         data: new Float32Array(obj.matrixWorld.elements),
-                        //         shape: [4, 4]
-                        //     }
-                        // });
-
                         world.render();
                     });
 
@@ -49,6 +40,18 @@ module.exports = function (K3D) {
                                     o.transformControls.enabled = true;
                                 }
                             });
+
+                            obj.updateMatrix();
+
+                            K3D.dispatch(K3D.events.OBJECT_CHANGE, {
+                                id: obj.K3DIdentifier,
+                                key: 'model_matrix',
+                                value: {
+                                    // model_matrix travels row-major, Matrix4.elements is column-major
+                                    data: new Float32Array(obj.matrix.clone().transpose().elements),
+                                    shape: [4, 4],
+                                },
+                            });
                         }
                     });
                     control.setMode(K3D.parameters.manipulateMode);
@@ -62,6 +65,7 @@ module.exports = function (K3D) {
             world.K3DObjects.children.forEach((obj) => {
                 if (obj.transformControls) {
                     obj.transformControls.detach();
+                    world.scene.remove(obj.transformControls);
                     obj.transformControls.dispose();
                     delete obj.transformControls;
                 }

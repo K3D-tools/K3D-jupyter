@@ -35,7 +35,7 @@ module.exports = {
         const phongShader = THREE.ShaderLib.phong;
         let i;
         const boundingBoxGeometry = new THREE.BufferGeometry();
-        const geometry = new THREE.IcosahedronBufferGeometry(config.point_size * 0.5, meshDetail);
+        const geometry = new THREE.IcosahedronGeometry(config.point_size * 0.5, meshDetail);
         const colorMap = (config.color_map && config.color_map.data) || null;
         let opacityFunction = (config.opacity_function && config.opacity_function.data) || null;
         const colorRange = config.color_range;
@@ -112,7 +112,7 @@ module.exports = {
             fragmentShader: require('./shaders/PointsMesh.fragment.glsl'),
             lights: true,
             clipping: true,
-            vertexColors: THREE.VertexColors,
+            vertexColors: true,
         });
 
         if (K3D.parameters.depthPeels === 0) {
@@ -157,16 +157,21 @@ module.exports = {
         if (typeof (changes.positions) !== 'undefined' && !changes.positions.timeSeries
             && changes.positions.data.length / 3 === obj.instanceMatrix.count) {
             const positions = changes.positions.data;
+            const sizes = (config.point_sizes && config.point_sizes.data
+                && config.point_sizes.data.length === positions.length / 3)
+                ? config.point_sizes.data : null;
+            const matrix = new THREE.Matrix4();
+            const scale = new THREE.Vector3();
 
             for (let i = 0; i < positions.length / 3; i++) {
-                const s = (config.sizes && config.sizes[i]) || 1.0;
+                const s = (sizes && sizes[i]) || 1.0;
 
                 obj.setMatrixAt(
                     i,
-                    (new THREE.Matrix4())
+                    matrix
                         .identity()
                         .setPosition(positions[i * 3], positions[i * 3 + 1], positions[i * 3 + 2])
-                        .scale(new THREE.Vector3(s, s, s)),
+                        .scale(scale.set(s, s, s)),
                 );
             }
 

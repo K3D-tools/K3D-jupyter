@@ -3,7 +3,16 @@ const { createCanvasGradient } = require('../../../core/lib/helpers/colorMap');
 const Float16Array = require('../../../core/lib/helpers/float16Array');
 
 function getSpaceDimensionsFromTargetElement(world) {
-    return [world.targetDOMNode.offsetWidth, world.targetDOMNode.offsetHeight];
+    // A zero here means the host has not laid the node out yet (a flex row that derives width
+    // from content, a collapsed Accordion, a hidden Tab), never that there is nothing to draw.
+    // Passing it on gives a 0 aspect, a 0-sized canvas and 0-sized peel targets, and the node
+    // then stays zero forever, so the ResizeObserver has no change to react to. Falling back to
+    // the intrinsic size of a canvas keeps the pipeline valid and gives the node a width, and
+    // the observer applies the real size as soon as the layout resolves.
+    return [
+        world.targetDOMNode.offsetWidth || 300,
+        world.targetDOMNode.offsetHeight || 150,
+    ];
 }
 
 function getSide(config) {
@@ -199,11 +208,11 @@ module.exports = {
         return heads;
     },
 
-    handleColorMap(geometry, colorMap, colorRange, attributes, material) {
+    handleColorMap(geometry, colorMap, colorRange, attributes, material, opacityFunction) {
         let uvs;
         let i;
 
-        const canvas = createCanvasGradient(colorMap, 1024, 1);
+        const canvas = createCanvasGradient(colorMap, 1024, 1, opacityFunction);
 
         const texture = new THREE.CanvasTexture(
             canvas,
@@ -323,7 +332,7 @@ module.exports = {
 
             obj.material.needsUpdate = true;
 
-            resolvedChanges.opacity = null;
+            resolvedChanges.shininess = null;
         }
     },
 

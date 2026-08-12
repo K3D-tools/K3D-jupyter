@@ -1,22 +1,17 @@
-const msgpack = require('msgpack-lite');
+const msgpack = require('./core/lib/helpers/msgpackCodec');
 const fflate = require('fflate');
 const TFEdit = require('./transferFunctionEditor');
 const serialize = require('./core/lib/helpers/serialize');
 const K3D = require('./core/Core');
+const timeSeries = require('./core/lib/timeSeries');
 const ThreeJsProvider = require('./providers/threejs/provider');
 const _ = require('./lodash');
-
-const MsgpackCodec = msgpack.createCodec({ preset: true });
 
 const Float16Array = require('./core/lib/helpers/float16Array');
 
 window.Float16Array = Float16Array;
 
-MsgpackCodec.addExtPacker(0x20, Float16Array, (val) => val);
-MsgpackCodec.addExtUnpacker(0x20, (val) => Float16Array(val.buffer));
-
 require('katex/dist/katex.min.css');
-require('lil-gui/dist/lil-gui.css');
 
 /**
  * Decode msgpack data using the custom codec.
@@ -24,7 +19,7 @@ require('lil-gui/dist/lil-gui.css');
  * @returns {Object} Decoded object.
  */
 function msgpackDecode(data) {
-    return msgpack.decode(data, { codec: MsgpackCodec });
+    return msgpack.decode(data);
 }
 
 /**
@@ -42,8 +37,14 @@ function CreateK3DAndLoadBinarySnapshot(data, targetDOMNode) {
             if (!err) {
                 data = decompressData;
             }
-            // Decode the data using msgpack
-            data = msgpackDecode(data);
+
+            try {
+                data = msgpackDecode(data);
+            } catch (e) {
+                console.error('K3D: failed to decode snapshot data', e);
+                return reject(e);
+            }
+
             try {
                 // Create the K3D instance with the decoded plot
                 K3DInstance = new K3D(
@@ -65,6 +66,9 @@ function CreateK3DAndLoadBinarySnapshot(data, targetDOMNode) {
                     }
                 }, 10);
                 return resolve(K3DInstance);
+            }).catch((e) => {
+                console.error('K3D: failed to apply snapshot', e);
+                return reject(e);
             });
         });
     });
@@ -76,6 +80,12 @@ function CreateK3DAndLoadBinarySnapshot(data, targetDOMNode) {
  */
 module.exports = {
     K3D,
+    // Deliberately narrow: public API, not the whole module.
+    timeSeries: {
+        interpolateTimeSeries: timeSeries.interpolateTimeSeries,
+        getObjectsWithTimeSeriesAndMinMax: timeSeries.getObjectsWithTimeSeriesAndMinMax,
+        getTimeSeriesTimes: timeSeries.getTimeSeriesTimes,
+    },
     msgpackDecode,
     serialize,
     CreateK3DAndLoadBinarySnapshot,

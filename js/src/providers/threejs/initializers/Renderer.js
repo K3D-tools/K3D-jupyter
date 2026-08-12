@@ -57,7 +57,7 @@ module.exports = function (K3D) {
     const targets = [];
     let depthStencilBuffer;
     const compositeScene = new THREE.Scene();
-    const planeGeometry = new THREE.PlaneBufferGeometry(2, 2, 1, 1);
+    const planeGeometry = new THREE.PlaneGeometry(2, 2, 1, 1);
     const compositeMaterial = new THREE.ShaderMaterial({
         uniforms: {
             uTextureA: { value: null },
@@ -97,15 +97,21 @@ module.exports = function (K3D) {
         context,
     });
 
+    // three r152 turned colour management on and made sRGB the default output. K3D composites its
+    // own render targets, so the encode would land only on part of the pipeline - keep it linear.
+    self.renderer.outputColorSpace = THREE.LinearSRGBColorSpace;
+
     if (!context) {
         if (typeof WebGL2RenderingContext !== 'undefined') {
             error(
+                'WEBGL Error',
                 'Your browser appears to support WebGL2 but it might '
                 + 'be disabled. Try updating your OS and/or video card driver.',
                 true,
             );
         } else {
             error(
+                'WEBGL Error',
                 "It's look like your browser has no WebGL2 support.",
                 true,
             );
@@ -128,9 +134,14 @@ module.exports = function (K3D) {
 
     const gl = self.renderer.getContext();
 
+    // Absent in fingerprinting-hardened browsers (Tor, privacy.resistFingerprinting). This
+    // runs synchronously from the K3D.Core constructor, so it must not be assumed present.
     const debugInfo = gl.getExtension('WEBGL_debug_renderer_info');
-    console.log('K3D: (UNMASKED_VENDOR_WEBGL)', gl.getParameter(debugInfo.UNMASKED_VENDOR_WEBGL));
-    console.log('K3D: (UNMASKED_RENDERER_WEBGL)', gl.getParameter(debugInfo.UNMASKED_RENDERER_WEBGL));
+
+    if (debugInfo) {
+        console.log('K3D: (UNMASKED_VENDOR_WEBGL)', gl.getParameter(debugInfo.UNMASKED_VENDOR_WEBGL));
+        console.log('K3D: (UNMASKED_RENDERER_WEBGL)', gl.getParameter(debugInfo.UNMASKED_RENDERER_WEBGL));
+    }
     console.log('K3D: (depth bits)', gl.getParameter(gl.DEPTH_BITS));
     console.log('K3D: (stencil bits)', gl.getParameter(gl.STENCIL_BITS));
 
@@ -462,14 +473,12 @@ module.exports = function (K3D) {
 
                 K3D.dispatch(K3D.events.RENDERED);
 
+                resolve(true);
+
                 if (K3D.autoRendering) {
                     requestAnimationFrame(render);
-                } else {
-                    resolve(true);
                 }
             });
-
-            resolve(null);
         });
     }
 
@@ -553,8 +562,16 @@ module.exports = function (K3D) {
                 );
             }
 
+            const rtGrid = chunkCount > 1
+                ? new THREE.WebGLRenderTarget(width, height, { type: THREE.FloatType })
+                : rt;
+
             return getSSAAChunkedRender(self.renderer, self.gridScene, self.camera,
-                rt, width, height, [[0, height]], aaLevel, standardRender).then((grid) => {
+                rtGrid, width, height, [[0, height]], aaLevel, standardRender).then((grid) => {
+                if (rtGrid !== rt) {
+                    rtGrid.dispose();
+                }
+
                 K3D.parameters.clippingPlanes.forEach((plane) => {
                     self.renderer.clippingPlanes.push(new THREE.Plane(new THREE.Vector3().fromArray(plane), plane[3]));
                 });
@@ -563,6 +580,7 @@ module.exports = function (K3D) {
                     rt, width, height, chunkHeights,
                     aaLevel, currentRenderMethod).then((scene) => {
                     rt.dispose();
+                    rtAxesHelper.dispose();
                     return [grid, scene, axesHelper];
                 });
             });

@@ -1,5 +1,5 @@
 const fflate = require('fflate');
-const msgpack = require('msgpack-lite');
+const msgpack = require('./lib/helpers/msgpackCodec');
 
 const LilGUI = require('lil-gui').GUI;
 const { viewModes } = require('./lib/viewMode');
@@ -23,14 +23,9 @@ const clippingPlanesGUIProvider = require('./lib/clippingPlanesGUIProvider');
 const timeSeries = require('./lib/timeSeries');
 const { base64ToArrayBuffer } = require('./lib/helpers/buffer');
 
-const MsgpackCodec = msgpack.createCodec({ preset: true });
-
 const Float16Array = require('./lib/helpers/float16Array');
 
 window.Float16Array = Float16Array;
-
-MsgpackCodec.addExtPacker(0x20, Float16Array, (val) => val);
-MsgpackCodec.addExtUnpacker(0x20, (val) => Float16Array(val.buffer));
 
 /**
  * @constructor Core
@@ -64,6 +59,7 @@ function K3D(provider, targetDOMNode, parameters) {
     };
     let listeners = {};
     let listenersIndex = 0;
+    let removeFullscreenListener = null;
     const GUI = {
         controls: null,
         objects: null,
@@ -111,7 +107,12 @@ function K3D(provider, targetDOMNode, parameters) {
             detachWindowGUI(GUI.controls, self);
 
             if (fullscreen.isAvailable()) {
-                fullscreen.initialize(world.targetDOMNode, GUI.controls, currentWindow, self);
+                // Keep the remover: initializeGUI runs again every time the menu is re-shown,
+                // and the listener it installs sits on the main window and captures this
+                // instance.
+                removeFullscreenListener = fullscreen.initialize(
+                    world.targetDOMNode, GUI.controls, currentWindow, self,
+                );
             }
         }
 
@@ -189,17 +190,31 @@ function K3D(provider, targetDOMNode, parameters) {
                 object.onRemove();
             }
 
-            if (object.geometry) {
-                object.geometry.dispose();
+            // Deleting an object in manipulate mode would otherwise leave its gizmo in the scene.
+            if (object.transformControls) {
+                object.transformControls.detach();
+                world.scene.remove(object.transformControls);
+                object.transformControls.dispose();
+                delete object.transformControls;
             }
 
-            if (object.material && object.material.map) {
-                object.material.map.dispose();
-            }
+            // Voxels, vectors and labels nest their meshes in a group, which carries no geometry
+            // or material of its own, so disposing only the top level released nothing for them.
+            object.traverse((node) => {
+                if (node.geometry) {
+                    node.geometry.dispose();
+                }
 
-            if (object.material) {
-                object.material.dispose();
-            }
+                if (node.material) {
+                    [].concat(node.material).forEach((material) => {
+                        if (material.map) {
+                            material.map.dispose();
+                        }
+
+                        material.dispose();
+                    });
+                }
+            });
 
             if (object.mesh) {
                 object.mesh.dispose();
@@ -296,6 +311,7 @@ function K3D(provider, targetDOMNode, parameters) {
             fps: 25.0,
             time: 0.0,
             timeSpeed: 1.0,
+            timeInterpolation: true,
             axes: ['x', 'y', 'z'],
             minimumFps: -1,
             cameraNoRotate: false,
@@ -352,6 +368,46 @@ function K3D(provider, targetDOMNode, parameters) {
         if (GUI.controls) {
             GUI.controls.controllersMap.timeSpeed.updateDisplay();
         }
+    };
+
+    this.getTimeSeriesInfo = function () {
+        const info = timeSeries.getObjectsWithTimeSeriesAndMinMax(self);
+
+        return {
+            min: info.min,
+            max: info.max,
+            times: timeSeries.getTimeSeriesTimes(self),
+        };
+    };
+
+    this.stepFrame = function (step) {
+        const times = timeSeries.getTimeSeriesTimes(self);
+
+        if (times.length === 0) {
+            return self.parameters.time;
+        }
+
+        let nearest = 0;
+
+        for (let i = 1; i < times.length; i++) {
+            if (Math.abs(times[i] - self.parameters.time)
+                < Math.abs(times[nearest] - self.parameters.time)) {
+                nearest = i;
+            }
+        }
+
+        const index = Math.min(Math.max(nearest + step, 0), times.length - 1);
+
+        self.setTime(times[index]);
+
+        return self.parameters.time;
+    };
+
+    this.setTimeInterpolation = function (timeInterpolation) {
+        self.parameters.timeInterpolation = timeInterpolation;
+
+        // Re-apply the current time so the change shows without waiting for the next tick.
+        self.setTime(self.parameters.time);
     };
 
     this.setAdditionalJsCode = function (additionalJsCode) {
@@ -521,6 +577,22 @@ function K3D(provider, targetDOMNode, parameters) {
                 initializeGUI();
             }
         } else if (self.gui) {
+            if (removeFullscreenListener) {
+                removeFullscreenListener();
+                removeFullscreenListener = null;
+            }
+
+            // Drop the per-object OBJECT_REMOVED listeners while their ids are still
+            // reachable: each one looks its folder up in gui_map, and every listener left
+            // behind also costs work on every later dispatch.
+            Object.keys(self.gui_map).forEach((id) => {
+                const folder = self.gui_map[id];
+
+                if (folder && folder.listenersId) {
+                    self.off(self.events.OBJECT_REMOVED, folder.listenersId);
+                }
+            });
+
             self.gui_map = {};
             self.gui_groups = {};
             self.gui_counts = {};
@@ -1032,6 +1104,35 @@ function K3D(provider, targetDOMNode, parameters) {
     };
 
     /**
+     * Current event subscriptions, so a replacement instance can take them over.
+     * detachWindow builds a new Core and copies it onto the old object; its on/off/dispatch
+     * close over a fresh listeners map, so the subscriptions have to be carried across.
+     * @memberof K3D.Core
+     * @returns {Object}
+     */
+    this.getListeners = function () {
+        return { listeners, listenersIndex };
+    };
+
+    /**
+     * Take over subscriptions captured from another instance via getListeners().
+     * @memberof K3D.Core
+     * @param {Object} state
+     */
+    this.adoptListeners = function (state) {
+        if (!state || !state.listeners) {
+            return;
+        }
+
+        Object.keys(state.listeners).forEach((eventName) => {
+            listeners[eventName] = Object.assign(listeners[eventName] || {}, state.listeners[eventName]);
+        });
+
+        // Keep handing out fresh ids so an adopted id is never reused.
+        listenersIndex = Math.max(listenersIndex, state.listenersIndex);
+    };
+
+    /**
      * Get access to Scene in current world
      * @memberof K3D.Core
      * @returns {Object|undefined} - should return the "scene" if provider uses such a thing
@@ -1134,6 +1235,8 @@ function K3D(provider, targetDOMNode, parameters) {
             GUI.controls.controllersMap.time.updateDisplay();
         }
 
+        dispatch(self.events.TIME_CHANGE, self.parameters.time);
+
         return Promise.all(promises).then(() => self.refreshAfterObjectsChange(true));
     };
 
@@ -1147,6 +1250,8 @@ function K3D(provider, targetDOMNode, parameters) {
     this.load = function (json) {
         return loader(self, json).then((objects) => {
             objects.forEach((object) => {
+                if (!object) { return; }
+
                 objectsGUIProvider.update(self, object.json, GUI.objects, null);
 
                 world.ObjectsListJson[object.json.id] = object.json;
@@ -1198,6 +1303,8 @@ function K3D(provider, targetDOMNode, parameters) {
 
         return loader(self, data).then((objects) => {
             objects.forEach((object) => {
+                if (!object) { return; }  // Loader could not create it; already reported
+
                 if (timeSeriesReload !== true) {
                     objectsGUIProvider.update(self, object.json, GUI.objects, changes);
                 }
@@ -1287,7 +1394,6 @@ function K3D(provider, targetDOMNode, parameters) {
                     chunkList,
                     plot,
                 },
-                { codec: MsgpackCodec },
             ),
             { level: compressionLevel },
         );
@@ -1304,7 +1410,7 @@ function K3D(provider, targetDOMNode, parameters) {
             }
 
             if (data instanceof Uint8Array) {
-                data = msgpack.decode(data, { codec: MsgpackCodec });
+                data = msgpack.decode(data);
             }
 
             Object.keys(data.chunkList).forEach((k) => {
@@ -1340,7 +1446,7 @@ function K3D(provider, targetDOMNode, parameters) {
      * @returns {Object|undefined}
      */
     this.extractSnapshot = function (data) {
-        return data.match(/var data = '(.+)';/mi);
+        return data.match(/var data(?:_[^\s=]+)? = '(.+)';/mi);
     };
 
     /**
@@ -1348,6 +1454,11 @@ function K3D(provider, targetDOMNode, parameters) {
      * @memberof K3D.Core
      */
     this.disable = function () {
+        // The autoplay loop reschedules itself through requestAnimationFrame, so it outlives the
+        // instance and keeps driving setTime on a destroyed GUI and a lost GL context. Stop it
+        // before the GUI goes away, since stopAutoPlay relabels its button.
+        self.stopAutoPlay();
+
         this.disabling = true;
         if (this.gui) {
             this.gui.destroy();
@@ -1358,14 +1469,28 @@ function K3D(provider, targetDOMNode, parameters) {
             removeObjectFromScene(K3DIdentifier);
             delete world.ObjectsListJson[K3DIdentifier];
         });
-        world.cleanup();
+
+        // Reachable from the Canvas initializer, before Scene defines cleanup.
+        if (world.cleanup) {
+            world.cleanup();
+        }
 
         if (fpsMeter) {
             fpsMeter.domElement.remove();
+            fpsMeter = null;
+        }
+
+        if (removeFullscreenListener) {
+            removeFullscreenListener();
+            removeFullscreenListener = null;
         }
 
         listeners = {};
-        this.resizeObserver.disconnect();
+
+        if (this.resizeObserver) {
+            this.resizeObserver.disconnect();
+        }
+
         world.renderer.removeContextLossListener();
         world.renderer.forceContextLoss();
     };
@@ -1440,7 +1565,7 @@ function K3D(provider, targetDOMNode, parameters) {
     self.setHiddenObjectIds(self.parameters.hiddenObjectIds);
     self.setFpsMeter(self.parameters.fpsMeter);
 
-    self.MsgpackCodec = MsgpackCodec;
+    self.MsgpackCodec = msgpack.codec;
     self.msgpack = msgpack;
     self.serialize = serialize;
 
@@ -1463,6 +1588,10 @@ K3D.prototype.events = {
     OBJECT_HOVERED: 'objectHovered',
     OBJECT_CLICKED: 'objectClicked',
     PARAMETERS_CHANGE: 'parametersChange',
+    // Not PARAMETERS_CHANGE: that one is written back to the model, so a time set from the
+    // kernel would be echoed back. Fires per frame during playback, so listeners stay cheap.
+    TIME_CHANGE: 'timeChange',
+    AUTO_PLAY_CHANGE: 'autoPlayChange',
     VOXELS_CALLBACK: 'voxelsCallback',
     MOUSE_MOVE: 'mouseMove',
     MOUSE_CLICK: 'mouseClick',

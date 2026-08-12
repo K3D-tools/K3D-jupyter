@@ -221,6 +221,7 @@ class PlotView extends widgets.DOMWidgetView {
         ].join(';');
 
         containerEnvelope.appendChild(container);
+        this.el.classList.add('k3d-plot');
         this.el.appendChild(containerEnvelope);
 
         this.container = container;
@@ -235,6 +236,17 @@ class PlotView extends widgets.DOMWidgetView {
         this.K3DInstance.off(this.K3DInstance.events.VOXELS_CALLBACK, this.voxelsCallback);
         this.K3DInstance.off(this.K3DInstance.events.OBJECT_HOVERED, this.objectHoverCallback);
         this.K3DInstance.off(this.K3DInstance.events.OBJECT_CLICKED, this.objectClickCallback);
+
+        this.model.off(null, null, this);
+
+        if (this.cameraSyncTimeout !== null && typeof this.cameraSyncTimeout !== 'undefined') {
+            clearTimeout(this.cameraSyncTimeout);
+            this.cameraSyncTimeout = null;
+        }
+
+        this.K3DInstance.disable();
+
+        super.remove();
     };
 
     _init() {
@@ -294,6 +306,7 @@ class PlotView extends widgets.DOMWidgetView {
         this.model.on('change:time', this._setTime, this);
         this.model.on('change:fps', this._setFps, this);
         this.model.on('change:time_speed', this._setTimeSpeed, this);
+        this.model.on('change:time_interpolation', this._setTimeInterpolation, this);
         this.model.on('change:grid_auto_fit', this._setGridAutoFit, this);
         this.model.on('change:grid_visible', this._setGridVisible, this);
         this.model.on('change:grid_color', this._setGridColor, this);
@@ -366,6 +379,7 @@ class PlotView extends widgets.DOMWidgetView {
                 axesHelper: this.model.get('axes_helper'),
                 grid: this.model.get('grid'),
                 fps: this.model.get('fps'),
+                timeInterpolation: this.model.get('time_interpolation'),
                 depthPeels: this.model.get('depth_peels'),
                 autoRendering: this.model.get('auto_rendering'),
                 gridVisible: this.model.get('grid_visible'),
@@ -393,12 +407,36 @@ class PlotView extends widgets.DOMWidgetView {
             this.renderPromises.push(this.K3DInstance.load({ objects: [objectsList[id].attributes] }));
         }, this);
 
+        this.cameraSyncTimeout = null;
+        this.pendingCamera = null;
+
         this.cameraChangeId = this.K3DInstance.on(this.K3DInstance.events.CAMERA_CHANGE, (control) => {
-            if (self.model._comm_live) {
-                if ((new Date()).getTime() - self.model.lastCameraSync > 200) {
-                    self.model.lastCameraSync = (new Date()).getTime();
-                    self.model.save('camera', control, { patch: true });
-                }
+            if (!self.model._comm_live) {
+                return;
+            }
+
+            const now = (new Date()).getTime();
+            const sinceLast = now - self.model.lastCameraSync;
+
+            if (sinceLast > 200) {
+                self.model.lastCameraSync = now;
+                self.pendingCamera = null;
+                self.model.save('camera', control, { patch: true });
+                return;
+            }
+
+            self.pendingCamera = control;
+
+            if (self.cameraSyncTimeout === null) {
+                self.cameraSyncTimeout = setTimeout(() => {
+                    self.cameraSyncTimeout = null;
+
+                    if (self.pendingCamera && self.model._comm_live) {
+                        self.model.lastCameraSync = (new Date()).getTime();
+                        self.model.save('camera', self.pendingCamera, { patch: true });
+                        self.pendingCamera = null;
+                    }
+                }, 200 - sinceLast);
             }
         });
 
@@ -504,6 +542,10 @@ class PlotView extends widgets.DOMWidgetView {
 
     _setTimeSpeed() {
         this.K3DInstance.setTimeSpeed(this.model.get('time_speed'));
+    };
+
+    _setTimeInterpolation() {
+        this.K3DInstance.setTimeInterpolation(this.model.get('time_interpolation'));
     };
 
 

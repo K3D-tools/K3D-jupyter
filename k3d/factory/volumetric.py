@@ -59,7 +59,13 @@ def volume(
     )
 
     if opacity_function is None:
-        opacity_function = [np.min(color_map[::4]), 0.0, np.max(color_map[::4]), 1.0]
+        if type(color_map) is dict:
+            values = np.concatenate(
+                [np.asarray(frame, np.float32)[::4] for frame in color_map.values()]
+            )
+        else:
+            values = np.asarray(color_map, np.float32)[::4]
+        opacity_function = [np.min(values), 0.0, np.max(values), 1.0]
 
     return process_transform_arguments(
         Volume(
@@ -121,7 +127,15 @@ def mip(
     )
 
     if opacity_function is None:
-        opacity_function = [np.min(color_map[::4]), 0.0, np.max(color_map[::4]), 1.0]
+        # color_map may be a TimeSeries dict, which cannot be sliced; derive the default
+        # ramp from the union of its frames in that case.
+        if type(color_map) is dict:
+            values = np.concatenate(
+                [np.asarray(frame, np.float32)[::4] for frame in color_map.values()]
+            )
+        else:
+            values = np.asarray(color_map, np.float32)[::4]
+        opacity_function = [np.min(values), 0.0, np.max(values), 1.0]
 
     return process_transform_arguments(
         MIP(
