@@ -151,6 +151,68 @@ module.exports = {
     },
 
     /**
+     * Compute geometry.boundingBox and geometry.boundingSphere skipping non-finite vertices.
+     * NaN vertices are a supported way to break a line strip into separate segments, so they
+     * must not poison the bounds (THREE's own compute* propagates NaN, and a NaN bounding box
+     * ends up in the scene bounding box, giving NaN camera near/far planes).
+     * @memberof K3D.Providers.ThreeJS.Helpers
+     * @param  {THREE.BufferGeometry} geometry
+     */
+    computeFiniteBounds(geometry) {
+        const positions = geometry.attributes.position.array;
+        const box = new THREE.Box3();
+
+        box.makeEmpty();
+
+        for (let i = 0; i < positions.length; i += 3) {
+            const x = positions[i];
+            const y = positions[i + 1];
+            const z = positions[i + 2];
+
+            if (Number.isFinite(x) && Number.isFinite(y) && Number.isFinite(z)) {
+                if (x < box.min.x) box.min.x = x;
+                if (x > box.max.x) box.max.x = x;
+                if (y < box.min.y) box.min.y = y;
+                if (y > box.max.y) box.max.y = y;
+                if (z < box.min.z) box.min.z = z;
+                if (z > box.max.z) box.max.z = z;
+            }
+        }
+
+        const sphere = new THREE.Sphere();
+
+        if (box.isEmpty()) {
+            sphere.makeEmpty();
+        } else {
+            box.getCenter(sphere.center);
+
+            let maxRadiusSq = 0;
+
+            for (let i = 0; i < positions.length; i += 3) {
+                const x = positions[i];
+                const y = positions[i + 1];
+                const z = positions[i + 2];
+
+                if (Number.isFinite(x) && Number.isFinite(y) && Number.isFinite(z)) {
+                    const dx = x - sphere.center.x;
+                    const dy = y - sphere.center.y;
+                    const dz = z - sphere.center.z;
+                    const radiusSq = dx * dx + dy * dy + dz * dz;
+
+                    if (radiusSq > maxRadiusSq) {
+                        maxRadiusSq = radiusSq;
+                    }
+                }
+            }
+
+            sphere.radius = Math.sqrt(maxRadiusSq);
+        }
+
+        geometry.boundingBox = box;
+        geometry.boundingSphere = sphere;
+    },
+
+    /**
      * generateArrow
      * @memberof K3D.Providers.ThreeJS.Helpers
      * @param  {THREE.BufferGeometry} coneGeometry

@@ -17,7 +17,8 @@ Tractogram
     v = data.copy()
     v[1:] = (v[1:] - v[:-1])
     v = np.absolute((v / np.linalg.norm(v, axis=1)[..., np.newaxis]))
-    v = (v * 255).astype(np.int32)
+    # NaN rows separate the streamlines - their color is never visible
+    v = (np.nan_to_num(v) * 255).astype(np.int32)
     colors = np.sum((v * np.array([1, 256, 256 * 256])), axis=1).astype(np.uint32)
 
     streamlines = k3d.line(data, shader='simple', colors=colors)

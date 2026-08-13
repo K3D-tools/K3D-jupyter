@@ -5,6 +5,7 @@ const Fn = require('../helpers/Fn');
 
 const { commonUpdate } = Fn;
 const { areAllChangesResolve } = Fn;
+const { computeFiniteBounds } = Fn;
 const colorMapHelper = require('../../../core/lib/helpers/colorMap');
 
 const { getColorsArray } = Fn;
@@ -134,8 +135,7 @@ function create(config, K3D) {
     const line = new MeshLine.MeshLine();
 
     line.setGeometry(positions, true, null, colors, uvs);
-    line.geometry.computeBoundingSphere();
-    line.geometry.computeBoundingBox();
+    computeFiniteBounds(line.geometry);
 
     const object = new THREE.Mesh(line.geometry, material);
     object.userData.meshLine = line;
@@ -238,8 +238,7 @@ function update(config, changes, obj, K3D) {
         obj.userData.meshLine.setGeometry(positions, true, null, colors, uvs);
         obj.geometry.attributes.position.needsUpdate = true;
 
-        obj.geometry.computeBoundingSphere();
-        obj.geometry.computeBoundingBox();
+        computeFiniteBounds(obj.geometry);
 
         resolvedChanges.attribute = null;
         resolvedChanges.vertices = null;

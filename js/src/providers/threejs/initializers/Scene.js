@@ -82,6 +82,17 @@ function getSceneBoundingBox(K3D) {
                 }
 
                 objectBoundingBox.applyMatrix4(object.matrixWorld);
+
+                // A box with NaN/Infinity (e.g. from NaN-separated line vertices) would poison
+                // the union and end up as NaN camera near/far planes. An empty box is fine —
+                // union() ignores it.
+                if (!objectBoundingBox.isEmpty()
+                    && !(isFinite(objectBoundingBox.min.x) && isFinite(objectBoundingBox.min.y)
+                        && isFinite(objectBoundingBox.min.z) && isFinite(objectBoundingBox.max.x)
+                        && isFinite(objectBoundingBox.max.y) && isFinite(objectBoundingBox.max.z))) {
+                    return;
+                }
+
                 sceneBoundingBox.union(objectBoundingBox);
             }
         });

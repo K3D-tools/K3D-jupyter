@@ -4,6 +4,7 @@ const Fn = require('../helpers/Fn');
 
 const { commonUpdate } = Fn;
 const { areAllChangesResolve } = Fn;
+const { computeFiniteBounds } = Fn;
 const { getColorsArray } = Fn;
 const { handleColorMap } = Fn;
 
@@ -117,8 +118,7 @@ module.exports = {
         object.userData.attributeLength = attr ? attr.length : 0;
         object.userData.verticesLength = vertices.length;
 
-        geometry.computeBoundingSphere();
-        geometry.computeBoundingBox();
+        computeFiniteBounds(geometry);
 
         modelMatrix.set.apply(modelMatrix, config.model_matrix.data);
         object.applyMatrix4(modelMatrix);
@@ -182,8 +182,7 @@ module.exports = {
 
             obj.geometry.attributes.position.needsUpdate = true;
 
-            obj.geometry.computeBoundingSphere();
-            obj.geometry.computeBoundingBox();
+            computeFiniteBounds(obj.geometry);
 
             resolvedChanges.vertices = null;
         }
