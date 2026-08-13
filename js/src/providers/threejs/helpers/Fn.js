@@ -31,11 +31,8 @@ function getSide(config) {
     return map[config.side] || map.front;
 }
 
-// The Blinn-Phong exponent equivalent to a GGX roughness (inverse of r = sqrt(2/(s+2))).
-// For the custom ShaderMaterials still built on the phong chunks, so that the public
-// roughness trait drives them consistently with MeshStandardMaterial. The lower clamp
-// matters at the default roughness of 1.0: the exact inverse gives an exponent of 0 and
-// pow(x, 0.0) turns the specular term into a flat wash over the whole surface.
+// Inverse of r = sqrt(2/(s+2)), for the ShaderMaterials still on phong chunks. The lower
+// clamp matters at roughness 1.0: the exact inverse gives exponent 0, and pow(x, 0.0) = 1.
 function phongExponentFromRoughness(roughness) {
     const r = Math.min(Math.max(roughness, 0.045), 1.0);
 

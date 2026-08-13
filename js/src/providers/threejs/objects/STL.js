@@ -22,8 +22,7 @@ module.exports = {
         const loader = new THREE.STLLoader();
         const modelMatrix = new THREE.Matrix4();
         const MaterialConstructor = config.wireframe ? THREE.MeshBasicMaterial : THREE.MeshStandardMaterial;
-        // Lighting parameters stay out of the wireframe branch: MeshBasicMaterial does not have
-        // them and warns about every one.
+        // MeshBasicMaterial warns about every lighting parameter, so the wireframe branch gets none
         let material = new MaterialConstructor(config.wireframe ? {
             color: config.color,
             side: THREE.DoubleSide,

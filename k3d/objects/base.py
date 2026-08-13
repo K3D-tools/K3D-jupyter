@@ -105,8 +105,7 @@ class Drawable(widgets.Widget):
 
     @validate("shininess")
     def _shininess_removed(self, proposal):
-        # None passes so that factory functions can forward their own tombstone parameter
-        # unconditionally.
+        # None passes - factories forward their tombstone parameter unconditionally
         if proposal["value"] is None:
             return None
         raise TraitError(SHININESS_REMOVED)

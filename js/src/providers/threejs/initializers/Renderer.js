@@ -17,6 +17,14 @@ function depthOnBeforeCompile(globalPeelUniforms, shader) {
     shader.uniforms.uLayer = globalPeelUniforms.uLayer;
     shader.uniforms.uDepthOffset = globalPeelUniforms.uDepthOffset;
 
+    // Raw depth into a float target: RGBA8 packing quantised at the order of uDepthOffset,
+    // turning the classification of close fragments into per-pixel noise. gl_FragCoord.z, not
+    // the material's fragCoordZ - the reconstruction disagrees with the colour pass by an ulp.
+    shader.fragmentShader = shader.fragmentShader.replace(
+        'gl_FragColor = packDepthToRGBA( fragCoordZ );',
+        'gl_FragColor = vec4( gl_FragCoord.z, 0.0, 0.0, 1.0 );',
+    );
+
     shader.fragmentShader = require('./shaders/depthShader.fragment.header.glsl') + shader.fragmentShader;
     shader.fragmentShader = shader.fragmentShader.replace(/}(?![\s\S]*})/gm, require('./shaders/depthShader.fragment.tail.glsl'));
 }
@@ -55,7 +63,6 @@ module.exports = function (K3D) {
         powerPreference: 'high-performance',
     });
     const targets = [];
-    let depthStencilBuffer;
     const compositeScene = new THREE.Scene();
     const planeGeometry = new THREE.PlaneGeometry(2, 2, 1, 1);
     const compositeMaterial = new THREE.ShaderMaterial({
@@ -81,6 +88,8 @@ module.exports = function (K3D) {
         uPrevDepthTexture: { value: null },
         uPrevColorTexture: { value: null },
         uScreenSize: { value: new THREE.Vector2(1, 1) },
+        // Bridges the ulp disagreement between gl_FragCoord.z of the depth and colour passes -
+        // two different programs. The stored depth itself is exact.
         uDepthOffset: { value: 0.0000001 },
     };
     const depthMaterial = new THREE.MeshDepthMaterial();
@@ -145,7 +154,9 @@ module.exports = function (K3D) {
     console.log('K3D: (depth bits)', gl.getParameter(gl.DEPTH_BITS));
     console.log('K3D: (stencil bits)', gl.getParameter(gl.STENCIL_BITS));
 
-    function ensureTargets(depthBuffer, width, height) {
+    // [0], [1] - layer depth flip/flop (raw z in .r); [2] - accumulator; [3] - layer colour.
+    // Half-float accumulation rounds to 8 bits once, at the final blit.
+    function ensureTargets(width, height) {
         if (targets.length > 0
             && targets[0].width === width
             && targets[0].height === height) {
@@ -154,13 +165,11 @@ module.exports = function (K3D) {
 
         globalPeelUniforms.uScreenSize.value.set(1 / width, 1 / height);
 
-        if (targets.length) {
-            for (let i = 0; i < 3; i++) {
-                targets.pop().dispose();
-            }
+        while (targets.length) {
+            targets.pop().dispose();
         }
 
-        for (let i = 0; i < 3; i++) {
+        for (let i = 0; i < 2; i++) {
             targets.push(
                 new THREE.WebGLRenderTarget(
                     width,
@@ -168,20 +177,47 @@ module.exports = function (K3D) {
                     {
                         minFilter: THREE.NearestFilter,
                         magFilter: THREE.NearestFilter,
+                        format: THREE.RedFormat,
+                        type: THREE.FloatType,
                     },
                 ),
             );
-
-            targets[i].ownDepthBuffer = depthBuffer;
         }
+
+        targets.push(
+            new THREE.WebGLRenderTarget(
+                width,
+                height,
+                {
+                    minFilter: THREE.NearestFilter,
+                    magFilter: THREE.NearestFilter,
+                    type: THREE.HalfFloatType,
+                    depthBuffer: false,
+                },
+            ),
+        );
+
+        targets.push(
+            new THREE.WebGLRenderTarget(
+                width,
+                height,
+                {
+                    minFilter: THREE.NearestFilter,
+                    magFilter: THREE.NearestFilter,
+                    type: THREE.HalfFloatType,
+                },
+            ),
+        );
     }
 
-    function advancedRender(scene, camera, rt) {
+    // The peeling itself happens in depthShader.fragment.tail: each pass discards fragments
+    // not strictly deeper than the previous layer.
+    function depthPeelRender(scene, camera, rt) {
         if (typeof (rt) === 'undefined') {
             rt = null;
-            ensureTargets(depthStencilBuffer, K3D.getWorld().width, K3D.getWorld().height);
+            ensureTargets(K3D.getWorld().width, K3D.getWorld().height);
         } else {
-            ensureTargets(depthStencilBuffer, rt.width, rt.height);
+            ensureTargets(rt.width, rt.height);
         }
 
         K3D.getWorld().K3DObjects.children.forEach((obj) => {
@@ -192,122 +228,58 @@ module.exports = function (K3D) {
 
         globalPeelUniforms.uLayer.value = 0;
         globalPeelUniforms.uPrevDepthTexture.value = null;
+
         compositeMaterial.uniforms.uBlit.value = 1;
-
-        // STAGE I - clear
-        gl.colorMask(true, true, true, true);
-        gl.depthMask(true);
-
-        // self.renderer.setRenderTarget(null);
-        // self.renderer.setClearColor(0xffffff, 0);
-        // self.renderer.clear();
-
-        self.renderer.setRenderTarget(targets[0]);
-        self.renderer.setClearColor(0, 0);
-        self.renderer.clear();
-
-        self.renderer.setRenderTarget(targets[1]);
-        self.renderer.setClearColor(0xffffff, 1);
-        self.renderer.clear();
-
-        self.renderer.setRenderTarget(targets[2]);
-        self.renderer.setClearColor(0, 0);
-        self.renderer.clear();
-
-        // STAGE II - enable stencil and color
-        gl.enable(gl.STENCIL_TEST);
-
-        gl.colorMask(true, true, true, true);
-        gl.stencilFunc(gl.ALWAYS, 1, 0xff);
-        gl.stencilOp(gl.KEEP, gl.KEEP, gl.REPLACE);
-
-        scene.overrideMaterial = depthMaterial;
-
-        self.renderer.setRenderTarget(targets[1]);
-        self.renderer.render(scene, camera);
-
-        // STAGE III
-        scene.overrideMaterial = null;
-
-        gl.stencilFunc(gl.EQUAL, 1, 0xff);
-        gl.stencilOp(gl.KEEP, gl.KEEP, gl.KEEP);
-
-        self.renderer.setRenderTarget(targets[0]);
-        self.renderer.clear(false, true, false);
-        self.renderer.render(scene, camera);
-
-        // STAGE IV
         compositeMaterial.blendSrc = THREE.OneMinusDstAlphaFactor;
         compositeMaterial.blendDst = THREE.OneFactor;
 
-        compositeMaterial.uniforms.uTextureA.value = targets[0].texture;
-        compositeMaterial.uniforms.uBlit.value = 1;
+        gl.colorMask(true, true, true, true);
+        gl.depthMask(true);
 
-        gl.stencilFunc(gl.EQUAL, 1, 0xff);
-        gl.stencilOp(gl.KEEP, gl.KEEP, gl.KEEP);
-
+        // accumulator
         self.renderer.setRenderTarget(targets[2]);
-        self.renderer.render(compositeScene, camera);
+        self.renderer.setClearColor(0, 0);
+        self.renderer.clear();
 
-        // STAGE V
-        let bit = 1;
-
-        for (let i = 0; i < K3D.parameters.depthPeels; i++) {
-            // continue
-            const flip = i % 2;
-            const flop = (i + 1) % 2;
-
-            // next peel
-            globalPeelUniforms.uPrevDepthTexture.value = targets[flop].texture;
-            globalPeelUniforms.uLayer.value = i + 1;
-
-            self.renderer.setRenderTarget(targets[flip]);
+        function renderLayerColor() {
+            self.renderer.setRenderTarget(targets[3]);
             self.renderer.setClearColor(0, 0);
             self.renderer.clear(true, true, false);
-
-            bit |= 1 << (i + 1);
-
-            gl.stencilFunc(gl.EQUAL, bit, 1 << i);
-            gl.colorMask(true, true, true, true);
-
-            // replace stencil with next level
-            gl.stencilOp(gl.KEEP, gl.KEEP, gl.REPLACE);
-
-            // render color into target
-            self.renderer.setRenderTarget(targets[flip]);
             self.renderer.render(scene, camera);
+        }
 
-            // blit to 3rd buffer
-            compositeMaterial.uniforms.uTextureA.value = targets[flip].texture;
-
-            gl.stencilFunc(gl.EQUAL, bit, 1 << (i + 1));
-            gl.stencilOp(gl.KEEP, gl.KEEP, gl.KEEP);
-
-            self.renderer.setRenderTarget(targets[2]);
-            self.renderer.render(compositeScene, camera);
-
-            // clear depth target and render
-            self.renderer.setRenderTarget(targets[flip]);
+        function renderLayerDepth(target) {
+            self.renderer.setRenderTarget(target);
             self.renderer.setClearColor(0xffffff, 1);
             self.renderer.clear(true, true, false);
 
             scene.overrideMaterial = depthMaterial;
-
-            gl.stencilFunc(gl.EQUAL, bit, 1 << (i + 1));
-            gl.stencilOp(gl.KEEP, gl.KEEP, gl.KEEP);
-
-            self.renderer.setRenderTarget(targets[flip]);
             self.renderer.render(scene, camera);
-
             scene.overrideMaterial = null;
         }
 
-        // STAGE VI
-        gl.disable(gl.STENCIL_TEST);
+        function compositeLayer() {
+            compositeMaterial.uniforms.uTextureA.value = targets[3].texture;
+            self.renderer.setRenderTarget(targets[2]);
+            self.renderer.render(compositeScene, camera);
+        }
 
+        // layer 0: uLayer == 0, so the tail discards nothing
+        renderLayerDepth(targets[0]);
+        renderLayerColor();
+        compositeLayer();
+
+        for (let i = 0; i < K3D.parameters.depthPeels; i++) {
+            globalPeelUniforms.uPrevDepthTexture.value = targets[i % 2].texture;
+            globalPeelUniforms.uLayer.value = i + 1;
+
+            renderLayerColor();
+            compositeLayer();
+            renderLayerDepth(targets[(i + 1) % 2]);
+        }
+
+        // final blit of the accumulator
         globalPeelUniforms.uLayer.value = 0;
-        gl.stencilFunc(gl.ALWAYS, 1, 0xff);
-        gl.stencilOp(gl.KEEP, gl.KEEP, gl.KEEP);
 
         self.renderer.setRenderTarget(rt);
 
@@ -327,7 +299,7 @@ module.exports = function (K3D) {
         });
     }
 
-    function standardRender(scene, camera, rt) {
+    function directRender(scene, camera, rt) {
         if (typeof (rt) === 'undefined') {
             rt = null;
         }
@@ -337,7 +309,7 @@ module.exports = function (K3D) {
     }
 
     function render() {
-        const currentRenderMethod = K3D.parameters.depthPeels > 0 ? advancedRender : standardRender;
+        const currentRenderMethod = K3D.parameters.depthPeels > 0 ? depthPeelRender : directRender;
 
         if (cameras.length === 0) {
             for (let i = 0; i < 3; i++) {
@@ -490,8 +462,6 @@ module.exports = function (K3D) {
     depthMaterial.onBeforeCompile = depthOnBeforeCompile.bind(null, globalPeelUniforms);
     depthMaterial.needsUpdate = true;
 
-    depthStencilBuffer = gl.createRenderbuffer();
-
     this.renderer.setClearColor(0, 0);
     this.renderer.autoClear = false;
 
@@ -520,7 +490,7 @@ module.exports = function (K3D) {
         const chunkHeights = [];
         const chunkCount = Math.max(Math.min(128, K3D.parameters.renderingSteps), 1);
         const aaLevel = Math.max(Math.min(5, K3D.parameters.antialias), 0);
-        const currentRenderMethod = K3D.parameters.depthPeels > 0 ? advancedRender : standardRender;
+        const currentRenderMethod = K3D.parameters.depthPeels > 0 ? depthPeelRender : directRender;
 
         const s = height / chunkCount;
 
@@ -551,7 +521,7 @@ module.exports = function (K3D) {
 
         return getSSAAChunkedRender(self.renderer, self.axesHelper.scene, self.axesHelper.camera,
             rtAxesHelper, rtAxesHelper.width, rtAxesHelper.height, [[0, rtAxesHelper.height]],
-            aaLevel, standardRender).then((result) => {
+            aaLevel, directRender).then((result) => {
             const axesHelper = new Uint8ClampedArray(width * height * 4);
 
             for (let y = 0; y < rtAxesHelper.height; y++) {
@@ -567,7 +537,7 @@ module.exports = function (K3D) {
                 : rt;
 
             return getSSAAChunkedRender(self.renderer, self.gridScene, self.camera,
-                rtGrid, width, height, [[0, height]], aaLevel, standardRender).then((grid) => {
+                rtGrid, width, height, [[0, height]], aaLevel, directRender).then((grid) => {
                 if (rtGrid !== rt) {
                     rtGrid.dispose();
                 }
