@@ -45,10 +45,11 @@ module.exports = {
             config.flat_shading = typeof (config.flat_shading) !== 'undefined' ? config.flat_shading : true;
             config.opacity = typeof (config.opacity) !== 'undefined' ? config.opacity : 1.0;
             config.slice_planes = typeof (config.slice_planes) !== 'undefined' ? config.slice_planes : [];
-            config.shininess = typeof (config.shininess) !== 'undefined' ? config.shininess : 50.0;
+            config.roughness = typeof (config.roughness) !== 'undefined' ? config.roughness : 0.4;
+            config.metalness = typeof (config.metalness) !== 'undefined' ? config.metalness : 0.0;
 
             const modelMatrix = new THREE.Matrix4();
-            const MaterialConstructor = config.wireframe ? THREE.MeshBasicMaterial : THREE.MeshPhongMaterial;
+            const MaterialConstructor = config.wireframe ? THREE.MeshBasicMaterial : THREE.MeshStandardMaterial;
             const texture = new THREE.Texture();
             const textureImage = config.texture;
             const textureFileFormat = config.texture_file_format;
@@ -79,14 +80,19 @@ module.exports = {
                 geometry.setAttribute('normal', new THREE.BufferAttribute(normals, 3));
             }
 
-            const material = new MaterialConstructor({
+            const material = new MaterialConstructor(config.wireframe ? {
+                color: config.color,
+                side: getSide(config),
+                wireframe: true,
+                opacity: config.opacity,
+            } : {
                 color: config.color,
                 emissive: 0,
-                shininess: config.shininess,
-                specular: 0x111111,
+                roughness: config.roughness,
+                metalness: config.metalness,
                 side: getSide(config),
                 flatShading: config.flat_shading,
-                wireframe: config.wireframe,
+                wireframe: false,
                 opacity: config.opacity,
             });
 

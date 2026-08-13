@@ -98,7 +98,7 @@ def test_mesh_advanced_smoothed():
     compare("mesh_advanced_smoothed")
 
 
-def test_mesh_advanced_shininess():
+def test_mesh_advanced_roughness():
     prepare()
 
     filename = download(
@@ -113,16 +113,16 @@ def test_mesh_advanced_shininess():
         reader.GetOutput(),
         color=0x222222,
         flat_shading=False,
-        shininess=10.0,
+        roughness=0.4,
         transform=k3d.transform(rotation=[np.pi / 2, 1, 0, 0]),
     )
     pytest.plot += mesh
 
-    compare("mesh_advanced_shininess")
+    compare("mesh_advanced_roughness")
 
-    mesh.shininess = 500.0
+    mesh.roughness = 0.06
 
-    compare("mesh_advanced_dynamic_shininess")
+    compare("mesh_advanced_dynamic_roughness")
 
 
 def test_mesh_advanced_opacity():

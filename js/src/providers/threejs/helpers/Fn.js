@@ -31,6 +31,17 @@ function getSide(config) {
     return map[config.side] || map.front;
 }
 
+// The Blinn-Phong exponent equivalent to a GGX roughness (inverse of r = sqrt(2/(s+2))).
+// For the custom ShaderMaterials still built on the phong chunks, so that the public
+// roughness trait drives them consistently with MeshStandardMaterial. The lower clamp
+// matters at the default roughness of 1.0: the exact inverse gives an exponent of 0 and
+// pow(x, 0.0) turns the specular term into a flat wash over the whole surface.
+function phongExponentFromRoughness(roughness) {
+    const r = Math.min(Math.max(roughness, 0.045), 1.0);
+
+    return Math.max(2.0 / (r * r) - 2.0, 4.0);
+}
+
 module.exports = {
     /**
      * Finds the nearest (greater than x) power of two of given x
@@ -322,17 +333,25 @@ module.exports = {
             resolvedChanges.opacity = null;
         }
 
-        if (resolvedChanges.shininess !== null && typeof (changes.shininess) !== 'undefined'
-            && !changes.shininess.timeSeries) {
-            obj.material.shininess = changes.shininess;
+        if (resolvedChanges.roughness !== null && typeof (changes.roughness) !== 'undefined'
+            && !changes.roughness.timeSeries) {
+            obj.material.roughness = changes.roughness;
 
             if (obj.material.uniforms && obj.material.uniforms.shininess) {
-                obj.material.uniforms.shininess.value = changes.shininess;
+                obj.material.uniforms.shininess.value = phongExponentFromRoughness(changes.roughness);
             }
 
             obj.material.needsUpdate = true;
 
-            resolvedChanges.shininess = null;
+            resolvedChanges.roughness = null;
+        }
+
+        if (resolvedChanges.metalness !== null && typeof (changes.metalness) !== 'undefined'
+            && !changes.metalness.timeSeries) {
+            obj.material.metalness = changes.metalness;
+            obj.material.needsUpdate = true;
+
+            resolvedChanges.metalness = null;
         }
     },
 
@@ -347,4 +366,5 @@ module.exports = {
     },
 
     getSide,
+    phongExponentFromRoughness,
 };

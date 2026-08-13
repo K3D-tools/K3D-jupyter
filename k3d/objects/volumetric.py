@@ -47,8 +47,10 @@ class MarchingCubes(DrawableWithCallback):
             Whether mesh should display as wireframe.
         flat_shading: `bool`.
             Whether mesh should display with flat shading.
-        shininess: `float`.
-            Shininess of object material.
+        roughness: `float`.
+            Roughness of object material.
+        metalness: `float`.
+            Metalness of object material.
         opacity: `float`.
             Opacity of mesh.
         model_matrix: `array_like`.
@@ -84,7 +86,8 @@ class MarchingCubes(DrawableWithCallback):
     color = Int(min=0, max=0xFFFFFF).tag(sync=True)
     wireframe = Bool().tag(sync=True)
     flat_shading = Bool().tag(sync=True)
-    shininess = TimeSeries(Float(default_value=50.0)).tag(sync=True)
+    roughness = TimeSeries(Float(default_value=0.4)).tag(sync=True)
+    metalness = TimeSeries(Float(default_value=0.0)).tag(sync=True)
     opacity = TimeSeries(Float(min=0.0, max=1.0, default_value=1.0)).tag(sync=True)
     model_matrix = TimeSeries(Array(dtype=np.float32)).tag(
         sync=True, **array_serialization_wrap("model_matrix")

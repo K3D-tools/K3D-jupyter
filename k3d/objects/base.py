@@ -2,7 +2,8 @@
 
 import ipywidgets as widgets
 import numpy as np
-from traitlets import Any, Bool, Dict, Int, Integer, List, Unicode, Union
+from traitlets import (Any, Bool, Dict, Int, Integer, List, TraitError,
+                       Unicode, Union, validate)
 from traittypes import Array
 
 from .._version import __version__ as version
@@ -10,6 +11,11 @@ from ..helpers import (array_serialization_wrap, callback_serialization_wrap,
                        to_json)
 
 EPSILON = np.finfo(np.float32).eps
+
+SHININESS_REMOVED = (
+    "shininess was removed in 2.19.0 - use roughness and metalness instead. "
+    "The equivalent is roughness = sqrt(2 / (shininess + 2)), e.g. the old default 50 -> 0.196."
+)
 
 
 class TimeSeries(Union):
@@ -92,6 +98,18 @@ class Drawable(widgets.Widget):
     custom_data = Dict(default_value=None, allow_none=True).tag(sync=True)
     visible = TimeSeries(Bool(True)).tag(sync=True)
     compression_level = Integer().tag(sync=True)
+
+    # Tombstone. Unknown constructor kwargs are silently swallowed by ipywidgets, so simply
+    # deleting the trait would turn every existing shininess= call into a silent visual change.
+    shininess = Any(default_value=None, allow_none=True)
+
+    @validate("shininess")
+    def _shininess_removed(self, proposal):
+        # None passes so that factory functions can forward their own tombstone parameter
+        # unconditionally.
+        if proposal["value"] is None:
+            return None
+        raise TraitError(SHININESS_REMOVED)
 
     def __getitem__(self, name):
         return getattr(self, name)

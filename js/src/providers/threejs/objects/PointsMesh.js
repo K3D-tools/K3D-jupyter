@@ -19,7 +19,7 @@ const { getColorsArray } = Fn;
  */
 module.exports = {
     create(config, K3D) {
-        config.shininess = typeof (config.shininess) !== 'undefined' ? config.shininess : 50.0;
+        config.roughness = typeof (config.roughness) !== 'undefined' ? config.roughness : 0.4;
 
         const modelMatrix = new THREE.Matrix4();
         const color = new THREE.Color(config.color);
@@ -101,7 +101,7 @@ module.exports = {
 
         const material = new THREE.ShaderMaterial({
             uniforms: THREE.UniformsUtils.merge([phongShader.uniforms, {
-                shininess: { value: config.shininess },
+                shininess: { value: Fn.phongExponentFromRoughness(config.roughness) },
                 opacity: { value: config.opacity },
             }, uniforms]),
             defines: {

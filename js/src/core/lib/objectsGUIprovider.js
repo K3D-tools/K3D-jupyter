@@ -177,7 +177,7 @@ function update(K3D, json, GUI, changes) {
         'scale', 'font_size', 'font_weight', 'size', 'point_size', 'level', 'samples', 'alpha_coef', 'gradient_step',
         'shadow_delay', 'focal_length', 'focal_plane', 'on_top', 'max_length', 'label_box', 'is_html',
         // One entry per parameter - these are matched with indexOf().
-        'shininess', 'mask_opacity'];
+        'roughness', 'metalness', 'mask_opacity'];
 
     const availableParams = defaultParams.concat(['color', 'origin_color', 'origin_color', 'head_color',
         'outlines_color', 'text', 'shader', 'shadow_res', 'shadow', 'ray_samples_count', 'width', 'radial_segments',

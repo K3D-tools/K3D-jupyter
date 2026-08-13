@@ -36,8 +36,10 @@ class Points(Drawable):
             :`3dSpecular`: little 3D balls with specular lightning,
 
             :`mesh`: high precision triangle mesh of a ball (high quality and GPU load).
-        shininess: `float`.
-            Shininess of object material.
+        roughness: `float`.
+            Roughness of object material.
+        metalness: `float`.
+            Metalness of object material.
         mesh_detail: `int`.
             Default is 2. Setting this to a value greater than 0 adds more vertices making it no longer an
             icosahedron. When detail is greater than 1, it's effectively a sphere. Only valid if shader='mesh'
@@ -73,7 +75,8 @@ class Points(Drawable):
         sync=True, **array_serialization_wrap("opacities")
     )
     shader = TimeSeries(Unicode()).tag(sync=True)
-    shininess = TimeSeries(Float(default_value=50.0)).tag(sync=True)
+    roughness = TimeSeries(Float(default_value=0.4)).tag(sync=True)
+    metalness = TimeSeries(Float(default_value=0.0)).tag(sync=True)
     mesh_detail = TimeSeries(Int(min=0, max=12)).tag(sync=True)
     attribute = TimeSeries(Array(dtype=np.float32)).tag(
         sync=True, **array_serialization_wrap("attribute")

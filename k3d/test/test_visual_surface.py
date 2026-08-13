@@ -29,9 +29,9 @@ def test_surface():
 
     compare("surface_dynamic_color")
 
-    surface.shininess = 500.0
+    surface.roughness = 0.06
 
-    compare("surface_dynamic_shininess")
+    compare("surface_dynamic_roughness")
 
 
 def test_surface_attribute():

@@ -16,7 +16,7 @@ RUN apt-get update && apt-get install -y -qq \
 # pinned build comes from Chrome for Testing, which is an archive.
 #
 # Raising this version is expected to require regenerating the reference images.
-ARG CHROME_VERSION=144.0.7559.109
+ARG CHROME_VERSION=152.0.7977.42
 ARG CFT=https://storage.googleapis.com/chrome-for-testing-public
 
 # One layer, with its own apt-get update: the stable .deb is installed purely so that apt

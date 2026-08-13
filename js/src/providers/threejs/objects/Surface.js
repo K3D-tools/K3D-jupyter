@@ -18,28 +18,34 @@ module.exports = {
         config.wireframe = typeof (config.wireframe) !== 'undefined' ? config.wireframe : false;
         config.flat_shading = typeof (config.flat_shading) !== 'undefined' ? config.flat_shading : true;
         config.opacity = typeof (config.opacity) !== 'undefined' ? config.opacity : 1.0;
-        config.shininess = typeof (config.shininess) !== 'undefined' ? config.shininess : 50.0;
+        config.roughness = typeof (config.roughness) !== 'undefined' ? config.roughness : 0.4;
+        config.metalness = typeof (config.metalness) !== 'undefined' ? config.metalness : 0.0;
 
         const heights = config.heights.data;
         const width = config.heights.shape[1];
         const height = config.heights.shape[0];
         const modelMatrix = new THREE.Matrix4();
-        const MaterialConstructor = config.wireframe ? THREE.MeshBasicMaterial : THREE.MeshPhongMaterial;
+        const MaterialConstructor = config.wireframe ? THREE.MeshBasicMaterial : THREE.MeshStandardMaterial;
         const colorRange = config.color_range;
         const colorMap = (config.color_map && config.color_map.data) || null;
         const attribute = (config.attribute && config.attribute.data) || null;
-        const material = new MaterialConstructor({
+        const materialParams = {
             color: config.color,
             opacity: config.opacity,
             depthWrite: config.opacity === 1.0,
             transparent: config.opacity !== 1.0,
-            emissive: 0,
-            shininess: config.shininess,
-            specular: 0x111111,
             side: THREE.DoubleSide,
-            flatShading: config.flat_shading,
             wireframe: config.wireframe,
-        });
+        };
+
+        if (!config.wireframe) {
+            materialParams.emissive = 0;
+            materialParams.roughness = config.roughness;
+            materialParams.metalness = config.metalness;
+            materialParams.flatShading = config.flat_shading;
+        }
+
+        const material = new MaterialConstructor(materialParams);
         const geometry = new THREE.BufferGeometry();
         const vertices = new Float32Array(width * height * 3);
         const indices = [];
