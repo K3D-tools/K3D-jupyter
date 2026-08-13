@@ -2,6 +2,17 @@
 #include <clipping_planes_pars_fragment>
 #include <lights_pars_begin>
 
+// minimal mirror of the fields BRDF_GGX reads (the full struct lives in
+// lights_physical_pars_fragment, which assumes the mesh pipeline)
+struct PhysicalMaterial {
+    vec3 diffuseColor;
+    float roughness;
+    vec3 specularColorBlended;
+    float specularF90;
+};
+
+// K3D_GGX_CHUNK
+
 precision highp sampler3D;
 
 uniform vec3 k3dEnvSH[9];
@@ -251,13 +262,18 @@ void main() {
                             (ambientLightColor + shGetIrradianceAt(k3dEnvRotation * normal, k3dEnvSH)) * RECIPROCAL_PI, 1.0);
                         vec3 specularColor = vec3(0.0);
 
+                        // GGX lobe equivalent of the old pow-250 highlight:
+                        // roughness = sqrt(2 / (250 + 2))
+                        PhysicalMaterial specMaterial;
+                        specMaterial.diffuseColor = vec3(0.0);
+                        specMaterial.roughness = 0.089;
+                        specMaterial.specularColorBlended = vec3(0.04);
+                        specMaterial.specularF90 = 1.0;
+
                         #if NUM_DIR_LIGHTS > 0
                         vec3 lightDirection;
                         vec3 lightColor;
                         float lightingIntensity;
-
-                        vec3 lightReflect;
-                        float specularFactor;
 
                         #pragma unroll_loop_start
                         for (int i = 0; i < NUM_DIR_LIGHTS; i++) {
@@ -266,12 +282,9 @@ void main() {
                             lightingIntensity = clamp(dot(lightDirection, normal), 0.0, 1.0);
                             addedLights.rgb += lightColor * (0.2 + 0.8 * lightingIntensity) * (1.0 - shadow);
 
-                            lightReflect = normalize(reflect(lightDirection, normal));
-                            specularFactor = dot(direction, lightReflect);
-
-                            if (specularFactor > 0.0)
-                            specularColor += 0.002 * scaled_px * (1.0 / step) *
-                            lightColor * pow(specularFactor, 250.0) *
+                            specularColor += 0.01 * scaled_px * (1.0 / step) *
+                            lightColor * lightingIntensity *
+                            BRDF_GGX(lightDirection, -direction, normal, specMaterial) *
                             pxColor.a * (1.0 - shadow);
                         }
                         #pragma unroll_loop_end
@@ -284,12 +297,9 @@ void main() {
                             float envIntensity = clamp(dot(k3dEnvLightDir, normal), 0.0, 1.0);
                             addedLights.rgb += envLightColor * (0.2 + 0.8 * envIntensity) * (1.0 - shadow);
 
-                            vec3 envReflect = normalize(reflect(k3dEnvLightDir, normal));
-                            float envSpecular = dot(direction, envReflect);
-
-                            if (envSpecular > 0.0)
-                            specularColor += 0.002 * scaled_px * (1.0 / step) *
-                            envLightColor * pow(envSpecular, 250.0) *
+                            specularColor += 0.01 * scaled_px * (1.0 / step) *
+                            envLightColor * envIntensity *
+                            BRDF_GGX(k3dEnvLightDir, -direction, normal, specMaterial) *
                             pxColor.a * (1.0 - shadow);
                         }
 

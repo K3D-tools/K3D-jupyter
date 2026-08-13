@@ -2,6 +2,17 @@
 #include <clipping_planes_pars_fragment>
 #include <lights_pars_begin>
 
+// minimal mirror of the fields BRDF_GGX reads (the full struct lives in
+// lights_physical_pars_fragment, which assumes the mesh pipeline)
+struct PhysicalMaterial {
+    vec3 diffuseColor;
+    float roughness;
+    vec3 specularColorBlended;
+    float specularF90;
+};
+
+// K3D_GGX_CHUNK
+
 precision highp sampler3D;
 
 uniform vec3 k3dEnvSH[9];
@@ -175,6 +186,13 @@ void main() {
         (ambientLightColor + shGetIrradianceAt(k3dEnvRotation * normal, k3dEnvSH)) * RECIPROCAL_PI, 1.0);
     vec3 specularColor = vec3(0.0);
 
+    // GGX lobe equivalent of the old pow-50 highlight: roughness = sqrt(2 / (50 + 2))
+    PhysicalMaterial specMaterial;
+    specMaterial.diffuseColor = vec3(0.0);
+    specMaterial.roughness = 0.196;
+    specMaterial.specularColorBlended = vec3(0.04);
+    specMaterial.specularF90 = 1.0;
+
     #if NUM_DIR_LIGHTS > 0
     vec3 lightDirection;
     vec3 lightColor;
@@ -188,7 +206,8 @@ void main() {
         addedLights.rgb += lightColor * (0.05 + 0.95 * lightingIntensity);
 
         #if (USE_SPECULAR == 1)
-        specularColor += lightColor * pow(lightingIntensity, 50.0) * pxColor.a;
+        specularColor += lightColor * lightingIntensity *
+        BRDF_GGX(-lightDirection, -direction, normal, specMaterial) * pxColor.a;
         #endif
     }
     #pragma unroll_loop_end
@@ -201,7 +220,8 @@ void main() {
         addedLights.rgb += envLightColor * (0.05 + 0.95 * envIntensity);
 
         #if (USE_SPECULAR == 1)
-        specularColor += envLightColor * pow(envIntensity, 50.0) * pxColor.a;
+        specularColor += envLightColor * envIntensity *
+        BRDF_GGX(k3dEnvLightDir, -direction, normal, specMaterial) * pxColor.a;
         #endif
     }
 

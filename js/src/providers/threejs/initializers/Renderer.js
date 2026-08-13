@@ -361,14 +361,24 @@ module.exports = function (K3D) {
 
         ensureAoTargets(width, height);
 
-        // depth prepass: only real geometry occludes. Billboards and lines have no
-        // surface for the override material, volumes are back-side boxes that would
-        // occlude everything behind them.
+        // depth prepass: only real geometry occludes. Lines have no surface for the
+        // override material, volumes are back-side boxes that would occlude everything
+        // behind them. Impostor spheres carry their own depth material and render in a
+        // second, depth-tested pass - the override would rasterise their quads.
         const hidden = [];
+        const impostors = [];
 
         world.K3DObjects.traverse((obj) => {
-            if (obj.visible && (obj.isPoints || obj.isLine || obj.isSprite
-                || (obj.material && obj.material.isShaderMaterial))) {
+            if (!obj.visible) {
+                return;
+            }
+            if (obj.userData.k3dAODepthMaterial) {
+                obj.visible = false;
+                impostors.push(obj);
+                return;
+            }
+            if (obj.isPoints || obj.isLine || obj.isSprite
+                || (obj.material && obj.material.isShaderMaterial)) {
                 obj.visible = false;
                 hidden.push(obj);
             }
@@ -384,7 +394,34 @@ module.exports = function (K3D) {
         self.renderer.render(self.scene, self.camera);
         self.scene.overrideMaterial = null;
 
-        hidden.forEach((obj) => {
+        if (impostors.length > 0) {
+            const meshesShown = [];
+
+            world.K3DObjects.traverse((obj) => {
+                if (obj.visible && obj.material) {
+                    obj.visible = false;
+                    meshesShown.push(obj);
+                }
+            });
+
+            impostors.forEach((obj) => {
+                obj.visible = true;
+                obj.userData.k3dAOColorMaterial = obj.material;
+                obj.material = obj.userData.k3dAODepthMaterial;
+            });
+
+            // no clear: depth-tested against the surfaces of the first pass
+            self.renderer.render(self.scene, self.camera);
+
+            impostors.forEach((obj) => {
+                obj.material = obj.userData.k3dAOColorMaterial;
+            });
+            meshesShown.forEach((obj) => {
+                obj.visible = true;
+            });
+        }
+
+        hidden.concat(impostors).forEach((obj) => {
             obj.visible = true;
         });
 
@@ -396,9 +433,13 @@ module.exports = function (K3D) {
         u.cameraFar.value = self.camera.far;
         u.cameraProjectionMatrix.value.copy(self.camera.projectionMatrix);
         u.cameraProjectionMatrixInverse.value.copy(self.camera.projectionMatrixInverse);
-        // view-space units follow the data, not any fixed scale
-        u.radius.value = 0.05 * diagonal;
-        u.thickness.value = 0.02 * diagonal;
+        // view-space units follow the data, not any fixed scale; the exponent deepens
+        // the shadows (author's call: the default footprint read too shallow).
+        // thickness must not undercut radius - the horizon test drops samples with
+        // a depth delta beyond it, which silently disables occlusion in wide cavities.
+        u.radius.value = 0.07 * diagonal;
+        u.thickness.value = 0.14 * diagonal;
+        u.scale.value = 1.8;
 
         self.renderer.setRenderTarget(aoTargets.raw);
         self.renderer.setClearColor(0xffffff, 1);

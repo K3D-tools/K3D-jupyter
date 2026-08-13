@@ -3,12 +3,26 @@
 #include <logdepthbuf_pars_fragment>
 #include <lights_pars_begin>
 
+// minimal mirror of the fields BRDF_GGX reads - the full struct lives in
+// lights_physical_pars_fragment, which drags in the whole mesh lighting pipeline
+struct PhysicalMaterial {
+    vec3 diffuseColor;
+    float roughness;
+    vec3 specularColorBlended;
+    float specularF90;
+};
+
+// K3D_GGX_CHUNK
+
 uniform vec3 k3dEnvSH[9];
 uniform mat3 k3dEnvRotation;
 uniform vec3 k3dEnvLightDir;
 uniform vec3 k3dEnvLightColor;
+uniform float k3dEnvSurfaceBoost;
 uniform float size;
 uniform float opacity;
+uniform float roughness;
+uniform float metalness;
 uniform mat4 projectionMatrix;
 
 varying vec4 vColor;
@@ -49,41 +63,53 @@ void main(void)
     gl_FragDepthEXT = depth;
     float fragCoordZ = pos.z;
 
+    // everything below is view space: the analytic sphere normal, the surface point
+    // and three's directional light directions all live there already
     vec3 normal = vec3(impostorSpaceCoordinate, normalizedDepth);
-
-    // the impostor normal lives in view space, the SH in world space
+    vec3 viewDir = normalize(-vec3(mvPosition.xy, mvPosition.z + depthOfFragment));
     vec3 kWorldNormal = normalize(normal * mat3(viewMatrix));
-    vec4 addedLights = vec4(
-        (ambientLightColor + shGetIrradianceAt(k3dEnvRotation * kWorldNormal, k3dEnvSH)) * RECIPROCAL_PI, 1.0);
-    vec4 finalSphereColor = vColor;
-    vec3 specularColor = vec3(0.0);
 
+    vec4 finalSphereColor = vColor;
     finalSphereColor.a *= opacity;
+
+    PhysicalMaterial material;
+    material.diffuseColor = finalSphereColor.rgb * (1.0 - metalness);
+    material.roughness = max(roughness, 0.0525);
+    material.specularColorBlended = mix(vec3(0.04), finalSphereColor.rgb, metalness);
+    material.specularF90 = 1.0;
+
+    // rig ambient + environment SH irradiance; the impostor is a surface, so the env
+    // part gets the same delivery correction PMREM materials take from environmentIntensity
+    vec3 irradiance = ambientLightColor
+        + shGetIrradianceAt(k3dEnvRotation * kWorldNormal, k3dEnvSH) * k3dEnvSurfaceBoost;
+    vec3 diffuse = irradiance * BRDF_Lambert(material.diffuseColor);
+    vec3 specular = vec3(0.0);
 
     #if NUM_DIR_LIGHTS > 0
     for (int l = 0; l < NUM_DIR_LIGHTS; l++) {
-        vec3 lightDirection = -directionalLights[l].direction;
-        vec3 lightColor = directionalLights[l].color * RECIPROCAL_PI;
-        float lightingIntensity = clamp(dot(-lightDirection, normal), 0.0, 1.0);
-        addedLights.rgb += lightColor * (0.05 + 0.95 * lightingIntensity);
+        vec3 lightDir = directionalLights[l].direction;
+        vec3 lightIrradiance = directionalLights[l].color * clamp(dot(lightDir, normal), 0.0, 1.0);
+
+        diffuse += lightIrradiance * BRDF_Lambert(material.diffuseColor);
 
         #if (USE_SPECULAR == 1)
-        specularColor += lightColor * pow(lightingIntensity, 80.0);
+        specular += lightIrradiance * BRDF_GGX(lightDir, viewDir, normal, material);
         #endif
     }
     #endif
 
     // advanced: the dominant directional light distilled from the environment's L1 band
     {
-        vec3 lightColor = k3dEnvLightColor * RECIPROCAL_PI;
-        float lightingIntensity = clamp(dot(k3dEnvLightDir, kWorldNormal), 0.0, 1.0);
-        addedLights.rgb += lightColor * (0.05 + 0.95 * lightingIntensity);
+        vec3 lightDir = normalize((viewMatrix * vec4(k3dEnvLightDir, 0.0)).xyz);
+        vec3 lightIrradiance = k3dEnvLightColor * k3dEnvSurfaceBoost
+            * clamp(dot(lightDir, normal), 0.0, 1.0);
+
+        diffuse += lightIrradiance * BRDF_Lambert(material.diffuseColor);
 
         #if (USE_SPECULAR == 1)
-        specularColor += lightColor * pow(lightingIntensity, 80.0);
+        specular += lightIrradiance * BRDF_GGX(lightDir, viewDir, normal, material);
         #endif
     }
 
-    gl_FragColor = finalSphereColor * addedLights;
-    gl_FragColor.rgb += specularColor;
+    gl_FragColor = vec4(diffuse + specular, finalSphereColor.a);
 }

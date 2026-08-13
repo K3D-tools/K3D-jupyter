@@ -145,7 +145,7 @@ module.exports = {
                 USE_MASK: (maskEnabled ? 1 : 0),
             },
             vertexShader: require('./shaders/MIP.vertex.glsl'),
-            fragmentShader: require('./shaders/MIP.fragment.glsl'),
+            fragmentShader: require('../helpers/ggxChunk')(require('./shaders/MIP.fragment.glsl')),
             side: THREE.BackSide,
             depthTest: false,
             depthWrite: false,

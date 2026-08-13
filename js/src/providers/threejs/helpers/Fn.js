@@ -387,6 +387,11 @@ module.exports = {
         if (resolvedChanges.roughness !== null && typeof (changes.roughness) !== 'undefined'
             && !changes.roughness.timeSeries) {
             obj.material.roughness = changes.roughness;
+
+            // bespoke shaders (points 3d impostor) read it as a uniform
+            if (obj.material.uniforms && obj.material.uniforms.roughness) {
+                obj.material.uniforms.roughness.value = changes.roughness;
+            }
             obj.material.needsUpdate = true;
 
             resolvedChanges.roughness = null;
@@ -395,6 +400,10 @@ module.exports = {
         if (resolvedChanges.metalness !== null && typeof (changes.metalness) !== 'undefined'
             && !changes.metalness.timeSeries) {
             obj.material.metalness = changes.metalness;
+
+            if (obj.material.uniforms && obj.material.uniforms.metalness) {
+                obj.material.uniforms.metalness.value = changes.metalness;
+            }
             obj.material.needsUpdate = true;
 
             resolvedChanges.metalness = null;

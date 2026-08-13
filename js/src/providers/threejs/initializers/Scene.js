@@ -607,6 +607,10 @@ module.exports = {
         this.k3dEnvRotation = { value: new THREE.Matrix3() };
         this.k3dEnvLightDir = { value: new THREE.Vector3(0, 0, 1) };
         this.k3dEnvLightColor = { value: new THREE.Vector3(0, 0, 0) };
+        // the same surface-delivery correction that scene.environmentIntensity carries
+        // for PMREM materials; SH-lit SURFACES (points 3d impostor) apply it, volumes
+        // (calibrated at parity without it) do not
+        this.k3dEnvSurfaceBoost = { value: 1.2 };
         this.raycaster = new THREE.Raycaster();
         this.raycaster.firstHitOnly = true;
 

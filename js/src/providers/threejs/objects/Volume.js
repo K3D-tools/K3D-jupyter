@@ -191,7 +191,7 @@ module.exports = {
                 RAY_SAMPLES_COUNT: config.focal_length !== 0.0 ? config.ray_samples_count : 0,
             },
             vertexShader: require('./shaders/Volume.vertex.glsl'),
-            fragmentShader: require('./shaders/Volume.fragment.glsl'),
+            fragmentShader: require('../helpers/ggxChunk')(require('./shaders/Volume.fragment.glsl')),
             side: THREE.BackSide,
             depthTest: false,
             depthWrite: false,
