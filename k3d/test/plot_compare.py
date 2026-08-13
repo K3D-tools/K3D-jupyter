@@ -25,6 +25,7 @@ def prepare(depth_peels=0):
     pytest.plot.colorbar_object_id = 0
     pytest.plot.grid_visible = True
     pytest.plot.depth_peels = depth_peels
+    pytest.plot.rendering_steps = 1
     pytest.plot.renderer = "simple"
     pytest.plot.environment = "neutral"
     pytest.plot.show_environment = False

@@ -1,7 +1,31 @@
 const THREE = require('three');
+const { GTAOShader, generateMagicSquareNoise } = require('three/examples/jsm/shaders/GTAOShader.js');
+const { PoissonDenoiseShader, generatePdSamplePointInitializer } = require('three/examples/jsm/shaders/PoissonDenoiseShader.js');
 const cameraModes = require('../../../core/lib/cameraMode').cameraModes;
 const error = require('../../../core/lib/Error').error;
 const getSSAAChunkedRender = require('../helpers/SSAAChunkedRender');
+
+// The upstream denoiser noise (GTAOPass._generateNoise) comes from Math.random and would
+// break bit-identical screenshots - a seeded PRNG (mulberry32) replaces it.
+function generateDeterministicNoise(size) {
+    const data = new Uint8Array(size * size * 4);
+    let state = 0x9e3779b9;
+
+    for (let i = 0; i < data.length; i++) {
+        state = (state + 0x6d2b79f5) | 0;
+        let t = Math.imul(state ^ (state >>> 15), 1 | state);
+        t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+        data[i] = ((t ^ (t >>> 14)) >>> 0) % 256;
+    }
+
+    const texture = new THREE.DataTexture(data, size, size);
+
+    texture.wrapS = THREE.RepeatWrapping;
+    texture.wrapT = THREE.RepeatWrapping;
+    texture.needsUpdate = true;
+
+    return texture;
+}
 
 function depthOnBeforeCompile(globalPeelUniforms, shader) {
     if (typeof (shader.defines) == 'undefined') {
@@ -95,6 +119,79 @@ module.exports = function (K3D) {
     const depthMaterial = new THREE.MeshDepthMaterial();
     const compositePlane = new THREE.Mesh(planeGeometry, compositeMaterial);
     const cameras = [];
+
+    // --- GTAO (advanced renderer only) ---
+    // Full-frame AO computed once per frame/screenshot from a depth prepass (normals are
+    // reconstructed from depth - no G-buffer), denoised spatially, then multiplied onto
+    // every render of the main scene. Background depth == 1 is discarded by the shaders,
+    // so the grid and the backdrop stay untouched.
+    const aoTargets = { depth: null, raw: null, denoised: null };
+    const fsCamera = new THREE.OrthographicCamera(-1, 1, 1, -1, 0, 1);
+    let aoTexture = null;
+    let aoSize = new THREE.Vector2(1, 1);
+
+    const gtaoMaterial = new THREE.ShaderMaterial({
+        defines: Object.assign({}, GTAOShader.defines, {
+            NORMAL_VECTOR_TYPE: 0,
+        }),
+        uniforms: THREE.UniformsUtils.clone(GTAOShader.uniforms),
+        vertexShader: GTAOShader.vertexShader,
+        fragmentShader: GTAOShader.fragmentShader,
+        depthTest: false,
+        depthWrite: false,
+    });
+
+    gtaoMaterial.uniforms.tNoise.value = generateMagicSquareNoise();
+
+    const pdMaterial = new THREE.ShaderMaterial({
+        defines: Object.assign({}, PoissonDenoiseShader.defines, {
+            NORMAL_VECTOR_TYPE: 0,
+            // generated explicitly: the upstream constructor bakes SAMPLE_VECTORS with
+            // exponent 1 and skips regeneration when the field already equals the wish
+            SAMPLE_VECTORS: generatePdSamplePointInitializer(16, 2, 2),
+        }),
+        uniforms: THREE.UniformsUtils.clone(PoissonDenoiseShader.uniforms),
+        vertexShader: PoissonDenoiseShader.vertexShader,
+        fragmentShader: PoissonDenoiseShader.fragmentShader,
+        depthTest: false,
+        depthWrite: false,
+    });
+
+    pdMaterial.uniforms.tNoise.value = generateDeterministicNoise(64);
+    pdMaterial.uniforms.lumaPhi.value = 10.0;
+    pdMaterial.uniforms.normalPhi.value = 3.0;
+    pdMaterial.uniforms.radius.value = 8.0;
+
+    const aoOverlayMaterial = new THREE.ShaderMaterial({
+        uniforms: {
+            tAO: { value: null },
+            uUvScale: { value: new THREE.Vector2(1, 1) },
+            uUvBias: { value: new THREE.Vector2(0, 0) },
+        },
+        vertexShader: require('./shaders/composite.vertex.glsl'),
+        fragmentShader: require('./shaders/aoOverlay.fragment.glsl'),
+        transparent: true,
+        depthTest: false,
+        depthWrite: false,
+        blending: THREE.CustomBlending,
+        blendEquation: THREE.AddEquation,
+        blendSrc: THREE.ZeroFactor,
+        blendDst: THREE.SrcColorFactor,
+        blendSrcAlpha: THREE.ZeroFactor,
+        blendDstAlpha: THREE.OneFactor,
+    });
+
+    const gtaoScene = new THREE.Scene();
+    const pdScene = new THREE.Scene();
+    const aoOverlayScene = new THREE.Scene();
+
+    [[gtaoScene, gtaoMaterial], [pdScene, pdMaterial], [aoOverlayScene, aoOverlayMaterial]]
+        .forEach(([scene, material]) => {
+            const plane = new THREE.Mesh(planeGeometry, material);
+
+            plane.frustumCulled = false;
+            scene.add(plane);
+        });
 
     self.renderer = new THREE.WebGLRenderer({
         alpha: true,
@@ -210,6 +307,154 @@ module.exports = function (K3D) {
         );
     }
 
+    function ensureAoTargets(width, height) {
+        if (aoTargets.depth !== null
+            && aoTargets.depth.width === width
+            && aoTargets.depth.height === height) {
+            return;
+        }
+
+        Object.keys(aoTargets).forEach((key) => {
+            if (aoTargets[key] !== null) {
+                aoTargets[key].dispose();
+            }
+        });
+
+        aoTargets.depth = new THREE.WebGLRenderTarget(width, height, {
+            minFilter: THREE.NearestFilter,
+            magFilter: THREE.NearestFilter,
+            format: THREE.RedFormat,
+            type: THREE.FloatType,
+        });
+        aoTargets.raw = new THREE.WebGLRenderTarget(width, height, {
+            minFilter: THREE.NearestFilter,
+            magFilter: THREE.NearestFilter,
+            type: THREE.HalfFloatType,
+            depthBuffer: false,
+        });
+        aoTargets.denoised = new THREE.WebGLRenderTarget(width, height, {
+            minFilter: THREE.LinearFilter,
+            magFilter: THREE.LinearFilter,
+            type: THREE.HalfFloatType,
+            depthBuffer: false,
+        });
+    }
+
+    // Full-frame AO for the current camera. Must run before any chunked/strip rendering:
+    // the overlay then samples this single buffer, so strips cannot seam.
+    function computeAO(width, height) {
+        aoTexture = null;
+
+        if (K3D.parameters.renderer !== 'advanced'
+            || K3D.parameters.cameraMode === cameraModes.volumeSides) {
+            return;
+        }
+
+        const world = K3D.getWorld();
+        const box = new THREE.Box3().setFromObject(world.K3DObjects);
+
+        if (box.isEmpty()) {
+            return;
+        }
+
+        const diagonal = box.getSize(new THREE.Vector3()).length() || 1.0;
+
+        ensureAoTargets(width, height);
+
+        // depth prepass: only real geometry occludes. Billboards and lines have no
+        // surface for the override material, volumes are back-side boxes that would
+        // occlude everything behind them.
+        const hidden = [];
+
+        world.K3DObjects.traverse((obj) => {
+            if (obj.visible && (obj.isPoints || obj.isLine || obj.isSprite
+                || (obj.material && obj.material.isShaderMaterial))) {
+                obj.visible = false;
+                hidden.push(obj);
+            }
+        });
+
+        globalPeelUniforms.uLayer.value = 0;
+
+        self.camera.updateMatrixWorld();
+        self.renderer.setRenderTarget(aoTargets.depth);
+        self.renderer.setClearColor(0xffffff, 1);
+        self.renderer.clear(true, true, false);
+        self.scene.overrideMaterial = depthMaterial;
+        self.renderer.render(self.scene, self.camera);
+        self.scene.overrideMaterial = null;
+
+        hidden.forEach((obj) => {
+            obj.visible = true;
+        });
+
+        const u = gtaoMaterial.uniforms;
+
+        u.tDepth.value = aoTargets.depth.texture;
+        u.resolution.value.set(width, height);
+        u.cameraNear.value = self.camera.near;
+        u.cameraFar.value = self.camera.far;
+        u.cameraProjectionMatrix.value.copy(self.camera.projectionMatrix);
+        u.cameraProjectionMatrixInverse.value.copy(self.camera.projectionMatrixInverse);
+        // view-space units follow the data, not any fixed scale
+        u.radius.value = 0.05 * diagonal;
+        u.thickness.value = 0.02 * diagonal;
+
+        self.renderer.setRenderTarget(aoTargets.raw);
+        self.renderer.setClearColor(0xffffff, 1);
+        self.renderer.clear(true, false, false);
+        self.renderer.render(gtaoScene, fsCamera);
+
+        pdMaterial.uniforms.tDiffuse.value = aoTargets.raw.texture;
+        pdMaterial.uniforms.tDepth.value = aoTargets.depth.texture;
+        pdMaterial.uniforms.resolution.value.set(width, height);
+        pdMaterial.uniforms.cameraProjectionMatrixInverse.value.copy(self.camera.projectionMatrixInverse);
+        pdMaterial.uniforms.depthPhi.value = 0.02 * diagonal;
+
+        self.renderer.setRenderTarget(aoTargets.denoised);
+        self.renderer.setClearColor(0xffffff, 1);
+        self.renderer.clear(true, false, false);
+        self.renderer.render(pdScene, fsCamera);
+
+        self.renderer.setRenderTarget(null);
+
+        aoTexture = aoTargets.denoised.texture;
+        aoSize.set(width, height);
+    }
+
+    // Multiplies the AO buffer onto whatever the main scene was just rendered into.
+    function applyAOOverlay(camera, rt) {
+        if (aoTexture === null) {
+            return;
+        }
+
+        const scale = aoOverlayMaterial.uniforms.uUvScale.value;
+        const bias = aoOverlayMaterial.uniforms.uUvBias.value;
+
+        aoOverlayMaterial.uniforms.tAO.value = aoTexture;
+
+        if (rt && camera.view && camera.view.enabled) {
+            // strip target: gl_FragCoord is target-local, the frustum covers
+            // camera.view rows of the full frame (stretched over the whole target)
+            const v = camera.view;
+
+            scale.set(
+                v.width / (rt.width * v.fullWidth),
+                v.height / (rt.height * v.fullHeight),
+            );
+            bias.set(v.offsetX / v.fullWidth, (v.fullHeight - v.offsetY - v.height) / v.fullHeight);
+        } else if (rt) {
+            scale.set(1 / rt.width, 1 / rt.height);
+            bias.set(0, 0);
+        } else {
+            // canvas: gl_FragCoord is global, the AO buffer covers the whole canvas
+            scale.set(1 / aoSize.x, 1 / aoSize.y);
+            bias.set(0, 0);
+        }
+
+        self.renderer.render(aoOverlayScene, fsCamera);
+    }
+
     // The peeling itself happens in depthShader.fragment.tail: each pass discards fragments
     // not strictly deeper than the previous layer.
     function depthPeelRender(scene, camera, rt) {
@@ -292,6 +537,8 @@ module.exports = function (K3D) {
 
         self.renderer.render(compositeScene, camera);
 
+        applyAOOverlay(camera, rt);
+
         K3D.getWorld().K3DObjects.children.forEach((obj) => {
             if (obj.material && obj.material.opacity <= 0.0) {
                 obj.visible = true;
@@ -306,6 +553,11 @@ module.exports = function (K3D) {
 
         self.renderer.setRenderTarget(rt);
         self.renderer.render(scene, camera);
+
+        // grid and axes go through directRender too - only the main scene gets AO
+        if (scene === self.scene) {
+            applyAOOverlay(camera, rt);
+        }
     }
 
     function render() {
@@ -343,6 +595,8 @@ module.exports = function (K3D) {
             });
 
             K3D.dispatch(K3D.events.BEFORE_RENDER);
+
+            computeAO(size.x, size.y);
 
             let p = Promise.resolve();
             const originalControlsEnabledState = self.controls.enabled;
@@ -562,6 +816,8 @@ module.exports = function (K3D) {
                 K3D.parameters.clippingPlanes.forEach((plane) => {
                     self.renderer.clippingPlanes.push(new THREE.Plane(new THREE.Vector3().fromArray(plane), plane[3]));
                 });
+
+                computeAO(width, height);
 
                 return getSSAAChunkedRender(self.renderer, self.scene, self.camera,
                     rt, width, height, chunkHeights,

@@ -67,7 +67,7 @@ def test_mesh_advanced():
 
     mesh = k3d.vtk_poly_data(
         reader.GetOutput(),
-        color=0x222222,
+        color=0x40E0D0,
         flat_shading=True,
         transform=k3d.transform(rotation=[np.pi / 2, 1, 0, 0]),
     )
@@ -89,7 +89,7 @@ def test_mesh_advanced_smoothed():
 
     mesh = k3d.vtk_poly_data(
         reader.GetOutput(),
-        color=0x222222,
+        color=0x40E0D0,
         flat_shading=False,
         transform=k3d.transform(rotation=[np.pi / 2, 1, 0, 0]),
     )
@@ -111,7 +111,7 @@ def test_mesh_advanced_roughness():
 
     mesh = k3d.vtk_poly_data(
         reader.GetOutput(),
-        color=0x222222,
+        color=0x40E0D0,
         flat_shading=False,
         roughness=0.4,
         transform=k3d.transform(rotation=[np.pi / 2, 1, 0, 0]),
@@ -138,7 +138,7 @@ def test_mesh_advanced_opacity():
 
     mesh = k3d.vtk_poly_data(
         reader.GetOutput(),
-        color=0x222222,
+        color=0x40E0D0,
         flat_shading=False,
         opacity=0.5,
         transform=k3d.transform(rotation=[np.pi / 2, 1, 0, 0]),
@@ -192,7 +192,7 @@ def test_mesh_advanced_wireframe():
 
     mesh = k3d.vtk_poly_data(
         reader.GetOutput(),
-        color=0x222222,
+        color=0x40E0D0,
         opacity=0.2,
         wireframe=True,
         transform=k3d.transform(rotation=[np.pi / 2, 1, 0, 0]),
