@@ -166,6 +166,23 @@ module.exports = {
         object.applyMatrix4(modelMatrix);
         object.updateMatrixWorld();
 
+        // the occluder shell for the AO prepass: the maximum-intensity point, when the
+        // colormap alpha there crosses one half. Uniforms shared by reference.
+        object.userData.k3dAODepthMaterial = new THREE.ShaderMaterial({
+            uniforms: material.uniforms,
+            defines: Object.assign({ K3D_AO_DEPTH_PASS: 1 }, material.defines),
+            vertexShader: require('./shaders/MIP.vertex.glsl'),
+            fragmentShader: require('../helpers/ggxChunk')(require('./shaders/MIP.fragment.glsl')),
+            side: THREE.BackSide,
+            depthTest: true,
+            depthWrite: true,
+            lights: true,
+            clipping: true,
+            extensions: {
+                fragDepth: true,
+            },
+        });
+
         object.onRemove = function () {
             if (object.material.uniforms.volumeTexture.value) {
                 object.material.uniforms.volumeTexture.value.dispose();

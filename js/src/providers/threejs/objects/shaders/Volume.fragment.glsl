@@ -33,6 +33,7 @@ uniform float focal_plane;
 uniform float low;
 uniform float high;
 uniform mat4 modelViewMatrix;
+uniform mat4 projectionMatrix;
 uniform float samples;
 uniform float alpha_coef;
 uniform float gradient_step;
@@ -255,7 +256,8 @@ void main() {
 
                     pxColor.rgb *= pxColor.a;
 
-                    // LIGHT
+                    // LIGHT (skipped in the AO depth pass - only opacity matters there)
+                    #ifndef K3D_AO_DEPTH_PASS
                     if (pxColor.a > 0.0) {
                         vec3 normal = worldGetNormal(px * maskOpacity, textcoord);
                         vec4 addedLights = vec4(
@@ -305,8 +307,24 @@ void main() {
 
                         pxColor.rgb = pxColor.rgb * addedLights.xyz + specularColor;
                     }
+                    #endif
 
                     value += pxColor;
+
+                    #ifdef K3D_AO_DEPTH_PASS
+                    if (value.a >= 0.5) {
+                        // the occluder shell: depth of the point where accumulated
+                        // opacity crosses one half, same convention as the peel pass
+                        vec4 kClipPos = projectionMatrix * modelViewMatrix
+                            * vec4(textcoord - vec3(0.5), 1.0);
+                        float kShellDepth = ((gl_DepthRange.diff * (kClipPos.z / kClipPos.w))
+                            + gl_DepthRange.near + gl_DepthRange.far) / 2.0;
+
+                        gl_FragDepthEXT = kShellDepth;
+                        gl_FragColor = vec4(kShellDepth, 0.0, 0.0, 1.0);
+                        return;
+                    }
+                    #endif
 
                     if (value.a >= 0.99) {
                         value.a = 1.0;
@@ -315,6 +333,11 @@ void main() {
                 }
             }
         }
+
+        #ifdef K3D_AO_DEPTH_PASS
+        // no shell reached - the ray stays background (depth 1.0 from the clear)
+        discard;
+        #endif
 
         #if (RAY_SAMPLES_COUNT > 0)
 

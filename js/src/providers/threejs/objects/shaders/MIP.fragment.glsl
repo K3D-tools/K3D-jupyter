@@ -27,6 +27,7 @@ uniform sampler2D jitterTexture;
 uniform float low;
 uniform float high;
 uniform mat4 modelViewMatrix;
+uniform mat4 projectionMatrix;
 uniform float samples;
 uniform float gradient_step;
 
@@ -179,6 +180,20 @@ void main() {
 
         pxColor = texture(colormap, vec2(scaled_px, 0.5));
     }
+
+    #ifdef K3D_AO_DEPTH_PASS
+    // the occluder shell: depth of the maximum-intensity point, when opaque enough
+    if (pxColor.a >= 0.5) {
+        vec4 kClipPos = projectionMatrix * modelViewMatrix * vec4(maxTextcoord - vec3(0.5), 1.0);
+        float kShellDepth = ((gl_DepthRange.diff * (kClipPos.z / kClipPos.w))
+            + gl_DepthRange.near + gl_DepthRange.far) / 2.0;
+
+        gl_FragDepthEXT = kShellDepth;
+        gl_FragColor = vec4(kShellDepth, 0.0, 0.0, 1.0);
+        return;
+    }
+    discard;
+    #endif
 
     // LIGHT
     vec3 normal = worldGetNormal(px, maxTextcoord);

@@ -212,6 +212,24 @@ module.exports = {
         object.applyMatrix4(modelMatrix);
         object.updateMatrixWorld();
 
+        // the volume's occluder shell for the AO prepass: the same march, exiting with
+        // the depth of the point where accumulated opacity crosses one half. Uniforms
+        // shared by reference. MIP has no meaningful shell and stays out of AO.
+        object.userData.k3dAODepthMaterial = new THREE.ShaderMaterial({
+            uniforms: material.uniforms,
+            defines: Object.assign({ K3D_AO_DEPTH_PASS: 1 }, material.defines),
+            vertexShader: require('./shaders/Volume.vertex.glsl'),
+            fragmentShader: require('../helpers/ggxChunk')(require('./shaders/Volume.fragment.glsl')),
+            side: THREE.BackSide,
+            depthTest: true,
+            depthWrite: true,
+            lights: true,
+            clipping: true,
+            extensions: {
+                fragDepth: true,
+            },
+        });
+
         /*
             Light Map support
          */
