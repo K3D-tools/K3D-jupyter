@@ -1,11 +1,14 @@
 import ipywidgets as widgets
-from traitlets import Bool, Dict, Float, Int, List, Unicode
+from traitlets import Any as TraitAny
+from traitlets import Bool, Dict, Float, Int, List, Unicode, validate
 from typing import Any
 from typing import Dict as TypingDict
 from typing import List as TypingList
 from typing import Optional
 
 from .._version import __version__ as version
+from ..environments import load as load_environment
+from ..helpers import environment_from_json, environment_to_json, json_to_array
 from ..objects import Drawable, ListOrArray, TimeSeries
 
 
@@ -75,6 +78,26 @@ class PlotBase(widgets.DOMWidget):
     ).tag(sync=True)
     mode = Unicode().tag(sync=True)
     depth_peels = Int().tag(sync=True)
+    renderer = Unicode(default_value="simple").tag(sync=True)
+    environment = TraitAny(default_value="neutral").tag(
+        sync=True, to_json=environment_to_json, from_json=environment_from_json
+    )
+    show_environment = Bool(default_value=False).tag(sync=True)
+
+    @validate("environment")
+    def _resolve_environment(self, proposal):
+        value = proposal["value"]
+        # a snapshot round-trip carries the wire dict
+        if isinstance(value, dict):
+            return json_to_array(value)
+        # catalog names resolve to their arrays; procedural preset names pass through to JS
+        if isinstance(value, str):
+            catalog = load_environment(value)
+            if catalog is not None:
+                return catalog
+        return value
+    environment_rotation = Float(default_value=0.0).tag(sync=True)
+    tone_mapping = Unicode(default_value="none").tag(sync=True)
     camera_mode = Unicode().tag(sync=True)
     additional_js_code = Unicode().tag(sync=True)
     manipulate_mode = Unicode().tag(sync=True)
@@ -130,6 +153,11 @@ class PlotBase(widgets.DOMWidget):
             slice_viewer_mask_object_ids: TypingList[int] = None,
             slice_viewer_direction: str = "z",
             depth_peels: int = 0,
+            renderer: str = "simple",
+            environment: str = "neutral",
+            show_environment: bool = False,
+            environment_rotation: float = 0.0,
+            tone_mapping: str = "none",
             additional_js_code: str = '',
             *args: Any,
             **kwargs: Any,
@@ -189,6 +217,11 @@ class PlotBase(widgets.DOMWidget):
         if "camera" not in kwargs:
             self.camera = []
         self.depth_peels = depth_peels
+        self.renderer = renderer
+        self.environment = environment
+        self.show_environment = show_environment
+        self.environment_rotation = environment_rotation
+        self.tone_mapping = tone_mapping
         self.custom_data = custom_data
         self.additional_js_code = additional_js_code
 

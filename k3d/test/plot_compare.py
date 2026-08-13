@@ -25,6 +25,11 @@ def prepare(depth_peels=0):
     pytest.plot.colorbar_object_id = 0
     pytest.plot.grid_visible = True
     pytest.plot.depth_peels = depth_peels
+    pytest.plot.renderer = "simple"
+    pytest.plot.environment = "neutral"
+    pytest.plot.show_environment = False
+    pytest.plot.environment_rotation = 0.0
+    pytest.plot.tone_mapping = "none"
     pytest.plot.camera_mode = "trackball"
     pytest.plot.camera = [2, -3, 0.2, 0.0, 0.0, 0.0, 0, 0, 1]
     pytest.plot.background_color = 0xFFFFFF
@@ -41,8 +46,9 @@ def compare(
         threshold=0.2,
         max_mismatched_pixels=0,
         camera_factor=1.0,
+        modes=("simple", "advanced"),
 ):
-    """Compare the current plot against a stored reference image.
+    """Compare the current plot against a stored reference image, in every renderer mode.
 
     Two independent knobs, previously conflated into one:
 
@@ -54,42 +60,56 @@ def compare(
                           0 keeps the historical behaviour of demanding an exact match.
 
     Note that pixelmatch returns a pixel count, so the two knobs are not interchangeable.
+
+    The advanced render is compared against references/advanced/<name>.png. When that file
+    does not exist, it is compared against the simple reference: no file means "advanced has
+    no right to change this image", which is how the contract for unlit scenes is enforced.
     """
-    pytest.headless.sync(hold_until_refreshed=True)
+    for mode in modes:
+        if pytest.plot.renderer != mode:
+            pytest.plot.renderer = mode
 
-    if camera_factor is not None:
-        pytest.headless.camera_reset(camera_factor)
+        pytest.headless.sync(hold_until_refreshed=True)
 
-    screenshot = pytest.headless.get_screenshot(only_canvas)
+        if camera_factor is not None:
+            pytest.headless.camera_reset(camera_factor)
 
-    result = Image.open(BytesIO(screenshot))
-    img_diff = Image.new("RGBA", result.size)
-    reference = None
+        screenshot = pytest.headless.get_screenshot(only_canvas)
 
-    reference_path = os.path.join(REFERENCES_DIR, name + ".png")
-    if os.path.isfile(reference_path):
-        reference = Image.open(reference_path)
+        result = Image.open(BytesIO(screenshot))
+        img_diff = Image.new("RGBA", result.size)
+        reference = None
 
-    if reference is None:
-        reference = Image.new("RGBA", result.size)
+        ref_name = name if mode == "simple" else "advanced/" + name
+        reference_path = os.path.join(REFERENCES_DIR, ref_name + ".png")
+        if mode == "advanced" and not os.path.isfile(reference_path):
+            reference_path = os.path.join(REFERENCES_DIR, name + ".png")
+        if os.path.isfile(reference_path):
+            reference = Image.open(reference_path)
 
-    mismatch = pixelmatch(
-        result, reference, img_diff, threshold=threshold, includeAA=True
-    )
+        if reference is None:
+            reference = Image.new("RGBA", result.size)
 
-    if mismatch > max_mismatched_pixels:
-        os.makedirs(RESULTS_DIR, exist_ok=True)
+        mismatch = pixelmatch(
+            result, reference, img_diff, threshold=threshold, includeAA=True
+        )
 
-        with open(os.path.join(RESULTS_DIR, name + ".k3d"), "wb") as f:
-            f.write(pytest.plot.get_binary_snapshot(1))
-        result.save(os.path.join(RESULTS_DIR, name + ".png"))
-        reference.save(os.path.join(RESULTS_DIR, name + "_reference.png"))
-        img_diff.save(os.path.join(RESULTS_DIR, name + "_diff.png"))
+        if mismatch > max_mismatched_pixels:
+            os.makedirs(os.path.join(RESULTS_DIR, "advanced"), exist_ok=True)
 
-        print(name, mismatch, max_mismatched_pixels)
+            with open(os.path.join(RESULTS_DIR, ref_name + ".k3d"), "wb") as f:
+                f.write(pytest.plot.get_binary_snapshot(1))
+            result.save(os.path.join(RESULTS_DIR, ref_name + ".png"))
+            reference.save(os.path.join(RESULTS_DIR, ref_name + "_reference.png"))
+            img_diff.save(os.path.join(RESULTS_DIR, ref_name + "_diff.png"))
 
-    assert mismatch <= max_mismatched_pixels, (
-        "%s: %d pixel(s) differ from the reference (budget %d, per-pixel threshold %g); "
-        "artifacts written to %s"
-        % (name, mismatch, max_mismatched_pixels, threshold, RESULTS_DIR)
-    )
+            print(ref_name, mismatch, max_mismatched_pixels)
+
+        assert mismatch <= max_mismatched_pixels, (
+            "%s [%s]: %d pixel(s) differ from the reference (budget %d, per-pixel threshold %g); "
+            "artifacts written to %s"
+            % (name, mode, mismatch, max_mismatched_pixels, threshold, RESULTS_DIR)
+        )
+
+    if len(modes) > 1 and pytest.plot.renderer != "simple":
+        pytest.plot.renderer = "simple"

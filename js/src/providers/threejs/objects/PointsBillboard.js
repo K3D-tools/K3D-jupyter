@@ -110,6 +110,11 @@ module.exports = {
             },
         });
 
+        material.uniforms.k3dEnvSH = K3D.getWorld().k3dEnvSH;
+        material.uniforms.k3dEnvRotation = K3D.getWorld().k3dEnvRotation;
+        material.uniforms.k3dEnvLightDir = K3D.getWorld().k3dEnvLightDir;
+        material.uniforms.k3dEnvLightColor = K3D.getWorld().k3dEnvLightColor;
+
         material.depthWrite = (config.opacity === 1.0 && opacities === null);
         material.transparent = (config.opacity !== 1.0 || opacities !== null);
 

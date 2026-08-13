@@ -31,14 +31,6 @@ function getSide(config) {
     return map[config.side] || map.front;
 }
 
-// Inverse of r = sqrt(2/(s+2)), for the ShaderMaterials still on phong chunks. The lower
-// clamp matters at roughness 1.0: the exact inverse gives exponent 0, and pow(x, 0.0) = 1.
-function phongExponentFromRoughness(roughness) {
-    const r = Math.min(Math.max(roughness, 0.045), 1.0);
-
-    return Math.max(2.0 / (r * r) - 2.0, 4.0);
-}
-
 module.exports = {
     /**
      * Finds the nearest (greater than x) power of two of given x
@@ -395,11 +387,6 @@ module.exports = {
         if (resolvedChanges.roughness !== null && typeof (changes.roughness) !== 'undefined'
             && !changes.roughness.timeSeries) {
             obj.material.roughness = changes.roughness;
-
-            if (obj.material.uniforms && obj.material.uniforms.shininess) {
-                obj.material.uniforms.shininess.value = phongExponentFromRoughness(changes.roughness);
-            }
-
             obj.material.needsUpdate = true;
 
             resolvedChanges.roughness = null;
@@ -425,5 +412,4 @@ module.exports = {
     },
 
     getSide,
-    phongExponentFromRoughness,
 };

@@ -1,5 +1,6 @@
 """Utility functions and objects map for K3D objects."""
 
+import math
 from typing import Any
 from typing import Dict as TypingDict
 from typing import Union
@@ -60,6 +61,12 @@ def create_object(
     from ..helpers import from_json
 
     attributes = {k: from_json(obj[k]) for k in obj.keys() if k != "type"}
+
+    # Snapshots written before 2.19.0 carry shininess. The trait itself is a tombstone
+    # that raises on any value, so old files are translated here, at the file boundary.
+    shininess = attributes.pop("shininess", None)
+    if shininess is not None and "roughness" not in attributes:
+        attributes["roughness"] = math.sqrt(2.0 / (max(float(shininess), 0.0) + 2.0))
 
     # force to use current version
     attributes["_model_module"] = "k3d"

@@ -17,7 +17,7 @@ const { ensure256size } = require('../helpers/Fn');
  * @return {Object} 3D object ready to render
  */
 module.exports = {
-    create(config) {
+    create(config, K3D) {
         config.samples = config.samples || 512.0;
         config.gradient_step = config.gradient_step || 0.005;
         config.interpolation = typeof (config.interpolation) !== 'undefined' ? config.interpolation : true;
@@ -153,6 +153,11 @@ module.exports = {
             clipping: true,
             transparent: true,
         });
+
+        material.uniforms.k3dEnvSH = K3D.getWorld().k3dEnvSH;
+        material.uniforms.k3dEnvRotation = K3D.getWorld().k3dEnvRotation;
+        material.uniforms.k3dEnvLightDir = K3D.getWorld().k3dEnvLightDir;
+        material.uniforms.k3dEnvLightColor = K3D.getWorld().k3dEnvLightColor;
 
         geometry.computeBoundingSphere();
         geometry.computeBoundingBox();

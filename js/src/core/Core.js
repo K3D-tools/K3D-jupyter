@@ -137,6 +137,21 @@ function K3D(provider, targetDOMNode, parameters) {
                 self.setDepthPeels(value);
                 changeParameters.call(self, 'depth_peels', value);
             });
+        GUI.controls.add(self.parameters, 'renderer', ['simple', 'advanced']).onChange((value) => {
+            self.setRenderer(value);
+            changeParameters.call(self, 'renderer', value);
+        });
+        if (typeof (self.parameters.environment) === 'string') {
+            GUI.controls.add(self.parameters, 'environment', ['neutral', 'studio', 'outdoor'])
+                .onChange((value) => {
+                    self.setEnvironment(value);
+                    changeParameters.call(self, 'environment', value);
+                });
+        }
+        GUI.controls.add(self.parameters, 'showEnvironment').onChange((value) => {
+            self.setShowEnvironment(value);
+            changeParameters.call(self, 'show_environment', value);
+        });
         viewModeGUI(GUI.controls, self);
         cameraModeGUI(GUI.controls, self);
         cameraUpAxisGUI(GUI.controls, self);
@@ -329,6 +344,11 @@ function K3D(provider, targetDOMNode, parameters) {
             axesHelper: 1.0,
             axesHelperColors: [0xff0000, 0x00ff00, 0x0000ff],
             depthPeels: 0,
+            renderer: 'simple',
+            environment: 'neutral',
+            showEnvironment: false,
+            environmentRotation: 0.0,
+            toneMapping: 'none',
             snapshotType: 'full',
             customData: null,
             additionalJsCode: '',
@@ -968,6 +988,71 @@ function K3D(provider, targetDOMNode, parameters) {
 
 
     /**
+     * Set renderer mode of K3D
+     * @memberof K3D.Core
+     * @param {String} mode 'simple' or 'advanced'
+     */
+    this.setRenderer = function (mode) {
+        if (mode !== 'simple' && mode !== 'advanced') {
+            // this travels in snapshots between versions, so an unknown value degrades
+            console.warn(`K3D: unknown renderer "${mode}", falling back to "simple"`);
+            mode = 'simple';
+        }
+
+        self.parameters.renderer = mode;
+        world.applyRendererMode(self);
+        self.render();
+    };
+
+    /**
+     * Set environment of K3D
+     * @memberof K3D.Core
+     * @param {String|Object} environment preset name or an equirect array
+     */
+    this.setEnvironment = function (environment) {
+        self.parameters.environment = environment;
+        world.applyRendererMode(self);
+        self.render();
+    };
+
+    /**
+     * Set environment visibility of K3D
+     * @memberof K3D.Core
+     */
+    this.setShowEnvironment = function (flag) {
+        self.parameters.showEnvironment = flag;
+        world.applyRendererMode(self);
+        self.render();
+    };
+
+    /**
+     * Set environment rotation of K3D
+     * @memberof K3D.Core
+     * @param {Number} rotation around the up axis, radians
+     */
+    this.setEnvironmentRotation = function (rotation) {
+        self.parameters.environmentRotation = rotation;
+        world.applyRendererMode(self);
+        self.render();
+    };
+
+    /**
+     * Set tone mapping of K3D
+     * @memberof K3D.Core
+     * @param {String} name 'none', 'agx' or 'aces'
+     */
+    this.setToneMapping = function (name) {
+        if (name !== 'none' && name !== 'agx' && name !== 'aces') {
+            console.warn(`K3D: unknown tone_mapping "${name}", falling back to "none"`);
+            name = 'none';
+        }
+
+        self.parameters.toneMapping = name;
+        world.applyToneMapping(name);
+        self.render();
+    };
+
+    /**
      * Set renderable objects ids
      * @memberof K3D.Core
      */
@@ -1536,6 +1621,8 @@ function K3D(provider, targetDOMNode, parameters) {
     self.setGridVisible(self.parameters.gridVisible);
     self.setGrid(self.parameters.grid);
     self.setDepthPeels(self.parameters.depthPeels);
+    self.setRenderer(self.parameters.renderer);
+    self.setToneMapping(self.parameters.toneMapping);
     self.setCameraAutoFit(self.parameters.cameraAutoFit);
     self.setCameraDampingFactor(self.parameters.cameraDampingFactor);
     self.setCameraUpAxis(self.parameters.cameraUpAxis);

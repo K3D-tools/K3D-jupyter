@@ -32,7 +32,6 @@ module.exports = {
         const sizes = (config.point_sizes && config.point_sizes.data
             && config.point_sizes.data.length === positions.length / 3) ? config.point_sizes.data : null;
         const { colorsToFloat32Array } = buffer;
-        const phongShader = THREE.ShaderLib.phong;
         let i;
         const boundingBoxGeometry = new THREE.BufferGeometry();
         const geometry = new THREE.IcosahedronGeometry(config.point_size * 0.5, meshDetail);
@@ -82,7 +81,9 @@ module.exports = {
             );
         }
 
-        geometry.setAttribute('color', new THREE.InstancedBufferAttribute(new Float32Array(colors), 3));
+        if (colors) {
+            geometry.setAttribute('color', new THREE.InstancedBufferAttribute(new Float32Array(colors), 3));
+        }
 
         if (opacities) {
             geometry.setAttribute(
@@ -99,27 +100,46 @@ module.exports = {
 
         geometry.boundingBox = boundingBoxGeometry.boundingBox.clone();
 
-        const material = new THREE.ShaderMaterial({
-            uniforms: THREE.UniformsUtils.merge([phongShader.uniforms, {
-                shininess: { value: Fn.phongExponentFromRoughness(config.roughness) },
-                opacity: { value: config.opacity },
-            }, uniforms]),
-            defines: {
-                USE_PER_POINT_OPACITY: (opacities !== null ? 1 : 0),
-                USE_COLOR_MAP: useColorMap
-            },
-            vertexShader: require('./shaders/PointsMesh.vertex.glsl'),
-            fragmentShader: require('./shaders/PointsMesh.fragment.glsl'),
-            lights: true,
-            clipping: true,
-            vertexColors: true,
+        // A real MeshStandardMaterial - the colormap and per-point opacity are grafted onto
+        // its chunks, so environment lighting and future three upgrades apply untouched.
+        const material = new THREE.MeshStandardMaterial({
+            roughness: config.roughness,
+            metalness: config.metalness,
+            opacity: config.opacity,
+            vertexColors: useColorMap === 0,
         });
 
+        material.defines = {
+            K3D_PER_POINT_OPACITY: (opacities !== null ? 1 : 0),
+            K3D_COLOR_MAP: useColorMap,
+        };
+        material.uniforms = uniforms;
+        material.customProgramCacheKey = () => `k3d-points-mesh-${useColorMap}-${opacities !== null ? 1 : 0}`;
+
+        const inject = (shader) => {
+            Object.assign(shader.uniforms, material.uniforms);
+
+            shader.vertexShader = `${require('./shaders/chunks/pointsColor.vertex.header.glsl')}\n${
+                shader.vertexShader.replace(
+                    '#include <color_vertex>',
+                    `#include <color_vertex>\n${require('./shaders/chunks/pointsColor.vertex.glsl')}`,
+                )}`;
+            shader.fragmentShader = `${require('./shaders/chunks/pointsColor.fragment.header.glsl')}\n${
+                shader.fragmentShader.replace(
+                    '#include <color_fragment>',
+                    `#include <color_fragment>\n${require('./shaders/chunks/pointsColor.fragment.glsl')}`,
+                )}`;
+        };
+
         if (K3D.parameters.depthPeels === 0) {
+            material.onBeforeCompile = inject;
             material.depthWrite = (config.opacity === 1.0 && opacities === null);
             material.transparent = (config.opacity !== 1.0 || opacities !== null);
         } else {
-            material.onBeforeCompile = K3D.colorOnBeforeCompile;
+            material.onBeforeCompile = (shader) => {
+                inject(shader);
+                K3D.colorOnBeforeCompile(shader);
+            };
             material.blending = THREE.NoBlending;
         }
 

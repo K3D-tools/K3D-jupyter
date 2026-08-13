@@ -312,6 +312,11 @@ class PlotView extends widgets.DOMWidgetView {
         this.model.on('change:grid_color', this._setGridColor, this);
         this.model.on('change:label_color', this._setLabelColor, this);
         this.model.on('change:depth_peels', this._setDepthPeels, this);
+        this.model.on('change:renderer', this._setRenderer, this);
+        this.model.on('change:environment', this._setEnvironment, this);
+        this.model.on('change:show_environment', this._setShowEnvironment, this);
+        this.model.on('change:environment_rotation', this._setEnvironmentRotation, this);
+        this.model.on('change:tone_mapping', this._setToneMapping, this);
         this.model.on('change:fps_meter', this._setFpsMeter, this);
         this.model.on('change:screenshot_scale', this._setScreenshotScale, this);
         this.model.on('change:voxel_paint_color', this._setVoxelPaintColor, this);
@@ -381,6 +386,15 @@ class PlotView extends widgets.DOMWidgetView {
                 fps: this.model.get('fps'),
                 timeInterpolation: this.model.get('time_interpolation'),
                 depthPeels: this.model.get('depth_peels'),
+                renderer: this.model.get('renderer'),
+                environment: (() => {
+                    const env = this.model.get('environment');
+
+                    return (env !== null && typeof (env) === 'object') ? serialize.deserialize(env) : env;
+                })(),
+                showEnvironment: this.model.get('show_environment'),
+                environmentRotation: this.model.get('environment_rotation'),
+                toneMapping: this.model.get('tone_mapping'),
                 autoRendering: this.model.get('auto_rendering'),
                 gridVisible: this.model.get('grid_visible'),
                 gridColor: this.model.get('grid_color'),
@@ -513,6 +527,32 @@ class PlotView extends widgets.DOMWidgetView {
 
     _setLabelColor() {
         this.K3DInstance.setLabelColor(this.model.get('label_color'));
+    };
+
+    _setRenderer() {
+        this.K3DInstance.setRenderer(this.model.get('renderer'));
+    };
+
+    _setEnvironment() {
+        let env = this.model.get('environment');
+
+        if (env !== null && typeof (env) === 'object') {
+            env = serialize.deserialize(env);
+        }
+
+        this.K3DInstance.setEnvironment(env);
+    };
+
+    _setShowEnvironment() {
+        this.K3DInstance.setShowEnvironment(this.model.get('show_environment'));
+    };
+
+    _setEnvironmentRotation() {
+        this.K3DInstance.setEnvironmentRotation(this.model.get('environment_rotation'));
+    };
+
+    _setToneMapping() {
+        this.K3DInstance.setToneMapping(this.model.get('tone_mapping'));
     };
 
     _setDepthPeels() {

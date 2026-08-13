@@ -1,10 +1,8 @@
 #include <common>
 #include <clipping_planes_pars_fragment>
 #include <logdepthbuf_pars_fragment>
-#include <lights_pars_begin>
 
 uniform float size;
-uniform float specular;
 uniform float opacity;
 uniform mat4 projectionMatrix;
 

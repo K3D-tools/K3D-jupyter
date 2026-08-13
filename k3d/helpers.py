@@ -212,6 +212,19 @@ def from_json(input: Any, obj: Optional[Any] = None) -> Any:
         return input
 
 
+def environment_to_json(value: Any, obj: Optional[Any] = None) -> Any:
+    """Preset names travel as strings, user maps as a typed array."""
+    if value is None or isinstance(value, str):
+        return value
+    return array_to_json(np.ascontiguousarray(np.asarray(value, dtype=np.float32)))
+
+
+def environment_from_json(value: Any, obj: Optional[Any] = None) -> Any:
+    if value is None or isinstance(value, str):
+        return value
+    return json_to_array(value)
+
+
 def array_serialization_wrap(name: str) -> TypingDict[str, Any]:
     """
     Return a wrap of the serialization and deserialization functions for array objects.

@@ -200,6 +200,11 @@ module.exports = {
             transparent: true,
         });
 
+        material.uniforms.k3dEnvSH = K3D.getWorld().k3dEnvSH;
+        material.uniforms.k3dEnvRotation = K3D.getWorld().k3dEnvRotation;
+        material.uniforms.k3dEnvLightDir = K3D.getWorld().k3dEnvLightDir;
+        material.uniforms.k3dEnvLightColor = K3D.getWorld().k3dEnvLightColor;
+
         geometry.computeBoundingSphere();
         geometry.computeBoundingBox();
 

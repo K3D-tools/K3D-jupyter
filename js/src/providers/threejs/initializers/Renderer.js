@@ -465,6 +465,23 @@ module.exports = function (K3D) {
     this.renderer.setClearColor(0, 0);
     this.renderer.autoClear = false;
 
+    self.applyToneMapping = function (name) {
+        const map = {
+            none: THREE.NoToneMapping,
+            agx: THREE.AgXToneMapping,
+            aces: THREE.ACESFilmicToneMapping,
+        };
+
+        self.renderer.toneMapping = map[name] || THREE.NoToneMapping;
+
+        // a toneMapping change recompiles nothing on its own
+        self.K3DObjects.traverse((obj) => {
+            if (obj.material) {
+                obj.material.needsUpdate = true;
+            }
+        });
+    };
+
     this.render = function (force) {
         K3D.labels = [];
 

@@ -30,6 +30,19 @@ def test_constructor_raises():
         Mesh(vertices=VERTICES, indices=INDICES, shininess=50.0)
 
 
+def test_legacy_snapshot_shininess_converts():
+    from k3d.objects.utils import create_object
+
+    mesh = k3d.mesh(VERTICES, INDICES)
+    state = mesh.get_binary()
+    state.pop("roughness", None)
+    state["shininess"] = 50.0
+
+    restored = create_object(state)
+
+    assert restored.roughness == pytest.approx(np.sqrt(2.0 / 52.0))
+
+
 def test_replacement_traits_work():
     mesh = k3d.mesh(VERTICES, INDICES, roughness=0.4, metalness=0.7)
 

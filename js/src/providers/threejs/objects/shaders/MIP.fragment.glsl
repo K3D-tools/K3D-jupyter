@@ -4,6 +4,10 @@
 
 precision highp sampler3D;
 
+uniform vec3 k3dEnvSH[9];
+uniform mat3 k3dEnvRotation;
+uniform vec3 k3dEnvLightDir;
+uniform vec3 k3dEnvLightColor;
 uniform mat4 transform;
 uniform sampler3D volumeTexture;
 
@@ -166,13 +170,14 @@ void main() {
     }
 
     // LIGHT
-    #if NUM_DIR_LIGHTS > 0
-    vec4 addedLights = vec4(ambientLightColor * RECIPROCAL_PI, 1.0);
     vec3 normal = worldGetNormal(px, maxTextcoord);
+    vec4 addedLights = vec4(
+        (ambientLightColor + shGetIrradianceAt(k3dEnvRotation * normal, k3dEnvSH)) * RECIPROCAL_PI, 1.0);
+    vec3 specularColor = vec3(0.0);
 
+    #if NUM_DIR_LIGHTS > 0
     vec3 lightDirection;
     vec3 lightColor;
-    vec3 specularColor = vec3(0.0);
     float lightingIntensity;
 
     #pragma unroll_loop_start
@@ -187,10 +192,21 @@ void main() {
         #endif
     }
     #pragma unroll_loop_end
+    #endif
+
+    // advanced: the dominant directional light distilled from the environment's L1 band
+    {
+        vec3 envLightColor = k3dEnvLightColor * RECIPROCAL_PI;
+        float envIntensity = clamp(dot(k3dEnvLightDir, normal), 0.0, 1.0);
+        addedLights.rgb += envLightColor * (0.05 + 0.95 * envIntensity);
+
+        #if (USE_SPECULAR == 1)
+        specularColor += envLightColor * pow(envIntensity, 50.0) * pxColor.a;
+        #endif
+    }
 
     pxColor.rgb *= addedLights.xyz;
     pxColor.rgb += specularColor;
-    #endif
 
     gl_FragColor = pxColor;
 }

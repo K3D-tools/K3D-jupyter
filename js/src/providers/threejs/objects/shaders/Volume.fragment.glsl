@@ -4,6 +4,10 @@
 
 precision highp sampler3D;
 
+uniform vec3 k3dEnvSH[9];
+uniform mat3 k3dEnvRotation;
+uniform vec3 k3dEnvLightDir;
+uniform vec3 k3dEnvLightColor;
 uniform vec3 lightMapSize;
 uniform vec2 lightMapRenderTargetSize;
 uniform sampler2D shadowTexture;
@@ -241,13 +245,13 @@ void main() {
                     pxColor.rgb *= pxColor.a;
 
                     // LIGHT
-                    #if NUM_DIR_LIGHTS > 0
                     if (pxColor.a > 0.0) {
-                        vec4 addedLights = vec4(ambientLightColor * RECIPROCAL_PI, 1.0);
+                        vec3 normal = worldGetNormal(px * maskOpacity, textcoord);
+                        vec4 addedLights = vec4(
+                            (ambientLightColor + shGetIrradianceAt(k3dEnvRotation * normal, k3dEnvSH)) * RECIPROCAL_PI, 1.0);
                         vec3 specularColor = vec3(0.0);
 
-                        vec3 normal = worldGetNormal(px * maskOpacity, textcoord);
-
+                        #if NUM_DIR_LIGHTS > 0
                         vec3 lightDirection;
                         vec3 lightColor;
                         float lightingIntensity;
@@ -271,10 +275,26 @@ void main() {
                             pxColor.a * (1.0 - shadow);
                         }
                         #pragma unroll_loop_end
+                        #endif
+
+                        // advanced: the dominant directional light distilled from the
+                        // environment's L1 band (zero in simple)
+                        {
+                            vec3 envLightColor = k3dEnvLightColor * RECIPROCAL_PI;
+                            float envIntensity = clamp(dot(k3dEnvLightDir, normal), 0.0, 1.0);
+                            addedLights.rgb += envLightColor * (0.2 + 0.8 * envIntensity) * (1.0 - shadow);
+
+                            vec3 envReflect = normalize(reflect(k3dEnvLightDir, normal));
+                            float envSpecular = dot(direction, envReflect);
+
+                            if (envSpecular > 0.0)
+                            specularColor += 0.002 * scaled_px * (1.0 / step) *
+                            envLightColor * pow(envSpecular, 250.0) *
+                            pxColor.a * (1.0 - shadow);
+                        }
 
                         pxColor.rgb = pxColor.rgb * addedLights.xyz + specularColor;
                     }
-                    #endif
 
                     value += pxColor;
 

@@ -3,6 +3,10 @@
 #include <logdepthbuf_pars_fragment>
 #include <lights_pars_begin>
 
+uniform vec3 k3dEnvSH[9];
+uniform mat3 k3dEnvRotation;
+uniform vec3 k3dEnvLightDir;
+uniform vec3 k3dEnvLightColor;
 uniform float size;
 uniform float opacity;
 uniform mat4 projectionMatrix;
@@ -47,16 +51,32 @@ void main(void)
 
     vec3 normal = vec3(impostorSpaceCoordinate, normalizedDepth);
 
-    vec4 addedLights = vec4(ambientLightColor * RECIPROCAL_PI, 1.0);
+    // the impostor normal lives in view space, the SH in world space
+    vec3 kWorldNormal = normalize(normal * mat3(viewMatrix));
+    vec4 addedLights = vec4(
+        (ambientLightColor + shGetIrradianceAt(k3dEnvRotation * kWorldNormal, k3dEnvSH)) * RECIPROCAL_PI, 1.0);
     vec4 finalSphereColor = vColor;
     vec3 specularColor = vec3(0.0);
 
     finalSphereColor.a *= opacity;
 
+    #if NUM_DIR_LIGHTS > 0
     for (int l = 0; l < NUM_DIR_LIGHTS; l++) {
         vec3 lightDirection = -directionalLights[l].direction;
         vec3 lightColor = directionalLights[l].color * RECIPROCAL_PI;
         float lightingIntensity = clamp(dot(-lightDirection, normal), 0.0, 1.0);
+        addedLights.rgb += lightColor * (0.05 + 0.95 * lightingIntensity);
+
+        #if (USE_SPECULAR == 1)
+        specularColor += lightColor * pow(lightingIntensity, 80.0);
+        #endif
+    }
+    #endif
+
+    // advanced: the dominant directional light distilled from the environment's L1 band
+    {
+        vec3 lightColor = k3dEnvLightColor * RECIPROCAL_PI;
+        float lightingIntensity = clamp(dot(k3dEnvLightDir, kWorldNormal), 0.0, 1.0);
         addedLights.rgb += lightColor * (0.05 + 0.95 * lightingIntensity);
 
         #if (USE_SPECULAR == 1)

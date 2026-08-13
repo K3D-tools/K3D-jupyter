@@ -33,7 +33,7 @@ class Points(Drawable):
 
             :`3d`: little 3D balls,
 
-            :`3dSpecular`: little 3D balls with specular lightning,
+            :`3dSpecular`: little 3D balls with specular lighting,
 
             :`mesh`: high precision triangle mesh of a ball (high quality and GPU load).
         roughness: `float`.
