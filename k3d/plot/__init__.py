@@ -43,7 +43,47 @@ class Plot(
         label_color: `int`.
             Packed RGB color of the labels (0xff0000 is red, 0xff is blue).
         lighting: `Float`.
-            Lighting factor.
+            Lighting factor - the exposure knob. In the advanced renderer the
+            environment carries the shape of the light, lighting scales its energy.
+        renderer: `str`.
+            Rendering pipeline of the plot.
+
+            Legal values are:
+
+            :`simple`: the classic rasteriser with a fixed light rig (default),
+
+            :`advanced`: image-based lighting from the environment map, physically
+             based materials and ambient occlusion.
+        environment: `str` or `array_like`.
+            The light environment of the advanced renderer.
+
+            Legal values are:
+
+            :`neutral`: procedural achromatic gradient with a soft key light (default),
+
+            :`studio`: procedural gradient with two soft studio lights,
+
+            :`outdoor`: procedural sky with a sun disc and ground,
+
+            :name from k3d.environments.available(): a photographic HDRI shipped
+             with the package (Poly Haven, CC0),
+
+            :array_like: a custom (height, width, 3) float32 equirectangular
+             radiance map. Every map is energy-normalised.
+        show_environment: `bool`.
+            Show the environment map as the plot background (advanced renderer only).
+        environment_rotation: `float`.
+            Rotation of the environment map around the scene's up axis, in radians.
+        tone_mapping: `str`.
+            Tone curve applied by the advanced renderer.
+
+            Legal values are:
+
+            :`none`: linear output (default),
+
+            :`agx`: AgX filmic curve,
+
+            :`aces`: ACES filmic curve.
         grid: `array_like`.
             6-element tuple specifying the bounds of the plot grid (x0, y0, z0, x1, y1, z1).
         camera: `array_like`.
