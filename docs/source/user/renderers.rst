@@ -67,7 +67,7 @@ catalog ships with the package:
     import k3d.environments
     k3d.environments.available()
     # ['autoshop_01', 'brown_photostudio_02', 'burnt_warehouse',
-    #  'moonless_golf', 'noon_grass']
+    #  'moonless_golf', 'venice_sunset']
 
 Volumetric data (``volume``, ``mip``) and the ``points`` 3d impostors read the
 same environment: diffuse light from the map's spherical harmonics plus one

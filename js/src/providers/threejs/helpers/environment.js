@@ -54,9 +54,10 @@ function ensureTyped(env) {
 }
 
 // Generated on the CPU so the result is bit-identical on every GPU - the test suite
-// depends on that determinism.
-const WIDTH = 128;
-const HEIGHT = 64;
+// depends on that determinism. 256x128: the outdoor sun disc must span a few texels,
+// at 128x64 it aliased away.
+const WIDTH = 256;
+const HEIGHT = 128;
 
 // Mean irradiance every map is normalised to. The sphere-average equivalent of the replaced
 // rig is 0.4 PI (ambient 0.2 PI in full + key/head/fill/back 0.8 PI at the 1/4 directional
@@ -87,25 +88,40 @@ const PRESETS = {
         return [l, l, l];
     },
 
+    // a dark shell with hard, cool softboxes off to the side: the contrast and the
+    // shading direction are the point - the energy normalisation keeps the exposure,
+    // so what changes is the drama of the shadows, not the brightness
     studio(u, v) {
-        let l = 0.4 + 0.7 * v;
+        let l = 0.1 + 0.2 * v;
 
-        l += 2.5 * gauss(u - 0.3, 0.05) * gauss(v - 0.75, 0.08);
-        l += 1.8 * gauss(u - 0.75, 0.07) * gauss(v - 0.7, 0.1);
+        l += 6.0 * gauss(u - 0.55, 0.05) * gauss(v - 0.72, 0.08);
+        l += 2.0 * gauss(u - 0.05, 0.08) * gauss(v - 0.6, 0.12);
+        l += 1.2 * gauss(v - 0.98, 0.03);
 
-        return [l, l, l];
+        return [l * 0.9, l, l * 1.18];
     },
 
+    // a clear sunny day: deep blue sky, a hard warm sun disc with a halo, earthy
+    // bounce - blue ambient in the shadows, warm key on lit faces
     outdoor(u, v) {
         if (v > 0.5) {
-            const sky = 0.4 + 0.8 * (v - 0.5);
-            const sun = 6.0 * gauss(u - 0.35, 0.015) * gauss(v - 0.8, 0.03);
+            // the sun carries most of a clear day's energy and sits low enough
+            // (afternoon) to light vertical faces; the sky is the blue of the
+            // shadows, not of the whole image
+            const t = (v - 0.5) * 2.0;
+            const sun = 120.0 * gauss(u - 0.33, 0.02) * gauss(v - 0.72, 0.03);
+            const halo = 5.0 * gauss(u - 0.33, 0.07) * gauss(v - 0.72, 0.09);
+            const warm = sun + halo;
 
-            return [sky * 0.9 + sun, sky * 0.95 + sun, sky * 1.1 + sun * 0.9];
+            return [
+                0.45 + 0.1 * (1.0 - t) + warm,
+                0.58 + 0.1 * (1.0 - t) + warm * 0.85,
+                1.0 + 0.3 * t + warm * 0.55,
+            ];
         }
-        const ground = 0.5 - 0.35 * (0.5 - v);
+        const ground = 0.45 - 0.5 * (0.5 - v);
 
-        return [ground, ground * 0.97, ground * 0.9];
+        return [ground * 1.15, ground * 0.9, ground * 0.6];
     },
 };
 
