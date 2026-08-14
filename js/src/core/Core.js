@@ -137,21 +137,53 @@ function K3D(provider, targetDOMNode, parameters) {
                 self.setDepthPeels(value);
                 changeParameters.call(self, 'depth_peels', value);
             });
-        GUI.controls.add(self.parameters, 'renderer', ['simple', 'advanced']).onChange((value) => {
-            self.setRenderer(value);
-            changeParameters.call(self, 'renderer', value);
-        });
-        if (typeof (self.parameters.environment) === 'string') {
-            GUI.controls.add(self.parameters, 'environment', ['neutral', 'studio', 'outdoor'])
-                .onChange((value) => {
-                    self.setEnvironment(value);
-                    changeParameters.call(self, 'environment', value);
-                });
-        }
-        GUI.controls.add(self.parameters, 'showEnvironment').onChange((value) => {
+        GUI.controls.add(self.parameters, 'renderer', ['simple', 'advanced']).listen()
+            .onChange((value) => {
+                self.setRenderer(value);
+                changeParameters.call(self, 'renderer', value);
+            });
+        // an equirect array has no name - the proxy displays it as 'custom'. Catalog
+        // names resolve in Python; a kernel-less standalone degrades them to neutral.
+        const environmentProxy = {
+            environment: typeof (self.parameters.environment) === 'string'
+                ? self.parameters.environment : 'custom',
+        };
+
+        self.refreshEnvironmentGUI = function () {
+            environmentProxy.environment = typeof (self.parameters.environment) === 'string'
+                ? self.parameters.environment : 'custom';
+        };
+
+        GUI.controls.add(environmentProxy, 'environment', [
+            'neutral', 'studio', 'outdoor',
+            'autoshop_01', 'brown_photostudio_02', 'burnt_warehouse',
+            'moonless_golf', 'venice_sunset',
+            'custom',
+        ]).listen()
+            .onChange((value) => {
+                if (value === 'custom') {
+                    // a label for an array map, not a choice
+                    self.refreshEnvironmentGUI();
+                    return;
+                }
+                self.setEnvironment(value);
+                changeParameters.call(self, 'environment', value);
+            });
+        GUI.controls.add(self.parameters, 'showEnvironment').listen().onChange((value) => {
             self.setShowEnvironment(value);
             changeParameters.call(self, 'show_environment', value);
         });
+        GUI.controls.add(self.parameters, 'environmentRotation').step(0.01).min(0).max(2 * Math.PI)
+            .listen()
+            .onChange((value) => {
+                self.setEnvironmentRotation(value);
+                changeParameters.call(self, 'environment_rotation', value);
+            });
+        GUI.controls.add(self.parameters, 'toneMapping', ['none', 'agx', 'aces']).listen()
+            .onChange((value) => {
+                self.setToneMapping(value);
+                changeParameters.call(self, 'tone_mapping', value);
+            });
         viewModeGUI(GUI.controls, self);
         cameraModeGUI(GUI.controls, self);
         cameraUpAxisGUI(GUI.controls, self);
@@ -1011,6 +1043,11 @@ function K3D(provider, targetDOMNode, parameters) {
      */
     this.setEnvironment = function (environment) {
         self.parameters.environment = environment;
+
+        if (self.refreshEnvironmentGUI) {
+            self.refreshEnvironmentGUI();
+        }
+
         world.applyRendererMode(self);
         self.render();
     };

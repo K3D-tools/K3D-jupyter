@@ -89,11 +89,14 @@ module.exports = function (K3D) {
     const targets = [];
     const compositeScene = new THREE.Scene();
     const planeGeometry = new THREE.PlaneGeometry(2, 2, 1, 1);
+    const toneMappingMode = { value: 0 };
     const compositeMaterial = new THREE.ShaderMaterial({
         uniforms: {
             uTextureA: { value: null },
             uTextureB: { value: null },
             uBlit: { value: 0 },
+            uToneMapping: toneMappingMode,
+            toneMappingExposure: { value: 1.0 },
         },
         vertexShader: require('./shaders/composite.vertex.glsl'),
         fragmentShader: require('./shaders/composite.fragment.glsl'),
@@ -181,11 +184,34 @@ module.exports = function (K3D) {
         blendDstAlpha: THREE.OneFactor,
     });
 
+    // three bakes renderer.toneMapping into programs only for canvas draws, and the
+    // whole pipeline composes through targets - the curve is a final blit instead
+    let toneTarget = null;
+    const toneBlitMaterial = new THREE.ShaderMaterial({
+        uniforms: {
+            tDiffuse: { value: null },
+            uSize: { value: new THREE.Vector2(1, 1) },
+            uToneMapping: toneMappingMode,
+            toneMappingExposure: { value: 1.0 },
+        },
+        vertexShader: require('./shaders/composite.vertex.glsl'),
+        fragmentShader: require('./shaders/toneBlit.fragment.glsl'),
+        transparent: true,
+        depthTest: false,
+        depthWrite: false,
+        blending: THREE.CustomBlending,
+        blendEquation: THREE.AddEquation,
+        blendSrc: THREE.OneFactor,
+        blendDst: THREE.OneMinusSrcAlphaFactor,
+    });
+
     const gtaoScene = new THREE.Scene();
     const pdScene = new THREE.Scene();
     const aoOverlayScene = new THREE.Scene();
+    const toneBlitScene = new THREE.Scene();
 
-    [[gtaoScene, gtaoMaterial], [pdScene, pdMaterial], [aoOverlayScene, aoOverlayMaterial]]
+    [[gtaoScene, gtaoMaterial], [pdScene, pdMaterial], [aoOverlayScene, aoOverlayMaterial],
+        [toneBlitScene, toneBlitMaterial]]
         .forEach(([scene, material]) => {
             const plane = new THREE.Mesh(planeGeometry, material);
 
@@ -592,6 +618,46 @@ module.exports = function (K3D) {
             rt = null;
         }
 
+        // the tone curve needs the frame in a texture first - render via an
+        // intermediate target mirroring the destination, then blit through the curve
+        if (toneMappingMode.value !== 0 && scene === self.scene) {
+            const width = rt ? rt.width : K3D.getWorld().width;
+            const height = rt ? rt.height : K3D.getWorld().height;
+            const viewport = new THREE.Vector4();
+
+            self.renderer.getViewport(viewport);
+
+            if (toneTarget === null || toneTarget.width !== width || toneTarget.height !== height) {
+                if (toneTarget !== null) {
+                    toneTarget.dispose();
+                }
+
+                toneTarget = new THREE.WebGLRenderTarget(width, height, {
+                    minFilter: THREE.NearestFilter,
+                    magFilter: THREE.NearestFilter,
+                    type: THREE.HalfFloatType,
+                });
+            }
+
+            self.renderer.setRenderTarget(toneTarget);
+            self.renderer.setViewport(viewport);
+            self.renderer.setClearColor(0, 0);
+            self.renderer.clear();
+            self.renderer.render(scene, camera);
+
+            // AO on the linear image, before the curve
+            applyAOOverlay(camera, rt);
+
+            toneBlitMaterial.uniforms.tDiffuse.value = toneTarget.texture;
+            toneBlitMaterial.uniforms.uSize.value.set(width, height);
+
+            self.renderer.setRenderTarget(rt);
+            self.renderer.setViewport(viewport);
+            self.renderer.render(toneBlitScene, fsCamera);
+
+            return;
+        }
+
         self.renderer.setRenderTarget(rt);
         self.renderer.render(scene, camera);
 
@@ -760,21 +826,17 @@ module.exports = function (K3D) {
     this.renderer.setClearColor(0, 0);
     this.renderer.autoClear = false;
 
+    // NOT renderer.toneMapping: three bakes it into programs only for canvas draws
+    // (getParameters: currentRenderTarget === null), and screenshots, strips and the
+    // peel pipeline all compose through targets. One uniform, zero recompiles.
     self.applyToneMapping = function (name) {
         const map = {
-            none: THREE.NoToneMapping,
-            agx: THREE.AgXToneMapping,
-            aces: THREE.ACESFilmicToneMapping,
+            none: 0,
+            agx: 1,
+            aces: 2,
         };
 
-        self.renderer.toneMapping = map[name] || THREE.NoToneMapping;
-
-        // a toneMapping change recompiles nothing on its own
-        self.K3DObjects.traverse((obj) => {
-            if (obj.material) {
-                obj.material.needsUpdate = true;
-            }
-        });
+        toneMappingMode.value = map[name] || 0;
     };
 
     this.render = function (force) {

@@ -55,6 +55,21 @@ def test_environment_custom_map():
     compare("advanced_environment_custom", modes=("advanced",))
 
 
+def test_tone_mapping():
+    scene()
+    pytest.plot.environment = "burnt_warehouse"
+
+    compare("advanced_tone_none", modes=("advanced",))
+
+    pytest.plot.tone_mapping = "agx"
+
+    compare("advanced_tone_agx", modes=("advanced",))
+
+    pytest.plot.tone_mapping = "aces"
+
+    compare("advanced_tone_aces", modes=("advanced",))
+
+
 def test_environment_catalog():
     scene()
     pytest.plot.environment = "brown_photostudio_02"
