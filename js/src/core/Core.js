@@ -142,24 +142,37 @@ function K3D(provider, targetDOMNode, parameters) {
                 self.setRenderer(value);
                 changeParameters.call(self, 'renderer', value);
             });
-        // an equirect array has no name - the proxy displays it as 'custom'. Catalog
-        // names resolve in Python; a kernel-less standalone degrades them to neutral.
-        const environmentProxy = {
-            environment: typeof (self.parameters.environment) === 'string'
-                ? self.parameters.environment : 'custom',
-        };
-
-        self.refreshEnvironmentGUI = function () {
-            environmentProxy.environment = typeof (self.parameters.environment) === 'string'
-                ? self.parameters.environment : 'custom';
-        };
-
-        GUI.controls.add(environmentProxy, 'environment', [
+        // Python resolves catalog names to arrays, so the resolved value comes back as
+        // an object - the wire dict carries the name for display. Arrays without one
+        // show as 'custom'. A kernel-less standalone degrades names to neutral.
+        const environmentOptions = [
             'neutral', 'studio', 'outdoor',
             'autoshop_01', 'brown_photostudio_02', 'burnt_warehouse',
             'moonless_golf', 'venice_sunset',
             'custom',
-        ]).listen()
+        ];
+        const environmentGUIName = function () {
+            const env = self.parameters.environment;
+
+            if (typeof (env) === 'string') {
+                return env;
+            }
+            if (env && env.name && environmentOptions.indexOf(env.name) !== -1) {
+                return env.name;
+            }
+
+            return 'custom';
+        };
+        const environmentProxy = { environment: environmentGUIName() };
+
+        self.refreshEnvironmentGUI = function () {
+            environmentProxy.environment = environmentGUIName();
+        };
+
+        const environmentControls = [];
+
+        environmentControls.push(GUI.controls.add(environmentProxy, 'environment', environmentOptions)
+            .listen()
             .onChange((value) => {
                 if (value === 'custom') {
                     // a label for an array map, not a choice
@@ -168,17 +181,27 @@ function K3D(provider, targetDOMNode, parameters) {
                 }
                 self.setEnvironment(value);
                 changeParameters.call(self, 'environment', value);
-            });
-        GUI.controls.add(self.parameters, 'showEnvironment').listen().onChange((value) => {
-            self.setShowEnvironment(value);
-            changeParameters.call(self, 'show_environment', value);
-        });
-        GUI.controls.add(self.parameters, 'environmentRotation').step(0.01).min(0).max(2 * Math.PI)
+            }));
+        environmentControls.push(GUI.controls.add(self.parameters, 'showEnvironment').listen()
+            .onChange((value) => {
+                self.setShowEnvironment(value);
+                changeParameters.call(self, 'show_environment', value);
+            }));
+        environmentControls.push(GUI.controls.add(self.parameters, 'environmentRotation')
+            .step(0.01).min(0).max(2 * Math.PI)
             .listen()
             .onChange((value) => {
                 self.setEnvironmentRotation(value);
                 changeParameters.call(self, 'environment_rotation', value);
+            }));
+
+        // the environment lights only the advanced renderer
+        self.refreshRendererGUI = function () {
+            environmentControls.forEach((control) => {
+                control.show(self.parameters.renderer === 'advanced');
             });
+        };
+        self.refreshRendererGUI();
         GUI.controls.add(self.parameters, 'toneMapping', ['none', 'agx', 'aces']).listen()
             .onChange((value) => {
                 self.setToneMapping(value);
@@ -1032,6 +1055,11 @@ function K3D(provider, targetDOMNode, parameters) {
         }
 
         self.parameters.renderer = mode;
+
+        if (self.refreshRendererGUI) {
+            self.refreshRendererGUI();
+        }
+
         world.applyRendererMode(self);
         self.render();
     };

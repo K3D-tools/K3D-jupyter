@@ -390,7 +390,18 @@ class PlotView extends widgets.DOMWidgetView {
                 environment: (() => {
                     const env = this.model.get('environment');
 
-                    return (env !== null && typeof (env) === 'object') ? serialize.deserialize(env) : env;
+                    if (env !== null && typeof (env) === 'object') {
+                        const deserialized = serialize.deserialize(env);
+
+                        // the catalog name rides along for the GUI
+                        if (env.name) {
+                            deserialized.name = env.name;
+                        }
+
+                        return deserialized;
+                    }
+
+                    return env;
                 })(),
                 showEnvironment: this.model.get('show_environment'),
                 environmentRotation: this.model.get('environment_rotation'),
@@ -537,7 +548,13 @@ class PlotView extends widgets.DOMWidgetView {
         let env = this.model.get('environment');
 
         if (env !== null && typeof (env) === 'object') {
+            const name = env.name;
+
             env = serialize.deserialize(env);
+
+            if (name) {
+                env.name = name;
+            }
         }
 
         this.K3DInstance.setEnvironment(env);

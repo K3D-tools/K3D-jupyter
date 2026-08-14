@@ -271,7 +271,7 @@ class PlotSnapshotMixin:
             value = getattr(self, trait)
             if key == "environment" and not isinstance(value, str):
                 # a user map goes as a typed array, not a nested list
-                params[key] = environment_to_json(value)
+                params[key] = environment_to_json(value, self)
             else:
                 params[key] = _msgpack_safe(value)
         return params

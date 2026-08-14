@@ -87,13 +87,18 @@ class PlotBase(widgets.DOMWidget):
     @validate("environment")
     def _resolve_environment(self, proposal):
         value = proposal["value"]
+        # the resolved array loses the catalog name - remembered here so the wire
+        # dict can carry it and the GUI shows the name instead of 'custom'
+        self._environment_catalog_name = None
         # a snapshot round-trip carries the wire dict
         if isinstance(value, dict):
+            self._environment_catalog_name = value.get("name")
             return json_to_array(value)
         # catalog names resolve to their arrays; procedural preset names pass through to JS
         if isinstance(value, str):
             catalog = load_environment(value)
             if catalog is not None:
+                self._environment_catalog_name = value
                 return catalog
         return value
     environment_rotation = Float(default_value=0.0).tag(sync=True)

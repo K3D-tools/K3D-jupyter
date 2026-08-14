@@ -216,7 +216,14 @@ def environment_to_json(value: Any, obj: Optional[Any] = None) -> Any:
     """Preset names travel as strings, user maps as a typed array."""
     if value is None or isinstance(value, str):
         return value
-    return array_to_json(np.ascontiguousarray(np.asarray(value, dtype=np.float32)))
+
+    data = array_to_json(np.ascontiguousarray(np.asarray(value, dtype=np.float32)))
+    name = getattr(obj, "_environment_catalog_name", None)
+
+    if name is not None:
+        data["name"] = name
+
+    return data
 
 
 def environment_from_json(value: Any, obj: Optional[Any] = None) -> Any:
