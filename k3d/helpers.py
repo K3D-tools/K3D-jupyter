@@ -60,13 +60,13 @@ def array_to_json(
         raise ValueError(f"Unsupported dtype: {ar.dtype}")
 
     if ar.dtype == np.float64:  # WebGL does not support float64
-        logger.info("Converting float64 array to float32 for WebGL compatibility.")
+        logger.debug("Converting float64 array to float32 for WebGL compatibility.")
         ar = ar.astype(np.float32)
     elif ar.dtype == np.int64:  # JS does not support int64
-        logger.info("Converting int64 array to int32 for JS compatibility.")
+        logger.debug("Converting int64 array to int32 for JS compatibility.")
         ar = ar.astype(np.int32)
     elif ar.dtype == np.uint64:  # the JS deserializer has no uint64 typed array
-        logger.info("Converting uint64 array to uint32 for JS compatibility.")
+        logger.debug("Converting uint64 array to uint32 for JS compatibility.")
         ar = ar.astype(np.uint32)
 
     # make sure it's contiguous

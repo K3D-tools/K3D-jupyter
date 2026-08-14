@@ -8,6 +8,7 @@ import numpy as np
 
 from ..helpers import environment_to_json
 from ..objects import create_object
+from .._version import __version__ as version
 
 # Snapshot key -> trait name. One mapping used for both saving and restoring, so the JS-facing
 # key names cannot drift apart from the Python side.
@@ -157,6 +158,7 @@ class PlotSnapshotMixin:
             voxel_chunks = getattr(self, "voxel_chunks", [])
         snapshot = self.get_binary_snapshot_objects(voxel_chunks)
         snapshot["plot"] = self.get_plot_params()
+        snapshot["version"] = version
         data = msgpack.packb(snapshot, use_bin_type=True)
         return zlib.compress(data, compression_level)
 

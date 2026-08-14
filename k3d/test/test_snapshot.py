@@ -29,6 +29,25 @@ class TestBinarySnapshot(unittest.TestCase):
         )
         return p
 
+    def test_custom_environment_round_trips(self):
+        source = self._scene()
+        env = np.random.default_rng(7).random((8, 16, 3), dtype=np.float32)
+        source.environment = env
+        source.renderer = "advanced"
+
+        restored = plot()
+        restored.load_binary_snapshot(source.get_binary_snapshot(1))
+
+        assert restored.renderer == "advanced"
+        np.testing.assert_array_equal(np.asarray(restored.environment), env)
+
+    def test_carries_format_version(self):
+        from .._version import __version__
+
+        data = msgpack.unpackb(zlib.decompress(self._scene().get_binary_snapshot(1)))
+
+        assert data["version"] == __version__
+
     def test_restores_plot_params(self):
         source = self._scene()
         data = source.get_binary_snapshot()
