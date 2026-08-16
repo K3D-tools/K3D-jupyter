@@ -43,10 +43,14 @@ All lit objects use physically based materials with two knobs:
 ``TraitError`` with that formula, and legacy ``.k3d`` snapshots are converted
 automatically on load.
 
+Both parameters live in the 0-1 range and are validated at assignment.
+
 Volumetric objects (``volume``, ``mip``) carry the same two knobs for the
 specular highlight of their isodensity surface (default ``roughness=0.25``) -
 lower roughness makes noisy gradients sparkle like wet tissue, which may even
-be desired.
+be desired. ``metalness`` tints and strengthens the highlight with the
+transfer-function colour; it never darkens the body, because a volume has no
+environment reflection to replace the lost diffuse light with.
 
 Environments
 ------------

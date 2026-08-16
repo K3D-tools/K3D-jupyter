@@ -75,8 +75,8 @@ class Points(Drawable):
         sync=True, **array_serialization_wrap("opacities")
     )
     shader = TimeSeries(Unicode()).tag(sync=True)
-    roughness = TimeSeries(Float(default_value=0.4)).tag(sync=True)
-    metalness = TimeSeries(Float(default_value=0.0)).tag(sync=True)
+    roughness = TimeSeries(Float(default_value=0.4, min=0.0, max=1.0)).tag(sync=True)
+    metalness = TimeSeries(Float(default_value=0.0, min=0.0, max=1.0)).tag(sync=True)
     mesh_detail = TimeSeries(Int(min=0, max=12)).tag(sync=True)
     attribute = TimeSeries(Array(dtype=np.float32)).tag(
         sync=True, **array_serialization_wrap("attribute")

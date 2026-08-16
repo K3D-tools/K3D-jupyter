@@ -271,6 +271,10 @@ void main() {
                     pxColor.a *= (1.0 - value.a);
                     pxColor.a *= maskOpacity;
 
+                    // straight colormap colour, kept for the metal tint before the
+                    // premultiply darkens rgb by alpha
+                    vec3 kBaseColor = pxColor.rgb;
+
                     pxColor.rgb *= pxColor.a;
 
                     // LIGHT (skipped in the AO depth pass - only opacity matters there)
@@ -284,7 +288,7 @@ void main() {
                         PhysicalMaterial specMaterial;
                         specMaterial.diffuseColor = vec3(0.0);
                         specMaterial.roughness = max(roughness, 0.0525);
-                        specMaterial.specularColorBlended = mix(vec3(0.04), pxColor.rgb, metalness);
+                        specMaterial.specularColorBlended = mix(vec3(0.04), kBaseColor, metalness);
                         specMaterial.specularF90 = 1.0;
 
                         #if NUM_DIR_LIGHTS > 0
@@ -320,7 +324,11 @@ void main() {
                             pxColor.a * (1.0 - shadow);
                         }
 
-                        pxColor.rgb = pxColor.rgb * (1.0 - metalness) * addedLights.xyz + specularColor;
+                        // no (1 - metalness) on the body: a volume cannot sample the
+                        // environment specularly, and with F0 == base colour the metal
+                        // ambient response equals the diffuse one anyway. Metalness
+                        // tints and strengthens the highlights instead of going black.
+                        pxColor.rgb = pxColor.rgb * addedLights.xyz + specularColor;
                     }
                     #endif
 

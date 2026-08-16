@@ -86,8 +86,8 @@ class MarchingCubes(DrawableWithCallback):
     color = Int(min=0, max=0xFFFFFF).tag(sync=True)
     wireframe = Bool().tag(sync=True)
     flat_shading = Bool().tag(sync=True)
-    roughness = TimeSeries(Float(default_value=0.4)).tag(sync=True)
-    metalness = TimeSeries(Float(default_value=0.0)).tag(sync=True)
+    roughness = TimeSeries(Float(default_value=0.4, min=0.0, max=1.0)).tag(sync=True)
+    metalness = TimeSeries(Float(default_value=0.0, min=0.0, max=1.0)).tag(sync=True)
     opacity = TimeSeries(Float(min=0.0, max=1.0, default_value=1.0)).tag(sync=True)
     model_matrix = TimeSeries(Array(dtype=np.float32)).tag(
         sync=True, **array_serialization_wrap("model_matrix")
@@ -164,7 +164,7 @@ class VolumeSlice(DrawableWithCallback):
     color_map_masks = Array(dtype=np.uint32).tag(
         sync=True, **array_serialization_wrap("color_map_masks")
     )
-    mask_opacity = TimeSeries(Float()).tag(sync=True)
+    mask_opacity = TimeSeries(Float(min=0.0, max=1.0)).tag(sync=True)
     model_matrix = TimeSeries(Array(dtype=np.float32)).tag(
         sync=True, **array_serialization_wrap("model_matrix")
     )
@@ -270,8 +270,8 @@ class Volume(Drawable):
     samples = TimeSeries(Float()).tag(sync=True)
     alpha_coef = TimeSeries(Float()).tag(sync=True)
     gradient_step = TimeSeries(Float()).tag(sync=True)
-    roughness = TimeSeries(Float(default_value=0.25)).tag(sync=True)
-    metalness = TimeSeries(Float(default_value=0.0)).tag(sync=True)
+    roughness = TimeSeries(Float(default_value=0.25, min=0.0, max=1.0)).tag(sync=True)
+    metalness = TimeSeries(Float(default_value=0.0, min=0.0, max=1.0)).tag(sync=True)
     shadow = TimeSeries(Unicode()).tag(sync=True)
     shadow_res = TimeSeries(Int(min=31, max=513, default_value=128)).tag(sync=True)
     shadow_delay = TimeSeries(Float()).tag(sync=True)
@@ -370,8 +370,8 @@ class MIP(Drawable):
     )
     gradient_step = TimeSeries(Float()).tag(sync=True)
     samples = TimeSeries(Float()).tag(sync=True)
-    roughness = TimeSeries(Float(default_value=0.25)).tag(sync=True)
-    metalness = TimeSeries(Float(default_value=0.0)).tag(sync=True)
+    roughness = TimeSeries(Float(default_value=0.25, min=0.0, max=1.0)).tag(sync=True)
+    metalness = TimeSeries(Float(default_value=0.0, min=0.0, max=1.0)).tag(sync=True)
     interpolation = TimeSeries(Bool()).tag(sync=True)
     mask = Array(dtype=np.uint8).tag(sync=True, **array_serialization_wrap("mask"))
     mask_opacities = TimeSeries(Array(dtype=np.float32)).tag(

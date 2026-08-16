@@ -268,7 +268,7 @@ module.exports = {
             }
         }
 
-        ['samples', 'gradient_step'].forEach((key) => {
+        ['samples', 'gradient_step', 'roughness', 'metalness'].forEach((key) => {
             if (changes[key] && !changes[key].timeSeries) {
                 obj.material.uniforms[key].value = changes[key];
                 resolvedChanges[key] = null;

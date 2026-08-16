@@ -266,7 +266,15 @@ function update(K3D, json, GUI, changes) {
         }
 
         if (defaultParams.indexOf(param) !== -1 && !json[param].timeSeries) {
-            addController(K3D.gui_map[json.id], json, param).onChange(changeParameter.bind(this, K3D, json, param));
+            // physically bounded parameters get a real slider instead of a free field
+            const ranges = {
+                roughness: [0.0, 1.0, 0.01],
+                metalness: [0.0, 1.0, 0.01],
+                mask_opacity: [0.0, 1.0, 0.01],
+            };
+
+            addController(K3D.gui_map[json.id], json, param, ...(ranges[param] || []))
+                .onChange(changeParameter.bind(this, K3D, json, param));
         }
 
         // special dependencies

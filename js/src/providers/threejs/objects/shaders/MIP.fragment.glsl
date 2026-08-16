@@ -254,7 +254,9 @@ void main() {
         #endif
     }
 
-    pxColor.rgb *= (1.0 - metalness) * addedLights.xyz;
+    // no (1 - metalness) on the body - same reasoning as in Volume.fragment.glsl:
+    // metalness tints and strengthens the highlights instead of going black
+    pxColor.rgb *= addedLights.xyz;
     pxColor.rgb += specularColor;
 
     gl_FragColor = pxColor;

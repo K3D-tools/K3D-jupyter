@@ -448,7 +448,8 @@ module.exports = {
             resolvedChanges.opacity_function = null;
         }
 
-        ['samples', 'alpha_coef', 'gradient_step', 'focal_plane', 'focal_length'].forEach((key) => {
+        ['samples', 'alpha_coef', 'gradient_step', 'focal_plane', 'focal_length',
+            'roughness', 'metalness'].forEach((key) => {
             if (typeof (changes[key]) !== 'undefined' && !changes[key].timeSeries) {
                 obj.material.uniforms[key].value = changes[key];
                 resolvedChanges[key] = null;
