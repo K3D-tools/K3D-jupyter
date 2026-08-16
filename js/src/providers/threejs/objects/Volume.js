@@ -168,6 +168,8 @@ module.exports = {
             samples: { value: samples },
             alpha_coef: { value: config.alpha_coef },
             gradient_step: { value: config.gradient_step },
+            roughness: { value: typeof (config.roughness) !== 'undefined' ? config.roughness : 0.25 },
+            metalness: { value: typeof (config.metalness) !== 'undefined' ? config.metalness : 0.0 },
             translation: { value: translation },
             rotation: { value: rotation },
             shadowTexture: { type: 't', value: (textureRTT ? textureRTT.texture : null) },

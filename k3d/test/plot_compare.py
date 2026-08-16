@@ -95,12 +95,6 @@ def compare(
             result, reference, img_diff, threshold=threshold, includeAA=True
         )
 
-        # TYMCZASOWO (klamp specularow wolumetryk): rozjazd w advanced nadpisuje wzorzec.
-        if mode == "advanced" and mismatch > max_mismatched_pixels:
-            os.makedirs(os.path.join(REFERENCES_DIR, "advanced"), exist_ok=True)
-            result.save(os.path.join(REFERENCES_DIR, "advanced", name + ".png"))
-            continue
-
         if mismatch > max_mismatched_pixels:
             os.makedirs(os.path.join(RESULTS_DIR, "advanced"), exist_ok=True)
 

@@ -125,6 +125,8 @@ module.exports = {
             low: { value: colorRange[0] },
             high: { value: colorRange[1] },
             gradient_step: { value: config.gradient_step },
+            roughness: { value: typeof (config.roughness) !== 'undefined' ? config.roughness : 0.25 },
+            metalness: { value: typeof (config.metalness) !== 'undefined' ? config.metalness : 0.0 },
             samples: { value: samples },
             translation: { value: translation },
             rotation: { value: rotation },

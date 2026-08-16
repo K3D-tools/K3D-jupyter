@@ -37,6 +37,8 @@ uniform mat4 projectionMatrix;
 uniform float samples;
 uniform float alpha_coef;
 uniform float gradient_step;
+uniform float roughness;
+uniform float metalness;
 
 uniform vec4 scale;
 uniform vec4 translation;
@@ -112,13 +114,19 @@ float getMaskedVolume(vec3 pos)
 
 vec3 worldGetNormal(in float px, in vec3 pos)
 {
-    return normalize(
-        vec3(
-            px - getMaskedVolume(pos + vec3(gradient_step, 0, 0)),
-            px - getMaskedVolume(pos + vec3(0, gradient_step, 0)),
-            px - getMaskedVolume(pos + vec3(0, 0, gradient_step))
-        )
+    vec3 gradient = vec3(
+        px - getMaskedVolume(pos + vec3(gradient_step, 0, 0)),
+        px - getMaskedVolume(pos + vec3(0, gradient_step, 0)),
+        px - getMaskedVolume(pos + vec3(0, 0, gradient_step))
     );
+
+    // saturated plateaus have no gradient: normalize(0) is NaN and one NaN sample
+    // blacks out the whole ray (0 * NaN stays NaN even with zeroed SH)
+    if (dot(gradient, gradient) < 1e-20) {
+        return vec3(0.0);
+    }
+
+    return normalize(gradient);
 }
 
 float getShadow(vec3 textcoord, vec2 sliceCount)
@@ -196,11 +204,20 @@ void main() {
         int sampleCount = min(int(length(textcoord_delta) * samples), int(samples * 1.8));
 
         textcoord_delta = textcoord_delta / float(sampleCount);
+        #ifdef K3D_AO_DEPTH_PASS
+        // no jitter: a per-pixel noisy shell depth reads as micro-cliffs to GTAO
+        textcoord_start = textcoord_start - textcoord_delta * 0.5;
+        #else
         textcoord_start = textcoord_start - textcoord_delta * (0.01 + 0.98 * jitter);
+        #endif
 
         vec3 textcoord = textcoord_start - textcoord_delta;
 
         float step = length(textcoord_delta);
+
+        #ifdef K3D_AO_DEPTH_PASS
+        float kPrevAlpha = 0.0;
+        #endif
 
         #if (USE_SHADOW == 1)
         float sliceSize = lightMapSize.x * lightMapSize.y;
@@ -264,12 +281,10 @@ void main() {
                             (ambientLightColor + shGetIrradianceAt(k3dEnvRotation * normal, k3dEnvSH)) * RECIPROCAL_PI, 1.0);
                         vec3 specularColor = vec3(0.0);
 
-                        // GGX lobe equivalent of the old pow-250 highlight:
-                        // roughness = sqrt(2 / (250 + 2))
                         PhysicalMaterial specMaterial;
                         specMaterial.diffuseColor = vec3(0.0);
-                        specMaterial.roughness = 0.089;
-                        specMaterial.specularColorBlended = vec3(0.04);
+                        specMaterial.roughness = max(roughness, 0.0525);
+                        specMaterial.specularColorBlended = mix(vec3(0.04), pxColor.rgb, metalness);
                         specMaterial.specularF90 = 1.0;
 
                         #if NUM_DIR_LIGHTS > 0
@@ -305,7 +320,7 @@ void main() {
                             pxColor.a * (1.0 - shadow);
                         }
 
-                        pxColor.rgb = pxColor.rgb * addedLights.xyz + specularColor;
+                        pxColor.rgb = pxColor.rgb * (1.0 - metalness) * addedLights.xyz + specularColor;
                     }
                     #endif
 
@@ -314,16 +329,22 @@ void main() {
                     #ifdef K3D_AO_DEPTH_PASS
                     if (value.a >= 0.5) {
                         // the occluder shell: depth of the point where accumulated
-                        // opacity crosses one half, same convention as the peel pass
+                        // opacity crosses one half. Sub-step interpolation: a depth
+                        // quantised to the march step reads as per-pixel cliffs to GTAO
+                        float kT = (0.5 - kPrevAlpha) / max(value.a - kPrevAlpha, 1e-6);
+                        vec3 kShellPos = textcoord - textcoord_delta * (1.0 - clamp(kT, 0.0, 1.0));
                         vec4 kClipPos = projectionMatrix * modelViewMatrix
-                            * vec4(textcoord - vec3(0.5), 1.0);
+                            * vec4(kShellPos - vec3(0.5), 1.0);
                         float kShellDepth = ((gl_DepthRange.diff * (kClipPos.z / kClipPos.w))
                             + gl_DepthRange.near + gl_DepthRange.far) / 2.0;
 
                         gl_FragDepthEXT = kShellDepth;
-                        gl_FragColor = vec4(kShellDepth, 0.0, 0.0, 1.0);
+                        // g == 2.0 marks a volumetric shell - the AO overlay halves
+                        // occlusion there (mesh depth packing keeps g below 1.0)
+                        gl_FragColor = vec4(kShellDepth, 2.0, 0.0, 1.0);
                         return;
                     }
+                    kPrevAlpha = value.a;
                     #endif
 
                     if (value.a >= 0.99) {

@@ -30,6 +30,8 @@ uniform mat4 modelViewMatrix;
 uniform mat4 projectionMatrix;
 uniform float samples;
 uniform float gradient_step;
+uniform float roughness;
+uniform float metalness;
 
 uniform sampler3D mask;
 uniform float maskOpacities[256];
@@ -105,13 +107,19 @@ float getMaskedVolume(vec3 pos)
 
 vec3 worldGetNormal(in float px, in vec3 pos)
 {
-    return normalize(
-        vec3(
-            px - getMaskedVolume(pos + vec3(gradient_step, 0, 0)),
-            px - getMaskedVolume(pos + vec3(0, gradient_step, 0)),
-            px - getMaskedVolume(pos + vec3(0, 0, gradient_step))
-        )
+    vec3 gradient = vec3(
+        px - getMaskedVolume(pos + vec3(gradient_step, 0, 0)),
+        px - getMaskedVolume(pos + vec3(0, gradient_step, 0)),
+        px - getMaskedVolume(pos + vec3(0, 0, gradient_step))
     );
+
+    // saturated plateaus have no gradient: normalize(0) is NaN and one NaN sample
+    // blacks out the ray (0 * NaN stays NaN even with zeroed SH)
+    if (dot(gradient, gradient) < 1e-20) {
+        return vec3(0.0);
+    }
+
+    return normalize(gradient);
 }
 
 void main() {
@@ -135,7 +143,12 @@ void main() {
     int sampleCount = min(int(length(textcoord_delta) * samples), int(samples * 1.8));
 
     textcoord_delta = textcoord_delta / float(sampleCount);
+    #ifdef K3D_AO_DEPTH_PASS
+    // no jitter: a per-pixel noisy shell depth reads as micro-cliffs to GTAO
+    textcoord_start = textcoord_start - textcoord_delta * 0.5;
+    #else
     textcoord_start = textcoord_start - textcoord_delta * (0.01 + 0.98 * jitter);
+    #endif
 
     vec3 textcoord = textcoord_start - textcoord_delta;
     vec3 maxTextcoord = textcoord;
@@ -189,7 +202,9 @@ void main() {
             + gl_DepthRange.near + gl_DepthRange.far) / 2.0;
 
         gl_FragDepthEXT = kShellDepth;
-        gl_FragColor = vec4(kShellDepth, 0.0, 0.0, 1.0);
+        // g == 2.0 marks a volumetric shell - the AO overlay halves occlusion
+        // there (mesh depth packing keeps g below 1.0)
+        gl_FragColor = vec4(kShellDepth, 2.0, 0.0, 1.0);
         return;
     }
     discard;
@@ -201,11 +216,10 @@ void main() {
         (ambientLightColor + shGetIrradianceAt(k3dEnvRotation * normal, k3dEnvSH)) * RECIPROCAL_PI, 1.0);
     vec3 specularColor = vec3(0.0);
 
-    // GGX lobe equivalent of the old pow-50 highlight: roughness = sqrt(2 / (50 + 2))
     PhysicalMaterial specMaterial;
     specMaterial.diffuseColor = vec3(0.0);
-    specMaterial.roughness = 0.196;
-    specMaterial.specularColorBlended = vec3(0.04);
+    specMaterial.roughness = max(roughness, 0.0525);
+    specMaterial.specularColorBlended = mix(vec3(0.04), pxColor.rgb, metalness);
     specMaterial.specularF90 = 1.0;
 
     #if NUM_DIR_LIGHTS > 0
@@ -240,7 +254,7 @@ void main() {
         #endif
     }
 
-    pxColor.rgb *= addedLights.xyz;
+    pxColor.rgb *= (1.0 - metalness) * addedLights.xyz;
     pxColor.rgb += specularColor;
 
     gl_FragColor = pxColor;

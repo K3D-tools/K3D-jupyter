@@ -227,6 +227,11 @@ class Volume(Drawable):
             Number of iteration per 1 unit of space.
         alpha_coef: `float`.
             Alpha multiplier.
+        roughness: `float`.
+            Roughness of the specular highlight of the isodensity surface (GGX), 0.0-1.0.
+        metalness: `float`.
+            Metalness of the specular highlight: 0.0 dielectric, 1.0 metal tinted
+            by the transfer-function colour.
         shadow: `str`.
             Type of shadow on volume.
 
@@ -265,6 +270,8 @@ class Volume(Drawable):
     samples = TimeSeries(Float()).tag(sync=True)
     alpha_coef = TimeSeries(Float()).tag(sync=True)
     gradient_step = TimeSeries(Float()).tag(sync=True)
+    roughness = TimeSeries(Float(default_value=0.25)).tag(sync=True)
+    metalness = TimeSeries(Float(default_value=0.0)).tag(sync=True)
     shadow = TimeSeries(Unicode()).tag(sync=True)
     shadow_res = TimeSeries(Int(min=31, max=513, default_value=128)).tag(sync=True)
     shadow_delay = TimeSeries(Float()).tag(sync=True)
@@ -337,6 +344,11 @@ class MIP(Drawable):
             Number of iteration per 1 unit of space.
         gradient_step: `float`
             Gradient light step.
+        roughness: `float`.
+            Roughness of the specular highlight of the isodensity surface (GGX), 0.0-1.0.
+        metalness: `float`.
+            Metalness of the specular highlight: 0.0 dielectric, 1.0 metal tinted
+            by the transfer-function colour.
         mask: `array_like`.
             3D array of `int` in range (0, 255), indexed as [z, y, x].
         mask_opacities: `array_like`.
@@ -358,6 +370,8 @@ class MIP(Drawable):
     )
     gradient_step = TimeSeries(Float()).tag(sync=True)
     samples = TimeSeries(Float()).tag(sync=True)
+    roughness = TimeSeries(Float(default_value=0.25)).tag(sync=True)
+    metalness = TimeSeries(Float(default_value=0.0)).tag(sync=True)
     interpolation = TimeSeries(Bool()).tag(sync=True)
     mask = Array(dtype=np.uint8).tag(sync=True, **array_serialization_wrap("mask"))
     mask_opacities = TimeSeries(Array(dtype=np.float32)).tag(

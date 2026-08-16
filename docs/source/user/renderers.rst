@@ -43,6 +43,11 @@ All lit objects use physically based materials with two knobs:
 ``TraitError`` with that formula, and legacy ``.k3d`` snapshots are converted
 automatically on load.
 
+Volumetric objects (``volume``, ``mip``) carry the same two knobs for the
+specular highlight of their isodensity surface (default ``roughness=0.25``) -
+lower roughness makes noisy gradients sparkle like wet tissue, which may even
+be desired.
+
 Environments
 ------------
 

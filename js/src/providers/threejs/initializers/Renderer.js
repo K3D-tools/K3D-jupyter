@@ -168,6 +168,7 @@ module.exports = function (K3D) {
     const aoOverlayMaterial = new THREE.ShaderMaterial({
         uniforms: {
             tAO: { value: null },
+            tDepth: { value: null },
             uUvScale: { value: new THREE.Vector2(1, 1) },
             uUvBias: { value: new THREE.Vector2(0, 0) },
         },
@@ -346,10 +347,12 @@ module.exports = function (K3D) {
             }
         });
 
+        // g carries the volumetric-shell marker (2.0); mesh RGBADepthPacking spills
+        // fractional junk < 1.0 there, so the overlay tests g > 1.5
         aoTargets.depth = new THREE.WebGLRenderTarget(width, height, {
             minFilter: THREE.NearestFilter,
             magFilter: THREE.NearestFilter,
-            format: THREE.RedFormat,
+            format: THREE.RGFormat,
             type: THREE.FloatType,
         });
         aoTargets.raw = new THREE.WebGLRenderTarget(width, height, {
@@ -499,6 +502,7 @@ module.exports = function (K3D) {
         const bias = aoOverlayMaterial.uniforms.uUvBias.value;
 
         aoOverlayMaterial.uniforms.tAO.value = aoTexture;
+        aoOverlayMaterial.uniforms.tDepth.value = aoTargets.depth.texture;
 
         if (rt && camera.view && camera.view.enabled) {
             // strip target: gl_FragCoord is target-local, the frustum covers
