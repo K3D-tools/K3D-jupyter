@@ -28,7 +28,6 @@ def prepare(depth_peels=0):
     pytest.plot.rendering_steps = 1
     pytest.plot.renderer = "simple"
     pytest.plot.environment = "neutral"
-    pytest.plot.show_environment = False
     pytest.plot.environment_rotation = 0.0
     pytest.plot.tone_mapping = "none"
     pytest.plot.camera_mode = "trackball"

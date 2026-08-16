@@ -314,7 +314,6 @@ class PlotView extends widgets.DOMWidgetView {
         this.model.on('change:depth_peels', this._setDepthPeels, this);
         this.model.on('change:renderer', this._setRenderer, this);
         this.model.on('change:environment', this._setEnvironment, this);
-        this.model.on('change:show_environment', this._setShowEnvironment, this);
         this.model.on('change:environment_rotation', this._setEnvironmentRotation, this);
         this.model.on('change:tone_mapping', this._setToneMapping, this);
         this.model.on('change:fps_meter', this._setFpsMeter, this);
@@ -403,7 +402,6 @@ class PlotView extends widgets.DOMWidgetView {
 
                     return env;
                 })(),
-                showEnvironment: this.model.get('show_environment'),
                 environmentRotation: this.model.get('environment_rotation'),
                 toneMapping: this.model.get('tone_mapping'),
                 autoRendering: this.model.get('auto_rendering'),
@@ -558,10 +556,6 @@ class PlotView extends widgets.DOMWidgetView {
         }
 
         this.K3DInstance.setEnvironment(env);
-    };
-
-    _setShowEnvironment() {
-        this.K3DInstance.setShowEnvironment(this.model.get('show_environment'));
     };
 
     _setEnvironmentRotation() {

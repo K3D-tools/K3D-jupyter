@@ -82,7 +82,6 @@ class PlotBase(widgets.DOMWidget):
     environment = TraitAny(default_value="neutral").tag(
         sync=True, to_json=environment_to_json, from_json=environment_from_json
     )
-    show_environment = Bool(default_value=False).tag(sync=True)
 
     @validate("environment")
     def _resolve_environment(self, proposal):
@@ -160,7 +159,6 @@ class PlotBase(widgets.DOMWidget):
             depth_peels: int = 0,
             renderer: str = "simple",
             environment: str = "neutral",
-            show_environment: bool = False,
             environment_rotation: float = 0.0,
             tone_mapping: str = "none",
             additional_js_code: str = '',
@@ -224,7 +222,6 @@ class PlotBase(widgets.DOMWidget):
         self.depth_peels = depth_peels
         self.renderer = renderer
         self.environment = environment
-        self.show_environment = show_environment
         self.environment_rotation = environment_rotation
         self.tone_mapping = tone_mapping
         self.custom_data = custom_data

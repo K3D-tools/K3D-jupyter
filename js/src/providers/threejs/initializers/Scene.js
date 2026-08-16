@@ -798,7 +798,7 @@ module.exports = {
 
                 self.scene.environmentRotation.copy(rotation);
                 self.scene.backgroundRotation.copy(rotation);
-                self.scene.background = K3D.parameters.showEnvironment ? environmentEquirect : null;
+                self.scene.background = null;
             } else {
                 self.scene.environment = null;
                 self.scene.background = null;

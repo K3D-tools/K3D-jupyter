@@ -64,7 +64,6 @@ energy-normalised, so the environment carries the *shape* of the light while
     plot.environment = 'studio'            # procedural preset
     plot.environment = 'burnt_warehouse'   # photographic catalog (Poly Haven, CC0)
     plot.environment = my_hdr_array        # any (H, W, 3) float32 equirect
-    plot.show_environment = True           # show the map as the background
     plot.environment_rotation = np.pi / 3  # spin it around the scene's up axis
 
 Procedural presets (``neutral`` - the default, ``studio``, ``outdoor``) travel

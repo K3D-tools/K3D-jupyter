@@ -70,8 +70,6 @@ class Plot(
 
             :array_like: a custom (height, width, 3) float32 equirectangular
              radiance map. Every map is energy-normalised.
-        show_environment: `bool`.
-            Show the environment map as the plot background (advanced renderer only).
         environment_rotation: `float`.
             Rotation of the environment map around the scene's up axis, in radians.
         tone_mapping: `str`.

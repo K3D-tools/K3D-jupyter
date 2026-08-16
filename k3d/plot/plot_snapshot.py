@@ -35,7 +35,6 @@ _PLOT_PARAMS = (
     ("depthPeels", "depth_peels"),
     ("renderer", "renderer"),
     ("environment", "environment"),
-    ("showEnvironment", "show_environment"),
     ("environmentRotation", "environment_rotation"),
     ("toneMapping", "tone_mapping"),
     ("colorbarObjectId", "colorbar_object_id"),

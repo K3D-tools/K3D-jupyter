@@ -182,11 +182,6 @@ function K3D(provider, targetDOMNode, parameters) {
                 self.setEnvironment(value);
                 changeParameters.call(self, 'environment', value);
             }));
-        environmentControls.push(GUI.controls.add(self.parameters, 'showEnvironment').listen()
-            .onChange((value) => {
-                self.setShowEnvironment(value);
-                changeParameters.call(self, 'show_environment', value);
-            }));
         environmentControls.push(GUI.controls.add(self.parameters, 'environmentRotation')
             .step(0.01).min(0).max(2 * Math.PI)
             .listen()
@@ -401,7 +396,6 @@ function K3D(provider, targetDOMNode, parameters) {
             depthPeels: 0,
             renderer: 'simple',
             environment: 'neutral',
-            showEnvironment: false,
             environmentRotation: 0.0,
             toneMapping: 'none',
             snapshotType: 'full',
@@ -1076,16 +1070,6 @@ function K3D(provider, targetDOMNode, parameters) {
             self.refreshEnvironmentGUI();
         }
 
-        world.applyRendererMode(self);
-        self.render();
-    };
-
-    /**
-     * Set environment visibility of K3D
-     * @memberof K3D.Core
-     */
-    this.setShowEnvironment = function (flag) {
-        self.parameters.showEnvironment = flag;
         world.applyRendererMode(self);
         self.render();
     };

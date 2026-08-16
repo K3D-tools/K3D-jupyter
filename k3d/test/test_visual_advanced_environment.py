@@ -24,14 +24,6 @@ def test_environment_presets():
         compare("advanced_environment_" + preset, modes=("advanced",))
 
 
-def test_environment_background():
-    scene()
-    pytest.plot.environment = "studio"
-    pytest.plot.show_environment = True
-
-    compare("advanced_environment_background", modes=("advanced",))
-
-
 def test_environment_rotation():
     scene()
     pytest.plot.environment = "outdoor"
