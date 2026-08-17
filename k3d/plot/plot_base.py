@@ -7,19 +7,14 @@ from typing import List as TypingList
 from typing import Optional
 
 from .._version import __version__ as version
+from .._widget import K3DAnyWidget
 from ..environments import load as load_environment
 from ..helpers import environment_from_json, environment_to_json, json_to_array
 from ..objects import Drawable, ListOrArray, TimeSeries
 
 
-class PlotBase(widgets.DOMWidget):
-    _view_name = Unicode("PlotView").tag(sync=True)
-    _model_name = Unicode("PlotModel").tag(sync=True)
-    _view_module = Unicode("k3d").tag(sync=True)
-    _model_module = Unicode("k3d").tag(sync=True)
-
-    _view_module_version = Unicode(version).tag(sync=True)
-    _model_module_version = Unicode(version).tag(sync=True)
+class PlotBase(K3DAnyWidget):
+    _kind = Unicode("plot").tag(sync=True)
     _backend_version = Unicode(version).tag(sync=True)
 
     # readonly (specified at creation)

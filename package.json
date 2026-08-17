@@ -4,9 +4,8 @@
   "description": "3D visualization library",
   "keywords": [
     "jupyter",
-    "jupyterlab",
-    "jupyterlab-extension",
-    "widgets"
+    "widgets",
+    "anywidget"
   ],
   "homepage": "https://github.com/K3D-tools/K3D-jupyter.git",
   "bugs": {
@@ -20,28 +19,20 @@
   "files": [
     "js/src/**/*.{d.ts,eot,gif,html,jpg,js,js.map,json,png,svg,woff2,ttf}"
   ],
-  "main": "js/src/labplugin.js",
+  "main": "js/src/standalone.js",
   "repository": {
     "type": "git",
     "url": "https://github.com/K3D-tools/K3D-jupyter"
   },
   "scripts": {
-    "build": "npm run install:js && npm run build:nbextension && npm run build:labextension:dev",
-    "build:prod": "npm run install:js && npm run build:labextension && npm run build:nbextension",
-    "build:labextension": "jupyter labextension build .",
-    "build:labextension:dev": "jupyter labextension build --development True .",
+    "build": "npm run install:js && npm run build:js",
+    "build:prod": "npm run install:js && npm run build:js",
     "install:js": "cd js && jlpm install",
-    "build:nbextension": "cd js && jlpm build",
-    "clean:labextension": "rimraf k3d/labextension",
-    "clean:all": "npm run clean:labextension",
-    "install:extension": "jupyter labextension develop --overwrite .",
+    "build:js": "cd js && jlpm build",
     "prepare": "npm run build:prod",
-    "prettier": "prettier --write \"**/*{.js,.jsx,.css,.json,.md}\"",
-    "watch": "watch:labextension",
-    "watch:labextension": "jupyter labextension watch ."
+    "prettier": "prettier --write \"**/*{.js,.jsx,.css,.json,.md}\""
   },
   "dependencies": {
-    "@jupyter-widgets/base": "^4 || ^5 || ^6",
     "fflate": "^0.8.3",
     "file-saver": "^2.0.5",
     "katex": "^0.18.4",
@@ -56,36 +47,8 @@
     "three-mesh-bvh": "^0.9.14"
   },
   "devDependencies": {
-    "@jupyterlab/builder": "^4.5.10",
     "prettier": "^2.6.2",
     "rimraf": "^3.0.2",
     "style-loader": "^3.3.1"
-  },
-  "jupyterlab": {
-    "extension": true,
-    "outputDir": "k3d/labextension",
-    "webpackConfig": "./lab-webpack.config.js",
-    "discovery": {
-      "kernel": [
-        {
-          "kernel_spec": {
-            "language": "^python"
-          },
-          "base": {
-            "name": "k3d"
-          },
-          "managers": [
-            "pip",
-            "conda"
-          ]
-        }
-      ]
-    },
-    "sharedPackages": {
-      "@jupyter-widgets/base": {
-        "bundled": false,
-        "singleton": true
-      }
-    }
   }
 }

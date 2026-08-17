@@ -1,8 +1,6 @@
-const widgets = require('@jupyter-widgets/base');
-const _ = require('./lodash');
-const semverRange = require('./version').version;
-const colorMapHelper = require('./core/lib/helpers/colorMap');
-const serialize = require('./core/lib/helpers/serialize');
+// pure DOM/SVG transfer-function editor - no widget-layer dependencies, shared by
+// the anywidget module, the legacy widget classes and standalone
+const colorMapHelper = require('./helpers/colorMap');
 
 function K3DTransferFunctionEditor(targetDOMNode, parameters, onChange) {
     const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
@@ -19,7 +17,7 @@ function K3DTransferFunctionEditor(targetDOMNode, parameters, onChange) {
     let opacityCircles = [];
     let colormapCircles = [];
 
-    require('./k3d.css');
+    require('../../k3d.css');
 
     function removeOpacityCircle(evt) {
         const el = evt.target.parentNode;
@@ -397,139 +395,4 @@ function K3DTransferFunctionEditor(targetDOMNode, parameters, onChange) {
     };
 }
 
-class transferFunctionModel extends widgets.DOMWidgetModel {
-    static serializers = {
-        ...widgets.WidgetModel.serializers,
-        color_map: serialize,
-        opacity_function: serialize,
-    }
-
-    defaults() {
-        return {
-            ...super.defaults(),
-            _model_name: 'TransferFunctionModel',
-            _view_name: 'TransferFunctionView',
-            _model_module: 'k3d',
-            _view_module: 'k3d',
-            _model_module_version: semverRange,
-            _view_module_version: semverRange,
-        };
-    };
-}
-
-class transferFunctionView extends widgets.DOMWidgetView {
-    render() {
-        const containerEnvelope = window.document.createElement('div');
-        const container = window.document.createElement('div');
-
-        containerEnvelope.style.cssText = [
-            `height:${this.model.get('height')}px`,
-            'position: relative',
-        ].join(';');
-
-        container.style.cssText = [
-            'width: 100%',
-            'height: 100%',
-            'position: relative',
-        ].join(';');
-
-        containerEnvelope.appendChild(container);
-        this.el.appendChild(containerEnvelope);
-
-        this.container = container;
-        this.on('displayed', this._init, this);
-    };
-
-    remove() {
-
-    };
-
-    _init() {
-        const self = this;
-
-        this.model.on('change:color_map', this._setColorMap, this);
-        this.model.on('change:opacity_function', this._setOpacityFunction, this);
-
-        try {
-            this.K3DTransferFunctionEditorInstance = new K3DTransferFunctionEditor(this.container, {
-                height: this.model.get('height'),
-                colorMap: Array.from(this.model.get('color_map').data),
-                opacityFunction: Array.from(this.model.get('opacity_function').data),
-            }, ((change) => {
-                self.model.set(change.key, {
-                    data: new Float32Array(change.value),
-                    shape: [change.value.length],
-                }, { updated_view: self });
-                self.model.save_changes();
-            }));
-        } catch (e) {
-            console.log(e);
-        }
-    };
-
-    _setColorMap(widget, change, options) {
-        if (options.updated_view === this || this.K3DTransferFunctionEditorInstance.isDragging()) {
-            return;
-        }
-
-        const data = Array.from(this.model.get('color_map').data);
-        this.K3DTransferFunctionEditorInstance.setColorMap(Array.from(data));
-    };
-
-    _setOpacityFunction(widget, change, options) {
-        if (options.updated_view === this || this.K3DTransferFunctionEditorInstance.isDragging()) {
-            return;
-        }
-
-        const data = this.model.get('opacity_function').data;
-        this.K3DTransferFunctionEditorInstance.setOpacityFunction(Array.from(data));
-    };
-
-    processPhosphorMessage(msg) {
-        widgets.DOMWidgetView.prototype.processPhosphorMessage.call(this, msg);
-        switch (msg.type) {
-            case 'after-attach':
-                this.el.addEventListener('contextmenu', this, true);
-                break;
-            case 'before-detach':
-                this.el.removeEventListener('contextmenu', this, true);
-                break;
-            case 'resize':
-                this.handleResize(msg);
-                break;
-            default:
-                break;
-        }
-    };
-
-    handleEvent(event) {
-        switch (event.type) {
-            case 'contextmenu':
-                this.handleContextMenu(event);
-                break;
-            default:
-                widgets.DOMWidgetView.prototype.handleEvent.call(this, event);
-                break;
-        }
-    };
-
-    handleContextMenu() {
-        // // Cancel context menu if on renderer:
-        // if (this.container.contains(event.target)) {
-        //     event.preventDefault();
-        //     event.stopPropagation();
-        // }
-    };
-
-    handleResize() {
-        if (this.K3DTransferFunctionEditorInstance) {
-            this.K3DTransferFunctionEditorInstance.refresh();
-        }
-    };
-};
-
-module.exports = {
-    transferFunctionModel,
-    transferFunctionView,
-    transferFunctionEditor: K3DTransferFunctionEditor,
-};
+module.exports = K3DTransferFunctionEditor;

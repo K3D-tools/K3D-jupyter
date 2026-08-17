@@ -1,6 +1,6 @@
 const msgpack = require('./core/lib/helpers/msgpackCodec');
 const fflate = require('fflate');
-const TFEdit = require('./transferFunctionEditor');
+const K3DTransferFunctionEditor = require('./core/lib/transferFunctionEditorCore');
 const serialize = require('./core/lib/helpers/serialize');
 const K3D = require('./core/Core');
 const timeSeries = require('./core/lib/timeSeries');
@@ -89,9 +89,7 @@ module.exports = {
     msgpackDecode,
     serialize,
     CreateK3DAndLoadBinarySnapshot,
-    TransferFunctionEditor: TFEdit.transferFunctionEditor,
-    TransferFunctionModel: TFEdit.transferFunctionModel,
-    TransferFunctionView: TFEdit.transferFunctionView,
+    TransferFunctionEditor: K3DTransferFunctionEditor,
     ThreeJsProvider,
     _,
     version: require('./version').version,

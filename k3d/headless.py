@@ -102,11 +102,10 @@ class k3d_remote:
                     if o.id not in self.synced_objects:
                         objects_diff[o.id] = {
                             k: to_json(k, o[k], o)
-                            for k in o.keys
-                            if not k.startswith("_")
+                            for k in o._synced_props
                         }
                     else:
-                        for p in o.keys:
+                        for p in o._synced_props:
                             if p.startswith("_"):
                                 continue
                             if p == "voxels_group":
@@ -139,7 +138,7 @@ class k3d_remote:
                         objects_diff[k] = None  # to remove from plot
                 diff = {"plot_diff": plot_diff, "objects_diff": objects_diff}
                 self.synced_objects = {
-                    v.id: {k: copy.deepcopy(v[k]) for k in v.keys}
+                    v.id: {k: copy.deepcopy(v[k]) for k in v._synced_props}
                     for v in self.k3d_plot.objects
                 }
                 self.synced_plot = current_plot_params

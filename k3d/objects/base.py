@@ -1,12 +1,11 @@
 """Base classes and utilities for K3D objects."""
 
-import ipywidgets as widgets
 import numpy as np
 from traitlets import (Any, Bool, Dict, Int, Integer, List, TraitError,
                        Unicode, Union, validate)
 from traittypes import Array
 
-from .._version import __version__ as version
+from .._widget import K3DAnyWidget
 from ..helpers import (array_serialization_wrap, callback_serialization_wrap,
                        to_json)
 
@@ -50,12 +49,10 @@ class ListOrArray(List):
         return super(ListOrArray, self).validate_elements(obj, value)
 
 
-class VoxelChunk(widgets.Widget):
+class VoxelChunk(K3DAnyWidget):
     """Voxel chunk class for selective updating voxels."""
 
-    _model_name = Unicode("ChunkModel").tag(sync=True)
-    _model_module = Unicode("k3d").tag(sync=True)
-    _model_module_version = Unicode(version).tag(sync=True)
+    _kind = Unicode("chunk").tag(sync=True)
 
     id = Int().tag(sync=True)
     voxels = Array(dtype=np.uint8).tag(sync=True, **array_serialization_wrap("voxels"))
@@ -76,21 +73,18 @@ class VoxelChunk(widgets.Widget):
     def get_binary(self):
         obj = {}
 
-        for k, v in self.traits().items():
-            if "sync" in v.metadata:
-                obj[k] = to_json(k, self[k], self, self["compression_level"])
+        for k in self._synced_props:
+            obj[k] = to_json(k, self[k], self, self["compression_level"])
 
         return obj
 
 
-class Drawable(widgets.Widget):
+class Drawable(K3DAnyWidget):
     """
     Base class for drawable objects and groups.
     """
 
-    _model_name = Unicode("ObjectModel").tag(sync=True)
-    _model_module = Unicode("k3d").tag(sync=True)
-    _model_module_version = Unicode(version).tag(sync=True)
+    _kind = Unicode("object").tag(sync=True)
 
     id = Integer().tag(sync=True)
     name = Unicode(default_value=None, allow_none=True).tag(sync=True)
@@ -166,9 +160,8 @@ class Drawable(widgets.Widget):
     def get_binary(self):
         obj = {}
 
-        for k, v in self.traits().items():
-            if "sync" in v.metadata:
-                obj[k] = to_json(k, self[k], self, self["compression_level"])
+        for k in self._synced_props:
+            obj[k] = to_json(k, self[k], self, self["compression_level"])
 
         return obj
 

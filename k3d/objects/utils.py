@@ -14,7 +14,6 @@ from .texture import Texture
 from .vectors import VectorField, Vectors
 from .volumetric import (MIP, MarchingCubes, SparseVoxels, Volume, VolumeSlice,
                          Voxels, VoxelsGroup)
-from .._version import __version__ as version
 
 # Objects mapping for factory functions
 objects_map: TypingDict[str, Any] = {
@@ -68,10 +67,9 @@ def create_object(
     if shininess is not None and "roughness" not in attributes:
         attributes["roughness"] = math.sqrt(2.0 / (max(float(shininess), 0.0) + 2.0))
 
-    # force to use current version
-    attributes["_model_module"] = "k3d"
-    attributes["_model_module_version"] = version
-    attributes["_view_module_version"] = version
+    # widget wiring keys (old snapshots: _model_*/_view_*; new ones: _kind,
+    # _synced_props) are transport details, not object state
+    attributes = {k: v for k, v in attributes.items() if not k.startswith("_")}
 
     if is_chunk:
         return VoxelChunk(**attributes)
@@ -95,7 +93,7 @@ def clone_object(obj: Any) -> Any:
     param: TypingDict[str, Any] = {}
 
     for k, v in obj.traits().items():
-        if "sync" in v.metadata and k not in ["id", "type"]:
+        if k in obj._synced_props and k not in ["id", "type"]:
             param[k] = obj[k]
 
     return objects_map[obj["type"]](**param)
