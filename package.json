@@ -27,8 +27,8 @@
   "scripts": {
     "build": "npm run install:js && npm run build:js",
     "build:prod": "npm run install:js && npm run build:js",
-    "install:js": "cd js && jlpm install",
-    "build:js": "cd js && jlpm build",
+    "install:js": "cd js && npm install",
+    "build:js": "cd js && npm run build",
     "prepare": "npm run build:prod",
     "prettier": "prettier --write \"**/*{.js,.jsx,.css,.json,.md}\""
   },
