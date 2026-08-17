@@ -17,6 +17,30 @@ const { getColorsArray } = Fn;
  * @param {Object} config all configuration params from JSON
  * @return {Object} 3D object ready to render
  */
+function rebuildInstanceMatrices(obj, config) {
+    const positions = config.positions.data;
+    const factor = config.point_size / obj.userData.builtPointSize;
+    const sizes = (config.point_sizes && config.point_sizes.data
+        && config.point_sizes.data.length === positions.length / 3)
+        ? config.point_sizes.data : null;
+    const matrix = new THREE.Matrix4();
+    const scale = new THREE.Vector3();
+
+    for (let i = 0; i < positions.length / 3; i++) {
+        const s = ((sizes && sizes[i]) || 1.0) * factor;
+
+        obj.setMatrixAt(
+            i,
+            matrix
+                .identity()
+                .setPosition(positions[i * 3], positions[i * 3 + 1], positions[i * 3 + 2])
+                .scale(scale.set(s, s, s)),
+        );
+    }
+
+    obj.instanceMatrix.needsUpdate = true;
+}
+
 module.exports = {
     create(config, K3D) {
         config.roughness = typeof (config.roughness) !== 'undefined' ? config.roughness : 0.4;
@@ -145,6 +169,9 @@ module.exports = {
 
         const object = new THREE.InstancedMesh(geometry, material, positions.length / 3);
         object.instanceMatrix.setUsage(THREE.DynamicDrawUsage);
+        // the icosahedron radius bakes point_size in - later point_size changes
+        // compensate through the instance scales
+        object.userData.builtPointSize = config.point_size;
 
         let pointsGeometry = new THREE.BufferGeometry();
         pointsGeometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
@@ -177,23 +204,8 @@ module.exports = {
         if (typeof (changes.positions) !== 'undefined' && !changes.positions.timeSeries
             && changes.positions.data.length / 3 === obj.instanceMatrix.count) {
             const positions = changes.positions.data;
-            const sizes = (config.point_sizes && config.point_sizes.data
-                && config.point_sizes.data.length === positions.length / 3)
-                ? config.point_sizes.data : null;
-            const matrix = new THREE.Matrix4();
-            const scale = new THREE.Vector3();
 
-            for (let i = 0; i < positions.length / 3; i++) {
-                const s = (sizes && sizes[i]) || 1.0;
-
-                obj.setMatrixAt(
-                    i,
-                    matrix
-                        .identity()
-                        .setPosition(positions[i * 3], positions[i * 3 + 1], positions[i * 3 + 2])
-                        .scale(scale.set(s, s, s)),
-                );
-            }
+            rebuildInstanceMatrices(obj, config);
 
             if (obj.interactions) {
                 obj.stopInteraction();
@@ -205,8 +217,59 @@ module.exports = {
                     pointsCallback, pointsIntersect.prepareGeometry(pointsGeometry), pointsIntersect.Intersect);
             }
 
-            obj.instanceMatrix.needsUpdate = true;
             resolvedChanges.positions = null;
+        }
+
+        if (typeof (changes.point_sizes) !== 'undefined' && !changes.point_sizes.timeSeries
+            && changes.point_sizes.data.length === obj.instanceMatrix.count) {
+            rebuildInstanceMatrices(obj, config);
+
+            resolvedChanges.point_sizes = null;
+        }
+
+        if (typeof (changes.point_size) !== 'undefined' && !changes.point_size.timeSeries) {
+            rebuildInstanceMatrices(obj, config);
+
+            const boundingBoxGeometry = new THREE.BufferGeometry();
+
+            boundingBoxGeometry.setAttribute(
+                'position',
+                new THREE.BufferAttribute(config.positions.data, 3),
+            );
+            boundingBoxGeometry.computeBoundingBox();
+            Fn.expandBoundingBox(boundingBoxGeometry.boundingBox, changes.point_size * 0.5);
+            obj.geometry.boundingBox = boundingBoxGeometry.boundingBox.clone();
+
+            resolvedChanges.point_size = null;
+        }
+
+        if (typeof (changes.colors) !== 'undefined' && !changes.colors.timeSeries
+            && obj.geometry.attributes.color
+            && changes.colors.data.length === obj.geometry.attributes.color.array.length / 3) {
+            obj.geometry.attributes.color.array.set(buffer.colorsToFloat32Array(changes.colors.data));
+            obj.geometry.attributes.color.needsUpdate = true;
+
+            resolvedChanges.colors = null;
+        }
+
+        if (typeof (changes.color) !== 'undefined' && !changes.color.timeSeries
+            && obj.geometry.attributes.color
+            && !(config.colors && config.colors.data && config.colors.data.length > 0)) {
+            obj.geometry.attributes.color.array.set(
+                getColorsArray(new THREE.Color(changes.color), obj.geometry.attributes.color.array.length / 3),
+            );
+            obj.geometry.attributes.color.needsUpdate = true;
+
+            resolvedChanges.color = null;
+        }
+
+        if (typeof (changes.opacities) !== 'undefined' && !changes.opacities.timeSeries
+            && obj.geometry.attributes.opacities
+            && changes.opacities.data.length === obj.geometry.attributes.opacities.array.length) {
+            obj.geometry.attributes.opacities.array.set(changes.opacities.data);
+            obj.geometry.attributes.opacities.needsUpdate = true;
+
+            resolvedChanges.opacities = null;
         }
 
         if (((typeof (changes.color_map) !== 'undefined' && !changes.color_map.timeSeries)

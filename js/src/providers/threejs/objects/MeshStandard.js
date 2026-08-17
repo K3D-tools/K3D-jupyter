@@ -361,6 +361,22 @@ module.exports = {
             }
         }
 
+        if (typeof (changes.color) !== 'undefined' && !changes.color.timeSeries) {
+            const usesVertexColors = config.colors && config.colors.data && config.colors.data.length > 0;
+            const usesColorMap = !!((config.attribute && config.attribute.data && config.attribute.data.length > 0)
+                || (config.triangles_attribute && config.triangles_attribute.data
+                    && config.triangles_attribute.data.length > 0));
+
+            // vertex colours and colormaps override the base colour, same as create
+            if (!usesVertexColors && !usesColorMap && obj.material.color) {
+                obj.material.color.set(changes.color);
+            }
+            if (obj.material.uniforms && obj.material.uniforms.diffuse) {
+                obj.material.uniforms.diffuse.value = new THREE.Color(changes.color);
+            }
+            resolvedChanges.color = null;
+        }
+
         interactionsHelper.update(config, changes, resolvedChanges, obj);
 
         commonUpdate(config, changes, resolvedChanges, obj, K3D);

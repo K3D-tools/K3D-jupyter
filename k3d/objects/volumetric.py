@@ -2,7 +2,7 @@
 
 import numpy as np
 import warnings
-from traitlets import Bool, Float, Int, List, Unicode, validate
+from traitlets import Bool, Float, Int, List, TraitError, Unicode, validate
 from traittypes import Array
 
 from .base import (Drawable, DrawableWithCallback, DrawableWithVoxelCallback,
@@ -270,6 +270,16 @@ class Volume(Drawable):
     samples = TimeSeries(Float()).tag(sync=True)
     alpha_coef = TimeSeries(Float()).tag(sync=True)
     gradient_step = TimeSeries(Float()).tag(sync=True)
+
+    @validate("samples", "gradient_step")
+    def _validate_positive(self, proposal):
+        value = proposal["value"]
+        numbers = value.values() if isinstance(value, dict) else [value]
+        if any(v <= 0 for v in numbers):
+            raise TraitError(
+                "%s must be positive, got %r" % (proposal["trait"].name, value)
+            )
+        return value
     roughness = TimeSeries(Float(default_value=0.25, min=0.0, max=1.0)).tag(sync=True)
     metalness = TimeSeries(Float(default_value=0.0, min=0.0, max=1.0)).tag(sync=True)
     shadow = TimeSeries(Unicode()).tag(sync=True)
@@ -369,6 +379,16 @@ class MIP(Drawable):
         sync=True
     )
     gradient_step = TimeSeries(Float()).tag(sync=True)
+
+    @validate("samples", "gradient_step")
+    def _validate_positive(self, proposal):
+        value = proposal["value"]
+        numbers = value.values() if isinstance(value, dict) else [value]
+        if any(v <= 0 for v in numbers):
+            raise TraitError(
+                "%s must be positive, got %r" % (proposal["trait"].name, value)
+            )
+        return value
     samples = TimeSeries(Float()).tag(sync=True)
     roughness = TimeSeries(Float(default_value=0.25, min=0.0, max=1.0)).tag(sync=True)
     metalness = TimeSeries(Float(default_value=0.0, min=0.0, max=1.0)).tag(sync=True)

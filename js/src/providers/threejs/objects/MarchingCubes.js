@@ -273,6 +273,14 @@ module.exports = {
     update(config, changes, obj, K3D) {
         const resolvedChanges = {};
 
+        if (typeof (changes.color) !== 'undefined' && !changes.color.timeSeries) {
+            // the colormap variant colours from the volume texture - a no-op, same as create
+            if (!(obj.material.uniforms && obj.material.uniforms.colormap) && obj.material.color) {
+                obj.material.color.set(changes.color);
+            }
+            resolvedChanges.color = null;
+        }
+
         interactionsHelper.update(config, changes, resolvedChanges, obj);
 
         if (typeof (changes.attribute) !== 'undefined' && !changes.attribute.timeSeries) {

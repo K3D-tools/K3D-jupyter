@@ -1,4 +1,5 @@
 const THREE = require('three');
+const colorMapHelper = require('../../../core/lib/helpers/colorMap');
 const interactionsHelper = require('../helpers/Interactions');
 const { handleColorMap } = require('../helpers/Fn');
 const { areAllChangesResolve } = require('../helpers/Fn');
@@ -90,6 +91,10 @@ module.exports = {
 
         const object = new THREE.Mesh(geometry, material);
 
+        // the x/y lattice is derived from the shape - a same-shape heights update
+        // only rewrites the z components
+        object.userData.heightsShape = [config.heights.shape[0], config.heights.shape[1]];
+
         interactionsHelper.init(config, object, K3D);
 
         modelMatrix.set.apply(modelMatrix, config.model_matrix.data);
@@ -107,6 +112,74 @@ module.exports = {
 
     update(config, changes, obj, K3D) {
         const resolvedChanges = {};
+
+        if (typeof (changes.heights) !== 'undefined' && !changes.heights.timeSeries
+            && obj.userData.heightsShape
+            && changes.heights.shape[0] === obj.userData.heightsShape[0]
+            && changes.heights.shape[1] === obj.userData.heightsShape[1]) {
+            const positions = obj.geometry.attributes.position.array;
+            const heights = changes.heights.data;
+
+            for (let p = 0; p < heights.length; p++) {
+                positions[p * 3 + 2] = heights[p];
+            }
+            obj.geometry.attributes.position.needsUpdate = true;
+
+            if (obj.geometry.attributes.normal) {
+                obj.geometry.computeVertexNormals();
+            }
+
+            obj.geometry.computeBoundingSphere();
+            obj.geometry.computeBoundingBox();
+
+            resolvedChanges.heights = null;
+        }
+
+        if (typeof (obj.geometry.attributes.uv) !== 'undefined') {
+            if (typeof (changes.color_range) !== 'undefined' && !changes.color_range.timeSeries) {
+                const attribute = (config.attribute && config.attribute.data) || null;
+                const uv = obj.geometry.attributes.uv.array;
+
+                if (attribute && attribute.length === uv.length) {
+                    for (let i = 0; i < uv.length; i++) {
+                        uv[i] = (attribute[i] - changes.color_range[0])
+                            / (changes.color_range[1] - changes.color_range[0]);
+                    }
+                    obj.geometry.attributes.uv.needsUpdate = true;
+
+                    resolvedChanges.color_range = null;
+                }
+            }
+
+            if (typeof (changes.attribute) !== 'undefined' && !changes.attribute.timeSeries
+                && changes.attribute.data.length === obj.geometry.attributes.uv.array.length) {
+                const uv = obj.geometry.attributes.uv.array;
+
+                for (let i = 0; i < uv.length; i++) {
+                    uv[i] = (changes.attribute.data[i] - config.color_range[0])
+                        / (config.color_range[1] - config.color_range[0]);
+                }
+                obj.geometry.attributes.uv.needsUpdate = true;
+
+                resolvedChanges.attribute = null;
+            }
+
+            if (typeof (changes.color_map) !== 'undefined' && !changes.color_map.timeSeries
+                && obj.material.map) {
+                obj.material.map.image = colorMapHelper.createCanvasGradient(changes.color_map.data, 1024, 1);
+                obj.material.map.needsUpdate = true;
+
+                resolvedChanges.color_map = null;
+            }
+        }
+
+        if (typeof (changes.color) !== 'undefined' && !changes.color.timeSeries) {
+            // the colormap variant pins the material colour to white - a no-op, same as create
+            if (!obj.material.map && obj.material.color) {
+                obj.material.color.set(changes.color);
+            }
+            resolvedChanges.color = null;
+        }
 
         interactionsHelper.update(config, changes, resolvedChanges, obj);
         commonUpdate(config, changes, resolvedChanges, obj, K3D);

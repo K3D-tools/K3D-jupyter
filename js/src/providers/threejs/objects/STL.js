@@ -77,6 +77,13 @@ module.exports = {
     update(config, changes, obj, K3D) {
         const resolvedChanges = {};
 
+        if (typeof (changes.color) !== 'undefined' && !changes.color.timeSeries
+            && obj.material && obj.material.color) {
+            obj.material.color.set(changes.color);
+
+            resolvedChanges.color = null;
+        }
+
         commonUpdate(config, changes, resolvedChanges, obj, K3D);
 
         if (areAllChangesResolve(changes, resolvedChanges)) {
