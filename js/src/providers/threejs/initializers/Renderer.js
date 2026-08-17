@@ -97,6 +97,11 @@ module.exports = function (K3D) {
             uBlit: { value: 0 },
             uToneMapping: toneMappingMode,
             toneMappingExposure: { value: 1.0 },
+            tAO: { value: null },
+            tAOVol: { value: null },
+            uAoScale: { value: new THREE.Vector2(1, 1) },
+            uAoBias: { value: new THREE.Vector2(0, 0) },
+            uAoEnabled: { value: 0 },
         },
         vertexShader: require('./shaders/composite.vertex.glsl'),
         fragmentShader: require('./shaders/composite.fragment.glsl'),
@@ -638,6 +643,29 @@ module.exports = function (K3D) {
         globalPeelUniforms.uLayer.value = 0;
         globalPeelUniforms.uPrevDepthTexture.value = null;
 
+        // AO multiplies each layer and segment during composition, not the final
+        // blit - the finished image mixes volume light with the geometry behind it
+        compositeMaterial.uniforms.uAoEnabled.value = aoTexture !== null ? 1 : 0;
+
+        if (aoTexture !== null) {
+            compositeMaterial.uniforms.tAO.value = aoTexture;
+            compositeMaterial.uniforms.tAOVol.value = aoVolTexture;
+
+            if (rt && camera.view && camera.view.enabled) {
+                // strip target: vUv covers camera.view rows of the full-frame AO buffer
+                const v = camera.view;
+
+                compositeMaterial.uniforms.uAoScale.value.set(v.width / v.fullWidth, v.height / v.fullHeight);
+                compositeMaterial.uniforms.uAoBias.value.set(
+                    v.offsetX / v.fullWidth,
+                    (v.fullHeight - v.offsetY - v.height) / v.fullHeight,
+                );
+            } else {
+                compositeMaterial.uniforms.uAoScale.value.set(1, 1);
+                compositeMaterial.uniforms.uAoBias.value.set(0, 0);
+            }
+        }
+
         compositeMaterial.uniforms.uBlit.value = 1;
         compositeMaterial.blendSrc = THREE.OneMinusDstAlphaFactor;
         compositeMaterial.blendDst = THREE.OneFactor;
@@ -768,8 +796,6 @@ module.exports = function (K3D) {
         compositeMaterial.uniforms.uTextureA.value = targets[2].texture;
 
         self.renderer.render(compositeScene, camera);
-
-        applyAOOverlay(camera, rt);
 
         opacityHidden.forEach((obj) => {
             obj.visible = true;
