@@ -13,7 +13,18 @@ _protocol: ProtocolName = "binary"
 
 
 def switch_to_text_protocol() -> None:
+    # Deprecated since 2.19.0: the anywidget transport carries binary buffers in
+    # every frontend (Colab included), so the base64 fallback is never needed.
     global _protocol
+
+    import warnings
+
+    warnings.warn(
+        "switch_to_text_protocol() is deprecated since 2.19.0 - the binary "
+        "protocol works everywhere, including Google Colab.",
+        DeprecationWarning,
+        stacklevel=2,
+    )
 
     _protocol = "text"
 

@@ -15,9 +15,9 @@ mesh, point clouds, vtk objects, volume renderer, colormaps, etc). The primary a
 to be easy to use as a standalone package like matplotlib, but also to allow interoperation with
 existing libraries as VTK. K3D can be run as:
 
-- Jupyter Notebook extension 🚀
-- Jupyter Lab extension 🎉
-- Google Colab extension 🧪 [still experimental]
+- Jupyter Notebook / JupyterLab widget (anywidget) 🚀
+- Google Colab widget 🎉
+- VS Code notebooks 🧩
 - Standalone HTML/JS 📑
 
 Documentation: [https://k3d-jupyter.org](https://k3d-jupyter.org)
@@ -70,20 +70,12 @@ To install from conda-forge use:
 
 ### Google Colab
 
-First you need to install k3d:
+Since 2.19.0 (the anywidget migration) no extra steps are needed:
 
     !pip install k3d
-    !jupyter nbextension install --py --user k3d
-    !jupyter nbextension enable --py --user k3d
 
-After that you need to activate custom widgets and switch k3d to text protocol:
-
-    import k3d
-    from google.colab import output
-    
-    output.enable_custom_widget_manager()
-    
-    k3d.switch_to_text_protocol()
+`import k3d` and plot - custom widget activation and the text protocol
+are no longer required.
 
 ### Installing directly from GitHub
 
@@ -105,9 +97,8 @@ For a development installation (requires npm and node.js),
     $ cd K3D-jupyter
     $ pip install -e .
 
-Then, if required, JupyterLab installation:
-
-    $ jupyter labextension install ./js
+No separate JupyterLab extension step is needed - the widget ships its own
+frontend module (anywidget).
 
 ### Code of Conduct
 
