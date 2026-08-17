@@ -207,10 +207,14 @@ module.exports = {
         material.uniforms.k3dEnvLightDir = K3D.getWorld().k3dEnvLightDir;
         material.uniforms.k3dEnvLightColor = K3D.getWorld().k3dEnvLightColor;
 
+        Object.assign(material.uniforms, K3D.getWorld().k3dVolumePeel);
+
         geometry.computeBoundingSphere();
         geometry.computeBoundingBox();
 
         const object = new THREE.Mesh(geometry, material);
+        // the peel loop renders volumes as ray segments between layer depths (#277)
+        object.userData.k3dVolumeSegments = true;
         object.applyMatrix4(modelMatrix);
         object.updateMatrixWorld();
 

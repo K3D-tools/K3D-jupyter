@@ -220,6 +220,28 @@ module.exports = function (K3D) {
             scene.add(plane);
         });
 
+    // shared by every Volume material: segment bounds for the peel-interleaved
+    // composition (#277). Black (z == 0) stands in for the near plane on the first
+    // segment; white (z == 1) reads as "no bound" through the peelT sentinel.
+    const peelDummyNear = new THREE.DataTexture(
+        new Float32Array([0.0]), 1, 1, THREE.RedFormat, THREE.FloatType,
+    );
+    const peelDummyFar = new THREE.DataTexture(
+        new Float32Array([1.0]), 1, 1, THREE.RedFormat, THREE.FloatType,
+    );
+
+    peelDummyNear.needsUpdate = true;
+    peelDummyFar.needsUpdate = true;
+
+    self.k3dVolumePeel = {
+        uPeelSegment: { value: 0 },
+        uPeelNearTexture: { value: peelDummyNear },
+        uPeelFarTexture: { value: peelDummyFar },
+        uPeelSize: { value: new THREE.Vector2(1, 1) },
+        uPeelInvProjection: { value: new THREE.Matrix4() },
+        uPeelInvView: { value: new THREE.Matrix4() },
+    };
+
     self.renderer = new THREE.WebGLRenderer({
         alpha: true,
         precision: 'highp',
@@ -580,8 +602,68 @@ module.exports = function (K3D) {
             self.renderer.render(compositeScene, camera);
         }
 
+        // volumes leave the geometry passes: their box neither peels nor occludes,
+        // and the march runs as per-segment passes interleaved between the layers (#277)
+        const volumeObjects = [];
+
+        K3D.getWorld().K3DObjects.traverse((obj) => {
+            if (obj.visible && obj.userData.k3dVolumeSegments) {
+                volumeObjects.push(obj);
+                obj.visible = false;
+            }
+        });
+
+        function renderVolumeSegments(nearTexture, farTexture) {
+            if (volumeObjects.length === 0) {
+                return;
+            }
+
+            const u = self.k3dVolumePeel;
+            const shown = [];
+
+            u.uPeelSegment.value = 1;
+            u.uPeelNearTexture.value = nearTexture;
+            u.uPeelFarTexture.value = farTexture;
+            u.uPeelSize.value.set(1.0 / targets[0].width, 1.0 / targets[0].height);
+            u.uPeelInvProjection.value.copy(camera.projectionMatrixInverse);
+            u.uPeelInvView.value.copy(camera.matrixWorld);
+
+            // leaves only - hiding the K3DObjects group itself would hide the volumes too
+            K3D.getWorld().K3DObjects.traverse((obj) => {
+                if (obj.visible && obj.material) {
+                    obj.visible = false;
+                    shown.push(obj);
+                }
+            });
+            volumeObjects.forEach((obj) => {
+                obj.visible = true;
+            });
+
+            self.renderer.setRenderTarget(targets[3]);
+            self.renderer.setClearColor(0, 0);
+            self.renderer.clear(true, true, false);
+            self.renderer.render(scene, camera);
+
+            volumeObjects.forEach((obj) => {
+                obj.visible = false;
+            });
+            shown.forEach((obj) => {
+                obj.visible = true;
+            });
+
+            // the march output is already premultiplied - composite it as-is
+            compositeMaterial.uniforms.uBlit.value = 2;
+            compositeLayer();
+            compositeMaterial.uniforms.uBlit.value = 1;
+
+            u.uPeelSegment.value = 0;
+        }
+
+        camera.updateMatrixWorld();
+
         // layer 0: uLayer == 0, so the tail discards nothing
         renderLayerDepth(targets[0]);
+        renderVolumeSegments(peelDummyNear, targets[0].texture);
         renderLayerColor();
         compositeLayer();
 
@@ -589,10 +671,18 @@ module.exports = function (K3D) {
             globalPeelUniforms.uPrevDepthTexture.value = targets[i % 2].texture;
             globalPeelUniforms.uLayer.value = i + 1;
 
+            renderLayerDepth(targets[(i + 1) % 2]);
+            renderVolumeSegments(targets[i % 2].texture, targets[(i + 1) % 2].texture);
             renderLayerColor();
             compositeLayer();
-            renderLayerDepth(targets[(i + 1) % 2]);
         }
+
+        globalPeelUniforms.uLayer.value = 0;
+        renderVolumeSegments(targets[K3D.parameters.depthPeels % 2].texture, peelDummyFar);
+
+        volumeObjects.forEach((obj) => {
+            obj.visible = true;
+        });
 
         // final blit of the accumulator
         globalPeelUniforms.uLayer.value = 0;

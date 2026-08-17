@@ -30,6 +30,9 @@ void main(){
         if (uToneMapping != 0 && gl_FragColor.a > 0.) {
             gl_FragColor.xyz = k3dToneMap(gl_FragColor.xyz / gl_FragColor.a) * gl_FragColor.a;
         }
+    } else if (uBlit == 2) {
+        // volume segments arrive premultiplied by the ray march
+        gl_FragColor = src;
     } else {
         gl_FragColor = src;
         gl_FragColor.xyz *= gl_FragColor.a;

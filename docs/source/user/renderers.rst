@@ -77,6 +77,12 @@ catalog ships with the package:
     # ['autoshop_01', 'brown_photostudio_02', 'burnt_warehouse',
     #  'moonless_golf', 'venice_sunset']
 
+Since 2.19.0 a ``volume`` composes correctly with meshes that intersect it
+when depth peeling is enabled (``plot.depth_peels >= 3`` - fewer layers make
+the segmentation too coarse to be predictable). The ray march is split into
+segments bounded by the peel layers, so geometry inside the volume occludes
+and is occluded sample-accurately, in both renderers.
+
 Volumetric data (``volume``, ``mip``) and the ``points`` 3d impostors read the
 same environment: diffuse light from the map's spherical harmonics plus one
 dominant directional light distilled from it, so a directional HDRI models

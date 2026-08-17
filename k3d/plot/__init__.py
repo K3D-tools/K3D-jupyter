@@ -164,6 +164,9 @@ class Plot(
             :`scale`: Scaling widget.
         depth_peels: `int`.
             Set the maximum number of peels to use. Disabled if zero.
+            With peeling on, volumes compose correctly with intersecting
+            meshes (the ray march is split at the layer depths); use
+            depth_peels >= 3, below that the effect is unpredictable.
         auto_rendering: `Bool`.
             State of auto rendering.
         fps: `Float`.

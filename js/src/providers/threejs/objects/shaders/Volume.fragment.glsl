@@ -42,9 +42,44 @@ uniform float metalness;
 
 uniform vec4 scale;
 uniform vec4 translation;
+uniform vec4 rotation;
+
+// depth-peel segment bounds (issue #277): with uPeelSegment == 1 the march is
+// clamped between two peel-layer depth textures, so meshes interleave correctly
+uniform int uPeelSegment;
+uniform sampler2D uPeelNearTexture;
+uniform sampler2D uPeelFarTexture;
+uniform vec2 uPeelSize;
+uniform mat4 uPeelInvProjection;
+uniform mat4 uPeelInvView;
 
 uniform sampler3D mask;
 uniform float maskOpacities[256];
+
+vec3 rotate_vertex_position(vec3 pos, vec3 t, vec4 q) {
+    vec3 p = pos.xyz - t.xyz;
+
+    return p.xyz + 2.0 * cross(cross(p.xyz, q.xyz) + q.w * p.xyz, q.xyz) + t.xyz;
+}
+
+// window-space z from a peel layer -> distance along the ray in the marching space
+// (the quaternion rotation is an isometry, so t carries over from world unchanged)
+float peelT(sampler2D depthTexture, vec3 origin, vec3 dir, float noHitT) {
+    vec2 uv = gl_FragCoord.xy * uPeelSize;
+    float z = texture2D(depthTexture, uv).r;
+
+    if (z >= 1.0) {
+        return noHitT;
+    }
+
+    vec4 view = uPeelInvProjection * vec4(uv * 2.0 - 1.0, z * 2.0 - 1.0, 1.0);
+    view /= view.w;
+
+    vec4 world = uPeelInvView * view;
+    vec3 p = rotate_vertex_position(world.xyz, translation.xyz, rotation);
+
+    return dot(p - origin, dir);
+}
 
 varying vec3 localPosition;
 varying vec3 transformedCameraPosition;
@@ -190,26 +225,57 @@ void main() {
 
         intersect(makeRay(eye, direction), aabb, tmin, tmax);
 
-        vec3 textcoord_end = ((eye + direction * tmax) - translation.xyz) / scale.xyz + vec3(0.5);
+        vec3 rayOrigin = eye;
         #else
         vec4 value = vec4(0.0, 0.0, 0.0, 0.0);
         vec3 direction = normalize(transformedWorldPosition - transformedCameraPosition);
         intersect(makeRay(transformedCameraPosition, direction), aabb, tmin, tmax);
 
-        vec3 textcoord_end = localPosition + vec3(0.5);
+        vec3 rayOrigin = transformedCameraPosition;
         #endif
-        vec3 textcoord_start = textcoord_end - (tmax - max(0.0, tmin)) * direction / scale.xyz;
-        vec3 textcoord_delta = textcoord_end - textcoord_start;
+        // the sampling grid is anchored to the whole box, never to the segment -
+        // every segmentation samples identical positions, so layer joints cannot seam
+        float tBox = max(0.0, tmin);
+        vec3 gridStart = ((rayOrigin + direction * tBox) - translation.xyz) / scale.xyz + vec3(0.5);
+        vec3 gridSpan = ((rayOrigin + direction * tmax) - translation.xyz) / scale.xyz + vec3(0.5) - gridStart;
 
-        int sampleCount = min(int(length(textcoord_delta) * samples), int(samples * 1.8));
+        int totalCount = max(min(int(length(gridSpan) * samples), int(samples * 1.8)), 1);
+        vec3 textcoord_delta = gridSpan / float(totalCount);
+        float tStep = (tmax - tBox) / float(totalCount);
 
-        textcoord_delta = textcoord_delta / float(sampleCount);
         #ifdef K3D_AO_DEPTH_PASS
         // no jitter: a per-pixel noisy shell depth reads as micro-cliffs to GTAO
-        textcoord_start = textcoord_start - textcoord_delta * 0.5;
+        float jitterOffset = 0.5;
         #else
-        textcoord_start = textcoord_start - textcoord_delta * (0.01 + 0.98 * jitter);
+        float jitterOffset = 0.01 + 0.98 * jitter;
         #endif
+
+        int kMin = 0;
+        int kMax = totalCount - 1;
+
+        #ifndef K3D_AO_DEPTH_PASS
+        if (uPeelSegment == 1) {
+            // sample k sits at t = tBox + (k - jitterOffset) * tStep; a boundary sample
+            // belongs to the next segment (>= near, < far), so nothing is counted twice
+            float tNear = peelT(uPeelNearTexture, rayOrigin, direction, -1.0);
+            float tFar = peelT(uPeelFarTexture, rayOrigin, direction, -1.0);
+
+            if (tNear < 0.0) {
+                // peeling only ever leaves deeper layers where the nearer one exists -
+                // an empty near layer means an earlier segment already reached the exit
+                kMax = -1;
+            } else {
+                kMin = max(0, int(ceil((min(tNear, tmax) - tBox) / tStep + jitterOffset)));
+            }
+
+            if (tFar >= 0.0) {
+                kMax = min(kMax, int(ceil((min(tFar, tmax) - tBox) / tStep + jitterOffset)) - 1);
+            }
+        }
+        #endif
+
+        int sampleCount = max(kMax - kMin + 1, 0);
+        vec3 textcoord_start = gridStart + (float(kMin) - jitterOffset) * textcoord_delta;
 
         vec3 textcoord = textcoord_start - textcoord_delta;
 
