@@ -1,5 +1,6 @@
 const THREE = require('three');
 const { colorsToFloat32Array } = require('../../../core/lib/helpers/buffer');
+const colorMapHelper = require('../../../core/lib/helpers/colorMap');
 const Fn = require('../helpers/Fn');
 
 const { commonUpdate } = Fn;
@@ -90,6 +91,32 @@ module.exports = {
                 obj.geometry.attributes.uv.needsUpdate = true;
                 resolvedChanges.attribute = null;
             }
+        }
+
+        if (((typeof (changes.colors) !== 'undefined' && !changes.colors.timeSeries)
+            || (typeof (changes.color) !== 'undefined' && !changes.color.timeSeries))
+            && obj.geometry.attributes.color) {
+            const count = obj.geometry.attributes.color.array.length / 3;
+            const verticesColors = (changes.colors && changes.colors.data)
+                || (config.colors && config.colors.data) || null;
+
+            obj.geometry.attributes.color.array.set(
+                verticesColors && verticesColors.length === count
+                    ? colorsToFloat32Array(verticesColors)
+                    : getColorsArray(new THREE.Color(config.color), count),
+            );
+            obj.geometry.attributes.color.needsUpdate = true;
+
+            resolvedChanges.colors = null;
+            resolvedChanges.color = null;
+        }
+
+        if (typeof (changes.color_map) !== 'undefined' && !changes.color_map.timeSeries
+            && obj.material.map) {
+            obj.material.map.image = colorMapHelper.createCanvasGradient(changes.color_map.data, 1024, 1);
+            obj.material.map.needsUpdate = true;
+
+            resolvedChanges.color_map = null;
         }
 
         if (typeof (changes.vertices) !== 'undefined' && !changes.vertices.timeSeries

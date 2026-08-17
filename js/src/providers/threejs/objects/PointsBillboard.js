@@ -225,6 +225,50 @@ module.exports = {
             resolvedChanges.attribute = null;
         }
 
+        if (typeof (changes.point_size) !== 'undefined' && !changes.point_size.timeSeries) {
+            obj.material.size = changes.point_size;
+
+            if (obj.userData.k3dAODepthMaterial) {
+                obj.userData.k3dAODepthMaterial.size = changes.point_size;
+            }
+
+            if (config.shader !== 'dot') {
+                obj.geometry.computeBoundingBox();
+                Fn.expandBoundingBox(obj.geometry.boundingBox, changes.point_size * 0.5);
+            }
+
+            resolvedChanges.point_size = null;
+        }
+
+        if (typeof (changes.point_sizes) !== 'undefined' && !changes.point_sizes.timeSeries
+            && obj.geometry.attributes.sizes
+            && changes.point_sizes.data.length === obj.geometry.attributes.sizes.array.length) {
+            obj.geometry.attributes.sizes.array.set(changes.point_sizes.data);
+            obj.geometry.attributes.sizes.needsUpdate = true;
+
+            resolvedChanges.point_sizes = null;
+        }
+
+        if (typeof (changes.opacities) !== 'undefined' && !changes.opacities.timeSeries
+            && obj.geometry.attributes.opacities
+            && changes.opacities.data.length === obj.geometry.attributes.opacities.array.length) {
+            obj.geometry.attributes.opacities.array.set(changes.opacities.data);
+            obj.geometry.attributes.opacities.needsUpdate = true;
+
+            resolvedChanges.opacities = null;
+        }
+
+        if (typeof (changes.color) !== 'undefined' && !changes.color.timeSeries
+            && obj.geometry.attributes.color
+            && !(config.colors && config.colors.data && config.colors.data.length > 0)) {
+            obj.geometry.attributes.color.array.set(
+                getColorsArray(new THREE.Color(changes.color), obj.geometry.attributes.color.array.length / 3),
+            );
+            obj.geometry.attributes.color.needsUpdate = true;
+
+            resolvedChanges.color = null;
+        }
+
         if (typeof (changes.colors) !== 'undefined' && !changes.colors.timeSeries
             && obj.geometry.attributes.color
             && changes.colors.data.length === obj.geometry.attributes.color.array.length / 3) {

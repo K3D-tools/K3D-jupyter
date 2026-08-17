@@ -43,7 +43,7 @@ module.exports = {
         const attribute = (config.attribute && config.attribute.data) || [];
         const modelMatrix = new THREE.Matrix4();
         const position = config.vertices.data;
-        const indices = config.indices.data;
+        const indices = Fn.guardIndices(config.indices.data, position, 'lines');
         const edges = new Set();
         const jump = config.indices_type === 'segment' ? 2 : 3;
 

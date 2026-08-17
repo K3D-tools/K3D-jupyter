@@ -5,6 +5,7 @@ const { typedArrayToThree } = require('../helpers/Fn');
 const { areAllChangesResolve } = require('../helpers/Fn');
 const { commonUpdate } = require('../helpers/Fn');
 const { getSide } = require('../helpers/Fn');
+const { guardIndices } = require('../helpers/Fn');
 
 /**
  * Loader strategy to handle Mesh object
@@ -22,7 +23,7 @@ module.exports = {
         const colorRange = config.color_range;
         const colorMap = (config.color_map && config.color_map.data) || null;
         const vertices = (config.vertices && config.vertices.data) || null;
-        const indices = (config.indices && config.indices.data) || null;
+        const indices = guardIndices((config.indices && config.indices.data) || null, vertices, 'mesh');
         let opacityFunction = null;
         const geometry = new THREE.BufferGeometry();
 
@@ -136,6 +137,24 @@ module.exports = {
         const resolvedChanges = {};
 
         interactionsHelper.update(config, changes, resolvedChanges, obj);
+
+        // texture coordinates come from the b1/b2 uniforms, nothing else derives
+        // from vertices - a same-count morph is a plain position update
+        if (typeof (changes.vertices) !== 'undefined' && !changes.vertices.timeSeries
+            && typeof (changes.indices) === 'undefined'
+            && obj.geometry.attributes.position.array.length === changes.vertices.data.length) {
+            obj.geometry.attributes.position.array.set(changes.vertices.data);
+            obj.geometry.attributes.position.needsUpdate = true;
+
+            if (obj.geometry.attributes.normal) {
+                obj.geometry.computeVertexNormals();
+            }
+
+            obj.geometry.computeBoundingSphere();
+            obj.geometry.computeBoundingBox();
+
+            resolvedChanges.vertices = null;
+        }
 
         if (typeof (changes.volume) !== 'undefined' && !changes.volume.timeSeries) {
             if (obj.material.uniforms.volumeTexture.value.image.data.constructor === changes.volume.data.constructor

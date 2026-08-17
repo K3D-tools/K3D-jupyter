@@ -174,6 +174,8 @@ module.exports = {
                 });
             };
 
+            // the greedy mesher bakes opacity < 1.0 into the geometry itself
+            object.userData.builtTransparent = config.opacity < 1.0;
             object.voxelsChunks = voxelsChunks;
             object.addChunk = function (chunk) {
                 const generate = voxelMeshGenerator.initializeGreedyVoxelMesh(

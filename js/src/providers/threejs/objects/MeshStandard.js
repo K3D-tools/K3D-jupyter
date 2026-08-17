@@ -5,6 +5,7 @@ const { handleColorMap } = require('../helpers/Fn');
 const { areAllChangesResolve } = require('../helpers/Fn');
 const { commonUpdate } = require('../helpers/Fn');
 const { getSide } = require('../helpers/Fn');
+const { guardIndices } = require('../helpers/Fn');
 const buffer = require('../../../core/lib/helpers/buffer');
 
 const maximumSlicePlanes = 8;
@@ -62,7 +63,7 @@ module.exports = {
             const triangleAttribute = (config.triangles_attribute && config.triangles_attribute.data) || null;
             const normals = (config.normals && config.normals.data) || null;
             const vertices = (config.vertices && config.vertices.data) || null;
-            const indices = (config.indices && config.indices.data) || null;
+            const indices = guardIndices((config.indices && config.indices.data) || null, vertices, 'mesh');
             const uvs = (config.uvs && config.uvs.data) || null;
             let geometry = new THREE.BufferGeometry();
             let image;
@@ -254,6 +255,25 @@ module.exports = {
 
         if (!obj) {
             return false;
+        }
+
+         if (typeof (changes.vertices) !== 'undefined' && !changes.vertices.timeSeries
+            && typeof (changes.indices) === 'undefined'
+            && obj.geometry && obj.geometry.index !== null
+            && obj.geometry.attributes.position.array.length === changes.vertices.data.length) {
+            obj.geometry.attributes.position.array.set(changes.vertices.data);
+            obj.geometry.attributes.position.needsUpdate = true;
+
+            const userNormals = config.normals && config.normals.data && config.normals.data.length > 0;
+
+            if (obj.geometry.attributes.normal && !userNormals) {
+                obj.geometry.computeVertexNormals();
+            }
+
+            obj.geometry.computeBoundingSphere();
+            obj.geometry.computeBoundingBox();
+
+            resolvedChanges.vertices = null;
         }
 
         if (obj.geometry && typeof (obj.geometry.attributes.uv) !== 'undefined') {

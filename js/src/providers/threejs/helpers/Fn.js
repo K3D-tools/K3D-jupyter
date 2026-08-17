@@ -322,7 +322,28 @@ module.exports = {
     },
 
     areAllChangesResolve(changes, resolvedChanges) {
-        return Object.keys(changes).every((key) => typeof (resolvedChanges[key]) !== 'undefined');
+        // the headless diff seeds every change set with id/type - identity, not mutation
+        return Object.keys(changes)
+            .filter((key) => key !== 'id' && key !== 'type')
+            .every((key) => typeof (resolvedChanges[key]) !== 'undefined');
+    },
+
+    guardIndices(indices, vertices, what) {
+        if (indices === null || vertices === null) {
+            return indices;
+        }
+
+        const vertexCount = Math.floor(vertices.length / 3);
+
+        for (let i = 0; i < indices.length; i++) {
+            if (indices[i] >= vertexCount) {
+                console.error(`K3D.${what}: index ${indices[i]} reaches beyond ${vertexCount} vertices - `
+                    + 'drawing nothing until vertices and indices are consistent again');
+                return new indices.constructor(0);
+            }
+        }
+
+        return indices;
     },
 
     recalculateFrustum(camera) {
@@ -333,6 +354,13 @@ module.exports = {
     },
 
     commonUpdate(config, changes, resolvedChanges, obj, K3D) {
+        // metadata consumed by the GUI/python layers - nothing to rebuild on the scene
+        ['name', 'group', 'custom_data', 'compression_level'].forEach((key) => {
+            if (typeof (changes[key]) !== 'undefined'
+                && (changes[key] === null || !changes[key].timeSeries)) {
+                resolvedChanges[key] = null;
+            }
+        });
         if (resolvedChanges.model_matrix !== null && typeof (changes.model_matrix) !== 'undefined' && !changes.model_matrix.timeSeries) {
             const modelMatrix = new THREE.Matrix4();
 
@@ -363,7 +391,8 @@ module.exports = {
             resolvedChanges.visible = null;
         }
 
-        if (resolvedChanges.opacity !== null && typeof (changes.opacity) !== 'undefined' && !changes.opacity.timeSeries) {
+        if (resolvedChanges.opacity !== null && typeof (changes.opacity) !== 'undefined'
+            && !changes.opacity.timeSeries && obj.material) {
             obj.material.opacity = changes.opacity;
 
             obj.material.side = getSide({
@@ -385,7 +414,7 @@ module.exports = {
         }
 
         if (resolvedChanges.roughness !== null && typeof (changes.roughness) !== 'undefined'
-            && !changes.roughness.timeSeries) {
+            && !changes.roughness.timeSeries && obj.material) {
             obj.material.roughness = changes.roughness;
 
             // bespoke shaders (points 3d impostor) read it as a uniform
@@ -398,7 +427,7 @@ module.exports = {
         }
 
         if (resolvedChanges.metalness !== null && typeof (changes.metalness) !== 'undefined'
-            && !changes.metalness.timeSeries) {
+            && !changes.metalness.timeSeries && obj.material) {
             obj.material.metalness = changes.metalness;
 
             if (obj.material.uniforms && obj.material.uniforms.metalness) {
