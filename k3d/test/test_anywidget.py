@@ -80,3 +80,88 @@ def test_snapshot_source_served_over_comm():
     assert sent[0][0]["msg_type"] == "snapshot_source"
     source = zlib.decompress(sent[0][1][0])
     assert b"CreateK3DAndLoadBinarySnapshot" in source
+
+
+def _relay_plot_with_mesh():
+    plot = k3d.plot()
+    mesh = k3d.mesh(VERTICES, INDICES)
+    plot += mesh
+
+    sent = []
+    plot.send = lambda content, buffers=None: sent.append((content, buffers))
+
+    return plot, mesh, sent
+
+
+def test_relay_serves_objects_state_over_the_plot_comm():
+    import zlib
+
+    import msgpack
+
+    plot, mesh, sent = _relay_plot_with_mesh()
+    plot._relay_send_state([mesh.id])
+
+    assert sent[-1][0] == {"msg_type": "objects_state"}
+    state = msgpack.unpackb(zlib.decompress(sent[-1][1][0]), strict_map_key=False)
+    assert [o["id"] for o in state["objects"]] == [mesh.id]
+    assert state["objects"][0]["type"] == "Mesh"
+    assert "vertices" in state["objects"][0]
+
+
+def test_relay_forwards_trait_changes_as_patches():
+    import zlib
+
+    import msgpack
+
+    plot, mesh, sent = _relay_plot_with_mesh()
+    plot._relay_send_state([mesh.id])
+    sent.clear()
+
+    mesh.visible = False
+
+    patches = [s for s in sent if s[0] == {"msg_type": "object_patch"}]
+    assert len(patches) == 1
+    patch = msgpack.unpackb(zlib.decompress(patches[0][1][0]), strict_map_key=False)
+    assert patch["id"] == mesh.id
+    assert patch["key"] == "visible"
+    assert patch["value"] is False
+
+
+def test_relay_applies_frontend_object_change():
+    import zlib
+
+    import msgpack
+
+    plot, mesh, sent = _relay_plot_with_mesh()
+    payload = msgpack.packb(
+        {"id": mesh.id, "key": "visible", "value": False}, use_bin_type=True
+    )
+
+    plot._relay_apply_change([zlib.compress(payload, 1)])
+
+    assert mesh.visible is False
+
+
+def test_relay_applies_binary_values_via_from_json():
+    import zlib
+
+    import msgpack
+
+    plot, mesh, sent = _relay_plot_with_mesh()
+    moved = (VERTICES + 1.0).astype(np.float32)
+    payload = msgpack.packb(
+        {
+            "id": mesh.id,
+            "key": "vertices",
+            "value": {
+                "data": moved.tobytes(),
+                "dtype": "float32",
+                "shape": list(moved.shape),
+            },
+        },
+        use_bin_type=True,
+    )
+
+    plot._relay_apply_change([zlib.compress(payload, 1)])
+
+    np.testing.assert_array_equal(mesh.vertices, moved)

@@ -1,11 +1,13 @@
 // anywidget front-end module (AFM) for K3D. One ESM serves all widget classes;
 // the python side stamps _kind on every class and the hooks dispatch on it.
 import 'katex/dist/katex.min.css';
+import * as fflate from 'fflate';
 import _ from './lodash';
 import K3D from './core/Core';
 import K3DTransferFunctionEditor from './core/lib/transferFunctionEditorCore';
 import serialize from './core/lib/helpers/serialize';
 import buffer from './core/lib/helpers/buffer';
+import msgpack from './core/lib/helpers/msgpackCodec';
 import ThreeJsProvider from './providers/threejs/provider';
 import { viewModes } from './core/lib/viewMode';
 
@@ -29,6 +31,75 @@ function runOnEveryPlot(id, cb) {
 
 function deserialized(model, key) {
     return serialize.deserialize(model.get(key));
+}
+
+/* ------------------------------------------------------------------------- */
+/* object relay                                                               */
+/*                                                                            */
+/* Colab (and any frontend that materialises widget models lazily) renders    */
+/* each output in its own context: the plot model exists there, but the       */
+/* object models never do - object_ids are plain integers, not model          */
+/* references. The plot's own comm relays their state instead, in the .k3d    */
+/* binary snapshot encoding (zlib over msgpack).                              */
+/* ------------------------------------------------------------------------- */
+
+function relayU8(buffers) {
+    const b = buffers[0];
+
+    return new Uint8Array(b.buffer, b.byteOffset || 0, b.byteLength);
+}
+
+function registerRelayedObject(dict) {
+    const attrs = {};
+
+    Object.keys(dict).forEach((k) => {
+        attrs[k] = serialize.deserialize(dict[k]);
+    });
+
+    const existing = REG.objects[attrs.id];
+
+    // a live model is authoritative - the relay only fills contexts without one
+    if (existing && existing.model) {
+        return existing.attributes;
+    }
+
+    REG.objects[attrs.id] = { model: null, attributes: attrs };
+
+    return attrs;
+}
+
+function registerRelayedChunk(dict) {
+    const attrs = {};
+
+    Object.keys(dict).forEach((k) => {
+        attrs[k] = serialize.deserialize(dict[k]);
+    });
+
+    REG.chunks[attrs.id] = { attributes: attrs };
+}
+
+function requestMissingObjects(view, ids) {
+    const missing = ids.filter((id) => !REG.objects[id] && !view.pendingFetch.has(id));
+
+    if (missing.length === 0) {
+        return;
+    }
+
+    missing.forEach((id) => view.pendingFetch.add(id));
+    view.model.send({ msg_type: 'fetch_objects', ids: missing });
+}
+
+// typed arrays ride to the kernel as plain msgpack bin + dtype, so the python
+// side can read them with from_json instead of a custom ext codec
+function relayEncodableValue(value) {
+    if (value && value.data && value.data.buffer) {
+        return {
+            ...value,
+            data: new Uint8Array(value.data.buffer, value.data.byteOffset, value.data.byteLength),
+        };
+    }
+
+    return value;
 }
 
 // deserialized snapshot of every synced trait - the equivalent of the old
@@ -232,9 +303,17 @@ const PLOT_HANDLERS = {
             v.renderPromises.push(v.K3DInstance.removeObject(id));
         });
 
-        _.difference(current, previous).forEach((id) => {
-            v.renderPromises.push(v.K3DInstance.load({ objects: [REG.objects[id].attributes] }));
+        const added = _.difference(current, previous);
+
+        added.forEach((id) => {
+            if (REG.objects[id]) {
+                v.renderPromises.push(v.K3DInstance.load({ objects: [REG.objects[id].attributes] }));
+            }
         });
+
+        // models absent in this context (Colab renders outputs in isolated frames)
+        // arrive over the plot comm as an objects_state message
+        requestMissingObjects(v, added);
     },
     menu_visibility: (v) => v.K3DInstance.setMenuVisibility(v.model.get('menu_visibility')),
     colorbar_object_id: (v) => v.K3DInstance.setColorMapLegend(v.model.get('colorbar_object_id')),
@@ -301,6 +380,7 @@ function renderPlot({ model, el }) {
         K3DInstance: null,
         renderPromises: [],
         objectIds: model.get('object_ids'),
+        pendingFetch: new Set(),
         lastCameraSync: Date.now(),
         cameraSyncTimeout: null,
         pendingCamera: null,
@@ -339,6 +419,44 @@ function renderPlot({ model, el }) {
         model.on('msg:custom', (obj, buffers) => {
             if (obj.msg_type === 'snapshot_source' && buffers && buffers.length > 0) {
                 window.k3dCompressed = buffer.arrayBufferToBase64(buffers[0].buffer);
+            }
+
+            if (obj.msg_type === 'objects_state' && buffers && buffers.length > 0) {
+                const state = msgpack.decode(fflate.unzlibSync(relayU8(buffers)));
+
+                (state.chunkList || []).forEach(registerRelayedChunk);
+
+                (state.objects || []).forEach((dict) => {
+                    const attrs = registerRelayedObject(dict);
+
+                    view.pendingFetch.delete(attrs.id);
+
+                    if (model.get('object_ids').indexOf(attrs.id) !== -1
+                        && !view.K3DInstance.getObjectById(attrs.id)) {
+                        view.renderPromises.push(view.K3DInstance.load({ objects: [attrs] }));
+                    }
+                });
+            }
+
+            if (obj.msg_type === 'object_patch' && buffers && buffers.length > 0) {
+                const patch = msgpack.decode(fflate.unzlibSync(relayU8(buffers)));
+                const entry = REG.objects[patch.id];
+
+                // with a live model in this context the trait sync delivers the same
+                // change - applying the relay copy too would reload twice
+                if (entry && entry.model === null) {
+                    const value = serialize.deserialize(patch.value);
+
+                    entry.attributes[patch.key] = value;
+
+                    const changed = {};
+
+                    changed[patch.key] = value;
+
+                    REG.plots.forEach((plot) => {
+                        plot.refreshObject(patch.id, changed);
+                    });
+                }
             }
 
             if (obj.msg_type === 'fetch_screenshot') {
@@ -450,8 +568,12 @@ function renderPlot({ model, el }) {
         view.K3DInstance.setChunkList(REG.chunks);
 
         model.get('object_ids').forEach((id) => {
-            view.renderPromises.push(view.K3DInstance.load({ objects: [REG.objects[id].attributes] }));
+            if (REG.objects[id]) {
+                view.renderPromises.push(view.K3DInstance.load({ objects: [REG.objects[id].attributes] }));
+            }
         });
+
+        requestMissingObjects(view, model.get('object_ids'));
 
         view.cameraChangeId = view.K3DInstance.on(view.K3DInstance.events.CAMERA_CHANGE, (control) => {
             const now = Date.now();
@@ -496,6 +618,20 @@ function renderPlot({ model, el }) {
                 });
             }
 
+            // relayed objects have no model in this context - route the edit
+            // through the plot comm instead
+            if (entry.model === null) {
+                entry.attributes[change.key] = change.value;
+                view.model.send({ msg_type: 'object_change' }, undefined, [
+                    fflate.zlibSync(msgpack.encode({
+                        id: change.id,
+                        key: change.key,
+                        value: relayEncodableValue(value),
+                    })),
+                ]);
+                return;
+            }
+
             saveChanges(entry.model, change.key, value);
         });
 
@@ -505,8 +641,10 @@ function renderPlot({ model, el }) {
         );
 
         view.voxelsCallback = view.K3DInstance.on(view.K3DInstance.events.VOXELS_CALLBACK, (param) => {
-            if (REG.objects[param.object.K3DIdentifier]) {
-                REG.objects[param.object.K3DIdentifier].model.send({
+            const entry = REG.objects[param.object.K3DIdentifier];
+
+            if (entry && entry.model) {
+                entry.model.send({
                     msg_type: 'click_callback',
                     coord: param.coord,
                 });
@@ -514,14 +652,18 @@ function renderPlot({ model, el }) {
         });
 
         view.objectHoverCallback = view.K3DInstance.on(view.K3DInstance.events.OBJECT_HOVERED, (param) => {
-            if (REG.objects[param.K3DIdentifier] && view.K3DInstance.parameters.viewMode === viewModes.callback) {
-                REG.objects[param.K3DIdentifier].model.send(_.extend({ msg_type: 'hover_callback' }, param));
+            const entry = REG.objects[param.K3DIdentifier];
+
+            if (entry && entry.model && view.K3DInstance.parameters.viewMode === viewModes.callback) {
+                entry.model.send(_.extend({ msg_type: 'hover_callback' }, param));
             }
         });
 
         view.objectClickCallback = view.K3DInstance.on(view.K3DInstance.events.OBJECT_CLICKED, (param) => {
-            if (REG.objects[param.K3DIdentifier] && view.K3DInstance.parameters.viewMode === viewModes.callback) {
-                REG.objects[param.K3DIdentifier].model.send(_.extend({ msg_type: 'click_callback' }, param));
+            const entry = REG.objects[param.K3DIdentifier];
+
+            if (entry && entry.model && view.K3DInstance.parameters.viewMode === viewModes.callback) {
+                entry.model.send(_.extend({ msg_type: 'click_callback' }, param));
             }
         });
 

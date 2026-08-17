@@ -114,6 +114,79 @@ class PlotBase(K3DAnyWidget):
 
             source = (Path(__file__).parent.parent / "static" / "standalone.js").read_bytes()
             self.send({"msg_type": "snapshot_source"}, buffers=[zlib.compress(source, 9)])
+        elif content.get("msg_type") == "fetch_objects":
+            self._relay_send_state(content.get("ids", []))
+        elif content.get("msg_type") == "object_change":
+            self._relay_apply_change(buffers)
+
+    # Colab-style frontends materialise widget models lazily, per output frame:
+    # the plot model exists there, the object models never do (object_ids are
+    # plain integers, not model references). The plot comm relays their state
+    # instead, in the .k3d binary encoding (zlib over msgpack).
+
+    def _relay_send_state(self, ids):
+        import zlib
+
+        import msgpack
+
+        wanted = set(ids)
+        state = {
+            "objects": [o.get_binary() for o in self.objects if o.id in wanted],
+            "chunkList": [
+                c.get_binary() for c in getattr(self, "voxel_chunks", [])
+            ],
+        }
+
+        self._relay_wire_observers()
+        self.send(
+            {"msg_type": "objects_state"},
+            buffers=[zlib.compress(msgpack.packb(state, use_bin_type=True), 1)],
+        )
+
+    def _relay_wire_observers(self):
+        if not hasattr(self, "_relay_observed"):
+            self._relay_observed = set()
+            self.observe(lambda change: self._relay_wire_observers(), "object_ids")
+
+        for o in self.objects:
+            if o.id not in self._relay_observed:
+                self._relay_observed.add(o.id)
+                o.observe(self._relay_forward)
+
+    def _relay_forward(self, change):
+        import zlib
+
+        import msgpack
+
+        from ..helpers import to_json
+
+        obj = change.owner
+
+        if change.name not in obj._synced_props or change.name in ("id", "type"):
+            return
+
+        patch = {
+            "id": obj.id,
+            "key": change.name,
+            "value": to_json(change.name, change.new, obj, obj["compression_level"]),
+        }
+        self.send(
+            {"msg_type": "object_patch"},
+            buffers=[zlib.compress(msgpack.packb(patch, use_bin_type=True), 1)],
+        )
+
+    def _relay_apply_change(self, buffers):
+        import zlib
+
+        import msgpack
+
+        from ..helpers import from_json
+
+        patch = msgpack.unpackb(zlib.decompress(buffers[0]), strict_map_key=False)
+        obj = next((o for o in self.objects if o.id == patch["id"]), None)
+
+        if obj is not None and patch["key"] in obj._synced_props:
+            setattr(obj, patch["key"], from_json(patch["value"]))
 
     def __init__(
             self,
