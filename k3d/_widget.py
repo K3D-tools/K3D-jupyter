@@ -3,7 +3,7 @@
 import pathlib
 
 import anywidget
-from traitlets import List, Unicode
+from traitlets import List, Unicode, default
 
 _STATIC = pathlib.Path(__file__).parent / "static"
 
@@ -54,10 +54,9 @@ class K3DAnyWidget(anywidget.AnyWidget):
     _kind = Unicode("").tag(sync=True)
     _synced_props = List(Unicode()).tag(sync=True)
 
-    def __init__(self, **kwargs):
-        super().__init__(**kwargs)
-
-        self._synced_props = sorted(
+    @default("_synced_props")
+    def _default_synced_props(self):
+        return sorted(
             name
             for name, trait in self.traits().items()
             if "sync" in trait.metadata

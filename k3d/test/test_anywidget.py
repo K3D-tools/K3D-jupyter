@@ -57,3 +57,13 @@ def test_snapshot_roundtrip_strips_transport_keys():
 
     assert len(plot2.objects) == 1
     assert np.allclose(plot2.objects[0].vertices, VERTICES)
+
+
+def test_synced_props_ride_in_the_initial_state():
+    # ipywidgets opens the comm inside __init__ - the list must resolve on the
+    # first get_state, or the front-end stub adopts a model with no attributes
+    state = k3d.mesh(VERTICES, INDICES).get_state()
+
+    assert "vertices" in state["_synced_props"]
+    assert "id" in state["_synced_props"]
+
