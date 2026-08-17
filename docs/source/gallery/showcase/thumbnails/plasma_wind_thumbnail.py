@@ -16,7 +16,8 @@ def generate():
                     camera_auto_fit=False,
                     background_color=0x05060D,
                     screenshot_scale=1.0,
-                    axes_helper=0)
+                    axes_helper=0,
+                    colorbar_object_id=0)
 
     plot += k3d.volume(data['density'].astype(np.float32),
                        samples=256, alpha_coef=40,
@@ -36,7 +37,7 @@ def generate():
     plot.depth_peels = 4
     plot.renderer = 'advanced'
     plot.environment = 'moonless_golf'
-    plot.camera = [4.4, -4.4, 2.9, 0, 0, 0, 0, 0, 1]
+    plot.camera = [3.1, -3.1, 2.0, 0, 0, 0, 0, 0, 1]
 
     headless = k3d_remote(plot, get_headless_driver(), width=800, height=800)
 

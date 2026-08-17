@@ -27,6 +27,7 @@ Showcase
     showcase/lorenz-system.rst
     showcase/menger-sponge.rst
     showcase/orbits.rst
+    showcase/plasma-wind.rst
     showcase/point-cloud.rst
     showcase/segmentation.rst
     showcase/streamlines.rst
@@ -45,6 +46,10 @@ Showcase
 
 .. k3d_plot::
    :filename: showcase/thumbnails/orbits_thumbnail.py
+   :screenshot:
+
+.. k3d_plot::
+   :filename: showcase/thumbnails/plasma_wind_thumbnail.py
    :screenshot:
 
 .. k3d_plot::
@@ -90,6 +95,10 @@ Showcase
 .. image:: orbits_thumbnail.png
    :width: 155
    :target: showcase/orbits.html
+
+.. image:: plasma_wind_thumbnail.png
+   :width: 155
+   :target: showcase/plasma-wind.html
 
 .. image:: point_cloud_thumbnail.png
    :width: 155
