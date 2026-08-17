@@ -430,8 +430,14 @@ void main() {
         }
 
         #ifdef K3D_AO_DEPTH_PASS
-        // no shell reached - the ray stays background (depth 1.0 from the clear)
-        discard;
+        // no crossing: still a volume-composited pixel. Marked at (almost) the far
+        // plane: the overlay classifies it as volumetric - a discard left faint
+        // regions in the mesh AO class, and a nearby mesh printed its GTAO onto the
+        // ray integral as dark blotches. Far depth adds no occluder geometry, and
+        // anything real inside or behind the box still wins the depth test.
+        gl_FragDepthEXT = 0.999999;
+        gl_FragColor = vec4(0.999999, 2.0, 0.0, 1.0);
+        return;
         #endif
 
         #if (RAY_SAMPLES_COUNT > 0)

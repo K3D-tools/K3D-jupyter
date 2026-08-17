@@ -207,7 +207,15 @@ void main() {
         gl_FragColor = vec4(kShellDepth, 2.0, 0.0, 1.0);
         return;
     }
-    discard;
+
+    // no opaque-enough maximum: still a volume-composited pixel. Marked at
+    // (almost) the far plane: classified as volumetric without contributing any
+    // occluder geometry - a discard left faint regions in the mesh AO class,
+    // printing nearby meshes' GTAO onto the ray integral. Anything real inside
+    // or behind the box still wins the depth test.
+    gl_FragDepthEXT = 0.999999;
+    gl_FragColor = vec4(0.999999, 2.0, 0.0, 1.0);
+    return;
     #endif
 
     // LIGHT
