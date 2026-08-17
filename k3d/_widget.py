@@ -11,6 +11,35 @@ _STATIC = pathlib.Path(__file__).parent / "static"
 # transport machinery - they must not leak into scene state, snapshots or diffs
 _BASE_TRAITS = set(anywidget.AnyWidget.class_trait_names())
 
+# _esm rides in the synced state of EVERY widget instance, and K3D creates a widget
+# per scene object - so objects and chunks carry this stub instead of the full module.
+# It queues the model until the plot's widget.mjs loads and adopts the queue.
+_MODEL_STUB = """
+export default {
+    initialize({ model }) {
+        const REG = globalThis.__k3dWidgets = globalThis.__k3dWidgets || {};
+
+        REG.pending = REG.pending || [];
+
+        if (REG.adopt) {
+            return REG.adopt(model);
+        }
+
+        const entry = { model, cancelled: false, adopted: false, cleanup: null };
+
+        REG.pending.push(entry);
+
+        return () => {
+            entry.cancelled = true;
+            if (entry.cleanup) {
+                entry.cleanup();
+            }
+        };
+    },
+    render() {},
+};
+"""
+
 
 class K3DAnyWidget(anywidget.AnyWidget):
     """One shared front-end module for all K3D widgets; the JS side dispatches on _kind.
@@ -35,3 +64,9 @@ class K3DAnyWidget(anywidget.AnyWidget):
             and not name.startswith("_")
             and name not in _BASE_TRAITS
         )
+
+
+class K3DModelWidget(K3DAnyWidget):
+    """Model-only widgets (scene objects, voxel chunks): stub front end, no view."""
+
+    _esm = _MODEL_STUB

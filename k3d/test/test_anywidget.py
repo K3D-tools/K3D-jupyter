@@ -15,6 +15,14 @@ def test_esm_is_packaged():
     assert (_STATIC / "widget.mjs").exists()
 
 
+def test_objects_carry_the_stub_not_the_module():
+    # _esm rides in the synced state of every instance - objects must stay tiny
+    mesh = k3d.mesh(VERTICES, INDICES)
+
+    assert len(str(mesh._esm)) < 4096
+    assert len(str(k3d.plot()._esm)) > 100000
+
+
 def test_widget_kinds():
     assert k3d.plot()._kind == "plot"
     assert k3d.mesh(VERTICES, INDICES)._kind == "object"

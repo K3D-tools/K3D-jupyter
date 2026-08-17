@@ -5,7 +5,7 @@ from traitlets import (Any, Bool, Dict, Int, Integer, List, TraitError,
                        Unicode, Union, validate)
 from traittypes import Array
 
-from .._widget import K3DAnyWidget
+from .._widget import K3DModelWidget
 from ..helpers import (array_serialization_wrap, callback_serialization_wrap,
                        to_json)
 
@@ -49,7 +49,7 @@ class ListOrArray(List):
         return super(ListOrArray, self).validate_elements(obj, value)
 
 
-class VoxelChunk(K3DAnyWidget):
+class VoxelChunk(K3DModelWidget):
     """Voxel chunk class for selective updating voxels."""
 
     _kind = Unicode("chunk").tag(sync=True)
@@ -79,7 +79,7 @@ class VoxelChunk(K3DAnyWidget):
         return obj
 
 
-class Drawable(K3DAnyWidget):
+class Drawable(K3DModelWidget):
     """
     Base class for drawable objects and groups.
     """

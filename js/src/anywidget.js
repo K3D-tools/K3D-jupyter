@@ -8,13 +8,15 @@ import serialize from './core/lib/helpers/serialize';
 import ThreeJsProvider from './providers/threejs/provider';
 import { viewModes } from './core/lib/viewMode';
 
-// the module can be instantiated more than once (one _esm per widget class), so the
-// registries tying plots, objects and chunks together live on globalThis
-const REG = globalThis.__k3dWidgets = globalThis.__k3dWidgets || {
-    objects: {},
-    chunks: {},
-    plots: [],
-};
+// the module can be instantiated more than once (one _esm per widget class), and the
+// object/chunk stub modules may have created the registry first, so every field is
+// ensured rather than assigned
+const REG = globalThis.__k3dWidgets = globalThis.__k3dWidgets || {};
+
+REG.objects = REG.objects || {};
+REG.chunks = REG.chunks || {};
+REG.plots = REG.plots || [];
+REG.pending = REG.pending || [];
 
 function runOnEveryPlot(id, cb) {
     REG.plots.forEach((plot) => {
@@ -606,6 +608,20 @@ function renderTFEditor({ model, el }) {
 /* ------------------------------------------------------------------------- */
 /* dispatch                                                                   */
 /* ------------------------------------------------------------------------- */
+
+// objects and chunks ship a ~1KB stub _esm - the full module would otherwise ride in
+// the synced state of every instance. The stub queues models until this module loads
+// and adopts them; anything created later is adopted directly through REG.adopt.
+REG.adopt = (model) => (
+    model.get('_kind') === 'chunk' ? initChunk({ model }) : initObject({ model })
+);
+
+REG.pending.splice(0).forEach((entry) => {
+    if (!entry.cancelled && !entry.adopted) {
+        entry.adopted = true;
+        entry.cleanup = REG.adopt(entry.model);
+    }
+});
 
 export default {
     initialize(ctx) {

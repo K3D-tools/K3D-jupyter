@@ -80,9 +80,19 @@ docs = [
 file = "LICENSE.txt"
 
 [tool.hatch.build.targets.wheel]
-exclude = ["k3d/test"]
+exclude = ["k3d/test", "k3d/*.stl"]
 artifacts = [
-    "k3d/static/",
+    "k3d/static/widget.mjs",
+    "k3d/static/widget.mjs.LICENSE.txt",
+    "k3d/static/standalone.js",
+    "k3d/static/standalone.js.LICENSE.txt",
+    "k3d/static/headless.html",
+    "k3d/static/snapshot_standalone.txt",
+    "k3d/static/snapshot_online.txt",
+    "k3d/static/snapshot_inline.txt",
+    "k3d/static/require.js",
+    "k3d/static/require.js.LICENSE.txt",
+    "k3d/static/fflate.js",
 ]
 
 [tool.hatch.version]
@@ -98,7 +108,17 @@ exclude = [
     "binder",
 ]
 artifacts = [
-    "k3d/static/",
+    "k3d/static/widget.mjs",
+    "k3d/static/widget.mjs.LICENSE.txt",
+    "k3d/static/standalone.js",
+    "k3d/static/standalone.js.LICENSE.txt",
+    "k3d/static/headless.html",
+    "k3d/static/snapshot_standalone.txt",
+    "k3d/static/snapshot_online.txt",
+    "k3d/static/snapshot_inline.txt",
+    "k3d/static/require.js",
+    "k3d/static/require.js.LICENSE.txt",
+    "k3d/static/fflate.js",
 ]
 
 [tool.hatch.build.hooks.jupyter-builder]
