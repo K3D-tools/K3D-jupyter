@@ -624,9 +624,14 @@ module.exports = function (K3D) {
             ensureTargets(rt.width, rt.height);
         }
 
+        // restore exactly what was hidden - a filter-based restore would resurrect
+        // objects the user hid while their opacity was 0
+        const opacityHidden = [];
+
         K3D.getWorld().K3DObjects.children.forEach((obj) => {
-            if (obj.material && obj.material.opacity <= 0.0) {
+            if (obj.visible && obj.material && obj.material.opacity <= 0.0) {
                 obj.visible = false;
+                opacityHidden.push(obj);
             }
         });
 
@@ -766,10 +771,8 @@ module.exports = function (K3D) {
 
         applyAOOverlay(camera, rt);
 
-        K3D.getWorld().K3DObjects.children.forEach((obj) => {
-            if (obj.material && obj.material.opacity <= 0.0) {
-                obj.visible = true;
-            }
+        opacityHidden.forEach((obj) => {
+            obj.visible = true;
         });
     }
 

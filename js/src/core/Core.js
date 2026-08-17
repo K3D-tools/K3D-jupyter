@@ -1290,6 +1290,13 @@ function K3D(provider, targetDOMNode, parameters) {
             world.K3DObjects.add(K3DObject);
         }
 
+        // registered here, at add time - not only in reload's .then. Two overlapping
+        // creates for the same id (GUI change + model echo) must see each other, or the
+        // earlier instance stays in the scene as an unremovable orphan
+        if (typeof (object.id) !== 'undefined') {
+            world.ObjectsById[object.id] = K3DObject;
+        }
+
         objectIndex += 1;
 
         self.heavyOperationSync = true;
@@ -1386,7 +1393,12 @@ function K3D(provider, targetDOMNode, parameters) {
                 objectsGUIProvider.update(self, object.json, GUI.objects, null);
 
                 world.ObjectsListJson[object.json.id] = object.json;
-                world.ObjectsById[object.json.id] = object.obj;
+
+                // a concurrent create may have evicted this instance already - never
+                // point the registry back at a disposed object
+                if (!world.ObjectsById[object.json.id] || world.ObjectsById[object.json.id] === object.obj) {
+                    world.ObjectsById[object.json.id] = object.obj;
+                }
 
                 if ((self.parameters.colorbarObjectId === -1
                         && object.json.color_range
@@ -1441,7 +1453,11 @@ function K3D(provider, targetDOMNode, parameters) {
                 }
 
                 world.ObjectsListJson[object.json.id] = object.json;
-                world.ObjectsById[object.json.id] = object.obj;
+
+                // same eviction rule as in load: a newer create wins the registry
+                if (!world.ObjectsById[object.json.id] || world.ObjectsById[object.json.id] === object.obj) {
+                    world.ObjectsById[object.json.id] = object.obj;
+                }
 
                 if ((self.parameters.colorbarObjectId === -1
                         && object.json.color_range

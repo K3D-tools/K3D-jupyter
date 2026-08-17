@@ -44,12 +44,19 @@ function attrsOf(model) {
 }
 
 function saveChanges(model, key, value) {
+    // model.set fires 'change:' listeners synchronously - the bridges below must not
+    // reload the scene for a change the scene itself just produced (a second reload
+    // in the same tick double-creates the object and orphans one copy)
+    model._k3dOwnChange = (model._k3dOwnChange || 0) + 1;
+
     // the comm can be gone (kernel restart, page teardown) - a failed echo must not throw
     try {
         model.set(key, value);
         model.save_changes();
     } catch (e) {
         console.log(e);
+    } finally {
+        model._k3dOwnChange -= 1;
     }
 }
 
@@ -77,6 +84,10 @@ function initObject({ model }) {
 
     model.get('_synced_props').forEach((key) => {
         model.on(`change:${key}`, () => {
+            if (model._k3dOwnChange) {
+                return;
+            }
+
             const value = deserialized(model, key);
 
             attrs[key] = value;
@@ -136,6 +147,10 @@ function initChunk({ model }) {
 
     model.get('_synced_props').forEach((key) => {
         model.on(`change:${key}`, () => {
+            if (model._k3dOwnChange) {
+                return;
+            }
+
             attrs[key] = deserialized(model, key);
 
             Object.keys(REG.objects).forEach((id) => {
@@ -368,7 +383,13 @@ function renderPlot({ model, el }) {
             if (key.charAt(0) === '_') {
                 return;
             }
-            model.on(`change:${key}`, () => PLOT_HANDLERS[key](view));
+            model.on(`change:${key}`, () => {
+                if (model._k3dOwnChange) {
+                    return;
+                }
+
+                PLOT_HANDLERS[key](view);
+            });
         });
 
         try {
