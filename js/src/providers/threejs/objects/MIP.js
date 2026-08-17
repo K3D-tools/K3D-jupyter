@@ -170,6 +170,7 @@ module.exports = {
 
         // the occluder shell for the AO prepass: the maximum-intensity point, when the
         // colormap alpha there crosses one half. Uniforms shared by reference.
+        object.userData.k3dVolumeShell = true;
         object.userData.k3dAODepthMaterial = new THREE.ShaderMaterial({
             uniforms: material.uniforms,
             defines: Object.assign({ K3D_AO_DEPTH_PASS: 1 }, material.defines),

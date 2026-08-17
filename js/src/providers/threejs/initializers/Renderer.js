@@ -131,6 +131,7 @@ module.exports = function (K3D) {
     const aoTargets = { depth: null, raw: null, denoised: null };
     const fsCamera = new THREE.OrthographicCamera(-1, 1, 1, -1, 0, 1);
     let aoTexture = null;
+    let aoVolTexture = null;
     let aoSize = new THREE.Vector2(1, 1);
 
     const gtaoMaterial = new THREE.ShaderMaterial({
@@ -168,6 +169,7 @@ module.exports = function (K3D) {
     const aoOverlayMaterial = new THREE.ShaderMaterial({
         uniforms: {
             tAO: { value: null },
+            tAOVol: { value: null },
             tDepth: { value: null },
             uUvScale: { value: new THREE.Vector2(1, 1) },
             uUvBias: { value: new THREE.Vector2(0, 0) },
@@ -389,6 +391,20 @@ module.exports = function (K3D) {
             type: THREE.HalfFloatType,
             depthBuffer: false,
         });
+        // occluder-class separation: volume-shell pixels take AO computed from the
+        // shells alone, so meshes do not cast onto the whole ray integral
+        aoTargets.depthVol = new THREE.WebGLRenderTarget(width, height, {
+            minFilter: THREE.NearestFilter,
+            magFilter: THREE.NearestFilter,
+            format: THREE.RedFormat,
+            type: THREE.FloatType,
+        });
+        aoTargets.denoisedVol = new THREE.WebGLRenderTarget(width, height, {
+            minFilter: THREE.LinearFilter,
+            magFilter: THREE.LinearFilter,
+            type: THREE.HalfFloatType,
+            depthBuffer: false,
+        });
     }
 
     // Full-frame AO for the current camera. Must run before any chunked/strip rendering:
@@ -508,9 +524,58 @@ module.exports = function (K3D) {
         self.renderer.clear(true, false, false);
         self.renderer.render(pdScene, fsCamera);
 
-        self.renderer.setRenderTarget(null);
-
         aoTexture = aoTargets.denoised.texture;
+        aoVolTexture = aoTexture;
+
+        const volumeShells = impostors.filter((obj) => obj.userData.k3dVolumeShell);
+
+        if (volumeShells.length > 0) {
+            const shown = [];
+
+            world.K3DObjects.traverse((obj) => {
+                if (obj.visible && obj.material) {
+                    obj.visible = false;
+                    shown.push(obj);
+                }
+            });
+            volumeShells.forEach((obj) => {
+                obj.visible = true;
+                obj.userData.k3dAOColorMaterial = obj.material;
+                obj.material = obj.userData.k3dAODepthMaterial;
+            });
+
+            self.renderer.setRenderTarget(aoTargets.depthVol);
+            self.renderer.setClearColor(0xffffff, 1);
+            self.renderer.clear(true, true, false);
+            self.renderer.render(self.scene, self.camera);
+
+            volumeShells.forEach((obj) => {
+                obj.material = obj.userData.k3dAOColorMaterial;
+                obj.visible = false;
+            });
+            shown.forEach((obj) => {
+                obj.visible = true;
+            });
+
+            u.tDepth.value = aoTargets.depthVol.texture;
+
+            self.renderer.setRenderTarget(aoTargets.raw);
+            self.renderer.setClearColor(0xffffff, 1);
+            self.renderer.clear(true, false, false);
+            self.renderer.render(gtaoScene, fsCamera);
+
+            pdMaterial.uniforms.tDiffuse.value = aoTargets.raw.texture;
+            pdMaterial.uniforms.tDepth.value = aoTargets.depthVol.texture;
+
+            self.renderer.setRenderTarget(aoTargets.denoisedVol);
+            self.renderer.setClearColor(0xffffff, 1);
+            self.renderer.clear(true, false, false);
+            self.renderer.render(pdScene, fsCamera);
+
+            aoVolTexture = aoTargets.denoisedVol.texture;
+        }
+
+        self.renderer.setRenderTarget(null);
         aoSize.set(width, height);
     }
 
@@ -524,6 +589,7 @@ module.exports = function (K3D) {
         const bias = aoOverlayMaterial.uniforms.uUvBias.value;
 
         aoOverlayMaterial.uniforms.tAO.value = aoTexture;
+        aoOverlayMaterial.uniforms.tAOVol.value = aoVolTexture;
         aoOverlayMaterial.uniforms.tDepth.value = aoTargets.depth.texture;
 
         if (rt && camera.view && camera.view.enabled) {
