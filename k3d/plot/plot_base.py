@@ -105,6 +105,16 @@ class PlotBase(K3DAnyWidget):
 
     objects: TypingList[Drawable] = []
 
+    def _handle_custom_msg(self, content, buffers):
+        # the anywidget module lives under a blob: URL, so the HTML-snapshot button
+        # cannot locate standalone.js by script path - the kernel serves it instead
+        if content.get("msg_type") == "fetch_snapshot_source":
+            import zlib
+            from pathlib import Path
+
+            source = (Path(__file__).parent.parent / "static" / "standalone.js").read_bytes()
+            self.send({"msg_type": "snapshot_source"}, buffers=[zlib.compress(source, 9)])
+
     def __init__(
             self,
             antialias: int = 3,
@@ -197,6 +207,8 @@ class PlotBase(K3DAnyWidget):
         self.camera_no_rotate = camera_no_rotate
         self.camera_no_zoom = camera_no_zoom
         self.camera_no_pan = camera_no_pan
+
+        self.on_msg(self._handle_custom_msg)
         self.camera_rotate_speed = camera_rotate_speed
         self.camera_zoom_speed = camera_zoom_speed
         self.camera_pan_speed = camera_pan_speed

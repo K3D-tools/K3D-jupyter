@@ -67,3 +67,16 @@ def test_synced_props_ride_in_the_initial_state():
     assert "vertices" in state["_synced_props"]
     assert "id" in state["_synced_props"]
 
+
+def test_snapshot_source_served_over_comm():
+    import zlib
+
+    plot = k3d.plot()
+    sent = []
+    plot.send = lambda content, buffers=None: sent.append((content, buffers))
+
+    plot._handle_custom_msg({"msg_type": "fetch_snapshot_source"}, [])
+
+    assert sent[0][0]["msg_type"] == "snapshot_source"
+    source = zlib.decompress(sent[0][1][0])
+    assert b"CreateK3DAndLoadBinarySnapshot" in source

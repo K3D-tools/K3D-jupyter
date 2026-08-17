@@ -5,6 +5,7 @@ import _ from './lodash';
 import K3D from './core/Core';
 import K3DTransferFunctionEditor from './core/lib/transferFunctionEditorCore';
 import serialize from './core/lib/helpers/serialize';
+import buffer from './core/lib/helpers/buffer';
 import ThreeJsProvider from './providers/threejs/provider';
 import { viewModes } from './core/lib/viewMode';
 
@@ -320,7 +321,11 @@ function renderPlot({ model, el }) {
 
         REG.plots.push(view);
 
-        model.on('msg:custom', (obj) => {
+        model.on('msg:custom', (obj, buffers) => {
+            if (obj.msg_type === 'snapshot_source' && buffers && buffers.length > 0) {
+                window.k3dCompressed = buffer.arrayBufferToBase64(buffers[0].buffer);
+            }
+
             if (obj.msg_type === 'fetch_screenshot') {
                 view.K3DInstance.getScreenshot(view.K3DInstance.parameters.screenshotScale, obj.only_canvas)
                     .then((canvas) => {
@@ -501,6 +506,12 @@ function renderPlot({ model, el }) {
 
         resizeObserver.observe(el);
         el.addEventListener('contextmenu', contextMenuListener, true);
+
+        // the HTML-snapshot button embeds the standalone source - fetched from the
+        // kernel once per page, since no script URL points at it any more
+        if (!window.k3dCompressed) {
+            model.send({ msg_type: 'fetch_snapshot_source' });
+        }
 
         view.evalInContext();
     });

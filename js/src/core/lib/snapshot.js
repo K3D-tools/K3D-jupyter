@@ -52,6 +52,12 @@ if (typeof (sourceCode) === 'undefined') {
 function getHTMLSnapshot(K3D, compressionLevel) {
     K3D.heavyOperationSync = true;
 
+    // the anywidget module lives under a blob: URL - the script-path heuristic
+    // cannot see it, so the kernel delivers the source through the comm instead
+    if (window.k3dCompressed) {
+        sourceCode = window.k3dCompressed;
+    }
+
     const data = buffer.arrayBufferToBase64(K3D.getSnapshot(compressionLevel));
     let filecontent;
     const timestamp = new Date().toUTCString();
