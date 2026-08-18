@@ -11,7 +11,7 @@ const rules = [
         type: 'asset/inline',
     },
     {
-        test: /\.(glsl|txt)/,
+        test: /\.(glsl|txt)$/,
         type: 'asset/source',
     },
     {
