@@ -1,5 +1,7 @@
 const THREE = require('three');
+const fflate = require('fflate');
 const Float16Array = require('../../../core/lib/helpers/float16Array');
+const buffer = require('../../../core/lib/helpers/buffer');
 
 const WIRE_TYPES = {
     int8: Int8Array,
@@ -267,12 +269,39 @@ function fromArray(env) {
     return texture;
 }
 
+// The photographic catalog lives in the python package, so a kernel-less page
+// degrades its names to neutral - unless a sideload provides the maps: a shared
+// k3dEnvironments.js (k3d.environments.save_js) defines window.k3dEnvironments
+// as {name: {b64: base64(zlib(float16 bytes)), shape: [h, w, 3]}}. Decoded once,
+// cached on the entry.
+function fromSideload(name) {
+    const catalog = (typeof (window) !== 'undefined') && window.k3dEnvironments;
+
+    if (!catalog || !catalog[name]) {
+        return null;
+    }
+
+    const entry = catalog[name];
+
+    if (!entry.decoded) {
+        entry.decoded = ensureTyped({
+            data: fflate.unzlibSync(new Uint8Array(buffer.base64ToArrayBuffer(entry.b64))),
+            dtype: 'float16',
+            shape: entry.shape,
+        });
+    }
+
+    return fromArray(entry.decoded);
+}
+
 module.exports = {
     getEnvironmentTexture(environment) {
         if (environment && environment.data && environment.shape) {
             return fromArray(ensureTyped(environment));
         }
 
-        return fromPreset(typeof (environment) === 'string' ? environment : 'neutral');
+        const name = typeof (environment) === 'string' ? environment : 'neutral';
+
+        return fromSideload(name) || fromPreset(name);
     },
 };

@@ -18,3 +18,30 @@ def load(name):
         return None
     with np.load(path) as f:
         return f["map"].astype(np.float32)
+
+
+def save_js(path):
+    """Write a sideload script defining window.k3dEnvironments.
+
+    Included on a page (once, next to standalone.js), it lets kernel-less
+    contexts - HTML snapshots, documentation embeds - realise the photographic
+    catalog names, which otherwise degrade to the neutral preset. The maps
+    travel as zlib-compressed float16, ~1 MB for the whole catalog.
+    """
+    import base64
+    import json
+    import zlib
+
+    entries = {}
+    for name in available():
+        with np.load(os.path.join(_DIR, name + ".npz")) as f:
+            half = f["map"].astype(np.float16)
+        entries[name] = {
+            "b64": base64.b64encode(zlib.compress(half.tobytes(), 9)).decode("ascii"),
+            "shape": list(half.shape),
+        }
+
+    with open(path, "w", encoding="utf-8") as out:
+        out.write("window.k3dEnvironments = ")
+        json.dump(entries, out)
+        out.write(";\n")

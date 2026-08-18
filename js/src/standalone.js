@@ -46,11 +46,13 @@ function CreateK3DAndLoadBinarySnapshot(data, targetDOMNode) {
             }
 
             try {
-                // Create the K3D instance with the decoded plot
+                // Create the K3D instance with the decoded plot. standaloneGUI
+                // restricts the environment dropdown to what a kernel-less page
+                // can regenerate (procedural presets, sideloads, the baked map)
                 K3DInstance = new K3D(
                     ThreeJsProvider,
                     targetDOMNode,
-                    data.plot,
+                    Object.assign({}, data.plot, { standaloneGUI: true }),
                 );
             } catch (e) {
                 // Log and reject on error

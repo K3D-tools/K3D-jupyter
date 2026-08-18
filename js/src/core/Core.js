@@ -144,13 +144,38 @@ function K3D(provider, targetDOMNode, parameters) {
             });
         // Python resolves catalog names to arrays, so the resolved value comes back as
         // an object - the wire dict carries the name for display. Arrays without one
-        // show as 'custom'. A kernel-less standalone degrades names to neutral.
-        const environmentOptions = [
-            'neutral', 'studio', 'outdoor',
-            'autoshop_01', 'brown_photostudio_02', 'burnt_warehouse',
-            'moonless_golf', 'venice_sunset',
-            'custom',
-        ];
+        // show as 'custom'. Without a kernel nothing can resolve a catalog name, so a
+        // standalone offers only what it can regenerate: the procedural presets, any
+        // sideloaded maps (window.k3dEnvironments) and the map baked into the snapshot -
+        // that one is kept aside, or switching away from it would lose the pixels.
+        const bakedEnv = (self.parameters.environment && self.parameters.environment.data
+            && self.parameters.environment.name) ? self.parameters.environment : null;
+        const environmentOptions = (function () {
+            const options = ['neutral', 'studio', 'outdoor'];
+
+            if (self.parameters.standaloneGUI) {
+                if (typeof (window) !== 'undefined' && window.k3dEnvironments) {
+                    Object.keys(window.k3dEnvironments).forEach((name) => {
+                        if (options.indexOf(name) === -1) {
+                            options.push(name);
+                        }
+                    });
+                }
+
+                if (bakedEnv && options.indexOf(bakedEnv.name) === -1) {
+                    options.push(bakedEnv.name);
+                }
+            } else {
+                options.push(
+                    'autoshop_01', 'brown_photostudio_02', 'burnt_warehouse',
+                    'moonless_golf', 'venice_sunset',
+                );
+            }
+
+            options.push('custom');
+
+            return options;
+        }());
         const environmentGUIName = function () {
             const env = self.parameters.environment;
 
@@ -177,6 +202,12 @@ function K3D(provider, targetDOMNode, parameters) {
                 if (value === 'custom') {
                     // a label for an array map, not a choice
                     self.refreshEnvironmentGUI();
+                    return;
+                }
+                if (bakedEnv && value === bakedEnv.name) {
+                    // back to the map baked into this snapshot
+                    self.setEnvironment(bakedEnv);
+                    changeParameters.call(self, 'environment', value);
                     return;
                 }
                 self.setEnvironment(value);
