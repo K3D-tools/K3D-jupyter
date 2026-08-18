@@ -77,9 +77,6 @@ module.exports = function createWebGLBackend(renderer) {
 
         init() {
             tracer = new WebGLPathTracer(renderer);
-            // headless determinism and throughput beat page responsiveness here;
-            // the interactive loop revisits tiling in stage 3
-            tracer.tiles.set(1, 1);
             tracer.dynamicLowRes = false;
             tracer.minSamples = 1;
             // the sample loop is driven externally - no cinematic fade-ins and
@@ -97,6 +94,27 @@ module.exports = function createWebGLBackend(renderer) {
 
         setBounces(bounces) {
             tracer.bounces = bounces;
+        },
+
+        // Tiling is not a responsiveness nicety - it is what keeps the GPU from
+        // being handed one uninterrupted job per sample. A full-frame trace of a
+        // heavy scene runs long enough to stall the page visibly and to trip the
+        // driver watchdog, which tears down the WebGL context. Each
+        // renderSample() advances one tile, so the work arrives in slices the
+        // browser can breathe between. The slice is sized by pixels, not by a
+        // fixed grid, so the guarantee holds at every resolution.
+        setTiles(width, height) {
+            const perTile = 120000;
+            const tiles = Math.min(6, Math.max(1, Math.ceil(Math.sqrt((width * height) / perTile))));
+
+            tracer.tiles.set(tiles, tiles);
+
+            return tiles * tiles;
+        },
+
+        // one sample is spread over this many renderSample() calls
+        tileCount() {
+            return Math.max(1, tracer.tiles.x) * Math.max(1, tracer.tiles.y);
         },
 
         setScene(scene, camera) {

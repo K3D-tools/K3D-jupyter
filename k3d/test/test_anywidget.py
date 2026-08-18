@@ -199,10 +199,12 @@ def test_cinematic_params_are_validated():
     plot.cinematic_samples = 32
     plot.cinematic_bounces = 12
 
+    plot.cinematic_samples = 4096
+
     with pt.raises(TraitError):
         plot.cinematic_samples = 0
     with pt.raises(TraitError):
-        plot.cinematic_samples = 5000
+        plot.cinematic_samples = 100001
     with pt.raises(TraitError):
         plot.cinematic_bounces = 0
     with pt.raises(TraitError):

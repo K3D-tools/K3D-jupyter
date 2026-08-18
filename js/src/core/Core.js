@@ -242,8 +242,10 @@ function K3D(provider, targetDOMNode, parameters) {
 
         const cinematicControls = [];
 
+        // the slider spans what is comfortable interactively; the trait itself
+        // accepts far more for a final render
         cinematicControls.push(GUI.controls.add(self.parameters, 'cinematicSamples')
-            .step(1).min(1).max(512)
+            .step(1).min(1).max(1024)
             .listen()
             .onChange((value) => {
                 self.setCinematicSamples(value);

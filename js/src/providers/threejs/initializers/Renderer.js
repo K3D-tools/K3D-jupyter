@@ -875,8 +875,36 @@ module.exports = function (K3D) {
                 presentFrame(texture) {
                     const size = new THREE.Vector2();
 
-                    self.renderer.getSize(size);
+                    // the drawing buffer, not the CSS size: gl_FragCoord in the
+                    // blit spans device pixels, so at any pixelRatio != 1 the
+                    // CSS size would show a magnified corner of the frame
+                    self.renderer.getDrawingBufferSize(size);
                     composeCinematic(texture, null, size.x, size.y);
+                },
+
+                onError(e) {
+                    error('Cinematic Error', `The cinematic renderer failed: ${e.message}.`, false);
+                },
+
+                // the camera is moving: draw the scene the cheap way for this
+                // frame so the view tracks the mouse. Same geometry, same
+                // materials, same environment - only the light transport is the
+                // rasterised approximation, and only until the camera settles.
+                rasterizePreview() {
+                    const size = new THREE.Vector2();
+
+                    self.renderer.getSize(size);
+                    self.renderer.setRenderTarget(null);
+                    self.renderer.setViewport(0, 0, size.x, size.y);
+                    self.renderer.clear();
+                    self.renderer.render(self.gridScene, self.camera);
+                    directRender(self.scene, self.camera);
+                    self.renderer.setViewport(
+                        size.x - self.axesHelper.width, 0,
+                        self.axesHelper.width, self.axesHelper.height,
+                    );
+                    self.renderer.render(self.axesHelper.scene, self.axesHelper.camera);
+                    self.renderer.setViewport(0, 0, size.x, size.y);
                 },
             });
         }
@@ -918,6 +946,15 @@ module.exports = function (K3D) {
             self.camera.updateMatrixWorld();
             alignAxesCamera();
             K3D.dispatch(K3D.events.BEFORE_RENDER);
+
+            // interactively the accumulation lives in its own animation-frame
+            // loop (one sample per frame, the library's own rhythm) - it keeps
+            // refining after this call returns and dispatches RENDERED itself
+            if (typeof window !== 'undefined' && typeof window.headlessK3D === 'undefined') {
+                mode.wake();
+
+                return Promise.resolve(null);
+            }
 
             return mode.renderFrame().then((result) => {
                 if (!result.stale) {
@@ -1110,8 +1147,48 @@ module.exports = function (K3D) {
         toneMappingMode.value = map[name] || 0;
     };
 
+    // Every setter asks for a render, and one trait sync runs a dozen of them.
+    // Rasterising that is cheap; accumulating a path-traced frame each time is
+    // not - so in cinematic the unforced requests of a single tick collapse
+    // into one accumulation. In headless they collapse into none: there every
+    // frame is requested explicitly (screenshots render offscreen), and a
+    // preview nobody looks at would double the cost of every reference.
+    let coalescedRender = null;
+
     this.render = function (force) {
         K3D.labels = [];
+
+        if (K3D.parameters.renderer === 'cinematic' && !force) {
+            if (typeof window !== 'undefined' && typeof window.headlessK3D !== 'undefined') {
+                return Promise.resolve(null);
+            }
+
+            // whatever is accumulating now depicts a state the caller just
+            // superseded; abandoning it here (rather than when the queued render
+            // finally starts) is what makes an edit feel immediate instead of
+            // waiting out the remaining sample budget
+            if (cinematicMode !== null) {
+                cinematicMode.abort();
+            }
+
+            if (coalescedRender === null) {
+                coalescedRender = new Promise((resolve) => {
+                    setTimeout(() => {
+                        coalescedRender = null;
+                        Promise.resolve(self.render(true)).then(resolve);
+                    }, 0);
+                });
+            }
+
+            return coalescedRender;
+        }
+
+        // a forced cinematic render queues behind the one in flight, which would
+        // make the user wait out a budget whose result is already obsolete -
+        // abandon it now so the queued render starts on the next tile
+        if (force && K3D.parameters.renderer === 'cinematic' && cinematicMode !== null) {
+            cinematicMode.abort();
+        }
 
         if (!K3D.autoRendering || force) {
             if (renderingPromise === null) {
@@ -1208,8 +1285,11 @@ module.exports = function (K3D) {
 
         ensureCinematicVolumeTargets(width, height);
 
+        // uLayer == 0 makes the peel tail a no-op, so this pass needs no
+        // uScreenSize of its own - and writing one would corrupt the raster
+        // peel pipeline for the rest of the session: ensureTargets, its only
+        // other writer, skips the assignment when the targets already match
         globalPeelUniforms.uLayer.value = 0;
-        globalPeelUniforms.uScreenSize.value.set(1 / width, 1 / height);
         self.camera.updateMatrixWorld();
 
         // the environment background renders with its own material that
@@ -1217,46 +1297,50 @@ module.exports = function (K3D) {
         // the depth channel and peelT would read them as surfaces
         const savedBackground = proxyScene.background;
 
-        proxyScene.background = null;
-
-        self.renderer.setRenderTarget(cinematicVolume.depth);
-        self.renderer.setViewport(0, 0, width, height);
-        self.renderer.setClearColor(0xffffff, 1);
-        self.renderer.clear(true, true, false);
-        proxyScene.overrideMaterial = depthMaterial;
-        self.renderer.render(proxyScene, self.camera);
-        proxyScene.overrideMaterial = null;
-        proxyScene.background = savedBackground;
-
         const u = self.k3dVolumePeel;
         const shown = [];
 
-        u.uPeelSegment.value = 1;
-        u.uPeelNearTexture.value = peelDummyNear;
-        u.uPeelFarTexture.value = cinematicVolume.depth.texture;
-        u.uPeelSize.value.set(1.0 / width, 1.0 / height);
-        u.uPeelInvProjection.value.copy(self.camera.projectionMatrixInverse);
-        u.uPeelInvView.value.copy(self.camera.matrixWorld);
+        // every mutation below is global state the other renderers read, so a
+        // throw anywhere in the two passes must not leave it behind
+        try {
+            proxyScene.background = null;
 
-        // leaves only - hiding the K3DObjects group would hide the volumes too
-        world.K3DObjects.traverse((obj) => {
-            if (obj.visible && obj.material && !obj.userData.k3dVolumeShell) {
-                obj.visible = false;
-                shown.push(obj);
-            }
-        });
+            self.renderer.setRenderTarget(cinematicVolume.depth);
+            self.renderer.setViewport(0, 0, width, height);
+            self.renderer.setClearColor(0xffffff, 1);
+            self.renderer.clear(true, true, false);
+            proxyScene.overrideMaterial = depthMaterial;
+            self.renderer.render(proxyScene, self.camera);
 
-        self.renderer.setRenderTarget(cinematicVolume.layer);
-        self.renderer.setViewport(0, 0, width, height);
-        self.renderer.setClearColor(0, 0);
-        self.renderer.clear(true, false, false);
-        self.renderer.render(self.scene, self.camera);
+            u.uPeelSegment.value = 1;
+            u.uPeelNearTexture.value = peelDummyNear;
+            u.uPeelFarTexture.value = cinematicVolume.depth.texture;
+            u.uPeelSize.value.set(1.0 / width, 1.0 / height);
+            u.uPeelInvProjection.value.copy(self.camera.projectionMatrixInverse);
+            u.uPeelInvView.value.copy(self.camera.matrixWorld);
 
-        shown.forEach((obj) => {
-            obj.visible = true;
-        });
-        u.uPeelSegment.value = 0;
-        self.renderer.setRenderTarget(null);
+            // leaves only - hiding the K3DObjects group would hide the volumes too
+            world.K3DObjects.traverse((obj) => {
+                if (obj.visible && obj.material && !obj.userData.k3dVolumeShell) {
+                    obj.visible = false;
+                    shown.push(obj);
+                }
+            });
+
+            self.renderer.setRenderTarget(cinematicVolume.layer);
+            self.renderer.setViewport(0, 0, width, height);
+            self.renderer.setClearColor(0, 0);
+            self.renderer.clear(true, false, false);
+            self.renderer.render(self.scene, self.camera);
+        } finally {
+            proxyScene.overrideMaterial = null;
+            proxyScene.background = savedBackground;
+            shown.forEach((obj) => {
+                obj.visible = true;
+            });
+            u.uPeelSegment.value = 0;
+            self.renderer.setRenderTarget(null);
+        }
 
         return true;
     }
@@ -1339,7 +1423,13 @@ module.exports = function (K3D) {
         const mode = getCinematic();
         const size = new THREE.Vector2();
 
+        // same prologue the interactive branch runs: per-frame object work
+        // (the volume light map among it) hangs off BEFORE_RENDER, and the
+        // overlays reproject there
+        K3D.refreshGrid();
+        self.camera.updateMatrixWorld();
         alignAxesCamera();
+        K3D.dispatch(K3D.events.BEFORE_RENDER);
         self.renderer.getSize(size);
 
         const scale = Math.max(width / size.x, height / size.y);
@@ -1365,26 +1455,32 @@ module.exports = function (K3D) {
             }
             rtAxesHelper.dispose();
 
+            // the tracer stays pinned to this resolution until released, so
+            // the release must survive a rejected accumulation
             return mode.renderBudget(width, height).then((frame) => {
                 const rt = new THREE.WebGLRenderTarget(width, height, {
                     minFilter: THREE.NearestFilter,
                     magFilter: THREE.NearestFilter,
                 });
 
-                self.renderer.setRenderTarget(rt);
-                self.renderer.setViewport(0, 0, width, height);
-                self.renderer.setClearColor(0, 0);
-                self.renderer.clear();
-                composeCinematic(frame.texture, rt, width, height);
+                try {
+                    self.renderer.setRenderTarget(rt);
+                    self.renderer.setViewport(0, 0, width, height);
+                    self.renderer.setClearColor(0, 0);
+                    self.renderer.clear();
+                    composeCinematic(frame.texture, rt, width, height);
 
-                const pixels = new Uint8Array(width * height * 4);
+                    const pixels = new Uint8Array(width * height * 4);
 
-                self.renderer.readRenderTargetPixels(rt, 0, 0, width, height, pixels);
-                self.renderer.setRenderTarget(null);
-                rt.dispose();
+                    self.renderer.readRenderTargetPixels(rt, 0, 0, width, height, pixels);
+
+                    return [new Uint8ClampedArray(pixels.buffer), axesHelper];
+                } finally {
+                    self.renderer.setRenderTarget(null);
+                    rt.dispose();
+                }
+            }).finally(() => {
                 mode.releaseFixedSize();
-
-                return [new Uint8ClampedArray(pixels.buffer), axesHelper];
             });
         });
     }

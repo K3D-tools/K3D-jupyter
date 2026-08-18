@@ -299,7 +299,7 @@ function buildPoints(json) {
     });
 
     if (outColor === null) {
-        material.color = new THREE.Color(json.color !== undefined ? json.color : 0x0000ff);
+        material.color = new THREE.Color(json.color !== undefined ? json.color : 0xff00);
     }
 
     material.transparent = material.opacity < 1.0;
@@ -356,7 +356,7 @@ function buildLine(json) {
         colorMapped ? json.attribute.data : null,
         radius,
         radialSegments,
-        new THREE.Color(json.color !== undefined ? json.color : 0x0000ff),
+        new THREE.Color(json.color !== undefined ? json.color : 0xff00),
         verticesColors,
         colorMapped ? json.color_range : null,
     );
@@ -412,7 +412,7 @@ function buildLines(json) {
     const sourceColors = (!colorMapped && hasData(json.colors)
         && json.colors.data.length === vertexCount)
         ? buffer.colorsToFloat32Array(json.colors.data) : null;
-    const color = new THREE.Color(json.color !== undefined ? json.color : 0x0000ff);
+    const color = new THREE.Color(json.color !== undefined ? json.color : 0xff00);
     const geometries = [];
 
     for (let e = 0; e < edges.length; e += 2) {

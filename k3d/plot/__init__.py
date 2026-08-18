@@ -95,9 +95,12 @@ class Plot(
             Exponent deepening the ambient occlusion shadows, in [0, 10].
             0 disables the darkening, default 1.8.
         cinematic_samples: `int`.
-            Sample budget of the cinematic renderer for screenshots and headless
-            rendering, in [1, 4096]. Default 64. The interactive view keeps
-            accumulating up to the same budget and restarts on any change.
+            Sample budget of the cinematic renderer, in [1, 100000]. Default 64,
+            which settles in a moment; raise it for a final render. The
+            interactive view accumulates one sample per animation frame up to
+            this budget, then parks itself; any change to the camera, the scene
+            or the lighting restarts the accumulation from zero. Screenshots
+            always render the full budget.
         cinematic_bounces: `int`.
             Light bounce count of the cinematic renderer's path tracing,
             in [1, 32]. Default 6.
