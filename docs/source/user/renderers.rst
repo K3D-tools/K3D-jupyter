@@ -21,10 +21,20 @@ Since 2.19.0 every plot carries a ``renderer`` switch:
     geometry with contact shadows. Switching back and forth is a single
     assignment and never rebuilds the scene.
 
+``cinematic``
+    Progressive path tracing: light bounces between surfaces, so shadows,
+    reflections and colour bleeding come out of the simulation rather than from
+    a screen-space approximation. The image refines sample by sample and
+    restarts whenever the camera or the scene changes. Requires WebGL2 with
+    renderable float textures - see :ref:`cinematic` below.
+
 The golden rule: **the renderer changes the light, never what you asked to
 draw**. Unlit primitives - ``points`` with ``dot``/``flat`` shaders,
 ``line(simple)``, ``line(thick)``, labels, texts, wireframes - are a deliberate
-choice of no shading and look identical in both renderers.
+choice of no shading and look identical in ``simple`` and ``advanced``.
+``cinematic`` keeps the *shape* of everything you asked for but not always the
+implementation, and it has no concept of an unlit surface; the differences are
+listed in :ref:`cinematic`.
 
 The same roughness/metalness sweep under both renderers - dielectrics in the
 front row, metals in the back, roughness growing to the right. First
@@ -144,4 +154,133 @@ Tone mapping
     plot.tone_mapping = 'agx'   # or 'aces'; 'none' is the default
 
 Filmic curves compress bright HDR highlights - useful with high-contrast
-photographic environments.
+photographic environments. All three renderers share the same curve, applied as
+the last step before the frame reaches the screen.
+
+.. _cinematic:
+
+Cinematic: path tracing
+-----------------------
+
+.. code-block:: python3
+
+    plot.renderer = 'cinematic'
+    plot.cinematic_samples = 64   # accumulation budget, [1, 4096]
+    plot.cinematic_bounces = 6    # light bounces, [1, 32]
+
+Where ``advanced`` approximates indirect light with an occlusion pass,
+``cinematic`` traces it: rays scatter off surfaces up to ``cinematic_bounces``
+times, gathering colour from the environment and from each other. Soft shadows,
+mirror and glossy reflections, and colour bleeding between nearby objects all
+appear without a single extra knob - they are consequences of the simulation.
+
+The image is progressive: one sample per animation frame, with a counter in the
+corner, until it reaches ``cinematic_samples`` - a hard ceiling, after which the
+loop stops and an idle plot costs nothing. Any change to the camera, the scene or
+the lighting abandons the accumulation and starts it again from sample zero, so
+what you see always describes the current state. While you drag the camera the
+frame is rasterised instead (the same picture ``advanced`` would draw, minus the
+occlusion pass), so the view follows the mouse; path tracing resumes the moment
+the camera settles. Screenshots always render the full budget, so an exported
+image is as clean as the budget allows regardless of what the interactive view
+had reached - raise the budget for a final render, it accepts values far beyond
+anything interactive.
+
+.. note::
+    Path tracing produces high dynamic range: bounced light between bright
+    surfaces genuinely exceeds 1.0, and without a tone curve those values clip.
+    A yellow menger sponge - all cavities, all bounce - blows out about 7% of its
+    pixels at ``tone_mapping='none'`` and none at all with ``'aces'``. If a
+    cinematic render looks hot where ``advanced`` looked fine, reach for
+    ``plot.tone_mapping`` before ``plot.lighting``.
+
+The same material sweep as above, path traced (the counter in the corner tells
+you when it has settled):
+
+.. k3d_plot ::
+  :filename: plots/renderers_cinematic_plot.py
+
+Environments work exactly as in ``advanced`` - the map is the only light, and it
+is also what you see in the background. ``plot.lighting`` remains the exposure.
+Ambient-occlusion knobs are absent from the panel here: occlusion is not
+approximated, it is traced.
+
+What changes shape-for-shape
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+A path tracer needs surfaces with area, so objects drawn as screen-space
+impostors are rebuilt as real geometry. The result keeps the shape you asked
+for; the differences worth knowing:
+
+.. list-table::
+   :header-rows: 1
+   :widths: 30 70
+
+   * - Object
+     - In ``cinematic``
+   * - ``mesh``, ``stl``, ``surface``, ``marching_cubes``, ``voxels``,
+       ``texture``
+     - Traced as they are.
+   * - ``points`` (any shader)
+     - Merged spheres of real geometry. Sphere detail adapts to the point count
+       and is capped by a triangle budget, so very large clouds render coarser
+       spheres. ``dot`` has no world-space size at all (it is a pixel count), so
+       ``point_size`` is taken as its diameter. Per-point opacity is ignored.
+   * - ``line``, ``lines`` (``simple``/``thick``)
+     - Tubes of world-space width. ``thick`` extrudes its full width on screen,
+       so its tube radius is ``width / 2``, while the ``mesh`` shader already
+       treats ``width`` as a radius - a ``thick`` line and a ``mesh`` line of
+       the same ``width`` differ by 2x, exactly as they do when rasterised.
+   * - ``vectors``, ``vector_field``
+     - Shafts become tubes of radius ``line_width / 2``, heads stay cones.
+   * - ``texture_text``
+     - Camera-facing quads, frozen in the orientation they had when the
+       accumulation started; they do not turn with the camera mid-frame.
+   * - ``text``, ``text2d``, ``label``
+     - Unchanged: HTML overlays drawn on top of the finished frame.
+   * - ``volume_slice``
+     - Not rendered (a warning says so). A slice paints its cut plane with its
+       own shader and carries no depth-segment mechanism, so it can neither be
+       traced nor composited correctly; use ``simple`` or ``advanced`` for slice
+       views.
+   * - Unlit primitives
+     - Lit. A path tracer has no unlit surface, so ``dot``/``flat`` points and
+       simple lines pick up shading they never had in the other renderers.
+   * - The grid
+     - Not drawn. The environment dome is the background.
+
+Volumes and MIPs
+~~~~~~~~~~~~~~~~
+
+The path tracer knows only homogeneous fog, so ``volume`` and ``mip`` keep the
+ray march they use in ``advanced`` - lit by the same environment harmonics -
+and composite over the traced image. The march stops at the first traced
+surface, so geometry inside or behind a volume occludes correctly and gas in
+front of geometry dims it:
+
+.. k3d_plot ::
+  :filename: plots/renderers_volume_cinematic_plot.py
+
+The limits of this hybrid, in exchange for keeping volumes at all:
+
+* a volume does not appear in reflections or refractions, and casts no light or
+  shadow onto geometry - global illumination does not see the gas;
+* geometry seen *through* a reflection is not dimmed by gas in front of it,
+  although geometry seen directly is;
+* ``mip`` is a maximum-intensity projection, a diagnostic view rather than a
+  physical one; in ``cinematic`` it stays exactly that, composited outside the
+  light simulation.
+
+Requirements and failure
+~~~~~~~~~~~~~~~~~~~~~~~~
+
+``cinematic`` needs WebGL2 with renderable float textures. When the browser
+cannot provide them, switching to it **fails loudly**: an error overlay names
+the reason and the ``renderer`` trait reverts to its previous value. There is no
+silent fallback to another renderer - a plot that says ``cinematic`` is always
+path traced.
+
+Cost scales with resolution, sample budget and bounce count. On a software
+renderer (CI, remote sessions without a GPU) a converged frame takes seconds;
+the library's own reference images use 32 samples at a quarter resolution for
+exactly that reason.

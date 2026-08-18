@@ -44,6 +44,7 @@ module.exports = function cinematic(K3D, renderer, hooks) {
     let ready = false;
     let scene = null;
     let sceneDirty = true;
+    let materialsDirty = false;
     let envKey = null;
     let lastBounces = null;
     // the stratified-sample texture rebuilds on the first sample after a scene
@@ -61,9 +62,21 @@ module.exports = function cinematic(K3D, renderer, hooks) {
     // generation bump abandons whatever is accumulating right now: it is an
     // image of a scene that no longer exists, so finishing its budget would
     // only delay the one the user asked for.
+    // Rebuilding the proxy means rebuilding the BVH, which is the expensive part
+    // of a scene change - and these edits do not touch geometry at all: they sit
+    // on the material, which the tracer can refresh on its own. Colour is not in
+    // this set on purpose: for points and tubes it is baked into vertex colours,
+    // so changing it really is a geometry change.
+    const MATERIAL_ONLY = ['roughness', 'metalness', 'opacity'];
+
     ['OBJECT_LOADED', 'OBJECT_REMOVED', 'OBJECT_CHANGE'].forEach((name) => {
-        K3D.on(K3D.events[name], () => {
-            sceneDirty = true;
+        K3D.on(K3D.events[name], (change) => {
+            if (change && MATERIAL_ONLY.indexOf(change.key) !== -1) {
+                materialsDirty = true;
+            } else {
+                sceneDirty = true;
+            }
+
             generation++;
         });
     });
@@ -132,16 +145,16 @@ module.exports = function cinematic(K3D, renderer, hooks) {
         target.background = env;
         target.environmentRotation.copy(rotation);
         target.backgroundRotation.copy(rotation);
-        // Measured, not guessed: a watertight white cube in a uniform
-        // environment leaves 2.45x less radiance here than under the raster IBL
-        // of advanced, and the factor is constant across albedo (0.05..1.0), so
-        // it is exposure rather than shading. Advanced carries the same kind of
-        // measured correction for its own delivery (the 1.2 in Scene.js). The
-        // gain applies to the background too - a metal must reflect the same
-        // radiance that lights it - which also lands the backdrop near the white
-        // one advanced draws.
-        target.environmentIntensity = envIntensity * 1.2 * 1.633;
-        target.backgroundIntensity = envIntensity * 1.2 * 1.633;
+        // Exactly the exposure advanced applies (Scene.recalculateLights),
+        // including its measured 1.2 surface correction - no cinematic-specific
+        // gain. A lone flat surface does come out darker here, because the raster
+        // IBL hands it a full hemisphere of light while the path tracer gives it
+        // only what actually reaches it; but in any real scene the bounces make
+        // up the difference, and adding a gain on top double-counted it: a yellow
+        // menger sponge, all cavity, blew 55% of its pixels out to white while
+        // advanced saturated nothing.
+        target.environmentIntensity = envIntensity * 1.2;
+        target.backgroundIntensity = envIntensity * 1.2;
     }
 
     function buildScene() {
@@ -205,13 +218,24 @@ module.exports = function cinematic(K3D, renderer, hooks) {
             setHud('cinematic: building BVH…');
             backend.setScene(buildScene(), K3D.getWorld().camera);
             sceneDirty = false;
+            materialsDirty = false;
             envKey = key;
             needsWarmup = true;
-        } else if (key !== envKey) {
-            // lighting-only change: the BVH is untouched, no rebuild
-            applyEnvironment(scene);
-            backend.updateEnvironment();
-            envKey = key;
+        } else {
+            if (materialsDirty) {
+                // roughness, metalness, opacity: the geometry and therefore the
+                // BVH are untouched, so only the material texture is refreshed
+                proxy.syncMaterials();
+                backend.updateMaterials();
+                materialsDirty = false;
+            }
+
+            if (key !== envKey) {
+                // lighting-only change: the BVH is untouched, no rebuild
+                applyEnvironment(scene);
+                backend.updateEnvironment();
+                envKey = key;
+            }
         }
     }
 
@@ -258,7 +282,8 @@ module.exports = function cinematic(K3D, renderer, hooks) {
                 }
 
                 if (budget) {
-                    setHud(`cinematic: ${samples} / ${budget} samples`);
+                    // whole samples: the counter advances by a fraction per tile
+                    setHud(`cinematic: ${Math.floor(Math.min(samples, budget))} / ${budget} samples`);
                 }
 
                 if (samples >= target) {

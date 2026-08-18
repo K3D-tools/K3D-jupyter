@@ -28,7 +28,7 @@ def test_volume_slice():
 
     pytest.plot += volume
 
-    compare("volume_slice")
+    compare("volume_slice", modes=("simple", "advanced"))
 
 
 def test_volume_slice_view_slice():
@@ -59,15 +59,15 @@ def test_volume_slice_view_slice():
 
     pytest.plot.slice_viewer_direction = "z"
     volume.slice_x, volume.slice_y, volume.slice_z = -1, -1, z // 2
-    compare("volume_slice_view_slice_z")
+    compare("volume_slice_view_slice_z", modes=("simple", "advanced"))
 
     pytest.plot.slice_viewer_direction = "x"
     volume.slice_x, volume.slice_y, volume.slice_z = x // 2, -1, -1
-    compare("volume_slice_view_slice_dynamic_x")
+    compare("volume_slice_view_slice_dynamic_x", modes=("simple", "advanced"))
 
     pytest.plot.slice_viewer_direction = "y"
     volume.slice_x, volume.slice_y, volume.slice_z = -1, y // 2, -1
-    compare("volume_slice_view_slice_dynamic_y")
+    compare("volume_slice_view_slice_dynamic_y", modes=("simple", "advanced"))
 
     volume.slice_y = volume.slice_y - 20
-    compare("volume_slice_view_slice_dynamic_y_position")
+    compare("volume_slice_view_slice_dynamic_y_position", modes=("simple", "advanced"))

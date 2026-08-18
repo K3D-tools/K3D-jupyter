@@ -623,9 +623,20 @@ function isMeshVolume(json) {
 function buildProxyForObject(sourceObj, json, camera) {
     const type = json.type;
 
+    if (type === 'VolumeSlice') {
+        // A slice paints a cut plane with its own shader and has no depth-segment
+        // mechanism, so it can be neither traced (no surface material) nor
+        // composited correctly (it would cover traced geometry standing in front
+        // of it). Left out of V1 loudly rather than silently.
+        console.warn('K3D.cinematic: volume_slice objects are not rendered in the cinematic '
+            + 'renderer - use simple or advanced for slice views');
+
+        return null;
+    }
+
     if (type === 'Label' || type === 'Text' || type === 'Text2d'
-        || type === 'Volume' || type === 'MIP' || type === 'VolumeSlice') {
-        // labels are camera-mutated per frame; volumes composite in stage 5
+        || type === 'Volume' || type === 'MIP') {
+        // labels are camera-mutated per frame; volumes composite as a layer
         return null;
     }
 
@@ -745,6 +756,49 @@ module.exports = function createSceneProxy(K3D) {
             });
 
             return proxied;
+        },
+
+        // Material-only edits need no new geometry, so the BVH - by far the
+        // expensive part - can stay. Roughness, metalness and opacity live on
+        // the material and are per-object, so they are copied from the json onto
+        // every proxy material of that object. Colour is deliberately not here:
+        // for points and tubes it is baked into vertex colours, which is
+        // geometry, so it goes through a rebuild.
+        syncMaterials() {
+            const world = K3D.getWorld();
+
+            cache.forEach((entry, id) => {
+                const json = world.ObjectsListJson[entry.source.K3DIdentifier]
+                    || world.ObjectsListJson[id];
+
+                if (!json || entry.proxy === null) {
+                    return;
+                }
+
+                entry.proxy.traverse((node) => {
+                    if (!node.material) {
+                        return;
+                    }
+
+                    if (typeof json.roughness !== 'undefined'
+                        && node.material.roughness !== undefined) {
+                        node.material.roughness = json.roughness;
+                    }
+
+                    if (typeof json.metalness !== 'undefined'
+                        && node.material.metalness !== undefined) {
+                        node.material.metalness = json.metalness;
+                    }
+
+                    if (typeof json.opacity !== 'undefined') {
+                        node.material.opacity = json.opacity;
+                        node.material.transparent = json.opacity < 1.0;
+                        node.material.depthWrite = !node.material.transparent;
+                    }
+
+                    node.material.needsUpdate = true;
+                });
+            });
         },
 
         invalidate() {
