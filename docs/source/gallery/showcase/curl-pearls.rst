@@ -13,10 +13,10 @@ along a sphere instead of escaping it. Ribbons come from seeding lines of
 points across the flow; beads are deposited densely along each streamline
 and taper towards the tail.
 
-The beads are ``points`` with ``shader='mesh'`` - real spheres, so they cast
-and receive the advanced renderer's ambient occlusion. Tuned at bead scale
-(``ao_radius=0.03``, ``ao_strength=2.4``), the occlusion in the crevices
-between strands gives the porcelain look. The whole scene is generated in a
+The beads are ``points`` with ``shader='3d'`` - analytic sphere impostors,
+which cast and receive the advanced renderer's ambient occlusion. Tuned at
+bead scale (``ao_radius=0.03``, ``ao_strength=2.4``), the occlusion in the
+crevices between strands gives the porcelain look. The whole scene is generated in a
 few seconds of numpy - no data files involved; the full recipe lives in
 ``examples/curl_noise_pearls.ipynb``.
 
@@ -27,8 +27,8 @@ few seconds of numpy - no data files involved; the full recipe lives in
                     renderer='advanced', environment='neutral',
                     lighting=2.1, ao_radius=0.03, ao_strength=2.4)
 
-    plot += k3d.points(positions, point_sizes=point_sizes, shader='mesh',
-                       mesh_detail=2, colors=point_colors, roughness=0.35)
+    plot += k3d.points(positions, point_sizes=point_sizes, shader='3d',
+                       colors=point_colors, roughness=0.35)
     plot.camera = [1.75, -1.75, 1.1, 0, 0, 0, 0, 0, 1]
     plot.display()
 

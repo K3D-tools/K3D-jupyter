@@ -95,10 +95,10 @@ def build_scene():
                     lighting=2.1, ao_radius=0.03, ao_strength=2.4,
                     screenshot_scale=1.0)
 
-    # mesh spheres, not the 3d impostors - the beads must cast and receive
-    # the ambient occlusion that sculpts the crevices between strands
-    plot += k3d.points(positions, point_sizes=point_sizes, shader='mesh',
-                       mesh_detail=2, colors=point_colors, roughness=0.35,
+    # analytic sphere impostors - they cast and receive the ambient
+    # occlusion that sculpts the crevices between strands
+    plot += k3d.points(positions, point_sizes=point_sizes, shader='3d',
+                       colors=point_colors, roughness=0.35,
                        compression_level=7)
     plot.camera = [1.75, -1.75, 1.1, 0, 0, 0, 0, 0, 1]
 
