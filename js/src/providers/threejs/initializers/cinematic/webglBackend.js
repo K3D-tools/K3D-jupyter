@@ -90,6 +90,12 @@ module.exports = function createWebGLBackend(renderer) {
             // through the shared tone-mapping blit, not the library's copy
             tracer.renderToCanvas = false;
             reseedOffsetTexture(tracer);
+
+            if (typeof window !== 'undefined') {
+                // diagnostic handle: lets a probe read the tracer's own material
+                // state without reaching through module closures
+                window.__k3dTracer = tracer;
+            }
         },
 
         setBounces(bounces) {

@@ -122,14 +122,26 @@ module.exports = function cinematic(K3D, renderer, hooks) {
     function applyEnvironment(target) {
         const env = getEnvironmentTexture(K3D.parameters.environment);
         const rotation = environmentRotation(K3D);
+        // the exposure curve advanced uses (Scene.recalculateLights), so that
+        // plot.lighting means the same thing in both PBR renderers
+        const lighting = K3D.parameters.lighting;
+        const envIntensity = lighting <= 1.0 ? Math.max(lighting, 0.0) : (1.0 + lighting) / 2.0;
 
         env.mapping = THREE.EquirectangularReflectionMapping;
         target.environment = env;
         target.background = env;
         target.environmentRotation.copy(rotation);
         target.backgroundRotation.copy(rotation);
-        target.environmentIntensity = K3D.parameters.lighting / 1.5;
-        target.backgroundIntensity = K3D.parameters.lighting / 1.5;
+        // Measured, not guessed: a watertight white cube in a uniform
+        // environment leaves 2.45x less radiance here than under the raster IBL
+        // of advanced, and the factor is constant across albedo (0.05..1.0), so
+        // it is exposure rather than shading. Advanced carries the same kind of
+        // measured correction for its own delivery (the 1.2 in Scene.js). The
+        // gain applies to the background too - a metal must reflect the same
+        // radiance that lights it - which also lands the backdrop near the white
+        // one advanced draws.
+        target.environmentIntensity = envIntensity * 1.2 * 1.633;
+        target.backgroundIntensity = envIntensity * 1.2 * 1.633;
     }
 
     function buildScene() {

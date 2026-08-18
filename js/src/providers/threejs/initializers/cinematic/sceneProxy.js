@@ -10,7 +10,12 @@ const Fn = require('../../helpers/Fn');
 const buffer = require('../../../../core/lib/helpers/buffer');
 const colorMapHelper = require('../../../../core/lib/helpers/colorMap');
 
-const TRIANGLE_BUDGET = 2000000;
+// The rasteriser draws point spheres as instances, so mesh_detail costs it
+// almost nothing; the path tracer needs every sphere as real geometry in one
+// BVH. This ceiling is where that stops being reasonable - it leaves the
+// default mesh_detail intact for tens of thousands of points (66k at detail 2,
+// 20k at detail 3) and only degrades, loudly, beyond that.
+const TRIANGLE_BUDGET = 12000000;
 
 function hasData(field) {
     return field && field.data && field.data.length > 0;
@@ -199,18 +204,13 @@ function buildPoints(json) {
     const sizes = (hasData(json.point_sizes) && json.point_sizes.data.length === count)
         ? json.point_sizes.data : null;
 
-    // adaptive detail with a hard triangle budget (warn + degrade, never die)
-    let detail = 3;
-
-    if (count > 1000) {
-        detail = 2;
-    }
-    if (count > 20000) {
-        detail = 1;
-    }
-    if (count > 200000) {
-        detail = 0;
-    }
+    // mesh_detail is the user's own subdivision level - the same trait the
+    // rasterised shader='mesh' variant builds its icosahedron from - so it is
+    // honoured here too, for every shader: in cinematic even a 'dot' point is a
+    // real sphere, and its tessellation is the user's call. The triangle budget
+    // only ever lowers it, and says so.
+    const requested = typeof json.mesh_detail !== 'undefined' ? json.mesh_detail : 2;
+    let detail = Math.max(0, Math.min(12, requested));
 
     // PolyhedronGeometry ships as a triangle soup (no index) - weld it back
     // so N points do not carry 6x the vertex data
@@ -225,9 +225,9 @@ function buildPoints(json) {
         template = icosphereTemplate(detail);
     }
 
-    if ((count * template.index.count) / 3 > TRIANGLE_BUDGET) {
-        console.warn(`K3D.cinematic: ${count} points exceed the triangle budget even at the lowest `
-            + 'sphere detail - expect a heavy BVH');
+    if (detail !== requested) {
+        console.warn(`K3D.cinematic: ${count} points at mesh_detail ${requested} exceed the `
+            + `${TRIANGLE_BUDGET} triangle budget - rendering them at mesh_detail ${detail}`);
     }
 
     const tPos = template.attributes.position.array;
