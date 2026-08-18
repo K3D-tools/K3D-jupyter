@@ -82,6 +82,13 @@ class Plot(
             :`agx`: AgX filmic curve,
 
             :`aces`: ACES filmic curve.
+        ao_radius: `float`.
+            Occlusion radius of the advanced renderer's ambient occlusion, as a
+            fraction of the scene's bounding-box diagonal, in (0, 1]. Default 0.07.
+            Dense point clouds and closed interiors usually want a smaller radius.
+        ao_strength: `float`.
+            Exponent deepening the ambient occlusion shadows, in [0, 10].
+            0 disables the darkening, default 1.8.
         grid: `array_like`.
             6-element tuple specifying the bounds of the plot grid (x0, y0, z0, x1, y1, z1).
         camera: `array_like`.

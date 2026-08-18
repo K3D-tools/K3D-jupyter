@@ -220,8 +220,22 @@ function K3D(provider, targetDOMNode, parameters) {
                 self.setEnvironmentRotation(value);
                 changeParameters.call(self, 'environment_rotation', value);
             }));
+        environmentControls.push(GUI.controls.add(self.parameters, 'aoRadius')
+            .step(0.005).min(0.005).max(0.5)
+            .listen()
+            .onChange((value) => {
+                self.setAORadius(value);
+                changeParameters.call(self, 'ao_radius', value);
+            }));
+        environmentControls.push(GUI.controls.add(self.parameters, 'aoStrength')
+            .step(0.05).min(0).max(5)
+            .listen()
+            .onChange((value) => {
+                self.setAOStrength(value);
+                changeParameters.call(self, 'ao_strength', value);
+            }));
 
-        // the environment lights only the advanced renderer
+        // the environment and AO light only the advanced renderer
         self.refreshRendererGUI = function () {
             environmentControls.forEach((control) => {
                 control.show(self.parameters.renderer === 'advanced');
@@ -429,6 +443,8 @@ function K3D(provider, targetDOMNode, parameters) {
             environment: 'neutral',
             environmentRotation: 0.0,
             toneMapping: 'none',
+            aoRadius: 0.07,
+            aoStrength: 1.8,
             snapshotType: 'full',
             customData: null,
             additionalJsCode: '',
@@ -1113,6 +1129,26 @@ function K3D(provider, targetDOMNode, parameters) {
     this.setEnvironmentRotation = function (rotation) {
         self.parameters.environmentRotation = rotation;
         world.applyRendererMode(self);
+        self.render();
+    };
+
+    /**
+     * Set ambient occlusion radius (fraction of the scene diagonal)
+     * @memberof K3D.Core
+     * @param {Number} radius
+     */
+    this.setAORadius = function (radius) {
+        self.parameters.aoRadius = radius;
+        self.render();
+    };
+
+    /**
+     * Set ambient occlusion strength (shadow-deepening exponent)
+     * @memberof K3D.Core
+     * @param {Number} strength
+     */
+    this.setAOStrength = function (strength) {
+        self.parameters.aoStrength = strength;
         self.render();
     };
 

@@ -1,6 +1,6 @@
 import ipywidgets as widgets
 from traitlets import Any as TraitAny
-from traitlets import Bool, Dict, Float, Int, List, Unicode, validate
+from traitlets import Bool, Dict, Float, Int, List, TraitError, Unicode, validate
 from typing import Any
 from typing import Dict as TypingDict
 from typing import List as TypingList
@@ -97,6 +97,25 @@ class PlotBase(K3DAnyWidget):
         return value
     environment_rotation = Float(default_value=0.0).tag(sync=True)
     tone_mapping = Unicode(default_value="none").tag(sync=True)
+    ao_radius = Float(default_value=0.07).tag(sync=True)
+    ao_strength = Float(default_value=1.8).tag(sync=True)
+
+    @validate("ao_radius")
+    def _validate_ao_radius(self, proposal):
+        value = float(proposal["value"])
+        if not 0.0 < value <= 1.0:
+            raise TraitError(
+                "ao_radius is a fraction of the scene diagonal and must be in (0, 1], "
+                "got %s" % value
+            )
+        return value
+
+    @validate("ao_strength")
+    def _validate_ao_strength(self, proposal):
+        value = float(proposal["value"])
+        if not 0.0 <= value <= 10.0:
+            raise TraitError("ao_strength must be in [0, 10], got %s" % value)
+        return value
     camera_mode = Unicode().tag(sync=True)
     additional_js_code = Unicode().tag(sync=True)
     manipulate_mode = Unicode().tag(sync=True)
@@ -239,6 +258,8 @@ class PlotBase(K3DAnyWidget):
             environment: str = "neutral",
             environment_rotation: float = 0.0,
             tone_mapping: str = "none",
+            ao_radius: float = 0.07,
+            ao_strength: float = 1.8,
             additional_js_code: str = '',
             *args: Any,
             **kwargs: Any,
@@ -304,6 +325,8 @@ class PlotBase(K3DAnyWidget):
         self.environment = environment
         self.environment_rotation = environment_rotation
         self.tone_mapping = tone_mapping
+        self.ao_radius = ao_radius
+        self.ao_strength = ao_strength
         self.custom_data = custom_data
         self.additional_js_code = additional_js_code
 

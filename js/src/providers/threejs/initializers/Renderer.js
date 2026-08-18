@@ -505,13 +505,13 @@ module.exports = function (K3D) {
         u.cameraFar.value = self.camera.far;
         u.cameraProjectionMatrix.value.copy(self.camera.projectionMatrix);
         u.cameraProjectionMatrixInverse.value.copy(self.camera.projectionMatrixInverse);
-        // view-space units follow the data, not any fixed scale; the exponent deepens
-        // the shadows (author's call: the default footprint read too shallow).
-        // thickness must not undercut radius - the horizon test drops samples with
-        // a depth delta beyond it, which silently disables occlusion in wide cavities.
-        u.radius.value = 0.07 * diagonal;
-        u.thickness.value = 0.14 * diagonal;
-        u.scale.value = 1.8;
+        // view-space units follow the data: aoRadius is a fraction of the scene
+        // diagonal, aoStrength the shadow-deepening exponent (plot traits).
+        // thickness stays coupled at 2x radius - undercutting the radius makes the
+        // horizon test drop samples, which silently disables occlusion in wide cavities
+        u.radius.value = K3D.parameters.aoRadius * diagonal;
+        u.thickness.value = 2.0 * K3D.parameters.aoRadius * diagonal;
+        u.scale.value = K3D.parameters.aoStrength;
 
         self.renderer.setRenderTarget(aoTargets.raw);
         self.renderer.setClearColor(0xffffff, 1);

@@ -57,6 +57,8 @@ _PLOT_PARAMS = (
     ("cameraFov", "camera_fov"),
     ("axesHelper", "axes_helper"),
     ("axesHelperColors", "axes_helper_colors"),
+    ("aoRadius", "ao_radius"),
+    ("aoStrength", "ao_strength"),
     ("cameraAnimation", "camera_animation"),
     ("customData", "custom_data"),
     ("fps", "fps"),

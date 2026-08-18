@@ -165,3 +165,23 @@ def test_relay_applies_binary_values_via_from_json():
     plot._relay_apply_change([zlib.compress(payload, 1)])
 
     np.testing.assert_array_equal(mesh.vertices, moved)
+
+
+def test_ao_params_are_validated():
+    import pytest as pt
+    from traitlets import TraitError
+
+    plot = k3d.plot()
+    assert plot.ao_radius == 0.07 and plot.ao_strength == 1.8
+
+    plot.ao_radius = 0.3
+    plot.ao_strength = 0.0
+
+    with pt.raises(TraitError):
+        plot.ao_radius = 0.0
+    with pt.raises(TraitError):
+        plot.ao_radius = 1.5
+    with pt.raises(TraitError):
+        plot.ao_strength = -1.0
+    with pt.raises(TraitError):
+        plot.ao_strength = 11.0

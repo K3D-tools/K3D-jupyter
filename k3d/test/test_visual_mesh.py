@@ -500,3 +500,22 @@ def test_mesh_vertices_indices_grouped_update():
 
     logs = pytest.headless.browser.get_log("browser")
     assert not any("reaches beyond" in e["message"] for e in logs)
+
+
+def test_mesh_ao_params():
+    # a tight radius with a deepened exponent - the AO knobs must reach the GTAO pass
+    prepare()
+
+    mesh = k3d.mesh(TETRA_VERTICES, TETRA_INDICES, color=0x2244AA)
+    floor = k3d.mesh(
+        np.array([[-2, -2, -0.5], [3, -2, -0.5], [3, 3, -0.5], [-2, 3, -0.5]],
+                 dtype=np.float32),
+        np.array([[0, 1, 2], [0, 2, 3]], dtype=np.uint32),
+        color=0xB0B0B0,
+    )
+    pytest.plot += mesh
+    pytest.plot += floor
+    pytest.plot.ao_radius = 0.25
+    pytest.plot.ao_strength = 3.5
+
+    compare('mesh_ao_params', modes=('advanced',))

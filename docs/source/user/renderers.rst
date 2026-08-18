@@ -122,12 +122,19 @@ volumes consistently with every mesh in the scene.
 Ambient occlusion
 -----------------
 
-``advanced`` always includes a GTAO pass with spatial denoising. It has no
-parameters to tune: the occlusion radius scales with the scene's bounding box,
-the result is deterministic, and screenshots are seam-free at any
-``rendering_steps``. Real surfaces occlude; volumes and MIPs contribute the
-shell where their accumulated opacity crosses one half, so dense structures
-cast and receive contact shadows too.
+``advanced`` always includes a GTAO pass with spatial denoising. The result is
+deterministic and screenshots are seam-free at any ``rendering_steps``. Real
+surfaces occlude; volumes and MIPs contribute the shell where their accumulated
+opacity crosses one half, so dense structures cast and receive contact shadows
+too. Two knobs (shown in the panel only when the advanced renderer is active):
+
+.. code-block:: python3
+
+    plot.ao_radius = 0.02    # occlusion radius, fraction of the scene diagonal
+    plot.ao_strength = 3.0   # shadow-deepening exponent; 0 disables
+
+The default radius (0.07) suits typical scenes; dense point clouds and closed
+interiors (the inside of a skull) usually want a smaller one.
 
 Tone mapping
 ------------
