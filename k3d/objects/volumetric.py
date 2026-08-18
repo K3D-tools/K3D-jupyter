@@ -3,11 +3,11 @@
 import numpy as np
 import warnings
 from traitlets import Bool, Float, Int, List, TraitError, Unicode, validate
-from traittypes import Array
 
 from .base import (Drawable, DrawableWithCallback, DrawableWithVoxelCallback,
                    ListOrArray, TimeSeries)
-from ..helpers import (array_serialization_wrap, get_bounding_box,
+from ..helpers import (Array,
+                       array_serialization_wrap, get_bounding_box,
                        shape_validation,
                        sparse_voxels_validation)
 

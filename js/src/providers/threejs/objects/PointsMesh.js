@@ -17,12 +17,38 @@ const { getColorsArray } = Fn;
  * @param {Object} config all configuration params from JSON
  * @return {Object} 3D object ready to render
  */
-function rebuildInstanceMatrices(obj, config) {
-    const positions = config.positions.data;
-    const factor = config.point_size / obj.userData.builtPointSize;
-    const sizes = (config.point_sizes && config.point_sizes.data
-        && config.point_sizes.data.length === positions.length / 3)
-        ? config.point_sizes.data : null;
+// A time-series trait sits in config as {time: value} and only the frame
+// resolved for the current time reaches `changes` - so the value in force can be
+// in either place, and reading config alone yields the keyframe dictionary
+// instead of an array.
+function currentData(changes, config, key) {
+    if (changes && changes[key] && changes[key].data && !changes[key].timeSeries) {
+        return changes[key].data;
+    }
+
+    return (config[key] && config[key].data) ? config[key].data : null;
+}
+
+function currentNumber(changes, config, key, fallback) {
+    if (changes && typeof (changes[key]) === 'number') {
+        return changes[key];
+    }
+
+    return typeof (config[key]) === 'number' ? config[key] : fallback;
+}
+
+function rebuildInstanceMatrices(obj, config, changes) {
+    const positions = currentData(changes, config, 'positions');
+
+    if (positions === null) {
+        return;
+    }
+
+    const pointSize = currentNumber(changes, config, 'point_size', obj.userData.builtPointSize);
+    const factor = pointSize / obj.userData.builtPointSize;
+    const pointSizes = currentData(changes, config, 'point_sizes');
+    const sizes = (pointSizes && pointSizes.length === positions.length / 3)
+        ? pointSizes : null;
     const matrix = new THREE.Matrix4();
     const scale = new THREE.Vector3();
 
@@ -205,7 +231,7 @@ module.exports = {
             && changes.positions.data.length / 3 === obj.instanceMatrix.count) {
             const positions = changes.positions.data;
 
-            rebuildInstanceMatrices(obj, config);
+            rebuildInstanceMatrices(obj, config, changes);
 
             if (obj.interactions) {
                 obj.stopInteraction();
@@ -222,19 +248,19 @@ module.exports = {
 
         if (typeof (changes.point_sizes) !== 'undefined' && !changes.point_sizes.timeSeries
             && changes.point_sizes.data.length === obj.instanceMatrix.count) {
-            rebuildInstanceMatrices(obj, config);
+            rebuildInstanceMatrices(obj, config, changes);
 
             resolvedChanges.point_sizes = null;
         }
 
         if (typeof (changes.point_size) !== 'undefined' && !changes.point_size.timeSeries) {
-            rebuildInstanceMatrices(obj, config);
+            rebuildInstanceMatrices(obj, config, changes);
 
             const boundingBoxGeometry = new THREE.BufferGeometry();
 
             boundingBoxGeometry.setAttribute(
                 'position',
-                new THREE.BufferAttribute(config.positions.data, 3),
+                new THREE.BufferAttribute(currentData(changes, config, 'positions'), 3),
             );
             boundingBoxGeometry.computeBoundingBox();
             Fn.expandBoundingBox(boundingBoxGeometry.boundingBox, changes.point_size * 0.5);

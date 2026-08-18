@@ -15,9 +15,31 @@ from typing import Optional, Tuple, Union
 from urllib.request import urlopen
 
 from ._protocol import get_protocol
+from traittypes import Array as _TraitArray
 
 # Set up module-level logger
 logger = logging.getLogger(__name__)
+
+
+class Array(_TraitArray):
+    """An Array trait that converts float64 input without complaining.
+
+    Every geometry buffer here is declared float32 because that is what the GPU
+    consumes, while numpy hands out float64 by default - so ``np.random.randn``
+    or an arithmetic expression trips traittypes' coercion warning on entirely
+    ordinary code, describing a conversion the user cannot avoid and K3D would
+    perform anyway. Narrowing float64 to float32 is done quietly here; every
+    other mismatch still reaches traittypes, whose warning is the useful kind
+    (an int array silently truncated, say).
+    """
+
+    def validate(self, obj, value):
+        if (self.dtype == np.float32
+                and isinstance(value, np.ndarray)
+                and value.dtype == np.float64):
+            value = value.astype(np.float32)
+
+        return super().validate(obj, value)
 if not logger.hasHandlers():
     handler = logging.StreamHandler()
     formatter = logging.Formatter(

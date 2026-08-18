@@ -2,10 +2,9 @@
 
 import numpy as np
 from traitlets import Float, Int, TraitError, Unicode, validate
-from traittypes import Array
 
 from .base import EPSILON, Drawable, ListOrArray, TimeSeries
-from ..helpers import array_serialization_wrap, get_bounding_box_points
+from ..helpers import Array, array_serialization_wrap, get_bounding_box_points
 
 
 class Points(Drawable):

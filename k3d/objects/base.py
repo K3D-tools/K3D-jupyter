@@ -3,10 +3,10 @@
 import numpy as np
 from traitlets import (Any, Bool, Dict, Int, Integer, List, TraitError,
                        Unicode, Union, validate)
-from traittypes import Array
 
 from .._widget import K3DModelWidget
-from ..helpers import (array_serialization_wrap, callback_serialization_wrap,
+from ..helpers import (Array,
+                       array_serialization_wrap, callback_serialization_wrap,
                        to_json)
 
 EPSILON = np.finfo(np.float32).eps

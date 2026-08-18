@@ -126,6 +126,9 @@ module.exports = function (K3D) {
         uDepthOffset: { value: 0.0000001 },
     };
     const depthMaterial = new THREE.MeshDepthMaterial();
+    // the AO prepass variant for wireframe meshes: same depth encoding, but the
+    // wires rasterise as wires so the gaps between them do not occlude
+    const depthMaterialWireframe = new THREE.MeshDepthMaterial();
     const compositePlane = new THREE.Mesh(planeGeometry, compositeMaterial);
     const cameras = [];
 
@@ -440,6 +443,7 @@ module.exports = function (K3D) {
         // second, depth-tested pass - the override would rasterise their quads.
         const hidden = [];
         const impostors = [];
+        const wireframes = [];
 
         world.K3DObjects.traverse((obj) => {
             if (!obj.visible) {
@@ -450,8 +454,25 @@ module.exports = function (K3D) {
                 impostors.push(obj);
                 return;
             }
+            // The prepass draws through an override material, which honours
+            // neither `wireframe` nor opacity - so a shell you can see through
+            // would fill the depth buffer like a solid body and occlude
+            // everything inside it (a wireframe cage around vessel centrelines
+            // measurably erased their contact shadows).
+            //
+            // A wireframe still deserves occlusion of its own, so it is not
+            // dropped but drawn in a second pass that keeps the wireframe flag:
+            // the wires occlude, the gaps between them do not. Transparent
+            // surfaces are dropped outright - you see through them, so what
+            // matters for occlusion is whatever lies behind.
+            if (obj.material && obj.material.wireframe && !obj.material.isShaderMaterial) {
+                obj.visible = false;
+                wireframes.push(obj);
+                return;
+            }
             if (obj.isPoints || obj.isLine || obj.isSprite
-                || (obj.material && obj.material.isShaderMaterial)) {
+                || (obj.material && (obj.material.isShaderMaterial
+                    || obj.material.opacity < 1.0))) {
                 obj.visible = false;
                 hidden.push(obj);
             }
@@ -494,7 +515,35 @@ module.exports = function (K3D) {
             });
         }
 
-        hidden.concat(impostors).forEach((obj) => {
+        if (wireframes.length > 0) {
+            const meshesShown = [];
+
+            world.K3DObjects.traverse((obj) => {
+                if (obj.visible && obj.material) {
+                    obj.visible = false;
+                    meshesShown.push(obj);
+                }
+            });
+
+            wireframes.forEach((obj) => {
+                obj.visible = true;
+            });
+
+            // no override material here: that is the whole point, the wires
+            // must rasterise as wires. Depth-tested against the first pass.
+            self.scene.overrideMaterial = depthMaterialWireframe;
+            self.renderer.render(self.scene, self.camera);
+            self.scene.overrideMaterial = null;
+
+            wireframes.forEach((obj) => {
+                obj.visible = false;
+            });
+            meshesShown.forEach((obj) => {
+                obj.visible = true;
+            });
+        }
+
+        hidden.concat(impostors, wireframes).forEach((obj) => {
             obj.visible = true;
         });
 
@@ -1130,6 +1179,12 @@ module.exports = function (K3D) {
     depthMaterial.depthPacking = THREE.RGBADepthPacking;
     depthMaterial.onBeforeCompile = depthOnBeforeCompile.bind(null, globalPeelUniforms);
     depthMaterial.needsUpdate = true;
+
+    depthMaterialWireframe.side = THREE.DoubleSide;
+    depthMaterialWireframe.depthPacking = THREE.RGBADepthPacking;
+    depthMaterialWireframe.wireframe = true;
+    depthMaterialWireframe.onBeforeCompile = depthOnBeforeCompile.bind(null, globalPeelUniforms);
+    depthMaterialWireframe.needsUpdate = true;
 
     this.renderer.setClearColor(0, 0);
     this.renderer.autoClear = false;

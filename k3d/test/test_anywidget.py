@@ -1,8 +1,6 @@
 import numpy as np
-import pytest
 
 import k3d
-from k3d._widget import K3DAnyWidget
 from k3d.objects.base import VoxelChunk
 
 VERTICES = np.array([[0, 0, 0], [1, 0, 0], [0, 1, 0]], dtype=np.float32)

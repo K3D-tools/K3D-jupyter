@@ -2,10 +2,9 @@
 
 import numpy as np
 from traitlets import Bool, Bytes, Unicode
-from traittypes import Array
 
 from .base import DrawableWithCallback, ListOrArray, TimeSeries
-from ..helpers import array_serialization_wrap, get_bounding_box
+from ..helpers import Array, array_serialization_wrap, get_bounding_box
 
 
 class Texture(DrawableWithCallback):
