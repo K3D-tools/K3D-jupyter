@@ -35,17 +35,17 @@ Some examples of use cases could be:
  
    For example, in `Computer Tomography`_  data segmentation.
 
------------------------------
-Interactivity with Ipywidgets
------------------------------
+----------------------------
+Interactivity with anywidget
+----------------------------
 
-K3D-jupyter being an ipywidgets_, it natively contains front-end
-and back-end. |br|
+K3D-jupyter being an anywidget_ (built on the Jupyter widgets protocol), it
+natively contains front-end and back-end. |br|
 The back-end is a Python process where the data is prepared, and
 the frontend is a JavaScript application with WebGL_ (via `Three.js`_ and
 custom `pixel shaders <pixelshaders>`_) access.
 
-The ipywidgets_ architecture allows for communication of these two parts.
+The Jupyter widgets architecture allows for communication of these two parts.
 K3D-jupyter exposes this communication and allows for easy dataset updates on existing plots. |br|
 For example, if :code:`plt_points` is an :ref:`points` object,
 then a simple assignment in the backend
@@ -101,7 +101,7 @@ back-end, send by email or embedded in webpages.
 .. _matplotlib: https://matplotlib.org/
 .. _tomography: https://en.wikipedia.org/wiki/Tomography
 .. _Computer Tomography: https://en.wikipedia.org/wiki/CT_scan
-.. _ipywidgets: https://ipywidgets.readthedocs.io/en/latest/
+.. _anywidget: https://anywidget.dev/
 .. _WebGL: https://www.khronos.org/webgl/
 .. _Three.js: https://threejs.org/
 .. _HPC: https://en.wikipedia.org/wiki/High-performance_computing
