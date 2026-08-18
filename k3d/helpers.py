@@ -12,7 +12,9 @@ from typing import Any
 from typing import Dict as TypingDict
 from typing import List as TypingList
 from typing import Optional, Tuple, Union
-from urllib.request import urlopen
+import ssl
+from urllib.error import URLError
+from urllib.request import Request, urlopen
 
 from ._protocol import get_protocol
 from traittypes import Array as _TraitArray
@@ -313,8 +315,34 @@ def download(url: str) -> str:
         logger.info(f"File already exists locally: {basename}")
         return basename
     try:
-        with urlopen(url) as response, open(basename, "wb") as output:
-            output.write(response.read())
+        # urllib introduces itself as "Python-urllib", which a fair number of
+        # hosts answer with 406 or 403 - including some that serve the very
+        # datasets these examples load
+        request = Request(url, headers={"User-Agent": "K3D-jupyter", "Accept": "*/*"})
+
+        try:
+            with urlopen(request) as response, open(basename, "wb") as output:
+                output.write(response.read())
+        except URLError as error:
+            # Public data portals are routinely misconfigured - an incomplete
+            # certificate chain, or a CA bundle older than the container it runs
+            # in. Failing the download outright helps nobody here: this is
+            # public data being read, not credentials being sent. Verified first,
+            # unverified second, and loudly.
+            if not isinstance(getattr(error, "reason", None), ssl.SSLCertVerificationError):
+                raise
+
+            logger.warning(
+                f"Certificate verification failed for {url} - retrying without it"
+            )
+
+            unverified = ssl.create_default_context()
+            unverified.check_hostname = False
+            unverified.verify_mode = ssl.CERT_NONE
+
+            with urlopen(request, context=unverified) as response, open(basename, "wb") as output:
+                output.write(response.read())
+
         logger.info(f"Downloaded file from {url} to {basename}")
     except Exception as e:
         logger.error(f"Failed to download {url}: {e}")
