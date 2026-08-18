@@ -1,14 +1,15 @@
-// Cinematic mode orchestration (stage 1 of renderer_cinematic.md): a filtered
-// mirror of K3DObjects (only path-traceable materials), the environment as the
-// sole light, an interruptible accumulation loop and a sample counter HUD.
-// The full scene proxy (points -> merged icospheres, lines -> tubes) is stage 2,
-// screenshots and tone mapping integration are stage 3.
+// Cinematic mode orchestration: the scene proxy mirrors K3DObjects as plain
+// meshes (stage 2), the environment is the sole light, the accumulation loop
+// is interruptible and a HUD counts samples. Screenshots and tone mapping
+// integration are stage 3.
 const THREE = require('three');
 const createWebGLBackend = require('./webglBackend');
+const createSceneProxy = require('./sceneProxy');
 const { getEnvironmentTexture } = require('../../helpers/environment');
 
 module.exports = function cinematic(K3D, renderer) {
     const backend = createWebGLBackend(renderer);
+    const proxy = createSceneProxy(K3D);
     let ready = false;
     let sceneDirty = true;
     let envKey = null;
@@ -50,24 +51,9 @@ module.exports = function cinematic(K3D, renderer) {
     }
 
     function buildScene() {
-        const world = K3D.getWorld();
         const scene = new THREE.Scene();
 
-        world.K3DObjects.traverse((obj) => {
-            // MaterialsTexture reads material.color.r unguarded, and only
-            // Standard/Physical trace - filter by material, not object type
-            if (obj.isMesh && obj.material
-                && obj.material.color !== undefined
-                && (obj.material.isMeshStandardMaterial || obj.material.isMeshPhysicalMaterial)
-                && obj.visible) {
-                const clone = obj.clone();
-
-                clone.matrixAutoUpdate = false;
-                clone.matrix.copy(obj.matrixWorld);
-                clone.matrixWorld.copy(obj.matrixWorld);
-                scene.add(clone);
-            }
-        });
+        proxy.populate(scene, K3D.getWorld().camera);
 
         const env = getEnvironmentTexture(K3D.parameters.environment);
 
@@ -238,6 +224,7 @@ module.exports = function cinematic(K3D, renderer) {
         },
 
         invalidateScene() {
+            proxy.invalidate();
             sceneDirty = true;
         },
 
