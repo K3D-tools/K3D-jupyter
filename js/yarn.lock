@@ -3083,12 +3083,17 @@ terser@^5.31.1:
 text-table@^0.2.0:
   version "0.2.0"
 
-three-mesh-bvh@^0.9.14:
+three-gpu-pathtracer@0.0.24:
+  version "0.0.24"
+  resolved "https://registry.npmjs.org/three-gpu-pathtracer/-/three-gpu-pathtracer-0.0.24.tgz"
+  integrity sha512-fHQ7g7ywvSwRAQywhsfech2/kspQKinfFNOcNDTJS2Q34CzcF1kpESlOVvJH8kX/bGlCnxMI+Qo16kWGAy7zCA==
+
+three-mesh-bvh@^0.9.14, three-mesh-bvh@>=0.7.4:
   version "0.9.14"
   resolved "https://registry.npmjs.org/three-mesh-bvh/-/three-mesh-bvh-0.9.14.tgz"
   integrity sha512-xJzfUXnLYjgw5tRKGxjfJW3Pcx0IbwNskvpdwRryhK07SYrKrYB4W8zAaPxu784gK7G4lCBgG+vfG3YeYn95kg==
 
-three@^0.185.1, "three@>= 0.159.0":
+three@^0.185.1, "three@>= 0.159.0", three@>=0.180.0:
   version "0.185.1"
   resolved "https://registry.npmjs.org/three/-/three-0.185.1.tgz"
   integrity sha512-5aojFCXKwnjBRZvUnt3WFfEcvUJgkN5LlijRFN95hMy8WVkG4I0QNcJE+OuWvuJ0bOdStrbfXn0pkd6/QyiAlg==
@@ -3428,6 +3433,11 @@ ws@^3.2.0:
     async-limiter "~1.0.0"
     safe-buffer "~5.1.0"
     ultron "~1.1.0"
+
+xatlas-web@^0.1.0:
+  version "0.1.0"
+  resolved "https://registry.npmjs.org/xatlas-web/-/xatlas-web-0.1.0.tgz"
+  integrity sha512-PprVfuXbaIskxLTLBUQRaWfgSy9xUQqAMIRooOw0P6NYqwgh6T0voeer6+Z5M7AFt5SGXUybuww/uDGs1yw8vQ==
 
 xmlcreate@^2.0.4:
   version "2.0.4"

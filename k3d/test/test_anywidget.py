@@ -185,3 +185,35 @@ def test_ao_params_are_validated():
         plot.ao_strength = -1.0
     with pt.raises(TraitError):
         plot.ao_strength = 11.0
+
+
+def test_cinematic_params_are_validated():
+    import pytest as pt
+    from traitlets import TraitError
+
+    plot = k3d.plot()
+    assert plot.renderer == "simple"
+    assert plot.cinematic_samples == 64 and plot.cinematic_bounces == 6
+
+    plot.renderer = "cinematic"
+    plot.cinematic_samples = 32
+    plot.cinematic_bounces = 12
+
+    with pt.raises(TraitError):
+        plot.cinematic_samples = 0
+    with pt.raises(TraitError):
+        plot.cinematic_samples = 5000
+    with pt.raises(TraitError):
+        plot.cinematic_bounces = 0
+    with pt.raises(TraitError):
+        plot.cinematic_bounces = 33
+
+
+def test_cinematic_params_reach_the_snapshot():
+    plot = k3d.plot(renderer="cinematic", cinematic_samples=16, cinematic_bounces=4)
+
+    params = plot.get_plot_params()
+
+    assert params["renderer"] == "cinematic"
+    assert params["cinematicSamples"] == 16
+    assert params["cinematicBounces"] == 4

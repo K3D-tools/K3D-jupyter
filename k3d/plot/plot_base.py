@@ -116,6 +116,22 @@ class PlotBase(K3DAnyWidget):
         if not 0.0 <= value <= 10.0:
             raise TraitError("ao_strength must be in [0, 10], got %s" % value)
         return value
+    cinematic_samples = Int(default_value=64).tag(sync=True)
+    cinematic_bounces = Int(default_value=6).tag(sync=True)
+
+    @validate("cinematic_samples")
+    def _validate_cinematic_samples(self, proposal):
+        value = int(proposal["value"])
+        if not 1 <= value <= 4096:
+            raise TraitError("cinematic_samples must be in [1, 4096], got %s" % value)
+        return value
+
+    @validate("cinematic_bounces")
+    def _validate_cinematic_bounces(self, proposal):
+        value = int(proposal["value"])
+        if not 1 <= value <= 32:
+            raise TraitError("cinematic_bounces must be in [1, 32], got %s" % value)
+        return value
     camera_mode = Unicode().tag(sync=True)
     additional_js_code = Unicode().tag(sync=True)
     manipulate_mode = Unicode().tag(sync=True)
@@ -260,6 +276,8 @@ class PlotBase(K3DAnyWidget):
             tone_mapping: str = "none",
             ao_radius: float = 0.07,
             ao_strength: float = 1.8,
+            cinematic_samples: int = 64,
+            cinematic_bounces: int = 6,
             additional_js_code: str = '',
             *args: Any,
             **kwargs: Any,
@@ -327,6 +345,8 @@ class PlotBase(K3DAnyWidget):
         self.tone_mapping = tone_mapping
         self.ao_radius = ao_radius
         self.ao_strength = ao_strength
+        self.cinematic_samples = cinematic_samples
+        self.cinematic_bounces = cinematic_bounces
         self.custom_data = custom_data
         self.additional_js_code = additional_js_code
 

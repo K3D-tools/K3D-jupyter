@@ -22,6 +22,7 @@ const objectsGUIProvider = require('./lib/objectsGUIprovider');
 const clippingPlanesGUIProvider = require('./lib/clippingPlanesGUIProvider');
 const timeSeries = require('./lib/timeSeries');
 const { base64ToArrayBuffer } = require('./lib/helpers/buffer');
+const { error: errorOverlay } = require('./lib/Error');
 
 const Float16Array = require('./lib/helpers/float16Array');
 
@@ -137,10 +138,12 @@ function K3D(provider, targetDOMNode, parameters) {
                 self.setDepthPeels(value);
                 changeParameters.call(self, 'depth_peels', value);
             });
-        GUI.controls.add(self.parameters, 'renderer', ['simple', 'advanced']).listen()
+        GUI.controls.add(self.parameters, 'renderer', ['simple', 'advanced', 'cinematic']).listen()
             .onChange((value) => {
                 self.setRenderer(value);
-                changeParameters.call(self, 'renderer', value);
+                // post-setRenderer truth: a refused switch (no-fallback error)
+                // syncs the surviving mode back to the kernel, not the wish
+                changeParameters.call(self, 'renderer', self.parameters.renderer);
             });
         // Python resolves catalog names to arrays, so the resolved value comes back as
         // an object - the wire dict carries the name for display. Arrays without one
@@ -235,10 +238,31 @@ function K3D(provider, targetDOMNode, parameters) {
                 changeParameters.call(self, 'ao_strength', value);
             }));
 
-        // the environment and AO light only the advanced renderer
+        const cinematicControls = [];
+
+        cinematicControls.push(GUI.controls.add(self.parameters, 'cinematicSamples')
+            .step(1).min(1).max(512)
+            .listen()
+            .onChange((value) => {
+                self.setCinematicSamples(value);
+                changeParameters.call(self, 'cinematic_samples', value);
+            }));
+        cinematicControls.push(GUI.controls.add(self.parameters, 'cinematicBounces')
+            .step(1).min(1).max(16)
+            .listen()
+            .onChange((value) => {
+                self.setCinematicBounces(value);
+                changeParameters.call(self, 'cinematic_bounces', value);
+            }));
+
+        // the environment and AO light only the advanced renderer; the sample
+        // and bounce budgets steer only the path tracer
         self.refreshRendererGUI = function () {
             environmentControls.forEach((control) => {
                 control.show(self.parameters.renderer === 'advanced');
+            });
+            cinematicControls.forEach((control) => {
+                control.show(self.parameters.renderer === 'cinematic');
             });
         };
         self.refreshRendererGUI();
@@ -445,6 +469,8 @@ function K3D(provider, targetDOMNode, parameters) {
             toneMapping: 'none',
             aoRadius: 0.07,
             aoStrength: 1.8,
+            cinematicSamples: 64,
+            cinematicBounces: 6,
             snapshotType: 'full',
             customData: null,
             additionalJsCode: '',
@@ -1089,10 +1115,32 @@ function K3D(provider, targetDOMNode, parameters) {
      * @param {String} mode 'simple' or 'advanced'
      */
     this.setRenderer = function (mode) {
-        if (mode !== 'simple' && mode !== 'advanced') {
+        if (mode !== 'simple' && mode !== 'advanced' && mode !== 'cinematic') {
             // this travels in snapshots between versions, so an unknown value degrades
             console.warn(`K3D: unknown renderer "${mode}", falling back to "simple"`);
             mode = 'simple';
+        }
+
+        // preflight the path tracer before committing: when the browser cannot
+        // run it, the switch is refused with a concrete error - never a silent
+        // fallback to another renderer. The trait syncs back to the surviving
+        // value. A snapshot opening directly in cinematic has no mode to keep,
+        // so the guard skips and render() reports the same error instead.
+        if (mode === 'cinematic' && self.parameters.renderer !== 'cinematic') {
+            const reason = world.cinematicUnsupportedReason
+                ? world.cinematicUnsupportedReason()
+                : 'the current provider has no cinematic backend';
+
+            if (reason !== null) {
+                errorOverlay('Cinematic Error', `The cinematic renderer cannot start: ${reason}.`, false);
+                changeParameters('renderer', self.parameters.renderer);
+
+                if (self.refreshRendererGUI) {
+                    self.refreshRendererGUI();
+                }
+
+                return;
+            }
         }
 
         self.parameters.renderer = mode;
@@ -1149,6 +1197,26 @@ function K3D(provider, targetDOMNode, parameters) {
      */
     this.setAOStrength = function (strength) {
         self.parameters.aoStrength = strength;
+        self.render();
+    };
+
+    /**
+     * Set the sample budget of the cinematic renderer (screenshot/headless)
+     * @memberof K3D.Core
+     * @param {Number} samples
+     */
+    this.setCinematicSamples = function (samples) {
+        self.parameters.cinematicSamples = samples;
+        self.render();
+    };
+
+    /**
+     * Set the light bounce count of the cinematic renderer
+     * @memberof K3D.Core
+     * @param {Number} bounces
+     */
+    this.setCinematicBounces = function (bounces) {
+        self.parameters.cinematicBounces = bounces;
         self.render();
     };
 

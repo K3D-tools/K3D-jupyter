@@ -10,13 +10,28 @@ from .plot_compare import prepare
 def test_unknown_renderer_degrades_to_simple():
     prepare()
 
-    pytest.headless.browser.execute_script("K3DInstance.setRenderer('cinematic')")
+    pytest.headless.browser.execute_script("K3DInstance.setRenderer('pathtraced')")
     mode = pytest.headless.browser.execute_script("return K3DInstance.parameters.renderer")
 
     assert mode == "simple"
 
     # the browser-side call above is invisible to the sync diff; realign before the next test
     pytest.headless.browser.execute_script("K3DInstance.setRenderer('simple')")
+
+
+def test_cinematic_is_a_legal_renderer():
+    prepare()
+
+    # supported browser (the headless container has WebGL2 + floats): the
+    # switch commits; the way back must strand the accumulation cleanly
+    mode = pytest.headless.browser.execute_script("""
+    K3DInstance.setRenderer('cinematic');
+    const switched = K3DInstance.parameters.renderer;
+    K3DInstance.setRenderer('simple');
+    return [switched, K3DInstance.parameters.renderer];
+    """)
+
+    assert mode == ["cinematic", "simple"]
 
 
 def test_switching_modes_leaves_no_state():

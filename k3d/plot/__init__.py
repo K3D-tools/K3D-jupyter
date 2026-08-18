@@ -53,7 +53,12 @@ class Plot(
             :`simple`: the classic rasteriser with a fixed light rig (default),
 
             :`advanced`: image-based lighting from the environment map, physically
-             based materials and ambient occlusion.
+             based materials and ambient occlusion,
+
+            :`cinematic`: progressive path tracing with global illumination.
+             Requires WebGL2 with renderable float textures; when the browser
+             cannot run it, the switch fails with an error instead of falling
+             back to another renderer.
         environment: `str` or `array_like`.
             The light environment of the advanced renderer.
 
@@ -89,6 +94,13 @@ class Plot(
         ao_strength: `float`.
             Exponent deepening the ambient occlusion shadows, in [0, 10].
             0 disables the darkening, default 1.8.
+        cinematic_samples: `int`.
+            Sample budget of the cinematic renderer for screenshots and headless
+            rendering, in [1, 4096]. Default 64. The interactive view keeps
+            accumulating up to the same budget and restarts on any change.
+        cinematic_bounces: `int`.
+            Light bounce count of the cinematic renderer's path tracing,
+            in [1, 32]. Default 6.
         grid: `array_like`.
             6-element tuple specifying the bounds of the plot grid (x0, y0, z0, x1, y1, z1).
         camera: `array_like`.

@@ -4,6 +4,7 @@ const { PoissonDenoiseShader, generatePdSamplePointInitializer } = require('thre
 const cameraModes = require('../../../core/lib/cameraMode').cameraModes;
 const error = require('../../../core/lib/Error').error;
 const getSSAAChunkedRender = require('../helpers/SSAAChunkedRender');
+const cinematic = require('./cinematic');
 
 // The upstream denoiser noise (GTAOPass._generateNoise) comes from Math.random and would
 // break bit-identical screenshots - a seeded PRNG (mulberry32) replaces it.
@@ -856,7 +857,65 @@ module.exports = function (K3D) {
         }
     }
 
+    // lazy: the path tracer and its BVH machinery spin up on first use only
+    let cinematicMode = null;
+
+    function getCinematic() {
+        if (cinematicMode === null) {
+            cinematicMode = cinematic(K3D, self.renderer);
+        }
+
+        return cinematicMode;
+    }
+
+    // internal: probe/benchmark driver (determinism re-checks on library bumps)
+    K3D.__cinematicSpike = getCinematic;
+
+    // setRenderer() refuses the switch preflight, so Core never dispatches here
+    // unsupported - except a snapshot that opens directly in cinematic. Same
+    // contract then: a concrete error, no silent fallback to another renderer.
+    self.cinematicUnsupportedReason = function () {
+        try {
+            return getCinematic().unsupportedReason();
+        } catch (e) {
+            return e.message || 'cinematic initialization failed';
+        }
+    };
+
     function render() {
+        if (K3D.parameters.renderer === 'cinematic') {
+            const reason = self.cinematicUnsupportedReason();
+
+            if (reason !== null) {
+                error('Cinematic Error', `The cinematic renderer cannot start: ${reason}.`, false);
+
+                return Promise.resolve(null);
+            }
+
+            const mode = getCinematic();
+
+            self.renderer.clippingPlanes = [];
+
+            return mode.renderFrame().then((result) => {
+                if (!result.stale) {
+                    K3D.dispatch(K3D.events.RENDERED);
+                }
+
+                return result;
+            }).catch((e) => {
+                error('Cinematic Error', `The cinematic renderer failed: ${e.message}.`, false);
+
+                return null;
+            });
+        }
+
+        // leaving cinematic: strand any in-flight accumulation so it stops
+        // painting over the rasterised frames, and drop its HUD
+        if (cinematicMode !== null) {
+            cinematicMode.abort();
+            cinematicMode.hideHud();
+        }
+
         const currentRenderMethod = K3D.parameters.depthPeels > 0 ? depthPeelRender : directRender;
 
         if (cameras.length === 0) {
