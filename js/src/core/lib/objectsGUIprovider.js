@@ -332,7 +332,7 @@ function update(K3D, json, GUI, changes) {
                         K3D.gui_map[json.id],
                         json,
                         param,
-                        ['3dSpecular', '3d', 'flat', 'mesh', 'dot'],
+                        ['3d', 'flat', 'mesh', 'dot'],
                     ).onChange(
                         changeParameter.bind(this, K3D, json, param),
                     );

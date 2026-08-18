@@ -67,6 +67,11 @@ def create_object(
     if shininess is not None and "roughness" not in attributes:
         attributes["roughness"] = math.sqrt(2.0 / (max(float(shininess), 0.0) + 2.0))
 
+    # Same boundary for the pre-2.19 points shader alias: specular folded into '3d',
+    # the highlights are driven by roughness/metalness.
+    if attributes.get("shader") == "3dSpecular":
+        attributes["shader"] = "3d"
+
     # widget wiring keys (old snapshots: _model_*/_view_*; new ones: _kind,
     # _synced_props) are transport details, not object state
     attributes = {k: v for k, v in attributes.items() if not k.startswith("_")}

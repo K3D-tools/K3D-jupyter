@@ -35,13 +35,11 @@ module.exports = {
             dot: require('./shaders/Points.dot.fragment.glsl'),
             flat: require('./shaders/Points.flat.fragment.glsl'),
             '3d': require('./shaders/Points.3d.fragment.glsl'),
-            '3dspecular': require('./shaders/Points.3d.fragment.glsl'),
         };
         const vertexShaderMap = {
             dot: require('./shaders/Points.dot.vertex.glsl'),
             flat: require('./shaders/Points.vertex.glsl'),
             '3d': require('./shaders/Points.vertex.glsl'),
-            '3dspecular': require('./shaders/Points.vertex.glsl'),
         };
         const colorMap = (config.color_map && config.color_map.data) || null;
         let opacityFunction = (config.opacity_function && config.opacity_function.data) || null;
@@ -99,7 +97,6 @@ module.exports = {
                 uniforms,
             ]),
             defines: {
-                USE_SPECULAR: (shader === '3dSpecular' ? 1 : 0),
                 PROVIDED_FRAG_COORD_Z: 1,
                 USE_COLOR_MAP: useColorMap,
                 USE_PER_POINT_OPACITY: (opacities !== null ? 1 : 0),

@@ -91,10 +91,7 @@ void main(void)
         vec3 lightIrradiance = directionalLights[l].color * clamp(dot(lightDir, normal), 0.0, 1.0);
 
         diffuse += lightIrradiance * BRDF_Lambert(material.diffuseColor);
-
-        #if (USE_SPECULAR == 1)
         specular += lightIrradiance * BRDF_GGX(lightDir, viewDir, normal, material);
-        #endif
     }
     #endif
 
@@ -105,10 +102,7 @@ void main(void)
             * clamp(dot(lightDir, normal), 0.0, 1.0);
 
         diffuse += lightIrradiance * BRDF_Lambert(material.diffuseColor);
-
-        #if (USE_SPECULAR == 1)
         specular += lightIrradiance * BRDF_GGX(lightDir, viewDir, normal, material);
-        #endif
     }
 
     gl_FragColor = vec4(diffuse + specular, finalSphereColor.a);

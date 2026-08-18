@@ -14,7 +14,13 @@ module.exports = {
         config.color = typeof (config.color) !== 'undefined' ? config.color : 0xff00;
         config.opacity = typeof (config.opacity) !== 'undefined' ? config.opacity : 1.0;
         config.point_size = typeof (config.point_size) !== 'undefined' ? config.point_size : 1.0;
-        config.shader = typeof (config.shader) !== 'undefined' ? config.shader : '3dSpecular';
+        config.shader = typeof (config.shader) !== 'undefined' ? config.shader : '3d';
+
+        // pre-2.19 alias: specular folded into '3d', driven by roughness/metalness.
+        // Normalised here, on the shared json, so the GUI dropdown sees a legal value.
+        if (config.shader.toLowerCase() === '3dspecular') {
+            config.shader = '3d';
+        }
 
         config.opacity = Math.max(Math.min(config.opacity, 1.0), 0.0);
 

@@ -36,14 +36,17 @@ void main(void)
     pos.z += depthOfFragment;
     pos = projectionMatrix * pos;
 
+    // GTAO reconstructs view positions through the inverse projection, so the colour
+    // channel always carries the linear window-space depth - the mesh prepass writes
+    // gl_FragCoord.z there. Only the depth test follows the renderer's buffer encoding.
+    float linearDepth = ((gl_DepthRange.diff * (pos.z / pos.w))
+        + gl_DepthRange.near + gl_DepthRange.far) / 2.0;
+
     #ifdef USE_LOGARITHMIC_DEPTH_BUFFER
-    float depth = log2(1.0 + pos.w) * logDepthBufFC * 0.5;
+    gl_FragDepthEXT = log2(1.0 + pos.w) * logDepthBufFC * 0.5;
     #else
-    pos = pos / pos.w;
-    float depth = ((gl_DepthRange.diff * pos.z) + gl_DepthRange.near + gl_DepthRange.far) / 2.0;
+    gl_FragDepthEXT = linearDepth;
     #endif
 
-    gl_FragDepthEXT = depth;
-
-    gl_FragColor = vec4(depth, 0.0, 0.0, 1.0);
+    gl_FragColor = vec4(linearDepth, 0.0, 0.0, 1.0);
 }

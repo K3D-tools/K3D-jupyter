@@ -31,9 +31,9 @@ class Points(Drawable):
 
             :`dot`: simple dot with uniform color,
 
-            :`3d`: little 3D balls,
-
-            :`3dSpecular`: little 3D balls with specular lighting,
+            :`3d`: little 3D balls (impostors) with full PBR lighting - the highlights
+                are driven by `roughness` and `metalness` (`3dSpecular` is accepted
+                as a legacy alias),
 
             :`mesh`: high precision triangle mesh of a ball (high quality and GPU load).
         roughness: `float`.
