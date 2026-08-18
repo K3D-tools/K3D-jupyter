@@ -24,6 +24,7 @@ Showcase
 .. toctree::
     :hidden:
 
+    showcase/curl-pearls.rst
     showcase/lorenz-system.rst
     showcase/menger-sponge.rst
     showcase/orbits.rst
@@ -35,6 +36,10 @@ Showcase
     showcase/terrain.rst
     showcase/vtk-cutter.rst
     showcase/tractogram.rst
+
+.. k3d_plot::
+   :filename: showcase/thumbnails/curl_pearls_thumbnail.py
+   :screenshot:
 
 .. k3d_plot::
    :filename: showcase/thumbnails/lorenz_system_thumbnail.py
@@ -83,6 +88,10 @@ Showcase
 .. raw:: html
 
     <div class="grid-container">
+
+.. image:: curl_pearls_thumbnail.png
+   :width: 155
+   :target: showcase/curl-pearls.html
 
 .. image:: lorenz_system_thumbnail.png
    :width: 155
