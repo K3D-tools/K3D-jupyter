@@ -161,6 +161,11 @@ module.exports = {
         material.uniforms.k3dEnvLightDir = K3D.getWorld().k3dEnvLightDir;
         material.uniforms.k3dEnvLightColor = K3D.getWorld().k3dEnvLightColor;
 
+        // segment bounds shared by reference - dormant (uPeelSegment == 0)
+        // outside the cinematic hybrid, which cuts the projection at the
+        // path-traced geometry depth
+        Object.assign(material.uniforms, K3D.getWorld().k3dVolumePeel);
+
         geometry.computeBoundingSphere();
         geometry.computeBoundingBox();
 

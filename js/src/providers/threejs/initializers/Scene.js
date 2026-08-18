@@ -669,7 +669,7 @@ module.exports = {
         });
 
         this.recalculateLights = function (value) {
-            if (K3D.parameters.renderer === 'advanced') {
+            if (K3D.parameters.renderer === 'advanced' || K3D.parameters.renderer === 'cinematic') {
                 // The environment is the only light: the maps are normalised to the mean
                 // delivery of the whole simple rig, so switching modes changes the light
                 // direction, not the exposure.
@@ -779,7 +779,10 @@ module.exports = {
         }
 
         this.applyRendererMode = function (K3D) {
-            if (K3D.parameters.renderer === 'advanced') {
+            // cinematic marches volumes with the advanced env light (SH + L1),
+            // so both PBR modes build the environment; only advanced puts it
+            // on the raster scene's materials - cinematic never rasterises them
+            if (K3D.parameters.renderer === 'advanced' || K3D.parameters.renderer === 'cinematic') {
                 if (environmentSource !== K3D.parameters.environment || self.scene.environment === null) {
                     if (pmrem === null) {
                         pmrem = new THREE.PMREMGenerator(self.renderer);

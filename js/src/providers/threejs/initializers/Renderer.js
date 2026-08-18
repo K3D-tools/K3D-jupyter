@@ -863,19 +863,20 @@ module.exports = function (K3D) {
     function getCinematic() {
         if (cinematicMode === null) {
             cinematicMode = cinematic(K3D, self.renderer, {
+                // once per accumulation: march the volumes cut at the proxy
+                // depth so every presented sample carries them (§4 V1)
+                prepareOverlay(proxyScene, width, height) {
+                    cinematicVolume.active = renderCinematicVolumeLayer(proxyScene, width, height);
+                },
+
                 // one tone curve for all three modes: the float accumulation
-                // reaches the canvas only through the shared blit
+                // (plus the volume layer) reaches the canvas only through the
+                // shared compose/tone blit
                 presentFrame(texture) {
                     const size = new THREE.Vector2();
 
                     self.renderer.getSize(size);
-
-                    toneBlitMaterial.uniforms.tDiffuse.value = texture;
-                    toneBlitMaterial.uniforms.uSize.value.set(size.x, size.y);
-
-                    self.renderer.setRenderTarget(null);
-                    self.renderer.setViewport(0, 0, size.x, size.y);
-                    self.renderer.render(toneBlitScene, fsCamera);
+                    composeCinematic(texture, null, size.x, size.y);
                 },
             });
         }
@@ -1130,6 +1131,182 @@ module.exports = function (K3D) {
         return renderingPromise;
     };
 
+    // --- cinematic volume hybrid (stage 5, V1 of renderer_cinematic.md §4) ---
+    // volumes and MIPs stay out of the path-traced BVH; their existing march
+    // runs camera -> first path-traced hit (the depth of the proxy scene fed
+    // through the #277 segment mechanism) and the premultiplied layer
+    // composites over the accumulation before the tone curve.
+    const cinematicVolume = { depth: null, layer: null, active: false };
+    let composeTarget = null;
+    const rawBlitMaterial = new THREE.ShaderMaterial({
+        uniforms: {
+            tDiffuse: { value: null },
+            uSize: { value: new THREE.Vector2(1, 1) },
+        },
+        vertexShader: require('./shaders/composite.vertex.glsl'),
+        fragmentShader: require('./shaders/rawBlit.fragment.glsl'),
+        transparent: true,
+        depthTest: false,
+        depthWrite: false,
+        blending: THREE.CustomBlending,
+        blendEquation: THREE.AddEquation,
+        blendSrc: THREE.OneFactor,
+        blendDst: THREE.OneMinusSrcAlphaFactor,
+    });
+    const rawBlitScene = new THREE.Scene();
+
+    {
+        const plane = new THREE.Mesh(planeGeometry, rawBlitMaterial);
+
+        plane.frustumCulled = false;
+        rawBlitScene.add(plane);
+    }
+
+    function ensureCinematicVolumeTargets(width, height) {
+        if (cinematicVolume.depth !== null
+            && cinematicVolume.depth.width === width
+            && cinematicVolume.depth.height === height) {
+            return;
+        }
+
+        if (cinematicVolume.depth !== null) {
+            cinematicVolume.depth.dispose();
+            cinematicVolume.layer.dispose();
+        }
+
+        // .r carries raw gl_FragCoord.z - the exact convention the peel
+        // machinery and peelT reconstruction expect
+        cinematicVolume.depth = new THREE.WebGLRenderTarget(width, height, {
+            minFilter: THREE.NearestFilter,
+            magFilter: THREE.NearestFilter,
+            format: THREE.RedFormat,
+            type: THREE.FloatType,
+        });
+        cinematicVolume.layer = new THREE.WebGLRenderTarget(width, height, {
+            minFilter: THREE.NearestFilter,
+            magFilter: THREE.NearestFilter,
+            type: THREE.HalfFloatType,
+            depthBuffer: false,
+        });
+    }
+
+    // marches every visible volume/MIP into the layer target, cut at the
+    // proxy-scene depth; runs once per accumulation, not per sample
+    function renderCinematicVolumeLayer(proxyScene, width, height) {
+        const world = K3D.getWorld();
+        const volumeObjects = [];
+
+        world.K3DObjects.traverse((obj) => {
+            if (obj.visible && obj.userData.k3dVolumeShell) {
+                volumeObjects.push(obj);
+            }
+        });
+
+        if (volumeObjects.length === 0) {
+            return false;
+        }
+
+        ensureCinematicVolumeTargets(width, height);
+
+        globalPeelUniforms.uLayer.value = 0;
+        globalPeelUniforms.uScreenSize.value.set(1 / width, 1 / height);
+        self.camera.updateMatrixWorld();
+
+        // the environment background renders with its own material that
+        // overrideMaterial does not cover - it would paint env colours into
+        // the depth channel and peelT would read them as surfaces
+        const savedBackground = proxyScene.background;
+
+        proxyScene.background = null;
+
+        self.renderer.setRenderTarget(cinematicVolume.depth);
+        self.renderer.setViewport(0, 0, width, height);
+        self.renderer.setClearColor(0xffffff, 1);
+        self.renderer.clear(true, true, false);
+        proxyScene.overrideMaterial = depthMaterial;
+        self.renderer.render(proxyScene, self.camera);
+        proxyScene.overrideMaterial = null;
+        proxyScene.background = savedBackground;
+
+        const u = self.k3dVolumePeel;
+        const shown = [];
+
+        u.uPeelSegment.value = 1;
+        u.uPeelNearTexture.value = peelDummyNear;
+        u.uPeelFarTexture.value = cinematicVolume.depth.texture;
+        u.uPeelSize.value.set(1.0 / width, 1.0 / height);
+        u.uPeelInvProjection.value.copy(self.camera.projectionMatrixInverse);
+        u.uPeelInvView.value.copy(self.camera.matrixWorld);
+
+        // leaves only - hiding the K3DObjects group would hide the volumes too
+        world.K3DObjects.traverse((obj) => {
+            if (obj.visible && obj.material && !obj.userData.k3dVolumeShell) {
+                obj.visible = false;
+                shown.push(obj);
+            }
+        });
+
+        self.renderer.setRenderTarget(cinematicVolume.layer);
+        self.renderer.setViewport(0, 0, width, height);
+        self.renderer.setClearColor(0, 0);
+        self.renderer.clear(true, false, false);
+        self.renderer.render(self.scene, self.camera);
+
+        shown.forEach((obj) => {
+            obj.visible = true;
+        });
+        u.uPeelSegment.value = 0;
+        self.renderer.setRenderTarget(null);
+
+        return true;
+    }
+
+    // the linear pipeline of the hybrid: accumulation + volume layer compose
+    // first, ONE tone curve at the end - the same order as the peel composite
+    function composeCinematic(ptTexture, rt, width, height) {
+        if (!cinematicVolume.active) {
+            toneBlitMaterial.uniforms.tDiffuse.value = ptTexture;
+            toneBlitMaterial.uniforms.uSize.value.set(width, height);
+
+            self.renderer.setRenderTarget(rt);
+            self.renderer.setViewport(0, 0, width, height);
+            self.renderer.render(toneBlitScene, fsCamera);
+            return;
+        }
+
+        if (composeTarget === null || composeTarget.width !== width || composeTarget.height !== height) {
+            if (composeTarget !== null) {
+                composeTarget.dispose();
+            }
+
+            composeTarget = new THREE.WebGLRenderTarget(width, height, {
+                minFilter: THREE.NearestFilter,
+                magFilter: THREE.NearestFilter,
+                type: THREE.HalfFloatType,
+                depthBuffer: false,
+            });
+        }
+
+        self.renderer.setRenderTarget(composeTarget);
+        self.renderer.setViewport(0, 0, width, height);
+        self.renderer.setClearColor(0, 0);
+        self.renderer.clear(true, false, false);
+
+        rawBlitMaterial.uniforms.uSize.value.set(width, height);
+        rawBlitMaterial.uniforms.tDiffuse.value = ptTexture;
+        self.renderer.render(rawBlitScene, fsCamera);
+
+        rawBlitMaterial.uniforms.tDiffuse.value = cinematicVolume.layer.texture;
+        self.renderer.render(rawBlitScene, fsCamera);
+
+        toneBlitMaterial.uniforms.tDiffuse.value = composeTarget.texture;
+        toneBlitMaterial.uniforms.uSize.value.set(width, height);
+
+        self.renderer.setRenderTarget(rt);
+        self.renderer.setViewport(0, 0, width, height);
+        self.renderer.render(toneBlitScene, fsCamera);
+    }
+
     // the raster loop keeps the axes camera aligned through the controls
     // 'change' handler (Canvas.js); in cinematic no such loop runs, so the
     // alignment is recomputed explicitly - same formula, deterministic order
@@ -1194,14 +1371,11 @@ module.exports = function (K3D) {
                     magFilter: THREE.NearestFilter,
                 });
 
-                toneBlitMaterial.uniforms.tDiffuse.value = frame.texture;
-                toneBlitMaterial.uniforms.uSize.value.set(width, height);
-
                 self.renderer.setRenderTarget(rt);
                 self.renderer.setViewport(0, 0, width, height);
                 self.renderer.setClearColor(0, 0);
                 self.renderer.clear();
-                self.renderer.render(toneBlitScene, fsCamera);
+                composeCinematic(frame.texture, rt, width, height);
 
                 const pixels = new Uint8Array(width * height * 4);
 

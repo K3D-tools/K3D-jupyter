@@ -38,6 +38,41 @@ uniform float maskOpacities[256];
 
 uniform vec4 scale;
 uniform vec4 translation;
+uniform vec4 rotation;
+
+// depth-peel segment bounds (issue #277 mechanics, adopted by the cinematic
+// hybrid): with uPeelSegment == 1 the projection is clamped between two depth
+// textures - same contract as Volume.fragment.glsl
+uniform int uPeelSegment;
+uniform sampler2D uPeelNearTexture;
+uniform sampler2D uPeelFarTexture;
+uniform vec2 uPeelSize;
+uniform mat4 uPeelInvProjection;
+uniform mat4 uPeelInvView;
+
+vec3 rotate_vertex_position(vec3 pos, vec3 t, vec4 q) {
+    vec3 p = pos.xyz - t.xyz;
+
+    return p.xyz + 2.0 * cross(cross(p.xyz, q.xyz) + q.w * p.xyz, q.xyz) + t.xyz;
+}
+
+// window-space z from a depth layer -> distance along the ray in marching space
+float peelT(sampler2D depthTexture, vec3 origin, vec3 dir, float noHitT) {
+    vec2 uv = gl_FragCoord.xy * uPeelSize;
+    float z = texture2D(depthTexture, uv).r;
+
+    if (z >= 1.0) {
+        return noHitT;
+    }
+
+    vec4 view = uPeelInvProjection * vec4(uv * 2.0 - 1.0, z * 2.0 - 1.0, 1.0);
+    view /= view.w;
+
+    vec4 world = uPeelInvView * view;
+    vec3 p = rotate_vertex_position(world.xyz, translation.xyz, rotation);
+
+    return dot(p - origin, dir);
+}
 
 varying vec3 localPosition;
 varying vec3 transformedCameraPosition;
@@ -148,6 +183,31 @@ void main() {
     textcoord_start = textcoord_start - textcoord_delta * 0.5;
     #else
     textcoord_start = textcoord_start - textcoord_delta * (0.01 + 0.98 * jitter);
+
+    if (uPeelSegment == 1) {
+        // sample k sits at t = tStart + (k - jitterOffset) * tStep; the clamp
+        // mirrors Volume.fragment.glsl so both marches cut identically
+        float jitterOffset = 0.01 + 0.98 * jitter;
+        float tRayStart = max(0.0, tmin);
+        float tStep = (tmax - tRayStart) / float(sampleCount);
+        float tNear = peelT(uPeelNearTexture, transformedCameraPosition, direction, -1.0);
+        float tFar = peelT(uPeelFarTexture, transformedCameraPosition, direction, -1.0);
+        int kMin = 0;
+        int kMax = sampleCount - 1;
+
+        if (tNear < 0.0) {
+            kMax = -1;
+        } else {
+            kMin = max(0, int(ceil((min(tNear, tmax) - tRayStart) / tStep + jitterOffset)));
+        }
+
+        if (tFar >= 0.0) {
+            kMax = min(kMax, int(ceil((min(tFar, tmax) - tRayStart) / tStep + jitterOffset)) - 1);
+        }
+
+        textcoord_start = textcoord_start + float(kMin) * textcoord_delta;
+        sampleCount = max(kMax - kMin + 1, 0);
+    }
     #endif
 
     vec3 textcoord = textcoord_start - textcoord_delta;

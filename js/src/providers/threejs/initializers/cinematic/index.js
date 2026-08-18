@@ -26,6 +26,7 @@ module.exports = function cinematic(K3D, renderer, hooks) {
     const backend = createWebGLBackend(renderer);
     const proxy = createSceneProxy(K3D);
     const presentFrame = (hooks && hooks.presentFrame) || null;
+    const prepareOverlay = (hooks && hooks.prepareOverlay) || null;
     let ready = false;
     let scene = null;
     let sceneDirty = true;
@@ -223,9 +224,14 @@ module.exports = function cinematic(K3D, renderer, hooks) {
         // it converges. Resolves early (stale: true) when superseded.
         renderFrame() {
             const budget = K3D.parameters.cinematicSamples;
+            const world = K3D.getWorld();
 
             ensurePrepared();
             backend.updateCamera();
+
+            if (prepareOverlay !== null) {
+                prepareOverlay(scene, world.width, world.height);
+            }
 
             return renderSamplesAsync(budget, budget).then((result) => {
                 if (!result.stale) {
@@ -245,6 +251,10 @@ module.exports = function cinematic(K3D, renderer, hooks) {
             ensurePrepared();
             backend.updateCamera();
             backend.setFixedSize(width, height);
+
+            if (prepareOverlay !== null) {
+                prepareOverlay(scene, width, height);
+            }
 
             return renderSamplesAsync(budget, budget).then((result) => ({
                 samples: result.samples,
