@@ -89,6 +89,9 @@ module.exports = function createWebGLBackend(renderer) {
             // per-sample seeds instead of wall-clock noise: the accumulation of
             // N samples is a pure function of the scene - references depend on it
             tracer.stableNoise = true;
+            // presentation belongs to K3D: the accumulation target goes
+            // through the shared tone-mapping blit, not the library's copy
+            tracer.renderToCanvas = false;
             reseedOffsetTexture(tracer);
         },
 
@@ -106,6 +109,23 @@ module.exports = function createWebGLBackend(renderer) {
 
         updateEnvironment() {
             tracer.updateEnvironment();
+        },
+
+        // screenshots accumulate at the exact requested resolution instead of
+        // the canvas size - renderScale would floor to +-1px of the target
+        setFixedSize(width, height) {
+            tracer.synchronizeRenderSize = false;
+            tracer._pathTracer.setSize(width, height);
+        },
+
+        releaseFixedSize() {
+            tracer.synchronizeRenderSize = true;
+        },
+
+        targetTexture() {
+            const target = tracer.target;
+
+            return target.texture || target;
         },
 
         updateMaterials() {

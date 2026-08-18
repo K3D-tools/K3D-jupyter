@@ -7,10 +7,27 @@ const createWebGLBackend = require('./webglBackend');
 const createSceneProxy = require('./sceneProxy');
 const { getEnvironmentTexture } = require('../../helpers/environment');
 
-module.exports = function cinematic(K3D, renderer) {
+// the same up-axis-dependent Euler the advanced renderer applies in
+// Scene.applyRendererMode - the two modes must agree on where the sun sits
+function environmentRotation(K3D) {
+    const rot = K3D.parameters.environmentRotation;
+
+    switch (K3D.parameters.cameraUpAxis) {
+        case 'y':
+            return new THREE.Euler(0, rot, 0, 'XYZ');
+        case 'x':
+            return new THREE.Euler(rot, 0, -Math.PI / 2, 'XZY');
+        default:
+            return new THREE.Euler(Math.PI / 2, 0, rot, 'ZXY');
+    }
+}
+
+module.exports = function cinematic(K3D, renderer, hooks) {
     const backend = createWebGLBackend(renderer);
     const proxy = createSceneProxy(K3D);
+    const presentFrame = (hooks && hooks.presentFrame) || null;
     let ready = false;
+    let scene = null;
     let sceneDirty = true;
     let envKey = null;
     let lastBounces = null;
@@ -46,21 +63,28 @@ module.exports = function cinematic(K3D, renderer) {
         return [
             typeof env === 'string' ? env : (env && env.name) || 'custom',
             K3D.parameters.environmentRotation,
+            K3D.parameters.cameraUpAxis,
             K3D.parameters.lighting,
         ].join('|');
     }
 
-    function buildScene() {
-        const scene = new THREE.Scene();
-
-        proxy.populate(scene, K3D.getWorld().camera);
-
+    function applyEnvironment(target) {
         const env = getEnvironmentTexture(K3D.parameters.environment);
+        const rotation = environmentRotation(K3D);
 
         env.mapping = THREE.EquirectangularReflectionMapping;
-        scene.environment = env;
-        scene.background = env;
-        scene.environmentIntensity = K3D.parameters.lighting / 1.5;
+        target.environment = env;
+        target.background = env;
+        target.environmentRotation.copy(rotation);
+        target.backgroundRotation.copy(rotation);
+        target.environmentIntensity = K3D.parameters.lighting / 1.5;
+        target.backgroundIntensity = K3D.parameters.lighting / 1.5;
+    }
+
+    function buildScene() {
+        scene = new THREE.Scene();
+        proxy.populate(scene, K3D.getWorld().camera);
+        applyEnvironment(scene);
 
         return scene;
     }
@@ -105,16 +129,21 @@ module.exports = function cinematic(K3D, renderer) {
 
         const key = currentEnvKey();
 
-        if (sceneDirty || key !== envKey) {
+        if (sceneDirty) {
             setHud('cinematic: building BVH…');
             backend.setScene(buildScene(), K3D.getWorld().camera);
             sceneDirty = false;
             envKey = key;
             needsWarmup = true;
+        } else if (key !== envKey) {
+            // lighting-only change: the BVH is untouched, no rebuild
+            applyEnvironment(scene);
+            backend.updateEnvironment();
+            envKey = key;
         }
     }
 
-    function renderUntil(target, gen, budget) {
+    function renderUntil(target, gen, budget, present) {
         return new Promise((resolve, reject) => {
             const started = performance.now();
 
@@ -133,6 +162,10 @@ module.exports = function cinematic(K3D, renderer) {
                 } catch (e) {
                     reject(e);
                     return;
+                }
+
+                if (present && presentFrame !== null) {
+                    presentFrame(backend.targetTexture());
                 }
 
                 if (budget) {
@@ -160,7 +193,7 @@ module.exports = function cinematic(K3D, renderer) {
     function renderSamplesAsync(count, budget) {
         const gen = ++generation;
         const warmup = needsWarmup
-            ? renderUntil(1, gen, 0)
+            ? renderUntil(1, gen, 0, false)
             : Promise.resolve({ samples: 0 });
 
         // rewind to the canonical RNG state before every accumulation - after
@@ -173,7 +206,7 @@ module.exports = function cinematic(K3D, renderer) {
             needsWarmup = false;
             backend.reset();
 
-            return renderUntil(count, gen, budget);
+            return renderUntil(count, gen, budget, budget > 0);
         });
     }
 
@@ -203,13 +236,36 @@ module.exports = function cinematic(K3D, renderer) {
             });
         },
 
+        // offscreen accumulation at an explicit resolution (screenshots):
+        // resolves with the float target texture holding the converged frame,
+        // which the caller blits through the shared tone-mapping pass
+        renderBudget(width, height) {
+            const budget = K3D.parameters.cinematicSamples;
+
+            ensurePrepared();
+            backend.updateCamera();
+            backend.setFixedSize(width, height);
+
+            return renderSamplesAsync(budget, budget).then((result) => ({
+                samples: result.samples,
+                stale: result.stale,
+                texture: backend.targetTexture(),
+            }));
+        },
+
+        releaseFixedSize() {
+            backend.releaseFixedSize();
+            backend.reset();
+        },
+
         // building blocks for headless probes and benchmarks
         renderSample() {
             return backend.renderSample();
         },
 
         renderSamplesAsync(count) {
-            return renderSamplesAsync(count, 0);
+            // probes hash the canvas, so the accumulation must reach it
+            return renderSamplesAsync(count, count);
         },
 
         hideHud() {

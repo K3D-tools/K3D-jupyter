@@ -223,14 +223,16 @@ function K3D(provider, targetDOMNode, parameters) {
                 self.setEnvironmentRotation(value);
                 changeParameters.call(self, 'environment_rotation', value);
             }));
-        environmentControls.push(GUI.controls.add(self.parameters, 'aoRadius')
+        const aoControls = [];
+
+        aoControls.push(GUI.controls.add(self.parameters, 'aoRadius')
             .step(0.005).min(0.005).max(0.5)
             .listen()
             .onChange((value) => {
                 self.setAORadius(value);
                 changeParameters.call(self, 'ao_radius', value);
             }));
-        environmentControls.push(GUI.controls.add(self.parameters, 'aoStrength')
+        aoControls.push(GUI.controls.add(self.parameters, 'aoStrength')
             .step(0.05).min(0).max(5)
             .listen()
             .onChange((value) => {
@@ -255,14 +257,19 @@ function K3D(provider, targetDOMNode, parameters) {
                 changeParameters.call(self, 'cinematic_bounces', value);
             }));
 
-        // the environment and AO light only the advanced renderer; the sample
-        // and bounce budgets steer only the path tracer
+        // the environment lights advanced and cinematic alike; screen-space AO
+        // exists only in advanced, sample/bounce budgets only in cinematic
         self.refreshRendererGUI = function () {
+            const mode = self.parameters.renderer;
+
             environmentControls.forEach((control) => {
-                control.show(self.parameters.renderer === 'advanced');
+                control.show(mode === 'advanced' || mode === 'cinematic');
+            });
+            aoControls.forEach((control) => {
+                control.show(mode === 'advanced');
             });
             cinematicControls.forEach((control) => {
-                control.show(self.parameters.renderer === 'cinematic');
+                control.show(mode === 'cinematic');
             });
         };
         self.refreshRendererGUI();

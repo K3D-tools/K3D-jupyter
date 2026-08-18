@@ -862,7 +862,22 @@ module.exports = function (K3D) {
 
     function getCinematic() {
         if (cinematicMode === null) {
-            cinematicMode = cinematic(K3D, self.renderer);
+            cinematicMode = cinematic(K3D, self.renderer, {
+                // one tone curve for all three modes: the float accumulation
+                // reaches the canvas only through the shared blit
+                presentFrame(texture) {
+                    const size = new THREE.Vector2();
+
+                    self.renderer.getSize(size);
+
+                    toneBlitMaterial.uniforms.tDiffuse.value = texture;
+                    toneBlitMaterial.uniforms.uSize.value.set(size.x, size.y);
+
+                    self.renderer.setRenderTarget(null);
+                    self.renderer.setViewport(0, 0, size.x, size.y);
+                    self.renderer.render(toneBlitScene, fsCamera);
+                },
+            });
         }
 
         return cinematicMode;
@@ -895,6 +910,13 @@ module.exports = function (K3D) {
             const mode = getCinematic();
 
             self.renderer.clippingPlanes = [];
+            // DOM overlays (grid numbers, labels, axes letters) refresh and
+            // reproject here - without this the first screenshot captures
+            // stale positions and hidden grids keep their floating labels
+            K3D.refreshGrid();
+            self.camera.updateMatrixWorld();
+            alignAxesCamera();
+            K3D.dispatch(K3D.events.BEFORE_RENDER);
 
             return mode.renderFrame().then((result) => {
                 if (!result.stale) {
@@ -1108,7 +1130,96 @@ module.exports = function (K3D) {
         return renderingPromise;
     };
 
+    // the raster loop keeps the axes camera aligned through the controls
+    // 'change' handler (Canvas.js); in cinematic no such loop runs, so the
+    // alignment is recomputed explicitly - same formula, deterministic order
+    // (up before lookAt)
+    function alignAxesCamera() {
+        const camDistance = (3.0 * 0.5) / Math.tan(THREE.MathUtils.degToRad(K3D.parameters.cameraFov / 2.0));
+
+        self.axesHelper.camera.position.copy(
+            self.camera.position.clone().sub(self.controls.target).normalize().multiplyScalar(camDistance),
+        );
+        self.axesHelper.camera.up.copy(self.camera.up);
+        self.axesHelper.camera.lookAt(0, 0, 0);
+        self.axesHelper.camera.updateMatrixWorld();
+    }
+
+    // cinematic screenshots: accumulate the sample budget at the target
+    // resolution, tone-map the float accumulation through the shared blit
+    // (one curve for all three modes) and read it back; the axes overlay
+    // rasterises exactly like the classic path. No grid layer - the
+    // environment dome is the background.
+    function cinematicOffScreen(width, height) {
+        const reason = self.cinematicUnsupportedReason();
+
+        if (reason !== null) {
+            error('Cinematic Error', `The cinematic renderer cannot start: ${reason}.`, false);
+
+            return Promise.resolve([]);
+        }
+
+        const mode = getCinematic();
+        const size = new THREE.Vector2();
+
+        alignAxesCamera();
+        self.renderer.getSize(size);
+
+        const scale = Math.max(width / size.x, height / size.y);
+        const aaLevel = Math.max(Math.min(5, K3D.parameters.antialias), 0);
+        const rtAxesHelper = new THREE.WebGLRenderTarget(
+            self.axesHelper.width * scale,
+            self.axesHelper.height * scale,
+            { type: THREE.FloatType },
+        );
+
+        self.renderer.clippingPlanes = [];
+
+        return getSSAAChunkedRender(self.renderer, self.axesHelper.scene, self.axesHelper.camera,
+            rtAxesHelper, rtAxesHelper.width, rtAxesHelper.height, [[0, rtAxesHelper.height]],
+            aaLevel, directRender).then((result) => {
+            const axesHelper = new Uint8ClampedArray(width * height * 4);
+
+            for (let y = 0; y < rtAxesHelper.height; y++) {
+                axesHelper.set(
+                    result.slice(y * rtAxesHelper.width * 4, (y + 1) * rtAxesHelper.width * 4),
+                    (y * width + width - rtAxesHelper.width) * 4,
+                );
+            }
+            rtAxesHelper.dispose();
+
+            return mode.renderBudget(width, height).then((frame) => {
+                const rt = new THREE.WebGLRenderTarget(width, height, {
+                    minFilter: THREE.NearestFilter,
+                    magFilter: THREE.NearestFilter,
+                });
+
+                toneBlitMaterial.uniforms.tDiffuse.value = frame.texture;
+                toneBlitMaterial.uniforms.uSize.value.set(width, height);
+
+                self.renderer.setRenderTarget(rt);
+                self.renderer.setViewport(0, 0, width, height);
+                self.renderer.setClearColor(0, 0);
+                self.renderer.clear();
+                self.renderer.render(toneBlitScene, fsCamera);
+
+                const pixels = new Uint8Array(width * height * 4);
+
+                self.renderer.readRenderTargetPixels(rt, 0, 0, width, height, pixels);
+                self.renderer.setRenderTarget(null);
+                rt.dispose();
+                mode.releaseFixedSize();
+
+                return [new Uint8ClampedArray(pixels.buffer), axesHelper];
+            });
+        });
+    }
+
     this.renderOffScreen = function (width, height) {
+        if (K3D.parameters.renderer === 'cinematic') {
+            return cinematicOffScreen(width, height);
+        }
+
         const chunkHeights = [];
         const chunkCount = Math.max(Math.min(128, K3D.parameters.renderingSteps), 1);
         const aaLevel = Math.max(Math.min(5, K3D.parameters.antialias), 0);
