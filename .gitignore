@@ -19,6 +19,9 @@ examples/*.vtk
 examples/*.vtp
 examples/*.js
 examples/*.gz
+# the gallery thumbnails download into whatever directory sphinx runs in
+docs/*.obj
+docs/*.zip
 # whatever the notebooks download or write when they run; the fixtures they keep
 # live in examples/assets/, which these patterns do not reach
 examples/*.html

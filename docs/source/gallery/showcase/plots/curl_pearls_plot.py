@@ -92,7 +92,7 @@ def build_scene():
     plot = k3d.plot(grid_visible=False, camera_auto_fit=False,
                     background_color=0x08090B,
                     renderer='advanced', environment='neutral',
-                    lighting=2.1, ao_radius=0.03, ao_strength=2.4,
+                    lighting=2.1, ao_radius=0.05, ao_strength=2.4,
                     screenshot_scale=1.0)
 
     # analytic sphere impostors - they cast and receive the ambient
@@ -100,6 +100,39 @@ def build_scene():
     plot += k3d.points(positions, point_sizes=point_sizes, shader='3d',
                        colors=point_colors, roughness=0.35,
                        compression_level=7)
+
+    # blocks for the strands to stand in: concave corners are where occlusion reads strongest
+    blocks = np.random.RandomState(7)
+    verts = []
+    faces = []
+    unit = np.array([[0, 0, 0], [1, 0, 0], [1, 1, 0], [0, 1, 0],
+                     [0, 0, 1], [1, 0, 1], [1, 1, 1], [0, 1, 1]], np.float32)
+    quads = [(0, 1, 2, 3), (4, 5, 6, 7), (0, 1, 5, 4),
+             (1, 2, 6, 5), (2, 3, 7, 6), (3, 0, 4, 7)]
+
+    while len(verts) < 70:
+        centre = blocks.uniform([-3.4, -1.0, -1.9], [0.6, 3.4, 1.0])
+
+        # nothing inside the sphere of strands, nothing in front of it
+        if np.linalg.norm(centre) < 1.9 or (centre[0] > 0.2 and centre[1] < 0.2):
+            continue
+
+        span = blocks.uniform([0.35, 0.35, 0.35], [1.3, 1.3, 1.1])
+        angle = blocks.uniform(0, np.pi / 2)
+        rot = np.array([[np.cos(angle), -np.sin(angle), 0],
+                        [np.sin(angle), np.cos(angle), 0],
+                        [0, 0, 1]], np.float32)
+        base = len(verts) * 8
+
+        verts.append((((unit - 0.5) * span) @ rot.T + centre).astype(np.float32))
+        for a, b, c, d in quads:
+            faces.append([base + a, base + b, base + c])
+            faces.append([base + a, base + c, base + d])
+
+    # a blue outside the bead shades, so the strands stay legible against the blocks
+    plot += k3d.mesh(np.concatenate(verts).astype(np.float32),
+                     np.array(faces, np.uint32),
+                     color=0x35506B, roughness=0.55)
     plot.camera = [1.75, -1.75, 1.1, 0, 0, 0, 0, 0, 1]
 
     return plot

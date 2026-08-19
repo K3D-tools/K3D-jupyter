@@ -48,3 +48,4 @@ First plot
     frontend
     usage
     renderers
+    cinematic

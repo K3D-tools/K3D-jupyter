@@ -65,6 +65,7 @@ and the floor genuinely exceeds 1.0, and without a curve it clips.
                     tone_mapping='aces',
                     grid_visible=False,
                     camera_auto_fit=False,
+                    background_color=0x2A2C30,
                     cinematic_samples=256,
                     cinematic_bounces=6)
 
@@ -94,8 +95,9 @@ and the floor genuinely exceeds 1.0, and without a curve it clips.
 
     plot.display()
 
-The same model under ``advanced``, and the rest of the walkthrough, is in
-``examples/stanford_dragon.ipynb``.
+What the parameters above do, and the same dragon under six different
+environments, are on the :ref:`cinematic` page. The same model under ``advanced``,
+and the rest of the walkthrough, is in ``examples/stanford_dragon.ipynb``.
 
 .. k3d_plot ::
   :filename: plots/stanford_dragon_plot.py

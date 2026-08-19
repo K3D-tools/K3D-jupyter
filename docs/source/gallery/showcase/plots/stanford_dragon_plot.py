@@ -34,12 +34,13 @@ def generate():
     centre = bounds.mean(axis=1)
     size = float((bounds[:, 1] - bounds[:, 0]).max())
 
-    # half the thumbnail's budget: this one accumulates in the reader's browser
+    # these samples accumulate in the reader's browser, not at docs build time
     plot = k3d.plot(renderer='cinematic',
                     environment='venice_sunset',
                     tone_mapping='aces',
                     grid_visible=False,
                     camera_auto_fit=False,
+                    background_color=0x2A2C30,
                     cinematic_samples=256,
                     cinematic_bounces=6)
 
@@ -64,8 +65,7 @@ def generate():
                      metalness=0.7,
                      name='floor')
 
-    # the head points along XY (0.75, 0.66): standing 28 degrees off that axis keeps it
-    # turned towards the camera while the arc of the back and the coiled tail stay visible
+    # eye 28 degrees off the head axis XY (0.75, 0.66): keeps head, back and tail in view
     eye = centre + np.array([1.02, 0.245, 0.38]) * size
     plot.camera = [*eye, *centre, 0, 0, 1]
 
