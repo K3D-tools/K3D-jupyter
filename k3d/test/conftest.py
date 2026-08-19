@@ -1,5 +1,6 @@
 import inspect
 import os
+import shutil
 import sys
 
 current_dir = os.path.dirname(os.path.abspath(inspect.getfile(inspect.currentframe())))
@@ -53,6 +54,12 @@ def pytest_sessionstart(session):
     Called after the Session object has been created and
     before performing collection and entering the run test loop.
     """
+    # only this run's failures belong here: images from a previous one read as current evidence
+    results = os.path.join(os.path.dirname(os.path.abspath(__file__)), "results")
+
+    if os.path.isdir(results):
+        shutil.rmtree(results, ignore_errors=True)
+
     pytest.plot = k3d.plot(
         screenshot_scale=1.0, antialias=2, camera_auto_fit=False, colorbar_object_id=0
     )
@@ -60,8 +67,7 @@ def pytest_sessionstart(session):
     gpu = session.config.getoption("--gpu")
     driver = get_headless_driver(gpu=gpu)
 
-    # A cinematic screenshot spends its whole sample budget in one call: both the script
-    # timeout and the client HTTP timeout below (120s by default) must allow minutes.
+    # One cinematic screenshot is one long call; the client HTTP timeout defaults to 120s.
     driver.set_script_timeout(600)
 
     client_config = getattr(driver.command_executor, "_client_config", None)
