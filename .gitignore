@@ -33,6 +33,8 @@ examples/*.slc
 examples/*.stl
 examples/*.zip
 k3d/labextension/
+# the visual suite runs from k3d/ and caches its downloaded mesh fixture there
+k3d/*.stl
 k3d/test/results/*
 node_modules
 yarn.lock
