@@ -22,8 +22,7 @@ def test_unknown_renderer_degrades_to_simple():
 def test_cinematic_is_a_legal_renderer():
     prepare()
 
-    # supported browser (the headless container has WebGL2 + floats): the
-    # switch commits; the way back must strand the accumulation cleanly
+    # the headless container has WebGL2 + float textures, so the switch must commit
     mode = pytest.headless.browser.execute_script("""
     K3DInstance.setRenderer('cinematic');
     const switched = K3DInstance.parameters.renderer;

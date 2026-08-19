@@ -1,6 +1,5 @@
-"""Scenes that only exist in the cinematic renderer: the volume hybrid and the
-path-tracing budgets. Everything else is covered by the third mode of the
-shared visual suite."""
+"""Scenes only the cinematic renderer has: the volume hybrid and the path-tracing
+budgets. Everything else is covered by the cinematic mode of the shared visual suite."""
 
 import numpy as np
 import pytest
@@ -33,9 +32,8 @@ def _cloud(size=40, falloff=3.0):
 
 
 def test_cinematic_volume_hybrid():
-    """Volumes are not path traced: their march runs to the first traced hit and
-    composites over the accumulation. The sphere overlaps the cloud, so the
-    image fails both ways round - march uncut, or geometry drawn over the gas."""
+    """Volumes are not path traced: the march stops at the first traced hit and composites
+    over the accumulation. The sphere overlaps the cloud, so both failure directions show."""
     prepare()
 
     vertices, indices = _sphere(0.5, (0.7, 0.0, 0.0))
@@ -64,8 +62,7 @@ def test_cinematic_mip_hybrid():
 
 
 def test_cinematic_single_bounce():
-    """One bounce is direct lighting only - the colour bleeding between the two
-    walls and the sphere disappears, which is what makes the trait observable."""
+    """One bounce is direct lighting only: no colour bleeding between the walls and sphere."""
     prepare()
 
     vertices, indices = _sphere(0.6)

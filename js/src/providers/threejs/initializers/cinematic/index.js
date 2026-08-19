@@ -1,14 +1,11 @@
-// Cinematic mode orchestration: the scene proxy mirrors K3DObjects as plain
-// meshes (stage 2), the environment is the sole light, the accumulation loop
-// is interruptible and a HUD counts samples. Screenshots and tone mapping
-// integration are stage 3.
+// Cinematic mode orchestration: a proxy scene of plain meshes, the environment as the
+// sole light, an interruptible accumulation loop.
 const THREE = require('three');
 const createWebGLBackend = require('./webglBackend');
 const createSceneProxy = require('./sceneProxy');
 const { getEnvironmentTexture } = require('../../helpers/environment');
 
-// the same up-axis-dependent Euler the advanced renderer applies in
-// Scene.applyRendererMode - the two modes must agree on where the sun sits
+// must match Scene.applyRendererMode: both renderer modes orient the environment alike
 function environmentRotation(K3D) {
     const rot = K3D.parameters.environmentRotation;
 
@@ -31,14 +28,10 @@ module.exports = function cinematic(K3D, renderer, hooks) {
     const rasterizePreview = (hooks && hooks.rasterizePreview) || null;
     const isHeadless = typeof window !== 'undefined'
         && typeof window.headlessK3D !== 'undefined';
-    // interactive loop state: `wanted` is "the image is not converged yet",
-    // frameHandle is the pending animation frame
+    // wanted: the image is not converged yet
     let wanted = false;
     let frameHandle = null;
-    // the camera reaches us through several paths (controls, the kernel setting
-    // plot.camera, resetCamera, viewport changes) and only one of them emits
-    // CAMERA_CHANGE - so the loop compares the matrices instead of trusting an
-    // event, and a moved camera always restarts the accumulation
+    // not every camera path emits CAMERA_CHANGE, so the loop compares matrices
     const lastCamera = { view: new THREE.Matrix4(), projection: new THREE.Matrix4() };
     let cameraKnown = false;
     let ready = false;
@@ -47,26 +40,16 @@ module.exports = function cinematic(K3D, renderer, hooks) {
     let materialsDirty = false;
     let envKey = null;
     let lastBounces = null;
-    // the stratified-sample texture rebuilds on the first sample after a scene
-    // or bounce change, consuming seeded RNG draws that a later reset() does
-    // not replay - those accumulations warm up one sample first (stage 0 gate)
+    // the stratified-sample texture rebuilds on the first sample after a scene or bounce
+    // change and consumes seeded RNG draws reset() does not replay: warm up one sample first
     let needsWarmup = true;
-    // bumping the generation strands every in-flight accumulation loop, so a
-    // camera move or scene edit never waits for a full sample budget
+    // a bump strands every in-flight accumulation loop
     let generation = 0;
     let hud = null;
     let hudText = null;
 
-    // the source of truth is K3DObjects - any object mutation invalidates the
-    // proxy scene (BVH rebuild), which ensurePrepared() picks up lazily. The
-    // generation bump abandons whatever is accumulating right now: it is an
-    // image of a scene that no longer exists, so finishing its budget would
-    // only delay the one the user asked for.
-    // Rebuilding the proxy means rebuilding the BVH, which is the expensive part
-    // of a scene change - and these edits do not touch geometry at all: they sit
-    // on the material, which the tracer can refresh on its own. Colour is not in
-    // this set on purpose: for points and tubes it is baked into vertex colours,
-    // so changing it really is a geometry change.
+    // edits the tracer refreshes without a BVH rebuild. Colour stays out: for points and
+    // tubes it is baked into vertex colours, so changing it is a geometry change.
     const MATERIAL_ONLY = ['roughness', 'metalness', 'opacity'];
 
     ['OBJECT_LOADED', 'OBJECT_REMOVED', 'OBJECT_CHANGE'].forEach((name) => {
@@ -82,13 +65,12 @@ module.exports = function cinematic(K3D, renderer, hooks) {
     });
 
     function restart() {
-        // the accumulated image describes a state that no longer holds
         generation++;
         needsWarmup = true;
         backend.reset();
     }
 
-    // true when the camera moved since the last frame this loop rendered
+    // latches the compared matrices as a side effect
     function cameraMoved() {
         const { camera } = K3D.getWorld();
 
@@ -107,14 +89,8 @@ module.exports = function cinematic(K3D, renderer, hooks) {
         return true;
     }
 
-    // a moved camera invalidates the accumulation completely, so it restarts
-    // from zero rather than refining a stale image. Headless is the exception:
-    // there every frame is explicitly requested (sync, screenshot), and a
-    // progressive preview nobody looks at would double the cost of every
-    // reference - a camera reset would accumulate at canvas resolution just
-    // before the screenshot accumulates at its own.
-    // the loop detects the move itself; this only wakes it up when it had
-    // already parked on a converged image
+    // the loop detects the move itself; this only wakes it up when it had parked on a
+    // converged image. Headless is excluded on purpose: there frames are rendered on request.
     K3D.on(K3D.events.CAMERA_CHANGE, () => {
         if (K3D.parameters.renderer === 'cinematic' && !isHeadless) {
             K3D.render();
@@ -135,8 +111,7 @@ module.exports = function cinematic(K3D, renderer, hooks) {
     function applyEnvironment(target) {
         const env = getEnvironmentTexture(K3D.parameters.environment);
         const rotation = environmentRotation(K3D);
-        // the exposure curve advanced uses (Scene.recalculateLights), so that
-        // plot.lighting means the same thing in both PBR renderers
+        // the curve Scene.recalculateLights uses, so plot.lighting means the same here
         const lighting = K3D.parameters.lighting;
         const envIntensity = lighting <= 1.0 ? Math.max(lighting, 0.0) : (1.0 + lighting) / 2.0;
 
@@ -145,14 +120,8 @@ module.exports = function cinematic(K3D, renderer, hooks) {
         target.background = env;
         target.environmentRotation.copy(rotation);
         target.backgroundRotation.copy(rotation);
-        // Exactly the exposure advanced applies (Scene.recalculateLights),
-        // including its measured 1.2 surface correction - no cinematic-specific
-        // gain. A lone flat surface does come out darker here, because the raster
-        // IBL hands it a full hemisphere of light while the path tracer gives it
-        // only what actually reaches it; but in any real scene the bounces make
-        // up the difference, and adding a gain on top double-counted it: a yellow
-        // menger sponge, all cavity, blew 55% of its pixels out to white while
-        // advanced saturated nothing.
+        // advanced's measured 1.2 surface correction, with no cinematic gain on top:
+        // isolated flat surfaces are legitimately darker, lit only by what reaches them.
         target.environmentIntensity = envIntensity * 1.2;
         target.backgroundIntensity = envIntensity * 1.2;
     }
@@ -189,8 +158,7 @@ module.exports = function cinematic(K3D, renderer, hooks) {
             return;
         }
 
-        // the counter is touched several times per sample (once per tile), and
-        // rewriting the same string makes the readout flicker
+        // the counter is touched once per tile; rewriting the same string flickers
         if (text !== hudText) {
             node.textContent = text;
             hudText = text;
@@ -223,8 +191,7 @@ module.exports = function cinematic(K3D, renderer, hooks) {
             needsWarmup = true;
         } else {
             if (materialsDirty) {
-                // roughness, metalness, opacity: the geometry and therefore the
-                // BVH are untouched, so only the material texture is refreshed
+                // BVH untouched: refresh the material texture only
                 proxy.syncMaterials();
                 backend.updateMaterials();
                 materialsDirty = false;
@@ -239,19 +206,15 @@ module.exports = function cinematic(K3D, renderer, hooks) {
         }
     }
 
-    // Headless yields through the task queue: there is no compositor to sync
-    // with, and rAF is throttled when the page is not visible, which would
-    // stall the suite. The interactive path does not use this - it runs the
-    // library's own animate() rhythm, one renderSample per frame (see wake()).
+    // headless yields through the task queue: rAF is throttled on a hidden page and would
+    // stall the suite. The interactive path drives itself off rAF instead (see wake()).
     const yieldToBrowser = (fn) => setTimeout(fn, 0);
 
     function renderUntil(target, gen, budget, present, interruptible = true) {
         return new Promise((resolve, reject) => {
             const started = performance.now();
-            // the library refuses to advance the counter while its shaders
-            // compile or when it considers itself paused; without a ceiling on
-            // fruitless iterations a stuck tracer spins this chain forever and
-            // the caller's promise never settles
+            // the counter does not advance while shaders compile or the library is paused;
+            // without a ceiling on fruitless iterations the caller's promise never settles
             let idle = 0;
             let lastSamples = -1;
 
@@ -269,8 +232,7 @@ module.exports = function cinematic(K3D, renderer, hooks) {
                 let samples;
 
                 try {
-                    // a throw from a setTimeout continuation would otherwise
-                    // escape the promise and leave the caller pending forever
+                    // a throw from a setTimeout continuation escapes the promise otherwise
                     samples = backend.renderSample().samples;
                 } catch (e) {
                     reject(e);
@@ -287,9 +249,8 @@ module.exports = function cinematic(K3D, renderer, hooks) {
                 }
 
                 if (samples >= target) {
-                    // no gl.finish() here: a fence stalls the CPU until the GPU
-                    // drains, which is exactly the stutter this loop avoids.
-                    // The readback in the screenshot path synchronises anyway.
+                    // no gl.finish(): a fence stalls the CPU on the GPU drain, and the
+                    // screenshot path's readback synchronises anyway
                     resolve({ samples, ms: performance.now() - started });
                     return;
                 }
@@ -297,9 +258,8 @@ module.exports = function cinematic(K3D, renderer, hooks) {
                 if (samples === lastSamples) {
                     idle++;
 
-                    // generous: one sample spans a whole tile grid, and shader
-                    // compilation legitimately costs hundreds of idle iterations
-                    // on a software renderer
+                    // generous: shader compilation on a software renderer legitimately
+                    // costs hundreds of idle iterations
                     if (idle > 5000) {
                         reject(new Error(`the path tracer stopped advancing at ${samples} `
                             + `of ${target} samples`));
@@ -317,17 +277,15 @@ module.exports = function cinematic(K3D, renderer, hooks) {
         });
     }
 
-    // async by necessity: the library skips samples while its shaders compile
-    // in the background (KHR_parallel_shader_compile), so the loop must yield
-    // to the event loop until the accumulator reaches the budget
+    // async because samples are skipped while shaders compile in the background
+    // (KHR_parallel_shader_compile): yield until the accumulator reaches the budget
     function renderSamplesAsync(count, budget, present, interruptible = true) {
         const gen = ++generation;
         const warmup = needsWarmup
             ? renderUntil(1, gen, 0, false, interruptible)
             : Promise.resolve({ samples: 0 });
 
-        // rewind to the canonical RNG state before every accumulation - after
-        // the warm-up when the sample texture just rebuilt, directly otherwise
+        // rewind to the canonical RNG state before every accumulation
         return warmup.then((first) => {
             if (first.stale) {
                 return first;
@@ -348,16 +306,14 @@ module.exports = function cinematic(K3D, renderer, hooks) {
             ensurePrepared();
         },
 
-        // one full progressive frame: rebuild what is dirty, then accumulate
-        // up to the plot's sample budget; every sample lands on the canvas as
-        // it converges. Resolves early (stale: true) when superseded.
+        // accumulate to the plot's sample budget, presenting every sample on the canvas;
+        // resolves with stale: true when superseded
         renderFrame() {
             const budget = K3D.parameters.cinematicSamples;
             const world = K3D.getWorld();
 
-            // the prologue is synchronous but must fail like the loop does:
-            // building the proxy, the BVH or the volume layer can throw, and
-            // outside the chain that throw would escape the caller's .catch
+            // the synchronous prologue can throw (proxy, BVH, volume layer); it runs inside
+            // the chain so the caller's .catch sees it
             return Promise.resolve().then(() => {
                 ensurePrepared();
                 backend.updateCamera();
@@ -377,9 +333,8 @@ module.exports = function cinematic(K3D, renderer, hooks) {
             });
         },
 
-        // offscreen accumulation at an explicit resolution (screenshots):
-        // resolves with the float target texture holding the converged frame,
-        // which the caller blits through the shared tone-mapping pass
+        // offscreen accumulation at an explicit resolution (screenshots); resolves with the
+        // float target texture, which the caller blits through the shared tone-mapping pass
         renderBudget(width, height) {
             const budget = K3D.parameters.cinematicSamples;
 
@@ -393,16 +348,9 @@ module.exports = function cinematic(K3D, renderer, hooks) {
                     prepareOverlay(scene, width, height);
                 }
 
-                // No canvas presentation: the offscreen target has its own size,
-                // and every sample blitted to a differently sized canvas would
-                // be both wasted work and a corrupted preview.
-                //
-                // Uninterruptible on purpose: a screenshot is a snapshot of the
-                // state it was asked for, and the interactive rules that abandon
-                // an accumulation - a scene event, a camera nudge - would here
-                // just abandon the image the caller is waiting for. Something as
-                // ordinary as the sync that precedes the screenshot fires those
-                // events.
+                // no canvas presentation: the offscreen target has its own size, so a blit
+                // would corrupt the preview. Uninterruptible on purpose - the sync that
+                // precedes a screenshot fires the scene events that abandon accumulations.
                 return renderSamplesAsync(budget, budget, false, false);
             }).then((result) => ({
                 samples: result.samples,
@@ -415,12 +363,8 @@ module.exports = function cinematic(K3D, renderer, hooks) {
             backend.reset();
         },
 
-        // The interactive rhythm, straight out of the library's own animate():
-        // one renderSample() per animation frame, forever, instead of a loop
-        // inside a single task. The browser composites between frames (no
-        // freeze, no driver watchdog), an edit takes effect on the very next
-        // frame (no waiting out the remaining budget), and the loop parks itself
-        // once the image has converged so an idle plot costs nothing.
+        // one renderSample() per animation frame, never a loop inside a single task: the
+        // browser composites between frames and an edit lands on the next one.
         wake() {
             wanted = true;
 
@@ -435,12 +379,8 @@ module.exports = function cinematic(K3D, renderer, hooks) {
                     return;
                 }
 
-                // A re-run notebook cell replaces the widget without always
-                // tearing the old one down, and an animation-frame loop outlives
-                // anything that is merely hidden - it would keep tracing a plot
-                // nobody can see. A detached target node is the reliable signal
-                // that this instance is gone, whether or not disable() was ever
-                // called.
+                // a detached target node is the only reliable signal that this instance is
+                // gone: a replaced widget need not call disable(), and the rAF loop outlives it
                 const node = K3D.getWorld().targetDOMNode;
 
                 if (!node || node.isConnected === false) {
@@ -462,12 +402,8 @@ module.exports = function cinematic(K3D, renderer, hooks) {
                         backend.updateCamera();
                         restart();
 
-                        // While the camera is being dragged, every frame throws
-                        // the accumulation away, so path tracing has nothing to
-                        // show yet. Rasterise the scene for this frame instead -
-                        // the same trick the library's rasterizeScene does - so
-                        // the plot follows the mouse instead of freezing on a
-                        // stale image until the button is released.
+                        // a moving camera discards the accumulation every frame, leaving
+                        // nothing traced to show: rasterise this frame instead
                         if (rasterizePreview !== null) {
                             rasterizePreview();
                             setHud(`cinematic: 0 / ${budget} samples`);
@@ -478,9 +414,8 @@ module.exports = function cinematic(K3D, renderer, hooks) {
                     }
 
                     if (needsWarmup) {
-                        // the sample texture rebuilds on the first sample after
-                        // a scene change; rewind afterwards so an interactive
-                        // frame converges to the same image a screenshot does
+                        // rewind after the sample texture rebuild, so an interactive frame
+                        // converges to the same image a screenshot does
                         backend.renderSample();
                         backend.reset();
                         needsWarmup = false;
@@ -531,9 +466,7 @@ module.exports = function cinematic(K3D, renderer, hooks) {
             }
         },
 
-        // strands any in-flight accumulation without touching prepared state:
-        // the headless loop sees the generation bump, the interactive loop stops
-        // asking for frames
+        // strands any in-flight accumulation without discarding prepared state
         abort() {
             generation++;
             wanted = false;
@@ -544,8 +477,7 @@ module.exports = function cinematic(K3D, renderer, hooks) {
             }
         },
 
-        // an edit or a camera move: the accumulation starts over from sample
-        // zero with the new state instead of refining the old image
+        // back to sample zero with the new state, stranding in-flight loops
         restart() {
             restart();
         },

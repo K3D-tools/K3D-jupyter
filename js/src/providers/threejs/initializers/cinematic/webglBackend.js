@@ -1,13 +1,11 @@
-// The ONLY module importing three-gpu-pathtracer (WebGPU-readiness rule #1 of
-// renderer_cinematic.md). Everything crossing this boundary is plain three.js:
-// a Scene of Mesh(Standard|Physical)Material and a camera in, sample counts out.
+// Sole importer of three-gpu-pathtracer; the boundary is plain three.js - a Scene of
+// Mesh(Standard|Physical)Material and a camera in, sample counts out.
 const { WebGLPathTracer } = require('three-gpu-pathtracer');
 const {
     BlueNoiseGenerator,
 } = require('three-gpu-pathtracer/src/textures/blueNoise/BlueNoiseGenerator.js');
 
-// the library's own stable-noise LCG (GCC constants) - reused so every random
-// stream in a cinematic render derives from the same scheme
+// the library's own stable-noise LCG (GCC constants), matched exactly
 function lcgRandom(seed) {
     let state = seed;
 
@@ -18,10 +16,9 @@ function lcgRandom(seed) {
     };
 }
 
-// stableNoise pins the per-sample sequences, but the per-pixel decorrelation
-// offsets (stratifiedOffsetTexture) are blue noise rolled with Math.random at
-// material construction and never reset - without reseeding them reference
-// images differ between page loads even though a single page is repeatable
+// stableNoise pins the per-sample sequences only; the per-pixel offsets in
+// stratifiedOffsetTexture are Math.random blue noise, so repeatability across page
+// loads requires reseeding them too.
 function reseedOffsetTexture(tracer) {
     const pathTracer = tracer._pathTracer;
     const texture = pathTracer && pathTracer.material
@@ -56,8 +53,7 @@ module.exports = function createWebGLBackend(renderer) {
             return this.unsupportedReason() === null;
         },
 
-        // null when the path tracer can run; otherwise the concrete reason for
-        // the no-fallback error overlay (decision #2 of renderer_cinematic.md)
+        // null when the tracer can run, else the reason - cinematic never silently rasterises
         unsupportedReason() {
             try {
                 const gl = renderer.getContext();
@@ -79,21 +75,17 @@ module.exports = function createWebGLBackend(renderer) {
             tracer = new WebGLPathTracer(renderer);
             tracer.dynamicLowRes = false;
             tracer.minSamples = 1;
-            // the sample loop is driven externally - no cinematic fade-ins and
-            // no grace delay before tracing starts
+            // the sample loop is driven externally
             tracer.renderDelay = 0;
             tracer.fadeDuration = 0;
-            // per-sample seeds instead of wall-clock noise: the accumulation of
-            // N samples is a pure function of the scene - references depend on it
+            // per-sample seeds, not wall-clock: N samples are a pure function of the scene
             tracer.stableNoise = true;
-            // presentation belongs to K3D: the accumulation target goes
-            // through the shared tone-mapping blit, not the library's copy
+            // K3D tone-maps the accumulation target itself; skip the library's canvas copy
             tracer.renderToCanvas = false;
             reseedOffsetTexture(tracer);
 
             if (typeof window !== 'undefined') {
-                // diagnostic handle: lets a probe read the tracer's own material
-                // state without reaching through module closures
+                // diagnostic handle for headless probes
                 window.__k3dTracer = tracer;
             }
         },
@@ -102,13 +94,9 @@ module.exports = function createWebGLBackend(renderer) {
             tracer.bounces = bounces;
         },
 
-        // Tiling is not a responsiveness nicety - it is what keeps the GPU from
-        // being handed one uninterrupted job per sample. A full-frame trace of a
-        // heavy scene runs long enough to stall the page visibly and to trip the
-        // driver watchdog, which tears down the WebGL context. Each
-        // renderSample() advances one tile, so the work arrives in slices the
-        // browser can breathe between. The slice is sized by pixels, not by a
-        // fixed grid, so the guarantee holds at every resolution.
+        // One renderSample() advances one tile, bounding the GPU work per call: an
+        // uninterrupted full-frame trace stalls the page and can trip the driver watchdog,
+        // which tears down the GL context. Sizing by pixels holds that bound at any resolution.
         setTiles(width, height) {
             const perTile = 120000;
             const tiles = Math.min(6, Math.max(1, Math.ceil(Math.sqrt((width * height) / perTile))));
@@ -135,8 +123,7 @@ module.exports = function createWebGLBackend(renderer) {
             tracer.updateEnvironment();
         },
 
-        // screenshots accumulate at the exact requested resolution instead of
-        // the canvas size - renderScale would floor to +-1px of the target
+        // exact pixel size for screenshots; renderScale only lands within +-1px of the target
         setFixedSize(width, height) {
             tracer.synchronizeRenderSize = false;
             tracer._pathTracer.setSize(width, height);

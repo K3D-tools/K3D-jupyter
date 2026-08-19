@@ -60,11 +60,8 @@ def pytest_sessionstart(session):
     gpu = session.config.getoption("--gpu")
     driver = get_headless_driver(gpu=gpu)
 
-    # Two independent clocks govern a screenshot: how long the browser may spend
-    # running the script, and how long the client waits for the HTTP response
-    # carrying its result. A cinematic reference accumulates its whole sample
-    # budget inside one call, so both have to allow minutes - raising only the
-    # first leaves the second (120s by default) to abort heavy scenes mid-render.
+    # A cinematic screenshot spends its whole sample budget in one call: both the script
+    # timeout and the client HTTP timeout below (120s by default) must allow minutes.
     driver.set_script_timeout(600)
 
     client_config = getattr(driver.command_executor, "_client_config", None)

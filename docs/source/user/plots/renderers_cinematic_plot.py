@@ -9,8 +9,7 @@ from renderers_scene import material_grid_plot  # noqa: E402
 def generate():
     plot = material_grid_plot(renderer='cinematic')
     plot.environment = 'studio'
-    # a page embed accumulates in the reader's browser: enough samples to read
-    # the light, few enough to settle in a moment
+    # low budget: this embed accumulates in the reader's browser
     plot.cinematic_samples = 24
     plot.cinematic_bounces = 4
 

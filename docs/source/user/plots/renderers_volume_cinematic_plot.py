@@ -20,8 +20,7 @@ def generate():
                        color_range=[80, 900],
                        compression_level=7)
 
-    # the plane cuts through the blob: gas in front of it dims it, gas behind
-    # it is cut away by the march
+    # plane through the blob: gas in front dims it, gas behind is cut by the march
     plot += k3d.mesh(np.array([[-1.3, -1.3, -0.5], [1.3, -1.3, 0.4],
                                [1.3, 1.3, 0.4], [-1.3, 1.3, -0.5]], np.float32),
                      np.array([[0, 1, 2], [0, 2, 3]], np.uint32),

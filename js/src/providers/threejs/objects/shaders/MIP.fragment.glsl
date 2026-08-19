@@ -40,9 +40,7 @@ uniform vec4 scale;
 uniform vec4 translation;
 uniform vec4 rotation;
 
-// depth-peel segment bounds (issue #277 mechanics, adopted by the cinematic
-// hybrid): with uPeelSegment == 1 the projection is clamped between two depth
-// textures - same contract as Volume.fragment.glsl
+// uPeelSegment == 1 clamps the projection between the two depth layers, as in Volume.fragment.glsl
 uniform int uPeelSegment;
 uniform sampler2D uPeelNearTexture;
 uniform sampler2D uPeelFarTexture;
@@ -185,8 +183,8 @@ void main() {
     textcoord_start = textcoord_start - textcoord_delta * (0.01 + 0.98 * jitter);
 
     if (uPeelSegment == 1) {
-        // sample k sits at t = tStart + (k - jitterOffset) * tStep; the clamp
-        // mirrors Volume.fragment.glsl so both marches cut identically
+        // sample k sits at t = tRayStart + (k - jitterOffset) * tStep; the clamp
+        // must match Volume.fragment.glsl so both marches cut identically
         float jitterOffset = 0.01 + 0.98 * jitter;
         float tRayStart = max(0.0, tmin);
         float tStep = (tmax - tRayStart) / float(sampleCount);

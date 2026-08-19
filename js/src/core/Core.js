@@ -141,8 +141,7 @@ function K3D(provider, targetDOMNode, parameters) {
         GUI.controls.add(self.parameters, 'renderer', ['simple', 'advanced', 'cinematic']).listen()
             .onChange((value) => {
                 self.setRenderer(value);
-                // post-setRenderer truth: a refused switch (no-fallback error)
-                // syncs the surviving mode back to the kernel, not the wish
+                // setRenderer can refuse the switch, so sync the surviving mode, not the requested one
                 changeParameters.call(self, 'renderer', self.parameters.renderer);
             });
         // Python resolves catalog names to arrays, so the resolved value comes back as
@@ -242,8 +241,7 @@ function K3D(provider, targetDOMNode, parameters) {
 
         const cinematicControls = [];
 
-        // the slider spans what is comfortable interactively; the trait itself
-        // accepts far more for a final render
+        // slider max is an interactive comfort bound; the trait accepts more
         cinematicControls.push(GUI.controls.add(self.parameters, 'cinematicSamples')
             .step(1).min(1).max(1024)
             .listen()
@@ -259,8 +257,6 @@ function K3D(provider, targetDOMNode, parameters) {
                 changeParameters.call(self, 'cinematic_bounces', value);
             }));
 
-        // the environment lights advanced and cinematic alike; screen-space AO
-        // exists only in advanced, sample/bounce budgets only in cinematic
         self.refreshRendererGUI = function () {
             const mode = self.parameters.renderer;
 
@@ -1130,11 +1126,8 @@ function K3D(provider, targetDOMNode, parameters) {
             mode = 'simple';
         }
 
-        // preflight the path tracer before committing: when the browser cannot
-        // run it, the switch is refused with a concrete error - never a silent
-        // fallback to another renderer. The trait syncs back to the surviving
-        // value. A snapshot opening directly in cinematic has no mode to keep,
-        // so the guard skips and render() reports the same error instead.
+        // an unsupported path tracer is refused with an error, never downgraded to another mode;
+        // a snapshot opening already in cinematic has no mode to keep, so render() reports it there
         if (mode === 'cinematic' && self.parameters.renderer !== 'cinematic') {
             const reason = world.cinematicUnsupportedReason
                 ? world.cinematicUnsupportedReason()

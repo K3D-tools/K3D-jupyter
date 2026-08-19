@@ -1,8 +1,6 @@
-// "Everything mesh" (stage 2 of renderer_cinematic.md): a parallel scene of
-// plain THREE.Mesh + MeshStandardMaterial mirroring K3DObjects for the path
-// tracer. K3DObjects stays the source of truth and is never modified; shapes
-// are preserved, implementations replaced - impostors become icospheres,
-// screen ribbons become world-width tubes, GPU colormaps get baked CPU-side.
+// A parallel scene of plain THREE.Mesh + MeshStandardMaterial mirroring K3DObjects for
+// the path tracer. K3DObjects is the source of truth and is never modified; shapes are
+// preserved, implementations replaced.
 const THREE = require('three');
 const { mergeGeometries, mergeVertices } = require('three/examples/jsm/utils/BufferGeometryUtils');
 const streamLine = require('../../helpers/Streamline');
@@ -11,11 +9,8 @@ const buffer = require('../../../../core/lib/helpers/buffer');
 const colorMapHelper = require('../../../../core/lib/helpers/colorMap');
 const timeSeries = require('../../../../core/lib/timeSeries');
 
-// The rasteriser draws point spheres as instances, so mesh_detail costs it
-// almost nothing; the path tracer needs every sphere as real geometry in one
-// BVH. This ceiling is where that stops being reasonable - it leaves the
-// default mesh_detail intact for tens of thousands of points (66k at detail 2,
-// 20k at detail 3) and only degrades, loudly, beyond that.
+// Ceiling on real sphere geometry in one BVH: leaves the default mesh_detail intact for
+// ~66k points at detail 2 and ~20k at detail 3, and only lowers detail beyond that.
 const TRIANGLE_BUDGET = 12000000;
 
 function hasData(field) {
@@ -32,8 +27,7 @@ function usesColorMap(json) {
         && json.color_range && json.color_range.length === 2;
 }
 
-// the same 1024x1 gradient canvas the GPU paths sample, read back once - the
-// baked colors match the rasterisers' colormap rendering exactly
+// the same 1024x1 gradient canvas the GPU paths sample, so baked colors match exactly
 function colorMapSampler(colorMap, opacityFunction) {
     const canvas = colorMapHelper.createCanvasGradient(colorMap, 1024, 1, opacityFunction);
     const pixels = canvas.getContext('2d').getImageData(0, 0, 1024, 1).data;
@@ -45,8 +39,7 @@ function colorMapSampler(colorMap, opacityFunction) {
     };
 }
 
-// LinearFilter-style trilinear sampling of a [z, y, x] scalar grid at
-// normalized coordinates - mirrors what the volume shaders read
+// LinearFilter-equivalent trilinear sample of a [z, y, x] scalar grid at normalized coords
 function trilinearSampler(data, shape) {
     const depth = shape[0];
     const height = shape[1];
@@ -79,8 +72,7 @@ function trilinearSampler(data, shape) {
     };
 }
 
-// the path tracer requires uniform wrap/interpolation flags across every
-// texture in the scene - clones get one canonical set
+// the path tracer requires identical wrap/filter flags on every texture in the scene
 function normalizeTexture(texture) {
     const clone = texture.clone();
 
@@ -94,9 +86,7 @@ function normalizeTexture(texture) {
     return clone;
 }
 
-// Standard/Physical pass through (clone drops depth-peel onBeforeCompile and
-// expando uniforms by design); MeshBasic is lifted to a rough diffuse Standard.
-// Anything else (ShaderMaterial: MeshLine ribbons, slice planes) returns null.
+// clone() intentionally drops the depth-peel onBeforeCompile and its expando uniforms
 function sanitizeMaterial(material) {
     let clean = null;
 
@@ -139,8 +129,6 @@ function bakeWorldMatrix(node, source) {
     return node;
 }
 
-// generic passthrough: every visible Mesh leaf whose material survives
-// sanitisation, with its world transform baked in
 function buildPassthrough(sourceObj) {
     const group = new THREE.Group();
 
@@ -189,8 +177,7 @@ function pointColors(json, count) {
     return null;
 }
 
-// merged icospheres: the library traces no instances and no point primitives,
-// so N points become one indexed Mesh of N spheres with per-vertex colors
+// the tracer handles no instances and no point primitives: N points become one merged mesh
 function buildPoints(json) {
     const positions = json.positions.data;
     const count = Math.floor(positions.length / 3);
@@ -205,16 +192,12 @@ function buildPoints(json) {
     const sizes = (hasData(json.point_sizes) && json.point_sizes.data.length === count)
         ? json.point_sizes.data : null;
 
-    // mesh_detail is the user's own subdivision level - the same trait the
-    // rasterised shader='mesh' variant builds its icosahedron from - so it is
-    // honoured here too, for every shader: in cinematic even a 'dot' point is a
-    // real sphere, and its tessellation is the user's call. The triangle budget
-    // only ever lowers it, and says so.
+    // mesh_detail applies to every shader here - even a 'dot' point is real geometry;
+    // the triangle budget only ever lowers it.
     const requested = typeof json.mesh_detail !== 'undefined' ? json.mesh_detail : 2;
     let detail = Math.max(0, Math.min(12, requested));
 
-    // PolyhedronGeometry ships as a triangle soup (no index) - weld it back
-    // so N points do not carry 6x the vertex data
+    // PolyhedronGeometry is an unindexed triangle soup; welding drops ~6x the vertex data
     function icosphereTemplate(level) {
         return mergeVertices(new THREE.IcosahedronGeometry(1, level));
     }
@@ -243,9 +226,8 @@ function buildPoints(json) {
     const outColor = colors !== null ? new Float32Array(count * vPerSphere * 3) : null;
 
     for (let i = 0; i < count; i++) {
-        // billboards take per-point sizes as absolute world diameters, the
-        // instanced mesh variant takes them as point_size multipliers; 'dot'
-        // has no world size at all (pixels) - point_size stands in for it
+        // per-point sizes are absolute world diameters for billboards but point_size
+        // multipliers for shader='mesh'; 'dot' has no world size, so point_size stands in
         const radius = shader === 'mesh'
             ? 0.5 * pointSize * (sizes !== null ? sizes[i] : 1.0)
             : 0.5 * (sizes !== null ? sizes[i] : pointSize);
@@ -332,10 +314,8 @@ function tubeMaterial(json, geometry) {
     return material;
 }
 
-// line (singular): one polyline with NaN row separators, which Streamline
-// splits natively. 'thick' extrudes its FULL width on screen while Streamline
-// takes a radius - hence width/2; 'simple' follows the mesh-shader convention
-// (width = radius) per the plan's representation table.
+// one polyline with NaN row separators, which Streamline splits natively. 'thick' names a
+// full width while Streamline takes a radius (hence width/2); for 'simple', width = radius.
 function buildLine(json) {
     const vertices = json.vertices.data;
     const count = Math.floor(vertices.length / 3);
@@ -365,8 +345,7 @@ function buildLine(json) {
     return new THREE.Mesh(geometry, tubeMaterial(json, geometry));
 }
 
-// lines (plural): topology from indices (segment pairs or triangle edges),
-// deduplicated undirected - the same contract LinesSimple/LinesMesh apply
+// undirected, deduplicated edges from indices - the same contract LinesSimple/LinesMesh apply
 function uniqueEdges(json) {
     const vertices = json.vertices.data;
     const indices = Fn.guardIndices(json.indices.data, vertices, 'lines');
@@ -440,11 +419,9 @@ function buildLines(json) {
     return new THREE.Mesh(geometry, tubeMaterial(json, geometry));
 }
 
-// vectors / vector_field: shaft endpoints and colors read back from the live
-// MeshLine geometry (every input vertex is duplicated twice; a segment owns
-// expanded vertices 4k..4k+3), which sidesteps the two objects' different
-// grid/scalar/matrix conventions. Heads are already merged cones with normals
-// and vertex colors - only the unlit material needs lifting.
+// Shaft endpoints and colors are read back from the live MeshLine geometry, which avoids
+// the two objects' differing grid/scalar/matrix conventions: every input vertex is
+// duplicated twice, so segment k owns expanded vertices 4k..4k+3.
 function buildVectors(json, sourceObj) {
     const group = new THREE.Group();
     const radius = (typeof json.line_width !== 'undefined' ? json.line_width : 0.01) / 2.0;
@@ -535,10 +512,9 @@ function buildTextureText(sourceObj, camera) {
     return group.children.length > 0 ? group : null;
 }
 
-// GPU-colormapped surfaces whose colors live in ShaderMaterial uniforms or
-// onBeforeCompile expandos that Material.clone() silently drops: bake the
-// scalar field into per-vertex colors instead (linear across triangles - a
-// documented V1 approximation of the per-pixel GPU sampling)
+// GPU-colormapped surfaces keep their colors in ShaderMaterial uniforms or onBeforeCompile
+// expandos that Material.clone() drops, so the scalar field is baked into per-vertex colors
+// instead - interpolated linearly across triangles, not per-pixel as on the GPU.
 function bakeScalarFieldMesh(sourceMesh, json, field, toFieldCoords) {
     const geometry = sourceMesh.geometry.clone();
     const position = geometry.attributes.position;
@@ -574,8 +550,8 @@ function bakeScalarFieldMesh(sourceMesh, json, field, toFieldCoords) {
     return bakeWorldMatrix(new THREE.Mesh(geometry, material), sourceMesh);
 }
 
-// texture (data variant): the scalar DataTexture and the colormap live in a
-// ShaderMaterial the passthrough cannot lift - bake both into one RGBA map
+// the scalar DataTexture and the colormap live in a ShaderMaterial the passthrough cannot
+// lift, so both are baked into one RGBA map
 function buildTextureData(json, sourceMesh) {
     const height = json.attribute.shape[0];
     const width = json.attribute.shape[1];
@@ -625,10 +601,8 @@ function buildProxyForObject(sourceObj, json, camera) {
     const type = json.type;
 
     if (type === 'VolumeSlice') {
-        // A slice paints a cut plane with its own shader and has no depth-segment
-        // mechanism, so it can be neither traced (no surface material) nor
-        // composited correctly (it would cover traced geometry standing in front
-        // of it). Left out of V1 loudly rather than silently.
+        // A slice has no surface material to trace and no depth segments to composite
+        // against, so it would cover traced geometry standing in front of it.
         console.warn('K3D.cinematic: volume_slice objects are not rendered in the cinematic '
             + 'renderer - use simple or advanced for slice views');
 
@@ -676,9 +650,8 @@ function buildProxyForObject(sourceObj, json, camera) {
     }
 
     if (type === 'MarchingCubes' && usesColorMap(json)) {
-        // marching-cubes geometry lives in the unit cube [0,1] - local
-        // coordinates ARE the normalized field coordinates (the -0.5 centering
-        // sits in the object matrix, verified empirically on the live object)
+        // marching-cubes geometry lives in the unit cube [0,1], so local coordinates are
+        // already the normalized field coordinates (the -0.5 centering sits in the matrix)
         return bakeScalarFieldMesh(sourceObj, json, json.attribute,
             (x, y, z) => [x, y, z]);
     }
@@ -687,8 +660,8 @@ function buildProxyForObject(sourceObj, json, camera) {
 }
 
 module.exports = function createSceneProxy(K3D) {
-    // proxy groups cached per object id; ids are stable across reloads while
-    // instances are not (addOrUpdateObject swaps them without OBJECT_REMOVED)
+    // keyed by object id: ids survive reloads, instances do not (addOrUpdateObject swaps
+    // them without OBJECT_REMOVED)
     const cache = new Map();
 
     K3D.on(K3D.events.OBJECT_CHANGE, (change) => {
@@ -699,23 +672,20 @@ module.exports = function createSceneProxy(K3D) {
     K3D.on(K3D.events.OBJECT_REMOVED, (id) => {
         cache.delete(String(id));
     });
-    // OBJECT_LOADED carries no payload and reloads mutate objects in place
-    // (same instance, new data) - only a full drop is safe here. Per-object
-    // reuse still serves the common cases: camera moves and GUI edits.
+    // OBJECT_LOADED carries no payload and reloads mutate objects in place (same instance,
+    // new data), so only a full drop is safe here
     K3D.on(K3D.events.OBJECT_LOADED, () => {
         cache.clear();
     });
 
     return {
-        // mirrors every visible K3DObjects child into `scene`; returns the
-        // number of proxied objects so callers can report empty scenes
+        // mirrors every visible K3DObjects child into `scene`; returns the proxied count
         populate(scene, camera) {
             const world = K3D.getWorld();
             const alive = new Set();
             let proxied = 0;
 
-            // in cinematic the rasterising loop never runs, so freshly added
-            // objects still carry identity matrixWorld - bake from fresh state
+            // no rasterising loop runs in cinematic, so matrixWorld is stale until forced
             world.K3DObjects.updateMatrixWorld(true);
 
             world.K3DObjects.children.forEach((sourceObj) => {
@@ -730,11 +700,8 @@ module.exports = function createSceneProxy(K3D) {
                     return;
                 }
 
-                // A time-series trait is stored as the whole keyframe
-                // dictionary, so reading .data off it yields undefined and the
-                // builders below would fail on the first array they touch.
-                // Resolve the frame in force, exactly as the rasterising path
-                // does before it reloads an object.
+                // a time-series trait is stored as the whole keyframe dictionary, so the
+                // frame in force must be resolved before any builder reads .data
                 const json = timeSeries.interpolateTimeSeries(
                     stored,
                     K3D.parameters.time,
@@ -770,12 +737,8 @@ module.exports = function createSceneProxy(K3D) {
             return proxied;
         },
 
-        // Material-only edits need no new geometry, so the BVH - by far the
-        // expensive part - can stay. Roughness, metalness and opacity live on
-        // the material and are per-object, so they are copied from the json onto
-        // every proxy material of that object. Colour is deliberately not here:
-        // for points and tubes it is baked into vertex colours, which is
-        // geometry, so it goes through a rebuild.
+        // material-only edits keep the BVH; colour is excluded because for points and tubes
+        // it is baked into vertex colours and so needs a rebuild
         syncMaterials() {
             const world = K3D.getWorld();
 

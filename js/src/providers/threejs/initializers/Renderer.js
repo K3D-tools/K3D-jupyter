@@ -126,8 +126,7 @@ module.exports = function (K3D) {
         uDepthOffset: { value: 0.0000001 },
     };
     const depthMaterial = new THREE.MeshDepthMaterial();
-    // the AO prepass variant for wireframe meshes: same depth encoding, but the
-    // wires rasterise as wires so the gaps between them do not occlude
+    // AO prepass variant for wireframes: the wires occlude, the gaps between them do not
     const depthMaterialWireframe = new THREE.MeshDepthMaterial();
     const compositePlane = new THREE.Mesh(planeGeometry, compositeMaterial);
     const cameras = [];
@@ -454,17 +453,9 @@ module.exports = function (K3D) {
                 impostors.push(obj);
                 return;
             }
-            // The prepass draws through an override material, which honours
-            // neither `wireframe` nor opacity - so a shell you can see through
-            // would fill the depth buffer like a solid body and occlude
-            // everything inside it (a wireframe cage around vessel centrelines
-            // measurably erased their contact shadows).
-            //
-            // A wireframe still deserves occlusion of its own, so it is not
-            // dropped but drawn in a second pass that keeps the wireframe flag:
-            // the wires occlude, the gaps between them do not. Transparent
-            // surfaces are dropped outright - you see through them, so what
-            // matters for occlusion is whatever lies behind.
+            // the override material honours neither `wireframe` nor opacity, so a
+            // see-through shell would occlude like a solid body: wireframes get a
+            // second pass that keeps the flag, transparent surfaces are dropped
             if (obj.material && obj.material.wireframe && !obj.material.isShaderMaterial) {
                 obj.visible = false;
                 wireframes.push(obj);
@@ -472,11 +463,7 @@ module.exports = function (K3D) {
             }
             if (obj.isPoints || obj.isLine || obj.isSprite
                 || (obj.material && (obj.material.isShaderMaterial
-                    // half is the point where "you see what is behind it" wins
-                    // over "it hides what is behind it". A barely transparent
-                    // surface (opacity 0.95) still reads as solid and should
-                    // keep occluding, or every faintly transparent mesh in a
-                    // scene would silently lose its contact shadows.
+                    // opacity >= 0.5 still reads as solid, so it keeps occluding
                     || obj.material.opacity < 0.5))) {
                 obj.visible = false;
                 hidden.push(obj);
@@ -534,8 +521,7 @@ module.exports = function (K3D) {
                 obj.visible = true;
             });
 
-            // no override material here: that is the whole point, the wires
-            // must rasterise as wires. Depth-tested against the first pass.
+            // wireframe override, no clear: the wires depth-test against the first pass
             self.scene.overrideMaterial = depthMaterialWireframe;
             self.renderer.render(self.scene, self.camera);
             self.scene.overrideMaterial = null;
@@ -911,27 +897,24 @@ module.exports = function (K3D) {
         }
     }
 
-    // lazy: the path tracer and its BVH machinery spin up on first use only
+    // lazy: building the path tracer and its BVH is expensive
     let cinematicMode = null;
 
     function getCinematic() {
         if (cinematicMode === null) {
             cinematicMode = cinematic(K3D, self.renderer, {
-                // once per accumulation: march the volumes cut at the proxy
-                // depth so every presented sample carries them (§4 V1)
+                // once per accumulation: the volumes march cut at the proxy depth
                 prepareOverlay(proxyScene, width, height) {
                     cinematicVolume.active = renderCinematicVolumeLayer(proxyScene, width, height);
                 },
 
-                // one tone curve for all three modes: the float accumulation
-                // (plus the volume layer) reaches the canvas only through the
-                // shared compose/tone blit
+                // the accumulation reaches the canvas only through the shared
+                // compose/tone blit - one tone curve for every renderer
                 presentFrame(texture) {
                     const size = new THREE.Vector2();
 
-                    // the drawing buffer, not the CSS size: gl_FragCoord in the
-                    // blit spans device pixels, so at any pixelRatio != 1 the
-                    // CSS size would show a magnified corner of the frame
+                    // drawing-buffer size, not CSS: gl_FragCoord in the blit
+                    // spans device pixels
                     self.renderer.getDrawingBufferSize(size);
                     composeCinematic(texture, null, size.x, size.y);
                 },
@@ -940,10 +923,8 @@ module.exports = function (K3D) {
                     error('Cinematic Error', `The cinematic renderer failed: ${e.message}.`, false);
                 },
 
-                // the camera is moving: draw the scene the cheap way for this
-                // frame so the view tracks the mouse. Same geometry, same
-                // materials, same environment - only the light transport is the
-                // rasterised approximation, and only until the camera settles.
+                // while the camera moves: same scene, materials and environment,
+                // only the light transport is rasterised
                 rasterizePreview() {
                     const size = new THREE.Vector2();
 
@@ -966,12 +947,10 @@ module.exports = function (K3D) {
         return cinematicMode;
     }
 
-    // internal: probe/benchmark driver (determinism re-checks on library bumps)
+    // internal: probe/benchmark hook (determinism re-checks)
     K3D.__cinematicSpike = getCinematic;
 
-    // setRenderer() refuses the switch preflight, so Core never dispatches here
-    // unsupported - except a snapshot that opens directly in cinematic. Same
-    // contract then: a concrete error, no silent fallback to another renderer.
+    // a concrete reason, or null; never a silent fallback to another renderer
     self.cinematicUnsupportedReason = function () {
         try {
             return getCinematic().unsupportedReason();
@@ -993,17 +972,14 @@ module.exports = function (K3D) {
             const mode = getCinematic();
 
             self.renderer.clippingPlanes = [];
-            // DOM overlays (grid numbers, labels, axes letters) refresh and
-            // reproject here - without this the first screenshot captures
-            // stale positions and hidden grids keep their floating labels
+            // DOM overlays reproject here; required before the first frame or they stay stale
             K3D.refreshGrid();
             self.camera.updateMatrixWorld();
             alignAxesCamera();
             K3D.dispatch(K3D.events.BEFORE_RENDER);
 
-            // interactively the accumulation lives in its own animation-frame
-            // loop (one sample per frame, the library's own rhythm) - it keeps
-            // refining after this call returns and dispatches RENDERED itself
+            // interactive accumulation runs in its own animation-frame loop: it keeps
+            // refining after this returns and dispatches RENDERED itself
             if (typeof window !== 'undefined' && typeof window.headlessK3D === 'undefined') {
                 mode.wake();
 
@@ -1023,8 +999,7 @@ module.exports = function (K3D) {
             });
         }
 
-        // leaving cinematic: strand any in-flight accumulation so it stops
-        // painting over the rasterised frames, and drop its HUD
+        // leaving cinematic: an in-flight accumulation would paint over the raster frames
         if (cinematicMode !== null) {
             cinematicMode.abort();
             cinematicMode.hideHud();
@@ -1207,12 +1182,8 @@ module.exports = function (K3D) {
         toneMappingMode.value = map[name] || 0;
     };
 
-    // Every setter asks for a render, and one trait sync runs a dozen of them.
-    // Rasterising that is cheap; accumulating a path-traced frame each time is
-    // not - so in cinematic the unforced requests of a single tick collapse
-    // into one accumulation. In headless they collapse into none: there every
-    // frame is requested explicitly (screenshots render offscreen), and a
-    // preview nobody looks at would double the cost of every reference.
+    // in cinematic the unforced render requests of one tick collapse into a single
+    // accumulation; headless drops them entirely - there every frame is forced
     let coalescedRender = null;
 
     this.render = function (force) {
@@ -1223,10 +1194,8 @@ module.exports = function (K3D) {
                 return Promise.resolve(null);
             }
 
-            // whatever is accumulating now depicts a state the caller just
-            // superseded; abandoning it here (rather than when the queued render
-            // finally starts) is what makes an edit feel immediate instead of
-            // waiting out the remaining sample budget
+            // the in-flight accumulation depicts a superseded state: abort now, not
+            // when the coalesced render finally starts
             if (cinematicMode !== null) {
                 cinematicMode.abort();
             }
@@ -1243,9 +1212,8 @@ module.exports = function (K3D) {
             return coalescedRender;
         }
 
-        // a forced cinematic render queues behind the one in flight, which would
-        // make the user wait out a budget whose result is already obsolete -
-        // abandon it now so the queued render starts on the next tile
+        // a forced render queues behind the accumulation in flight, whose result is
+        // already obsolete - abandon it so the queued render starts promptly
         if (force && K3D.parameters.renderer === 'cinematic' && cinematicMode !== null) {
             cinematicMode.abort();
         }
@@ -1268,11 +1236,10 @@ module.exports = function (K3D) {
         return renderingPromise;
     };
 
-    // --- cinematic volume hybrid (stage 5, V1 of renderer_cinematic.md §4) ---
-    // volumes and MIPs stay out of the path-traced BVH; their existing march
-    // runs camera -> first path-traced hit (the depth of the proxy scene fed
-    // through the #277 segment mechanism) and the premultiplied layer
-    // composites over the accumulation before the tone curve.
+    // --- cinematic volume hybrid ---
+    // volumes and MIPs stay out of the path-traced BVH: they march from the camera to
+    // the first path-traced hit (proxy-scene depth, through the peel segment uniforms)
+    // and composite premultiplied over the accumulation, before the tone curve.
     const cinematicVolume = { depth: null, layer: null, active: false };
     let composeTarget = null;
     const rawBlitMaterial = new THREE.ShaderMaterial({
@@ -1311,8 +1278,7 @@ module.exports = function (K3D) {
             cinematicVolume.layer.dispose();
         }
 
-        // .r carries raw gl_FragCoord.z - the exact convention the peel
-        // machinery and peelT reconstruction expect
+        // .r carries raw gl_FragCoord.z - the convention peelT reconstruction expects
         cinematicVolume.depth = new THREE.WebGLRenderTarget(width, height, {
             minFilter: THREE.NearestFilter,
             magFilter: THREE.NearestFilter,
@@ -1327,8 +1293,8 @@ module.exports = function (K3D) {
         });
     }
 
-    // marches every visible volume/MIP into the layer target, cut at the
-    // proxy-scene depth; runs once per accumulation, not per sample
+    // marches every visible volume/MIP into the layer target, cut at the proxy-scene
+    // depth; once per accumulation, not per sample
     function renderCinematicVolumeLayer(proxyScene, width, height) {
         const world = K3D.getWorld();
         const volumeObjects = [];
@@ -1345,23 +1311,19 @@ module.exports = function (K3D) {
 
         ensureCinematicVolumeTargets(width, height);
 
-        // uLayer == 0 makes the peel tail a no-op, so this pass needs no
-        // uScreenSize of its own - and writing one would corrupt the raster
-        // peel pipeline for the rest of the session: ensureTargets, its only
-        // other writer, skips the assignment when the targets already match
+        // uLayer == 0 makes the peel tail a no-op, so leave uScreenSize alone:
+        // ensureTargets skips rewriting it once the targets match
         globalPeelUniforms.uLayer.value = 0;
         self.camera.updateMatrixWorld();
 
-        // the environment background renders with its own material that
-        // overrideMaterial does not cover - it would paint env colours into
+        // overrideMaterial does not cover scene.background: env colours would land in
         // the depth channel and peelT would read them as surfaces
         const savedBackground = proxyScene.background;
 
         const u = self.k3dVolumePeel;
         const shown = [];
 
-        // every mutation below is global state the other renderers read, so a
-        // throw anywhere in the two passes must not leave it behind
+        // the mutations below are global state the other renderers read - restore on throw
         try {
             proxyScene.background = null;
 
@@ -1405,8 +1367,7 @@ module.exports = function (K3D) {
         return true;
     }
 
-    // the linear pipeline of the hybrid: accumulation + volume layer compose
-    // first, ONE tone curve at the end - the same order as the peel composite
+    // compose accumulation and volume layer in linear space, then exactly one tone curve
     function composeCinematic(ptTexture, rt, width, height) {
         if (!cinematicVolume.active) {
             toneBlitMaterial.uniforms.tDiffuse.value = ptTexture;
@@ -1451,10 +1412,8 @@ module.exports = function (K3D) {
         self.renderer.render(toneBlitScene, fsCamera);
     }
 
-    // the raster loop keeps the axes camera aligned through the controls
-    // 'change' handler (Canvas.js); in cinematic no such loop runs, so the
-    // alignment is recomputed explicitly - same formula, deterministic order
-    // (up before lookAt)
+    // cinematic has no controls 'change' loop (Canvas.js) to align the axes camera;
+    // order matters: up before lookAt
     function alignAxesCamera() {
         const camDistance = (3.0 * 0.5) / Math.tan(THREE.MathUtils.degToRad(K3D.parameters.cameraFov / 2.0));
 
@@ -1466,11 +1425,8 @@ module.exports = function (K3D) {
         self.axesHelper.camera.updateMatrixWorld();
     }
 
-    // cinematic screenshots: accumulate the sample budget at the target
-    // resolution, tone-map the float accumulation through the shared blit
-    // (one curve for all three modes) and read it back; the axes overlay
-    // rasterises exactly like the classic path. No grid layer - the
-    // environment dome is the background.
+    // accumulates the sample budget at the target resolution, tone-maps through the
+    // shared blit and reads back. No grid layer - the environment dome is the background.
     function cinematicOffScreen(width, height) {
         const reason = self.cinematicUnsupportedReason();
 
@@ -1483,9 +1439,7 @@ module.exports = function (K3D) {
         const mode = getCinematic();
         const size = new THREE.Vector2();
 
-        // same prologue the interactive branch runs: per-frame object work
-        // (the volume light map among it) hangs off BEFORE_RENDER, and the
-        // overlays reproject there
+        // per-frame object work (volume light maps included) hangs off BEFORE_RENDER
         K3D.refreshGrid();
         self.camera.updateMatrixWorld();
         alignAxesCamera();
@@ -1515,8 +1469,7 @@ module.exports = function (K3D) {
             }
             rtAxesHelper.dispose();
 
-            // the tracer stays pinned to this resolution until released, so
-            // the release must survive a rejected accumulation
+            // the tracer stays pinned to this resolution until released - release on any outcome
             return mode.renderBudget(width, height).then((frame) => {
                 const rt = new THREE.WebGLRenderTarget(width, height, {
                     minFilter: THREE.NearestFilter,

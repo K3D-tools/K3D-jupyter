@@ -123,9 +123,7 @@ class PlotBase(K3DAnyWidget):
     @validate("cinematic_samples")
     def _validate_cinematic_samples(self, proposal):
         value = int(proposal["value"])
-        # the ceiling is deliberately far above anything useful interactively:
-        # an overnight render is a legitimate thing to ask for, and the loop
-        # always terminates at the budget rather than running unbounded
+        # the ceiling only bounds the loop; offline renders want thousands
         if not 1 <= value <= 100000:
             raise TraitError("cinematic_samples must be in [1, 100000], got %s" % value)
         return value

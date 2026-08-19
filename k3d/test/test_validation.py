@@ -28,8 +28,7 @@ def test_volumetric_sampling_assignment_must_be_positive():
 
 @pytest.mark.parametrize("value", [np.float32(2.5), np.float64(2.5), np.int32(2)])
 def test_numpy_scalars_are_accepted_as_floats(value):
-    """np.float64 subclasses float and always worked; np.float32 did not, so
-    whether `point_size=arr.mean()` raised depended on the array's dtype."""
+    """Float traits accept any numpy scalar, not only np.float64 (which subclasses float)."""
     positions = np.zeros((3, 3), dtype=np.float32)
 
     assert k3d.points(positions, point_size=value).point_size == float(value)

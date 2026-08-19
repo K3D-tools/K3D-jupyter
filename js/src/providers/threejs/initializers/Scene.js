@@ -779,9 +779,8 @@ module.exports = {
         }
 
         this.applyRendererMode = function (K3D) {
-            // cinematic marches volumes with the advanced env light (SH + L1),
-            // so both PBR modes build the environment; only advanced puts it
-            // on the raster scene's materials - cinematic never rasterises them
+            // both PBR modes build the environment - cinematic marches volumes with it;
+            // only advanced binds it to the raster materials
             if (K3D.parameters.renderer === 'advanced' || K3D.parameters.renderer === 'cinematic') {
                 if (environmentSource !== K3D.parameters.environment || self.scene.environment === null) {
                     if (pmrem === null) {

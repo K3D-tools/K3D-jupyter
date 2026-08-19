@@ -36,15 +36,9 @@ logger.setLevel(logging.INFO)
 
 
 class Array(_TraitArray):
-    """An Array trait that converts float64 input without complaining.
+    """An Array trait that narrows float64 to float32 silently.
 
-    Every geometry buffer here is declared float32 because that is what the GPU
-    consumes, while numpy hands out float64 by default - so ``np.random.randn``
-    or an arithmetic expression trips traittypes' coercion warning on entirely
-    ordinary code, describing a conversion the user cannot avoid and K3D would
-    perform anyway. Narrowing float64 to float32 is done quietly here; every
-    other mismatch still reaches traittypes, whose warning is the useful kind
-    (an int array silently truncated, say).
+    Every other dtype mismatch still reaches traittypes' coercion warning.
     """
 
     def validate(self, obj, value):
@@ -59,10 +53,7 @@ class Array(_TraitArray):
 class Float(_TraitFloat):
     """A Float trait that also takes numpy scalars.
 
-    np.float64 subclasses Python float and passes traitlets untouched, while
-    np.float32 does not - so ``point_size=arr.mean()`` works or fails purely on
-    the dtype of an array the user picked for the GPU's sake. That asymmetry is
-    invisible from the outside, so numpy scalars are converted here.
+    np.float64 subclasses Python float and passes traitlets; np.float32 does not.
     """
 
     def validate(self, obj, value):
@@ -345,20 +336,14 @@ def download(url: str) -> str:
         logger.info(f"File already exists locally: {basename}")
         return basename
     try:
-        # urllib introduces itself as "Python-urllib", which a fair number of
-        # hosts answer with 406 or 403 - including some that serve the very
-        # datasets these examples load
+        # some hosts answer the default "Python-urllib" User-Agent with 403/406
         request = Request(url, headers={"User-Agent": "K3D-jupyter", "Accept": "*/*"})
 
         try:
             with urlopen(request) as response, open(basename, "wb") as output:
                 output.write(response.read())
         except URLError as error:
-            # Public data portals are routinely misconfigured - an incomplete
-            # certificate chain, or a CA bundle older than the container it runs
-            # in. Failing the download outright helps nobody here: this is
-            # public data being read, not credentials being sent. Verified first,
-            # unverified second, and loudly.
+            # an unverified retry is acceptable here: public data, never credentials
             if not isinstance(getattr(error, "reason", None), ssl.SSLCertVerificationError):
                 raise
 
