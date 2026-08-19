@@ -20,6 +20,14 @@ existing libraries as VTK. K3D can be run as:
 - VS Code notebooks 🧩
 - Standalone HTML/JS 📑
 
+Since 2.19.0 a plot also chooses how it is lit, through `plot.renderer`: `simple` (the
+default rasteriser), `advanced` (image-based lighting with ambient occlusion) or `cinematic`
+(progressive path tracing). **`cinematic` is experimental** — it needs WebGL2 with renderable
+float textures, does not cover every object (`volume_slice` is not drawn, volumes stay
+outside the light simulation), and its API and output may still change; `simple` and
+`advanced` are the stable choices. See
+[Renderers](https://k3d-jupyter.org/user/renderers.html).
+
 Documentation: [https://k3d-jupyter.org](https://k3d-jupyter.org)
 </div>
 

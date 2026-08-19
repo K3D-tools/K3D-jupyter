@@ -21,7 +21,7 @@ Since 2.19.0 every plot carries a ``renderer`` switch:
     geometry with contact shadows. Switching back and forth is a single
     assignment and never rebuilds the scene.
 
-``cinematic``
+``cinematic`` (experimental)
     Progressive path tracing: light bounces between surfaces, so shadows,
     reflections and colour bleeding come out of the simulation rather than from
     a screen-space approximation. The image refines sample by sample and
@@ -161,6 +161,15 @@ the last step before the frame reaches the screen.
 
 Cinematic: path tracing
 -----------------------
+
+.. warning::
+    **Experimental.** ``cinematic`` is new in 2.19.0 and not yet on the same
+    footing as the other two renderers: the trait names and their defaults may
+    change, the image a given scene produces may change between versions, and
+    the coverage gaps listed below are real rather than temporary oversights
+    (``volume_slice`` is not drawn, volumes stay outside the light simulation).
+    ``simple`` and ``advanced`` remain the stable choices; please report what
+    breaks.
 
 .. code-block:: python3
 
