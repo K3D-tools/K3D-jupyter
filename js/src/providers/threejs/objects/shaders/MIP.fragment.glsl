@@ -40,7 +40,7 @@ uniform vec4 scale;
 uniform vec4 translation;
 uniform vec4 rotation;
 
-// uPeelSegment == 1 clamps the projection between the two depth layers, as in Volume.fragment.glsl
+// uPeelSegment == 1 clamps the projection between the two depth layers
 uniform int uPeelSegment;
 uniform sampler2D uPeelNearTexture;
 uniform sampler2D uPeelFarTexture;
@@ -183,8 +183,7 @@ void main() {
     textcoord_start = textcoord_start - textcoord_delta * (0.01 + 0.98 * jitter);
 
     if (uPeelSegment == 1) {
-        // sample k sits at t = tRayStart + (k - jitterOffset) * tStep; the clamp
-        // must match Volume.fragment.glsl so both marches cut identically
+        // sample k sits at t = tRayStart + (k - jitterOffset) * tStep; keep in sync with Volume.fragment.glsl
         float jitterOffset = 0.01 + 0.98 * jitter;
         float tRayStart = max(0.0, tmin);
         float tStep = (tmax - tRayStart) / float(sampleCount);

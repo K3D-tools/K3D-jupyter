@@ -46,8 +46,8 @@ def test_numpy_scalars_are_accepted_as_keyframes():
 
 
 def test_big_endian_arrays_convert_quietly():
-    """Legacy VTK files are big-endian. traittypes names dtypes without their byte order,
-    so it used to warn that "float32" does not match "float32"."""
+    """Big-endian arrays (legacy VTK) convert to the native dtype without a spurious
+    "does not match" warning: traittypes names dtypes without their byte order."""
     import warnings
 
     vertices = np.zeros((3, 3), dtype=">f4")

@@ -80,10 +80,8 @@ def test_cinematic_single_bounce():
 
 
 def test_cinematic_mixed_vertex_attributes():
-    """The tracer merges the whole proxy scene and takes its attribute set from the first
-    geometry, so every object must be given the same one: a flat tube (colours, no uv), a
-    colormapped tube (both) and icospheres (uv, no colours) have to keep their own colours
-    whatever order they arrive in."""
+    """The attribute set of the merged proxy scene comes from its first geometry, so the scene
+    mixes colours-only, colours+uv and uv-only objects; each keeps its colours in any order."""
     prepare()
 
     path = np.array([[-1, -1, 0], [0, 1, 0.5], [1, -1, 1]], dtype=np.float32)

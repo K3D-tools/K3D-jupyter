@@ -8,14 +8,12 @@ TEST_DIR = os.path.dirname(os.path.abspath(__file__))
 REFERENCES_DIR = os.path.join(TEST_DIR, "references")
 RESULTS_DIR = os.path.join(TEST_DIR, "results")
 
-# Cinematic reference format: half scale (640x360) at this sample budget.
-# Changing either invalidates every cinematic reference.
+# Cinematic references are half scale (640x360) at this budget; changing either invalidates them.
 REF_SAMPLES = 32
 CINEMATIC_SCREENSHOT_SCALE = 0.5
 
 # Modes listed in K3D_ACCEPT_REFERENCES ("cinematic", "simple,advanced", "all") have their
-# renders written as the new reference instead of asserted; per-mode, so regenerating one
-# mode cannot bless a regression in another. Never set in CI.
+# renders written as the new reference instead of asserted. Never set in CI.
 ACCEPT_REFERENCES = [
     mode.strip()
     for mode in os.environ.get("K3D_ACCEPT_REFERENCES", "").split(",")
@@ -49,8 +47,7 @@ def prepare(depth_peels=0):
     pytest.plot.cinematic_samples = 64
     pytest.plot.cinematic_bounces = 6
     pytest.plot.cinematic_glossy_filter = 0.25
-    # compare() halves this for cinematic; reset here so an aborted cinematic
-    # screenshot cannot leave later renders at half size.
+    # compare() halves this for cinematic; reset so an abort cannot leave later renders half size.
     pytest.plot.screenshot_scale = 1.0
     pytest.plot.camera_mode = "trackball"
     pytest.plot.camera = [2, -3, 0.2, 0.0, 0.0, 0.0, 0, 0, 1]
@@ -121,8 +118,7 @@ def compare(
         if mode in ACCEPT_REFERENCES or "all" in ACCEPT_REFERENCES:
             accepted_path = os.path.join(REFERENCES_DIR, ref_name + ".png")
 
-            # A missing advanced reference means "advanced has no right to change this
-            # image"; only write one when the render differs from the simple fallback.
+            # Write an advanced reference only when the render differs from the simple fallback.
             if mode == "advanced" and not os.path.isfile(accepted_path):
                 if reference is not None and result.size == reference.size:
                     unchanged = pixelmatch(result, reference,

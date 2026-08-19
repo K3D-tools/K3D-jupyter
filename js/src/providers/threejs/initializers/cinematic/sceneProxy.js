@@ -1,6 +1,5 @@
 // A parallel scene of plain THREE.Mesh + MeshStandardMaterial mirroring K3DObjects for
-// the path tracer. K3DObjects is the source of truth and is never modified; shapes are
-// preserved, implementations replaced.
+// the path tracer. K3DObjects is the source of truth and is never modified.
 const THREE = require('three');
 const { mergeGeometries, mergeVertices } = require('three/examples/jsm/utils/BufferGeometryUtils');
 const streamLine = require('../../helpers/Streamline');
@@ -192,8 +191,7 @@ function buildPoints(json) {
     const sizes = (hasData(json.point_sizes) && json.point_sizes.data.length === count)
         ? json.point_sizes.data : null;
 
-    // mesh_detail applies to every shader here - even a 'dot' point is real geometry;
-    // the triangle budget only ever lowers it.
+    // mesh_detail applies to every shader here - even a 'dot' point is real geometry
     const requested = typeof json.mesh_detail !== 'undefined' ? json.mesh_detail : 2;
     let detail = Math.max(0, Math.min(12, requested));
 

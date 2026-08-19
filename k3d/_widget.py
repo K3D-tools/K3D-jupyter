@@ -43,10 +43,8 @@ export default {
 
 _MODULE = _STATIC / "widget.mjs"
 
-# The module is ~5 MB and _esm rides in the synced state of EVERY instance, so carrying it
-# directly means a plot pays the whole transfer at construction - and again for each re-run of
-# the cell. This asks the kernel for it instead, once per page, cached on globalThis. The blob
-# import is the same mechanism anywidget itself uses to load _esm.
+# _esm rides in the synced state of every instance, so the ~5 MB module is fetched from the
+# kernel on demand and cached on globalThis: once per page, not once per plot.
 _LOADER = """
 const KEY = '__k3dWidgetModule';
 

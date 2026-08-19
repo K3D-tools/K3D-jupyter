@@ -453,8 +453,7 @@ module.exports = function (K3D) {
                 impostors.push(obj);
                 return;
             }
-            // the override material honours neither `wireframe` nor opacity, so a
-            // see-through shell would occlude like a solid body: wireframes get a
+            // the override material honours neither `wireframe` nor opacity: wireframes get a
             // second pass that keeps the flag, transparent surfaces are dropped
             if (obj.material && obj.material.wireframe && !obj.material.isShaderMaterial) {
                 obj.visible = false;
@@ -908,13 +907,11 @@ module.exports = function (K3D) {
                     cinematicVolume.active = renderCinematicVolumeLayer(proxyScene, width, height);
                 },
 
-                // the accumulation reaches the canvas only through the shared
-                // compose/tone blit - one tone curve for every renderer
+                // the accumulation reaches the canvas only via the shared compose/tone blit - one tone curve per mode
                 presentFrame(texture) {
                     const size = new THREE.Vector2();
 
-                    // drawing-buffer size, not CSS: gl_FragCoord in the blit
-                    // spans device pixels
+                    // drawing-buffer size, not CSS: gl_FragCoord in the blit spans device pixels
                     self.renderer.getDrawingBufferSize(size);
                     composeCinematic(texture, null, size.x, size.y);
                 },
@@ -923,8 +920,7 @@ module.exports = function (K3D) {
                     error('Cinematic Error', `The cinematic renderer failed: ${e.message}.`, false);
                 },
 
-                // while the camera moves: same scene, materials and environment,
-                // only the light transport is rasterised
+                // camera in motion: same scene, materials and environment, only the light transport is rasterised
                 rasterizePreview() {
                     const size = new THREE.Vector2();
 
@@ -947,7 +943,7 @@ module.exports = function (K3D) {
         return cinematicMode;
     }
 
-    // internal: probe/benchmark hook (determinism re-checks)
+    // internal hook for determinism and benchmark probes
     K3D.__cinematicSpike = getCinematic;
 
     // a concrete reason, or null; never a silent fallback to another renderer
@@ -1194,8 +1190,7 @@ module.exports = function (K3D) {
                 return Promise.resolve(null);
             }
 
-            // the in-flight accumulation depicts a superseded state: abort now, not
-            // when the coalesced render finally starts
+            // abort now, not when the coalesced render starts: the in-flight accumulation is superseded
             if (cinematicMode !== null) {
                 cinematicMode.abort();
             }
@@ -1212,8 +1207,7 @@ module.exports = function (K3D) {
             return coalescedRender;
         }
 
-        // a forced render queues behind the accumulation in flight, whose result is
-        // already obsolete - abandon it so the queued render starts promptly
+        // a forced render queues behind an accumulation whose result is already obsolete - abandon it
         if (force && K3D.parameters.renderer === 'cinematic' && cinematicMode !== null) {
             cinematicMode.abort();
         }
@@ -1293,8 +1287,7 @@ module.exports = function (K3D) {
         });
     }
 
-    // marches every visible volume/MIP into the layer target, cut at the proxy-scene
-    // depth; once per accumulation, not per sample
+    // marches volumes/MIPs into the layer target, cut at proxy-scene depth; once per accumulation, not per sample
     function renderCinematicVolumeLayer(proxyScene, width, height) {
         const world = K3D.getWorld();
         const volumeObjects = [];
@@ -1316,8 +1309,7 @@ module.exports = function (K3D) {
         globalPeelUniforms.uLayer.value = 0;
         self.camera.updateMatrixWorld();
 
-        // overrideMaterial does not cover scene.background: env colours would land in
-        // the depth channel and peelT would read them as surfaces
+        // overrideMaterial does not cover scene.background: env colours in the depth channel read as surfaces
         const savedBackground = proxyScene.background;
 
         const u = self.k3dVolumePeel;
@@ -1412,8 +1404,7 @@ module.exports = function (K3D) {
         self.renderer.render(toneBlitScene, fsCamera);
     }
 
-    // cinematic has no controls 'change' loop (Canvas.js) to align the axes camera;
-    // order matters: up before lookAt
+    // cinematic has no controls 'change' loop (Canvas.js) to align the axes camera; order matters: up before lookAt
     function alignAxesCamera() {
         const camDistance = (3.0 * 0.5) / Math.tan(THREE.MathUtils.degToRad(K3D.parameters.cameraFov / 2.0));
 

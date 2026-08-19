@@ -14,8 +14,7 @@ def test_esm_is_packaged():
 
 
 def test_no_widget_carries_the_module_in_its_state():
-    # _esm rides in the synced state of every instance, so nothing may carry the module
-    # itself: objects get a stub, the plot and the editor a loader that asks the kernel
+    # _esm rides in every instance's synced state: objects get a stub, plot and editor a loader.
     assert len(str(k3d.mesh(VERTICES, INDICES)._esm)) < 4096
     assert len(str(k3d.plot()._esm)) < 4096
     assert len(str(k3d.transfer_function_editor()._esm)) < 4096
@@ -231,8 +230,7 @@ def test_cinematic_params_are_validated():
     with pt.raises(TraitError):
         plot.cinematic_glossy_filter = 1.1
 
-    # a plot parameter is dead in the headless and snapshot paths until it is listed in
-    # _PLOT_PARAMS, which no renderer test can catch
+    # a plot parameter is dead in the headless and snapshot paths until listed in _PLOT_PARAMS
     assert plot.get_plot_params()["cinematicGlossyFilter"] == 0.0
 
 

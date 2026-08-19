@@ -1134,8 +1134,8 @@ function K3D(provider, targetDOMNode, parameters) {
             mode = 'simple';
         }
 
-        // an unsupported path tracer is refused with an error, never downgraded to another mode;
-        // a snapshot opening already in cinematic has no mode to keep, so render() reports it there
+        // an unsupported path tracer is refused, never downgraded to another mode; a snapshot
+        // already in cinematic has no previous mode to keep, so render() reports the failure
         if (mode === 'cinematic' && self.parameters.renderer !== 'cinematic') {
             const reason = world.cinematicUnsupportedReason
                 ? world.cinematicUnsupportedReason()

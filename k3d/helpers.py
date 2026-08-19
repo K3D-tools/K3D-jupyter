@@ -36,12 +36,10 @@ logger.setLevel(logging.INFO)
 
 
 class Array(_TraitArray):
-    """An Array trait that converts silently where the conversion is not news.
-
-    Two cases: float64 narrowed to the float32 the GPU takes, and a dtype that differs
-    only in byte order - legacy VTK files are big-endian, and traittypes reports that as
-    'float32 does not match float32', since it names dtypes without their order. Every
-    other mismatch still reaches its warning, which is the useful kind.
+    """Array trait that converts silently in two cases: float64 narrowed to the float32 the
+    GPU takes, and a dtype differing only in byte order (legacy VTK files are big-endian),
+    which traittypes reports as 'float32 does not match float32' because it names dtypes
+    without their order. Any other mismatch still warns.
     """
 
     def validate(self, obj, value):
@@ -57,10 +55,8 @@ class Array(_TraitArray):
 
 
 class Float(_TraitFloat):
-    """A Float trait that also takes numpy scalars.
-
-    np.float64 subclasses Python float and passes traitlets; np.float32 does not.
-    """
+    """Float trait that also takes numpy scalars: np.float64 subclasses Python float and
+    passes traitlets, np.float32 does not."""
 
     def validate(self, obj, value):
         if isinstance(value, (np.floating, np.integer)):

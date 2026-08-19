@@ -17,8 +17,7 @@ const { getColorsArray } = Fn;
  * @param {Object} config all configuration params from JSON
  * @return {Object} 3D object ready to render
  */
-// A time-series trait stays a {time: value} dict in config; only `changes` carries
-// the frame resolved for the current time, so either side can hold the live value.
+// Resolved time-series frames arrive in changes; config keeps the raw {time: value} dict.
 function currentData(changes, config, key) {
     if (changes && changes[key] && changes[key].data && !changes[key].timeSeries) {
         return changes[key].data;
