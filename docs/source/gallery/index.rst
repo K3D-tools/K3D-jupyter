@@ -31,6 +31,7 @@ Showcase
     showcase/plasma-wind.rst
     showcase/point-cloud.rst
     showcase/segmentation.rst
+    showcase/stanford-dragon.rst
     showcase/streamlines.rst
     showcase/turbine-cfd.rst
     showcase/terrain.rst
@@ -63,6 +64,10 @@ Showcase
 
 .. k3d_plot::
    :filename: showcase/thumbnails/segmentation_thumbnail.py
+   :screenshot:
+
+.. k3d_plot::
+   :filename: showcase/thumbnails/stanford_dragon_thumbnail.py
    :screenshot:
 
 .. k3d_plot::
@@ -116,6 +121,10 @@ Showcase
 .. image:: segmentation_thumbnail.png
    :width: 155
    :target: showcase/segmentation.html
+
+.. image:: stanford_dragon_thumbnail.png
+   :width: 155
+   :target: showcase/stanford-dragon.html
 
 .. image:: streamlines_thumbnail.png
    :width: 155
