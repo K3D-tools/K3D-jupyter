@@ -31,6 +31,28 @@ return {children: w.K3DObjects.children.length, visible: visible};
 
 SETTLE = "K3DInstance.render(); K3DInstance.dispatch(K3DInstance.events.RENDERED)"
 
+# scene size at each render of a toggle, in order; screenshots cannot see this because
+# taking one renders again
+TOGGLE_RENDER_SIZES = """
+var id = arguments[0], value = arguments[1];
+var w = K3DInstance.getWorld();
+var sizes = [];
+var render = w.render;
+
+w.render = function () {
+    sizes.push(w.K3DObjects.children.length);
+    return render.apply(w, arguments);
+};
+
+var json = w.ObjectsListJson[id];
+json.visible = value;
+K3DInstance.reload(json, {visible: value}, false);
+
+w.render = render;
+
+return sizes;
+"""
+
 
 def _scene():
     g = np.linspace(-1, 1, 24, dtype=np.float32)
@@ -77,6 +99,18 @@ def test_gui_visible_toggle_leaves_no_orphans():
             state = _census()
             assert state["children"] == 2, state
             assert state["visible"] == 2, state
+
+
+def test_hiding_renders_after_the_object_leaves_the_scene():
+    """Hiding draws one frame and then nothing until the user interacts, so that frame is what
+    stays on screen: it has to be rendered without the object, not with it."""
+    prepare()
+    volume, mesh = _scene()
+
+    sizes = pytest.headless.browser.execute_script(TOGGLE_RENDER_SIZES, mesh.id, False)
+
+    assert sizes, "hiding an object did not render at all"
+    assert sizes[-1] == 1, sizes
 
 
 def test_rapid_visible_toggle_ends_hidden_and_clean():

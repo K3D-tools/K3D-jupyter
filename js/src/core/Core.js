@@ -1579,15 +1579,17 @@ function K3D(provider, targetDOMNode, parameters) {
      */
     this.reload = function (json, changes, timeSeriesReload) {
         if (json.visible === false) {
-            if (timeSeriesReload !== true) {
-                self.refreshAfterObjectsChange(true);
-                objectsGUIProvider.update(self, json, GUI.objects, changes);
-            }
-
             try {
                 removeObjectFromScene(json.id);
             } catch (e) {
                 // nothing
+            }
+
+            // the render has to follow the removal: it is the last frame drawn, so rendering
+            // first leaves the object on screen until something else triggers a new one
+            if (timeSeriesReload !== true) {
+                objectsGUIProvider.update(self, json, GUI.objects, changes);
+                self.refreshAfterObjectsChange(true);
             }
 
             return Promise.resolve(true);
