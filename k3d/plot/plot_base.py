@@ -134,7 +134,7 @@ class PlotBase(K3DAnyWidget):
         if not 1 <= value <= 32:
             raise TraitError("cinematic_bounces must be in [1, 32], got %s" % value)
         return value
-    cinematic_glossy_filter = Float(default_value=0.0).tag(sync=True)
+    cinematic_glossy_filter = Float(default_value=0.25).tag(sync=True)
 
     @validate("cinematic_glossy_filter")
     def _validate_cinematic_glossy_filter(self, proposal):
@@ -165,6 +165,8 @@ class PlotBase(K3DAnyWidget):
             self._relay_send_state(content.get("ids", []))
         elif content.get("msg_type") == "object_change":
             self._relay_apply_change(buffers)
+        else:
+            super()._handle_custom_msg(content, buffers)
 
     # Colab-style frontends materialise widget models lazily, per output frame:
     # the plot model exists there, the object models never do (object_ids are

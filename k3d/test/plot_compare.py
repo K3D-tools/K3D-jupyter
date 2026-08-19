@@ -48,6 +48,7 @@ def prepare(depth_peels=0):
     pytest.plot.ao_strength = 1.8
     pytest.plot.cinematic_samples = 64
     pytest.plot.cinematic_bounces = 6
+    pytest.plot.cinematic_glossy_filter = 0.25
     # compare() halves this for cinematic; reset here so an aborted cinematic
     # screenshot cannot leave later renders at half size.
     pytest.plot.screenshot_scale = 1.0

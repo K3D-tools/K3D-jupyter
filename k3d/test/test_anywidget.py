@@ -13,12 +13,26 @@ def test_esm_is_packaged():
     assert (_STATIC / "widget.mjs").exists()
 
 
-def test_objects_carry_the_stub_not_the_module():
-    # _esm rides in the synced state of every instance - objects must stay tiny
-    mesh = k3d.mesh(VERTICES, INDICES)
+def test_no_widget_carries_the_module_in_its_state():
+    # _esm rides in the synced state of every instance, so nothing may carry the module
+    # itself: objects get a stub, the plot and the editor a loader that asks the kernel
+    assert len(str(k3d.mesh(VERTICES, INDICES)._esm)) < 4096
+    assert len(str(k3d.plot()._esm)) < 4096
+    assert len(str(k3d.transfer_function_editor()._esm)) < 4096
 
-    assert len(str(mesh._esm)) < 4096
-    assert len(str(k3d.plot()._esm)) > 100000
+
+def test_the_module_is_served_over_the_comm():
+    from k3d._widget import _MODULE
+
+    plot = k3d.plot()
+    sent = []
+    plot.send = lambda content, buffers=None: sent.append((content, buffers))
+
+    plot._handle_custom_msg({"msg_type": "fetch_widget_module"}, [])
+
+    (content, buffers), = sent
+    assert content["msg_type"] == "widget_module"
+    assert buffers[0] == _MODULE.read_bytes()
 
 
 def test_widget_kinds():
@@ -208,8 +222,9 @@ def test_cinematic_params_are_validated():
     with pt.raises(TraitError):
         plot.cinematic_bounces = 33
 
-    assert plot.cinematic_glossy_filter == 0.0
-    plot.cinematic_glossy_filter = 0.25
+    # on by default: metal under a bright sun throws fireflies that no budget clears
+    assert plot.cinematic_glossy_filter == 0.25
+    plot.cinematic_glossy_filter = 0.0
 
     with pt.raises(TraitError):
         plot.cinematic_glossy_filter = -0.1
@@ -218,7 +233,7 @@ def test_cinematic_params_are_validated():
 
     # a plot parameter is dead in the headless and snapshot paths until it is listed in
     # _PLOT_PARAMS, which no renderer test can catch
-    assert plot.get_plot_params()["cinematicGlossyFilter"] == 0.25
+    assert plot.get_plot_params()["cinematicGlossyFilter"] == 0.0
 
 
 def test_cinematic_params_reach_the_snapshot():

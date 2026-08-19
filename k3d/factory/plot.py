@@ -39,7 +39,7 @@ def plot(
         ao_strength: float = 1.8,
         cinematic_samples: int = 64,
         cinematic_bounces: int = 6,
-        cinematic_glossy_filter: float = 0.0,
+        cinematic_glossy_filter: float = 0.25,
         axes: TypingList[str] = None,
         axes_helper: float = 1.0,
         axes_helper_colors: TypingList[int] = None,

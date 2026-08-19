@@ -176,7 +176,7 @@ Cinematic: path tracing
     plot.renderer = 'cinematic'
     plot.cinematic_samples = 64        # accumulation budget, [1, 100000]
     plot.cinematic_bounces = 6         # light bounces, [1, 32]
-    plot.cinematic_glossy_filter = 0.0 # widen glossy lobes after a rough bounce, [0, 1]
+    plot.cinematic_glossy_filter = 0.25 # widen glossy lobes after a rough bounce, [0, 1]
 
 Where ``advanced`` approximates indirect light with an occlusion pass,
 ``cinematic`` traces it: rays scatter off surfaces up to ``cinematic_bounces``
@@ -201,11 +201,11 @@ anything interactive.
     HDRI, typically - throws **fireflies**: isolated bright pixels from the rare
     path that happens to hit the sun through a mirror. They fade as the square
     root of the sample count, which is to say hardly at all.
-    ``cinematic_glossy_filter`` is the answer: it widens a glossy lobe in
-    proportion to the roughness already gathered along the path, so a specular
-    seen directly stays sharp while the paths that produce the speckles do not.
-    0.25 clears them in practice; the default 0 leaves the light transport
-    unbiased.
+    ``cinematic_glossy_filter`` is the answer, and it defaults to 0.25 for that
+    reason: it widens a glossy lobe in proportion to the roughness already
+    gathered along the path, so a specular seen directly stays sharp while the
+    paths that produce the speckles do not. Set it to 0 for unbiased light
+    transport and take the speckles.
 
 .. note::
     Path tracing produces high dynamic range: bounced light between bright

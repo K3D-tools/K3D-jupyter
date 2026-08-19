@@ -483,7 +483,7 @@ function K3D(provider, targetDOMNode, parameters) {
             aoStrength: 1.8,
             cinematicSamples: 64,
             cinematicBounces: 6,
-            cinematicGlossyFilter: 0.0,
+            cinematicGlossyFilter: 0.25,
             snapshotType: 'full',
             customData: null,
             additionalJsCode: '',
