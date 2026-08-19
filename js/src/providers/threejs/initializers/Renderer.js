@@ -896,6 +896,8 @@ module.exports = function (K3D) {
         }
     }
 
+    const presentClearColor = new THREE.Color();
+
     // lazy: building the path tracer and its BVH is expensive
     let cinematicMode = null;
 
@@ -909,11 +911,37 @@ module.exports = function (K3D) {
 
                 // the accumulation reaches the canvas only via the shared compose/tone blit - one tone curve per mode
                 presentFrame(texture) {
+                    const buffer = new THREE.Vector2();
                     const size = new THREE.Vector2();
 
                     // drawing-buffer size, not CSS: gl_FragCoord in the blit spans device pixels
-                    self.renderer.getDrawingBufferSize(size);
-                    composeCinematic(texture, null, size.x, size.y);
+                    self.renderer.getDrawingBufferSize(buffer);
+                    self.renderer.getSize(size);
+
+                    const clearAlpha = self.renderer.getClearAlpha();
+
+                    self.renderer.getClearColor(presentClearColor);
+                    // autoClear is off for the whole renderer and the blit composites premultiplied
+                    // over what the canvas already holds: presenting onto the previous frame walks a
+                    // semi-transparent object up to opaque, one sample at a time. Clearing costs the
+                    // grid and the axes, so they are drawn again around the accumulation.
+                    self.renderer.setRenderTarget(null);
+                    self.renderer.setViewport(0, 0, size.x, size.y);
+                    // background_color is a CSS background on the target node, so the canvas
+                    // clears to nothing and lets it through
+                    self.renderer.setClearColor(0, 0);
+                    self.renderer.clear();
+                    self.renderer.render(self.gridScene, self.camera);
+
+                    composeCinematic(texture, null, buffer.x, buffer.y);
+
+                    self.renderer.setViewport(
+                        size.x - self.axesHelper.width, 0,
+                        self.axesHelper.width, self.axesHelper.height,
+                    );
+                    self.renderer.render(self.axesHelper.scene, self.axesHelper.camera);
+                    self.renderer.setViewport(0, 0, size.x, size.y);
+                    self.renderer.setClearColor(presentClearColor, clearAlpha);
                 },
 
                 onError(e) {

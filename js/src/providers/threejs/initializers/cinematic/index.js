@@ -333,7 +333,9 @@ module.exports = function cinematic(K3D, renderer, hooks) {
                     prepareOverlay(scene, world.width, world.height);
                 }
 
-                return renderSamplesAsync(budget, budget, true);
+                // headless never looks at the canvas - the screenshot composes its own frame -
+                // and presenting between samples costs a clear and two scene draws each time
+                return renderSamplesAsync(budget, budget, !isHeadless);
             }).then((result) => {
                 if (!result.stale) {
                     setHud(`cinematic: ${result.samples} / ${budget} samples`);
