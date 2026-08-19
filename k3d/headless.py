@@ -226,6 +226,20 @@ class k3d_remote:
             self.browser = None
 
 
+def _relax_timeouts(driver):
+    """A screenshot runs inside one execute_script call, which in the cinematic renderer
+    spends the whole sample budget there - minutes, against Selenium's 30 s script and
+    120 s HTTP defaults. Both limits are independent and both have to move."""
+    driver.set_script_timeout(600)
+
+    client_config = getattr(driver.command_executor, "_client_config", None)
+
+    if client_config is not None:
+        client_config.timeout = 900
+
+    return driver
+
+
 def get_headless_driver(no_headless=False, gpu=False):
     from selenium import webdriver
 
@@ -242,7 +256,7 @@ def get_headless_driver(no_headless=False, gpu=False):
             options.add_argument("--headless")
             options.add_argument("--enable-unsafe-swiftshader")
 
-    return webdriver.Chrome(options=options)
+    return _relax_timeouts(webdriver.Chrome(options=options))
 
 
 def get_headless_firefox_driver(no_headless=False):
@@ -256,4 +270,4 @@ def get_headless_firefox_driver(no_headless=False):
         options.add_argument("--headless")
         options.add_argument("--enable-unsafe-swiftshader")
 
-    return webdriver.Firefox(options=options)
+    return _relax_timeouts(webdriver.Firefox(options=options))
