@@ -66,7 +66,10 @@ and the floor genuinely exceeds 1.0, and without a curve it clips.
                     grid_visible=False,
                     camera_auto_fit=False,
                     cinematic_samples=128,
-                    cinematic_bounces=6)
+                    cinematic_bounces=6,
+                    # polished metal under a small bright sun throws fireflies:
+                    # bright single pixels on the floor that no sample count clears
+                    cinematic_glossy_filter=0.25)
 
     plot += k3d.vtk_poly_data(dragon,
                               color=0xC8A15A,

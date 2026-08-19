@@ -40,6 +40,7 @@ module.exports = function cinematic(K3D, renderer, hooks) {
     let materialsDirty = false;
     let envKey = null;
     let lastBounces = null;
+    let lastGlossyFilter = null;
     // the stratified-sample texture rebuilds on the first sample after a scene or bounce
     // change and consumes seeded RNG draws reset() does not replay: warm up one sample first
     let needsWarmup = true;
@@ -177,6 +178,14 @@ module.exports = function cinematic(K3D, renderer, hooks) {
         if (lastBounces !== K3D.parameters.cinematicBounces) {
             backend.setBounces(K3D.parameters.cinematicBounces);
             lastBounces = K3D.parameters.cinematicBounces;
+            needsWarmup = true;
+        }
+
+        const glossyFilter = K3D.parameters.cinematicGlossyFilter || 0.0;
+
+        if (lastGlossyFilter !== glossyFilter) {
+            backend.setGlossyFilter(glossyFilter);
+            lastGlossyFilter = glossyFilter;
             needsWarmup = true;
         }
 

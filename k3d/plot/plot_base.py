@@ -134,6 +134,16 @@ class PlotBase(K3DAnyWidget):
         if not 1 <= value <= 32:
             raise TraitError("cinematic_bounces must be in [1, 32], got %s" % value)
         return value
+    cinematic_glossy_filter = Float(default_value=0.0).tag(sync=True)
+
+    @validate("cinematic_glossy_filter")
+    def _validate_cinematic_glossy_filter(self, proposal):
+        value = float(proposal["value"])
+        if not 0.0 <= value <= 1.0:
+            raise TraitError(
+                "cinematic_glossy_filter must be in [0, 1], got %s" % value
+            )
+        return value
     camera_mode = Unicode().tag(sync=True)
     additional_js_code = Unicode().tag(sync=True)
     manipulate_mode = Unicode().tag(sync=True)

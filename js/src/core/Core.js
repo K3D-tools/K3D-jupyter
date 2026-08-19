@@ -256,6 +256,13 @@ function K3D(provider, targetDOMNode, parameters) {
                 self.setCinematicBounces(value);
                 changeParameters.call(self, 'cinematic_bounces', value);
             }));
+        cinematicControls.push(GUI.controls.add(self.parameters, 'cinematicGlossyFilter')
+            .step(0.05).min(0.0).max(1.0)
+            .listen()
+            .onChange((value) => {
+                self.setCinematicGlossyFilter(value);
+                changeParameters.call(self, 'cinematic_glossy_filter', value);
+            }));
 
         self.refreshRendererGUI = function () {
             const mode = self.parameters.renderer;
@@ -476,6 +483,7 @@ function K3D(provider, targetDOMNode, parameters) {
             aoStrength: 1.8,
             cinematicSamples: 64,
             cinematicBounces: 6,
+            cinematicGlossyFilter: 0.0,
             snapshotType: 'full',
             customData: null,
             additionalJsCode: '',
@@ -1219,6 +1227,16 @@ function K3D(provider, targetDOMNode, parameters) {
      */
     this.setCinematicBounces = function (bounces) {
         self.parameters.cinematicBounces = bounces;
+        self.render();
+    };
+
+    /**
+     * Set how strongly the cinematic renderer widens glossy lobes after a rough bounce
+     * @memberof K3D.Core
+     * @param {Number} factor 0 leaves them sharp
+     */
+    this.setCinematicGlossyFilter = function (factor) {
+        self.parameters.cinematicGlossyFilter = factor;
         self.render();
     };
 

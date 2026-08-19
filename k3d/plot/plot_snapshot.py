@@ -61,6 +61,7 @@ _PLOT_PARAMS = (
     ("aoStrength", "ao_strength"),
     ("cinematicSamples", "cinematic_samples"),
     ("cinematicBounces", "cinematic_bounces"),
+    ("cinematicGlossyFilter", "cinematic_glossy_filter"),
     ("cameraAnimation", "camera_animation"),
     ("customData", "custom_data"),
     ("fps", "fps"),

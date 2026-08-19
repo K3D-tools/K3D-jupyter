@@ -208,6 +208,18 @@ def test_cinematic_params_are_validated():
     with pt.raises(TraitError):
         plot.cinematic_bounces = 33
 
+    assert plot.cinematic_glossy_filter == 0.0
+    plot.cinematic_glossy_filter = 0.25
+
+    with pt.raises(TraitError):
+        plot.cinematic_glossy_filter = -0.1
+    with pt.raises(TraitError):
+        plot.cinematic_glossy_filter = 1.1
+
+    # a plot parameter is dead in the headless and snapshot paths until it is listed in
+    # _PLOT_PARAMS, which no renderer test can catch
+    assert plot.get_plot_params()["cinematicGlossyFilter"] == 0.25
+
 
 def test_cinematic_params_reach_the_snapshot():
     plot = k3d.plot(renderer="cinematic", cinematic_samples=16, cinematic_bounces=4)

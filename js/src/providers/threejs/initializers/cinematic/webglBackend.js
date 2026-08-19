@@ -94,6 +94,13 @@ module.exports = function createWebGLBackend(renderer) {
             tracer.bounces = bounces;
         },
 
+        // Widens a glossy lobe in proportion to the roughness already accumulated along the
+        // path, so a sharp specular seen directly stays sharp while the paths that produce
+        // fireflies - rough bounce, then a mirror catching a small bright light - do not.
+        setGlossyFilter(factor) {
+            tracer.filterGlossyFactor = factor;
+        },
+
         // One renderSample() advances one tile, bounding the GPU work per call: an
         // uninterrupted full-frame trace stalls the page and can trip the driver watchdog,
         // which tears down the GL context. Sizing by pixels holds that bound at any resolution.

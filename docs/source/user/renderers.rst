@@ -174,8 +174,9 @@ Cinematic: path tracing
 .. code-block:: python3
 
     plot.renderer = 'cinematic'
-    plot.cinematic_samples = 64   # accumulation budget, [1, 4096]
-    plot.cinematic_bounces = 6    # light bounces, [1, 32]
+    plot.cinematic_samples = 64        # accumulation budget, [1, 100000]
+    plot.cinematic_bounces = 6         # light bounces, [1, 32]
+    plot.cinematic_glossy_filter = 0.0 # widen glossy lobes after a rough bounce, [0, 1]
 
 Where ``advanced`` approximates indirect light with an occlusion pass,
 ``cinematic`` traces it: rays scatter off surfaces up to ``cinematic_bounces``
@@ -194,6 +195,17 @@ the camera settles. Screenshots always render the full budget, so an exported
 image is as clean as the budget allows regardless of what the interactive view
 had reached - raise the budget for a final render, it accepts values far beyond
 anything interactive.
+
+.. note::
+    A polished surface lit by a small very bright source - metal under a sunny
+    HDRI, typically - throws **fireflies**: isolated bright pixels from the rare
+    path that happens to hit the sun through a mirror. They fade as the square
+    root of the sample count, which is to say hardly at all.
+    ``cinematic_glossy_filter`` is the answer: it widens a glossy lobe in
+    proportion to the roughness already gathered along the path, so a specular
+    seen directly stays sharp while the paths that produce the speckles do not.
+    0.25 clears them in practice; the default 0 leaves the light transport
+    unbiased.
 
 .. note::
     Path tracing produces high dynamic range: bounced light between bright
