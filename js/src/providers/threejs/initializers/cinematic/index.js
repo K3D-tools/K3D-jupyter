@@ -118,13 +118,14 @@ module.exports = function cinematic(K3D, renderer, hooks) {
 
         env.mapping = THREE.EquirectangularReflectionMapping;
         target.environment = env;
-        target.background = env;
         target.environmentRotation.copy(rotation);
-        target.backgroundRotation.copy(rotation);
         // advanced's measured 1.2 surface correction, with no cinematic gain on top:
         // isolated flat surfaces are legitimately darker, lit only by what reaches them.
         target.environmentIntensity = envIntensity * 1.2;
-        target.backgroundIntensity = envIntensity * 1.2;
+
+        // not the backdrop: the frame stays transparent where nothing was hit, so
+        // background_color shows through. A THREE.Color here renders black.
+        target.background = null;
     }
 
     function buildScene() {
@@ -207,7 +208,7 @@ module.exports = function cinematic(K3D, renderer, hooks) {
             }
 
             if (key !== envKey) {
-                // lighting-only change: the BVH is untouched, no rebuild
+                // lighting-only change: no BVH rebuild
                 applyEnvironment(scene);
                 backend.updateEnvironment();
                 envKey = key;
