@@ -77,3 +77,23 @@ def test_cinematic_single_bounce():
     pytest.plot.cinematic_bounces = 1
 
     compare("cinematic_single_bounce", modes=("cinematic",))
+
+
+def test_cinematic_mixed_vertex_attributes():
+    """The tracer merges the whole proxy scene and takes its attribute set from the first
+    geometry, so every object must be given the same one: a flat tube (colours, no uv), a
+    colormapped tube (both) and icospheres (uv, no colours) have to keep their own colours
+    whatever order they arrive in."""
+    prepare()
+
+    path = np.array([[-1, -1, 0], [0, 1, 0.5], [1, -1, 1]], dtype=np.float32)
+
+    pytest.plot += k3d.line(path, width=0.05, color=0xE6006E)
+    pytest.plot += k3d.line(
+        path + np.array([0, 0, -0.8], dtype=np.float32), width=0.05,
+        attribute=np.array([0.0, 0.5, 1.0], dtype=np.float32),
+        color_range=[0.0, 1.0], color_map=k3d.basic_color_maps.Jet,
+    )
+    pytest.plot += k3d.points(path, point_size=0.25, color=0x3F6BFA)
+
+    compare("cinematic_mixed_vertex_attributes", modes=("cinematic",))

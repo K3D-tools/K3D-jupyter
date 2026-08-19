@@ -597,6 +597,62 @@ function isMeshVolume(json) {
         && hasData(json.color_map);
 }
 
+// The tracer merges the whole proxy scene into one geometry and requires every mesh to carry
+// the same attribute set (StaticGeometryGenerator takes the set from the first geometry and
+// rejects the rest), so a scene mixing a vertex-coloured tube with plain icospheres loses the
+// colours. A synthesised colour is white and so cannot tint a material with vertexColors off,
+// which the tracer honours; uv is zeroed where nothing samples it.
+const MERGE_ATTRIBUTES = { color: 3, uv: 2 };
+
+function normalizeMergeAttributes(node) {
+    if (node === null) {
+        return null;
+    }
+
+    node.traverse((mesh) => {
+        if (!mesh.isMesh || !mesh.geometry) {
+            return;
+        }
+
+        const source = mesh.geometry;
+        const position = source.getAttribute('position');
+        const missing = Object.keys(MERGE_ATTRIBUTES)
+            .filter((name) => !source.getAttribute(name));
+
+        if (!position || missing.length === 0) {
+            return;
+        }
+
+        // passthrough proxies share their geometry with the rasterised object, which must not
+        // be touched: this shares every existing buffer and owns only the added ones
+        const geometry = new THREE.BufferGeometry();
+
+        geometry.index = source.index;
+        Object.keys(source.attributes).forEach((name) => {
+            geometry.setAttribute(name, source.attributes[name]);
+        });
+        source.groups.forEach((group) => {
+            geometry.addGroup(group.start, group.count, group.materialIndex);
+        });
+        geometry.setDrawRange(source.drawRange.start, source.drawRange.count);
+
+        missing.forEach((name) => {
+            const itemSize = MERGE_ATTRIBUTES[name];
+            const array = new Float32Array(position.count * itemSize);
+
+            if (name === 'color') {
+                array.fill(1.0);
+            }
+
+            geometry.setAttribute(name, new THREE.BufferAttribute(array, itemSize));
+        });
+
+        mesh.geometry = geometry;
+    });
+
+    return node;
+}
+
 function buildProxyForObject(sourceObj, json, camera) {
     const type = json.type;
 
@@ -716,7 +772,9 @@ module.exports = function createSceneProxy(K3D) {
                 if (!entry || entry.source !== sourceObj || json.type === 'TextureText') {
                     entry = {
                         source: sourceObj,
-                        proxy: buildProxyForObject(sourceObj, json, camera),
+                        proxy: normalizeMergeAttributes(
+                            buildProxyForObject(sourceObj, json, camera),
+                        ),
                     };
                     cache.set(id, entry);
                 }
