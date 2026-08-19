@@ -36,16 +36,22 @@ logger.setLevel(logging.INFO)
 
 
 class Array(_TraitArray):
-    """An Array trait that narrows float64 to float32 silently.
+    """An Array trait that converts silently where the conversion is not news.
 
-    Every other dtype mismatch still reaches traittypes' coercion warning.
+    Two cases: float64 narrowed to the float32 the GPU takes, and a dtype that differs
+    only in byte order - legacy VTK files are big-endian, and traittypes reports that as
+    'float32 does not match float32', since it names dtypes without their order. Every
+    other mismatch still reaches its warning, which is the useful kind.
     """
 
     def validate(self, obj, value):
-        if (self.dtype == np.float32
-                and isinstance(value, np.ndarray)
-                and value.dtype == np.float64):
-            value = value.astype(np.float32)
+        if self.dtype is not None and isinstance(value, np.ndarray):
+            target = np.dtype(self.dtype)
+
+            if target == np.float32 and value.dtype == np.float64:
+                value = value.astype(np.float32)
+            elif value.dtype != target and value.dtype.name == target.name:
+                value = value.astype(target)
 
         return super().validate(obj, value)
 

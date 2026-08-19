@@ -45,6 +45,22 @@ def test_numpy_scalars_are_accepted_as_keyframes():
     assert obj.point_size == {"0": 1.0, "1": 4.0}
 
 
+def test_big_endian_arrays_convert_quietly():
+    """Legacy VTK files are big-endian. traittypes names dtypes without their byte order,
+    so it used to warn that "float32" does not match "float32"."""
+    import warnings
+
+    vertices = np.zeros((3, 3), dtype=">f4")
+    assert vertices.dtype != np.dtype(np.float32)
+
+    with warnings.catch_warnings(record=True) as caught:
+        warnings.simplefilter("always")
+        mesh = k3d.mesh(vertices, np.array([[0, 1, 2]], dtype=np.uint32))
+
+    assert mesh.vertices.dtype == np.dtype(np.float32)
+    assert not [w for w in caught if "does not match" in str(w.message)]
+
+
 def test_numpy_integers_are_accepted_as_ints():
     obj = k3d.volume(DATA, compression_level=np.int32(1))
 

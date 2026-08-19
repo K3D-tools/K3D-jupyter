@@ -40,7 +40,7 @@ def generate():
                     tone_mapping='aces',
                     grid_visible=False,
                     camera_auto_fit=False,
-                    cinematic_samples=128,
+                    cinematic_samples=256,
                     cinematic_bounces=6)
 
     plot += k3d.vtk_poly_data(dragon,
@@ -60,7 +60,8 @@ def generate():
                                [centre[0] - span, centre[1] + span, floor_z]], np.float32),
                      np.array([[0, 1, 2], [0, 2, 3]], np.uint32),
                      color=0x9AA0A6,
-                     roughness=0.9,
+                     roughness=0.2,
+                     metalness=0.7,
                      name='floor')
 
     # the head points along XY (0.75, 0.66): standing 28 degrees off that axis keeps it
