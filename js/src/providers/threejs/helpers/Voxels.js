@@ -41,8 +41,8 @@ function getVoxelChunkObject(K3D, config, voxelSize, chunkStructure) {
     } : {
         vertexColors: true,
         flatShading: true,
-        roughness: 0.4,
-        metalness: 0.0,
+        roughness: typeof (config.roughness) !== 'undefined' ? config.roughness : 0.4,
+        metalness: typeof (config.metalness) !== 'undefined' ? config.metalness : 0.0,
         opacity: config.opacity,
         side: THREE.DoubleSide,
         wireframe: false,

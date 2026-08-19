@@ -102,6 +102,19 @@ module.exports = {
             resolvedChanges.opacity = null;
         }
 
+        ['roughness', 'metalness'].forEach((key) => {
+            if (typeof (changes[key]) !== 'undefined' && !changes[key].timeSeries) {
+                obj.traverse((object) => {
+                    if (object.material && object.material[key] !== undefined
+                        && !object.material.userData.outline) {
+                        object.material[key] = config[key];
+                    }
+                });
+
+                resolvedChanges[key] = null;
+            }
+        });
+
         commonUpdate(config, changes, resolvedChanges, obj, K3D);
 
         if (areAllChangesResolve(changes, resolvedChanges)) {

@@ -459,6 +459,10 @@ class Voxels(DrawableWithVoxelCallback):
             Whether mesh should display as wireframe.
         opacity: `float`.
             Opacity of voxels.
+        roughness: `float`.
+            Roughness of the material.
+        metalness: `float`.
+            Metalness of the material.
         outlines: `bool`.
             Whether mesh should display with outlines.
         outlines_color: `int`.
@@ -474,6 +478,8 @@ class Voxels(DrawableWithVoxelCallback):
     outlines = Bool().tag(sync=True)
     outlines_color = Int(min=0, max=0xFFFFFF).tag(sync=True)
     opacity = TimeSeries(Float(min=0.0, max=1.0, default_value=1.0)).tag(sync=True)
+    roughness = TimeSeries(Float(default_value=0.4, min=0.0, max=1.0)).tag(sync=True)
+    metalness = TimeSeries(Float(default_value=0.0, min=0.0, max=1.0)).tag(sync=True)
     model_matrix = TimeSeries(Array(dtype=np.float32)).tag(
         sync=True, **array_serialization_wrap("model_matrix")
     )
@@ -509,6 +515,10 @@ class SparseVoxels(DrawableWithVoxelCallback):
             Whether mesh should display as wireframe.
         opacity: `float`.
             Opacity of voxels.
+        roughness: `float`.
+            Roughness of the material.
+        metalness: `float`.
+            Metalness of the material.
         outlines: `bool`.
             Whether mesh should display with outlines.
         outlines_color: `int`.
@@ -533,6 +543,8 @@ class SparseVoxels(DrawableWithVoxelCallback):
     outlines = Bool().tag(sync=True)
     outlines_color = Int(min=0, max=0xFFFFFF).tag(sync=True)
     opacity = TimeSeries(Float(min=0.0, max=1.0, default_value=1.0)).tag(sync=True)
+    roughness = TimeSeries(Float(default_value=0.4, min=0.0, max=1.0)).tag(sync=True)
+    metalness = TimeSeries(Float(default_value=0.0, min=0.0, max=1.0)).tag(sync=True)
     model_matrix = TimeSeries(Array(dtype=np.float32)).tag(
         sync=True, **array_serialization_wrap("model_matrix")
     )
@@ -567,6 +579,10 @@ class VoxelsGroup(DrawableWithVoxelCallback):
             Whether mesh should display as wireframe.
         opacity: `float`.
             Opacity of voxels.
+        roughness: `float`.
+            Roughness of the material.
+        metalness: `float`.
+            Metalness of the material.
         outlines: `bool`.
             Whether mesh should display with outlines.
         outlines_color: `int`.
@@ -592,6 +608,8 @@ class VoxelsGroup(DrawableWithVoxelCallback):
     outlines = Bool().tag(sync=True)
     outlines_color = Int(min=0, max=0xFFFFFF).tag(sync=True)
     opacity = TimeSeries(Float(min=0.0, max=1.0, default_value=1.0)).tag(sync=True)
+    roughness = TimeSeries(Float(default_value=0.4, min=0.0, max=1.0)).tag(sync=True)
+    metalness = TimeSeries(Float(default_value=0.0, min=0.0, max=1.0)).tag(sync=True)
     model_matrix = TimeSeries(Array(dtype=np.float32)).tag(
         sync=True, **array_serialization_wrap("model_matrix")
     )
