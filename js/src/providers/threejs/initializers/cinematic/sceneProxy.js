@@ -9,6 +9,7 @@ const streamLine = require('../../helpers/Streamline');
 const Fn = require('../../helpers/Fn');
 const buffer = require('../../../../core/lib/helpers/buffer');
 const colorMapHelper = require('../../../../core/lib/helpers/colorMap');
+const timeSeries = require('../../../../core/lib/timeSeries');
 
 // The rasteriser draws point spheres as instances, so mesh_detail costs it
 // almost nothing; the path tracer needs every sphere as real geometry in one
@@ -723,11 +724,22 @@ module.exports = function createSceneProxy(K3D) {
                 }
 
                 const id = String(sourceObj.K3DIdentifier);
-                const json = world.ObjectsListJson[sourceObj.K3DIdentifier];
+                const stored = world.ObjectsListJson[sourceObj.K3DIdentifier];
 
-                if (!json) {
+                if (!stored) {
                     return;
                 }
+
+                // A time-series trait is stored as the whole keyframe
+                // dictionary, so reading .data off it yields undefined and the
+                // builders below would fail on the first array they touch.
+                // Resolve the frame in force, exactly as the rasterising path
+                // does before it reloads an object.
+                const json = timeSeries.interpolateTimeSeries(
+                    stored,
+                    K3D.parameters.time,
+                    K3D.parameters.timeInterpolation,
+                ).json;
 
                 alive.add(id);
 

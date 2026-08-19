@@ -59,7 +59,17 @@ def pytest_sessionstart(session):
     print(pytest.plot.get_static_path())
     gpu = session.config.getoption("--gpu")
     driver = get_headless_driver(gpu=gpu)
-    driver.set_script_timeout(120)
+
+    # Two independent clocks govern a screenshot: how long the browser may spend
+    # running the script, and how long the client waits for the HTTP response
+    # carrying its result. A cinematic reference accumulates its whole sample
+    # budget inside one call, so both have to allow minutes - raising only the
+    # first leaves the second (120s by default) to abort heavy scenes mid-render.
+    driver.set_script_timeout(600)
+
+    client_config = getattr(driver.command_executor, "_client_config", None)
+    if client_config is not None:
+        client_config.timeout = 900
     pytest.headless = k3d_remote(pytest.plot, driver)
     pytest.headless.browser.execute_script("window.randomMul = 0.0;")
 

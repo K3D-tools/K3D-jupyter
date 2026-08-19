@@ -472,7 +472,12 @@ module.exports = function (K3D) {
             }
             if (obj.isPoints || obj.isLine || obj.isSprite
                 || (obj.material && (obj.material.isShaderMaterial
-                    || obj.material.opacity < 1.0))) {
+                    // half is the point where "you see what is behind it" wins
+                    // over "it hides what is behind it". A barely transparent
+                    // surface (opacity 0.95) still reads as solid and should
+                    // keep occluding, or every faintly transparent mesh in a
+                    // scene would silently lose its contact shadows.
+                    || obj.material.opacity < 0.5))) {
                 obj.visible = false;
                 hidden.push(obj);
             }

@@ -245,7 +245,7 @@ module.exports = function cinematic(K3D, renderer, hooks) {
     // library's own animate() rhythm, one renderSample per frame (see wake()).
     const yieldToBrowser = (fn) => setTimeout(fn, 0);
 
-    function renderUntil(target, gen, budget, present) {
+    function renderUntil(target, gen, budget, present, interruptible = true) {
         return new Promise((resolve, reject) => {
             const started = performance.now();
             // the library refuses to advance the counter while its shaders
@@ -256,7 +256,7 @@ module.exports = function cinematic(K3D, renderer, hooks) {
             let lastSamples = -1;
 
             function step() {
-                if (gen !== generation) {
+                if (interruptible && gen !== generation) {
                     resolve({ samples: 0, ms: 0, stale: true });
                     return;
                 }
@@ -320,10 +320,10 @@ module.exports = function cinematic(K3D, renderer, hooks) {
     // async by necessity: the library skips samples while its shaders compile
     // in the background (KHR_parallel_shader_compile), so the loop must yield
     // to the event loop until the accumulator reaches the budget
-    function renderSamplesAsync(count, budget, present) {
+    function renderSamplesAsync(count, budget, present, interruptible = true) {
         const gen = ++generation;
         const warmup = needsWarmup
-            ? renderUntil(1, gen, 0, false)
+            ? renderUntil(1, gen, 0, false, interruptible)
             : Promise.resolve({ samples: 0 });
 
         // rewind to the canonical RNG state before every accumulation - after
@@ -336,7 +336,7 @@ module.exports = function cinematic(K3D, renderer, hooks) {
             needsWarmup = false;
             backend.reset();
 
-            return renderUntil(count, gen, budget, present);
+            return renderUntil(count, gen, budget, present, interruptible);
         });
     }
 
@@ -393,22 +393,21 @@ module.exports = function cinematic(K3D, renderer, hooks) {
                     prepareOverlay(scene, width, height);
                 }
 
-                // no canvas presentation: the offscreen target has its own
-                // size, and every sample blitted to a differently sized canvas
-                // would be both wasted work and a corrupted preview
-                return renderSamplesAsync(budget, budget, false);
-            }).then((result) => {
-                if (result.stale) {
-                    // a superseded accumulation holds no valid image; letting
-                    // it through would hand a blank frame to a screenshot
-                    throw new Error('the cinematic accumulation was superseded');
-                }
-
-                return {
-                    samples: result.samples,
-                    texture: backend.targetTexture(),
-                };
-            });
+                // No canvas presentation: the offscreen target has its own size,
+                // and every sample blitted to a differently sized canvas would
+                // be both wasted work and a corrupted preview.
+                //
+                // Uninterruptible on purpose: a screenshot is a snapshot of the
+                // state it was asked for, and the interactive rules that abandon
+                // an accumulation - a scene event, a camera nudge - would here
+                // just abandon the image the caller is waiting for. Something as
+                // ordinary as the sync that precedes the screenshot fires those
+                // events.
+                return renderSamplesAsync(budget, budget, false, false);
+            }).then((result) => ({
+                samples: result.samples,
+                texture: backend.targetTexture(),
+            }));
         },
 
         releaseFixedSize() {
@@ -433,6 +432,21 @@ module.exports = function cinematic(K3D, renderer, hooks) {
                 frameHandle = null;
 
                 if (K3D.parameters.renderer !== 'cinematic' || K3D.disabling || !wanted) {
+                    return;
+                }
+
+                // A re-run notebook cell replaces the widget without always
+                // tearing the old one down, and an animation-frame loop outlives
+                // anything that is merely hidden - it would keep tracing a plot
+                // nobody can see. A detached target node is the reliable signal
+                // that this instance is gone, whether or not disable() was ever
+                // called.
+                const node = K3D.getWorld().targetDOMNode;
+
+                if (!node || node.isConnected === false) {
+                    wanted = false;
+                    setHud(null);
+
                     return;
                 }
 
