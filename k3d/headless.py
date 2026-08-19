@@ -227,15 +227,15 @@ class k3d_remote:
 
 
 def _relax_timeouts(driver):
-    """A screenshot runs inside one execute_script call, which in the cinematic renderer
-    spends the whole sample budget there - minutes, against Selenium's 30 s script and
-    120 s HTTP defaults. Both limits are independent and both have to move."""
-    driver.set_script_timeout(600)
+    """Cinematic screenshots block inside a single execute_script call for tens of minutes.
+    Both limits are raised: the 120 s HTTP timeout is the effective bound, since a promise
+    returned from execute_script is not an async script and the script timeout never fires."""
+    driver.set_script_timeout(3600)
 
     client_config = getattr(driver.command_executor, "_client_config", None)
 
     if client_config is not None:
-        client_config.timeout = 900
+        client_config.timeout = 3600
 
     return driver
 
