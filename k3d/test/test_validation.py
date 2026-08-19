@@ -24,3 +24,29 @@ def test_volumetric_sampling_assignment_must_be_positive():
 
     with pytest.raises(TraitError):
         obj.gradient_step = -0.1
+
+
+@pytest.mark.parametrize("value", [np.float32(2.5), np.float64(2.5), np.int32(2)])
+def test_numpy_scalars_are_accepted_as_floats(value):
+    """np.float64 subclasses float and always worked; np.float32 did not, so
+    whether `point_size=arr.mean()` raised depended on the array's dtype."""
+    positions = np.zeros((3, 3), dtype=np.float32)
+
+    assert k3d.points(positions, point_size=value).point_size == float(value)
+
+    obj = k3d.points(positions)
+    obj.point_size = value
+    assert obj.point_size == float(value)
+
+
+def test_numpy_scalars_are_accepted_as_keyframes():
+    obj = k3d.points(np.zeros((3, 3), dtype=np.float32))
+    obj.point_size = {"0": np.float32(1.0), "1": np.float32(4.0)}
+
+    assert obj.point_size == {"0": 1.0, "1": 4.0}
+
+
+def test_numpy_integers_are_accepted_as_ints():
+    obj = k3d.volume(DATA, compression_level=np.int32(1))
+
+    assert obj.compression_level == 1

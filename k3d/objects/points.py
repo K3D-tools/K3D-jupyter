@@ -1,10 +1,11 @@
 """Points objects for K3D."""
 
 import numpy as np
-from traitlets import Float, Int, TraitError, Unicode, validate
+from traitlets import TraitError, Unicode, validate
 
 from .base import EPSILON, Drawable, ListOrArray, TimeSeries
-from ..helpers import Array, array_serialization_wrap, get_bounding_box_points
+from ..helpers import (Array, Float, Int, array_serialization_wrap,
+                       get_bounding_box_points)
 
 
 class Points(Drawable):

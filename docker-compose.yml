@@ -12,6 +12,7 @@ services :
       # to bind 0.0.0.0 to be reachable through the mapping:
       #   docker compose run --rm --service-ports k3d-build bash
       #   jupyter lab --ip=0.0.0.0 --port=8888 --allow-root --no-browser
+      #   docker compose stop k3d-build
       - "8888:8888"
     deploy:
       resources:

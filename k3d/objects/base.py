@@ -1,11 +1,11 @@
 """Base classes and utilities for K3D objects."""
 
 import numpy as np
-from traitlets import (Any, Bool, Dict, Int, Integer, List, TraitError,
+from traitlets import (Any, Bool, Dict, Integer, List, TraitError,
                        Unicode, Union, validate)
 
 from .._widget import K3DModelWidget
-from ..helpers import (Array,
+from ..helpers import (Array, Int,
                        array_serialization_wrap, callback_serialization_wrap,
                        to_json)
 

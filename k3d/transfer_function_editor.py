@@ -3,15 +3,14 @@ import numpy as np
 
 from ._widget import K3DAnyWidget
 from IPython.display import display
-from traitlets import Int, Unicode, validate
-from traittypes import Array
+from traitlets import Unicode, validate
 from typing import Any
 from typing import Dict as TypingDict
 from typing import List as TypingList
 from typing import Optional
 
 from .colormaps import paraview_color_maps
-from .helpers import array_serialization_wrap
+from .helpers import Array, Int, array_serialization_wrap
 
 
 class TF_editor(K3DAnyWidget):

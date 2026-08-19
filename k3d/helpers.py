@@ -7,6 +7,8 @@ import msgpack
 import numpy as np
 import os
 import zlib
+from traitlets import Float as _TraitFloat
+from traitlets import Int as _TraitInt
 from traitlets import TraitError
 from typing import Any
 from typing import Dict as TypingDict
@@ -21,6 +23,16 @@ from traittypes import Array as _TraitArray
 
 # Set up module-level logger
 logger = logging.getLogger(__name__)
+
+
+if not logger.hasHandlers():
+    handler = logging.StreamHandler()
+    formatter = logging.Formatter(
+        "[%(asctime)s] %(levelname)s in %(module)s: %(message)s"
+    )
+    handler.setFormatter(formatter)
+    logger.addHandler(handler)
+logger.setLevel(logging.INFO)
 
 
 class Array(_TraitArray):
@@ -42,14 +54,32 @@ class Array(_TraitArray):
             value = value.astype(np.float32)
 
         return super().validate(obj, value)
-if not logger.hasHandlers():
-    handler = logging.StreamHandler()
-    formatter = logging.Formatter(
-        "[%(asctime)s] %(levelname)s in %(module)s: %(message)s"
-    )
-    handler.setFormatter(formatter)
-    logger.addHandler(handler)
-logger.setLevel(logging.INFO)
+
+
+class Float(_TraitFloat):
+    """A Float trait that also takes numpy scalars.
+
+    np.float64 subclasses Python float and passes traitlets untouched, while
+    np.float32 does not - so ``point_size=arr.mean()`` works or fails purely on
+    the dtype of an array the user picked for the GPU's sake. That asymmetry is
+    invisible from the outside, so numpy scalars are converted here.
+    """
+
+    def validate(self, obj, value):
+        if isinstance(value, (np.floating, np.integer)):
+            value = float(value)
+
+        return super().validate(obj, value)
+
+
+class Int(_TraitInt):
+    """An Int trait that also takes numpy integers, which are not Python ints."""
+
+    def validate(self, obj, value):
+        if isinstance(value, np.integer):
+            value = int(value)
+
+        return super().validate(obj, value)
 
 
 # pylint: disable=unused-argument

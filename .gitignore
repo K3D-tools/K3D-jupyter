@@ -19,6 +19,16 @@ examples/*.vtk
 examples/*.vtp
 examples/*.js
 examples/*.gz
+# whatever the notebooks download or write when they run; the fixtures they keep
+# live in examples/assets/, which these patterns do not reach
+examples/*.html
+examples/*.k3d
+examples/*.laz
+examples/*.obj
+examples/*.png
+examples/*.slc
+examples/*.stl
+examples/*.zip
 k3d/labextension/
 k3d/test/results/*
 node_modules
