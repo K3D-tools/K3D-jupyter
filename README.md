@@ -33,6 +33,20 @@ Documentation: [https://k3d-jupyter.org](https://k3d-jupyter.org)
 
 ## Showcase:
 
+Two frames from the renderers 2.19.0 added, both produced by the code in this repository —
+click either one for how it works.
+
+[![Curl-noise pearls under the advanced renderer](imgs/advanced_curl_pearls.png)](https://k3d-jupyter.org/user/renderers.html)
+
+`advanced`: image-based lighting and ambient occlusion. A million analytic sphere impostors,
+with the occlusion in the crevices between strands doing the sculpting.
+
+[![The Stanford dragon, path traced](imgs/cinematic_dragon.png)](https://k3d-jupyter.org/user/cinematic.html)
+
+`cinematic`: progressive path tracing. 871k triangles read through VTK, 512 samples, lit only
+by an environment map — the shadow under the belly and the light the floor throws back into
+the flank are consequences of the simulation, not effects.
+
 ![points_cloud](imgs/points_cloud.gif)
 
 ![streamlines](imgs/streamlines.gif)
