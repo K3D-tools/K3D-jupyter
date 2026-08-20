@@ -2,6 +2,7 @@ import atexit
 import copy
 import logging
 import msgpack
+import numpy as np
 import threading
 import time
 from base64 import b64decode
@@ -25,6 +26,38 @@ logger.setLevel(logging.INFO)
 
 
 # logging.basicConfig(filename='test.log', level=logging.DEBUG)
+
+def _property_changed(current, synced, object_id, name):
+    """Whether a synced property was edited.
+
+    Arrays compare elementwise, everything else through deep_compare. Reaching for .any()
+    first and catching the failure logged two warnings per scalar property per sync.
+    """
+    if isinstance(current, np.ndarray) and isinstance(synced, np.ndarray):
+        if current.shape != synced.shape:
+            return True
+
+        try:
+            return bool((current != synced).any())
+        except Exception as e:
+            logger.warning(
+                f"Array comparison failed for object {object_id} property {name}: {e}"
+            )
+
+            return True
+
+    if isinstance(current, np.ndarray) or isinstance(synced, np.ndarray):
+        return True
+
+    try:
+        return not deep_compare(current, synced)
+    except Exception as e:
+        logger.warning(
+            f"Comparison failed for object {object_id} property {name}: {e}"
+        )
+
+        return True
+
 
 DEFAULT_STARTUP_TIMEOUT = 60.0
 DEFAULT_REFRESH_TIMEOUT = 120.0
@@ -111,24 +144,9 @@ class k3d_remote:
                             if p == "voxels_group":
                                 sync = True
                             else:
-                                try:
-                                    sync = (o[p] != self.synced_objects[o.id][p]).any()
-                                except Exception as e:
-                                    logger.warning(
-                                        f"Comparison failed for object {o.id} property {p}: {e}"
-                                    )
-                                    try:
-                                        sync = (
-                                                o[p].shape
-                                                != self.synced_objects[o.id][p].shape
-                                        )
-                                    except Exception as e2:
-                                        logger.warning(
-                                            f"Shape comparison failed for object {o.id} property {p}: {e2}"
-                                        )
-                                        sync = not deep_compare(
-                                            o[p], self.synced_objects[o.id][p]
-                                        )
+                                sync = _property_changed(
+                                    o[p], self.synced_objects[o.id][p], o.id, p
+                                )
                             if sync:
                                 if o.id not in objects_diff.keys():
                                     objects_diff[o.id] = {"id": o.id, "type": o.type}

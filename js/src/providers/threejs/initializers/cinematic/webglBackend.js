@@ -163,6 +163,17 @@ module.exports = function createWebGLBackend(renderer) {
         }
     }
 
+    // The tracer's merge appends one group per source geometry and never clears them, so a
+    // rebuilt scene stacks a fresh set on top of every previous one. Harmless for the image -
+    // the duplicates repeat the same ranges - but it grows for the life of the page.
+    function clearMergedGroups() {
+        const geometry = tracer._generator && tracer._generator.geometry;
+
+        if (geometry) {
+            geometry.clearGroups();
+        }
+    }
+
     return {
         isSupported() {
             return this.unsupportedReason() === null;
@@ -197,6 +208,10 @@ module.exports = function createWebGLBackend(renderer) {
             tracer.stableNoise = true;
             // K3D tone-maps the accumulation target itself; skip the library's canvas copy
             tracer.renderToCanvas = false;
+            // the generator asks for one primitive per leaf through maxLeafTris, which is
+            // deprecated and warns on every rebuild; bvhOptions is spread last, so saying the
+            // same thing under its current name and clearing the old key silences it
+            tracer._generator.bvhOptions = { maxLeafTris: undefined, targetLeafSize: 1 };
             reseedOffsetTexture(tracer);
 
             if (typeof window !== 'undefined') {
@@ -234,6 +249,7 @@ module.exports = function createWebGLBackend(renderer) {
         },
 
         setScene(scene, camera) {
+            clearMergedGroups();
             tracer.setScene(scene, camera);
         },
 
@@ -248,6 +264,7 @@ module.exports = function createWebGLBackend(renderer) {
                 }
 
                 tracer.setBVHWorker(worker);
+                clearMergedGroups();
 
                 return tracer.setSceneAsync(scene, camera, { onProgress }).then(
                     () => true,
