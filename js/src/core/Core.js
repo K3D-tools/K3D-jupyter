@@ -1110,7 +1110,17 @@ function K3D(provider, targetDOMNode, parameters) {
             || (prevDepthPeels > 0 && count === 0)) {
 
             _.values(world.ObjectsListJson).forEach((json) => {
-                objectsPromieses.push(self.reload(json));
+                // blending and the peel shader hook are chosen when the material is built, so
+                // every object has to be built again. Dropping it from the scene first is what
+                // makes that happen: the loader updates in place whenever it still finds the
+                // object and has any change to apply, and a time series always has one.
+                try {
+                    removeObjectFromScene(json.id);
+                } catch (e) {
+                    // nothing
+                }
+
+                objectsPromieses.push(self.reload(json, null));
             });
         }
 
