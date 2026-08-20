@@ -55,6 +55,18 @@ module.exports = function cinematic(K3D, renderer, hooks) {
     let workerTriangles = WORKER_TRIANGLES;
     let buildPromise = null;
     let lastBuild = { triangles: 0, worker: false };
+    // The camera stopping for a single frame is not the end of an interaction: a one-sample
+    // trace presented over the rasterised preview reads as flicker while orbiting. The library's
+    // own loop waits out renderDelay for the same reason, and cross-fades on top of it.
+    const SETTLE_MS = 200;
+    let settleUntil = 0;
+
+    // Spend no samples until the interaction stops: a slider sends a change per pixel of the
+    // drag and each one abandons the accumulation, so tracing between them only ever presents a
+    // one-sample frame.
+    function holdSamples() {
+        settleUntil = performance.now() + SETTLE_MS;
+    }
 
     // edits the tracer refreshes without a BVH rebuild. Colour stays out: for points and
     // tubes it is baked into vertex colours, so changing it is a geometry change.
@@ -68,6 +80,7 @@ module.exports = function cinematic(K3D, renderer, hooks) {
                 sceneDirty = true;
             }
 
+            holdSamples();
             generation++;
         });
     });
@@ -75,6 +88,7 @@ module.exports = function cinematic(K3D, renderer, hooks) {
     function restart() {
         generation++;
         needsWarmup = true;
+        holdSamples();
         backend.reset();
     }
 
@@ -246,6 +260,7 @@ module.exports = function cinematic(K3D, renderer, hooks) {
             backend.setBounces(K3D.parameters.cinematicBounces);
             lastBounces = K3D.parameters.cinematicBounces;
             needsWarmup = true;
+            holdSamples();
         }
 
         const glossyFilter = K3D.parameters.cinematicGlossyFilter || 0.0;
@@ -254,6 +269,7 @@ module.exports = function cinematic(K3D, renderer, hooks) {
             backend.setGlossyFilter(glossyFilter);
             lastGlossyFilter = glossyFilter;
             needsWarmup = true;
+            holdSamples();
         }
 
         const key = currentEnvKey();
@@ -295,6 +311,7 @@ module.exports = function cinematic(K3D, renderer, hooks) {
             applyEnvironment(scene);
             backend.updateEnvironment();
             envKey = key;
+            holdSamples();
         }
 
         return null;
@@ -525,16 +542,17 @@ module.exports = function cinematic(K3D, renderer, hooks) {
                     if (cameraMoved()) {
                         backend.updateCamera();
                         restart();
+                    }
 
-                        // a moving camera discards the accumulation every frame, leaving
-                        // nothing traced to show: rasterise this frame instead
-                        if (rasterizePreview !== null) {
-                            rasterizePreview();
-                            setHud(`cinematic: 0 / ${budget} samples`);
-                            frameHandle = window.requestAnimationFrame(frame);
+                    // a moving camera discards the accumulation every frame, leaving nothing
+                    // traced to show, and a camera that has just stopped is probably still being
+                    // dragged: rasterise until it holds still
+                    if (performance.now() < settleUntil && rasterizePreview !== null) {
+                        rasterizePreview();
+                        setHud(`cinematic: 0 / ${budget} samples`);
+                        frameHandle = window.requestAnimationFrame(frame);
 
-                            return;
-                        }
+                        return;
                     }
 
                     if (needsWarmup) {
