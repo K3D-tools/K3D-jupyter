@@ -10,6 +10,7 @@ import buffer from './core/lib/helpers/buffer';
 import msgpack from './core/lib/helpers/msgpackCodec';
 import ThreeJsProvider from './providers/threejs/provider';
 import { viewModes } from './core/lib/viewMode';
+import bvhWorkerSource from './core/lib/bvhWorkerSource';
 
 // the module can be instantiated more than once (one _esm per widget class), and the
 // object/chunk stub modules may have created the registry first, so every field is
@@ -31,6 +32,40 @@ function runOnEveryPlot(id, cb) {
 
 function deserialized(model, key) {
     return serialize.deserialize(model.get(key));
+}
+
+// This module is imported from a blob URL, so nothing next to it has a resolvable URL: its
+// worker chunk comes from the kernel that served the module. Resolves null on anything going
+// wrong, including a kernel that never answers - the caller then does the work itself.
+function fetchWidgetAsset(model, name) {
+    return new Promise((resolve) => {
+        function onMessage(msg, buffers) {
+            if (!msg || msg.msg_type !== 'widget_asset' || msg.name !== name) {
+                return;
+            }
+
+            model.off('msg:custom', onMessage);
+
+            if (!buffers || buffers.length === 0) {
+                resolve(null);
+
+                return;
+            }
+
+            const raw = buffers[0];
+            const bytes = raw instanceof Uint8Array ? raw : new Uint8Array(raw.buffer || raw);
+
+            resolve(new TextDecoder().decode(bytes));
+        }
+
+        model.on('msg:custom', onMessage);
+        model.send({ msg_type: 'fetch_widget_asset', name });
+
+        setTimeout(() => {
+            model.off('msg:custom', onMessage);
+            resolve(null);
+        }, 10000);
+    });
 }
 
 /* ------------------------------------------------------------------------- */
@@ -364,6 +399,8 @@ const PLOT_HANDLERS = {
 function renderPlot({ model, el }) {
     const containerEnvelope = window.document.createElement('div');
     const container = window.document.createElement('div');
+
+    bvhWorkerSource.provide(() => fetchWidgetAsset(model, 'k3d-bvh-worker.mjs'));
 
     containerEnvelope.style.cssText = [
         `height:${model.get('height')}px`,

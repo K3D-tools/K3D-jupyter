@@ -1,9 +1,31 @@
 // Sole importer of three-gpu-pathtracer; the boundary is plain three.js - a Scene of
 // Mesh(Standard|Physical)Material and a camera in, sample counts out.
+const THREE = require('three');
 const { WebGLPathTracer } = require('three-gpu-pathtracer');
 const {
     BlueNoiseGenerator,
 } = require('three-gpu-pathtracer/src/textures/blueNoise/BlueNoiseGenerator.js');
+const {
+    GenerateMeshBVHWorker,
+} = require('three-mesh-bvh/src/workers/GenerateMeshBVHWorker.js');
+const { WorkerBase } = require('three-mesh-bvh/src/workers/utils/WorkerBase.js');
+const bvhWorkerSource = require('../../../../core/lib/bvhWorkerSource');
+
+// GenerateMeshBVHWorker builds its Worker from a URL relative to the module, which neither
+// bundle can resolve; requiring it is still what makes webpack emit the worker chunk, and its
+// client half of the protocol is reused verbatim over a worker built from the chunk's source.
+class BlobBVHWorker extends WorkerBase {
+    constructor(source) {
+        const url = URL.createObjectURL(new Blob([source], { type: 'text/javascript' }));
+
+        super(new Worker(url));
+        URL.revokeObjectURL(url);
+
+        this.name = 'GenerateMeshBVHWorker';
+    }
+}
+
+BlobBVHWorker.prototype.runTask = GenerateMeshBVHWorker.prototype.runTask;
 
 // the library's own stable-noise LCG (GCC constants), matched exactly
 function lcgRandom(seed) {
@@ -47,6 +69,99 @@ function reseedOffsetTexture(tracer) {
 
 module.exports = function createWebGLBackend(renderer) {
     let tracer = null;
+    let workerProbe = null;
+
+    // Resolves with a usable worker or null: availability is decided by building one triangle
+    // rather than assumed, since the source has to reach here from the page or the kernel. The
+    // parallel worker is not used - it needs SharedArrayBuffer, which requires cross-origin
+    // isolation no notebook server sends.
+    function probeBVHWorker() {
+        if (workerProbe !== null) {
+            return workerProbe;
+        }
+
+        workerProbe = bvhWorkerSource.read().then((source) => {
+            if (source === null) {
+                // a busy kernel answers late as readily as a missing chunk answers never:
+                // forget this attempt so the next build asks again
+                workerProbe = null;
+
+                return null;
+            }
+
+            return new Promise((resolve) => {
+                let worker = null;
+
+                function fail() {
+                    if (worker !== null) {
+                        try {
+                            worker.dispose();
+                        } catch (e) {
+                            // already dead
+                        }
+                    }
+
+                    resolve(null);
+                }
+
+                try {
+                    worker = new BlobBVHWorker(source);
+                } catch (e) {
+                    fail();
+
+                    return;
+                }
+
+                const geometry = new THREE.BufferGeometry();
+                const triangle = new THREE.BufferAttribute(new Float32Array(9), 3);
+
+                geometry.setAttribute('position', triangle);
+
+                // in this same tick, so the task's own handler replaces WorkerBase's, which
+                // reports a worker that cannot start by throwing out of the event listener
+                worker.generate(geometry).then(() => resolve(worker), fail);
+            });
+        });
+
+        return workerProbe;
+    }
+
+    // An off-thread build leaves the GPU copy of the per-triangle material index behind the
+    // merged geometry: while every material still looks alike the frame is right, and the
+    // first opacity or roughness edit afterwards shades triangles from the wrong material.
+    // Re-uploading it from the geometry the generator merged is what the synchronous build
+    // effectively gets for free.
+    function refreshMaterialIndex() {
+        const generator = tracer._generator;
+        const material = tracer._pathTracer && tracer._pathTracer.material;
+        const attribute = generator && generator.geometry
+            && generator.geometry.attributes.materialIndex;
+
+        if (!material || !material.materialIndexAttribute || !attribute) {
+            throw new Error(
+                'cinematic: three-gpu-pathtracer internals changed - cannot refresh the '
+                + 'material index after an off-thread build',
+            );
+        }
+
+        material.materialIndexAttribute.updateFrom(attribute);
+    }
+
+    // the worker is an OS thread outliving the widget that spawned it; a re-run cell must
+    // not leave one behind
+    function releaseBVHWorker() {
+        const probe = workerProbe;
+
+        workerProbe = null;
+
+        if (probe !== null) {
+            probe.then((worker) => {
+                if (worker !== null) {
+                    worker.dispose();
+                }
+            });
+        }
+    }
 
     return {
         isSupported() {
@@ -122,6 +237,29 @@ module.exports = function createWebGLBackend(renderer) {
             tracer.setScene(scene, camera);
         },
 
+        // Resolves true when the BVH was built off the main thread, false when no worker could
+        // run and the caller has to build it synchronously. A rejection leaves the generator
+        // holding the failed build, so the worker is dropped and the retry stays on the main
+        // thread.
+        setSceneAsync(scene, camera, onProgress) {
+            return probeBVHWorker().then((worker) => {
+                if (worker === null) {
+                    return false;
+                }
+
+                tracer.setBVHWorker(worker);
+
+                return tracer.setSceneAsync(scene, camera, { onProgress }).then(
+                    () => true,
+                    (e) => {
+                        workerProbe = Promise.resolve(null);
+
+                        throw e;
+                    },
+                );
+            });
+        },
+
         updateCamera() {
             tracer.updateCamera();
         },
@@ -148,6 +286,7 @@ module.exports = function createWebGLBackend(renderer) {
 
         updateMaterials() {
             tracer.updateMaterials();
+            refreshMaterialIndex();
         },
 
         renderSample() {
@@ -160,7 +299,11 @@ module.exports = function createWebGLBackend(renderer) {
             tracer.reset();
         },
 
+        releaseBVHWorker,
+
         dispose() {
+            releaseBVHWorker();
+
             if (tracer) {
                 tracer.dispose();
                 tracer = null;

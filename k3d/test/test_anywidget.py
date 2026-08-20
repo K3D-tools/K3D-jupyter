@@ -34,6 +34,27 @@ def test_the_module_is_served_over_the_comm():
     assert buffers[0] == _MODULE.read_bytes()
 
 
+def test_module_chunks_are_served_over_the_comm():
+    from k3d._widget import _STATIC
+
+    plot = k3d.plot()
+    sent = []
+    plot.send = lambda content, buffers=None: sent.append((content, buffers))
+
+    plot._handle_custom_msg(
+        {"msg_type": "fetch_widget_asset", "name": "k3d-bvh-worker.mjs"}, [])
+    # only chunks, never a path the front end picked
+    plot._handle_custom_msg(
+        {"msg_type": "fetch_widget_asset", "name": "../../secrets.txt"}, [])
+
+    (chunk, chunk_buffers), (refused, refused_buffers) = sent
+
+    assert chunk["msg_type"] == "widget_asset"
+    assert chunk_buffers[0] == (_STATIC / "k3d-bvh-worker.mjs").read_bytes()
+    assert refused["msg_type"] == "widget_asset"
+    assert refused_buffers == []
+
+
 def test_widget_kinds():
     assert k3d.plot()._kind == "plot"
     assert k3d.mesh(VERTICES, INDICES)._kind == "object"

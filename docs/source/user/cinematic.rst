@@ -277,3 +277,13 @@ Cost scales with resolution, sample budget and bounce count. On a software
 renderer (CI, remote sessions without a GPU) a converged frame takes seconds to
 minutes; the library's own reference images use 32 samples at a quarter
 resolution for exactly that reason.
+
+Before the first sample the scene needs a ray-tracing acceleration structure,
+rebuilt whenever the geometry changes. Past a hundred thousand triangles that
+build moves to a worker - the counter reports its progress and the camera keeps
+responding on rasterised frames meanwhile. In a notebook the worker script comes
+from the kernel and nowhere else, which keeps an air-gapped deployment
+air-gapped; a standalone page looks for it next to the bundle it loaded, then on
+unpkg for that same version. When none of those answers - an unpublished build,
+a network without a route out - the structure is built on the main thread and the
+page stops responding for as long as that takes.

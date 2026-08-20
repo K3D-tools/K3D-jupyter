@@ -6,12 +6,66 @@ const K3D = require('./core/Core');
 const timeSeries = require('./core/lib/timeSeries');
 const ThreeJsProvider = require('./providers/threejs/provider');
 const _ = require('./lodash');
+const bvhWorkerSource = require('./core/lib/bvhWorkerSource');
+const { version } = require('./version');
 
 const Float16Array = require('./core/lib/helpers/float16Array');
 
 window.Float16Array = Float16Array;
 
 require('katex/dist/katex.min.css');
+
+// The chunk is a sibling of this bundle, but the page can live anywhere: try the copy next to
+// the script tag that loaded the bundle, then the AMD loader's base, then the published copy
+// of exactly this version. The source is run from a blob, so it need not share this origin -
+// only be readable. Nothing readable means the BVH is built on the main thread; a development
+// build is unpublished, so that is the answer it gets. Failure is remembered: unlike a kernel,
+// a page that has no copy now will not grow one.
+let bvhWorkerMissing = false;
+
+bvhWorkerSource.provide(() => {
+    if (bvhWorkerMissing) {
+        return null;
+    }
+
+    const name = 'k3d-bvh-worker.js';
+    const amd = window.requirejs || window.require;
+    const bundle = Array.prototype.filter.call(
+        window.document.getElementsByTagName('script'),
+        (tag) => /(standalone|k3d)\.js(\?|$)/.test(tag.src),
+    )[0];
+    const candidates = [];
+
+    if (bundle) {
+        candidates.push(new URL(name, bundle.src).href);
+    }
+
+    if (amd && amd.toUrl) {
+        candidates.push(amd.toUrl(name));
+    }
+
+    // must match webpack's publicPath for this bundle
+    candidates.push(`https://unpkg.com/k3d@${version}/dist/${name}`);
+
+    function readable(source, url) {
+        if (source) {
+            return Promise.resolve(source);
+        }
+
+        return fetch(url).then((response) => (response.ok ? response.text() : null), () => null);
+    }
+
+    const found = candidates.reduce(
+        (chain, url) => chain.then((source) => readable(source, url)),
+        Promise.resolve(null),
+    );
+
+    return found.then((source) => {
+        bvhWorkerMissing = source === null;
+
+        return source;
+    });
+});
 
 /**
  * Decode msgpack data using the custom codec.

@@ -43,6 +43,11 @@ export default {
 
 _MODULE = _STATIC / "widget.mjs"
 
+# Chunks of the module, served the same way for the same reason: the module runs from a blob
+# URL, where nothing next to it has a resolvable URL. A fixed set - the front end must not be
+# able to name any file it likes.
+_ASSETS = {"k3d-bvh-worker.mjs"}
+
 # _esm rides in the synced state of every instance, so the ~5 MB module is fetched from the
 # kernel on demand and cached on globalThis: once per page, not once per plot.
 _LOADER = """
@@ -125,6 +130,14 @@ class K3DAnyWidget(anywidget.AnyWidget):
     def _handle_custom_msg(self, content, buffers):
         if content.get("msg_type") == "fetch_widget_module":
             self.send({"msg_type": "widget_module"}, buffers=[_MODULE.read_bytes()])
+            return
+
+        if content.get("msg_type") == "fetch_widget_asset":
+            name = content.get("name")
+            asset = _STATIC / name if name in _ASSETS else None
+            payload = [asset.read_bytes()] if asset is not None and asset.is_file() else []
+
+            self.send({"msg_type": "widget_asset", "name": name}, buffers=payload)
             return
 
         super()._handle_custom_msg(content, buffers)

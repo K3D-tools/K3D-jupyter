@@ -48,6 +48,13 @@ module.exports = function cinematic(K3D, renderer, hooks) {
     let generation = 0;
     let hud = null;
     let hudText = null;
+    // Above this the BVH goes to a worker: the build is one uninterruptible block, and on a
+    // few million triangles it stops answering the OS, taking the whole browser down rather
+    // than one tab. Below it, the build is shorter than the worker round trip.
+    const WORKER_TRIANGLES = 100000;
+    let workerTriangles = WORKER_TRIANGLES;
+    let buildPromise = null;
+    let lastBuild = { triangles: 0, worker: false };
 
     // edits the tracer refreshes without a BVH rebuild. Colour stays out: for points and
     // tubes it is baked into vertex colours, so changing it is a geometry change.
@@ -136,6 +143,22 @@ module.exports = function cinematic(K3D, renderer, hooks) {
         return scene;
     }
 
+    function triangleCount(target) {
+        let triangles = 0;
+
+        target.traverse((node) => {
+            const { geometry } = node;
+
+            if (geometry && geometry.attributes.position) {
+                triangles += (geometry.index
+                    ? geometry.index.count
+                    : geometry.attributes.position.count) / 3;
+            }
+        });
+
+        return triangles;
+    }
+
     function ensureHud() {
         if (hud !== null) {
             return hud;
@@ -169,6 +192,49 @@ module.exports = function cinematic(K3D, renderer, hooks) {
         node.style.display = 'block';
     }
 
+    function startBuild(key) {
+        const camera = K3D.getWorld().camera;
+        const built = buildScene();
+        const triangles = triangleCount(built);
+
+        sceneDirty = false;
+        materialsDirty = false;
+        envKey = key;
+        setHud('cinematic: building BVH…');
+
+        if (triangles < workerTriangles) {
+            backend.setScene(built, camera);
+            lastBuild = { triangles, worker: false };
+            needsWarmup = true;
+
+            return null;
+        }
+
+        return backend.setSceneAsync(built, camera, (progress) => {
+            setHud(`cinematic: building BVH… ${Math.round(progress * 100)}%`);
+        }).then((offThread) => {
+            if (!offThread) {
+                backend.setScene(built, camera);
+            }
+
+            lastBuild = { triangles, worker: offThread };
+            needsWarmup = true;
+        }, (e) => {
+            // the generator holds the failed build and refuses a synchronous one: drop the
+            // tracer so the retry starts from a clean one
+            backend.dispose();
+            ready = false;
+            lastBounces = null;
+            lastGlossyFilter = null;
+            sceneDirty = true;
+            onError(e);
+        });
+    }
+
+    // Returns null when the tracer is traceable right now, or a promise resolving when an
+    // off-thread build lands. Null rather than a resolved promise on purpose: a scene built on
+    // the main thread has to stay in the caller's tick, or the frame that follows composites
+    // one microtask later than the build and lands on a different image.
     function ensurePrepared() {
         if (!ready) {
             backend.init();
@@ -192,28 +258,57 @@ module.exports = function cinematic(K3D, renderer, hooks) {
 
         const key = currentEnvKey();
 
+        // A build in flight makes the tracer unusable for everyone, not just the caller that
+        // started it: startBuild clears the dirty flags when it dispatches, so a second caller
+        // would otherwise read the scene as ready and accumulate against the old one.
+        if (buildPromise !== null) {
+            return buildPromise.then(ensurePrepared);
+        }
+
         if (sceneDirty) {
-            setHud('cinematic: building BVH…');
-            backend.setScene(buildScene(), K3D.getWorld().camera);
-            sceneDirty = false;
-            materialsDirty = false;
-            envKey = key;
-            needsWarmup = true;
-        } else {
-            if (materialsDirty) {
-                // BVH untouched: refresh the material texture only
-                proxy.syncMaterials();
-                backend.updateMaterials();
-                materialsDirty = false;
+            if (buildPromise === null) {
+                const building = startBuild(key);
+
+                if (building === null) {
+                    return null;
+                }
+
+                buildPromise = building.then(() => {
+                    buildPromise = null;
+                });
             }
 
-            if (key !== envKey) {
-                // lighting-only change: no BVH rebuild
-                applyEnvironment(scene);
-                backend.updateEnvironment();
-                envKey = key;
-            }
+            // re-entered after the build: a scene change that arrived meanwhile is picked up
+            // here, and a failed off-thread build retries on the main thread
+            return buildPromise.then(ensurePrepared);
         }
+
+        if (materialsDirty) {
+            // BVH untouched: refresh the material texture only
+            proxy.syncMaterials();
+            backend.updateMaterials();
+            materialsDirty = false;
+        }
+
+        if (key !== envKey) {
+            // lighting-only change: no BVH rebuild
+            applyEnvironment(scene);
+            backend.updateEnvironment();
+            envKey = key;
+        }
+
+        return null;
+    }
+
+    function buildInFlight() {
+        return buildPromise !== null;
+    }
+
+    // the tracer is usually ready in this very tick; only an off-thread build defers the work
+    function prepared(run) {
+        const building = ensurePrepared();
+
+        return building === null ? run() : building.then(run);
     }
 
     // headless yields through the task queue: rAF is throttled on a hidden page and would
@@ -313,7 +408,7 @@ module.exports = function cinematic(K3D, renderer, hooks) {
         unsupportedReason: backend.unsupportedReason,
 
         prepare() {
-            ensurePrepared();
+            return Promise.resolve(prepared(() => undefined));
         },
 
         // accumulate to the plot's sample budget, presenting every sample on the canvas;
@@ -322,10 +417,9 @@ module.exports = function cinematic(K3D, renderer, hooks) {
             const budget = K3D.parameters.cinematicSamples;
             const world = K3D.getWorld();
 
-            // the synchronous prologue can throw (proxy, BVH, volume layer); it runs inside
-            // the chain so the caller's .catch sees it
-            return Promise.resolve().then(() => {
-                ensurePrepared();
+            // the prologue can throw (proxy, BVH, volume layer); it runs inside the chain so
+            // the caller's .catch sees it
+            return Promise.resolve().then(() => prepared(() => {
                 backend.updateCamera();
                 backend.setTiles(world.width, world.height);
 
@@ -336,7 +430,7 @@ module.exports = function cinematic(K3D, renderer, hooks) {
                 // headless never looks at the canvas - the screenshot composes its own frame -
                 // and presenting between samples costs a clear and two scene draws each time
                 return renderSamplesAsync(budget, budget, !isHeadless);
-            }).then((result) => {
+            })).then((result) => {
                 if (!result.stale) {
                     setHud(`cinematic: ${result.samples} / ${budget} samples`);
                 }
@@ -350,8 +444,7 @@ module.exports = function cinematic(K3D, renderer, hooks) {
         renderBudget(width, height) {
             const budget = K3D.parameters.cinematicSamples;
 
-            return Promise.resolve().then(() => {
-                ensurePrepared();
+            return Promise.resolve().then(() => prepared(() => {
                 backend.updateCamera();
                 backend.setFixedSize(width, height);
                 backend.setTiles(width, height);
@@ -364,7 +457,7 @@ module.exports = function cinematic(K3D, renderer, hooks) {
                 // would corrupt the preview. Uninterruptible on purpose - the sync that
                 // precedes a screenshot fires the scene events that abandon accumulations.
                 return renderSamplesAsync(budget, budget, false, false);
-            }).then((result) => ({
+            })).then((result) => ({
                 samples: result.samples,
                 texture: backend.targetTexture(),
             }));
@@ -398,6 +491,7 @@ module.exports = function cinematic(K3D, renderer, hooks) {
                 if (!node || node.isConnected === false) {
                     wanted = false;
                     setHud(null);
+                    backend.releaseBVHWorker();
 
                     return;
                 }
@@ -407,7 +501,25 @@ module.exports = function cinematic(K3D, renderer, hooks) {
                 let samples;
 
                 try {
-                    ensurePrepared();
+                    const building = ensurePrepared();
+
+                    if (building !== null) {
+                        // the next frame calls in synchronously and reports what went wrong
+                        building.catch(() => {});
+                    }
+
+                    // an off-thread BVH build: nothing to trace against yet, so keep the
+                    // camera live on rasterised frames instead of blocking on it
+                    if (buildInFlight()) {
+                        if (rasterizePreview !== null) {
+                            rasterizePreview();
+                        }
+
+                        frameHandle = window.requestAnimationFrame(frame);
+
+                        return;
+                    }
+
                     backend.setTiles(world.width, world.height);
 
                     if (cameraMoved()) {
@@ -470,6 +582,16 @@ module.exports = function cinematic(K3D, renderer, hooks) {
         renderSamplesAsync(count) {
             // probes hash the canvas, so the accumulation must reach it
             return renderSamplesAsync(count, count, true);
+        },
+
+        // scene size decides where the BVH is built, so a probe needs to move the threshold
+        // to drive both paths over one scene; null puts it back
+        setWorkerThreshold(triangles) {
+            workerTriangles = (triangles === null) ? WORKER_TRIANGLES : triangles;
+        },
+
+        lastBuild() {
+            return lastBuild;
         },
 
         hideHud() {

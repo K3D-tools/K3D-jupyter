@@ -39,6 +39,9 @@ module.exports = [
         },
         output: {
             filename: 'widget.mjs',
+            // the BVH worker is the one chunk; a fixed name is what lets the module ask the
+            // kernel for it, and a second chunk would collide loudly here rather than silently
+            chunkFilename: 'k3d-bvh-worker.mjs',
             path: `${__dirname}/../k3d/static`,
             library: {
                 type: 'module',
@@ -57,6 +60,7 @@ module.exports = [
         output:
             {
                 filename: 'standalone.js',
+                chunkFilename: 'k3d-bvh-worker.js',
                 path: `${__dirname}/../k3d/static`,
                 library: 'k3d',
                 libraryTarget: 'amd',
@@ -85,7 +89,7 @@ module.exports = [
                 apply: (compiler) => {
                     compiler.hooks.afterEmit.tap('CopyBuildPlugin', (compilation) => {
                         const outputPath = compiler.options.output.path;
-                        const files = ['standalone.js', 'standalone.js.map'];
+                        const files = ['standalone.js', 'standalone.js.map', 'k3d-bvh-worker.js'];
                         const targetDir = path.resolve(__dirname, 'dist');
 
                         if (!fs.existsSync(targetDir)) {
