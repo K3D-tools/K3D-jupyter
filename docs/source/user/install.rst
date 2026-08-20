@@ -12,7 +12,7 @@ K3D-jupyter releases are available as wheel packages for macOS, Windows and Linu
 
     pip install k3d
 
-That is the whole installation. Since 2.19.0 the widget is built on anywidget_ and ships its
+That is the whole installation. Since 3.0.0 the widget is built on anywidget_ and ships its
 own frontend module inside the wheel - there is no extension to install or enable, and the
 same package works in JupyterLab, Jupyter Notebook, Google Colab and VS Code notebooks.
 
@@ -23,7 +23,7 @@ When upgrading from an earlier version:
     pip install -U k3d
 
 .. note::
-    Versions before 2.19.0 required ``jupyter nbextension install/enable`` (Notebook 6) or a
+    Versions before 3.0.0 required ``jupyter nbextension install/enable`` (Notebook 6) or a
     prebuilt labextension. Those steps are obsolete - if old registrations linger, they are
     ignored by the new widget.
 
@@ -46,7 +46,7 @@ Google Colab
     !pip install k3d
 
 Nothing else is needed. The previous ritual (``output.enable_custom_widget_manager()`` and
-``k3d.switch_to_text_protocol()``) belongs to versions before 2.19.0.
+``k3d.switch_to_text_protocol()``) belongs to versions before 3.0.0.
 
 ----------------------
 Installing from GitHub

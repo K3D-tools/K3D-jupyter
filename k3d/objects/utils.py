@@ -61,7 +61,7 @@ def create_object(
 
     attributes = {k: from_json(obj[k]) for k in obj.keys() if k != "type"}
 
-    # Snapshots written before 2.19.0 carry shininess. The trait itself is a tombstone
+    # Snapshots written before 3.0.0 carry shininess. The trait itself is a tombstone
     # that raises on any value, so old files are translated here, at the file boundary.
     shininess = attributes.pop("shininess", None)
     if shininess is not None and "roughness" not in attributes:

@@ -20,7 +20,7 @@ existing libraries as VTK. K3D can be run as:
 - VS Code notebooks 🧩
 - Standalone HTML/JS 📑
 
-Since 2.19.0 a plot also chooses how it is lit, through `plot.renderer`: `simple` (the
+Since 3.0.0 a plot also chooses how it is lit, through `plot.renderer`: `simple` (the
 default rasteriser), `advanced` (image-based lighting with ambient occlusion) or `cinematic`
 (progressive path tracing). **`cinematic` is experimental** — it needs WebGL2 with renderable
 float textures, does not cover every object (`volume_slice` is not drawn, volumes stay
@@ -33,7 +33,7 @@ Documentation: [https://k3d-jupyter.org](https://k3d-jupyter.org)
 
 ## Showcase:
 
-Two frames from the renderers 2.19.0 added, both produced by the code in this repository —
+Two frames from the renderers 3.0.0 added, both produced by the code in this repository —
 click either one for how it works.
 
 [![Curl-noise pearls under the advanced renderer](imgs/advanced_curl_pearls.png)](https://k3d-jupyter.org/user/renderers.html)
@@ -92,7 +92,7 @@ To install from conda-forge use:
 
 ### Google Colab
 
-Since 2.19.0 (the anywidget migration) no extra steps are needed:
+Since 3.0.0 (the anywidget migration) no extra steps are needed:
 
     !pip install k3d
 

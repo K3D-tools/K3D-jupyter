@@ -4,7 +4,7 @@ Cinematic rendering
 ===================
 
 .. warning::
-    **Experimental.** ``cinematic`` is new in 2.19.0 and not yet on the same
+    **Experimental.** ``cinematic`` is new in 3.0.0 and not yet on the same
     footing as the other two renderers: the trait names and their defaults may
     change, the image a given scene produces may change between versions, and
     the coverage gaps listed below are real rather than temporary oversights

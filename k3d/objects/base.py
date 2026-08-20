@@ -12,7 +12,7 @@ from ..helpers import (Array, Int,
 EPSILON = np.finfo(np.float32).eps
 
 SHININESS_REMOVED = (
-    "shininess was removed in 2.19.0 - use roughness and metalness instead. "
+    "shininess was removed in 3.0.0 - use roughness and metalness instead. "
     "The equivalent is roughness = sqrt(2 / (shininess + 2)), e.g. the old default 50 -> 0.196."
 )
 

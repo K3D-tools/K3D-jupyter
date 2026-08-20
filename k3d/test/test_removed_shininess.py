@@ -1,4 +1,4 @@
-"""The shininess tombstone: removed in 2.19.0, but loudly, because unknown constructor
+"""The shininess tombstone: removed in 3.0.0, but loudly, because unknown constructor
 kwargs are silently swallowed and a plain removal would be an invisible visual change."""
 
 import numpy as np

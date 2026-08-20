@@ -42,6 +42,7 @@ k3d/labextension/
 /docs/source/_static/standalone.js
 /docs/source/_static/require.js
 /docs/source/_static/k3d.js
+/docs/source/_static/k3d-bvh-worker.js
 /docs/source/_static/k3dEnvironments.js
 .yarn
 build.cmd

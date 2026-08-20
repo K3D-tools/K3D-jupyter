@@ -3,7 +3,7 @@
 Renderers
 =========
 
-Since 2.19.0 every plot carries a ``renderer`` switch:
+Since 3.0.0 every plot carries a ``renderer`` switch:
 
 .. code-block:: python3
 
@@ -61,7 +61,7 @@ All lit objects use physically based materials with two knobs:
     0.0 = dielectric, 1.0 = metal (the surface reflects only its environment,
     tinted by its own colour). Default 0.0.
 
-``shininess`` was removed in 2.19.0. The equivalent conversion is
+``shininess`` was removed in 3.0.0. The equivalent conversion is
 ``roughness = sqrt(2 / (shininess + 2))``; passing ``shininess`` raises a loud
 ``TraitError`` with that formula, and legacy ``.k3d`` snapshots are converted
 automatically on load.
@@ -115,7 +115,7 @@ spheres again, under ``venice_sunset`` with AgX tone mapping:
     ``standalone.js`` - this documentation does exactly that, which is why the
     dropdown above carries the full catalog.
 
-Since 2.19.0 a ``volume`` composes correctly with meshes that intersect it
+Since 3.0.0 a ``volume`` composes correctly with meshes that intersect it
 when depth peeling is enabled (``plot.depth_peels >= 3`` - fewer layers make
 the segmentation too coarse to be predictable). The ray march is split into
 segments bounded by the peel layers, so geometry inside the volume occludes

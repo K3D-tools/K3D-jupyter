@@ -7,7 +7,7 @@ the browser, and the two talk over the Jupyter *comm* protocol. Nothing is rende
 kernel itself, which is why an installation can look complete on the Python side and still
 show no graphics.
 
-Since 2.19.0 the widget is built on anywidget_. The frontend module travels **with the widget
+Since 3.0.0 the widget is built on anywidget_. The frontend module travels **with the widget
 state itself**: the kernel serves ``k3d/static/widget.mjs`` through the comm and the browser
 loads it as an ES module. There is no extension directory, nothing to register with the
 application, and the same mechanism works in JupyterLab, Notebook 7, Google Colab and VS Code.
@@ -16,7 +16,7 @@ The only host requirement is ipywidgets support (anywidget rides on it). If the 
 an ``ipywidgets.IntSlider()``, it can show a K3D plot.
 
 .. note::
-    Versions before 2.19.0 delivered the frontend as a JupyterLab federated extension plus an
+    Versions before 3.0.0 delivered the frontend as a JupyterLab federated extension plus an
     nbextension for Notebook 6, with all the registration failure modes those entailed
     (``jupyter labextension list``, ``No version of module k3d is registered`` and friends).
     None of that applies any more; stale registrations from old versions are simply ignored.
