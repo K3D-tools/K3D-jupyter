@@ -145,7 +145,7 @@ module.exports = function (THREE) {
         };
 
         // this method is exposed, but perhaps it would be better if we can make it private...
-        this.update = function (silent) {
+        this.update = function () {
             const offset = new THREE.Vector3();
 
             // so camera.up is the orbit axis
@@ -159,7 +159,10 @@ module.exports = function (THREE) {
 
             const twoPI = 2 * Math.PI;
 
-            return function update() {
+            // the parameter belongs here, not on the factory above: the factory is invoked once,
+            // with no arguments, so a `silent` declared there would stay undefined forever and
+            // every silent update would still dispatch 'change' and drive a redundant render
+            return function update(silent) {
 
                 const position = scope.object.position;
 
