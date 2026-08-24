@@ -15,10 +15,12 @@ struct PhysicalMaterial {
 
 precision highp sampler3D;
 
+#if K3D_ENV_LIGHT == 1
 uniform vec3 k3dEnvSH[9];
 uniform mat3 k3dEnvRotation;
 uniform vec3 k3dEnvLightDir;
 uniform vec3 k3dEnvLightColor;
+#endif
 uniform vec3 lightMapSize;
 uniform vec2 lightMapRenderTargetSize;
 uniform sampler2D shadowTexture;
@@ -347,8 +349,13 @@ void main() {
                     #ifndef K3D_AO_DEPTH_PASS
                     if (pxColor.a > 0.0) {
                         vec3 normal = worldGetNormal(px * maskOpacity, textcoord);
-                        vec4 addedLights = vec4(
-                            (ambientLightColor + shGetIrradianceAt(k3dEnvRotation * normal, k3dEnvSH)) * RECIPROCAL_PI, 1.0);
+                        vec3 irradiance = ambientLightColor;
+
+                        #if K3D_ENV_LIGHT == 1
+                        irradiance += shGetIrradianceAt(k3dEnvRotation * normal, k3dEnvSH);
+                        #endif
+
+                        vec4 addedLights = vec4(irradiance * RECIPROCAL_PI, 1.0);
                         vec3 specularColor = vec3(0.0);
 
                         PhysicalMaterial specMaterial;
@@ -378,7 +385,9 @@ void main() {
                         #endif
 
                         // advanced: the dominant directional light distilled from the
-                        // environment's L1 band (zero in simple)
+                        // environment's L1 band - in simple the uniforms are zero, and inside a
+                        // ray march that is the whole block wasted once per sample
+                        #if K3D_ENV_LIGHT == 1
                         {
                             vec3 envLightColor = k3dEnvLightColor * RECIPROCAL_PI;
                             float envIntensity = clamp(dot(k3dEnvLightDir, normal), 0.0, 1.0);
@@ -389,6 +398,7 @@ void main() {
                             BRDF_GGX(k3dEnvLightDir, -direction, normal, specMaterial) *
                             pxColor.a * (1.0 - shadow);
                         }
+                        #endif
 
                         // no (1 - metalness) on the body: a volume cannot sample the
                         // environment specularly, and with F0 == base colour the metal

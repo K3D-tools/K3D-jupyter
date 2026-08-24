@@ -1,4 +1,11 @@
-"""The stage-4 checkpoint: the impostor sphere and a real mesh sphere lit the same."""
+"""The impostor sphere against a real mesh sphere: same silhouette, same diffuse shading.
+
+They are deliberately no longer lit identically. The impostor evaluates a specular lobe for
+the key light only - four lobes per fragment is a lot for a sprite a few dozen pixels across
+- while a mesh goes through three's MeshStandardMaterial and keeps all four. What this
+guards is the rest: that the analytic sphere and the tessellated one agree in size, position
+and body shading, which is where an impostor bug would show.
+"""
 
 import numpy as np
 import pytest

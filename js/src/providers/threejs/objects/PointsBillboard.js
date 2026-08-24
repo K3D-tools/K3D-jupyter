@@ -98,6 +98,9 @@ module.exports = {
             ]),
             defines: {
                 PROVIDED_FRAG_COORD_Z: 1,
+                // simple has no environment - Scene.js zeroes k3dEnvSH and k3dEnvLightColor
+                // there - and a uniform cannot be folded away, so the block goes at compile time
+                K3D_ENV_LIGHT: (K3D.parameters.renderer === 'simple' ? 0 : 1),
                 USE_COLOR_MAP: useColorMap,
                 USE_PER_POINT_OPACITY: (opacities !== null ? 1 : 0),
                 USE_PER_POINT_SIZE: (sizes !== null ? 1 : 0),

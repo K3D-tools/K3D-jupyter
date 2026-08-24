@@ -143,6 +143,7 @@ module.exports = {
                 THREE.UniformsLib.lights,
             ),
             defines: {
+                K3D_ENV_LIGHT: (K3D.parameters.renderer === 'simple' ? 0 : 1),
                 USE_SPECULAR: 1,
                 USE_MASK: (maskEnabled ? 1 : 0),
             },

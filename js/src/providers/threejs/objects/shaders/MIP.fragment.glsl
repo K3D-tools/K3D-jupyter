@@ -15,10 +15,12 @@ struct PhysicalMaterial {
 
 precision highp sampler3D;
 
+#if K3D_ENV_LIGHT == 1
 uniform vec3 k3dEnvSH[9];
 uniform mat3 k3dEnvRotation;
 uniform vec3 k3dEnvLightDir;
 uniform vec3 k3dEnvLightColor;
+#endif
 uniform mat4 transform;
 uniform sampler3D volumeTexture;
 
@@ -277,8 +279,13 @@ void main() {
 
     // LIGHT
     vec3 normal = worldGetNormal(px, maxTextcoord);
-    vec4 addedLights = vec4(
-        (ambientLightColor + shGetIrradianceAt(k3dEnvRotation * normal, k3dEnvSH)) * RECIPROCAL_PI, 1.0);
+    vec3 irradiance = ambientLightColor;
+
+    #if K3D_ENV_LIGHT == 1
+    irradiance += shGetIrradianceAt(k3dEnvRotation * normal, k3dEnvSH);
+    #endif
+
+    vec4 addedLights = vec4(irradiance * RECIPROCAL_PI, 1.0);
     vec3 specularColor = vec3(0.0);
 
     PhysicalMaterial specMaterial;
@@ -307,7 +314,9 @@ void main() {
     #pragma unroll_loop_end
     #endif
 
-    // advanced: the dominant directional light distilled from the environment's L1 band
+    // advanced: the dominant directional light distilled from the environment's L1 band -
+    // in simple the uniforms are zero, so the whole block is arithmetic multiplied by nothing
+    #if K3D_ENV_LIGHT == 1
     {
         vec3 envLightColor = k3dEnvLightColor * RECIPROCAL_PI;
         float envIntensity = clamp(dot(k3dEnvLightDir, normal), 0.0, 1.0);
@@ -318,6 +327,7 @@ void main() {
         BRDF_GGX(k3dEnvLightDir, -direction, normal, specMaterial) * pxColor.a;
         #endif
     }
+    #endif
 
     // no (1 - metalness) on the body - same reasoning as in Volume.fragment.glsl:
     // metalness tints and strengthens the highlights instead of going black

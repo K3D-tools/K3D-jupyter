@@ -806,6 +806,28 @@ module.exports = {
                 self.scene.background = null;
             }
 
+            // the mode is switchable from the GUI, so materials compiled for the other one need
+            // rebuilding. The AO depth material shares this defines object by reference, so writing
+            // the value flips both programs - but only the one told about it recompiles.
+            const envLight = K3D.parameters.renderer === 'simple' ? 0 : 1;
+
+            self.K3DObjects.traverse((object) => {
+                const { material } = object;
+
+                if (!material || !material.defines
+                    || typeof (material.defines.K3D_ENV_LIGHT) === 'undefined'
+                    || material.defines.K3D_ENV_LIGHT === envLight) {
+                    return;
+                }
+
+                material.defines.K3D_ENV_LIGHT = envLight;
+                material.needsUpdate = true;
+
+                if (object.userData.k3dAODepthMaterial) {
+                    object.userData.k3dAODepthMaterial.needsUpdate = true;
+                }
+            });
+
             self.recalculateLights(K3D.parameters.lighting);
         };
 

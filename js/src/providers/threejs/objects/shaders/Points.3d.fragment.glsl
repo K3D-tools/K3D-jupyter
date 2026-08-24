@@ -14,11 +14,13 @@ struct PhysicalMaterial {
 
 // K3D_GGX_CHUNK
 
+#if K3D_ENV_LIGHT == 1
 uniform vec3 k3dEnvSH[9];
 uniform mat3 k3dEnvRotation;
 uniform vec3 k3dEnvLightDir;
 uniform vec3 k3dEnvLightColor;
 uniform float k3dEnvSurfaceBoost;
+#endif
 uniform float size;
 uniform float opacity;
 uniform float roughness;
@@ -67,7 +69,9 @@ void main(void)
     // and three's directional light directions all live there already
     vec3 normal = vec3(impostorSpaceCoordinate, normalizedDepth);
     vec3 viewDir = normalize(-vec3(mvPosition.xy, mvPosition.z + depthOfFragment));
+    #if K3D_ENV_LIGHT == 1
     vec3 kWorldNormal = normalize(normal * mat3(viewMatrix));
+    #endif
 
     vec4 finalSphereColor = vColor;
     finalSphereColor.a *= opacity;
@@ -80,30 +84,48 @@ void main(void)
 
     // rig ambient + environment SH irradiance; the impostor is a surface, so the env
     // part gets the same delivery correction PMREM materials take from environmentIntensity
-    vec3 irradiance = ambientLightColor
-        + shGetIrradianceAt(k3dEnvRotation * kWorldNormal, k3dEnvSH) * k3dEnvSurfaceBoost;
-    vec3 diffuse = irradiance * BRDF_Lambert(material.diffuseColor);
+    vec3 irradiance = ambientLightColor;
+
+    #if K3D_ENV_LIGHT == 1
+    irradiance += shGetIrradianceAt(k3dEnvRotation * kWorldNormal, k3dEnvSH) * k3dEnvSurfaceBoost;
+    #endif
+
+    // constant for the fragment, so it is worth naming rather than recomputing per light
+    vec3 lambert = BRDF_Lambert(material.diffuseColor);
+    vec3 diffuse = irradiance * lambert;
     vec3 specular = vec3(0.0);
 
+    // Only the key light - directionalLights[0], 0.4pi of the rig's 0.8pi - gets a specular
+    // lobe; four lobes per fragment measured 28 fps against 74. Written out rather than
+    // branched: skipping the lobe at NdotL == 0 is exact and measured slower still (71 fps).
     #if NUM_DIR_LIGHTS > 0
-    for (int l = 0; l < NUM_DIR_LIGHTS; l++) {
+    {
+        vec3 lightDir = directionalLights[0].direction;
+        vec3 lightIrradiance = directionalLights[0].color * clamp(dot(lightDir, normal), 0.0, 1.0);
+
+        diffuse += lightIrradiance * lambert;
+        specular += lightIrradiance * BRDF_GGX(lightDir, viewDir, normal, material);
+    }
+
+    for (int l = 1; l < NUM_DIR_LIGHTS; l++) {
         vec3 lightDir = directionalLights[l].direction;
         vec3 lightIrradiance = directionalLights[l].color * clamp(dot(lightDir, normal), 0.0, 1.0);
 
-        diffuse += lightIrradiance * BRDF_Lambert(material.diffuseColor);
-        specular += lightIrradiance * BRDF_GGX(lightDir, viewDir, normal, material);
+        diffuse += lightIrradiance * lambert;
     }
     #endif
 
     // advanced: the dominant directional light distilled from the environment's L1 band
+    #if K3D_ENV_LIGHT == 1
     {
         vec3 lightDir = normalize((viewMatrix * vec4(k3dEnvLightDir, 0.0)).xyz);
         vec3 lightIrradiance = k3dEnvLightColor * k3dEnvSurfaceBoost
             * clamp(dot(lightDir, normal), 0.0, 1.0);
 
-        diffuse += lightIrradiance * BRDF_Lambert(material.diffuseColor);
+        diffuse += lightIrradiance * lambert;
         specular += lightIrradiance * BRDF_GGX(lightDir, viewDir, normal, material);
     }
+    #endif
 
     gl_FragColor = vec4(diffuse + specular, finalSphereColor.a);
 }
