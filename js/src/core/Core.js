@@ -379,7 +379,7 @@ function K3D(provider, targetDOMNode, parameters) {
     }
 
     this.refreshAfterObjectsChange = function (isUpdate, force) {
-        if (self.parameters.autoRendering || force) {
+        if (self.parameters.renderOnChange || force) {
             if (!isUpdate) {
                 self.getWorld().setCameraToFitScene();
             }
@@ -471,7 +471,7 @@ function K3D(provider, targetDOMNode, parameters) {
             cameraFov: 60.0,
             cameraUpAxis: cameraUpAxisModes.none,
             cameraAnimation: {},
-            autoRendering: true,
+            renderOnChange: true,
             axesHelper: 1.0,
             axesHelperColors: [0xff0000, 0x00ff00, 0x0000ff],
             depthPeels: 0,
@@ -495,7 +495,6 @@ function K3D(provider, targetDOMNode, parameters) {
     );
 
     let prevDepthPeels = self.parameters.depthPeels;
-    this.autoRendering = false;
 
     this.setMinimumFps = function (fpsTarget) {
         self.parameters.minimumFps = fpsTarget;
@@ -711,12 +710,22 @@ function K3D(provider, targetDOMNode, parameters) {
     };
 
     /**
-     * Set auto rendering of K3D
+     * Whether adding or updating an object draws a frame on its own. It has never had
+     * anything to do with a render loop - K3D draws only when something changed.
+     * @memberof K3D.Core
+     * @param {Bool} flag
+     */
+    this.setRenderOnChange = function (flag) {
+        self.parameters.renderOnChange = flag;
+    };
+
+    /**
+     * @deprecated renamed to setRenderOnChange in 3.0.0
      * @memberof K3D.Core
      * @param {Bool} flag
      */
     this.setAutoRendering = function (flag) {
-        self.parameters.autoRendering = flag;
+        self.setRenderOnChange(flag);
     };
 
     /**
@@ -1777,7 +1786,6 @@ function K3D(provider, targetDOMNode, parameters) {
         if (this.gui) {
             this.gui.destroy();
         }
-        this.autoRendering = false;
 
         Object.keys(world.ObjectsListJson).forEach(function (K3DIdentifier) {
             removeObjectFromScene(K3DIdentifier);
@@ -1865,7 +1873,7 @@ function K3D(provider, targetDOMNode, parameters) {
     self.setDirectionalLightingIntensity(self.parameters.lighting);
     self.setColorMapLegend(self.parameters.colorbarObjectId);
     self.setColorbarScientific(self.parameters.colorbarScientific);
-    self.setAutoRendering(self.parameters.autoRendering);
+    self.setRenderOnChange(self.parameters.renderOnChange);
     self.setCameraLock(
         self.parameters.cameraNoRotate,
         self.parameters.cameraNoZoom,

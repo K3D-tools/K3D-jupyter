@@ -189,8 +189,10 @@ class Plot(
             With peeling on, volumes compose correctly with intersecting
             meshes (the ray march is split at the layer depths); use
             depth_peels >= 3, below that the effect is unpredictable.
-        auto_rendering: `Bool`.
-            State of auto rendering.
+        render_on_change: `Bool`.
+            Whether adding or updating an object draws a frame on its own. With it off,
+            call plot.render() yourself. It has never controlled a render loop - K3D
+            draws only when something changed. Named auto_rendering before 3.0.0.
         fps: `Float`.
             Fps of animation.
         minimum_fps: `Float`.

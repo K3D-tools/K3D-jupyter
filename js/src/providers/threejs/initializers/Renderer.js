@@ -1168,10 +1168,6 @@ module.exports = function (K3D) {
                 K3D.dispatch(K3D.events.RENDERED);
 
                 resolve(true);
-
-                if (K3D.autoRendering) {
-                    requestAnimationFrame(render);
-                }
             });
         });
     }
@@ -1240,19 +1236,20 @@ module.exports = function (K3D) {
             cinematicMode.abort();
         }
 
-        if (!K3D.autoRendering || force) {
-            if (renderingPromise === null) {
-                renderingPromise = render().then(() => {
-                    renderingPromise = null;
-                });
+        // an unforced request arriving while a render is in flight is dropped - the caller gets
+        // the frame already on its way. A forced one queues behind it instead, never in parallel.
+        if (renderingPromise === null) {
+            renderingPromise = render().then(() => {
+                renderingPromise = null;
+            });
 
-                return renderingPromise;
-            }
-            if (force) {
-                renderingPromise = renderingPromise.then(render).then(() => {
-                    renderingPromise = null;
-                });
-            }
+            return renderingPromise;
+        }
+
+        if (force) {
+            renderingPromise = renderingPromise.then(render).then(() => {
+                renderingPromise = null;
+            });
         }
 
         return renderingPromise;

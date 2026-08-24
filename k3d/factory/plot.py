@@ -1,6 +1,7 @@
 """Factory functions for creating Plot widgets."""
 
 import numpy as np
+import warnings
 from typing import Any
 from typing import Dict as TypingDict
 from typing import List as TypingList
@@ -45,7 +46,8 @@ def plot(
         axes_helper_colors: TypingList[int] = None,
         camera_mode: str = "trackball",
         snapshot_type: str = "full",
-        auto_rendering: bool = True,
+        render_on_change: bool = True,
+        auto_rendering: Optional[bool] = None,
         camera_no_zoom: bool = False,
         camera_no_rotate: bool = False,
         camera_no_pan: bool = False,
@@ -63,6 +65,15 @@ def plot(
         additional_js_code: str = '',
         custom_data: Optional[TypingDict[str, Any]] = None,
 ) -> Plot:
+    if auto_rendering is not None:
+        warnings.warn(
+            "auto_rendering was renamed to render_on_change in 3.0.0",
+            DeprecationWarning,
+            stacklevel=2,
+        )
+
+        render_on_change = auto_rendering
+
     if axes is None:
         axes = ["x", "y", "z"]
     if axes_helper_colors is None:
@@ -110,7 +121,7 @@ def plot(
         camera_damping_factor=camera_damping_factor,
         camera_pan_speed=camera_pan_speed,
         camera_up_axis=camera_up_axis,
-        auto_rendering=auto_rendering,
+        render_on_change=render_on_change,
         fps=fps,
         minimum_fps=minimum_fps,
         time_speed=time_speed,

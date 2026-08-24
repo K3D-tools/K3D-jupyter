@@ -1,4 +1,5 @@
 import ipywidgets as widgets
+import warnings
 from traitlets import Any as TraitAny
 from traitlets import Bool, Dict, List, TraitError, Unicode, validate
 from typing import Any
@@ -28,7 +29,7 @@ class PlotBase(K3DAnyWidget):
 
     # read-write
     camera_auto_fit = Bool(True).tag(sync=True)
-    auto_rendering = Bool(True).tag(sync=True)
+    render_on_change = Bool(True).tag(sync=True)
     lighting = Float().tag(sync=True)
     fps = Float().tag(sync=True)
     minimum_fps = Float().tag(sync=True)
@@ -237,6 +238,27 @@ class PlotBase(K3DAnyWidget):
         if obj is not None and patch["key"] in obj._synced_props:
             setattr(obj, patch["key"], from_json(patch["value"]))
 
+    @property
+    def auto_rendering(self) -> bool:
+        """Deprecated alias of render_on_change."""
+        warnings.warn(
+            "auto_rendering was renamed to render_on_change in 3.0.0",
+            DeprecationWarning,
+            stacklevel=2,
+        )
+
+        return self.render_on_change
+
+    @auto_rendering.setter
+    def auto_rendering(self, value: bool) -> None:
+        warnings.warn(
+            "auto_rendering was renamed to render_on_change in 3.0.0",
+            DeprecationWarning,
+            stacklevel=2,
+        )
+
+        self.render_on_change = value
+
     def __init__(
             self,
             antialias: int = 3,
@@ -274,7 +296,7 @@ class PlotBase(K3DAnyWidget):
             mode: str = "view",
             camera_mode: str = "trackball",
             manipulate_mode: str = "translate",
-            auto_rendering: bool = True,
+            render_on_change: bool = True,
             fps: float = 25.0,
             minimum_fps: float = -1,
             grid_color: int = 0xE6E6E6,
@@ -296,6 +318,16 @@ class PlotBase(K3DAnyWidget):
             *args: Any,
             **kwargs: Any,
     ) -> None:
+        # renamed in 3.0.0: the old name read like a render loop, which K3D has never had
+        if "auto_rendering" in kwargs:
+            warnings.warn(
+                "auto_rendering was renamed to render_on_change in 3.0.0",
+                DeprecationWarning,
+                stacklevel=2,
+            )
+
+            render_on_change = kwargs.pop("auto_rendering")
+
         super().__init__(*args, **kwargs)
 
         if axes is None:
@@ -349,7 +381,7 @@ class PlotBase(K3DAnyWidget):
         self.snapshot_type = snapshot_type
         self.camera_mode = camera_mode
         self.manipulate_mode = manipulate_mode
-        self.auto_rendering = auto_rendering
+        self.render_on_change = render_on_change
         if "camera" not in kwargs:
             self.camera = []
         self.depth_peels = depth_peels

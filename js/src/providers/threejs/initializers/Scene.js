@@ -823,66 +823,61 @@ module.exports = {
                     if (coord.x < 0 && coord.y > 0) {
                         K3D.getWorld().controls.beforeRender(0);
                         if (raycast.call(
-                                self,
-                                K3D,
-                                (coord.x + 0.5) * 2,
-                                (coord.y - 0.5) * 2,
-                                self.camera,
-                                click,
-                                K3D.parameters.viewMode,
-                            )
-                            && !K3D.autoRendering) {
+                            self,
+                            K3D,
+                            (coord.x + 0.5) * 2,
+                            (coord.y - 0.5) * 2,
+                            self.camera,
+                            click,
+                            K3D.parameters.viewMode,
+                        )) {
                             K3D.render();
                         }
                         K3D.getWorld().controls.afterRender(0);
                     } else if (coord.x < 0 && coord.y < 0) {
                         K3D.getWorld().controls.beforeRender(1);
                         if (raycast.call(
-                                self,
-                                K3D,
-                                (coord.x + 0.5) * 2,
-                                (1.0 + coord.y * 2.0),
-                                self.camera,
-                                click,
-                                K3D.parameters.viewMode,
-                            )
-                            && !K3D.autoRendering) {
+                            self,
+                            K3D,
+                            (coord.x + 0.5) * 2,
+                            (1.0 + coord.y * 2.0),
+                            self.camera,
+                            click,
+                            K3D.parameters.viewMode,
+                        )) {
                             K3D.render();
                         }
                         K3D.getWorld().controls.afterRender(1);
                     } else if (coord.x > 0 && coord.y > 0) {
                         K3D.getWorld().controls.beforeRender(2);
                         if (raycast.call(
-                                self,
-                                K3D,
-                                (coord.x * 2.0 - 1.0),
-                                (coord.y - 0.5) * 2,
-                                self.camera,
-                                click,
-                                K3D.parameters.viewMode,
-                            )
-                            && !K3D.autoRendering) {
+                            self,
+                            K3D,
+                            (coord.x * 2.0 - 1.0),
+                            (coord.y - 0.5) * 2,
+                            self.camera,
+                            click,
+                            K3D.parameters.viewMode,
+                        )) {
                             K3D.render();
                         }
                         K3D.getWorld().controls.afterRender(2);
                     } else if (coord.x > 0 && coord.y < 0) {
                         K3D.getWorld().controls.beforeRender(3);
                         if (raycast.call(
-                                self,
-                                K3D,
-                                (coord.x * 2.0 - 1.0),
-                                (1.0 + coord.y * 2.0),
-                                self.camera,
-                                click,
-                                K3D.parameters.viewMode,
-                            )
-                            && !K3D.autoRendering) {
+                            self,
+                            K3D,
+                            (coord.x * 2.0 - 1.0),
+                            (1.0 + coord.y * 2.0),
+                            self.camera,
+                            click,
+                            K3D.parameters.viewMode,
+                        )) {
                             K3D.render();
                         }
                         K3D.getWorld().controls.afterRender(3);
                     }
-                } else if (raycast.call(self, K3D, coord.x, coord.y, self.camera, click, K3D.parameters.viewMode)
-                    && !K3D.autoRendering) {
+                } else if (raycast.call(self, K3D, coord.x, coord.y, self.camera, click, K3D.parameters.viewMode)) {
                     K3D.render();
                 }
             }

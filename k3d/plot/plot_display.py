@@ -18,7 +18,7 @@ class PlotDisplayMixin:
     def render(self) -> None:
         """Trigger rendering on demand.
 
-        Useful when self.auto_rendering == False."""
+        Useful when self.render_on_change == False."""
         self.send({"msg_type": "render"})
 
     def start_auto_play(self) -> None:
