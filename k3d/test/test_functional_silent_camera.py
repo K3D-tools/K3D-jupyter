@@ -56,3 +56,36 @@ def test_a_silent_camera_update_asks_for_no_render(mode):
 
     assert silent == 0, 'a silent update asked for %d renders in %s mode' % (silent, mode)
     assert loud >= 1, 'a loud update has to ask for one, %s mode' % mode
+
+
+def test_camera_mode_reaches_the_page_from_python():
+    """camera_mode used to be missing from the headless trait map.
+
+    It is in the anywidget map, so the widget honoured it and the headless harness silently did
+    not - which is the trap of a trait needing four registration points. A test that switches the
+    mode from Python is the only thing that keeps the fourth one alive.
+    """
+    prepare()
+    pytest.headless.sync(hold_until_refreshed=True)
+
+    before = pytest.headless.browser.execute_script(
+        'var w = K3DInstance.getWorld();'
+        'return w.camera.position.toArray().concat(w.controls.target.toArray())'
+        '    .concat(w.camera.up.toArray());')
+
+    try:
+        pytest.plot.camera_mode = 'orbit'
+        pytest.headless.sync(hold_until_refreshed=True)
+
+        assert pytest.headless.browser.execute_script(
+            'return K3DInstance.parameters.cameraMode') == 'orbit'
+    finally:
+        pytest.plot.camera_mode = 'trackball'
+        pytest.headless.sync(hold_until_refreshed=True)
+        # switching the mode refits the scene, and resetCamera() keeps whatever direction it
+        # finds, so the camera has to go back or every later visual test renders from here
+        pytest.headless.browser.execute_script(
+            'K3DInstance.getWorld().setupCamera(arguments[0], null, true);', before)
+
+    assert pytest.headless.browser.execute_script(
+        'return K3DInstance.parameters.cameraMode') == 'trackball'
