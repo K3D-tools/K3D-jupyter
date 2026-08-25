@@ -162,13 +162,16 @@ def json_to_array(
     """
     if value:
         if "data" in value:
-            return np.frombuffer(value["data"], dtype=value["dtype"]).reshape(
-                value["shape"]
-            )
+            data = value["data"]
         else:
-            return np.frombuffer(
-                zlib.decompress(value["compressed_data"]), dtype=value["dtype"]
-            ).reshape(value["shape"])
+            data = bytearray(zlib.decompress(value["compressed_data"]))
+
+        ar = np.frombuffer(data, dtype=value["dtype"]).reshape(value["shape"])
+
+        if not ar.flags["WRITEABLE"]:
+            ar = ar.copy()
+
+        return ar
     return None
 
 
