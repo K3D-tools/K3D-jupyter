@@ -44,14 +44,13 @@
     });
 
     var params = new URLSearchParams(window.location.search);
+
+    var bundleMatch = /^[A-Za-z0-9._-]+$/.exec(params.get('bundle') || 'local');
+    var sceneMatch = /^[A-Za-z0-9._-]+\.k3d$/.exec(params.get('scene') || '');
+
     var CONFIG = {
-        // Both travel in the query string and both end up in a URL, so they are held to what a
-        // bundle directory and a corpus file can actually be called. Without this a crafted link
-        // could point the page's fetches at another host.
-        bundle: /^[A-Za-z0-9._-]+$/.test(params.get('bundle') || 'local')
-            ? (params.get('bundle') || 'local') : 'local',
-        scene: /^[A-Za-z0-9._-]+\.k3d$/.test(params.get('scene') || '')
-            ? params.get('scene') : '',
+        bundle: bundleMatch ? bundleMatch[0] : 'local',
+        scene: sceneMatch ? sceneMatch[0] : '',
         width: parseInt(params.get('width') || '1280', 10),
         height: parseInt(params.get('height') || '720', 10),
         frames: parseInt(params.get('frames') || '90', 10),
