@@ -24,8 +24,12 @@ TEST_PACKAGE = 'k3d.test'
 SCENE_GLOB = 'test_visual_'
 
 
-class NeedsBrowser(Exception):
-    """Raised by a stub whose behaviour cannot be faked - the test is reported, not guessed at."""
+class NeedsBrowser(AttributeError):
+    """Raised by a stub whose behaviour cannot be faked - the test is reported, not guessed at.
+
+    An AttributeError, because __getattr__ raises it: anything that probes a stub with hasattr or
+    getattr(..., default) has to see a missing attribute rather than an exception of its own.
+    """
 
 
 class _Browser:
@@ -141,7 +145,7 @@ def generate(out_dir, compression_level=1, verbose=True):
     Returns (manifest, report) - the manifest is what the runner consumes, the report says which
     tests could not be replayed without a browser and why.
     """
-    pytest = _install_stubs()
+    _install_stubs()
     scenes = []
     _install_compare(scenes, compression_level)
 

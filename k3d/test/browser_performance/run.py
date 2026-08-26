@@ -461,6 +461,8 @@ def report(path):
                 try:
                     spreads.append(float(row.get('probeSpreadPct') or 0))
                 except ValueError:
+                    # a row written by an older run has no spread column, and a pair with only
+                    # one side reporting one is still worth comparing
                     pass
 
             pairs.append({

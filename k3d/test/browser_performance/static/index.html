@@ -192,6 +192,13 @@
     }
 
     window.addEventListener('message', function (event) {
+        // only the runner's own frames may report a result: the page is served from a local port
+        // and nothing else has business posting to it, but a handler that does not look is a
+        // handler anything on the internet can drive if this is ever hosted
+        if (event.origin !== window.location.origin) {
+            return;
+        }
+
         if (pending && event.data && event.data.type) {
             pending(event.data);
         }

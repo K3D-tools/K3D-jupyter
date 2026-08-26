@@ -45,8 +45,13 @@
 
     var params = new URLSearchParams(window.location.search);
     var CONFIG = {
-        bundle: params.get('bundle') || 'local',
-        scene: params.get('scene') || '',
+        // Both travel in the query string and both end up in a URL, so they are held to what a
+        // bundle directory and a corpus file can actually be called. Without this a crafted link
+        // could point the page's fetches at another host.
+        bundle: /^[A-Za-z0-9._-]+$/.test(params.get('bundle') || 'local')
+            ? (params.get('bundle') || 'local') : 'local',
+        scene: /^[A-Za-z0-9._-]+\.k3d$/.test(params.get('scene') || '')
+            ? params.get('scene') : '',
         width: parseInt(params.get('width') || '1280', 10),
         height: parseInt(params.get('height') || '720', 10),
         frames: parseInt(params.get('frames') || '90', 10),
