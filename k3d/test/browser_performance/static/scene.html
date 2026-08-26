@@ -1068,9 +1068,6 @@
 
                 row.workMs = (CONFIG.emptyMs === null || row.medianMs === null
                     || row.medianMs === undefined) ? null : row.medianMs - CONFIG.emptyMs;
-                // barely above the empty baseline means the frame time is one refresh period and
-                // says nothing about the object - a faster bundle measured at the slower one's
-                // copy count lands here, which is expected but must not read as data
                 row.underResolved = CONFIG.emptyMs !== null && row.medianMs !== null
                     && row.medianMs !== undefined && row.medianMs < CONFIG.emptyMs + 2;
                 row.history = history;
@@ -1080,31 +1077,54 @@
     };
 
     // --- boot -------------------------------------------------------------------------------
-    // The load is timed in three pieces, because one number cannot tell a slow object from a slow
-    // boot: bundleMs is fetching and evaluating the bundle, fetchMs is downloading the snapshot,
-    // createMs is k3d building the scene out of it. A 4 kB scene loads in 180 ms on local and 338
-    // on 2.18.0 - almost all of it boot - so without the split every scene looks slow to load.
+
     var bundleStarted = performance.now();
 
-    loadScript('/bundles/' + CONFIG.bundle + '/require.js')
-        .then(function () { return loadScript('/bundles/' + CONFIG.bundle + '/standalone.js'); })
-        .then(function () {
-            window.__state.phase = 'bundle';
-            window.__state.bundleMs = performance.now() - bundleStarted;
+     function resolve(catalogue, wanted, what) {
+        for (var i = 0; i < catalogue.length; i++) {
+            if (catalogue[i] === wanted) {
+                return catalogue[i];
+            }
+        }
 
-            var fetchStarted = performance.now();
+        throw new Error('unknown ' + what + ': ' + wanted);
+    }
 
-            return fetch('/scenes/' + CONFIG.scene).then(function (response) {
-                if (!response.ok) {
-                    throw new Error('scene ' + response.status);
-                }
+    fetch('/api/config')
+        .then(function (response) {
+            if (!response.ok) {
+                throw new Error('config ' + response.status);
+            }
 
-                return response.arrayBuffer().then(function (buffer) {
-                    window.__state.fetchMs = performance.now() - fetchStarted;
+            return response.json();
+        })
+        .then(function (cfg) {
+            var bundle = resolve(cfg.bundles || [], CONFIG.bundle, 'bundle');
+            var scene = resolve((cfg.scenes || []).map(function (entry) { return entry.file; }),
+                CONFIG.scene, 'scene');
 
-                    return buffer;
+            return loadScript('/bundles/' + bundle + '/require.js')
+                .then(function () {
+                    return loadScript('/bundles/' + bundle + '/standalone.js');
+                })
+                .then(function () {
+                    window.__state.phase = 'bundle';
+                    window.__state.bundleMs = performance.now() - bundleStarted;
+
+                    var fetchStarted = performance.now();
+
+                    return fetch('/scenes/' + scene).then(function (response) {
+                        if (!response.ok) {
+                            throw new Error('scene ' + response.status);
+                        }
+
+                        return response.arrayBuffer().then(function (buffer) {
+                            window.__state.fetchMs = performance.now() - fetchStarted;
+
+                            return buffer;
+                        });
+                    });
                 });
-            });
         })
         .then(function (blob) {
             window.__state.phase = 'snapshot';
