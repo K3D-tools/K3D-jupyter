@@ -13,9 +13,8 @@
 <body>
 <div id="stage"></div>
 <script>
-    // Installed before the bundle is parsed, so it sees every draw the version under test makes.
-    // The WebGL prototypes are browser API - unlike the bundle they are not minified and do not
-    // move between k3d versions, which is the whole reason the harness hooks here and nowhere else.
+    // Installed before the bundle is parsed, so it sees every draw. Prototype property names
+    // survive minification; locals do not.
     window.__gl = { draws: 0, drew: false };
 
     ['WebGLRenderingContext', 'WebGL2RenderingContext'].forEach(function (name) {
@@ -55,17 +54,11 @@
         height: parseInt(params.get('height') || '720', 10),
         frames: parseInt(params.get('frames') || '90', 10),
         warmup: parseInt(params.get('warmup') || '30', 10),
-        // The ramp aims at a frame time, not at a share of one. With vsync the frame time is
-        // quantised to multiples of the refresh period - 6.9, 13.9, 20.8 ms at 144 Hz - so a
-        // target around 12 ms puts a scene at 50-100 fps, two or three quanta above the empty
-        // baseline. That resolves regressions of tens of percent, which is what an alarm is for,
-        // and it is many times faster than pushing every scene until the object dominates: asking
-        // for 80% dominance drove a Menger sponge to 368 ms a frame, and every ramp step pays for
-        // a whole measurement again.
+        // The frame time to aim for. Vsync quantises the frame to the refresh period, so 12 ms is
+        // two or three quanta above an empty one.
         targetMs: parseFloat(params.get('targetMs') || '12'),
-        // Given by the parent for every bundle after the first: the same scene has to be measured
-        // with the same number of copies or the two numbers are two different workloads. Only the
-        // first bundle ramps, and it is the oldest, so it is the one that needs the most.
+        // From the parent for every bundle after the first: one scene, one copy count, or the two
+        // numbers are two different workloads.
         sets: params.get('sets') === null ? null : parseInt(params.get('sets'), 10),
         maxSets: parseInt(params.get('maxSets') || '4096', 10),
         byteBudget: parseFloat(params.get('byteBudget') || '1.2e9'),
@@ -74,20 +67,13 @@
         duplicate: params.get('duplicate') || 'graph',
         probeReps: parseInt(params.get('probeReps') || '4', 10),
         probeSteps: parseInt(params.get('probeSteps') || '6', 10),
-        // aim this many times the target, accept anything from the target to three times it
-        // The probe and the frame do not read the same number. Measured over 296 resolved rows
-        // of a full run: probeMs / (median - empty) has a median of 2.27, quartiles 2.16 and
-        // 2.49 - the probe serialises each render against a readback while the frame path
-        // pipelines, so the probe reads high by a factor that turns out to be remarkably stable.
-        // Aiming the probe at 1.5x the target therefore left the FRAME at about 8 ms, under the
-        // 6.9 ms refresh period, and 67 rows of that run came back pinned to the floor with
-        // nothing to compare. Aim at the factor instead, so the frame lands where it was asked to.
+        // The probe reads about 2.3x the frame's work - it serialises each render against a
+        // readback where the frame path pipelines - so aiming at the factor is what puts the FRAME
+        // on the target.
         probeToFrame: parseFloat(params.get('probeToFrame') || '2.3'),
         // viewpoints a probe averages over, the same ring for every bundle and every copy count
         probeViews: parseInt(params.get('probeViews') || '16', 10),
-        // a probe runs until it has spent this long, so a cheap scene gets many renders and an
-        // expensive one gets few: four renders of a four-triangle scene produced NEGATIVE costs
-        // per copy in an earlier run, which is noise wearing a number's clothes
+        // A probe runs until it has spent this long, so a cheap scene gets many renders.
         probeMinMs: parseFloat(params.get('probeMinMs') || '150'),
         // batches per probe, median wins; one more is run first and discarded as warm-up
         probeRepeats: parseInt(params.get('probeRepeats') || '3', 10),
@@ -104,11 +90,8 @@
         auto: params.get('auto') === '1',
     };
 
-    // A measurement far past what was expected has nothing left to teach, and ninety frames at
-    // 340 ms each is half a minute spent learning it slowly. But "expected" cannot be a flat
-    // ceiling: a scene whose single copy costs 200 ms is not misbehaving, and truncating it to
-    // eight frames only makes its median noisy. window.__expectMs is set from the probe before
-    // each measurement, so the guard fires on a surprise rather than on an expensive scene.
+    // A measurement far past what the probe predicted has nothing left to teach. Not a flat
+    // ceiling: __expectMs sets it from the probe, so an expensive scene is not truncated.
     CONFIG.abortMs = parseFloat(params.get('abortMs')) || CONFIG.targetMs * 6;
     window.__expectMs = null;
 
@@ -147,10 +130,8 @@
     }
 
     // --- how big is this scene in bytes -----------------------------------------------------
-    // The typed arrays an object arrives with. Reported, but NOT a memory cap: what an object
-    // costs the GPU is what it builds, not what it was given, and the two are far apart for
-    // anything generated - menger_sponge arrives as 531 kB of voxels and builds 167 MB of
-    // buffers. __geometryStats measures the built size; this is only the wire size.
+    // The wire size, reported but NOT a memory cap: what an object costs the GPU is what it
+    // builds. __geometryStats measures that.
     function sceneBytes(world) {
         var total = 0;
 
@@ -176,10 +157,8 @@
     }
 
     // --- where a copy goes -------------------------------------------------------------------
-    // A deterministic rotation about the centre of the scene box, composed onto whatever transform
-    // the object already carries. Rotation rather than translation keeps every copy inside the
-    // frame, so the camera never has to move; the angles are irrational multiples of a turn, so no
-    // two copies coincide and the whole arrangement reproduces on any machine without a seed.
+    // Rotation rather than translation keeps every copy in frame, and irrational angles keep
+    // any two from coinciding.
     var GOLDEN = [137.508, 77.9, 49.7];
 
     function rotationAboutCentre(index, centre) {
@@ -233,12 +212,9 @@
         return [0, 0, 0];
     }
 
-    // Take the menu down, and survive the way 2.18.0 does it. Its setMenuVisibility(false) walks
-    // gui_map to unhook listeners, but gui_map is only created when an object registers itself in
-    // the GUI - so on a plot with no objects it is undefined and Object.keys throws. That is the
-    // empty baseline scene, which every bundle has to measure, so the throw took the whole run
-    // down. Seeding gui_map lets the real teardown run; if anything else goes wrong the menu stays
-    // but leaves the layout, which is worth less but costs nothing.
+    // Take the menu down. 2.18.0's setMenuVisibility(false) walks gui_map, which does not exist
+    // until an object registers in the GUI - so it throws on the empty baseline scene unless it
+    // is seeded.
     function hideMenu(instance) {
         if (typeof instance.setMenuVisibility !== 'function') {
             return 'absent';
@@ -265,15 +241,10 @@
         }
     }
 
-    // --- duplication ------------------------------------------------------------------------
-    // A copy is a scene-graph clone that SHARES the original's geometry and material. The obvious
-    // alternative - handing the object's JSON back to k3d with a new id - rebuilds the mesh once
-    // per copy, and that is ruinous for anything generated: measured on menger_sponge, 1.4 s and
-    // 167 MB of GPU buffers per copy, so 64 copies meant a minute of meshing and 10.7 GB of
-    // buffers on an 8 GB card. The frame time then reports paging over PCIe, not the object: the
-    // same 64 copies cost 340 ms a frame where the linear cost was about 45. A shared clone costs
-    // 0.06 ms and no memory at all, and still issues the same draw calls over the same pixels.
-    // ?duplicate=k3d brings the old path back, capped by the measured geometry size.
+    // --- duplication -------------------------------------------------------------------------
+    // A copy is a scene-graph clone sharing the original's geometry and material. Handing the
+    // JSON back to k3d rebuilds the mesh per copy, so the frame ends up measuring video memory
+    // rather than the object. ?duplicate=k3d brings that path back.
     var originals = null;
     var originalsJson = null;
     var clones = [];
@@ -296,13 +267,8 @@
 
         source.traverse(function (o) { src.push(o); });
 
-        // Object3D.copy runs userData through JSON.parse(JSON.stringify(...)), and k3d can keep
-        // megabytes in there: on 2.18.0 every line object holds its meshLine plus the last
-        // positions, UVs and colours - 1.08 MB of JSON each, ten of them in line_advanced. That is
-        // 10.8 MB of serialising per copy, measured at 132 ms, which at the copy counts this
-        // harness reaches is minutes of a frozen tab. So userData is detached for the clone and
-        // then put back by reference on both sides - a reference is what is wanted anyway, since
-        // it can hold live materials that a JSON round-trip would flatten into plain objects.
+        // Object3D.copy runs userData through JSON, and k3d keeps megabytes in there. Detach it for
+        // the clone and put it back by reference - it can hold live materials.
         var carried = src.map(function (o) { return o.userData; });
         var copy;
 
@@ -379,9 +345,7 @@
         return Promise.all(pending).then(function () { return setsPresent; });
     }
 
-    // Exactly `target` copies of the snapshot in the scene, adding or removing to get there.
-    // Removing is what lets the search converge from above: with shared geometry a copy costs
-    // nothing to make and nothing to drop, so overshooting is no longer expensive to correct.
+    // Exactly `target` copies, adding or removing. Removing is what lets the search come down.
     window.__setSets = function (target) {
         var world = window.K3D.getWorld();
 
@@ -405,11 +369,8 @@
             setsPresent -= 1;
         }
 
-        // A budget on building, not because it should ever be needed - a shared clone costs
-        // microseconds - but because when it was needed the tab simply stopped: userData that
-        // three insisted on serialising made one copy cost 132 ms, and the run hung on a scene
-        // with ten objects rather than reporting anything. A stopped clock is data; a frozen tab
-        // is not. Whoever asked gets back the count that was actually reached.
+        // A shared clone costs microseconds, so this should never bite - but when it did, the tab
+        // stopped answering rather than reporting anything.
         var deadline = performance.now() + CONFIG.buildBudgetMs;
 
         while (setsPresent < wanted) {
@@ -440,9 +401,8 @@
         return window.__setSets(setsPresent + count);
     };
 
-    // What one copy actually costs the GPU, which the snapshot's byte count does not tell you:
-    // menger_sponge arrives as 531 kB of voxels and becomes 167 MB of buffers, a factor of 300.
-    // Distinct geometries only, so a shared clone does not count twice.
+    // What one copy costs the GPU: voxels arrive as kilobytes and build megabytes. Distinct
+    // geometries only.
     window.__geometryStats = function () {
         var world = window.K3D.getWorld();
         var seen = {};
@@ -480,15 +440,10 @@
             geometries: Object.keys(seen).length };
     };
 
-    // --- coverage ---------------------------------------------------------------------------
-    // How much of the frame the scene paints. Used as the check that a copy landed somewhere new:
-    // if adding sets leaves coverage untouched, the object ignored its model matrix and the ramp is
-    // only pretending to add load. It is a union of painted pixels, not a measure of cost.
-    // The camera the snapshot loaded with. Both oracles - the probe and the frame measurement -
-    // start from it, so a scene the search probed six times is measured from the same viewpoint as
-    // one it probed once. Without this the reference bundle and the bundles that inherit its copy
-    // count would look at the scene from different angles, which for anything view-dependent is a
-    // different workload wearing the same name.
+    // --- coverage ----------------------------------------------------------------------------
+    // What the scene paints, and a fingerprint of it. The fingerprint is the check that a copy
+    // landed somewhere new; area cannot be, because a copy rotated about a centre it sits on
+    // covers the same pixels.
     var canonicalCamera = null;
 
     function rememberCamera() {
@@ -534,18 +489,7 @@
                     }
                 }
 
-                // A fingerprint of the image, not of its area. Copies are rotated about the centre
-                // of the scene box, so an object that sits at that centre - marching_cubes does,
-                // its blob spanning [-0.5, 0.5] inside a [-1, 1] grid - turns in place and covers
-                // exactly the same pixels however many copies are added. Area therefore cannot
-                // tell "the copies moved" from "the object ignored its matrix", and it reported
-                // twelve marching-cubes scenes as ignoring theirs when they did not.
-                //
-                // Every pixel, not a sample of them. Sampling one byte in 257 was cheap and blind:
-                // the frame is mostly grid and axes, so line_simple_clipping_plane and
-                // line_thick_clipping_plane - a 0.01-wide line against a 0.5-wide one - produced
-                // the SAME fingerprint, and so did seven environment scenes. A hash that cannot
-                // see the object cannot report on the object.
+                // Every pixel: the frame is mostly grid, and a sample cannot see a thin object.
                 for (var j = 0; j < pixels.length; j += 4) {
                     image = (image * 31 + pixels[j]) | 0;
                     image = (image * 31 + pixels[j + 1]) | 0;
@@ -558,18 +502,10 @@
             });
     };
 
-    // --- measurement ------------------------------------------------------------------------
-    // Viewpoint `index` of `total` around the canonical camera. Absolute, not relative: the angle
-    // is a function of the index alone.
-    //
-    // This used to read the CURRENT camera position and rotate that, which made the sweep
-    // cumulative - the camera accelerated through it and where it ended depended on how many
-    // renders had happened before. The frame measurement survived that, since every bundle starts
-    // from the canonical camera and applies the same indices, but the probe did not: it runs as
-    // many renders as the scene's cost allows, so a fast bundle and a slow one averaged over
-    // different viewpoints. For anything view-dependent - every volume and MIP scene - that made
-    // probeMs incomparable between bundles, and probeMs is precisely the number that carries the
-    // scenes whose frame time sits on the vsync floor.
+    // --- measurement -------------------------------------------------------------------------
+    // Viewpoint `index` of `total` around the canonical camera - absolute, not relative.
+    // Rotating the CURRENT position makes the sweep cumulative, so where it ends depends on how
+    // many renders came before, and a probe runs as many as the cost allows.
     function orbitCamera(index, total) {
         if (!canonicalCamera) {
             return;
@@ -613,9 +549,8 @@
         restoreCamera();
 
         var deltas = [];
-        // counted from the end of the warm-up, not from the start: taking it here and dividing by
-        // the post-warm-up frames alone inflated drawsPerFrame by (warmup + frames) / frames, a
-        // third too high on the defaults, and by far more on any row that aborted early
+        // Counted from the end of the warm-up, or the figure is inflated by (warmup + frames) /
+        // frames.
         var drawsBefore = null;
         var total = CONFIG.warmup + CONFIG.frames;
         var index = 0;
@@ -706,11 +641,9 @@
         });
     };
 
-    // --- the cost probe ---------------------------------------------------------------------
-    // What one render costs, without animation frames and without vsync in the path: queue N
-    // forced renders, then make the GPU catch up with a one-pixel readback and divide. The number
-    // is not quantised to the refresh period, which is the whole reason it exists - and it works
-    // in a window that is getting no frames at all.
+    // --- the cost probe ----------------------------------------------------------------------
+    // What one render costs, unquantised: queue N forced renders, make the GPU catch up with a
+    // one-pixel readback, divide. Works in a window getting no frames at all.
     window.__probe = function () {
         var world = window.K3D.getWorld();
         var gl = world.renderer.getContext();
@@ -720,19 +653,15 @@
             gl.readPixels(0, 0, 1, 1, gl.RGBA, gl.UNSIGNED_BYTE, pixel);
         }
 
-        // The probe sweeps the camera exactly as the measurement does. A still camera prices a
-        // raymarched volume at whatever that one angle happens to cost: on mip_heart the probe
-        // read 0.8 ms for one copy and 37 ms for two, a 45-fold step that sent the search
-        // oscillating 1, 21, 3, 1, 8, 2, 1 and left a count whose frames took 174 ms. Sweeping
-        // makes both oracles answer the same question.
+        // The probe sweeps the camera as the measurement does: a still one prices a raymarched
+        // volume at whatever that single angle costs.
         function renders(count) {
             var chain = Promise.resolve();
 
             for (var i = 0; i < count; i++) {
                 chain = chain.then(function (index) {
-                    // a fixed ring of viewpoints, cycled: the number of renders a probe runs
-                    // depends on how expensive the scene is, so tying the sweep to it would once
-                    // again average two bundles over different angles
+                    // A fixed ring: the number of renders depends on the scene, so tying the sweep to it would
+                    // average two bundles over different angles.
                     orbitCamera(index % CONFIG.probeViews, CONFIG.probeViews);
 
                     return Promise.resolve(world.render(true));
@@ -757,15 +686,8 @@
         return Promise.resolve(world.render(true)).then(function () {
             sync();
 
-            // Calibrate, then run batches long enough that the readback cost is amortised away.
-            // A sync per handful of renders inflates a cheap scene: that is how 2048 copies of
-            // four triangles came to probe at 9 ms while the frames said 7.
-            //
-            // The calibration batch is thrown away - repeated probes on one scene drift downwards
-            // for the first few, so the first reading is warm-up, not signal - and what comes back
-            // is the MEDIAN of the batches after it. One batch is not a measurement: six identical
-            // probes on one scene spanned 3.1 to 10.1 ms, and the search used to turn that spread
-            // into a copy count.
+            // Calibrate, then run batches long enough to amortise the readback. The calibration batch
+            // is warm-up and the MEDIAN of the rest is returned: one batch is not a measurement.
             return timed(CONFIG.probeReps).then(function (rough) {
                 var count = Math.max(CONFIG.probeReps, Math.min(CONFIG.probeMaxReps,
                     Math.ceil(CONFIG.probeMinMs / Math.max(0.05, rough))));
@@ -788,9 +710,7 @@
                         window.__expectMs = (CONFIG.emptyMs || 0)
                             + middle / CONFIG.probeToFrame;
 
-                        // how far apart the batches were, so a reader can tell a real 18% from
-                        // noise wearing the same number: a ratio is only worth as much as the
-                        // repeatability of the two readings behind it
+                        // How far apart the batches were: a ratio is worth what the two readings behind it are.
                         window.__lastProbeSpread = middle > 0
                             ? 100 * (samples[samples.length - 1] - samples[0]) / middle : null;
 
@@ -803,17 +723,10 @@
         });
     };
 
-    // --- the search -------------------------------------------------------------------------
-    // Frame timing cannot decide the copy count. With vsync the frame time is pinned to the
-    // refresh period until the object's own cost passes it, so every reading below one period -
-    // 6.9 ms at 144 Hz - carries no information. The ramp that used to live here answered
-    // no-information by multiplying by eight: menger_sponge went 1, 8, 64 that way, and 64 copies
-    // of a 167 MB mesh is 10.7 GB, well past the card, so the 340 ms that came back was the cost
-    // of paging geometry rather than of drawing it.
-    //
-    // The frame time is still what gets reported - it is what someone using k3d would feel - it
-    // is just not what the search runs on. F, the empty frame, is subtracted from it:
-    // workMs = T - F is the object's own work.
+    // --- the search --------------------------------------------------------------------------
+    // Frame timing cannot decide the copy count: vsync pins the frame to the refresh period
+    // until the object's cost passes it. The frame time is still what gets reported, minus the
+    // empty frame - workMs = T - F is the object.
     window.__run = function () {
         var world = window.K3D.getWorld();
         var gl = world.renderer.getContext();
@@ -821,9 +734,8 @@
         var row = {
             scene: CONFIG.scene,
             bundle: CONFIG.bundle,
-            // 2.18.0 carries the snapshot's renderer value in parameters without owning the
-            // concept - reporting it would claim a mode was measured that the bundle does not
-            // have, so a bundle without the modes gets an empty name and pairs with all of them
+            // 2.18.0 keeps the snapshot's renderer value without owning the concept, so reporting it
+            // would claim a mode it does not have.
             renderer: window.__state.supportsModes ? (window.K3D.parameters.renderer || '') : '',
             rendererRequested: CONFIG.renderer || '',
             supportsModes: !!window.__state.supportsModes,
@@ -868,29 +780,16 @@
             });
         }
 
-        // How many copies to measure with.
-        //
-        // A ratio, never a difference. The earlier version of this priced a single copy as
-        // (probe_n - probe_1) / (n - 1) and solved for the target from that - a difference of two
-        // noisy readings divided by a large number, which is the most efficient way to turn a few
-        // percent of measurement noise into nonsense. On 2.18.0's line_advanced it came out
-        // NEGATIVE, the code read that as "no signal, use the ceiling", and 4096 sets of ten
-        // objects froze the tab for nine minutes.
-        //
-        // Cost grows with copies, so scaling the count by how far the cost is from the target
-        // walks straight to it: n <- n * target / cost(n). One measurement per step, no
-        // subtraction, nothing that can go negative, and each step is bounded so a bad reading
-        // costs one step rather than the run. Accepted band is deliberately wide - the copies
-        // exist to lift the signal off the vsync floor, not to hit 12 ms exactly.
+        // How many copies to measure with. A ratio, never a difference: pricing a copy as
+        // (probe_n - probe_1) / (n - 1) divides noise by a large number and can come out negative.
+        // Scaling the count by how far the cost is from the target walks straight there, and each
+        // step is bounded so a bad reading costs a step rather than the run.
         function solve() {
             var byBytes = (CONFIG.duplicate === 'k3d' && stats.bytes > 0)
                 ? Math.max(1, Math.floor(CONFIG.byteBudget / stats.bytes)) : CONFIG.maxSets;
             var limit = Math.min(CONFIG.maxSets, byBytes);
-            // Aim ABOVE the target, and accept anything at or above it. The two errors are not
-            // equal: landing short leaves the frame on the vsync floor, where it measures the
-            // refresh rate and not k3d, while landing long only makes the frame slower to measure.
-            // With the probe repeatable to about six percent, aiming half again over the target
-            // puts even a bad excursion on the safe side of it.
+            // Aim ABOVE the target: landing short leaves the frame on the vsync floor measuring the
+            // refresh rate, landing long only makes it slower to measure.
             var aim = CONFIG.targetMs * CONFIG.probeToFrame;
             var best = null;
             var path = [];
@@ -976,17 +875,8 @@
                     return measureOnce();
                 })
                 .then(function (result) {
-                    // One correction from the frames themselves - but only where the frames say
-                    // something. The frame time is quantised to the refresh period, so a reading
-                    // on the floor gives work of about 0.1 ms, and scaling by
-                    // (target - empty) / work then asks for fifty times the copies. Capped at
-                    // eight it still asked for eight times, which is how advanced_ao went from the
-                    // 480 copies the search had correctly chosen to 3840 and a measurement that
-                    // aborted. 99 rows of that run were "corrected" this way, 75 aborted.
-                    //
-                    // So: if the frame is within a refresh period of the empty baseline it carries
-                    // no information and the probe's answer stands. If it is clear of the floor and
-                    // still far from the target, scale by what the frames actually said.
+                    // One correction from the frames, and only where they say something: below one refresh
+                    // period the work reads as ~0.1 ms and scaling by it asks for fifty times the copies.
                     if (result.aborted || CONFIG.emptyMs === null) {
                         return null;
                     }
@@ -1035,9 +925,8 @@
             .then(function (coverage) {
                 row.coverageAt1 = coverage.covered;
                 row.imageAt1 = coverage.image;
-                // advanced composites over the whole buffer, so coverage starts saturated and
-                // cannot grow - the transform check has nothing to work with and must say so
-                // rather than report a copy that landed nowhere
+                // advanced composites the whole buffer, so coverage starts saturated and the transform
+                // check has nothing to work with.
                 row.coverageSaturated = coverage.covered >= coverage.total * 0.999;
 
                 return CONFIG.sets === null ? solve() : atGivenSets();
@@ -1055,9 +944,8 @@
             .then(function (coverage) {
                 row.coverageFinal = coverage.covered;
                 row.imageFinal = coverage.image;
-                // copies were added and the image did not change at all: the object is drawing
-                // itself in the same place regardless of its matrix, so the copies pile up and the
-                // load only looks like it grew
+                // copies were added and the image did not change: the object draws itself in the
+                // same place regardless of its matrix, so the load only looks like it grew
                 row.transformIgnored = (row.sets > 1 && coverage.image === row.imageAt1);
                 row.programs = world.renderer.info.programs
                     ? world.renderer.info.programs.length : null;
@@ -1160,9 +1048,8 @@
                 world.renderer.setSize(CONFIG.width, CONFIG.height);
             }
 
-            // A bundle older than the renderer modes has no setRenderer at all, and that is the
-            // detection: ask, then read back what took. setRenderer is allowed to refuse a mode
-            // the machine cannot do, so the requested mode is not necessarily the measured one.
+            // A bundle older than the modes has no setRenderer, and that is the detection. It may
+            // also refuse a mode, so the requested one is not necessarily the measured one.
             window.__state.supportsModes = typeof instance.setRenderer === 'function'
                 && typeof instance.parameters.renderer === 'string';
 

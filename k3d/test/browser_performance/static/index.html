@@ -102,8 +102,8 @@
         document.getElementById('status').textContent = ' ' + text;
     }
 
-    // One bar for the whole run, measured in measurements rather than scenes: a scene is three of
-    // them when both bundles and both modes are in, and the eye wants a bar that moves.
+    // One bar for the whole run, counted in measurements rather than scenes: a scene is three
+    // of them when both bundles and both modes are in.
     var progress = { done: 0, total: 0, started: 0 };
 
     function tick(label) {
@@ -143,9 +143,8 @@
         };
     }
 
-    // `sets` null lets the page ramp; a number forbids it and measures exactly that many copies.
-    // `mode` empty leaves the snapshot's own renderer alone - which is what a bundle that predates
-    // the modes does anyway.
+    // `sets` null lets the page search; a number forbids it. `mode` empty leaves the snapshot
+    // alone, which is what a bundle older than the modes does anyway.
     function runScene(bundle, scene, emptyMs, sets, mode) {
         var host = document.getElementById('frame');
         var frame = document.createElement('iframe');
@@ -268,13 +267,11 @@
             scenes = scenes.slice(0, limit);
         }
 
-        // Which renderer modes each bundle can be asked for. A bundle older than the modes has
-        // no setRenderer, so the page reports that and it is measured once, on whatever path it
-        // has - one row that then pairs with each of the newer bundle's modes.
+        // Which modes each bundle can be asked for. One older than the modes has no setRenderer,
+        // so it is measured once and that row pairs with each of the newer bundle's modes.
         var modes = {};
-        // The cost of a frame that draws nothing, per bundle AND per mode: advanced composites the
-        // whole buffer whether or not anything is on it, so its empty frame is not simple's.
-        // Subtracted from every scene, so what lands in the CSV is the object's work.
+        // The empty frame, per bundle AND per mode: advanced composites the whole buffer whether
+        // or not anything is on it. Subtracted from every scene.
         var empty = {};
 
         function label(bundle, mode) {
@@ -316,13 +313,9 @@
             }
         }
 
-        // Scene by scene, and within a scene bundle right after bundle: a machine that drifts
-        // between runs drifts equally for all of them, and the ratio survives it. The first entry
-        // of a scene is the only one that ramps - every later entry is handed its copy count, so
-        // the comparison is one workload measured several ways. A faster bundle can then land back
-        // under the refresh period, which the page marks as under-resolved rather than reporting
-        // as a measurement.
-        // now that the modes are known, the run has a length
+        // Scene by scene, bundle right after bundle: a machine that drifts drifts equally for all
+        // of them. Only the first entry searches; every later one is handed its copy count, so the
+        // comparison is one workload measured several ways.
         var perScene = bundles.reduce(function (sum, bundle) {
             return sum + modes[bundle].length;
         }, 0);
