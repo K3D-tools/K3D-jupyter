@@ -6,7 +6,6 @@ const fileLoader = require('./helpers/fileLoader');
 const templateStandalone = require('./snapshot_standalone').default;
 const templateOnline = require('./snapshot_online').default;
 const templateInline = require('./snapshot_inline').default;
-const semverRange = require('../../version').version;
 const buffer = require('./helpers/buffer');
 
 let sourceCode = window.k3dCompressed;

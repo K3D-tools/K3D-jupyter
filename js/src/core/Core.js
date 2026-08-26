@@ -1769,7 +1769,7 @@ function K3D(provider, targetDOMNode, parameters) {
      * @returns {Object|undefined}
      */
     this.extractSnapshot = function (data) {
-        return data.match(/var data(?:_[^\s=]+)? = '(.+)';/mi);
+        return data.match(/var data(?:_[^\s=']{1,64})? = '([^']*)';/mi);
     };
 
     /**
