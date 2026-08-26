@@ -1,7 +1,7 @@
 """Base classes and utilities for K3D objects."""
 
 import numpy as np
-from traitlets import (Any, Bool, Dict, Integer, List, TraitError,
+from traitlets import (Any, Bool, Dict, List, TraitError,
                        Unicode, Union, validate)
 
 from .._widget import K3DModelWidget
@@ -58,7 +58,7 @@ class VoxelChunk(K3DModelWidget):
     voxels = Array(dtype=np.uint8).tag(sync=True, **array_serialization_wrap("voxels"))
     coord = Array(dtype=np.uint32).tag(sync=True, **array_serialization_wrap("coord"))
     multiple = Int().tag(sync=True)
-    compression_level = Integer().tag(sync=True)
+    compression_level = Int().tag(sync=True)
 
     def push_data(self, field):
         self.notify_change({"name": field, "type": "change"})
@@ -86,12 +86,12 @@ class Drawable(K3DModelWidget):
 
     _kind = Unicode("object").tag(sync=True)
 
-    id = Integer().tag(sync=True)
+    id = Int().tag(sync=True)
     name = Unicode(default_value=None, allow_none=True).tag(sync=True)
     group = Unicode(default_value=None, allow_none=True).tag(sync=True)
     custom_data = Dict(default_value=None, allow_none=True).tag(sync=True)
     visible = TimeSeries(Bool(True)).tag(sync=True)
-    compression_level = Integer().tag(sync=True)
+    compression_level = Int().tag(sync=True)
 
     # Tombstone. Unknown constructor kwargs are silently swallowed by ipywidgets, so simply
     # deleting the trait would turn every existing shininess= call into a silent visual change.
@@ -235,6 +235,8 @@ class Group(Drawable):
             for drawables in args
             for drawable in drawables
         )
+
+        super(Group, self).__init__()
 
     def __iter__(self):
         return self.__objs.__iter__()
