@@ -262,6 +262,133 @@ def _ratio(a, b, field):
     return (right / left) if left > 0 else None
 
 
+def _same_pipeline(a, mode):
+    """Whether both sides of a pair went down the same rendering path.
+
+    2.18.0 has no renderer modes at all, so pairing its one path against `advanced` compares two
+    different pipelines. Worth keeping, worth keeping apart.
+    """
+    return mode == (a.get('renderer') or '') or (
+        not (a.get('renderer') or '') and mode in ('', 'simple'))
+
+
+def _number(row, field):
+    """A CSV cell as a float, or None - every numeric column can be blank or absent."""
+    try:
+        value = float(row.get(field) or 0)
+    except (TypeError, ValueError):
+        return None
+
+    return value if value > 0 else None
+
+
+def _load_floors(rows):
+    """Each bundle's fixed load cost, estimated as the lightest scene it managed.
+
+    loadMs pays for the K3D instance, the renderer and the first shader compile before it pays for
+    a single object, and that part does not scale with the scene. The smallest load in the run is
+    the closest thing to that floor the data contains, so subtracting it leaves roughly the part
+    the scene is answerable for. It is an estimate from one sample, not a measurement.
+    """
+    floors = {}
+
+    for row in rows:
+        if row.get('error'):
+            continue
+
+        value = _number(row, 'loadMs')
+
+        if value is None:
+            continue
+
+        bundle = row['bundle']
+
+        if bundle not in floors or value < floors[bundle]:
+            floors[bundle] = value
+
+    return floors
+
+
+def _load_pairs(rows, base, floors):
+    """Load-time pairs.
+
+    Two things set these apart from the frame tables. They do not require matching copy counts:
+    loadMs is one CreateK3DAndLoadBinarySnapshot, one copy of the scene, whatever the copy search
+    settled on afterwards. And they do not require a frame measurement at all - the load happens
+    before the first frame is drawn, so a scene that loaded but could not be timed still has a
+    valid loadMs, which is why this groups the rows itself instead of reusing _rows_by_scene.
+    """
+    grouped = {}
+
+    for row in rows:
+        if row.get('error') or row['scene'] == '__empty__':
+            continue
+
+        grouped.setdefault(row['scene'], {})[(row['bundle'], row.get('renderer') or '')] = row
+
+    out = []
+
+    for scene, per_scene in grouped.items():
+        left = {mode: row for (bundle, mode), row in per_scene.items() if bundle == base}
+
+        if not left:
+            continue
+
+        for (bundle, mode), b in sorted(per_scene.items()):
+            if bundle == base:
+                continue
+
+            a = left.get(mode) or (next(iter(left.values())) if len(left) == 1 else None)
+
+            if a is None:
+                continue
+
+            a_load, b_load = _number(a, 'loadMs'), _number(b, 'loadMs')
+
+            if a_load is None or b_load is None:
+                continue
+
+            out.append({
+                'scene': scene, 'bundle': bundle, 'mode': mode,
+                'a_load': a_load, 'b_load': b_load, 'load': b_load / a_load,
+                'delta': b_load - a_load,
+                'spread': None, 'same_pipeline': _same_pipeline(a, mode), 'flags': _flags(a, b),
+            })
+
+    return out
+
+
+def _load_table(subset, title, note):
+    if not subset:
+        return
+
+    print(title)
+    print(note)
+    print('%-38s %-15s %-8s %8s %8s %8s %7s  %s' % (
+        'scene', 'bundle', 'renderer', 'A ms', 'B ms', 'B-A ms', 'B/A', 'note'))
+
+    # sorted by the absolute regression, which is the robust one here: a ratio on a scene whose
+    # load is mostly the fixed cost says more about that cost than about the scene
+    for p in sorted(subset, key=lambda p: -p['delta']):
+        print('%-38s %-15s %-8s %8.1f %8.1f %8.1f %7.2f  %s' % (
+            p['scene'][:38], p['bundle'], p['mode'] or '-', p['a_load'], p['b_load'],
+            p['delta'], p['load'], p['flags']))
+
+    values = sorted(p['load'] for p in subset)
+    deltas = sorted(p['delta'] for p in subset)
+    print()
+    print('  n=%-4d median B/A %.3f   slower by >10%%: %d   by >25%%: %d   faster: %d'
+          % (len(values), values[len(values) // 2], sum(1 for r in values if r > 1.10),
+             sum(1 for r in values if r > 1.25), sum(1 for r in values if r < 0.95)))
+    print('  median B-A %+.1f ms   worst %+.1f ms   best %+.1f ms'
+          % (deltas[len(deltas) // 2], deltas[-1], deltas[0]))
+
+    print('  one cold sample per row: it pays JIT warm-up, the first shader compile and'
+          ' whatever the')
+    print('  VRAM state happened to be - so read the medians, not any single row')
+    print()
+
+
 def _flags(a, b):
     out = []
 
@@ -347,7 +474,8 @@ def _bands(values):
     ]
 
 
-def _by_family(subset, types_by_scene, spread_limit):
+def _by_family(subset, types_by_scene, spread_limit, field='probe',
+               title='=== by object type (probe ratios, repeatable pairs only) ==='):
     """The like-for-like ratios grouped by what the scene actually draws."""
     if not subset:
         return
@@ -358,27 +486,30 @@ def _by_family(subset, types_by_scene, spread_limit):
         if p['spread'] is not None and p['spread'] > spread_limit:
             continue
 
+        if p.get(field) is None:
+            continue
+
         families.setdefault(_family(p['scene'], types_by_scene), []).append(p)
 
     if not families:
         return
 
-    print('=== by object type (probe ratios, repeatable pairs only) ===')
+    print(title)
     print('  %-24s %4s %8s   %6s %6s %6s %6s %6s   %s'
           % ('object type', 'n', 'median', 'faster', 'parity', '5-10%', '10-25%', '25%+',
              'worst scene'))
 
     order = sorted(families.items(),
-                   key=lambda kv: -statistics.median([p['probe'] for p in kv[1]]))
+                   key=lambda kv: -statistics.median([p[field] for p in kv[1]]))
 
     for family, group in order:
-        values = sorted(p['probe'] for p in group)
-        worst = max(group, key=lambda p: p['probe'])
+        values = sorted(p[field] for p in group)
+        worst = max(group, key=lambda p: p[field])
         counts = dict(_bands(values))
         print('  %-24s %4d %8.3f   %6d %6d %6d %6d %6d   %s (%.2f)'
               % (family, len(values), statistics.median(values), counts['faster'],
                  counts['parity'], counts['5-10%'], counts['10-25%'], counts['25%+'],
-                 worst['scene'].replace('.k3d', '')[:30], worst['probe']))
+                 worst['scene'].replace('.k3d', '')[:30], worst[field]))
 
     print()
 
@@ -416,6 +547,18 @@ def report(path):
     base = bundles[0]
     print('baseline: %s     compared: %s' % (base, ', '.join(bundles[1:])))
     print()
+    # Bundles are measured in a fixed order, every scene, and that order biases the result.
+    # Measured with the same bytes under two names: the bundle in the SECOND slot came out 15%
+    # faster than the third, fourth and fifth on every scene whose shading samples an
+    # environment map, while scenes drawn with K3D's own shaders were flat to a tenth of a
+    # percent. Third, fourth and fifth agree with each other, so it is the second slot that is
+    # special, not a drift. Until the runner varies the order, read a ratio against the
+    # baseline as carrying that bias, and settle any bundle-to-bundle question by measuring the
+    # same bundle twice under two names in the same run.
+    print('  NOTE: the second bundle measured in each scene is favoured - up to 15% on scenes')
+    print('  that sample an environment map. Add the same bundle twice under two names to see')
+    print('  how much of a difference below is that, and not the code.')
+    print()
 
     pairs = []
 
@@ -451,10 +594,7 @@ def report(path):
 
             frame = _ratio(a, b, 'workMs') if (resolved(a) and resolved(b)) else None
 
-            # 2.18.0 has no renderer modes at all, so pairing its one path against `advanced` is
-            # comparing two different pipelines. Kept, but kept apart.
-            same_pipeline = mode == (a.get('renderer') or '') or (
-                not (a.get('renderer') or '') and mode in ('', 'simple'))
+            same_pipeline = _same_pipeline(a, mode)
 
             spreads = []
 
@@ -516,6 +656,50 @@ def report(path):
           '=== a different pipeline ===',
           '  %s has no renderer modes, so these compare its single path against a mode that did\n'
           '  not exist then - a ratio here is the cost of the mode, not a regression' % base)
+
+    floors = _load_floors(rows)
+    load = _load_pairs(rows, base, floors)
+
+    if load:
+        print('=== object load ===')
+        print('  loadMs is one CreateK3DAndLoadBinarySnapshot resolved: the snapshot decoded,'
+              ' every object')
+        print('  built, its buffers and textures uploaded, the first shaders compiled - for ONE'
+              ' copy of the')
+        print('  scene, not the copies the frame tables measure.')
+        print('  lil-gui building IS inside it, whatever the menu column says: that column'
+              ' records the')
+        print('  state after the load, and every snapshot carries menuVisibility true, so'
+              ' initializeGUI')
+        print('  and a per-object controller build run within the measured call. The two'
+              ' bundles do')
+        print('  not build the same set of controls, so part of every difference below is'
+              ' lil-gui.')
+        print('  No ms-per-byte figure here: neither recorded size is the payload this'
+              ' measures. fileBytes')
+        print('  is the compressed file - menger_sponge is 31 kB on disk against 531 kB of'
+              ' arrays - and')
+        print('  sceneBytes walks the objects only, missing an environment texture in the plot'
+              ' parameters')
+        print('  (4 kB of scene, 865 kB of file). The uncompressed total is recorded nowhere.')
+        print('  the lightest load each bundle managed, as a guide to how much of a small'
+              ' number is')
+        print('  fixed cost rather than the scene: %s'
+              % ('   '.join('%s %.0f ms' % (name, floors[name])
+                            for name in bundles if name in floors)))
+        print()
+
+        _load_table([p for p in load if p['same_pipeline']],
+                    '  --- like for like ---',
+                    '  the same rendering path on both sides, worst first')
+
+        _by_family([p for p in load if p['same_pipeline']], _scene_types(), 10.0, field='load',
+                   title='  --- load by object type (B/A, fixed cost included) ---')
+
+        _load_table([p for p in load if not p['same_pipeline']],
+                    '  --- a different pipeline ---',
+                    '  a mode that did not exist in %s - the number is the mode\'s load cost,'
+                    ' not a regression' % base)
 
     # what a mode costs inside one bundle, which is a fair question the pairs above cannot answer
     for bundle in bundles[1:]:
