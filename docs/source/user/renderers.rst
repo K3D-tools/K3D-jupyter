@@ -12,14 +12,20 @@ Since 3.0.0 every plot carries a ``renderer`` switch:
     plot.renderer = 'advanced'
 
 ``simple`` (default)
-    The classic rasteriser: a fixed rig of four lights that follows the camera.
-    Fast, stable, and unchanged - every existing notebook renders exactly as before.
+    The classic rasteriser: a fixed rig of four lights that follows the camera,
+    and the cheapest of the three. Materials are physically based here too, so a
+    surface answers to ``roughness`` and ``metalness`` without any environment
+    map - what ``advanced`` adds is where the light comes from, not how the
+    material responds to it.
 
 ``advanced``
     Image-based lighting plus ambient occlusion. All light comes from an
     environment map, materials are physically based, and a GTAO pass grounds the
     geometry with contact shadows. Switching back and forth is a single
-    assignment and never rebuilds the scene.
+    assignment and never rebuilds the scene. Reckon on half again the cost of
+    ``simple``: measured over the visual suite it draws a frame in 1.56x the
+    time, more where a scene is limited by the pixels it fills and less where it
+    is limited by geometry.
 
 ``cinematic`` (experimental)
     Progressive path tracing: light bounces between surfaces, so shadows,

@@ -189,6 +189,26 @@ class Plot(
             With peeling on, volumes compose correctly with intersecting
             meshes (the ray march is split at the layer depths); use
             depth_peels >= 3, below that the effect is unpredictable.
+        cinematic_glossy_filter: `Float`.
+            How much the cinematic renderer widens a glossy lobe in proportion to
+            the roughness already gathered along a path, in [0, 1]. Default 0.25.
+            It removes fireflies where they live and leaves a specular seen
+            directly untouched; 0 disables it.
+        menu_visibility: `Bool`.
+            Whether the panel in the top right corner is shown.
+        colorbar_object_id: `int`.
+            Id of the object whose color map the colorbar shows. -1 picks the
+            first object that has a color range.
+        fps_meter: `Bool`.
+            Whether to show the frames-per-second counter. It measures animation
+            frames, not draws: an idle plot draws nothing and the meter still
+            ticks.
+        time_interpolation: `Bool`.
+            Whether a time series blends between the two nearest keyframes. With
+            it off, playback steps from frame to frame.
+        custom_data: `dict`.
+            Anything you want to travel with the plot. K3D neither reads nor
+            validates it.
         render_on_change: `Bool`.
             Whether adding or updating an object draws a frame on its own. With it off,
             call plot.render() yourself. It has never controlled a render loop - K3D
