@@ -1,13 +1,8 @@
-import sys
+from typing import Literal
 
 __all__ = ["get_protocol", "switch_to_text_protocol", "switch_to_binary_protocol"]
 
-if sys.version_info >= (3, 8):
-    from typing import Literal
-
-    ProtocolName = Literal["text", "binary"]
-else:
-    ProtocolName = str
+ProtocolName = Literal["text", "binary"]
 
 _protocol: ProtocolName = "binary"
 
