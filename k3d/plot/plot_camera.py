@@ -1,5 +1,6 @@
-import numpy as np
 from typing import List, Optional
+
+import numpy as np
 
 
 class PlotCameraMixin:
@@ -51,10 +52,7 @@ class PlotCameraMixin:
         y = np.sin(np.deg2rad(pitch)) * np.sin(np.deg2rad(yaw))
         z = np.cos(np.deg2rad(pitch))
 
-        if pitch not in [0, 180]:
-            up = [0, 0, 1]
-        else:
-            up = [0, 1, 1]
+        up = [0, 0, 1] if pitch not in [0, 180] else [0, 1, 1]
 
         return [
             center[0] + x * cam_distance,

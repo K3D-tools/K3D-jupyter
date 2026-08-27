@@ -1,15 +1,15 @@
 """Factory functions for geometric objects."""
 
-import numpy as np
-from typing import Any
+from typing import Any, Optional, Tuple, Union
 from typing import Dict as TypingDict
 from typing import List as TypingList
-from typing import Optional, Tuple, Union
 
-from .common import _default_color, default_colormap
+import numpy as np
+
 from ..helpers import check_attribute_color_range
 from ..objects import STL, Line, Lines, Mesh, Surface
 from ..transform import process_transform_arguments
+from .common import _default_color, default_colormap
 
 # Type aliases for better readability
 ArrayLike = Union[TypingList, np.ndarray, Tuple]
@@ -53,13 +53,17 @@ def lines(
     color : int, optional
         Packed RGB color of the lines (0xff0000 is red, 0xff is blue) when `colors` is empty. Default is _default_color.
     colors : array_like, optional
-        Array of int: packed RGB colors (0xff0000 is red, 0xff is blue) when attribute, color_map and color_range are empty. Default is [].
+        Array of int: packed RGB colors (0xff0000 is red, 0xff is blue) when attribute,
+        color_map and color_range are empty. Default is [].
     attribute : array_like, optional
         Array of float attribute for the color mapping, corresponding to each vertex. Default is [].
     color_map : list, optional
-        A list of float quadruplets (attribute value, R, G, B), sorted by attribute value. The first quadruplet should have value 0.0, the last 1.0; R, G, B are RGB color components in the range 0.0 to 1.0. Default is default_colormap.
+        A list of float quadruplets (attribute value, R, G, B), sorted by attribute value.
+        The first quadruplet should have value 0.0, the last 1.0; R, G, B are RGB color
+        components in the range 0.0 to 1.0. Default is default_colormap.
     color_range : list, optional
-        A pair [min_value, max_value], which determines the levels of color attribute mapped to 0 and 1 in the color map respectively. Default is [].
+        A pair [min_value, max_value], which determines the levels of color attribute
+        mapped to 0 and 1 in the color map respectively. Default is [].
     width : float, optional
         Thickness of the lines. Default is 0.01.
     shader : {'simple', 'thick', 'mesh'}, optional
@@ -165,9 +169,12 @@ def line(
     attribute : list, optional
         List of values used to apply `color_map`, by default [].
     color_map : list, optional
-        List of `float` quadruplets (attribute value, R, G, B) sorted by attribute value, by default None. The first quadruplet should have value 0.0, the last 1.0; R, G, B are RGB color components in the range 0.0 to 1.0.
+        List of `float` quadruplets (attribute value, R, G, B) sorted by attribute value,
+        by default None. The first quadruplet should have value 0.0, the last 1.0; R, G, B
+        are RGB color components in the range 0.0 to 1.0.
     color_range : list, optional
-        [min_value, max_value] pair determining the levels of color attribute mapped to 0 and 1 in the colormap, by default [].
+        [min_value, max_value] pair determining the levels of color attribute mapped to 0
+        and 1 in the colormap, by default [].
     width : float, optional
         Thickness of the lines, by default 0.01.
     shader : {'simple', 'thick', 'mesh'}, optional

@@ -4,24 +4,39 @@ This package contains all the drawable objects for K3D visualization.
 """
 
 # Base classes and utilities
-from .base import (EPSILON, Drawable, DrawableWithCallback,
-                   DrawableWithVoxelCallback, Group, ListOrArray, SingleOrList,
-                   TimeSeries, VoxelChunk, clone_object)
+from .base import (
+                   EPSILON,
+                   Drawable,
+                   DrawableWithCallback,
+                   DrawableWithVoxelCallback,
+                   Group,
+                   ListOrArray,
+                   SingleOrList,
+                   TimeSeries,
+                   VoxelChunk,
+                   clone_object,
+)
+
 # Geometric objects
 from .geometry import STL, Line, Lines, Mesh, Surface
+
 # Points objects
 from .points import Points
+
 # Text objects
 from .text import Label, Text, Text2d, TextureText
+
 # Texture objects
 from .texture import Texture
+
 # Utility functions
 from .utils import create_object, objects_map
+
 # Vector objects
 from .vectors import VectorField, Vectors
+
 # Volumetric objects
-from .volumetric import (MIP, MarchingCubes, SparseVoxels, Volume, VolumeSlice,
-                         Voxels, VoxelsGroup)
+from .volumetric import MIP, MarchingCubes, SparseVoxels, Volume, VolumeSlice, Voxels, VoxelsGroup
 
 # Export all object classes for backward compatibility
 __all__ = [

@@ -3,9 +3,8 @@
 import numpy as np
 from traitlets import TraitError, Unicode, validate
 
+from ..helpers import Array, Float, Int, array_serialization_wrap, get_bounding_box_points
 from .base import EPSILON, Drawable, ListOrArray, TimeSeries
-from ..helpers import (Array, Float, Int, array_serialization_wrap,
-                       get_bounding_box_points)
 
 
 class Points(Drawable):
@@ -95,7 +94,7 @@ class Points(Drawable):
     )
 
     def __init__(self, **kwargs):
-        super(Points, self).__init__(**kwargs)
+        super().__init__(**kwargs)
 
         self.set_trait("type", "Points")
 

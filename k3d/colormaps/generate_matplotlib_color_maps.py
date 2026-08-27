@@ -29,10 +29,10 @@ For more information, see
         cmap = _get_cmap(name)
         name_c = name.capitalize()
         if name_c == name:
-            file.write("{} = [ \n".format(name))
+            file.write(f"{name} = [ \n")
         else:
             # compability with older matplotlib_color_maps.py where all names were capitalized
-            file.write("{} = {} = [ \n".format(name, name_c))
+            file.write(f"{name} = {name_c} = [ \n")
 
         # cmap.N is the actual number of datapoints the map is constructed with
         for x in np.linspace(0, 1, max(cmap.N, min_samples)):

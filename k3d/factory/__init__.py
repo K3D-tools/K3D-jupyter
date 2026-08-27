@@ -8,8 +8,7 @@ from .points import points
 from .text import label, text, text2d, texture_text
 from .texture import texture
 from .vectors import vector_field, vectors
-from .volumetric import (marching_cubes, mip, sparse_voxels, volume,
-                         volume_slice, voxel_chunk, voxels, voxels_group)
+from .volumetric import marching_cubes, mip, sparse_voxels, volume, volume_slice, voxel_chunk, voxels, voxels_group
 from .vtk import vtk_poly_data
 
 # Export all factory functions and constants

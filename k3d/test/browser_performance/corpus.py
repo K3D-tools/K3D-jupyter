@@ -166,7 +166,7 @@ def generate(out_dir, compression_level=1, verbose=True):
     for module_name in _scene_modules():
         try:
             module = importlib.import_module('%s.%s' % (TEST_PACKAGE, module_name))
-        except Exception as exc:  # noqa: BLE001
+        except Exception as exc:
             # a test module can depend on something this interpreter cannot import - scikit-image
             # built against another numpy, say. Its scenes are missing and that is worth saying,
             # but it is no reason to abandon the other hundred and forty.
@@ -189,7 +189,7 @@ def generate(out_dir, compression_level=1, verbose=True):
                 except NeedsBrowser as exc:
                     status = 'needs a browser'
                     detail = str(exc)
-                except Exception as exc:  # noqa: BLE001 - a scene we cannot build is data, not a crash
+                except Exception as exc:  # a scene we cannot build is data, not a crash
                     status = 'error'
                     detail = '%s: %s' % (type(exc).__name__, str(exc)[:120])
 

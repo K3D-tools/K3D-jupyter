@@ -1,17 +1,16 @@
-import ipywidgets as widgets
 import warnings
-from traitlets import Any as TraitAny
-from traitlets import Bool, Dict, List, TraitError, Unicode, validate
-from typing import Any
+from typing import Any, Optional
 from typing import Dict as TypingDict
 from typing import List as TypingList
-from typing import Optional
+
+import ipywidgets as widgets
+from traitlets import Any as TraitAny
+from traitlets import Bool, Dict, List, TraitError, Unicode, validate
 
 from .._version import __version__ as version
 from .._widget import K3DAnyWidget
 from ..environments import load as load_environment
-from ..helpers import (Float, Int, environment_from_json, environment_to_json,
-                       json_to_array)
+from ..helpers import Float, Int, environment_from_json, environment_to_json, json_to_array
 from ..objects import Drawable, ListOrArray, TimeSeries
 
 

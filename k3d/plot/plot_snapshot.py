@@ -1,14 +1,13 @@
 import base64
 from functools import wraps
-from typing import Any, Callable
+from typing import Any, Callable, Generator, List, Optional
 from typing import Dict as TypingDict
-from typing import Generator, List, Optional
 
 import numpy as np
 
+from .._version import __version__ as version
 from ..helpers import environment_to_json
 from ..objects import create_object
-from .._version import __version__ as version
 
 # Snapshot key -> trait name. One mapping used for both saving and restoring, so the JS-facing
 # key names cannot drift apart from the Python side.
@@ -173,12 +172,12 @@ class PlotSnapshotMixin:
 
         data = msgpack.unpackb(zlib.decompress(data))
         self.voxel_chunks = []
-        if "plot" in data.keys():
+        if "plot" in data:
             self.set_plot_params(data["plot"])
-        if "objects" in data.keys():
+        if "objects" in data:
             for o in data["objects"]:
                 self += create_object(o)
-        if "chunkList" in data.keys():
+        if "chunkList" in data:
             for o in data["chunkList"]:
                 self.voxel_chunks.append(create_object(o, True))
         return data, self.voxel_chunks
@@ -189,8 +188,8 @@ class PlotSnapshotMixin:
         if voxel_chunks is None:
             voxel_chunks = []
         snapshot = {"objects": [], "chunkList": []}
-        for name, l in [("objects", self.objects), ("chunkList", voxel_chunks)]:
-            for o in l:
+        for name, drawables in [("objects", self.objects), ("chunkList", voxel_chunks)]:
+            for o in drawables:
                 snapshot[name].append(o.get_binary())
         return snapshot
 
@@ -201,48 +200,28 @@ class PlotSnapshotMixin:
             additional_js_code: str = "",
     ) -> str:
         """Produce on the Python side a HTML document with the current plot embedded."""
-        import io
         import os
         import zlib
 
         if voxel_chunks is None:
             voxel_chunks = getattr(self, "voxel_chunks", [])
         dir_path = os.path.dirname(os.path.realpath(__file__)) + '/../'
+
+        def read_static(name):
+            with open(os.path.join(dir_path, "static", name), encoding="utf-8") as f:
+                return f.read()
+
         data = self.get_binary_snapshot(compression_level, voxel_chunks)
         if self.snapshot_type == "full":
-            f = io.open(
-                os.path.join(dir_path, "static", "snapshot_standalone.txt"),
-                mode="r",
-                encoding="utf-8",
-            )
-            template = f.read()
-            f.close()
-            f = io.open(
-                os.path.join(dir_path, "static", "standalone.js"),
-                mode="r",
-                encoding="utf-8",
-            )
+            template = read_static("snapshot_standalone.txt")
             template = template.replace(
                 "[K3D_SOURCE]",
                 base64.b64encode(
-                    zlib.compress(f.read().encode(), compression_level)
+                    zlib.compress(read_static("standalone.js").encode(), compression_level)
                 ).decode("utf-8"),
             )
-            f.close()
-            f = io.open(
-                os.path.join(dir_path, "static", "require.js"),
-                mode="r",
-                encoding="utf-8",
-            )
-            template = template.replace("[REQUIRE_JS]", f.read())
-            f.close()
-            f = io.open(
-                os.path.join(dir_path, "static", "fflate.js"),
-                mode="r",
-                encoding="utf-8",
-            )
-            template = template.replace("[FFLATE_JS]", f.read())
-            f.close()
+            template = template.replace("[REQUIRE_JS]", read_static("require.js"))
+            template = template.replace("[FFLATE_JS]", read_static("fflate.js"))
         else:
             if self.snapshot_type == "online":
                 template_file = "snapshot_online.txt"
@@ -250,20 +229,13 @@ class PlotSnapshotMixin:
                 template_file = "snapshot_inline.txt"
             else:
                 raise Exception("Unknown snapshot_type")
-            f = io.open(
-                os.path.join(dir_path, "static", template_file),
-                mode="r",
-                encoding="utf-8",
-            )
-            template = f.read()
-            f.close()
+            template = read_static(template_file)
             template = template.replace("[VERSION]", self._view_module_version)
             template = template.replace("[HEIGHT]", str(self.height))
             template = template.replace("[ID]", str(id(self)))
         template = template.replace("[DATA]", base64.b64encode(data).decode("utf-8"))
-        template = template.replace("[ADDITIONAL]",
+        return template.replace("[ADDITIONAL]",
                                     self.additional_js_code + '\n' + additional_js_code)
-        return template
 
     def get_plot_params(self) -> dict:
         """Plot settings in the wire format shared with the JS side.

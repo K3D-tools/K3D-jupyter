@@ -11,6 +11,7 @@ import numpy as np
 import pytest
 
 import k3d
+
 from .plot_compare import compare, prepare
 
 

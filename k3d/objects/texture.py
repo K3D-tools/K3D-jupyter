@@ -3,8 +3,8 @@
 import numpy as np
 from traitlets import Bool, Bytes, Unicode
 
-from .base import DrawableWithCallback, ListOrArray, TimeSeries
 from ..helpers import Array, array_serialization_wrap, get_bounding_box
+from .base import DrawableWithCallback, ListOrArray, TimeSeries
 
 
 class Texture(DrawableWithCallback):
@@ -59,7 +59,7 @@ class Texture(DrawableWithCallback):
     )
 
     def __init__(self, **kwargs):
-        super(Texture, self).__init__(**kwargs)
+        super().__init__(**kwargs)
 
         self.set_trait("type", "Texture")
 

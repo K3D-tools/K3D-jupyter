@@ -4,13 +4,10 @@ from typing import Any as TypingAny
 from typing import Dict as TypingDict
 
 import numpy as np
-from traitlets import (Any, Bool, Dict, List, TraitError,
-                       Unicode, Union, validate)
+from traitlets import Any, Bool, Dict, List, TraitError, Unicode, Union, validate
 
 from .._widget import K3DModelWidget
-from ..helpers import (Array, Int,
-                       array_serialization_wrap, callback_serialization_wrap,
-                       to_json)
+from ..helpers import Array, Int, array_serialization_wrap, callback_serialization_wrap, to_json
 
 EPSILON = np.finfo(np.float32).eps
 
@@ -44,12 +41,12 @@ class ListOrArray(List):
         """Validate the value, handling None by converting to empty list."""
         if value is None:
             return []
-        return super(ListOrArray, self).validate(obj, value)
+        return super().validate(obj, value)
 
     def validate_elements(self, obj, value):
         if self._empty_ok and len(value) == 0:
             return list(value)
-        return super(ListOrArray, self).validate_elements(obj, value)
+        return super().validate_elements(obj, value)
 
 
 class VoxelChunk(K3DModelWidget):
@@ -68,7 +65,7 @@ class VoxelChunk(K3DModelWidget):
 
     def __init__(self, **kwargs):
         self.id = id(self)
-        super(VoxelChunk, self).__init__(**kwargs)
+        super().__init__(**kwargs)
 
     def __getitem__(self, name):
         return getattr(self, name)
@@ -104,7 +101,7 @@ class Drawable(K3DModelWidget):
     def _shininess_removed(self, proposal):
         # None passes - factories forward their tombstone parameter unconditionally
         if proposal["value"] is None:
-            return None
+            return
         raise TraitError(SHININESS_REMOVED)
 
     def __getitem__(self, name):
@@ -113,7 +110,7 @@ class Drawable(K3DModelWidget):
     def __init__(self, **kwargs):
         self.id = id(self)
 
-        super(Drawable, self).__init__(**kwargs)
+        super().__init__(**kwargs)
 
     def __iter__(self):
         return (self,).__iter__()
@@ -176,22 +173,20 @@ class DrawableWithVoxelCallback(Drawable):
     hover_callback = None
 
     def __init__(self, **kwargs):
-        super(DrawableWithVoxelCallback, self).__init__(**kwargs)
+        super().__init__(**kwargs)
 
         self.on_msg(self._handle_custom_msg)
 
     def _handle_custom_msg(self, content, buffers):
-        if content.get("msg_type", "") == "click_callback":
-            if self.click_callback is not None:
-                self.click_callback(
-                    content["coord"]["x"], content["coord"]["y"], content["coord"]["z"]
-                )
+        if content.get("msg_type", "") == "click_callback" and self.click_callback is not None:
+            self.click_callback(
+                content["coord"]["x"], content["coord"]["y"], content["coord"]["z"]
+            )
 
-        if content.get("msg_type", "") == "hover_callback":
-            if self.hover_callback is not None:
-                self.hover_callback(
-                    content["coord"]["x"], content["coord"]["y"], content["coord"]["z"]
-                )
+        if content.get("msg_type", "") == "hover_callback" and self.hover_callback is not None:
+            self.hover_callback(
+                content["coord"]["x"], content["coord"]["y"], content["coord"]["z"]
+            )
 
 
 class DrawableWithCallback(Drawable):
@@ -207,18 +202,16 @@ class DrawableWithCallback(Drawable):
     )
 
     def __init__(self, **kwargs):
-        super(DrawableWithCallback, self).__init__(**kwargs)
+        super().__init__(**kwargs)
 
         self.on_msg(self._handle_custom_msg)
 
     def _handle_custom_msg(self, content, buffers):
-        if content.get("msg_type", "") == "click_callback":
-            if self.click_callback is not None:
-                self.click_callback(content)
+        if content.get("msg_type", "") == "click_callback" and self.click_callback is not None:
+            self.click_callback(content)
 
-        if content.get("msg_type", "") == "hover_callback":
-            if self.hover_callback is not None:
-                self.hover_callback(content)
+        if content.get("msg_type", "") == "hover_callback" and self.hover_callback is not None:
+            self.hover_callback(content)
 
 
 class Group(Drawable):
@@ -237,7 +230,7 @@ class Group(Drawable):
             for drawable in drawables
         )
 
-        super(Group, self).__init__()
+        super().__init__()
 
     def __iter__(self):
         return self.__objs.__iter__()
@@ -248,7 +241,7 @@ class Group(Drawable):
             for d in self:
                 d.model_matrix = value
         else:
-            super(Group, self).__setattr__(key, value)
+            super().__setattr__(key, value)
 
     @staticmethod
     def __assert_drawable(arg):
@@ -272,7 +265,7 @@ def clone_object(obj: TypingAny) -> TypingAny:
     """
     param: TypingDict[str, TypingAny] = {}
 
-    for k, v in obj.traits().items():
+    for k, _v in obj.traits().items():
         if k in obj._synced_props and k not in ["id", "type"]:
             param[k] = obj[k]
 

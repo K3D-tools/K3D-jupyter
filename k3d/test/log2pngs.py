@@ -1,6 +1,6 @@
 from base64 import b64decode
 
-with open("./log.txt", "r") as f:
+with open("./log.txt") as f:
     log = f.read().splitlines()
 
 for i in range(len(log)):

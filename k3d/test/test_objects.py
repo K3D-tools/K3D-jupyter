@@ -1,5 +1,6 @@
-import numpy as np
 import unittest
+
+import numpy as np
 from traitlets import TraitError
 
 from ..factory import text

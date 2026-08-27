@@ -1,15 +1,15 @@
 """Factory function for point cloud objects."""
 
-import numpy as np
-from typing import Any
+from typing import Any, Optional, Tuple, Union
 from typing import Dict as TypingDict
 from typing import List as TypingList
-from typing import Optional, Tuple, Union
 
-from .common import _default_color, default_colormap
+import numpy as np
+
 from ..helpers import check_attribute_color_range
 from ..objects import Points
 from ..transform import process_transform_arguments
+from .common import _default_color, default_colormap
 
 # Type aliases for better readability
 ArrayLike = Union[TypingList, np.ndarray, Tuple]

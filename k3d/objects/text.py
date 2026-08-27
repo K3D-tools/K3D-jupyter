@@ -3,9 +3,8 @@
 import numpy as np
 from traitlets import Bool, Unicode
 
+from ..helpers import Array, Float, Int, array_serialization_wrap, get_bounding_box_point
 from .base import EPSILON, Drawable, SingleOrList, TimeSeries
-from ..helpers import (Array, Float, Int, array_serialization_wrap,
-                       get_bounding_box_point)
 
 
 class Text(Drawable):
@@ -54,7 +53,7 @@ class Text(Drawable):
     )
 
     def __init__(self, **kwargs):
-        super(Text, self).__init__(**kwargs)
+        super().__init__(**kwargs)
 
         self.set_trait("type", "Text")
 
@@ -100,7 +99,7 @@ class Text2d(Drawable):
     label_box = Bool().tag(sync=True)
 
     def __init__(self, **kwargs):
-        super(Text2d, self).__init__(**kwargs)
+        super().__init__(**kwargs)
 
         self.set_trait("type", "Text2d")
 
@@ -153,7 +152,7 @@ class Label(Drawable):
     )
 
     def __init__(self, **kwargs):
-        super(Label, self).__init__(**kwargs)
+        super().__init__(**kwargs)
 
         self.set_trait("type", "Label")
 
@@ -206,7 +205,7 @@ class TextureText(Drawable):
     )
 
     def __init__(self, **kwargs):
-        super(TextureText, self).__init__(**kwargs)
+        super().__init__(**kwargs)
 
         self.set_trait("type", "TextureText")
 

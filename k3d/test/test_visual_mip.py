@@ -4,6 +4,7 @@ import vtk
 from vtk.util import numpy_support
 
 import k3d
+
 from .plot_compare import compare, prepare
 
 

@@ -1,15 +1,20 @@
 """Volumetric objects for K3D."""
 
-import numpy as np
 import warnings
+
+import numpy as np
 from traitlets import Bool, List, TraitError, Unicode, validate
 
-from .base import (Drawable, DrawableWithCallback, DrawableWithVoxelCallback,
-                   ListOrArray, TimeSeries)
-from ..helpers import (Array, Float, Int,
-                       array_serialization_wrap, get_bounding_box,
-                       shape_validation,
-                       sparse_voxels_validation)
+from ..helpers import (
+    Array,
+    Float,
+    Int,
+    array_serialization_wrap,
+    get_bounding_box,
+    shape_validation,
+    sparse_voxels_validation,
+)
+from .base import Drawable, DrawableWithCallback, DrawableWithVoxelCallback, ListOrArray, TimeSeries
 
 
 class MarchingCubes(DrawableWithCallback):
@@ -97,7 +102,7 @@ class MarchingCubes(DrawableWithCallback):
         return get_bounding_box(self.model_matrix)
 
     def __init__(self, **kwargs):
-        super(MarchingCubes, self).__init__(**kwargs)
+        super().__init__(**kwargs)
 
         self.set_trait("type", "MarchingCubes")
 
@@ -170,7 +175,7 @@ class VolumeSlice(DrawableWithCallback):
     )
 
     def __init__(self, **kwargs):
-        super(VolumeSlice, self).__init__(**kwargs)
+        super().__init__(**kwargs)
 
         self.set_trait("type", "VolumeSlice")
 
@@ -194,7 +199,8 @@ class VolumeSlice(DrawableWithCallback):
         actual = proposal["value"].dtype
 
         if actual not in required:
-            warnings.warn("wrong dtype: %s (%s required)" % (actual, required))
+            warnings.warn("wrong dtype: %s (%s required)" % (actual, required),
+                          stacklevel=2)
 
             return proposal["value"].astype(np.float32)
 
@@ -298,7 +304,7 @@ class Volume(Drawable):
     )
 
     def __init__(self, **kwargs):
-        super(Volume, self).__init__(**kwargs)
+        super().__init__(**kwargs)
 
         self.set_trait("type", "Volume")
 
@@ -316,7 +322,8 @@ class Volume(Drawable):
         actual = proposal["value"].dtype
 
         if actual not in required:
-            warnings.warn("wrong dtype: %s (%s required)" % (actual, required))
+            warnings.warn("wrong dtype: %s (%s required)" % (actual, required),
+                          stacklevel=2)
 
             return proposal["value"].astype(np.float32)
 
@@ -402,7 +409,7 @@ class MIP(Drawable):
     )
 
     def __init__(self, **kwargs):
-        super(MIP, self).__init__(**kwargs)
+        super().__init__(**kwargs)
 
         self.set_trait("type", "MIP")
 
@@ -420,7 +427,8 @@ class MIP(Drawable):
         actual = proposal["value"].dtype
 
         if actual not in required:
-            warnings.warn("wrong dtype: %s (%s required)" % (actual, required))
+            warnings.warn("wrong dtype: %s (%s required)" % (actual, required),
+                          stacklevel=2)
 
             return proposal["value"].astype(np.float32)
 
@@ -485,7 +493,7 @@ class Voxels(DrawableWithVoxelCallback):
     )
 
     def __init__(self, **kwargs):
-        super(Voxels, self).__init__(**kwargs)
+        super().__init__(**kwargs)
 
         self.set_trait("type", "Voxels")
 
@@ -550,7 +558,7 @@ class SparseVoxels(DrawableWithVoxelCallback):
     )
 
     def __init__(self, **kwargs):
-        super(SparseVoxels, self).__init__(**kwargs)
+        super().__init__(**kwargs)
 
         self.set_trait("type", "SparseVoxels")
 
@@ -615,7 +623,7 @@ class VoxelsGroup(DrawableWithVoxelCallback):
     )
 
     def __init__(self, **kwargs):
-        super(VoxelsGroup, self).__init__(**kwargs)
+        super().__init__(**kwargs)
 
         self.set_trait("type", "VoxelsGroup")
 

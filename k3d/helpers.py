@@ -3,23 +3,23 @@
 import base64
 import itertools
 import logging
-import msgpack
-import numpy as np
 import os
+import ssl
 import zlib
-from traitlets import Float as _TraitFloat
-from traitlets import Int as _TraitInt
-from traitlets import TraitError
-from typing import Any
+from typing import Any, Optional, Tuple, Union
 from typing import Dict as TypingDict
 from typing import List as TypingList
-from typing import Optional, Tuple, Union
-import ssl
 from urllib.error import URLError
 from urllib.request import Request, urlopen
 
-from ._protocol import get_protocol
+import msgpack
+import numpy as np
+from traitlets import Float as _TraitFloat
+from traitlets import Int as _TraitInt
+from traitlets import TraitError
 from traittypes import Array as _TraitArray
+
+from ._protocol import get_protocol
 
 # Set up module-level logger
 logger = logging.getLogger(__name__)
@@ -137,8 +137,7 @@ def array_to_json(
         return "base64_" + base64.b64encode(
             msgpack.packb(ret, use_bin_type=True)
         ).decode("ascii")
-    else:
-        return ret
+    return ret
 
 
 # noinspection PyUnusedLocal
@@ -161,10 +160,8 @@ def json_to_array(
         Numpy array or None.
     """
     if value:
-        if "data" in value:
-            data = value["data"]
-        else:
-            data = bytearray(zlib.decompress(value["compressed_data"]))
+        data = (value["data"] if "data" in value
+                else bytearray(zlib.decompress(value["compressed_data"])))
 
         ar = np.frombuffer(data, dtype=value["dtype"]).reshape(value["shape"])
 
@@ -207,21 +204,20 @@ def to_json(
             ret[str(key)] = to_json(key, value, property, compression_level)
 
         return ret
-    elif isinstance(input, np.ndarray) and input.dtype is np.dtype(object):
+    if isinstance(input, np.ndarray) and input.dtype is np.dtype(object):
         return to_json(name, input.tolist(), obj, compression_level)
-    elif isinstance(input, list):
+    if isinstance(input, list):
         property = obj[name]
         return [
             to_json(idx, v, property, compression_level) for idx, v in enumerate(input)
         ]
-    elif isinstance(input, bytes):
+    if isinstance(input, bytes):
         return array_to_json(np.frombuffer(input, dtype=np.uint8), compression_level)
-    elif isinstance(input, np.ndarray):
+    if isinstance(input, np.ndarray):
         return array_to_json(input, compression_level)
-    elif isinstance(input, np.number):
+    if isinstance(input, np.number):
         return input.tolist()
-    else:
-        return input
+    return input
 
 
 def from_json(input: Any, obj: Optional[Any] = None) -> Any:
@@ -250,16 +246,15 @@ def from_json(input: Any, obj: Optional[Any] = None) -> Any:
             and "shape" in input
     ):
         return json_to_array(input, obj)
-    elif isinstance(input, list):
+    if isinstance(input, list):
         return [from_json(i, obj) for i in input]
-    elif isinstance(input, dict):
+    if isinstance(input, dict):
         ret = {}
         for key, value in input.items():
             ret[key] = from_json(value, obj)
 
         return ret
-    else:
-        return input
+    return input
 
 
 def environment_to_json(value: Any, obj: Optional[Any] = None) -> Any:
@@ -410,8 +405,8 @@ def check_attribute_color_range(
 
     if len(color_range) == 2:
         return color_range
-    elif type(attribute) is dict:
-        t = [minmax(attribute[k]) for k in attribute.keys()]
+    if type(attribute) is dict:
+        t = [minmax(attribute[k]) for k in attribute]
         color_range = [min([v[0] for v in t]), max([v[1] for v in t])]
     elif attribute.size == 0:
         return color_range
@@ -463,8 +458,7 @@ def map_colors(
         for i in range(3)
     ]
 
-    colors = (red << 16) + (green << 8) + blue
-    return colors
+    return (red << 16) + (green << 8) + blue
 
 
 def bounding_corners(
@@ -687,5 +681,4 @@ def contour(data, bounds, values, clustering_factor=0):
         clus = pyacvd.Clustering(mesh)
         clus.cluster(mesh.n_points // clustering_factor)
         return clus.create_mesh()
-    else:
-        return mesh
+    return mesh

@@ -1,7 +1,8 @@
 import os
+from io import BytesIO
+
 import pytest
 from PIL import Image
-from io import BytesIO
 from pixelmatch.contrib.PIL import pixelmatch
 
 TEST_DIR = os.path.dirname(os.path.abspath(__file__))
@@ -119,13 +120,13 @@ def compare(
             accepted_path = os.path.join(REFERENCES_DIR, ref_name + ".png")
 
             # Write an advanced reference only when the render differs from the simple fallback.
-            if mode == "advanced" and not os.path.isfile(accepted_path):
-                if reference is not None and result.size == reference.size:
-                    unchanged = pixelmatch(result, reference,
-                                           Image.new("RGBA", result.size),
-                                           threshold=threshold, includeAA=True)
-                    if unchanged <= max_mismatched_pixels:
-                        continue
+            if (mode == "advanced" and not os.path.isfile(accepted_path)
+                    and reference is not None and result.size == reference.size):
+                unchanged = pixelmatch(result, reference,
+                                       Image.new("RGBA", result.size),
+                                       threshold=threshold, includeAA=True)
+                if unchanged <= max_mismatched_pixels:
+                    continue
 
             os.makedirs(os.path.dirname(accepted_path), exist_ok=True)
             result.save(accepted_path)

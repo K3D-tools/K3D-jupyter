@@ -1,11 +1,12 @@
 import atexit
 import copy
 import logging
-import msgpack
-import numpy as np
 import threading
 import time
 from base64 import b64decode
+
+import msgpack
+import numpy as np
 from deepcomparer import deep_compare
 from flask import Flask, send_from_directory
 from werkzeug import Response
@@ -108,7 +109,7 @@ class k3d_remote:
         self.thread.daemon = True
         self.thread.start()
 
-        self.synced_plot = {k: None for k in k3d_plot.get_plot_params().keys()}
+        self.synced_plot = dict.fromkeys(k3d_plot.get_plot_params().keys())
         self.synced_objects = {}
 
         @self.api.route("/<path:path>")
@@ -126,7 +127,7 @@ class k3d_remote:
                 current_plot_params = self.k3d_plot.get_plot_params()
                 plot_diff = {
                     k: current_plot_params[k]
-                    for k in current_plot_params.keys()
+                    for k in current_plot_params
                     if current_plot_params[k] != self.synced_plot[k]
                        and k != "minimumFps"
                 }
@@ -148,10 +149,10 @@ class k3d_remote:
                                     o[p], self.synced_objects[o.id][p], o.id, p
                                 )
                             if sync:
-                                if o.id not in objects_diff.keys():
+                                if o.id not in objects_diff:
                                     objects_diff[o.id] = {"id": o.id, "type": o.type}
                                 objects_diff[o.id][p] = to_json(p, o[p], o)
-                for k in self.synced_objects.keys():
+                for k in self.synced_objects:
                     if k not in self.k3d_plot.object_ids:
                         objects_diff[k] = None  # to remove from plot
                 diff = {"plot_diff": plot_diff, "objects_diff": objects_diff}
@@ -225,7 +226,7 @@ class k3d_remote:
             """
         return K3DInstance.getScreenshot(K3DInstance.parameters.screenshotScale, %d).then(function (d){
         return d.toDataURL().split(',')[1];
-        });                                 
+        });
         """
             % only_canvas
         )

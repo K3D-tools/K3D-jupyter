@@ -8,9 +8,9 @@ leaked a geometry and a colormap texture until the browser ran out of GPU memory
 import numpy as np
 import pytest
 
-from .plot_compare import prepare
-
 import k3d
+
+from .plot_compare import prepare
 
 SHAPE = (8, 8, 8)
 

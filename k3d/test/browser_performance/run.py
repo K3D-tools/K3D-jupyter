@@ -39,13 +39,14 @@ compare in that case. And every bundle that has the renderer modes is measured i
 setRenderer, is measured once, and that one row is compared against both.
 """
 import argparse
+import contextlib
 import csv
 import datetime
 import glob
-import statistics
 import json
 import os
 import socket
+import statistics
 import sys
 import webbrowser
 
@@ -99,7 +100,7 @@ def _port_holder(port):
         for line in out.splitlines():
             if ':%d->' % port in line:
                 return 'docker container %s' % line.split()[0]
-    except Exception:  # noqa: BLE001 - diagnostics must not fail the run
+    except Exception:  # diagnostics must not fail the run
         pass
 
     return 'another process'
@@ -157,7 +158,7 @@ def ensure_bundles(versions):
         try:
             bundles.ensure(version)
             ready.append(version)
-        except Exception as exc:  # noqa: BLE001 - a missing release is a message, not a crash
+        except Exception as exc:  # a missing release is a message, not a crash
             print('  %-10s failed: %s' % (version, exc))
 
     return ready
@@ -318,7 +319,7 @@ def _scene_types():
         try:
             with open(path, 'rb') as handle:
                 data = msgpack.unpackb(zlib.decompress(handle.read()), raw=False)
-        except Exception:  # noqa: BLE001 - a scene we cannot read is simply ungrouped
+        except Exception:  # a scene we cannot read is simply ungrouped
             continue
 
         types = sorted({o.get('type') for o in data.get('objects', []) if o.get('type')})
@@ -458,12 +459,10 @@ def report(path):
             spreads = []
 
             for row in (a, b):
-                try:
+                # a row written by an older run has no spread column, and a pair with only
+                # one side reporting one is still worth comparing
+                with contextlib.suppress(ValueError):
                     spreads.append(float(row.get('probeSpreadPct') or 0))
-                except ValueError:
-                    # a row written by an older run has no spread column, and a pair with only
-                    # one side reporting one is still worth comparing
-                    pass
 
             pairs.append({
                 'scene': scene, 'bundle': bundle, 'mode': mode, 'sets': a.get('sets'),
@@ -534,7 +533,7 @@ def report(path):
 
             costs = []
 
-            for scene, per_scene in by_scene.items():
+            for per_scene in by_scene.values():
                 one = per_scene.get((bundle, base_mode))
                 other = per_scene.get((bundle, mode))
 
