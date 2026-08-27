@@ -2,8 +2,25 @@
 #include <clipping_planes_pars_fragment>
 #include <lights_pars_begin>
 
+// minimal mirror of the fields BRDF_GGX reads (the full struct lives in
+// lights_physical_pars_fragment, which assumes the mesh pipeline)
+struct PhysicalMaterial {
+    vec3 diffuseColor;
+    float roughness;
+    vec3 specularColorBlended;
+    float specularF90;
+};
+
+// K3D_GGX_CHUNK
+
 precision highp sampler3D;
 
+#if K3D_ENV_LIGHT == 1
+uniform vec3 k3dEnvSH[9];
+uniform mat3 k3dEnvRotation;
+uniform vec3 k3dEnvLightDir;
+uniform vec3 k3dEnvLightColor;
+#endif
 uniform mat4 transform;
 uniform sampler3D volumeTexture;
 
@@ -12,14 +29,50 @@ uniform sampler2D jitterTexture;
 uniform float low;
 uniform float high;
 uniform mat4 modelViewMatrix;
+uniform mat4 projectionMatrix;
 uniform float samples;
 uniform float gradient_step;
+uniform float roughness;
+uniform float metalness;
 
 uniform sampler3D mask;
 uniform float maskOpacities[256];
 
 uniform vec4 scale;
 uniform vec4 translation;
+uniform vec4 rotation;
+
+// uPeelSegment == 1 clamps the projection between the two depth layers
+uniform int uPeelSegment;
+uniform sampler2D uPeelNearTexture;
+uniform sampler2D uPeelFarTexture;
+uniform vec2 uPeelSize;
+uniform mat4 uPeelInvProjection;
+uniform mat4 uPeelInvView;
+
+vec3 rotate_vertex_position(vec3 pos, vec3 t, vec4 q) {
+    vec3 p = pos.xyz - t.xyz;
+
+    return p.xyz + 2.0 * cross(cross(p.xyz, q.xyz) + q.w * p.xyz, q.xyz) + t.xyz;
+}
+
+// window-space z from a depth layer -> distance along the ray in marching space
+float peelT(sampler2D depthTexture, vec3 origin, vec3 dir, float noHitT) {
+    vec2 uv = gl_FragCoord.xy * uPeelSize;
+    float z = texture2D(depthTexture, uv).r;
+
+    if (z >= 1.0) {
+        return noHitT;
+    }
+
+    vec4 view = uPeelInvProjection * vec4(uv * 2.0 - 1.0, z * 2.0 - 1.0, 1.0);
+    view /= view.w;
+
+    vec4 world = uPeelInvView * view;
+    vec3 p = rotate_vertex_position(world.xyz, translation.xyz, rotation);
+
+    return dot(p - origin, dir);
+}
 
 varying vec3 localPosition;
 varying vec3 transformedCameraPosition;
@@ -89,13 +142,19 @@ float getMaskedVolume(vec3 pos)
 
 vec3 worldGetNormal(in float px, in vec3 pos)
 {
-    return normalize(
-        vec3(
-            px - getMaskedVolume(pos + vec3(gradient_step, 0, 0)),
-            px - getMaskedVolume(pos + vec3(0, gradient_step, 0)),
-            px - getMaskedVolume(pos + vec3(0, 0, gradient_step))
-        )
+    vec3 gradient = vec3(
+        px - getMaskedVolume(pos + vec3(gradient_step, 0, 0)),
+        px - getMaskedVolume(pos + vec3(0, gradient_step, 0)),
+        px - getMaskedVolume(pos + vec3(0, 0, gradient_step))
     );
+
+    // saturated plateaus have no gradient: normalize(0) is NaN and one NaN sample
+    // blacks out the ray (0 * NaN stays NaN even with zeroed SH)
+    if (dot(gradient, gradient) < 1e-20) {
+        return vec3(0.0);
+    }
+
+    return normalize(gradient);
 }
 
 void main() {
@@ -119,7 +178,36 @@ void main() {
     int sampleCount = min(int(length(textcoord_delta) * samples), int(samples * 1.8));
 
     textcoord_delta = textcoord_delta / float(sampleCount);
+    #ifdef K3D_AO_DEPTH_PASS
+    // no jitter: a per-pixel noisy shell depth reads as micro-cliffs to GTAO
+    textcoord_start = textcoord_start - textcoord_delta * 0.5;
+    #else
     textcoord_start = textcoord_start - textcoord_delta * (0.01 + 0.98 * jitter);
+
+    if (uPeelSegment == 1) {
+        // sample k sits at t = tRayStart + (k - jitterOffset) * tStep; keep in sync with Volume.fragment.glsl
+        float jitterOffset = 0.01 + 0.98 * jitter;
+        float tRayStart = max(0.0, tmin);
+        float tStep = (tmax - tRayStart) / float(sampleCount);
+        float tNear = peelT(uPeelNearTexture, transformedCameraPosition, direction, -1.0);
+        float tFar = peelT(uPeelFarTexture, transformedCameraPosition, direction, -1.0);
+        int kMin = 0;
+        int kMax = sampleCount - 1;
+
+        if (tNear < 0.0) {
+            kMax = -1;
+        } else {
+            kMin = max(0, int(ceil((min(tNear, tmax) - tRayStart) / tStep + jitterOffset)));
+        }
+
+        if (tFar >= 0.0) {
+            kMax = min(kMax, int(ceil((min(tFar, tmax) - tRayStart) / tStep + jitterOffset)) - 1);
+        }
+
+        textcoord_start = textcoord_start + float(kMin) * textcoord_delta;
+        sampleCount = max(kMax - kMin + 1, 0);
+    }
+    #endif
 
     vec3 textcoord = textcoord_start - textcoord_delta;
     vec3 maxTextcoord = textcoord;
@@ -165,14 +253,50 @@ void main() {
         pxColor = texture(colormap, vec2(scaled_px, 0.5));
     }
 
-    // LIGHT
-    #if NUM_DIR_LIGHTS > 0
-    vec4 addedLights = vec4(ambientLightColor * RECIPROCAL_PI, 1.0);
-    vec3 normal = worldGetNormal(px, maxTextcoord);
+    #ifdef K3D_AO_DEPTH_PASS
+    // the occluder shell: depth of the maximum-intensity point, when opaque enough
+    if (pxColor.a >= 0.5) {
+        vec4 kClipPos = projectionMatrix * modelViewMatrix * vec4(maxTextcoord - vec3(0.5), 1.0);
+        float kShellDepth = ((gl_DepthRange.diff * (kClipPos.z / kClipPos.w))
+            + gl_DepthRange.near + gl_DepthRange.far) / 2.0;
 
+        gl_FragDepthEXT = kShellDepth;
+        // g == 2.0 marks a volumetric shell - the AO overlay halves occlusion
+        // there (mesh depth packing keeps g below 1.0)
+        gl_FragColor = vec4(kShellDepth, 2.0, 0.0, 1.0);
+        return;
+    }
+
+    // no opaque-enough maximum: still a volume-composited pixel. Marked at
+    // (almost) the far plane: classified as volumetric without contributing any
+    // occluder geometry - a discard left faint regions in the mesh AO class,
+    // printing nearby meshes' GTAO onto the ray integral. Anything real inside
+    // or behind the box still wins the depth test.
+    gl_FragDepthEXT = 0.999999;
+    gl_FragColor = vec4(0.999999, 2.0, 0.0, 1.0);
+    return;
+    #endif
+
+    // LIGHT
+    vec3 normal = worldGetNormal(px, maxTextcoord);
+    vec3 irradiance = ambientLightColor;
+
+    #if K3D_ENV_LIGHT == 1
+    irradiance += shGetIrradianceAt(k3dEnvRotation * normal, k3dEnvSH);
+    #endif
+
+    vec4 addedLights = vec4(irradiance * RECIPROCAL_PI, 1.0);
+    vec3 specularColor = vec3(0.0);
+
+    PhysicalMaterial specMaterial;
+    specMaterial.diffuseColor = vec3(0.0);
+    specMaterial.roughness = max(roughness, 0.0525);
+    specMaterial.specularColorBlended = mix(vec3(0.04), pxColor.rgb, metalness);
+    specMaterial.specularF90 = 1.0;
+
+    #if NUM_DIR_LIGHTS > 0
     vec3 lightDirection;
     vec3 lightColor;
-    vec3 specularColor = vec3(0.0);
     float lightingIntensity;
 
     #pragma unroll_loop_start
@@ -183,14 +307,32 @@ void main() {
         addedLights.rgb += lightColor * (0.05 + 0.95 * lightingIntensity);
 
         #if (USE_SPECULAR == 1)
-        specularColor += lightColor * pow(lightingIntensity, 50.0) * pxColor.a;
+        specularColor += lightColor * lightingIntensity *
+        BRDF_GGX(-lightDirection, -direction, normal, specMaterial) * pxColor.a;
         #endif
     }
     #pragma unroll_loop_end
+    #endif
 
+    // advanced: the dominant directional light distilled from the environment's L1 band -
+    // in simple the uniforms are zero, so the whole block is arithmetic multiplied by nothing
+    #if K3D_ENV_LIGHT == 1
+    {
+        vec3 envLightColor = k3dEnvLightColor * RECIPROCAL_PI;
+        float envIntensity = clamp(dot(k3dEnvLightDir, normal), 0.0, 1.0);
+        addedLights.rgb += envLightColor * (0.05 + 0.95 * envIntensity);
+
+        #if (USE_SPECULAR == 1)
+        specularColor += envLightColor * envIntensity *
+        BRDF_GGX(k3dEnvLightDir, -direction, normal, specMaterial) * pxColor.a;
+        #endif
+    }
+    #endif
+
+    // no (1 - metalness) on the body - same reasoning as in Volume.fragment.glsl:
+    // metalness tints and strengthens the highlights instead of going black
     pxColor.rgb *= addedLights.xyz;
     pxColor.rgb += specularColor;
-    #endif
 
     gl_FragColor = pxColor;
 }

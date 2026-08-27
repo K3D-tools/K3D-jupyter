@@ -1,0 +1,1106 @@
+<!doctype html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>k3d scene runner</title>
+    <style>
+        html, body { margin: 0; padding: 0; background: #fff; overflow: hidden; }
+        /* the drawing buffer must not depend on the window, the display DPI or the zoom,
+           so the container is nailed down in CSS pixels and the pixel ratio is forced to 1 */
+        #stage { position: absolute; left: 0; top: 0; overflow: hidden; }
+    </style>
+</head>
+<body>
+<div id="stage"></div>
+<script>
+    // Installed before the bundle is parsed, so it sees every draw. Prototype property names
+    // survive minification; locals do not.
+    window.__gl = { draws: 0, drew: false };
+
+    ['WebGLRenderingContext', 'WebGL2RenderingContext'].forEach(function (name) {
+        if (typeof window[name] === 'undefined') {
+            return;
+        }
+
+        var proto = window[name].prototype;
+
+        ['drawArrays', 'drawElements', 'drawArraysInstanced', 'drawElementsInstanced'].forEach(
+            function (method) {
+                if (typeof proto[method] !== 'function') {
+                    return;
+                }
+
+                var original = proto[method];
+
+                proto[method] = function () {
+                    window.__gl.draws += 1;
+                    window.__gl.drew = true;
+
+                    return original.apply(this, arguments);
+                };
+            },
+        );
+    });
+
+    var params = new URLSearchParams(window.location.search);
+
+    var bundleMatch = /^[A-Za-z0-9._-]+$/.exec(params.get('bundle') || 'local');
+    var sceneMatch = /^[A-Za-z0-9._-]+\.k3d$/.exec(params.get('scene') || '');
+
+    var CONFIG = {
+        bundle: bundleMatch ? bundleMatch[0] : 'local',
+        scene: sceneMatch ? sceneMatch[0] : '',
+        width: parseInt(params.get('width') || '1280', 10),
+        height: parseInt(params.get('height') || '720', 10),
+        frames: parseInt(params.get('frames') || '90', 10),
+        warmup: parseInt(params.get('warmup') || '30', 10),
+        // The frame time to aim for. Vsync quantises the frame to the refresh period, so 12 ms is
+        // two or three quanta above an empty one.
+        targetMs: parseFloat(params.get('targetMs') || '12'),
+        // From the parent for every bundle after the first: one scene, one copy count, or the two
+        // numbers are two different workloads.
+        sets: params.get('sets') === null ? null : parseInt(params.get('sets'), 10),
+        maxSets: parseInt(params.get('maxSets') || '4096', 10),
+        byteBudget: parseFloat(params.get('byteBudget') || '1.2e9'),
+        // 'graph' clones in the scene graph with the geometry shared; 'k3d' hands the object's
+        // JSON back to k3d, which rebuilds the mesh once per copy
+        duplicate: params.get('duplicate') || 'graph',
+        probeReps: parseInt(params.get('probeReps') || '4', 10),
+        probeSteps: parseInt(params.get('probeSteps') || '6', 10),
+        // The probe reads about 2.3x the frame's work - it serialises each render against a
+        // readback where the frame path pipelines - so aiming at the factor is what puts the FRAME
+        // on the target.
+        probeToFrame: parseFloat(params.get('probeToFrame') || '2.3'),
+        // viewpoints a probe averages over, the same ring for every bundle and every copy count
+        probeViews: parseInt(params.get('probeViews') || '16', 10),
+        // A probe runs until it has spent this long, so a cheap scene gets many renders.
+        probeMinMs: parseFloat(params.get('probeMinMs') || '150'),
+        // batches per probe, median wins; one more is run first and discarded as warm-up
+        probeRepeats: parseInt(params.get('probeRepeats') || '3', 10),
+        // how long making copies may take before the count is capped at what got built
+        buildBudgetMs: parseFloat(params.get('buildBudgetMs') || '4000'),
+        // below one refresh period, a difference in frame time is quantisation, not performance
+        frameFloorMs: parseFloat(params.get('frameFloorMs') || '7'),
+        probeMaxReps: parseInt(params.get('probeMaxReps') || '400', 10),
+        // lil-gui is a DOM tree with controllers that watch values, and none of it is the object
+        // under test - it comes off unless something asks for it
+        menu: params.get('menu') === '1',
+        emptyMs: params.get('emptyMs') === null ? null : parseFloat(params.get('emptyMs')),
+        renderer: params.get('renderer') || null,
+        auto: params.get('auto') === '1',
+    };
+
+    // A measurement far past what the probe predicted has nothing left to teach. Not a flat
+    // ceiling: __expectMs sets it from the probe, so an expensive scene is not truncated.
+    CONFIG.abortMs = parseFloat(params.get('abortMs')) || CONFIG.targetMs * 6;
+    window.__expectMs = null;
+
+    var stage = document.getElementById('stage');
+
+    stage.style.width = CONFIG.width + 'px';
+    stage.style.height = CONFIG.height + 'px';
+
+    window.__state = { phase: 'start', error: null, config: CONFIG };
+
+    function post(message) {
+        if (window.parent !== window) {
+            window.parent.postMessage(message, '*');
+        }
+    }
+
+    function fail(where, err) {
+        window.__state.phase = 'error';
+        window.__state.error = where + ': ' + (err && err.message ? err.message : String(err));
+
+        if (CONFIG.auto) {
+            post({ type: 'error', scene: CONFIG.scene, bundle: CONFIG.bundle,
+                error: window.__state.error });
+        }
+    }
+
+    function loadScript(url) {
+        return new Promise(function (resolve, reject) {
+            var tag = document.createElement('script');
+
+            tag.src = url;
+            tag.onload = resolve;
+            tag.onerror = function () { reject(new Error('cannot load ' + url)); };
+            document.head.appendChild(tag);
+        });
+    }
+
+    // --- how big is this scene in bytes -----------------------------------------------------
+    // The wire size, reported but NOT a memory cap: what an object costs the GPU is what it
+    // builds. __geometryStats measures that.
+    function sceneBytes(world) {
+        var total = 0;
+
+        function walk(value, depth) {
+            if (value === null || typeof value !== 'object' || depth > 4) {
+                return;
+            }
+
+            if (typeof value.byteLength === 'number') {
+                total += value.byteLength;
+
+                return;
+            }
+
+            Object.keys(value).forEach(function (key) { walk(value[key], depth + 1); });
+        }
+
+        Object.keys(world.ObjectsListJson).forEach(function (id) {
+            walk(world.ObjectsListJson[id], 0);
+        });
+
+        return total;
+    }
+
+    // --- where a copy goes -------------------------------------------------------------------
+    // Rotation rather than translation keeps every copy in frame, and irrational angles keep
+    // any two from coinciding.
+    var GOLDEN = [137.508, 77.9, 49.7];
+
+    function rotationAboutCentre(index, centre) {
+        var a = GOLDEN.map(function (deg) { return (index * deg) * Math.PI / 180.0; });
+        var ca = a.map(Math.cos);
+        var sa = a.map(Math.sin);
+        var r = [
+            ca[1] * ca[2], ca[2] * sa[0] * sa[1] - ca[0] * sa[2], ca[0] * ca[2] * sa[1] + sa[0] * sa[2],
+            ca[1] * sa[2], ca[0] * ca[2] + sa[0] * sa[1] * sa[2], -ca[2] * sa[0] + ca[0] * sa[1] * sa[2],
+            -sa[1], ca[1] * sa[0], ca[0] * ca[1],
+        ];
+        var t = [
+            centre[0] - (r[0] * centre[0] + r[1] * centre[1] + r[2] * centre[2]),
+            centre[1] - (r[3] * centre[0] + r[4] * centre[1] + r[5] * centre[2]),
+            centre[2] - (r[6] * centre[0] + r[7] * centre[1] + r[8] * centre[2]),
+        ];
+
+        return [
+            r[0], r[1], r[2], t[0],
+            r[3], r[4], r[5], t[1],
+            r[6], r[7], r[8], t[2],
+            0, 0, 0, 1,
+        ];
+    }
+
+    function multiply(a, b) {
+        var out = new Array(16);
+
+        for (var row = 0; row < 4; row++) {
+            for (var col = 0; col < 4; col++) {
+                var sum = 0;
+
+                for (var k = 0; k < 4; k++) {
+                    sum += a[row * 4 + k] * b[k * 4 + col];
+                }
+
+                out[row * 4 + col] = sum;
+            }
+        }
+
+        return out;
+    }
+
+    function sceneCentre() {
+        var grid = window.K3D.parameters.grid;
+
+        if (grid && grid.length === 6) {
+            return [(grid[0] + grid[3]) / 2, (grid[1] + grid[4]) / 2, (grid[2] + grid[5]) / 2];
+        }
+
+        return [0, 0, 0];
+    }
+
+    // Take the menu down. 2.18.0's setMenuVisibility(false) walks gui_map, which does not exist
+    // until an object registers in the GUI - so it throws on the empty baseline scene unless it
+    // is seeded.
+    function hideMenu(instance) {
+        if (typeof instance.setMenuVisibility !== 'function') {
+            return 'absent';
+        }
+
+        try {
+            if (!instance.gui_map) {
+                instance.gui_map = {};
+            }
+
+            instance.setMenuVisibility(false);
+
+            return 'off';
+        } catch (err) {
+            var container = instance.gui && instance.gui.domElement;
+
+            if (container) {
+                container.style.display = 'none';
+
+                return 'hidden';
+            }
+
+            return 'failed';
+        }
+    }
+
+    // --- duplication -------------------------------------------------------------------------
+    // A copy is a scene-graph clone sharing the original's geometry and material. Handing the
+    // JSON back to k3d rebuilds the mesh per copy, so the frame ends up measuring video memory
+    // rather than the object. ?duplicate=k3d brings that path back.
+    var originals = null;
+    var originalsJson = null;
+    var clones = [];
+    var setsPresent = 1;
+
+    function matrix4(rowMajor) {
+        // there is no THREE global on this page - the class comes off an object the bundle built
+        var Matrix4 = window.K3D.getWorld().camera.matrix.constructor;
+        var m = new Matrix4();
+
+        m.set.apply(m, rowMajor);
+
+        return m;
+    }
+
+    var NO_USER_DATA = {};
+
+    function cloneShared(source) {
+        var src = [];
+
+        source.traverse(function (o) { src.push(o); });
+
+        // Object3D.copy runs userData through JSON, and k3d keeps megabytes in there. Detach it for
+        // the clone and put it back by reference - it can hold live materials.
+        var carried = src.map(function (o) { return o.userData; });
+        var copy;
+
+        for (var i = 0; i < src.length; i++) {
+            src[i].userData = NO_USER_DATA;
+        }
+
+        try {
+            copy = source.clone();
+        } finally {
+            for (var j = 0; j < src.length; j++) {
+                src[j].userData = carried[j];
+            }
+        }
+
+        var dst = [];
+
+        copy.traverse(function (o) { dst.push(o); });
+
+        for (var k = 0; k < src.length && k < dst.length; k++) {
+            // clone() shares geometry and material but drops the render hooks, and k3d does
+            // per-object work in onBeforeRender - that cost belongs in the measurement
+            dst[k].userData = carried[k];
+            dst[k].onBeforeRender = src[k].onBeforeRender;
+            dst[k].onAfterRender = src[k].onAfterRender;
+        }
+
+        return copy;
+    }
+
+    function ensureOriginals(world) {
+        if (originals === null) {
+            originals = world.K3DObjects.children.slice();
+            originalsJson = Object.keys(world.ObjectsListJson).map(function (id) {
+                return world.ObjectsListJson[id];
+            });
+        }
+    }
+
+    // the old path, kept for the case where a shared clone would be a lie about the object
+    function addSetsThroughK3D(world, count) {
+        var centre = sceneCentre();
+        var nextId = 1;
+
+        Object.keys(world.ObjectsListJson).forEach(function (id) {
+            nextId = Math.max(nextId, Number(id) + 1);
+        });
+
+        var pending = [];
+
+        for (var set = 0; set < count; set++) {
+            for (var i = 0; i < originalsJson.length; i++) {
+                var source = originalsJson[i];
+                var clone = {};
+
+                Object.keys(source).forEach(function (key) { clone[key] = source[key]; });
+
+                clone.id = nextId++;
+                clone.model_matrix = {
+                    data: new Float32Array(multiply(
+                        rotationAboutCentre(setsPresent + set, centre),
+                        Array.from((source.model_matrix && source.model_matrix.data)
+                            || [1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1]),
+                    )),
+                    shape: [4, 4],
+                };
+
+                pending.push(Promise.resolve(window.K3D.reload(clone, null)));
+            }
+        }
+
+        setsPresent += count;
+
+        return Promise.all(pending).then(function () { return setsPresent; });
+    }
+
+    // Exactly `target` copies, adding or removing. Removing is what lets the search come down.
+    window.__setSets = function (target) {
+        var world = window.K3D.getWorld();
+
+        ensureOriginals(world);
+
+        var wanted = Math.max(1, target);
+
+        if (CONFIG.duplicate === 'k3d') {
+            return wanted > setsPresent
+                ? addSetsThroughK3D(world, wanted - setsPresent)
+                : Promise.resolve(setsPresent);
+        }
+
+        var centre = sceneCentre();
+
+        while (setsPresent > wanted) {
+            for (var r = 0; r < originals.length; r++) {
+                world.K3DObjects.remove(clones.pop());
+            }
+
+            setsPresent -= 1;
+        }
+
+        // A shared clone costs microseconds, so this should never bite - but when it did, the tab
+        // stopped answering rather than reporting anything.
+        var deadline = performance.now() + CONFIG.buildBudgetMs;
+
+        while (setsPresent < wanted) {
+            // the rotation comes from the set index, so copy number seven is the same copy in
+            // every bundle and on every machine
+            var m = matrix4(rotationAboutCentre(setsPresent, centre));
+
+            for (var i = 0; i < originals.length; i++) {
+                var copy = cloneShared(originals[i]);
+
+                copy.applyMatrix4(m);
+                world.K3DObjects.add(copy);
+                clones.push(copy);
+            }
+
+            setsPresent += 1;
+
+            if (performance.now() > deadline) {
+                window.__state.buildBudgetHit = setsPresent;
+                break;
+            }
+        }
+
+        return Promise.resolve(setsPresent);
+    };
+
+    window.__addSets = function (count) {
+        return window.__setSets(setsPresent + count);
+    };
+
+    // What one copy costs the GPU: voxels arrive as kilobytes and build megabytes. Distinct
+    // geometries only.
+    window.__geometryStats = function () {
+        var world = window.K3D.getWorld();
+        var seen = {};
+        var bytes = 0;
+        var triangles = 0;
+
+        world.K3DObjects.traverse(function (o) {
+            var g = o.geometry;
+
+            if (!g || seen[g.uuid]) {
+                return;
+            }
+
+            seen[g.uuid] = true;
+
+            Object.keys(g.attributes || {}).forEach(function (key) {
+                var attribute = g.attributes[key];
+
+                if (attribute && attribute.array) {
+                    bytes += attribute.array.byteLength;
+                }
+            });
+
+            if (g.index && g.index.array) {
+                bytes += g.index.array.byteLength;
+            }
+
+            var count = g.index ? g.index.count
+                : (g.attributes.position ? g.attributes.position.count : 0);
+
+            triangles += count / 3;
+        });
+
+        return { bytes: bytes, triangles: Math.round(triangles),
+            geometries: Object.keys(seen).length };
+    };
+
+    // --- coverage ----------------------------------------------------------------------------
+    // What the scene paints, and a fingerprint of it. The fingerprint is the check that a copy
+    // landed somewhere new; area cannot be, because a copy rotated about a centre it sits on
+    // covers the same pixels.
+    var canonicalCamera = null;
+
+    function rememberCamera() {
+        var world = window.K3D.getWorld();
+        var target = (world.controls && world.controls.target) || { x: 0, y: 0, z: 0 };
+
+        canonicalCamera = [
+            world.camera.position.x, world.camera.position.y, world.camera.position.z,
+            target.x, target.y, target.z,
+            world.camera.up.x, world.camera.up.y, world.camera.up.z,
+        ];
+    }
+
+    function restoreCamera() {
+        if (canonicalCamera) {
+            window.K3D.setCamera(canonicalCamera.slice());
+        }
+    }
+
+    window.__coverage = function () {
+        var world = window.K3D.getWorld();
+        var gl = world.renderer.getContext();
+
+        return Promise.resolve(world.render(true))
+            .then(function () {
+                // a timer, not an animation frame: a hidden page composites nothing, so rAF never
+                // fires there and this would hang. The measurement below does need real frames.
+                return new Promise(function (resolve) { setTimeout(resolve, 30); });
+            })
+            .then(function () {
+                var w = gl.drawingBufferWidth;
+                var h = gl.drawingBufferHeight;
+                var pixels = new Uint8Array(w * h * 4);
+
+                gl.readPixels(0, 0, w, h, gl.RGBA, gl.UNSIGNED_BYTE, pixels);
+
+                var covered = 0;
+                var image = 0;
+
+                for (var i = 3; i < pixels.length; i += 4) {
+                    if (pixels[i] > 8) {
+                        covered += 1;
+                    }
+                }
+
+                // Every pixel: the frame is mostly grid, and a sample cannot see a thin object.
+                for (var j = 0; j < pixels.length; j += 4) {
+                    image = (image * 31 + pixels[j]) | 0;
+                    image = (image * 31 + pixels[j + 1]) | 0;
+                    image = (image * 31 + pixels[j + 2]) | 0;
+                }
+
+                window.__lastCoverage = { covered: covered, total: w * h, image: image };
+
+                return window.__lastCoverage;
+            });
+    };
+
+    // --- measurement -------------------------------------------------------------------------
+    // Viewpoint `index` of `total` around the canonical camera - absolute, not relative.
+    // Rotating the CURRENT position makes the sweep cumulative, so where it ends depends on how
+    // many renders came before, and a probe runs as many as the cost allows.
+    function orbitCamera(index, total) {
+        if (!canonicalCamera) {
+            return;
+        }
+
+        var base = canonicalCamera;
+        var tx = base[3];
+        var ty = base[4];
+        var tz = base[5];
+        var vx = base[0] - tx;
+        var vy = base[1] - ty;
+        var vz = base[2] - tz;
+        var norm = Math.sqrt(base[6] * base[6] + base[7] * base[7] + base[8] * base[8]) || 1;
+        var ux = base[6] / norm;
+        var uy = base[7] / norm;
+        var uz = base[8] / norm;
+        var angle = 2 * Math.PI * index / total;
+        var c = Math.cos(angle);
+        var s = Math.sin(angle);
+        var dot = ux * vx + uy * vy + uz * vz;
+
+        window.K3D.setCamera([
+            tx + vx * c + (uy * vz - uz * vy) * s + ux * dot * (1 - c),
+            ty + vy * c + (uz * vx - ux * vz) * s + uy * dot * (1 - c),
+            tz + vz * c + (ux * vy - uy * vx) * s + uz * dot * (1 - c),
+            tx, ty, tz,
+            base[6], base[7], base[8],
+        ]);
+    }
+
+    function percentile(sorted, p) {
+        if (sorted.length === 0) {
+            return null;
+        }
+
+        return sorted[Math.min(sorted.length - 1,
+            Math.max(0, Math.round((sorted.length - 1) * p)))];
+    }
+
+    window.__measure = function () {
+        restoreCamera();
+
+        var deltas = [];
+        // Counted from the end of the warm-up, or the figure is inflated by (warmup + frames) /
+        // frames.
+        var drawsBefore = null;
+        var total = CONFIG.warmup + CONFIG.frames;
+        var index = 0;
+        var previous = null;
+        var stalled = 0;
+
+        return new Promise(function (resolve, reject) {
+            // a window in the background gets no animation frames at all, and a harness that hangs
+            // for three minutes teaches nobody anything - say what is wrong instead
+            var guard = setTimeout(function () {
+                if (index === 0) {
+                    reject(new Error('no animation frame in 2s - window not visible?'));
+                }
+            }, 2000);
+
+            function tick(now) {
+                clearTimeout(guard);
+                // a frame counts only if something reached the GPU in it, and the draw a tick asks
+                // for lands in microtasks after the tick returned - so it is observed on the next
+                var drew = window.__gl.drew;
+
+                window.__gl.drew = false;
+
+                if (drew) {
+                    if (previous !== null && index > CONFIG.warmup) {
+                        if (drawsBefore === null) {
+                            drawsBefore = window.__gl.draws;
+                        }
+
+                        deltas.push(now - previous);
+
+                        // hopeless already: stop rather than spend ninety frames confirming it
+                        if (deltas.length >= 8) {
+                            var running = deltas.slice().sort(function (a, b) { return a - b; });
+                            var ceiling = Math.max(CONFIG.abortMs,
+                                window.__expectMs ? window.__expectMs * 3 : 0);
+
+                            if (percentile(running, 0.5) > ceiling) {
+                                resolve({
+                                    frames: deltas.length,
+                                    medianMs: percentile(running, 0.5),
+                                    p95Ms: percentile(running, 0.95),
+                                    minMs: running[0],
+                                    drawsPerFrame: drawsBefore === null ? null
+                                        : (window.__gl.draws - drawsBefore) / deltas.length,
+                                    aborted: true,
+                                });
+
+                                return;
+                            }
+                        }
+                    }
+
+                    previous = now;
+                    stalled = 0;
+                } else {
+                    stalled += 1;
+
+                    if (stalled > 240) {
+                        reject(new Error('240 frames with no draw - is the window visible?'));
+
+                        return;
+                    }
+                }
+
+                if (index >= total) {
+                    var sorted = deltas.slice().sort(function (a, b) { return a - b; });
+
+                    resolve({
+                        frames: deltas.length,
+                        medianMs: percentile(sorted, 0.5),
+                        p95Ms: percentile(sorted, 0.95),
+                        minMs: sorted.length ? sorted[0] : null,
+                        drawsPerFrame: (deltas.length && drawsBefore !== null)
+                            ? (window.__gl.draws - drawsBefore) / deltas.length : null,
+                    });
+
+                    return;
+                }
+
+                orbitCamera(index, CONFIG.frames);
+                window.K3D.render();
+                index += 1;
+                requestAnimationFrame(tick);
+            }
+
+            requestAnimationFrame(tick);
+        });
+    };
+
+    // --- the cost probe ----------------------------------------------------------------------
+    // What one render costs, unquantised: queue N forced renders, make the GPU catch up with a
+    // one-pixel readback, divide. Works in a window getting no frames at all.
+    window.__probe = function () {
+        var world = window.K3D.getWorld();
+        var gl = world.renderer.getContext();
+        var pixel = new Uint8Array(4);
+
+        function sync() {
+            gl.readPixels(0, 0, 1, 1, gl.RGBA, gl.UNSIGNED_BYTE, pixel);
+        }
+
+        // The probe sweeps the camera as the measurement does: a still one prices a raymarched
+        // volume at whatever that single angle costs.
+        function renders(count) {
+            var chain = Promise.resolve();
+
+            for (var i = 0; i < count; i++) {
+                chain = chain.then(function (index) {
+                    // A fixed ring: the number of renders depends on the scene, so tying the sweep to it would
+                    // average two bundles over different angles.
+                    orbitCamera(index % CONFIG.probeViews, CONFIG.probeViews);
+
+                    return Promise.resolve(world.render(true));
+                }.bind(null, i));
+            }
+
+            return chain;
+        }
+
+        function timed(count) {
+            var started = performance.now();
+
+            return renders(count).then(function () {
+                sync();
+
+                return (performance.now() - started) / count;
+            });
+        }
+
+        restoreCamera();
+
+        return Promise.resolve(world.render(true)).then(function () {
+            sync();
+
+            // Calibrate, then run batches long enough to amortise the readback. The calibration batch
+            // is warm-up and the MEDIAN of the rest is returned: one batch is not a measurement.
+            return timed(CONFIG.probeReps).then(function (rough) {
+                var count = Math.max(CONFIG.probeReps, Math.min(CONFIG.probeMaxReps,
+                    Math.ceil(CONFIG.probeMinMs / Math.max(0.05, rough))));
+                var samples = [];
+
+                function batch() {
+                    return timed(count).then(function (ms) {
+                        samples.push(ms);
+
+                        if (samples.length < CONFIG.probeRepeats) {
+                            return batch();
+                        }
+
+                        samples.sort(function (a, b) { return a - b; });
+                        restoreCamera();
+
+                        var middle = samples[Math.floor(samples.length / 2)];
+
+                        // what a frame should cost if this probe is right about the scene
+                        window.__expectMs = (CONFIG.emptyMs || 0)
+                            + middle / CONFIG.probeToFrame;
+
+                        // How far apart the batches were: a ratio is worth what the two readings behind it are.
+                        window.__lastProbeSpread = middle > 0
+                            ? 100 * (samples[samples.length - 1] - samples[0]) / middle : null;
+
+                        return middle;
+                    });
+                }
+
+                return batch();
+            });
+        });
+    };
+
+    // --- the search --------------------------------------------------------------------------
+    // Frame timing cannot decide the copy count: vsync pins the frame to the refresh period
+    // until the object's cost passes it. The frame time is still what gets reported, minus the
+    // empty frame - workMs = T - F is the object.
+    window.__run = function () {
+        var world = window.K3D.getWorld();
+        var gl = world.renderer.getContext();
+        var stats = window.__geometryStats();
+        var row = {
+            scene: CONFIG.scene,
+            bundle: CONFIG.bundle,
+            // 2.18.0 keeps the snapshot's renderer value without owning the concept, so reporting it
+            // would claim a mode it does not have.
+            renderer: window.__state.supportsModes ? (window.K3D.parameters.renderer || '') : '',
+            rendererRequested: CONFIG.renderer || '',
+            supportsModes: !!window.__state.supportsModes,
+            objectsAt1: Object.keys(world.ObjectsListJson).length,
+            sceneBytes: sceneBytes(world),
+            gpuBytesAt1: stats.bytes,
+            trianglesAt1: stats.triangles,
+            geometriesAt1: stats.geometries,
+            duplicate: CONFIG.duplicate,
+            menu: window.__state.menu,
+            bufferW: gl.drawingBufferWidth,
+            bufferH: gl.drawingBufferHeight,
+            loadMs: window.__state.loadMs,
+            bundleMs: window.__state.bundleMs,
+            fetchMs: window.__state.fetchMs,
+            // the whole snapshot, which sceneBytes does not see: an environment texture lives in
+            // the plot's parameters, so a 4 kB scene can be an 865 kB file
+            fileBytes: window.__state.bytes,
+            emptyMs: CONFIG.emptyMs,
+            capped: '',
+        };
+        var history = [];
+        var sets = 1;
+
+        function measureOnce() {
+            return window.__measure().then(function (result) {
+                history.push({ sets: sets, medianMs: result.medianMs, p95Ms: result.p95Ms });
+
+                row.sets = sets;
+                // what is in the scene graph, not what k3d's registry knows: a shared clone is
+                // drawn but never enters ObjectsListJson, so the registry would report one object
+                row.objects = world.K3DObjects.children.length;
+                row.medianMs = result.medianMs;
+                row.p95Ms = result.p95Ms;
+                row.framesMeasured = result.frames;
+                row.drawsPerFrame = result.drawsPerFrame;
+                row.aborted = !!result.aborted;
+                row.dominance = (CONFIG.emptyMs === null || !result.medianMs)
+                    ? null : (result.medianMs - CONFIG.emptyMs) / result.medianMs;
+
+                return result;
+            });
+        }
+
+        // How many copies to measure with. A ratio, never a difference: pricing a copy as
+        // (probe_n - probe_1) / (n - 1) divides noise by a large number and can come out negative.
+        // Scaling the count by how far the cost is from the target walks straight there, and each
+        // step is bounded so a bad reading costs a step rather than the run.
+        function solve() {
+            var byBytes = (CONFIG.duplicate === 'k3d' && stats.bytes > 0)
+                ? Math.max(1, Math.floor(CONFIG.byteBudget / stats.bytes)) : CONFIG.maxSets;
+            var limit = Math.min(CONFIG.maxSets, byBytes);
+            // Aim ABOVE the target: landing short leaves the frame on the vsync floor measuring the
+            // refresh rate, landing long only makes it slower to measure.
+            var aim = CONFIG.targetMs * CONFIG.probeToFrame;
+            var best = null;
+            var path = [];
+
+            function accept(at, cost) {
+                var distance = Math.abs(Math.log(cost / aim));
+
+                path.push(at + ':' + cost.toFixed(1));
+
+                if (best === null || distance < best.distance) {
+                    best = { sets: at, cost: cost, distance: distance };
+                }
+            }
+
+            function step(at, depth) {
+                return window.__setSets(at).then(function (actual) {
+                    return window.__probe().then(function (cost) {
+                        accept(actual, cost);
+                        row.probeLeverSets = actual;
+                        row.probeStepsUsed = depth + 1;
+
+                        // in probe units, because that is what was just measured
+                        var enough = cost >= aim * 0.6 && cost <= aim * 2.5;
+
+                        if (enough || depth + 1 >= CONFIG.probeSteps) {
+                            return null;
+                        }
+
+                        // scale towards the aim, but never by more than eightfold in one step
+                        var scale = Math.min(8, Math.max(0.125, aim / Math.max(0.01, cost)));
+                        var next = Math.max(1, Math.min(Math.round(actual * scale), limit));
+
+                        if (next === actual) {
+                            if (cost < aim * 0.6 && actual >= limit) {
+                                row.capped = byBytes < CONFIG.maxSets ? 'memory' : 'maxSets';
+                            }
+
+                            return null;
+                        }
+
+                        return step(next, depth + 1);
+                    });
+                });
+            }
+
+            return window.__setSets(1)
+                .then(function () { return window.__probe(); })
+                .then(function (at1) {
+                    row.probeAt1Ms = at1;
+                    accept(1, at1);
+
+                    // one copy already costs what we were aiming for: nothing to search for, and
+                    // copying it would only push the frame further past the target
+                    if (at1 >= aim) {
+                        row.probeLeverSets = 1;
+                        row.probeStepsUsed = 0;
+
+                        return null;
+                    }
+
+                    // cost(1) is fixed cost plus one copy, so it OVER-states what a copy costs
+                    // and this first jump lands short of the aim rather than past it
+                    var first = Math.max(2, Math.min(
+                        Math.round(aim / Math.max(0.01, at1)), limit));
+
+
+                    return step(first, 0);
+                })
+                .then(function () {
+                    sets = best ? best.sets : 1;
+                    // the whole search, so a surprising copy count can be read back rather than
+                    // guessed at: "2:5.2 5:6.1 12:13.4" is sets:probe ms, in the order visited
+                    row.probePath = path.join(' ');
+                    // reported for information only - nothing steers on it any more
+                    row.perCopyMs = (best && best.sets > 1)
+                        ? (best.cost - row.probeAt1Ms) / (best.sets - 1) : null;
+
+                    return window.__setSets(sets);
+                })
+                .then(function (actual) {
+                    sets = actual;
+
+                    return measureOnce();
+                })
+                .then(function (result) {
+                    // One correction from the frames, and only where they say something: below one refresh
+                    // period the work reads as ~0.1 ms and scaling by it asks for fifty times the copies.
+                    if (result.aborted || CONFIG.emptyMs === null) {
+                        return null;
+                    }
+
+                    var work = result.medianMs - CONFIG.emptyMs;
+
+                    if (work < CONFIG.frameFloorMs) {
+                        row.correctionSkipped = 'frame on the floor';
+
+                        return null;
+                    }
+
+                    if (result.medianMs > CONFIG.targetMs * 0.6
+                        && result.medianMs < CONFIG.targetMs * 2.5) {
+                        return null;
+                    }
+
+                    var scale = Math.min(4, Math.max(0.25,
+                        (CONFIG.targetMs - CONFIG.emptyMs) / work));
+                    var next = Math.max(1, Math.min(Math.round(sets * scale), limit));
+
+                    if (next === sets) {
+                        return null;
+                    }
+
+                    row.corrected = true;
+
+                    return window.__setSets(next).then(function (actual) {
+                        sets = actual;
+
+                        return measureOnce();
+                    });
+                });
+        }
+
+        // the copy count came from the first bundle: measure exactly that, no search
+        function atGivenSets() {
+            return window.__setSets(Math.max(1, CONFIG.sets)).then(function (actual) {
+                sets = actual;
+
+                return measureOnce();
+            });
+        }
+
+        return window.__coverage()
+            .then(function (coverage) {
+                row.coverageAt1 = coverage.covered;
+                row.imageAt1 = coverage.image;
+                // advanced composites the whole buffer, so coverage starts saturated and the transform
+                // check has nothing to work with.
+                row.coverageSaturated = coverage.covered >= coverage.total * 0.999;
+
+                return CONFIG.sets === null ? solve() : atGivenSets();
+            })
+            .then(function () {
+                // the same cost, unquantised, at the count that was actually measured: it is the
+                // number to compare across versions when the frame time sits on a vsync boundary
+                return window.__probe();
+            })
+            .then(function (ms) {
+                row.probeMs = ms;
+
+                return window.__coverage();
+            })
+            .then(function (coverage) {
+                row.coverageFinal = coverage.covered;
+                row.imageFinal = coverage.image;
+                // copies were added and the image did not change: the object draws itself in the
+                // same place regardless of its matrix, so the load only looks like it grew
+                row.transformIgnored = (row.sets > 1 && coverage.image === row.imageAt1);
+                row.programs = world.renderer.info.programs
+                    ? world.renderer.info.programs.length : null;
+                row.probeSpreadPct = window.__lastProbeSpread;
+                if (window.__state.buildBudgetHit) {
+                    row.capped = 'buildTime';
+                }
+
+                row.workMs = (CONFIG.emptyMs === null || row.medianMs === null
+                    || row.medianMs === undefined) ? null : row.medianMs - CONFIG.emptyMs;
+                row.underResolved = CONFIG.emptyMs !== null && row.medianMs !== null
+                    && row.medianMs !== undefined && row.medianMs < CONFIG.emptyMs + 2;
+                row.history = history;
+
+                return row;
+            });
+    };
+
+    // --- boot -------------------------------------------------------------------------------
+
+    var bundleStarted = performance.now();
+
+     function resolve(catalogue, wanted, what) {
+        for (var i = 0; i < catalogue.length; i++) {
+            if (catalogue[i] === wanted) {
+                return catalogue[i];
+            }
+        }
+
+        throw new Error('unknown ' + what + ': ' + wanted);
+    }
+
+    fetch('/api/config')
+        .then(function (response) {
+            if (!response.ok) {
+                throw new Error('config ' + response.status);
+            }
+
+            return response.json();
+        })
+        .then(function (cfg) {
+            var bundle = resolve(cfg.bundles || [], CONFIG.bundle, 'bundle');
+            var scene = resolve((cfg.scenes || []).map(function (entry) { return entry.file; }),
+                CONFIG.scene, 'scene');
+
+            return loadScript('/bundles/' + bundle + '/require.js')
+                .then(function () {
+                    return loadScript('/bundles/' + bundle + '/standalone.js');
+                })
+                .then(function () {
+                    window.__state.phase = 'bundle';
+                    window.__state.bundleMs = performance.now() - bundleStarted;
+
+                    var fetchStarted = performance.now();
+
+                    return fetch('/scenes/' + scene).then(function (response) {
+                        if (!response.ok) {
+                            throw new Error('scene ' + response.status);
+                        }
+
+                        return response.arrayBuffer().then(function (buffer) {
+                            window.__state.fetchMs = performance.now() - fetchStarted;
+
+                            return buffer;
+                        });
+                    });
+                });
+        })
+        .then(function (blob) {
+            window.__state.phase = 'snapshot';
+            window.__state.bytes = blob.byteLength;
+
+            return new Promise(function (resolve, reject) {
+                requirejs(['k3d'], function (lib) {
+                    var started = performance.now();
+
+                    try {
+                        // every version hands back a promise here, not the instance
+                        Promise.resolve(new lib.CreateK3DAndLoadBinarySnapshot(blob, stage))
+                            .then(function (instance) {
+                                window.K3D = instance;
+                                window.__state.loadMs = performance.now() - started;
+                                window.__state.createMs = window.__state.loadMs;
+                                resolve(instance);
+                            }, reject);
+                    } catch (err) {
+                        reject(err);
+                    }
+                }, reject);
+            });
+        })
+        .then(function (instance) {
+            var world = instance.getWorld();
+            var gl = world.renderer.getContext();
+
+            // k3d follows the display, and a HiDPI screen would silently double the buffer - the
+            // whole point of this harness is that the load does not depend on the machine
+            if (world.renderer.getPixelRatio() !== 1) {
+                world.renderer.setPixelRatio(1);
+                world.renderer.setSize(CONFIG.width, CONFIG.height);
+            }
+
+            // A bundle older than the modes has no setRenderer, and that is the detection. It may
+            // also refuse a mode, so the requested one is not necessarily the measured one.
+            window.__state.supportsModes = typeof instance.setRenderer === 'function'
+                && typeof instance.parameters.renderer === 'string';
+
+            if (CONFIG.renderer && window.__state.supportsModes) {
+                try {
+                    instance.setRenderer(CONFIG.renderer);
+                } catch (err) {
+                    // a mode this machine cannot do is a row that says which mode it measured,
+                    // not a dead scene - the renderer column reports what actually took
+                    window.__state.rendererError = String(err && err.message);
+                }
+            }
+
+            // The menu is not the object under test: lil-gui is a DOM tree that gets built and
+            // kept up to date, and in the duplicate=k3d path every copy registers itself in it.
+            window.__state.menu = CONFIG.menu ? 'kept' : hideMenu(instance);
+            window.__state.menuTurnedOff = window.__state.menu === 'off';
+
+            rememberCamera();
+            window.__state.phase = 'ready';
+            window.__state.diagnostics = {
+                objects: Object.keys(world.ObjectsListJson).length,
+                drawingBuffer: [gl.drawingBufferWidth, gl.drawingBufferHeight],
+                requested: [CONFIG.width, CONFIG.height],
+                pixelRatio: world.renderer.getPixelRatio(),
+                devicePixelRatio: window.devicePixelRatio,
+                samples: gl.getParameter(gl.SAMPLES),
+                mediumFloatPrecision: gl.getShaderPrecisionFormat(
+                    gl.FRAGMENT_SHADER, gl.MEDIUM_FLOAT).precision,
+                renderer: (function () {
+                    var info = gl.getExtension('WEBGL_debug_renderer_info');
+
+                    return info ? gl.getParameter(info.UNMASKED_RENDERER_WEBGL) : null;
+                })(),
+                rendererMode: instance.parameters.renderer || null,
+            };
+
+            if (!CONFIG.auto) {
+                return null;
+            }
+
+            return window.__run().then(function (row) {
+                row.gpu = window.__state.diagnostics.renderer;
+                row.devicePixelRatio = window.devicePixelRatio;
+                row.samples = window.__state.diagnostics.samples;
+                window.__state.phase = 'done';
+                window.__state.row = row;
+                post({ type: 'result', row: row });
+            });
+        })
+        .catch(function (err) { fail(window.__state.phase, err); });
+</script>
+</body>
+</html>

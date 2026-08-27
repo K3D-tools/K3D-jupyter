@@ -19,6 +19,7 @@ module.exports = {
             const modelMatrix = new THREE.Matrix4();
             const colorMap = (config.color_map && config.color_map.data) || null;
             let opacityFunction = (config.opacity_function && config.opacity_function.data) || null;
+            const hasOpacityFunction = opacityFunction !== null && opacityFunction.length > 0;
             const colorRange = config.color_range;
 
             config.interpolation = typeof (config.interpolation) !== 'undefined' ? config.interpolation : true;
@@ -81,8 +82,8 @@ module.exports = {
             });
 
             if (K3D.parameters.depthPeels === 0) {
-                material.depthWrite = (config.opacity === 1.0 && opacityFunction === null);
-                material.transparent = (config.opacity !== 1.0 || opacityFunction !== null);
+                material.depthWrite = (config.opacity === 1.0 && !hasOpacityFunction);
+                material.transparent = (config.opacity !== 1.0 || hasOpacityFunction);
             } else {
                 material.blending = THREE.NoBlending;
                 material.onBeforeCompile = K3D.colorOnBeforeCompile;

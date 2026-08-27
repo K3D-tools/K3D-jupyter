@@ -19,7 +19,22 @@ examples/*.vtk
 examples/*.vtp
 examples/*.js
 examples/*.gz
+# the gallery thumbnails download into whatever directory sphinx runs in
+docs/*.obj
+docs/*.zip
+# whatever the notebooks download or write when they run; the fixtures they keep
+# live in examples/assets/, which these patterns do not reach
+examples/*.html
+examples/*.k3d
+examples/*.laz
+examples/*.obj
+examples/*.png
+examples/*.slc
+examples/*.stl
+examples/*.zip
 k3d/labextension/
+# the visual suite runs from k3d/ and caches its downloaded mesh fixture there
+k3d/*.stl
 k3d/test/results/*
 node_modules
 yarn.lock
@@ -27,5 +42,7 @@ k3d/labextension/
 /docs/source/_static/standalone.js
 /docs/source/_static/require.js
 /docs/source/_static/k3d.js
+/docs/source/_static/k3d-bvh-worker.js
+/docs/source/_static/k3dEnvironments.js
 .yarn
 build.cmd

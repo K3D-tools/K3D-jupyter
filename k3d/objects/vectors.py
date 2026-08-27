@@ -1,11 +1,11 @@
 """Vector objects for K3D."""
 
 import numpy as np
-from traitlets import Bool, Float, Int, List, TraitError, Unicode, validate
-from traittypes import Array
+from traitlets import Bool, List, TraitError, Unicode, validate
 
 from .base import Drawable, TimeSeries
-from ..helpers import (array_serialization_wrap, get_bounding_box,
+from ..helpers import (Array, Float, Int,
+                       array_serialization_wrap, get_bounding_box,
                        get_bounding_box_points)
 
 

@@ -22,6 +22,7 @@ const objectsGUIProvider = require('./lib/objectsGUIprovider');
 const clippingPlanesGUIProvider = require('./lib/clippingPlanesGUIProvider');
 const timeSeries = require('./lib/timeSeries');
 const { base64ToArrayBuffer } = require('./lib/helpers/buffer');
+const { error: errorOverlay } = require('./lib/Error');
 
 const Float16Array = require('./lib/helpers/float16Array');
 
@@ -137,6 +138,151 @@ function K3D(provider, targetDOMNode, parameters) {
                 self.setDepthPeels(value);
                 changeParameters.call(self, 'depth_peels', value);
             });
+        GUI.controls.add(self.parameters, 'renderer', ['simple', 'advanced', 'cinematic']).listen()
+            .onChange((value) => {
+                self.setRenderer(value);
+                // setRenderer can refuse the switch, so sync the surviving mode, not the requested one
+                changeParameters.call(self, 'renderer', self.parameters.renderer);
+            });
+        // Python resolves catalog names to arrays, so the resolved value comes back as
+        // an object - the wire dict carries the name for display. Arrays without one
+        // show as 'custom'. Without a kernel nothing can resolve a catalog name, so a
+        // standalone offers only what it can regenerate: the procedural presets, any
+        // sideloaded maps (window.k3dEnvironments) and the map baked into the snapshot -
+        // that one is kept aside, or switching away from it would lose the pixels.
+        const bakedEnv = (self.parameters.environment && self.parameters.environment.data
+            && self.parameters.environment.name) ? self.parameters.environment : null;
+        const environmentOptions = (function () {
+            const options = ['neutral', 'studio', 'outdoor'];
+
+            if (self.parameters.standaloneGUI) {
+                if (typeof (window) !== 'undefined' && window.k3dEnvironments) {
+                    Object.keys(window.k3dEnvironments).forEach((name) => {
+                        if (options.indexOf(name) === -1) {
+                            options.push(name);
+                        }
+                    });
+                }
+
+                if (bakedEnv && options.indexOf(bakedEnv.name) === -1) {
+                    options.push(bakedEnv.name);
+                }
+            } else {
+                options.push(
+                    'autoshop_01', 'brown_photostudio_02', 'burnt_warehouse',
+                    'moonless_golf', 'venice_sunset',
+                );
+            }
+
+            options.push('custom');
+
+            return options;
+        }());
+        const environmentGUIName = function () {
+            const env = self.parameters.environment;
+
+            if (typeof (env) === 'string') {
+                return env;
+            }
+            if (env && env.name && environmentOptions.indexOf(env.name) !== -1) {
+                return env.name;
+            }
+
+            return 'custom';
+        };
+        const environmentProxy = { environment: environmentGUIName() };
+
+        self.refreshEnvironmentGUI = function () {
+            environmentProxy.environment = environmentGUIName();
+        };
+
+        const environmentControls = [];
+
+        environmentControls.push(GUI.controls.add(environmentProxy, 'environment', environmentOptions)
+            .listen()
+            .onChange((value) => {
+                if (value === 'custom') {
+                    // a label for an array map, not a choice
+                    self.refreshEnvironmentGUI();
+                    return;
+                }
+                if (bakedEnv && value === bakedEnv.name) {
+                    // back to the map baked into this snapshot
+                    self.setEnvironment(bakedEnv);
+                    changeParameters.call(self, 'environment', value);
+                    return;
+                }
+                self.setEnvironment(value);
+                changeParameters.call(self, 'environment', value);
+            }));
+        environmentControls.push(GUI.controls.add(self.parameters, 'environmentRotation')
+            .step(0.01).min(0).max(2 * Math.PI)
+            .listen()
+            .onChange((value) => {
+                self.setEnvironmentRotation(value);
+                changeParameters.call(self, 'environment_rotation', value);
+            }));
+        const aoControls = [];
+
+        aoControls.push(GUI.controls.add(self.parameters, 'aoRadius')
+            .step(0.005).min(0.005).max(0.5)
+            .listen()
+            .onChange((value) => {
+                self.setAORadius(value);
+                changeParameters.call(self, 'ao_radius', value);
+            }));
+        aoControls.push(GUI.controls.add(self.parameters, 'aoStrength')
+            .step(0.05).min(0).max(5)
+            .listen()
+            .onChange((value) => {
+                self.setAOStrength(value);
+                changeParameters.call(self, 'ao_strength', value);
+            }));
+
+        const cinematicControls = [];
+
+        // slider max is an interactive comfort bound; the trait accepts more
+        cinematicControls.push(GUI.controls.add(self.parameters, 'cinematicSamples')
+            .step(1).min(1).max(1024)
+            .listen()
+            .onChange((value) => {
+                self.setCinematicSamples(value);
+                changeParameters.call(self, 'cinematic_samples', value);
+            }));
+        cinematicControls.push(GUI.controls.add(self.parameters, 'cinematicBounces')
+            .step(1).min(1).max(16)
+            .listen()
+            .onChange((value) => {
+                self.setCinematicBounces(value);
+                changeParameters.call(self, 'cinematic_bounces', value);
+            }));
+        cinematicControls.push(GUI.controls.add(self.parameters, 'cinematicGlossyFilter')
+            .step(0.05).min(0.0).max(1.0)
+            .listen()
+            .onChange((value) => {
+                self.setCinematicGlossyFilter(value);
+                changeParameters.call(self, 'cinematic_glossy_filter', value);
+            }));
+
+        self.refreshRendererGUI = function () {
+            const mode = self.parameters.renderer;
+
+            environmentControls.forEach((control) => {
+                control.show(mode === 'advanced' || mode === 'cinematic');
+            });
+            aoControls.forEach((control) => {
+                control.show(mode === 'advanced');
+            });
+            cinematicControls.forEach((control) => {
+                control.show(mode === 'cinematic');
+            });
+        };
+        self.refreshRendererGUI();
+        GUI.controls.add(self.parameters, 'toneMapping', ['none', 'agx', 'aces']).listen()
+            .onChange((value) => {
+                self.setToneMapping(value);
+                changeParameters.call(self, 'tone_mapping', value);
+            });
         viewModeGUI(GUI.controls, self);
         cameraModeGUI(GUI.controls, self);
         cameraUpAxisGUI(GUI.controls, self);
@@ -233,7 +379,7 @@ function K3D(provider, targetDOMNode, parameters) {
     }
 
     this.refreshAfterObjectsChange = function (isUpdate, force) {
-        if (self.parameters.autoRendering || force) {
+        if (self.parameters.renderOnChange || force) {
             if (!isUpdate) {
                 self.getWorld().setCameraToFitScene();
             }
@@ -325,10 +471,19 @@ function K3D(provider, targetDOMNode, parameters) {
             cameraFov: 60.0,
             cameraUpAxis: cameraUpAxisModes.none,
             cameraAnimation: {},
-            autoRendering: true,
+            renderOnChange: true,
             axesHelper: 1.0,
             axesHelperColors: [0xff0000, 0x00ff00, 0x0000ff],
             depthPeels: 0,
+            renderer: 'simple',
+            environment: 'neutral',
+            environmentRotation: 0.0,
+            toneMapping: 'none',
+            aoRadius: 0.07,
+            aoStrength: 1.8,
+            cinematicSamples: 64,
+            cinematicBounces: 6,
+            cinematicGlossyFilter: 0.25,
             snapshotType: 'full',
             customData: null,
             additionalJsCode: '',
@@ -340,7 +495,6 @@ function K3D(provider, targetDOMNode, parameters) {
     );
 
     let prevDepthPeels = self.parameters.depthPeels;
-    this.autoRendering = false;
 
     this.setMinimumFps = function (fpsTarget) {
         self.parameters.minimumFps = fpsTarget;
@@ -556,12 +710,22 @@ function K3D(provider, targetDOMNode, parameters) {
     };
 
     /**
-     * Set auto rendering of K3D
+     * Whether adding or updating an object draws a frame on its own. It has never had
+     * anything to do with a render loop - K3D draws only when something changed.
+     * @memberof K3D.Core
+     * @param {Bool} flag
+     */
+    this.setRenderOnChange = function (flag) {
+        self.parameters.renderOnChange = flag;
+    };
+
+    /**
+     * @deprecated renamed to setRenderOnChange in 3.0.0
      * @memberof K3D.Core
      * @param {Bool} flag
      */
     this.setAutoRendering = function (flag) {
-        self.parameters.autoRendering = flag;
+        self.setRenderOnChange(flag);
     };
 
     /**
@@ -955,7 +1119,17 @@ function K3D(provider, targetDOMNode, parameters) {
             || (prevDepthPeels > 0 && count === 0)) {
 
             _.values(world.ObjectsListJson).forEach((json) => {
-                objectsPromieses.push(self.reload(json));
+                // blending and the peel shader hook are chosen when the material is built, so
+                // every object has to be built again. Dropping it from the scene first is what
+                // makes that happen: the loader updates in place whenever it still finds the
+                // object and has any change to apply, and a time series always has one.
+                try {
+                    removeObjectFromScene(json.id);
+                } catch (e) {
+                    // nothing
+                }
+
+                objectsPromieses.push(self.reload(json, null));
             });
         }
 
@@ -966,6 +1140,140 @@ function K3D(provider, targetDOMNode, parameters) {
         });
     };
 
+
+    /**
+     * Set renderer mode of K3D
+     * @memberof K3D.Core
+     * @param {String} mode 'simple' or 'advanced'
+     */
+    this.setRenderer = function (mode) {
+        if (mode !== 'simple' && mode !== 'advanced' && mode !== 'cinematic') {
+            // this travels in snapshots between versions, so an unknown value degrades
+            console.warn(`K3D: unknown renderer "${mode}", falling back to "simple"`);
+            mode = 'simple';
+        }
+
+        // an unsupported path tracer is refused, never downgraded to another mode; a snapshot
+        // already in cinematic has no previous mode to keep, so render() reports the failure
+        if (mode === 'cinematic' && self.parameters.renderer !== 'cinematic') {
+            const reason = world.cinematicUnsupportedReason
+                ? world.cinematicUnsupportedReason()
+                : 'the current provider has no cinematic backend';
+
+            if (reason !== null) {
+                errorOverlay('Cinematic Error', `The cinematic renderer cannot start: ${reason}.`, false);
+                changeParameters('renderer', self.parameters.renderer);
+
+                if (self.refreshRendererGUI) {
+                    self.refreshRendererGUI();
+                }
+
+                return;
+            }
+        }
+
+        self.parameters.renderer = mode;
+
+        if (self.refreshRendererGUI) {
+            self.refreshRendererGUI();
+        }
+
+        world.applyRendererMode(self);
+        self.render();
+    };
+
+    /**
+     * Set environment of K3D
+     * @memberof K3D.Core
+     * @param {String|Object} environment preset name or an equirect array
+     */
+    this.setEnvironment = function (environment) {
+        self.parameters.environment = environment;
+
+        if (self.refreshEnvironmentGUI) {
+            self.refreshEnvironmentGUI();
+        }
+
+        world.applyRendererMode(self);
+        self.render();
+    };
+
+    /**
+     * Set environment rotation of K3D
+     * @memberof K3D.Core
+     * @param {Number} rotation around the up axis, radians
+     */
+    this.setEnvironmentRotation = function (rotation) {
+        self.parameters.environmentRotation = rotation;
+        world.applyRendererMode(self);
+        self.render();
+    };
+
+    /**
+     * Set ambient occlusion radius (fraction of the scene diagonal)
+     * @memberof K3D.Core
+     * @param {Number} radius
+     */
+    this.setAORadius = function (radius) {
+        self.parameters.aoRadius = radius;
+        self.render();
+    };
+
+    /**
+     * Set ambient occlusion strength (shadow-deepening exponent)
+     * @memberof K3D.Core
+     * @param {Number} strength
+     */
+    this.setAOStrength = function (strength) {
+        self.parameters.aoStrength = strength;
+        self.render();
+    };
+
+    /**
+     * Set the sample budget of the cinematic renderer (screenshot/headless)
+     * @memberof K3D.Core
+     * @param {Number} samples
+     */
+    this.setCinematicSamples = function (samples) {
+        self.parameters.cinematicSamples = samples;
+        self.render();
+    };
+
+    /**
+     * Set the light bounce count of the cinematic renderer
+     * @memberof K3D.Core
+     * @param {Number} bounces
+     */
+    this.setCinematicBounces = function (bounces) {
+        self.parameters.cinematicBounces = bounces;
+        self.render();
+    };
+
+    /**
+     * Set how strongly the cinematic renderer widens glossy lobes after a rough bounce
+     * @memberof K3D.Core
+     * @param {Number} factor 0 leaves them sharp
+     */
+    this.setCinematicGlossyFilter = function (factor) {
+        self.parameters.cinematicGlossyFilter = factor;
+        self.render();
+    };
+
+    /**
+     * Set tone mapping of K3D
+     * @memberof K3D.Core
+     * @param {String} name 'none', 'agx' or 'aces'
+     */
+    this.setToneMapping = function (name) {
+        if (name !== 'none' && name !== 'agx' && name !== 'aces') {
+            console.warn(`K3D: unknown tone_mapping "${name}", falling back to "none"`);
+            name = 'none';
+        }
+
+        self.parameters.toneMapping = name;
+        world.applyToneMapping(name);
+        self.render();
+    };
 
     /**
      * Set renderable objects ids
@@ -1156,6 +1464,13 @@ function K3D(provider, targetDOMNode, parameters) {
             world.K3DObjects.add(K3DObject);
         }
 
+        // registered here, at add time - not only in reload's .then. Two overlapping
+        // creates for the same id (GUI change + model echo) must see each other, or the
+        // earlier instance stays in the scene as an unremovable orphan
+        if (typeof (object.id) !== 'undefined') {
+            world.ObjectsById[object.id] = K3DObject;
+        }
+
         objectIndex += 1;
 
         self.heavyOperationSync = true;
@@ -1252,7 +1567,12 @@ function K3D(provider, targetDOMNode, parameters) {
                 objectsGUIProvider.update(self, object.json, GUI.objects, null);
 
                 world.ObjectsListJson[object.json.id] = object.json;
-                world.ObjectsById[object.json.id] = object.obj;
+
+                // a concurrent create may have evicted this instance already - never
+                // point the registry back at a disposed object
+                if (!world.ObjectsById[object.json.id] || world.ObjectsById[object.json.id] === object.obj) {
+                    world.ObjectsById[object.json.id] = object.obj;
+                }
 
                 if ((self.parameters.colorbarObjectId === -1
                         && object.json.color_range
@@ -1278,15 +1598,17 @@ function K3D(provider, targetDOMNode, parameters) {
      */
     this.reload = function (json, changes, timeSeriesReload) {
         if (json.visible === false) {
-            if (timeSeriesReload !== true) {
-                self.refreshAfterObjectsChange(true);
-                objectsGUIProvider.update(self, json, GUI.objects, changes);
-            }
-
             try {
                 removeObjectFromScene(json.id);
             } catch (e) {
                 // nothing
+            }
+
+            // the render has to follow the removal: it is the last frame drawn, so rendering
+            // first leaves the object on screen until something else triggers a new one
+            if (timeSeriesReload !== true) {
+                objectsGUIProvider.update(self, json, GUI.objects, changes);
+                self.refreshAfterObjectsChange(true);
             }
 
             return Promise.resolve(true);
@@ -1307,7 +1629,11 @@ function K3D(provider, targetDOMNode, parameters) {
                 }
 
                 world.ObjectsListJson[object.json.id] = object.json;
-                world.ObjectsById[object.json.id] = object.obj;
+
+                // same eviction rule as in load: a newer create wins the registry
+                if (!world.ObjectsById[object.json.id] || world.ObjectsById[object.json.id] === object.obj) {
+                    world.ObjectsById[object.json.id] = object.obj;
+                }
 
                 if ((self.parameters.colorbarObjectId === -1
                         && object.json.color_range
@@ -1443,7 +1769,7 @@ function K3D(provider, targetDOMNode, parameters) {
      * @returns {Object|undefined}
      */
     this.extractSnapshot = function (data) {
-        return data.match(/var data(?:_[^\s=]+)? = '(.+)';/mi);
+        return data.match(/var data(?:_[^\s=']{1,64})? = '([^']*)';/mi);
     };
 
     /**
@@ -1460,7 +1786,6 @@ function K3D(provider, targetDOMNode, parameters) {
         if (this.gui) {
             this.gui.destroy();
         }
-        this.autoRendering = false;
 
         Object.keys(world.ObjectsListJson).forEach(function (K3DIdentifier) {
             removeObjectFromScene(K3DIdentifier);
@@ -1536,6 +1861,8 @@ function K3D(provider, targetDOMNode, parameters) {
     self.setGridVisible(self.parameters.gridVisible);
     self.setGrid(self.parameters.grid);
     self.setDepthPeels(self.parameters.depthPeels);
+    self.setRenderer(self.parameters.renderer);
+    self.setToneMapping(self.parameters.toneMapping);
     self.setCameraAutoFit(self.parameters.cameraAutoFit);
     self.setCameraDampingFactor(self.parameters.cameraDampingFactor);
     self.setCameraUpAxis(self.parameters.cameraUpAxis);
@@ -1546,7 +1873,7 @@ function K3D(provider, targetDOMNode, parameters) {
     self.setDirectionalLightingIntensity(self.parameters.lighting);
     self.setColorMapLegend(self.parameters.colorbarObjectId);
     self.setColorbarScientific(self.parameters.colorbarScientific);
-    self.setAutoRendering(self.parameters.autoRendering);
+    self.setRenderOnChange(self.parameters.renderOnChange);
     self.setCameraLock(
         self.parameters.cameraNoRotate,
         self.parameters.cameraNoZoom,

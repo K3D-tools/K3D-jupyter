@@ -2,12 +2,12 @@
 
 import numpy as np
 import warnings
-from traitlets import Bool, Bytes, Float, Int, TraitError, Unicode, validate
-from traittypes import Array
+from traitlets import Bool, Bytes, TraitError, Unicode, validate
 
 from .base import (EPSILON, Drawable, DrawableWithCallback, ListOrArray,
                    TimeSeries)
-from ..helpers import array_serialization_wrap, get_bounding_box_points
+from ..helpers import (Array, Float, Int, array_serialization_wrap,
+                       get_bounding_box_points)
 from ..validation.stl import AsciiStlData, BinaryStlData
 
 
@@ -30,8 +30,10 @@ class Line(Drawable):
         color_range: `list`.
             A pair [min_value, max_value], which determines the levels of color attribute mapped
             to 0 and 1 in the color map respectively.
-        shininess: `float`.
-            Shininess of object material.
+        roughness: `float`.
+            Roughness of object material.
+        metalness: `float`.
+            Metalness of object material.
         width: `float`.
             The thickness of the lines.
         opacity: `float`.
@@ -72,7 +74,8 @@ class Line(Drawable):
     )
     opacity = TimeSeries(Float(min=0.0, max=1.0, default_value=1.0)).tag(sync=True)
     shader = TimeSeries(Unicode()).tag(sync=True)
-    shininess = TimeSeries(Float(default_value=50.0)).tag(sync=True)
+    roughness = TimeSeries(Float(default_value=0.4, min=0.0, max=1.0)).tag(sync=True)
+    metalness = TimeSeries(Float(default_value=0.0, min=0.0, max=1.0)).tag(sync=True)
     radial_segments = TimeSeries(Int()).tag(sync=True)
     model_matrix = TimeSeries(Array(dtype=np.float32)).tag(
         sync=True, **array_serialization_wrap("model_matrix")
@@ -142,8 +145,10 @@ class Lines(Drawable):
             :`thick`: thick lines,
 
             :`mesh`: high precision triangle mesh of segments (high quality and GPU load).
-        shininess: `float`.
-            Shininess of object material.
+        roughness: `float`.
+            Roughness of object material.
+        metalness: `float`.
+            Metalness of object material.
         radial_segments: 'int':
             Number of segmented faces around the circumference of the tube.
         model_matrix: `array_like`.
@@ -175,7 +180,8 @@ class Lines(Drawable):
     )
     opacity = TimeSeries(Float(min=0.0, max=1.0, default_value=1.0)).tag(sync=True)
     shader = TimeSeries(Unicode()).tag(sync=True)
-    shininess = TimeSeries(Float(default_value=50.0)).tag(sync=True)
+    roughness = TimeSeries(Float(default_value=0.4, min=0.0, max=1.0)).tag(sync=True)
+    metalness = TimeSeries(Float(default_value=0.0, min=0.0, max=1.0)).tag(sync=True)
     radial_segments = TimeSeries(Int()).tag(sync=True)
     model_matrix = TimeSeries(Array(dtype=np.float32)).tag(
         sync=True, **array_serialization_wrap("model_matrix")
@@ -234,8 +240,10 @@ class Mesh(DrawableWithCallback):
             Whether mesh should display as wireframe.
         flat_shading: `bool`.
             Whether mesh should display with flat shading.
-        shininess: `float`.
-            Shininess of object material.
+        roughness: `float`.
+            Roughness of object material.
+        metalness: `float`.
+            Metalness of object material.
         opacity: `float`.
             Opacity of mesh.
         volume: `array_like`.
@@ -281,7 +289,8 @@ class Mesh(DrawableWithCallback):
     )
     wireframe = TimeSeries(Bool()).tag(sync=True)
     flat_shading = TimeSeries(Bool()).tag(sync=True)
-    shininess = TimeSeries(Float(default_value=50.0)).tag(sync=True)
+    roughness = TimeSeries(Float(default_value=0.4, min=0.0, max=1.0)).tag(sync=True)
+    metalness = TimeSeries(Float(default_value=0.0, min=0.0, max=1.0)).tag(sync=True)
     side = TimeSeries(Unicode()).tag(sync=True)
     opacity = TimeSeries(Float(min=0.0, max=1.0, default_value=1.0)).tag(sync=True)
     volume = TimeSeries(Array()).tag(sync=True, **array_serialization_wrap("volume"))
@@ -369,8 +378,10 @@ class STL(Drawable):
             Whether mesh should display as wireframe.
         flat_shading: `bool`.
             Whether mesh should display with flat shading.
-        shininess: `float`.
-            Shininess of object material.
+        roughness: `float`.
+            Roughness of object material.
+        metalness: `float`.
+            Metalness of object material.
     """
 
     type = Unicode(read_only=True).tag(sync=True)
@@ -381,7 +392,8 @@ class STL(Drawable):
     color = Int(min=0, max=0xFFFFFF).tag(sync=True)
     wireframe = Bool().tag(sync=True)
     flat_shading = Bool().tag(sync=True)
-    shininess = TimeSeries(Float(default_value=50.0)).tag(sync=True)
+    roughness = TimeSeries(Float(default_value=0.4, min=0.0, max=1.0)).tag(sync=True)
+    metalness = TimeSeries(Float(default_value=0.0, min=0.0, max=1.0)).tag(sync=True)
     model_matrix = TimeSeries(Array(dtype=np.float32)).tag(
         sync=True, **array_serialization_wrap("model_matrix")
     )
@@ -412,8 +424,10 @@ class Surface(DrawableWithCallback):
             Whether mesh should display as wireframe.
         flat_shading: `bool`.
             Whether mesh should display with flat shading.
-        shininess: `float`.
-            Shininess of object material.
+        roughness: `float`.
+            Roughness of object material.
+        metalness: `float`.
+            Metalness of object material.
         attribute: `array_like`.
             Array of float attribute for the color mapping, coresponding to each vertex.
         opacity: `float`.
@@ -435,7 +449,8 @@ class Surface(DrawableWithCallback):
     color = Int(min=0, max=0xFFFFFF).tag(sync=True)
     wireframe = Bool().tag(sync=True)
     flat_shading = Bool().tag(sync=True)
-    shininess = TimeSeries(Float(default_value=50.0)).tag(sync=True)
+    roughness = TimeSeries(Float(default_value=0.4, min=0.0, max=1.0)).tag(sync=True)
+    metalness = TimeSeries(Float(default_value=0.0, min=0.0, max=1.0)).tag(sync=True)
     attribute = TimeSeries(Array(dtype=np.float32)).tag(
         sync=True, **array_serialization_wrap("attribute")
     )

@@ -17,9 +17,56 @@ const { getColorsArray } = Fn;
  * @param {Object} config all configuration params from JSON
  * @return {Object} 3D object ready to render
  */
+// Resolved time-series frames arrive in changes; config keeps the raw {time: value} dict.
+function currentData(changes, config, key) {
+    if (changes && changes[key] && changes[key].data && !changes[key].timeSeries) {
+        return changes[key].data;
+    }
+
+    return (config[key] && config[key].data) ? config[key].data : null;
+}
+
+function currentNumber(changes, config, key, fallback) {
+    if (changes && typeof (changes[key]) === 'number') {
+        return changes[key];
+    }
+
+    return typeof (config[key]) === 'number' ? config[key] : fallback;
+}
+
+function rebuildInstanceMatrices(obj, config, changes) {
+    const positions = currentData(changes, config, 'positions');
+
+    if (positions === null) {
+        return;
+    }
+
+    const pointSize = currentNumber(changes, config, 'point_size', obj.userData.builtPointSize);
+    const factor = pointSize / obj.userData.builtPointSize;
+    const pointSizes = currentData(changes, config, 'point_sizes');
+    const sizes = (pointSizes && pointSizes.length === positions.length / 3)
+        ? pointSizes : null;
+    const matrix = new THREE.Matrix4();
+    const scale = new THREE.Vector3();
+
+    for (let i = 0; i < positions.length / 3; i++) {
+        const s = ((sizes && sizes[i]) || 1.0) * factor;
+
+        obj.setMatrixAt(
+            i,
+            matrix
+                .identity()
+                .setPosition(positions[i * 3], positions[i * 3 + 1], positions[i * 3 + 2])
+                .scale(scale.set(s, s, s)),
+        );
+    }
+
+    obj.instanceMatrix.needsUpdate = true;
+}
+
 module.exports = {
     create(config, K3D) {
-        config.shininess = typeof (config.shininess) !== 'undefined' ? config.shininess : 50.0;
+        config.roughness = typeof (config.roughness) !== 'undefined' ? config.roughness : 0.4;
 
         const modelMatrix = new THREE.Matrix4();
         const color = new THREE.Color(config.color);
@@ -32,7 +79,6 @@ module.exports = {
         const sizes = (config.point_sizes && config.point_sizes.data
             && config.point_sizes.data.length === positions.length / 3) ? config.point_sizes.data : null;
         const { colorsToFloat32Array } = buffer;
-        const phongShader = THREE.ShaderLib.phong;
         let i;
         const boundingBoxGeometry = new THREE.BufferGeometry();
         const geometry = new THREE.IcosahedronGeometry(config.point_size * 0.5, meshDetail);
@@ -82,7 +128,9 @@ module.exports = {
             );
         }
 
-        geometry.setAttribute('color', new THREE.InstancedBufferAttribute(new Float32Array(colors), 3));
+        if (colors) {
+            geometry.setAttribute('color', new THREE.InstancedBufferAttribute(new Float32Array(colors), 3));
+        }
 
         if (opacities) {
             geometry.setAttribute(
@@ -99,32 +147,54 @@ module.exports = {
 
         geometry.boundingBox = boundingBoxGeometry.boundingBox.clone();
 
-        const material = new THREE.ShaderMaterial({
-            uniforms: THREE.UniformsUtils.merge([phongShader.uniforms, {
-                shininess: { value: config.shininess },
-                opacity: { value: config.opacity },
-            }, uniforms]),
-            defines: {
-                USE_PER_POINT_OPACITY: (opacities !== null ? 1 : 0),
-                USE_COLOR_MAP: useColorMap
-            },
-            vertexShader: require('./shaders/PointsMesh.vertex.glsl'),
-            fragmentShader: require('./shaders/PointsMesh.fragment.glsl'),
-            lights: true,
-            clipping: true,
-            vertexColors: true,
+        // A real MeshStandardMaterial - the colormap and per-point opacity are grafted onto
+        // its chunks, so environment lighting and future three upgrades apply untouched.
+        const material = new THREE.MeshStandardMaterial({
+            roughness: config.roughness,
+            metalness: config.metalness,
+            opacity: config.opacity,
+            vertexColors: useColorMap === 0,
         });
 
+        material.defines = {
+            K3D_PER_POINT_OPACITY: (opacities !== null ? 1 : 0),
+            K3D_COLOR_MAP: useColorMap,
+        };
+        material.uniforms = uniforms;
+        material.customProgramCacheKey = () => `k3d-points-mesh-${useColorMap}-${opacities !== null ? 1 : 0}`;
+
+        const inject = (shader) => {
+            Object.assign(shader.uniforms, material.uniforms);
+
+            shader.vertexShader = `${require('./shaders/chunks/pointsColor.vertex.header.glsl')}\n${
+                shader.vertexShader.replace(
+                    '#include <color_vertex>',
+                    `#include <color_vertex>\n${require('./shaders/chunks/pointsColor.vertex.glsl')}`,
+                )}`;
+            shader.fragmentShader = `${require('./shaders/chunks/pointsColor.fragment.header.glsl')}\n${
+                shader.fragmentShader.replace(
+                    '#include <color_fragment>',
+                    `#include <color_fragment>\n${require('./shaders/chunks/pointsColor.fragment.glsl')}`,
+                )}`;
+        };
+
         if (K3D.parameters.depthPeels === 0) {
+            material.onBeforeCompile = inject;
             material.depthWrite = (config.opacity === 1.0 && opacities === null);
             material.transparent = (config.opacity !== 1.0 || opacities !== null);
         } else {
-            material.onBeforeCompile = K3D.colorOnBeforeCompile;
+            material.onBeforeCompile = (shader) => {
+                inject(shader);
+                K3D.colorOnBeforeCompile(shader);
+            };
             material.blending = THREE.NoBlending;
         }
 
         const object = new THREE.InstancedMesh(geometry, material, positions.length / 3);
         object.instanceMatrix.setUsage(THREE.DynamicDrawUsage);
+        // the icosahedron radius bakes point_size in - later point_size changes
+        // compensate through the instance scales
+        object.userData.builtPointSize = config.point_size;
 
         let pointsGeometry = new THREE.BufferGeometry();
         pointsGeometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
@@ -157,23 +227,8 @@ module.exports = {
         if (typeof (changes.positions) !== 'undefined' && !changes.positions.timeSeries
             && changes.positions.data.length / 3 === obj.instanceMatrix.count) {
             const positions = changes.positions.data;
-            const sizes = (config.point_sizes && config.point_sizes.data
-                && config.point_sizes.data.length === positions.length / 3)
-                ? config.point_sizes.data : null;
-            const matrix = new THREE.Matrix4();
-            const scale = new THREE.Vector3();
 
-            for (let i = 0; i < positions.length / 3; i++) {
-                const s = (sizes && sizes[i]) || 1.0;
-
-                obj.setMatrixAt(
-                    i,
-                    matrix
-                        .identity()
-                        .setPosition(positions[i * 3], positions[i * 3 + 1], positions[i * 3 + 2])
-                        .scale(scale.set(s, s, s)),
-                );
-            }
+            rebuildInstanceMatrices(obj, config, changes);
 
             if (obj.interactions) {
                 obj.stopInteraction();
@@ -185,8 +240,59 @@ module.exports = {
                     pointsCallback, pointsIntersect.prepareGeometry(pointsGeometry), pointsIntersect.Intersect);
             }
 
-            obj.instanceMatrix.needsUpdate = true;
             resolvedChanges.positions = null;
+        }
+
+        if (typeof (changes.point_sizes) !== 'undefined' && !changes.point_sizes.timeSeries
+            && changes.point_sizes.data.length === obj.instanceMatrix.count) {
+            rebuildInstanceMatrices(obj, config, changes);
+
+            resolvedChanges.point_sizes = null;
+        }
+
+        if (typeof (changes.point_size) !== 'undefined' && !changes.point_size.timeSeries) {
+            rebuildInstanceMatrices(obj, config, changes);
+
+            const boundingBoxGeometry = new THREE.BufferGeometry();
+
+            boundingBoxGeometry.setAttribute(
+                'position',
+                new THREE.BufferAttribute(currentData(changes, config, 'positions'), 3),
+            );
+            boundingBoxGeometry.computeBoundingBox();
+            Fn.expandBoundingBox(boundingBoxGeometry.boundingBox, changes.point_size * 0.5);
+            obj.geometry.boundingBox = boundingBoxGeometry.boundingBox.clone();
+
+            resolvedChanges.point_size = null;
+        }
+
+        if (typeof (changes.colors) !== 'undefined' && !changes.colors.timeSeries
+            && obj.geometry.attributes.color
+            && changes.colors.data.length === obj.geometry.attributes.color.array.length / 3) {
+            obj.geometry.attributes.color.array.set(buffer.colorsToFloat32Array(changes.colors.data));
+            obj.geometry.attributes.color.needsUpdate = true;
+
+            resolvedChanges.colors = null;
+        }
+
+        if (typeof (changes.color) !== 'undefined' && !changes.color.timeSeries
+            && obj.geometry.attributes.color
+            && !(config.colors && config.colors.data && config.colors.data.length > 0)) {
+            obj.geometry.attributes.color.array.set(
+                getColorsArray(new THREE.Color(changes.color), obj.geometry.attributes.color.array.length / 3),
+            );
+            obj.geometry.attributes.color.needsUpdate = true;
+
+            resolvedChanges.color = null;
+        }
+
+        if (typeof (changes.opacities) !== 'undefined' && !changes.opacities.timeSeries
+            && obj.geometry.attributes.opacities
+            && changes.opacities.data.length === obj.geometry.attributes.opacities.array.length) {
+            obj.geometry.attributes.opacities.array.set(changes.opacities.data);
+            obj.geometry.attributes.opacities.needsUpdate = true;
+
+            resolvedChanges.opacities = null;
         }
 
         if (((typeof (changes.color_map) !== 'undefined' && !changes.color_map.timeSeries)

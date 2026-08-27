@@ -1,9 +1,11 @@
 const THREE = require('three');
 const { colorsToFloat32Array } = require('../../../core/lib/helpers/buffer');
+const colorMapHelper = require('../../../core/lib/helpers/colorMap');
 const Fn = require('../helpers/Fn');
 
 const { commonUpdate } = Fn;
 const { areAllChangesResolve } = Fn;
+const { computeFiniteBounds } = Fn;
 const { getColorsArray } = Fn;
 const { handleColorMap } = Fn;
 
@@ -30,7 +32,7 @@ module.exports = {
         const object = new THREE.LineSegments(geometry, material);
         const modelMatrix = new THREE.Matrix4();
         const vertices = config.vertices.data;
-        const indices = config.indices.data;
+        const indices = Fn.guardIndices(config.indices.data, vertices, 'lines');
         const edges = new Set();
 
         let positions = [];
@@ -117,8 +119,7 @@ module.exports = {
         object.userData.attributeLength = attr ? attr.length : 0;
         object.userData.verticesLength = vertices.length;
 
-        geometry.computeBoundingSphere();
-        geometry.computeBoundingBox();
+        computeFiniteBounds(geometry);
 
         modelMatrix.set.apply(modelMatrix, config.model_matrix.data);
         object.applyMatrix4(modelMatrix);
@@ -163,6 +164,37 @@ module.exports = {
             }
         }
 
+        if (((typeof (changes.colors) !== 'undefined' && !changes.colors.timeSeries)
+            || (typeof (changes.color) !== 'undefined' && !changes.color.timeSeries))
+            && obj.geometry.attributes.color && obj.userData.edgeVertices) {
+            const map = obj.userData.edgeVertices;
+            const count = obj.userData.verticesLength / 3;
+            const verticesColors = (changes.colors && changes.colors.data)
+                || (config.colors && config.colors.data) || null;
+            const source = verticesColors && verticesColors.length === count
+                ? colorsToFloat32Array(verticesColors)
+                : getColorsArray(new THREE.Color(config.color), count);
+            const expanded = obj.geometry.attributes.color.array;
+
+            for (let i = 0; i < map.length; i++) {
+                expanded[i * 3] = source[map[i] * 3];
+                expanded[i * 3 + 1] = source[map[i] * 3 + 1];
+                expanded[i * 3 + 2] = source[map[i] * 3 + 2];
+            }
+            obj.geometry.attributes.color.needsUpdate = true;
+
+            resolvedChanges.colors = null;
+            resolvedChanges.color = null;
+        }
+
+        if (typeof (changes.color_map) !== 'undefined' && !changes.color_map.timeSeries
+            && obj.material.map) {
+            obj.material.map.image = colorMapHelper.createCanvasGradient(changes.color_map.data, 1024, 1);
+            obj.material.map.needsUpdate = true;
+
+            resolvedChanges.color_map = null;
+        }
+
         if (typeof (changes.vertices) !== 'undefined' && !changes.vertices.timeSeries
             && obj.userData.edgeVertices
             && changes.vertices.data.length === obj.userData.verticesLength) {
@@ -182,8 +214,7 @@ module.exports = {
 
             obj.geometry.attributes.position.needsUpdate = true;
 
-            obj.geometry.computeBoundingSphere();
-            obj.geometry.computeBoundingBox();
+            computeFiniteBounds(obj.geometry);
 
             resolvedChanges.vertices = null;
         }

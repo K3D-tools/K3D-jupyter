@@ -58,9 +58,9 @@ def test_marching_cubes_smoothed():
 
     compare("marching_cubes_smoothed")
 
-    iso.shininess = 500.0
+    iso.roughness = 0.06
 
-    compare("marching_cubes_smoothed_dynamic_shininess")
+    compare("marching_cubes_smoothed_dynamic_roughness")
 
 
 def test_marching_cubes_wireframe():

@@ -30,7 +30,9 @@ The primary aim of K3D-jupyter is to be an easy 3D visualization tool,
 designed with native interoperation with existing powerful
 libraries such as PyVista_, without being strictly dependent on them.
 
-K3D-jupyter plots ipywidgets_ assuring a perfect interaction of a browser-side widget with Python kernel by a proven and standardized protocol.
+K3D-jupyter plots are anywidget_ widgets, talking to the Python kernel over
+the proven, standardized Jupyter widgets protocol - the same package works
+in JupyterLab, Jupyter Notebook, Google Colab and VS Code.
 
 --------------
 Brief Examples
@@ -113,5 +115,5 @@ Click to open YouTube video.
 .. Links
 .. _Jupyter Notebook: https://jupyter.org/
 .. _PyVista: https://docs.pyvista.org/
-.. _ipywidgets: https://ipywidgets.readthedocs.io/en/latest/
+.. _anywidget: https://anywidget.dev/
 

@@ -5,7 +5,7 @@
 const fs = require('fs');
 const path = require('path');
 
-const BUNDLES = ['index.js', 'index.js.map', 'standalone.js', 'standalone.js.map'];
+const BUNDLES = ['standalone.js', 'standalone.js.map'];
 const dist = path.join(__dirname, 'dist');
 
 function fail(message) {

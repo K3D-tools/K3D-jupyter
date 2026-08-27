@@ -2,70 +2,52 @@
 How the frontend is loaded
 ==========================
 
-A K3D plot is an ipywidgets_ widget: the Python side holds the data, the drawing is done by
-JavaScript in the browser, and the two talk over the Jupyter *comm* protocol. Nothing is
-rendered by the kernel itself, which is why an installation can look complete on the Python
-side and still show no graphics.
+A K3D plot is a widget: the Python side holds the data, the drawing is done by JavaScript in
+the browser, and the two talk over the Jupyter *comm* protocol. Nothing is rendered by the
+kernel itself, which is why an installation can look complete on the Python side and still
+show no graphics.
 
-Two things have to be in place: a **kernel** that implements comms, and a **frontend
-extension** registered with whichever Jupyter application is serving the page.
+Since 3.0.0 the widget is built on anywidget_. The frontend module travels **with the widget
+state itself**: the kernel serves ``k3d/static/widget.mjs`` through the comm and the browser
+loads it as an ES module. There is no extension directory, nothing to register with the
+application, and the same mechanism works in JupyterLab, Notebook 7, Google Colab and VS Code.
 
--------------------------
-The two delivery paths
--------------------------
-
-The JavaScript reaches the browser in one of two ways, depending on the application. They are
-independent - having one does not give you the other.
-
-**JupyterLab, and Notebook 7 which is built on it** load a *federated* (pre-built) extension.
-It is discovered from the environment, not from the notebook:
-
-.. code-block:: bash
-
-    <sys.prefix>/share/jupyter/labextensions/k3d/
-
-The wheel installs it there. That directory's ``package.json`` carries the entry point under
-``jupyterlab._build.load``, pointing at ``static/remoteEntry.<hash>.js``; the application reads
-it when the page is served, so a **browser refresh** is enough to pick up a newly registered
-extension - the server does not need restarting.
-
-**Notebook 6 and earlier** load an nbextension, which has to be installed and enabled
-explicitly:
-
-.. code-block:: bash
-
-    jupyter nbextension install --py --user k3d
-    jupyter nbextension enable --py --user k3d
+The only host requirement is ipywidgets support (anywidget rides on it). If the host can show
+an ``ipywidgets.IntSlider()``, it can show a K3D plot.
 
 .. note::
-    ``jupyter labextension install`` is a JupyterLab 2/3 command that rebuilt the application
-    from npm sources. It no longer exists in JupyterLab 4 and is not how K3D is installed.
+    Versions before 3.0.0 delivered the frontend as a JupyterLab federated extension plus an
+    nbextension for Notebook 6, with all the registration failure modes those entailed
+    (``jupyter labextension list``, ``No version of module k3d is registered`` and friends).
+    None of that applies any more; stale registrations from old versions are simply ignored.
 
-To see what is actually registered:
+-------------------------------------
+Scene objects in lazy frontends
+-------------------------------------
 
-.. code-block:: bash
-
-    jupyter labextension list
-    jupyter nbextension list
-
-A working JupyterLab installation reports ``k3d <version> enabled OK``.
+Every scene object (mesh, volume, points...) is a widget of its own, and a plot references
+them by id. Some frontends - Google Colab renders each output in its own frame - materialise
+widget models lazily, so the object models may not exist where the plot renders. The plot then
+fetches their state from the kernel over its own comm and keeps it updated (the ``.k3d``
+binary encoding is used on the wire). This is automatic; the one practical difference is that
+hover/click callbacks and volume shadow maps need real object models and stay inactive in such
+frontends.
 
 -------------------------
 Where the errors are
 -------------------------
 
 Frontend initialization errors do **not** appear in the server log or in the notebook. They go
-to the browser console (F12). Two signatures cover almost every report:
-
-**A model class fails to load.** The console reports ``Failed to load model class 'PlotModel'
-from module 'k3d'``, usually together with ``No version of module k3d is registered``. The
-Python side is fine and the widget was created, but the browser has no K3D extension to build it
-with. Check the delivery path above for the application you are using.
+to the browser console (F12).
 
 **The cell prints only text.** You get ``Plot(antialias=3, ...)`` followed by ``Output()`` and no
 drawing area. Nothing consumed the widget's mime bundle, so ``display()`` fell back to the plain
 text representation of the object. Either the page has no widget support at all, or the kernel
 cannot open a comm. This is not a rendering failure - the JavaScript was never asked to draw.
+
+**The plot area appears but stays empty.** Check the browser console for errors from
+``widget.mjs`` (WebGL context, GPU blacklist) and verify WebGL2 works at all, e.g. on
+https://get.webgl.org/webgl2/.
 
 ------------------------------
 Kernels other than ipykernel
@@ -91,16 +73,17 @@ comm messages to the frontend - and it has to be solved there.
 Running from a source checkout
 -----------------------------------
 
-An editable install does not place the labextension in the environment, so JupyterLab will not
-find it. Register the built directory in place:
+An editable install serves the frontend straight from the checkout's ``k3d/static``. After
+changing anything under ``js/src``:
 
 .. code-block:: bash
 
-    jupyter labextension develop --overwrite .
+    cd js
+    npm run build
 
-This symlinks ``k3d/labextension`` into ``share/jupyter/labextensions/k3d``. It is a per
-environment operation: in a container built fresh each run it has to be repeated, or baked into
-the image.
+then restart the kernel and hard-refresh the page - the module is cached per widget state, so
+a stale tab keeps the old code.
 
 .. Links
+.. _anywidget: https://anywidget.dev/
 .. _ipywidgets: https://ipywidgets.readthedocs.io/en/latest/

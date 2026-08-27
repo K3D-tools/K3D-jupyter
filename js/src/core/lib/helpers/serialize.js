@@ -69,7 +69,8 @@ function serializeArray(obj) {
     if (obj.compression_level && obj.compression_level > 0) {
         return {
             dtype: dtype,
-            compressed_data: fflate.zlibSync(obj.data.buffer, { level: obj.compression_level }),
+            compressed_data: fflate.zlibSync(new Uint8Array(exactBuffer(obj.data)),
+                { level: obj.compression_level }),
             shape: obj.shape,
         };
     }

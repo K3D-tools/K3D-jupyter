@@ -38,7 +38,8 @@ Menger sponge
                             color_map=(0xfdfe03), outlines=True)
 
     plot = k3d.plot(grid_visible=False,
-                    camera_auto_fit=False)
+                    camera_auto_fit=False,
+                    renderer='advanced')
     plot += plt_voxels
     plot.display()
 

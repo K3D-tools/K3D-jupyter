@@ -16,7 +16,7 @@ RUN apt-get update && apt-get install -y -qq \
 # pinned build comes from Chrome for Testing, which is an archive.
 #
 # Raising this version is expected to require regenerating the reference images.
-ARG CHROME_VERSION=144.0.7559.109
+ARG CHROME_VERSION=152.0.7977.42
 ARG CFT=https://storage.googleapis.com/chrome-for-testing-public
 
 # One layer, with its own apt-get update: the stable .deb is installed purely so that apt
@@ -45,8 +45,8 @@ RUN pip install -r requirements.txt
 # chromedriver comes from Chrome for Testing above, pinned to the same build as Chrome, so
 # chromedriver-binary is deliberately absent: nothing imported it, and the wheel it installed
 # tracked a different Chrome major than the one in this image.
-# jupyterlab and hatch-jupyter-builder are what `jupyter labextension build` and the wheel build
-# run on; without them `npm run build:prod` and `python -m build` both fail in this image.
+# jupyterlab is here to run Lab for manual widget testing; hatch-jupyter-builder is what the
+# wheel build (`python -m build`) runs on.
 RUN pip install pytest pixelmatch flask selenium webdriver-manager scikit-image vtk build twine \
         jupyterlab hatch-jupyter-builder
 
@@ -58,13 +58,9 @@ RUN apt-get update && apt-get install -y -qq make && rm -rf /var/lib/apt/lists/*
 COPY docs/requirements.txt docs-requirements.txt
 RUN pip install -r docs-requirements.txt
 
-# The source tree arrives as a bind mount, so this link dangles at build time and resolves once
-# the mount is in place - JupyterLab reads it when the server starts. Doing it here rather than
-# with `jupyter labextension develop` keeps it across containers: `docker compose run --rm` gives
-# a fresh filesystem every time, and without the link every session reports
-# "No version of module k3d is registered".
-RUN mkdir -p /usr/local/share/jupyter/labextensions \
-    && ln -s /opt/app/src/k3d/labextension /usr/local/share/jupyter/labextensions/k3d
+# No labextension registration: since the anywidget migration the frontend module travels with
+# the widget state (k3d/static/widget.mjs served over the comm), so an editable install is the
+# whole setup - `jupyter labextension develop` has nothing to register any more.
 
 WORKDIR /opt/app/src
 

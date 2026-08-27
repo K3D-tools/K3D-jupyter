@@ -12,21 +12,20 @@ K3D-jupyter releases are available as wheel packages for macOS, Windows and Linu
 
     pip install k3d
 
-When using the package within `Jupyter Notebook`_, install and enable the ``k3d`` extension.
+That is the whole installation. Since 3.0.0 the widget is built on anywidget_ and ships its
+own frontend module inside the wheel - there is no extension to install or enable, and the
+same package works in JupyterLab, Jupyter Notebook, Google Colab and VS Code notebooks.
 
-.. code-block:: bash
-
-    jupyter nbextension install --py --user k3d
-    jupyter nbextension enable --py --user k3d
-
-When upgrading from an earlier version, use the following commands.
+When upgrading from an earlier version:
 
 .. code-block:: bash
 
     pip install -U k3d
-    
-    jupyter nbextension install --py --user k3d
-    jupyter nbextension enable --py --user k3d
+
+.. note::
+    Versions before 3.0.0 required ``jupyter nbextension install/enable`` (Notebook 6) or a
+    prebuilt labextension. Those steps are obsolete - if old registrations linger, they are
+    ignored by the new widget.
 
 ---------------------
 Installing with Conda
@@ -35,8 +34,19 @@ Installing with Conda
 k3d is available via the `conda-forge`_ community channel.
 
 .. code-block:: bash
-    
+
     conda install -c conda-forge k3d
+
+------------
+Google Colab
+------------
+
+.. code-block:: bash
+
+    !pip install k3d
+
+Nothing else is needed. The previous ritual (``output.enable_custom_widget_manager()`` and
+``k3d.switch_to_text_protocol()``) belongs to versions before 3.0.0.
 
 ----------------------
 Installing from GitHub
@@ -74,35 +84,22 @@ For a development installation:
     cd K3D-jupyter
     pip install -e .
 
-An editable install does not place the JupyterLab extension in the environment, so register
-the built directory in place:
+The build step compiles the frontend into ``k3d/static`` (``widget.mjs`` for the widget,
+``standalone.js`` for snapshots and headless use). After editing anything under ``js/src``,
+rebuild and hard-refresh the browser:
 
 .. code-block:: bash
 
-    jupyter labextension develop --overwrite .
+    cd js
+    npm run build
 
---------------------
-JupyterLab extension
---------------------
-
-Nothing has to be installed by hand. The wheel ships a pre-built (federated) extension and
-places it in the environment, where JupyterLab and Notebook 7 discover it on their own.
-
-.. code-block:: bash
-
-    jupyter labextension list
-
-should report ``k3d`` as ``enabled OK``. If it does not, or if the browser console shows
-``No version of module k3d is registered``, see :doc:`frontend`.
-
-.. note::
-    ``jupyter labextension install`` belonged to JupyterLab 2 and 3, where extensions were
-    built from npm sources into the application. That command no longer exists in JupyterLab 4.
+No ``jupyter labextension develop`` step exists any more - the kernel serves the frontend
+module straight from ``k3d/static``.
 
 .. Links
 .. _PyPi: https://pypi.org/project/k3d/
 .. _conda-forge: https://anaconda.org/conda-forge/k3d
-.. _Jupyter Notebook: https://jupyter.org/
+.. _anywidget: https://anywidget.dev/
 .. _git: https://git-scm.com/
 .. _Node.js: https://nodejs.org/en/
 .. _npm: https://www.npmjs.com/

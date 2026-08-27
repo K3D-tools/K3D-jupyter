@@ -40,12 +40,10 @@ function error(title, message, permanent) {
 
     const domHelperItem = setupSingleErrorDomHelper();
 
-    domHelperItem.innerHTML = [
-        '<b>',
-        title || 'Error',
-        '</b>: ',
-        message,
-    ].join('');
+    const titleNode = document.createElement('b');
+
+    titleNode.textContent = title || 'Error';
+    domHelperItem.replaceChildren(titleNode, document.createTextNode(': ' + message));
 
     if (!permanent) {
         setTimeout(() => {

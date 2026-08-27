@@ -1,0 +1,391 @@
+<!doctype html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>k3d browser performance</title>
+    <style>
+        body { font: 13px/1.5 system-ui, sans-serif; margin: 0; padding: 18px 22px 44px;
+               color: #222; }
+        h1 { font-size: 17px; margin: 0 0 4px; }
+        p.lead { margin: 0 0 16px; color: #555; max-width: 70ch; }
+        fieldset { border: 1px solid #ddd; margin: 0 0 14px; padding: 10px 14px; }
+        legend { color: #666; padding: 0 6px; }
+        label { margin-right: 14px; }
+        input[type=number] { width: 5em; }
+        button { font: inherit; padding: 6px 16px; cursor: pointer; }
+        button:disabled { cursor: default; opacity: .5; }
+        #warn { color: #a30; font-weight: 600; margin: 8px 0; }
+        table { border-collapse: collapse; margin-top: 12px; font-variant-numeric: tabular-nums; }
+        th, td { border-bottom: 1px solid #eee; padding: 2px 8px; text-align: right; }
+        th:first-child, td:first-child { text-align: left; }
+        th { color: #666; font-weight: 600; }
+        tr.bad td { color: #a30; }
+        #frame { position: fixed; right: 8px; bottom: 34px; width: 320px; height: 180px;
+                 border: 1px solid #ccc; }
+        #progress { position: fixed; left: 0; right: 0; bottom: 0; height: 26px;
+                    background: #ececec; border-top: 1px solid #d0d0d0; }
+        #bar { height: 100%; width: 0; background: #4a7ebb; transition: width .2s linear; }
+        #ptext { position: absolute; left: 0; right: 0; top: 0; height: 26px; line-height: 26px;
+                 text-align: center; font-variant-numeric: tabular-nums; color: #222; }
+        #frame iframe { width: 1280px; height: 720px; border: 0;
+                        transform: scale(.25); transform-origin: 0 0; }
+        code { background: #f4f4f4; padding: 0 3px; }
+    </style>
+</head>
+<body>
+<h1>k3d browser performance</h1>
+<p class="lead">
+    Every scene in the visual suite, in every renderer mode the bundle knows. Two vsync-free probes
+    give the cost of one copy, and from that the copies needed to make a frame cost the target -
+    copies being scene-graph clones that share the original's geometry, so making them is free. The
+    oldest bundle goes first and its copy count is then imposed on the rest, so one scene is always
+    the same workload everywhere. Nothing starts until you press the button. <strong>Keep this window visible and in front</strong> - a
+    background tab gets no animation frames and the numbers would be fiction.
+</p>
+
+<fieldset>
+    <legend>bundles</legend>
+    <div id="bundles">loading...</div>
+</fieldset>
+
+<fieldset>
+    <legend>measurement</legend>
+    <label>buffer <input type="number" id="width" value="1280" step="16"> ×
+        <input type="number" id="height" value="720" step="16"></label>
+    <label>frames <input type="number" id="frames" value="90" step="10"></label>
+    <label>warm-up <input type="number" id="warmup" value="30" step="10"></label>
+    <label>target ms <input type="number" id="targetMs" value="12" step="1"
+        title="the search aims half again over this and accepts up to three times it - 12 ms is about 80 fps"></label>
+    <label>max sets <input type="number" id="maxSets" value="4096" step="1"
+        title="4096 lifts the environment and tone scenes off the vsync floor; past that the frame is mostly draw-call submission"></label>
+    <label>scenes <input type="number" id="limit" value="0" step="1" title="0 = all"></label>
+    <label>copies <select id="duplicate">
+        <option value="graph">shared geometry</option>
+        <option value="k3d">rebuilt per copy</option>
+    </select></label>
+</fieldset>
+
+<button id="start">Start</button>
+<span id="status"></span>
+<div id="warn"></div>
+
+<table id="results">
+    <thead>
+    <tr>
+        <th>scene</th>
+        <th>bundle</th>
+        <th>renderer</th>
+        <th>sets</th>
+        <th>median ms</th>
+        <th>p95 ms</th>
+        <th>work ms</th>
+        <th>probe ms</th>
+        <th>dominance</th>
+        <th>draws/frame</th>
+        <th>load ms</th>
+        <th>note</th>
+    </tr>
+    </thead>
+    <tbody></tbody>
+</table>
+
+<div id="frame"></div>
+
+<div id="progress"><div id="bar"></div><div id="ptext">idle</div></div>
+
+<script>
+    var CONFIG = null;
+    var pending = null;
+    var body = document.querySelector('#results tbody');
+
+    function status(text) {
+        document.getElementById('status').textContent = ' ' + text;
+    }
+
+    // One bar for the whole run, counted in measurements rather than scenes: a scene is three
+    // of them when both bundles and both modes are in.
+    var progress = { done: 0, total: 0, started: 0 };
+
+    function tick(label) {
+        var fraction = progress.total > 0 ? progress.done / progress.total : 0;
+        var spent = (Date.now() - progress.started) / 1000;
+        var left = (progress.done > 0 && fraction < 1)
+            ? ' - about ' + Math.ceil((spent / progress.done) * (progress.total - progress.done) / 60)
+                + ' min left'
+            : '';
+
+        document.getElementById('bar').style.width = (fraction * 100).toFixed(1) + '%';
+        document.getElementById('ptext').textContent = progress.total
+            ? progress.done + ' / ' + progress.total + '  (' + (fraction * 100).toFixed(0) + '%)  '
+                + label + left
+            : label;
+    }
+
+    function warn(text) {
+        document.getElementById('warn').textContent = text;
+    }
+
+    function selectedBundles() {
+        return Array.prototype.filter.call(
+            document.querySelectorAll('#bundles input'), function (box) { return box.checked; },
+        ).map(function (box) { return box.value; });
+    }
+
+    function settings() {
+        return {
+            width: document.getElementById('width').value,
+            height: document.getElementById('height').value,
+            frames: document.getElementById('frames').value,
+            warmup: document.getElementById('warmup').value,
+            targetMs: document.getElementById('targetMs').value,
+            maxSets: document.getElementById('maxSets').value,
+            duplicate: document.getElementById('duplicate').value,
+        };
+    }
+
+    // `sets` null lets the page search; a number forbids it. `mode` empty leaves the snapshot
+    // alone, which is what a bundle older than the modes does anyway.
+    function runScene(bundle, scene, emptyMs, sets, mode) {
+        var host = document.getElementById('frame');
+        var frame = document.createElement('iframe');
+        var options = settings();
+        var query = '/static/scene.html?auto=1&bundle=' + encodeURIComponent(bundle)
+            + '&scene=' + encodeURIComponent(scene)
+            + '&emptyMs=' + (emptyMs === null || emptyMs === undefined ? '' : emptyMs)
+            + (sets ? '&sets=' + sets : '')
+            + (mode ? '&renderer=' + encodeURIComponent(mode) : '')
+            + Object.keys(options).map(function (key) {
+                return '&' + key + '=' + encodeURIComponent(options[key]);
+            }).join('');
+
+        host.innerHTML = '';
+        frame.src = query;
+        host.appendChild(frame);
+
+        // one iframe per scene: the browser reclaims the WebGL context when it goes away, and a
+        // hundred scenes in one context would hit the live-context limit long before the end
+        return new Promise(function (resolve) {
+            var settled = false;
+            var timer = setTimeout(function () {
+                if (!settled) {
+                    settled = true;
+                    resolve({ type: 'error', error: 'timeout', scene: scene, bundle: bundle });
+                }
+            }, 180000);
+
+            pending = function (message) {
+                if (settled) {
+                    return;
+                }
+
+                settled = true;
+                clearTimeout(timer);
+                pending = null;
+                resolve(message);
+            };
+        }).then(function (message) {
+            host.innerHTML = '';
+
+            return message;
+        });
+    }
+
+    window.addEventListener('message', function (event) {
+        // only the runner's own frames may report a result: the page is served from a local port
+        // and nothing else has business posting to it, but a handler that does not look is a
+        // handler anything on the internet can drive if this is ever hosted
+        if (event.origin !== window.location.origin) {
+            return;
+        }
+
+        if (pending && event.data && event.data.type) {
+            pending(event.data);
+        }
+    });
+
+    function show(row, note) {
+        var tr = document.createElement('tr');
+        var cells = [
+            row.scene, row.bundle, row.renderer || '-', row.sets,
+            row.medianMs === undefined || row.medianMs === null ? '' : row.medianMs.toFixed(2),
+            row.p95Ms === undefined || row.p95Ms === null ? '' : row.p95Ms.toFixed(2),
+            row.workMs === undefined || row.workMs === null ? '' : row.workMs.toFixed(2),
+            row.probeMs === undefined || row.probeMs === null ? '' : row.probeMs.toFixed(2),
+            row.dominance === undefined || row.dominance === null ? '' : row.dominance.toFixed(2),
+            row.drawsPerFrame === undefined || row.drawsPerFrame === null
+                ? '' : row.drawsPerFrame.toFixed(1),
+            row.loadMs === undefined || row.loadMs === null ? '' : row.loadMs.toFixed(0),
+            note || row.capped || (row.aborted ? 'aborted' : '')
+                || (row.transformIgnored ? 'transform ignored' : '')
+                || (row.underResolved ? 'under-resolved' : ''),
+        ];
+
+        cells.forEach(function (value) {
+            var td = document.createElement('td');
+
+            td.textContent = value === undefined || value === null ? '' : value;
+            tr.appendChild(td);
+        });
+
+        if (note) {
+            tr.className = 'bad';
+        }
+
+        body.appendChild(tr);
+        tr.scrollIntoView({ block: 'nearest' });
+    }
+
+    function send(row) {
+        return fetch('/api/row', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(row),
+        });
+    }
+
+    async function run() {
+        document.getElementById('start').disabled = true;
+        warn('');
+        body.innerHTML = '';
+
+        var bundles = selectedBundles();
+
+        if (bundles.length === 0) {
+            warn('no bundle selected');
+            document.getElementById('start').disabled = false;
+
+            return;
+        }
+
+        progress = { done: 0, total: 0, started: Date.now() };
+        tick('starting');
+
+        var limit = parseInt(document.getElementById('limit').value, 10) || 0;
+        var scenes = CONFIG.scenes.filter(function (scene) { return scene.name !== '__empty__'; });
+
+        if (limit > 0) {
+            scenes = scenes.slice(0, limit);
+        }
+
+        // Which modes each bundle can be asked for. One older than the modes has no setRenderer,
+        // so it is measured once and that row pairs with each of the newer bundle's modes.
+        var modes = {};
+        // The empty frame, per bundle AND per mode: advanced composites the whole buffer whether
+        // or not anything is on it. Subtracted from every scene.
+        var empty = {};
+
+        function label(bundle, mode) {
+            return mode ? bundle + '/' + mode : bundle;
+        }
+
+        for (var b = 0; b < bundles.length; b++) {
+            var probe = ['simple'];
+
+            for (var m = 0; m < probe.length; m++) {
+                status('baseline: ' + label(bundles[b], probe[m]));
+                tick('baseline ' + label(bundles[b], probe[m]));
+
+                // one set, never a ramp: an empty scene never reaches the target no matter how
+                // many times nothing is copied
+                var baseline = await runScene(bundles[b], '__empty__.k3d', null, 1, probe[m]);
+
+                if (baseline.type !== 'result') {
+                    warn('could not measure the baseline for ' + bundles[b] + ': '
+                        + (baseline.error || '?'));
+                    document.getElementById('start').disabled = false;
+
+                    return;
+                }
+
+                if (m === 0) {
+                    modes[bundles[b]] = baseline.row.supportsModes ? ['simple', 'advanced'] : [''];
+
+                    if (baseline.row.supportsModes) {
+                        probe = modes[bundles[b]];
+                    }
+                }
+
+                empty[label(bundles[b], modes[bundles[b]][m])] = baseline.row.medianMs;
+                progress.done += 1;
+                tick('baseline ' + label(bundles[b], probe[m]) + ' done');
+                show(Object.assign({}, baseline.row, { scene: '__empty__' }), '');
+                await send(Object.assign({}, baseline.row, { scene: '__empty__', sets: 0 }));
+            }
+        }
+
+        // Scene by scene, bundle right after bundle: a machine that drifts drifts equally for all
+        // of them. Only the first entry searches; every later one is handed its copy count, so the
+        // comparison is one workload measured several ways.
+        var perScene = bundles.reduce(function (sum, bundle) {
+            return sum + modes[bundle].length;
+        }, 0);
+
+        progress.total = progress.done + scenes.length * perScene;
+        tick('measuring');
+
+        for (var s = 0; s < scenes.length; s++) {
+            var plan = [];
+
+            bundles.forEach(function (bundle) {
+                modes[bundle].forEach(function (mode) {
+                    plan.push({ bundle: bundle, mode: mode });
+                });
+            });
+
+            var sets = null;
+            var setsFrom = '';
+
+            for (var i = 0; i < plan.length; i++) {
+                var name = label(plan[i].bundle, plan[i].mode);
+
+                status('(' + (s + 1) + '/' + scenes.length + ') ' + scenes[s].name + ' @ ' + name
+                    + (sets === null ? ' (searching)' : ' @ ' + sets + ' sets'));
+                tick(scenes[s].name + ' @ ' + name
+                    + (sets === null ? ' (searching)' : ' @ ' + sets + ' sets'));
+
+                var message = await runScene(plan[i].bundle, scenes[s].file,
+                    empty[name], sets, plan[i].mode);
+
+                progress.done += 1;
+                tick(scenes[s].name + ' @ ' + name);
+
+                if (message.type === 'result') {
+                    if (sets === null) {
+                        sets = message.row.sets;
+                        setsFrom = name;
+                    }
+
+                    message.row.setsFrom = setsFrom;
+                    show(message.row, '');
+                    await send(message.row);
+                } else {
+                    // whoever was going to set the copy count failed, so the next entry ramps and
+                    // becomes the reference - setsFrom in the CSV says who it ended up being
+                    show({ scene: scenes[s].name, bundle: plan[i].bundle,
+                        renderer: plan[i].mode }, message.error || 'error');
+                    await send({ scene: scenes[s].name, bundle: plan[i].bundle,
+                        renderer: plan[i].mode, sets: sets,
+                        error: message.error || 'error' });
+                }
+            }
+        }
+
+        await fetch('/api/done', { method: 'POST' });
+        status('done');
+        progress.done = progress.total;
+        tick('done in ' + Math.round((Date.now() - progress.started) / 60000) + ' min');
+        document.getElementById('start').disabled = false;
+    }
+
+    fetch('/api/config').then(function (response) { return response.json(); }).then(function (cfg) {
+        CONFIG = cfg;
+        document.getElementById('bundles').innerHTML = cfg.bundles.map(function (name) {
+            return '<label><input type="checkbox" value="' + name + '" checked> ' + name + '</label>';
+        }).join('') || '<em>no bundles - run run.py --bundles local 2.18.0</em>';
+        status(cfg.scenes.length + ' scenes, csv: ' + cfg.csv);
+    });
+
+    document.getElementById('start').addEventListener('click', run);
+</script>
+</body>
+</html>

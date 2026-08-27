@@ -5,6 +5,7 @@ const interactionsHelper = require('../helpers/Interactions');
 const pointsCallback = require('../interactions/PointsCallback');
 const pointsIntersect = require('../interactions/PointsIntersect');
 const Fn = require('../helpers/Fn');
+const injectGGX = require('../helpers/ggxChunk');
 
 const { commonUpdate } = Fn;
 const { areAllChangesResolve } = Fn;
@@ -34,13 +35,11 @@ module.exports = {
             dot: require('./shaders/Points.dot.fragment.glsl'),
             flat: require('./shaders/Points.flat.fragment.glsl'),
             '3d': require('./shaders/Points.3d.fragment.glsl'),
-            '3dspecular': require('./shaders/Points.3d.fragment.glsl'),
         };
         const vertexShaderMap = {
             dot: require('./shaders/Points.dot.vertex.glsl'),
             flat: require('./shaders/Points.vertex.glsl'),
             '3d': require('./shaders/Points.vertex.glsl'),
-            '3dspecular': require('./shaders/Points.vertex.glsl'),
         };
         const colorMap = (config.color_map && config.color_map.data) || null;
         let opacityFunction = (config.opacity_function && config.opacity_function.data) || null;
@@ -91,17 +90,23 @@ module.exports = {
             uniforms: THREE.UniformsUtils.merge([
                 THREE.UniformsLib.lights,
                 THREE.UniformsLib.points,
+                {
+                    roughness: { value: typeof (config.roughness) !== 'undefined' ? config.roughness : 0.4 },
+                    metalness: { value: typeof (config.metalness) !== 'undefined' ? config.metalness : 0.0 },
+                },
                 uniforms,
             ]),
             defines: {
-                USE_SPECULAR: (shader === '3dSpecular' ? 1 : 0),
                 PROVIDED_FRAG_COORD_Z: 1,
+                // simple has no environment - Scene.js zeroes k3dEnvSH and k3dEnvLightColor
+                // there - and a uniform cannot be folded away, so the block goes at compile time
+                K3D_ENV_LIGHT: (K3D.parameters.renderer === 'simple' ? 0 : 1),
                 USE_COLOR_MAP: useColorMap,
                 USE_PER_POINT_OPACITY: (opacities !== null ? 1 : 0),
                 USE_PER_POINT_SIZE: (sizes !== null ? 1 : 0),
             },
             vertexShader,
-            fragmentShader,
+            fragmentShader: injectGGX(fragmentShader),
             opacity: config.opacity,
             lights: true,
             clipping: true,
@@ -109,6 +114,12 @@ module.exports = {
                 fragDepth: true,
             },
         });
+
+        material.uniforms.k3dEnvSH = K3D.getWorld().k3dEnvSH;
+        material.uniforms.k3dEnvRotation = K3D.getWorld().k3dEnvRotation;
+        material.uniforms.k3dEnvLightDir = K3D.getWorld().k3dEnvLightDir;
+        material.uniforms.k3dEnvLightColor = K3D.getWorld().k3dEnvLightColor;
+        material.uniforms.k3dEnvSurfaceBoost = K3D.getWorld().k3dEnvSurfaceBoost;
 
         material.depthWrite = (config.opacity === 1.0 && opacities === null);
         material.transparent = (config.opacity !== 1.0 || opacities !== null);
@@ -123,6 +134,27 @@ module.exports = {
             getGeometry(pointPositions, colors, opacities, sizes, useColorMap ? attribute : null),
             material,
         );
+
+        if (shader.toLowerCase().indexOf('3d') === 0) {
+            // analytic sphere depth for the AO prepass - the override material there
+            // would rasterise the billboard quads. Uniforms shared by reference.
+            object.userData.k3dAODepthMaterial = new THREE.ShaderMaterial({
+                uniforms: material.uniforms,
+                defines: material.defines,
+                vertexShader,
+                fragmentShader: require('./shaders/Points.3d.depth.fragment.glsl'),
+                clipping: true,
+                extensions: {
+                    fragDepth: true,
+                },
+            });
+            // the same monkey-patch as the colour material: three's points uniform
+            // refresh reads size/color/map unconditionally
+            object.userData.k3dAODepthMaterial.size = config.point_size;
+            object.userData.k3dAODepthMaterial.color = new THREE.Color(1.0, 1.0, 1.0);
+            object.userData.k3dAODepthMaterial.map = null;
+            object.userData.k3dAODepthMaterial.isPointsMaterial = true;
+        }
 
         if (config.shader !== 'dot') {
             Fn.expandBoundingBox(object.geometry.boundingBox, config.point_size * 0.5);
@@ -191,6 +223,50 @@ module.exports = {
             obj.geometry.attributes.attributes.needsUpdate = true;
 
             resolvedChanges.attribute = null;
+        }
+
+        if (typeof (changes.point_size) !== 'undefined' && !changes.point_size.timeSeries) {
+            obj.material.size = changes.point_size;
+
+            if (obj.userData.k3dAODepthMaterial) {
+                obj.userData.k3dAODepthMaterial.size = changes.point_size;
+            }
+
+            if (config.shader !== 'dot') {
+                obj.geometry.computeBoundingBox();
+                Fn.expandBoundingBox(obj.geometry.boundingBox, changes.point_size * 0.5);
+            }
+
+            resolvedChanges.point_size = null;
+        }
+
+        if (typeof (changes.point_sizes) !== 'undefined' && !changes.point_sizes.timeSeries
+            && obj.geometry.attributes.sizes
+            && changes.point_sizes.data.length === obj.geometry.attributes.sizes.array.length) {
+            obj.geometry.attributes.sizes.array.set(changes.point_sizes.data);
+            obj.geometry.attributes.sizes.needsUpdate = true;
+
+            resolvedChanges.point_sizes = null;
+        }
+
+        if (typeof (changes.opacities) !== 'undefined' && !changes.opacities.timeSeries
+            && obj.geometry.attributes.opacities
+            && changes.opacities.data.length === obj.geometry.attributes.opacities.array.length) {
+            obj.geometry.attributes.opacities.array.set(changes.opacities.data);
+            obj.geometry.attributes.opacities.needsUpdate = true;
+
+            resolvedChanges.opacities = null;
+        }
+
+        if (typeof (changes.color) !== 'undefined' && !changes.color.timeSeries
+            && obj.geometry.attributes.color
+            && !(config.colors && config.colors.data && config.colors.data.length > 0)) {
+            obj.geometry.attributes.color.array.set(
+                getColorsArray(new THREE.Color(changes.color), obj.geometry.attributes.color.array.length / 3),
+            );
+            obj.geometry.attributes.color.needsUpdate = true;
+
+            resolvedChanges.color = null;
         }
 
         if (typeof (changes.colors) !== 'undefined' && !changes.colors.timeSeries

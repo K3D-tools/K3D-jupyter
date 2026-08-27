@@ -154,6 +154,10 @@ module.exports = {
         const resolvedChanges = {};
 
         if (typeof (changes.opacity) !== 'undefined' && !changes.opacity.timeSeries) {
+            // the greedy mesher bakes opacity < 1.0 into the geometry - crossing 1.0 rebuilds
+            if ((changes.opacity < 1.0) !== obj.userData.builtTransparent) {
+                return false;
+            }
             obj.traverse((object) => {
                 if (object.material) {
                     if (object.material.userData.outline) {
@@ -242,6 +246,19 @@ module.exports = {
 
             resolvedChanges._hold_remeshing = null;
         }
+
+        ['roughness', 'metalness'].forEach((key) => {
+            if (typeof (changes[key]) !== 'undefined' && !changes[key].timeSeries) {
+                obj.traverse((object) => {
+                    if (object.material && object.material[key] !== undefined
+                        && !object.material.userData.outline) {
+                        object.material[key] = config[key];
+                    }
+                });
+
+                resolvedChanges[key] = null;
+            }
+        });
 
         commonUpdate(config, changes, resolvedChanges, obj, K3D);
 

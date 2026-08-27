@@ -6,7 +6,9 @@ from typing import Generator, List, Optional
 
 import numpy as np
 
+from ..helpers import environment_to_json
 from ..objects import create_object
+from .._version import __version__ as version
 
 # Snapshot key -> trait name. One mapping used for both saving and restoring, so the JS-facing
 # key names cannot drift apart from the Python side.
@@ -31,6 +33,10 @@ _PLOT_PARAMS = (
     ("fpsMeter", "fps_meter"),
     ("cameraMode", "camera_mode"),
     ("depthPeels", "depth_peels"),
+    ("renderer", "renderer"),
+    ("environment", "environment"),
+    ("environmentRotation", "environment_rotation"),
+    ("toneMapping", "tone_mapping"),
     ("colorbarObjectId", "colorbar_object_id"),
     ("sliceViewerObjectId", "slice_viewer_object_id"),
     ("sliceViewerMaskObjectIds", "slice_viewer_mask_object_ids"),
@@ -51,6 +57,11 @@ _PLOT_PARAMS = (
     ("cameraFov", "camera_fov"),
     ("axesHelper", "axes_helper"),
     ("axesHelperColors", "axes_helper_colors"),
+    ("aoRadius", "ao_radius"),
+    ("aoStrength", "ao_strength"),
+    ("cinematicSamples", "cinematic_samples"),
+    ("cinematicBounces", "cinematic_bounces"),
+    ("cinematicGlossyFilter", "cinematic_glossy_filter"),
     ("cameraAnimation", "camera_animation"),
     ("customData", "custom_data"),
     ("fps", "fps"),
@@ -151,6 +162,7 @@ class PlotSnapshotMixin:
             voxel_chunks = getattr(self, "voxel_chunks", [])
         snapshot = self.get_binary_snapshot_objects(voxel_chunks)
         snapshot["plot"] = self.get_plot_params()
+        snapshot["version"] = version
         data = msgpack.packb(snapshot, use_bin_type=True)
         return zlib.compress(data, compression_level)
 
@@ -258,9 +270,15 @@ class PlotSnapshotMixin:
 
         Values are normalised to plain Python so they can be msgpack-packed directly.
         """
-        return {
-            key: _msgpack_safe(getattr(self, trait)) for key, trait in _PLOT_PARAMS
-        }
+        params = {}
+        for key, trait in _PLOT_PARAMS:
+            value = getattr(self, trait)
+            if key == "environment" and not isinstance(value, str):
+                # a user map goes as a typed array, not a nested list
+                params[key] = environment_to_json(value, self)
+            else:
+                params[key] = _msgpack_safe(value)
+        return params
 
     def set_plot_params(self, params: TypingDict[str, Any]) -> None:
         """Apply settings produced by get_plot_params. Unknown keys are ignored."""

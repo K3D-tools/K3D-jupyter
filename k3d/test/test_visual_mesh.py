@@ -67,7 +67,7 @@ def test_mesh_advanced():
 
     mesh = k3d.vtk_poly_data(
         reader.GetOutput(),
-        color=0x222222,
+        color=0x40E0D0,
         flat_shading=True,
         transform=k3d.transform(rotation=[np.pi / 2, 1, 0, 0]),
     )
@@ -89,7 +89,7 @@ def test_mesh_advanced_smoothed():
 
     mesh = k3d.vtk_poly_data(
         reader.GetOutput(),
-        color=0x222222,
+        color=0x40E0D0,
         flat_shading=False,
         transform=k3d.transform(rotation=[np.pi / 2, 1, 0, 0]),
     )
@@ -98,7 +98,7 @@ def test_mesh_advanced_smoothed():
     compare("mesh_advanced_smoothed")
 
 
-def test_mesh_advanced_shininess():
+def test_mesh_advanced_roughness():
     prepare()
 
     filename = download(
@@ -111,18 +111,18 @@ def test_mesh_advanced_shininess():
 
     mesh = k3d.vtk_poly_data(
         reader.GetOutput(),
-        color=0x222222,
+        color=0x40E0D0,
         flat_shading=False,
-        shininess=10.0,
+        roughness=0.4,
         transform=k3d.transform(rotation=[np.pi / 2, 1, 0, 0]),
     )
     pytest.plot += mesh
 
-    compare("mesh_advanced_shininess")
+    compare("mesh_advanced_roughness")
 
-    mesh.shininess = 500.0
+    mesh.roughness = 0.06
 
-    compare("mesh_advanced_dynamic_shininess")
+    compare("mesh_advanced_dynamic_roughness")
 
 
 def test_mesh_advanced_opacity():
@@ -138,7 +138,7 @@ def test_mesh_advanced_opacity():
 
     mesh = k3d.vtk_poly_data(
         reader.GetOutput(),
-        color=0x222222,
+        color=0x40E0D0,
         flat_shading=False,
         opacity=0.5,
         transform=k3d.transform(rotation=[np.pi / 2, 1, 0, 0]),
@@ -192,7 +192,7 @@ def test_mesh_advanced_wireframe():
 
     mesh = k3d.vtk_poly_data(
         reader.GetOutput(),
-        color=0x222222,
+        color=0x40E0D0,
         opacity=0.2,
         wireframe=True,
         transform=k3d.transform(rotation=[np.pi / 2, 1, 0, 0]),
@@ -406,3 +406,116 @@ def test_mesh_volume_data_depth_peels():
     pytest.plot += mesh2
 
     compare("mesh_volume_data_depth_peels")
+
+
+TETRA_VERTICES = np.array(
+    [[0, 0, 0], [2, 0, 0], [0, 2, 0], [0, 0, 2]], dtype=np.float32
+)
+TETRA_INDICES = np.array(
+    [[0, 1, 2], [0, 1, 3], [0, 2, 3], [1, 2, 3]], dtype=np.uint32
+)
+
+CUBE_VERTICES = np.array(
+    [
+        [0, 0, 0], [3, 0, 0], [3, 3, 0], [0, 3, 0],
+        [0, 0, 3], [3, 0, 3], [3, 3, 3], [0, 3, 3],
+    ],
+    dtype=np.float32,
+)
+CUBE_INDICES = np.array(
+    [
+        [0, 1, 2], [0, 2, 3], [4, 6, 5], [4, 7, 6],
+        [0, 4, 5], [0, 5, 1], [1, 5, 6], [1, 6, 2],
+        [2, 6, 7], [2, 7, 3], [3, 7, 4], [3, 4, 0],
+    ],
+    dtype=np.uint32,
+)
+
+
+def test_mesh_vertices_morph():
+    """A vertices update of the same count is an in-place morph: the position
+    buffer mutates, the scene object survives (no delete/create round trip)."""
+    prepare()
+
+    mesh = k3d.mesh(TETRA_VERTICES, TETRA_INDICES, color=0x2244AA)
+    pytest.plot += mesh
+    pytest.headless.sync(hold_until_refreshed=True)
+
+    uuid_before = pytest.headless.browser.execute_script(
+        "return K3DInstance.getWorld().ObjectsById[%d].uuid;" % mesh.id
+    )
+
+    mesh.vertices = TETRA_VERTICES * np.array([2.0, 0.5, 1.0], dtype=np.float32)
+
+    compare("mesh_vertices_morph", modes=("simple",))
+
+    uuid_after = pytest.headless.browser.execute_script(
+        "return K3DInstance.getWorld().ObjectsById[%d].uuid;" % mesh.id
+    )
+    assert uuid_before == uuid_after
+
+
+def test_mesh_vertices_indices_sequential_update():
+    """vertices+indices land as two sequential updates, never one transaction.
+
+    The inconsistent middle state (indices reaching beyond the vertex pool) must
+    not hang the scene and must not throw - the mesh draws nothing until the pair
+    is consistent again.
+    """
+    prepare()
+
+    mesh = k3d.mesh(TETRA_VERTICES, TETRA_INDICES, color=0x2244AA)
+    pytest.plot += mesh
+    pytest.headless.sync(hold_until_refreshed=True)
+
+    # the worse order on purpose: indices first, beyond the current 4 vertices
+    mesh.indices = CUBE_INDICES
+    compare("mesh_inconsistent_indices", modes=("simple",))
+
+    mesh.vertices = CUBE_VERTICES
+    compare("mesh_vertices_indices_updated", modes=("simple",))
+
+    logs = pytest.headless.browser.get_log("browser")
+    uncaught = [e["message"] for e in logs if "Uncaught" in e["message"]]
+    assert uncaught == [], uncaught
+    assert any("reaches beyond" in e["message"] for e in logs)
+
+
+def test_mesh_vertices_indices_grouped_update():
+    """Both arrays changed within one sync travel as a single diff and reload
+    once, with no inconsistent middle state (the jupyter equivalent is
+    `with mesh.hold_sync():`). Shrinking in this order would be invalid
+    sequentially - grouped it must pass without the guard firing.
+    """
+    prepare()
+
+    mesh = k3d.mesh(CUBE_VERTICES, CUBE_INDICES, color=0x2244AA)
+    pytest.plot += mesh
+    pytest.headless.sync(hold_until_refreshed=True)
+
+    mesh.vertices = TETRA_VERTICES
+    mesh.indices = TETRA_INDICES
+
+    compare("mesh_vertices_indices_grouped", modes=("simple",))
+
+    logs = pytest.headless.browser.get_log("browser")
+    assert not any("reaches beyond" in e["message"] for e in logs)
+
+
+def test_mesh_ao_params():
+    # a tight radius with a deepened exponent - the AO knobs must reach the GTAO pass
+    prepare()
+
+    mesh = k3d.mesh(TETRA_VERTICES, TETRA_INDICES, color=0x2244AA)
+    floor = k3d.mesh(
+        np.array([[-2, -2, -0.5], [3, -2, -0.5], [3, 3, -0.5], [-2, 3, -0.5]],
+                 dtype=np.float32),
+        np.array([[0, 1, 2], [0, 2, 3]], dtype=np.uint32),
+        color=0xB0B0B0,
+    )
+    pytest.plot += mesh
+    pytest.plot += floor
+    pytest.plot.ao_radius = 0.25
+    pytest.plot.ao_strength = 3.5
+
+    compare('mesh_ao_params', modes=('advanced',))

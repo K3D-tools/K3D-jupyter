@@ -24,8 +24,10 @@ def points(
         color: int = _default_color,
         point_size: float = 1.0,
         point_sizes: ArrayLike = None,
-        shininess: float = 50.0,
-        shader: str = "3dSpecular",
+        roughness: float = 0.4,
+        metalness: float = 0.0,
+        shininess: float = None,
+        shader: str = "3d",
         opacity: float = 1.0,
         opacities: ArrayLike = None,
         attribute: ArrayLike = None,
@@ -55,6 +57,11 @@ def points(
     if color_map is None:
         color_map = default_colormap
 
+    # pre-2.19 alias: '3dSpecular' folded into '3d' - the highlights are driven
+    # by roughness/metalness now
+    if shader == "3dSpecular":
+        shader = "3d"
+
     attribute = (
         np.array(attribute, np.float32) if type(attribute) is not dict else attribute
     )
@@ -67,6 +74,8 @@ def points(
             color=color,
             point_size=point_size,
             point_sizes=point_sizes,
+            roughness=roughness,
+            metalness=metalness,
             shininess=shininess,
             shader=shader,
             opacity=opacity,

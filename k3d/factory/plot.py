@@ -1,6 +1,7 @@
 """Factory functions for creating Plot widgets."""
 
 import numpy as np
+import warnings
 from typing import Any
 from typing import Dict as TypingDict
 from typing import List as TypingList
@@ -31,12 +32,22 @@ def plot(
         camera_fov: float = 60.0,
         time: float = 0.0,
         depth_peels: int = 0,
+        renderer: str = "simple",
+        environment: str = "neutral",
+        environment_rotation: float = 0.0,
+        tone_mapping: str = "none",
+        ao_radius: float = 0.07,
+        ao_strength: float = 1.8,
+        cinematic_samples: int = 64,
+        cinematic_bounces: int = 6,
+        cinematic_glossy_filter: float = 0.25,
         axes: TypingList[str] = None,
         axes_helper: float = 1.0,
         axes_helper_colors: TypingList[int] = None,
         camera_mode: str = "trackball",
         snapshot_type: str = "full",
-        auto_rendering: bool = True,
+        render_on_change: bool = True,
+        auto_rendering: Optional[bool] = None,
         camera_no_zoom: bool = False,
         camera_no_rotate: bool = False,
         camera_no_pan: bool = False,
@@ -54,6 +65,15 @@ def plot(
         additional_js_code: str = '',
         custom_data: Optional[TypingDict[str, Any]] = None,
 ) -> Plot:
+    if auto_rendering is not None:
+        warnings.warn(
+            "auto_rendering was renamed to render_on_change in 3.0.0",
+            DeprecationWarning,
+            stacklevel=2,
+        )
+
+        render_on_change = auto_rendering
+
     if axes is None:
         axes = ["x", "y", "z"]
     if axes_helper_colors is None:
@@ -76,6 +96,15 @@ def plot(
         voxel_paint_color=voxel_paint_color,
         grid=grid,
         depth_peels=depth_peels,
+        renderer=renderer,
+        environment=environment,
+        environment_rotation=environment_rotation,
+        tone_mapping=tone_mapping,
+        ao_radius=ao_radius,
+        ao_strength=ao_strength,
+        cinematic_samples=cinematic_samples,
+        cinematic_bounces=cinematic_bounces,
+        cinematic_glossy_filter=cinematic_glossy_filter,
         axes=axes,
         axes_helper=axes_helper,
         axes_helper_colors=axes_helper_colors,
@@ -92,7 +121,7 @@ def plot(
         camera_damping_factor=camera_damping_factor,
         camera_pan_speed=camera_pan_speed,
         camera_up_axis=camera_up_axis,
-        auto_rendering=auto_rendering,
+        render_on_change=render_on_change,
         fps=fps,
         minimum_fps=minimum_fps,
         time_speed=time_speed,

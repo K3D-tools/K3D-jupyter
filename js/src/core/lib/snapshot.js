@@ -6,7 +6,6 @@ const fileLoader = require('./helpers/fileLoader');
 const templateStandalone = require('./snapshot_standalone').default;
 const templateOnline = require('./snapshot_online').default;
 const templateInline = require('./snapshot_inline').default;
-const semverRange = require('../../version').version;
 const buffer = require('./helpers/buffer');
 
 let sourceCode = window.k3dCompressed;
@@ -25,32 +24,38 @@ if (typeof (sourceCode) === 'undefined') {
         }
     }
 
+    // no script tag means the anywidget module (blob: URL) - the kernel delivers
+    // the source over the comm later (window.k3dCompressed, read lazily in
+    // getHTMLSnapshot), so probing the npm CDN here would only spam CORS errors
     if (typeof (path) !== 'undefined') {
         path = path.replaceAll('\\\\', '/').replaceAll('\\', '/');
         path = path.split('/').slice(0, -1).join('/') + '/standalone.js';
-    } else {
-        // use npm repository
-        path = `https://unpkg.com/k3d@${semverRange}/dist/standalone.js`;
-    }
 
-    try {
-        fileLoader(path, (data) => {
-            data = fflate.strToU8(data);
-            sourceCode = buffer.arrayBufferToBase64(fflate.zlibSync(data));
-        }, (error) => {
-            console.error('K3D: Failed to load source code:', error.message);
+        try {
+            fileLoader(path, (data) => {
+                data = fflate.strToU8(data);
+                sourceCode = buffer.arrayBufferToBase64(fflate.zlibSync(data));
+            }, (error) => {
+                console.error('K3D: Failed to load source code:', error.message);
+                // Fallback to empty source code
+                sourceCode = '';
+            });
+        } catch (e) {
+            console.error('K3D: Failed to load source code:', e.message);
             // Fallback to empty source code
             sourceCode = '';
-        });
-    } catch (e) {
-        console.error('K3D: Failed to load source code:', e.message);
-        // Fallback to empty source code
-        sourceCode = '';
+        }
     }
 }
 
 function getHTMLSnapshot(K3D, compressionLevel) {
     K3D.heavyOperationSync = true;
+
+    // the anywidget module lives under a blob: URL - the script-path heuristic
+    // cannot see it, so the kernel delivers the source through the comm instead
+    if (window.k3dCompressed) {
+        sourceCode = window.k3dCompressed;
+    }
 
     const data = buffer.arrayBufferToBase64(K3D.getSnapshot(compressionLevel));
     let filecontent;

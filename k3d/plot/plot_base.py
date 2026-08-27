@@ -1,22 +1,22 @@
 import ipywidgets as widgets
-from traitlets import Bool, Dict, Float, Int, List, Unicode
+import warnings
+from traitlets import Any as TraitAny
+from traitlets import Bool, Dict, List, TraitError, Unicode, validate
 from typing import Any
 from typing import Dict as TypingDict
 from typing import List as TypingList
 from typing import Optional
 
 from .._version import __version__ as version
+from .._widget import K3DAnyWidget
+from ..environments import load as load_environment
+from ..helpers import (Float, Int, environment_from_json, environment_to_json,
+                       json_to_array)
 from ..objects import Drawable, ListOrArray, TimeSeries
 
 
-class PlotBase(widgets.DOMWidget):
-    _view_name = Unicode("PlotView").tag(sync=True)
-    _model_name = Unicode("PlotModel").tag(sync=True)
-    _view_module = Unicode("k3d").tag(sync=True)
-    _model_module = Unicode("k3d").tag(sync=True)
-
-    _view_module_version = Unicode(version).tag(sync=True)
-    _model_module_version = Unicode(version).tag(sync=True)
+class PlotBase(K3DAnyWidget):
+    _kind = Unicode("plot").tag(sync=True)
     _backend_version = Unicode(version).tag(sync=True)
 
     # readonly (specified at creation)
@@ -29,7 +29,7 @@ class PlotBase(widgets.DOMWidget):
 
     # read-write
     camera_auto_fit = Bool(True).tag(sync=True)
-    auto_rendering = Bool(True).tag(sync=True)
+    render_on_change = Bool(True).tag(sync=True)
     lighting = Float().tag(sync=True)
     fps = Float().tag(sync=True)
     minimum_fps = Float().tag(sync=True)
@@ -75,6 +75,76 @@ class PlotBase(widgets.DOMWidget):
     ).tag(sync=True)
     mode = Unicode().tag(sync=True)
     depth_peels = Int().tag(sync=True)
+    renderer = Unicode(default_value="simple").tag(sync=True)
+    environment = TraitAny(default_value="neutral").tag(
+        sync=True, to_json=environment_to_json, from_json=environment_from_json
+    )
+
+    @validate("environment")
+    def _resolve_environment(self, proposal):
+        value = proposal["value"]
+        # the resolved array loses the catalog name - remembered here so the wire
+        # dict can carry it and the GUI shows the name instead of 'custom'
+        self._environment_catalog_name = None
+        # a snapshot round-trip carries the wire dict
+        if isinstance(value, dict):
+            self._environment_catalog_name = value.get("name")
+            return json_to_array(value)
+        # catalog names resolve to their arrays; procedural preset names pass through to JS
+        if isinstance(value, str):
+            catalog = load_environment(value)
+            if catalog is not None:
+                self._environment_catalog_name = value
+                return catalog
+        return value
+    environment_rotation = Float(default_value=0.0).tag(sync=True)
+    tone_mapping = Unicode(default_value="none").tag(sync=True)
+    ao_radius = Float(default_value=0.07).tag(sync=True)
+    ao_strength = Float(default_value=1.8).tag(sync=True)
+
+    @validate("ao_radius")
+    def _validate_ao_radius(self, proposal):
+        value = float(proposal["value"])
+        if not 0.0 < value <= 1.0:
+            raise TraitError(
+                "ao_radius is a fraction of the scene diagonal and must be in (0, 1], "
+                "got %s" % value
+            )
+        return value
+
+    @validate("ao_strength")
+    def _validate_ao_strength(self, proposal):
+        value = float(proposal["value"])
+        if not 0.0 <= value <= 10.0:
+            raise TraitError("ao_strength must be in [0, 10], got %s" % value)
+        return value
+    cinematic_samples = Int(default_value=64).tag(sync=True)
+    cinematic_bounces = Int(default_value=6).tag(sync=True)
+
+    @validate("cinematic_samples")
+    def _validate_cinematic_samples(self, proposal):
+        value = int(proposal["value"])
+        # the ceiling only bounds the loop; offline renders want thousands
+        if not 1 <= value <= 100000:
+            raise TraitError("cinematic_samples must be in [1, 100000], got %s" % value)
+        return value
+
+    @validate("cinematic_bounces")
+    def _validate_cinematic_bounces(self, proposal):
+        value = int(proposal["value"])
+        if not 1 <= value <= 32:
+            raise TraitError("cinematic_bounces must be in [1, 32], got %s" % value)
+        return value
+    cinematic_glossy_filter = Float(default_value=0.25).tag(sync=True)
+
+    @validate("cinematic_glossy_filter")
+    def _validate_cinematic_glossy_filter(self, proposal):
+        value = float(proposal["value"])
+        if not 0.0 <= value <= 1.0:
+            raise TraitError(
+                "cinematic_glossy_filter must be in [0, 1], got %s" % value
+            )
+        return value
     camera_mode = Unicode().tag(sync=True)
     additional_js_code = Unicode().tag(sync=True)
     manipulate_mode = Unicode().tag(sync=True)
@@ -82,6 +152,112 @@ class PlotBase(widgets.DOMWidget):
     custom_data = Dict(default_value=None, allow_none=True).tag(sync=True)
 
     objects: TypingList[Drawable] = []
+
+    def _handle_custom_msg(self, content, buffers):
+        # the anywidget module lives under a blob: URL, so the HTML-snapshot button
+        # cannot locate standalone.js by script path - the kernel serves it instead
+        if content.get("msg_type") == "fetch_snapshot_source":
+            import zlib
+            from pathlib import Path
+
+            source = (Path(__file__).parent.parent / "static" / "standalone.js").read_bytes()
+            self.send({"msg_type": "snapshot_source"}, buffers=[zlib.compress(source, 9)])
+        elif content.get("msg_type") == "fetch_objects":
+            self._relay_send_state(content.get("ids", []))
+        elif content.get("msg_type") == "object_change":
+            self._relay_apply_change(buffers)
+        else:
+            super()._handle_custom_msg(content, buffers)
+
+    # Colab-style frontends materialise widget models lazily, per output frame:
+    # the plot model exists there, the object models never do (object_ids are
+    # plain integers, not model references). The plot comm relays their state
+    # instead, in the .k3d binary encoding (zlib over msgpack).
+
+    def _relay_send_state(self, ids):
+        import zlib
+
+        import msgpack
+
+        wanted = set(ids)
+        state = {
+            "objects": [o.get_binary() for o in self.objects if o.id in wanted],
+            "chunkList": [
+                c.get_binary() for c in getattr(self, "voxel_chunks", [])
+            ],
+        }
+
+        self._relay_wire_observers()
+        self.send(
+            {"msg_type": "objects_state"},
+            buffers=[zlib.compress(msgpack.packb(state, use_bin_type=True), 1)],
+        )
+
+    def _relay_wire_observers(self):
+        if not hasattr(self, "_relay_observed"):
+            self._relay_observed = set()
+            self.observe(lambda change: self._relay_wire_observers(), "object_ids")
+
+        for o in self.objects:
+            if o.id not in self._relay_observed:
+                self._relay_observed.add(o.id)
+                o.observe(self._relay_forward)
+
+    def _relay_forward(self, change):
+        import zlib
+
+        import msgpack
+
+        from ..helpers import to_json
+
+        obj = change.owner
+
+        if change.name not in obj._synced_props or change.name in ("id", "type"):
+            return
+
+        patch = {
+            "id": obj.id,
+            "key": change.name,
+            "value": to_json(change.name, change.new, obj, obj["compression_level"]),
+        }
+        self.send(
+            {"msg_type": "object_patch"},
+            buffers=[zlib.compress(msgpack.packb(patch, use_bin_type=True), 1)],
+        )
+
+    def _relay_apply_change(self, buffers):
+        import zlib
+
+        import msgpack
+
+        from ..helpers import from_json
+
+        patch = msgpack.unpackb(zlib.decompress(buffers[0]), strict_map_key=False)
+        obj = next((o for o in self.objects if o.id == patch["id"]), None)
+
+        if obj is not None and patch["key"] in obj._synced_props:
+            setattr(obj, patch["key"], from_json(patch["value"]))
+
+    @property
+    def auto_rendering(self) -> bool:
+        """Deprecated alias of render_on_change."""
+        warnings.warn(
+            "auto_rendering was renamed to render_on_change in 3.0.0",
+            DeprecationWarning,
+            stacklevel=2,
+        )
+
+        return self.render_on_change
+
+    @auto_rendering.setter
+    def auto_rendering(self, value: bool) -> None:
+        warnings.warn(
+            "auto_rendering was renamed to render_on_change in 3.0.0",
+            DeprecationWarning,
+            stacklevel=2,
+        )
+
+        self.render_on_change = value
 
     def __init__(
             self,
@@ -120,7 +296,7 @@ class PlotBase(widgets.DOMWidget):
             mode: str = "view",
             camera_mode: str = "trackball",
             manipulate_mode: str = "translate",
-            auto_rendering: bool = True,
+            render_on_change: bool = True,
             fps: float = 25.0,
             minimum_fps: float = -1,
             grid_color: int = 0xE6E6E6,
@@ -130,10 +306,28 @@ class PlotBase(widgets.DOMWidget):
             slice_viewer_mask_object_ids: TypingList[int] = None,
             slice_viewer_direction: str = "z",
             depth_peels: int = 0,
+            renderer: str = "simple",
+            environment: str = "neutral",
+            environment_rotation: float = 0.0,
+            tone_mapping: str = "none",
+            ao_radius: float = 0.07,
+            ao_strength: float = 1.8,
+            cinematic_samples: int = 64,
+            cinematic_bounces: int = 6,
             additional_js_code: str = '',
             *args: Any,
             **kwargs: Any,
     ) -> None:
+        # renamed in 3.0.0: the old name read like a render loop, which K3D has never had
+        if "auto_rendering" in kwargs:
+            warnings.warn(
+                "auto_rendering was renamed to render_on_change in 3.0.0",
+                DeprecationWarning,
+                stacklevel=2,
+            )
+
+            render_on_change = kwargs.pop("auto_rendering")
+
         super().__init__(*args, **kwargs)
 
         if axes is None:
@@ -171,6 +365,8 @@ class PlotBase(widgets.DOMWidget):
         self.camera_no_rotate = camera_no_rotate
         self.camera_no_zoom = camera_no_zoom
         self.camera_no_pan = camera_no_pan
+
+        self.on_msg(self._handle_custom_msg)
         self.camera_rotate_speed = camera_rotate_speed
         self.camera_zoom_speed = camera_zoom_speed
         self.camera_pan_speed = camera_pan_speed
@@ -185,10 +381,18 @@ class PlotBase(widgets.DOMWidget):
         self.snapshot_type = snapshot_type
         self.camera_mode = camera_mode
         self.manipulate_mode = manipulate_mode
-        self.auto_rendering = auto_rendering
+        self.render_on_change = render_on_change
         if "camera" not in kwargs:
             self.camera = []
         self.depth_peels = depth_peels
+        self.renderer = renderer
+        self.environment = environment
+        self.environment_rotation = environment_rotation
+        self.tone_mapping = tone_mapping
+        self.ao_radius = ao_radius
+        self.ao_strength = ao_strength
+        self.cinematic_samples = cinematic_samples
+        self.cinematic_bounces = cinematic_bounces
         self.custom_data = custom_data
         self.additional_js_code = additional_js_code
 

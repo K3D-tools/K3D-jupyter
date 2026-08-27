@@ -2,12 +2,12 @@
 
 import numpy as np
 import warnings
-from traitlets import Bool, Float, Int, List, Unicode, validate
-from traittypes import Array
+from traitlets import Bool, List, TraitError, Unicode, validate
 
 from .base import (Drawable, DrawableWithCallback, DrawableWithVoxelCallback,
                    ListOrArray, TimeSeries)
-from ..helpers import (array_serialization_wrap, get_bounding_box,
+from ..helpers import (Array, Float, Int,
+                       array_serialization_wrap, get_bounding_box,
                        shape_validation,
                        sparse_voxels_validation)
 
@@ -47,8 +47,10 @@ class MarchingCubes(DrawableWithCallback):
             Whether mesh should display as wireframe.
         flat_shading: `bool`.
             Whether mesh should display with flat shading.
-        shininess: `float`.
-            Shininess of object material.
+        roughness: `float`.
+            Roughness of object material.
+        metalness: `float`.
+            Metalness of object material.
         opacity: `float`.
             Opacity of mesh.
         model_matrix: `array_like`.
@@ -84,7 +86,8 @@ class MarchingCubes(DrawableWithCallback):
     color = Int(min=0, max=0xFFFFFF).tag(sync=True)
     wireframe = Bool().tag(sync=True)
     flat_shading = Bool().tag(sync=True)
-    shininess = TimeSeries(Float(default_value=50.0)).tag(sync=True)
+    roughness = TimeSeries(Float(default_value=0.4, min=0.0, max=1.0)).tag(sync=True)
+    metalness = TimeSeries(Float(default_value=0.0, min=0.0, max=1.0)).tag(sync=True)
     opacity = TimeSeries(Float(min=0.0, max=1.0, default_value=1.0)).tag(sync=True)
     model_matrix = TimeSeries(Array(dtype=np.float32)).tag(
         sync=True, **array_serialization_wrap("model_matrix")
@@ -161,7 +164,7 @@ class VolumeSlice(DrawableWithCallback):
     color_map_masks = Array(dtype=np.uint32).tag(
         sync=True, **array_serialization_wrap("color_map_masks")
     )
-    mask_opacity = TimeSeries(Float()).tag(sync=True)
+    mask_opacity = TimeSeries(Float(min=0.0, max=1.0)).tag(sync=True)
     model_matrix = TimeSeries(Array(dtype=np.float32)).tag(
         sync=True, **array_serialization_wrap("model_matrix")
     )
@@ -224,6 +227,11 @@ class Volume(Drawable):
             Number of iteration per 1 unit of space.
         alpha_coef: `float`.
             Alpha multiplier.
+        roughness: `float`.
+            Roughness of the specular highlight of the isodensity surface (GGX), 0.0-1.0.
+        metalness: `float`.
+            Metalness of the specular highlight: 0.0 dielectric, 1.0 metal tinted
+            by the transfer-function colour.
         shadow: `str`.
             Type of shadow on volume.
 
@@ -262,6 +270,18 @@ class Volume(Drawable):
     samples = TimeSeries(Float()).tag(sync=True)
     alpha_coef = TimeSeries(Float()).tag(sync=True)
     gradient_step = TimeSeries(Float()).tag(sync=True)
+
+    @validate("samples", "gradient_step")
+    def _validate_positive(self, proposal):
+        value = proposal["value"]
+        numbers = value.values() if isinstance(value, dict) else [value]
+        if any(v <= 0 for v in numbers):
+            raise TraitError(
+                "%s must be positive, got %r" % (proposal["trait"].name, value)
+            )
+        return value
+    roughness = TimeSeries(Float(default_value=0.25, min=0.0, max=1.0)).tag(sync=True)
+    metalness = TimeSeries(Float(default_value=0.0, min=0.0, max=1.0)).tag(sync=True)
     shadow = TimeSeries(Unicode()).tag(sync=True)
     shadow_res = TimeSeries(Int(min=31, max=513, default_value=128)).tag(sync=True)
     shadow_delay = TimeSeries(Float()).tag(sync=True)
@@ -334,6 +354,11 @@ class MIP(Drawable):
             Number of iteration per 1 unit of space.
         gradient_step: `float`
             Gradient light step.
+        roughness: `float`.
+            Roughness of the specular highlight of the isodensity surface (GGX), 0.0-1.0.
+        metalness: `float`.
+            Metalness of the specular highlight: 0.0 dielectric, 1.0 metal tinted
+            by the transfer-function colour.
         mask: `array_like`.
             3D array of `int` in range (0, 255), indexed as [z, y, x].
         mask_opacities: `array_like`.
@@ -354,7 +379,19 @@ class MIP(Drawable):
         sync=True
     )
     gradient_step = TimeSeries(Float()).tag(sync=True)
+
+    @validate("samples", "gradient_step")
+    def _validate_positive(self, proposal):
+        value = proposal["value"]
+        numbers = value.values() if isinstance(value, dict) else [value]
+        if any(v <= 0 for v in numbers):
+            raise TraitError(
+                "%s must be positive, got %r" % (proposal["trait"].name, value)
+            )
+        return value
     samples = TimeSeries(Float()).tag(sync=True)
+    roughness = TimeSeries(Float(default_value=0.25, min=0.0, max=1.0)).tag(sync=True)
+    metalness = TimeSeries(Float(default_value=0.0, min=0.0, max=1.0)).tag(sync=True)
     interpolation = TimeSeries(Bool()).tag(sync=True)
     mask = Array(dtype=np.uint8).tag(sync=True, **array_serialization_wrap("mask"))
     mask_opacities = TimeSeries(Array(dtype=np.float32)).tag(
@@ -422,6 +459,10 @@ class Voxels(DrawableWithVoxelCallback):
             Whether mesh should display as wireframe.
         opacity: `float`.
             Opacity of voxels.
+        roughness: `float`.
+            Roughness of the material.
+        metalness: `float`.
+            Metalness of the material.
         outlines: `bool`.
             Whether mesh should display with outlines.
         outlines_color: `int`.
@@ -437,6 +478,8 @@ class Voxels(DrawableWithVoxelCallback):
     outlines = Bool().tag(sync=True)
     outlines_color = Int(min=0, max=0xFFFFFF).tag(sync=True)
     opacity = TimeSeries(Float(min=0.0, max=1.0, default_value=1.0)).tag(sync=True)
+    roughness = TimeSeries(Float(default_value=0.4, min=0.0, max=1.0)).tag(sync=True)
+    metalness = TimeSeries(Float(default_value=0.0, min=0.0, max=1.0)).tag(sync=True)
     model_matrix = TimeSeries(Array(dtype=np.float32)).tag(
         sync=True, **array_serialization_wrap("model_matrix")
     )
@@ -472,6 +515,10 @@ class SparseVoxels(DrawableWithVoxelCallback):
             Whether mesh should display as wireframe.
         opacity: `float`.
             Opacity of voxels.
+        roughness: `float`.
+            Roughness of the material.
+        metalness: `float`.
+            Metalness of the material.
         outlines: `bool`.
             Whether mesh should display with outlines.
         outlines_color: `int`.
@@ -496,6 +543,8 @@ class SparseVoxels(DrawableWithVoxelCallback):
     outlines = Bool().tag(sync=True)
     outlines_color = Int(min=0, max=0xFFFFFF).tag(sync=True)
     opacity = TimeSeries(Float(min=0.0, max=1.0, default_value=1.0)).tag(sync=True)
+    roughness = TimeSeries(Float(default_value=0.4, min=0.0, max=1.0)).tag(sync=True)
+    metalness = TimeSeries(Float(default_value=0.0, min=0.0, max=1.0)).tag(sync=True)
     model_matrix = TimeSeries(Array(dtype=np.float32)).tag(
         sync=True, **array_serialization_wrap("model_matrix")
     )
@@ -530,6 +579,10 @@ class VoxelsGroup(DrawableWithVoxelCallback):
             Whether mesh should display as wireframe.
         opacity: `float`.
             Opacity of voxels.
+        roughness: `float`.
+            Roughness of the material.
+        metalness: `float`.
+            Metalness of the material.
         outlines: `bool`.
             Whether mesh should display with outlines.
         outlines_color: `int`.
@@ -555,6 +608,8 @@ class VoxelsGroup(DrawableWithVoxelCallback):
     outlines = Bool().tag(sync=True)
     outlines_color = Int(min=0, max=0xFFFFFF).tag(sync=True)
     opacity = TimeSeries(Float(min=0.0, max=1.0, default_value=1.0)).tag(sync=True)
+    roughness = TimeSeries(Float(default_value=0.4, min=0.0, max=1.0)).tag(sync=True)
+    metalness = TimeSeries(Float(default_value=0.0, min=0.0, max=1.0)).tag(sync=True)
     model_matrix = TimeSeries(Array(dtype=np.float32)).tag(
         sync=True, **array_serialization_wrap("model_matrix")
     )

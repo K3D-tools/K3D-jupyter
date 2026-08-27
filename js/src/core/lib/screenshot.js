@@ -57,7 +57,17 @@ function getScreenshot(K3D, scale, onlyCanvas) {
             console.log(`K3D: Screenshot [html]: ${(new Date().getTime() - t) / 1000}`, 's');
             t = new Date().getTime();
 
-            world.renderOffScreen(finalCanvas.width, finalCanvas.height).then((arrays) => {
+            // a renderOffScreen rejection must reject the outer promise, or it never settles
+            world.renderOffScreen(finalCanvas.width, finalCanvas.height).catch((e) => {
+                K3D.heavyOperationAsync = false;
+                reject(e);
+
+                return null;
+            }).then((arrays) => {
+                if (arrays === null) {
+                    return;
+                }
+
                 console.log(`K3D: Screenshot [canvas]: ${(new Date().getTime() - t) / 1000}`, 's');
                 t = new Date().getTime();
 

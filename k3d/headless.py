@@ -2,6 +2,7 @@ import atexit
 import copy
 import logging
 import msgpack
+import numpy as np
 import threading
 import time
 from base64 import b64decode
@@ -25,6 +26,38 @@ logger.setLevel(logging.INFO)
 
 
 # logging.basicConfig(filename='test.log', level=logging.DEBUG)
+
+def _property_changed(current, synced, object_id, name):
+    """Whether a synced property was edited.
+
+    Arrays compare elementwise, everything else through deep_compare. Reaching for .any()
+    first and catching the failure logged two warnings per scalar property per sync.
+    """
+    if isinstance(current, np.ndarray) and isinstance(synced, np.ndarray):
+        if current.shape != synced.shape:
+            return True
+
+        try:
+            return bool((current != synced).any())
+        except Exception as e:
+            logger.warning(
+                f"Array comparison failed for object {object_id} property {name}: {e}"
+            )
+
+            return True
+
+    if isinstance(current, np.ndarray) or isinstance(synced, np.ndarray):
+        return True
+
+    try:
+        return not deep_compare(current, synced)
+    except Exception as e:
+        logger.warning(
+            f"Comparison failed for object {object_id} property {name}: {e}"
+        )
+
+        return True
+
 
 DEFAULT_STARTUP_TIMEOUT = 60.0
 DEFAULT_REFRESH_TIMEOUT = 120.0
@@ -102,34 +135,18 @@ class k3d_remote:
                     if o.id not in self.synced_objects:
                         objects_diff[o.id] = {
                             k: to_json(k, o[k], o)
-                            for k in o.keys
-                            if not k.startswith("_")
+                            for k in o._synced_props
                         }
                     else:
-                        for p in o.keys:
+                        for p in o._synced_props:
                             if p.startswith("_"):
                                 continue
                             if p == "voxels_group":
                                 sync = True
                             else:
-                                try:
-                                    sync = (o[p] != self.synced_objects[o.id][p]).any()
-                                except Exception as e:
-                                    logger.warning(
-                                        f"Comparison failed for object {o.id} property {p}: {e}"
-                                    )
-                                    try:
-                                        sync = (
-                                                o[p].shape
-                                                != self.synced_objects[o.id][p].shape
-                                        )
-                                    except Exception as e2:
-                                        logger.warning(
-                                            f"Shape comparison failed for object {o.id} property {p}: {e2}"
-                                        )
-                                        sync = not deep_compare(
-                                            o[p], self.synced_objects[o.id][p]
-                                        )
+                                sync = _property_changed(
+                                    o[p], self.synced_objects[o.id][p], o.id, p
+                                )
                             if sync:
                                 if o.id not in objects_diff.keys():
                                     objects_diff[o.id] = {"id": o.id, "type": o.type}
@@ -139,7 +156,7 @@ class k3d_remote:
                         objects_diff[k] = None  # to remove from plot
                 diff = {"plot_diff": plot_diff, "objects_diff": objects_diff}
                 self.synced_objects = {
-                    v.id: {k: copy.deepcopy(v[k]) for k in v.keys}
+                    v.id: {k: copy.deepcopy(v[k]) for k in v._synced_props}
                     for v in self.k3d_plot.objects
                 }
                 self.synced_plot = current_plot_params
@@ -227,6 +244,20 @@ class k3d_remote:
             self.browser = None
 
 
+def _relax_timeouts(driver):
+    """Cinematic screenshots block inside a single execute_script call for tens of minutes.
+    Both limits are raised: the 120 s HTTP timeout is the effective bound, since a promise
+    returned from execute_script is not an async script and the script timeout never fires."""
+    driver.set_script_timeout(3600)
+
+    client_config = getattr(driver.command_executor, "_client_config", None)
+
+    if client_config is not None:
+        client_config.timeout = 3600
+
+    return driver
+
+
 def get_headless_driver(no_headless=False, gpu=False):
     from selenium import webdriver
 
@@ -243,7 +274,7 @@ def get_headless_driver(no_headless=False, gpu=False):
             options.add_argument("--headless")
             options.add_argument("--enable-unsafe-swiftshader")
 
-    return webdriver.Chrome(options=options)
+    return _relax_timeouts(webdriver.Chrome(options=options))
 
 
 def get_headless_firefox_driver(no_headless=False):
@@ -257,4 +288,4 @@ def get_headless_firefox_driver(no_headless=False):
         options.add_argument("--headless")
         options.add_argument("--enable-unsafe-swiftshader")
 
-    return webdriver.Firefox(options=options)
+    return _relax_timeouts(webdriver.Firefox(options=options))

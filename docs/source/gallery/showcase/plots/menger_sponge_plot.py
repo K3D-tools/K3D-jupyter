@@ -32,7 +32,8 @@ def generate():
                             color_map=(0xfdfe03), outlines=True)
 
     plot = k3d.plot(grid_visible=False,
-                    camera_auto_fit=False)
+                    camera_auto_fit=False,
+                    renderer='advanced')
     plot += plt_voxels
 
     plot.camera = [98.5152, -60.0912, 88.9902,

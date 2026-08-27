@@ -37,9 +37,11 @@ module.exports = {
 
         object.add(new THREE.Mesh(
             new THREE.BufferGeometry(),
-            new THREE.MeshPhongMaterial({
+            new THREE.MeshStandardMaterial({
                 color: config.color,
                 emissive: 0,
+                roughness: 0.4,
+                metalness: 0.0,
                 side: THREE.DoubleSide,
                 flatShading: true,
             }),

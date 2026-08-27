@@ -143,6 +143,68 @@ module.exports = {
     },
 
     /**
+     * Compute geometry.boundingBox and geometry.boundingSphere skipping non-finite vertices.
+     * NaN vertices are a supported way to break a line strip into separate segments, so they
+     * must not poison the bounds (THREE's own compute* propagates NaN, and a NaN bounding box
+     * ends up in the scene bounding box, giving NaN camera near/far planes).
+     * @memberof K3D.Providers.ThreeJS.Helpers
+     * @param  {THREE.BufferGeometry} geometry
+     */
+    computeFiniteBounds(geometry) {
+        const positions = geometry.attributes.position.array;
+        const box = new THREE.Box3();
+
+        box.makeEmpty();
+
+        for (let i = 0; i < positions.length; i += 3) {
+            const x = positions[i];
+            const y = positions[i + 1];
+            const z = positions[i + 2];
+
+            if (Number.isFinite(x) && Number.isFinite(y) && Number.isFinite(z)) {
+                if (x < box.min.x) box.min.x = x;
+                if (x > box.max.x) box.max.x = x;
+                if (y < box.min.y) box.min.y = y;
+                if (y > box.max.y) box.max.y = y;
+                if (z < box.min.z) box.min.z = z;
+                if (z > box.max.z) box.max.z = z;
+            }
+        }
+
+        const sphere = new THREE.Sphere();
+
+        if (box.isEmpty()) {
+            sphere.makeEmpty();
+        } else {
+            box.getCenter(sphere.center);
+
+            let maxRadiusSq = 0;
+
+            for (let i = 0; i < positions.length; i += 3) {
+                const x = positions[i];
+                const y = positions[i + 1];
+                const z = positions[i + 2];
+
+                if (Number.isFinite(x) && Number.isFinite(y) && Number.isFinite(z)) {
+                    const dx = x - sphere.center.x;
+                    const dy = y - sphere.center.y;
+                    const dz = z - sphere.center.z;
+                    const radiusSq = dx * dx + dy * dy + dz * dz;
+
+                    if (radiusSq > maxRadiusSq) {
+                        maxRadiusSq = radiusSq;
+                    }
+                }
+            }
+
+            sphere.radius = Math.sqrt(maxRadiusSq);
+        }
+
+        geometry.boundingBox = box;
+        geometry.boundingSphere = sphere;
+    },
+
+    /**
      * generateArrow
      * @memberof K3D.Providers.ThreeJS.Helpers
      * @param  {THREE.BufferGeometry} coneGeometry
@@ -260,7 +322,28 @@ module.exports = {
     },
 
     areAllChangesResolve(changes, resolvedChanges) {
-        return Object.keys(changes).every((key) => typeof (resolvedChanges[key]) !== 'undefined');
+        // the headless diff seeds every change set with id/type - identity, not mutation
+        return Object.keys(changes)
+            .filter((key) => key !== 'id' && key !== 'type')
+            .every((key) => typeof (resolvedChanges[key]) !== 'undefined');
+    },
+
+    guardIndices(indices, vertices, what) {
+        if (indices === null || vertices === null) {
+            return indices;
+        }
+
+        const vertexCount = Math.floor(vertices.length / 3);
+
+        for (let i = 0; i < indices.length; i++) {
+            if (indices[i] >= vertexCount) {
+                console.error(`K3D.${what}: index ${indices[i]} reaches beyond ${vertexCount} vertices - `
+                    + 'drawing nothing until vertices and indices are consistent again');
+                return new indices.constructor(0);
+            }
+        }
+
+        return indices;
     },
 
     recalculateFrustum(camera) {
@@ -271,6 +354,13 @@ module.exports = {
     },
 
     commonUpdate(config, changes, resolvedChanges, obj, K3D) {
+        // metadata consumed by the GUI/python layers - nothing to rebuild on the scene
+        ['name', 'group', 'custom_data', 'compression_level'].forEach((key) => {
+            if (typeof (changes[key]) !== 'undefined'
+                && (changes[key] === null || !changes[key].timeSeries)) {
+                resolvedChanges[key] = null;
+            }
+        });
         if (resolvedChanges.model_matrix !== null && typeof (changes.model_matrix) !== 'undefined' && !changes.model_matrix.timeSeries) {
             const modelMatrix = new THREE.Matrix4();
 
@@ -301,7 +391,8 @@ module.exports = {
             resolvedChanges.visible = null;
         }
 
-        if (resolvedChanges.opacity !== null && typeof (changes.opacity) !== 'undefined' && !changes.opacity.timeSeries) {
+        if (resolvedChanges.opacity !== null && typeof (changes.opacity) !== 'undefined'
+            && !changes.opacity.timeSeries && obj.material) {
             obj.material.opacity = changes.opacity;
 
             obj.material.side = getSide({
@@ -322,17 +413,29 @@ module.exports = {
             resolvedChanges.opacity = null;
         }
 
-        if (resolvedChanges.shininess !== null && typeof (changes.shininess) !== 'undefined'
-            && !changes.shininess.timeSeries) {
-            obj.material.shininess = changes.shininess;
+        if (resolvedChanges.roughness !== null && typeof (changes.roughness) !== 'undefined'
+            && !changes.roughness.timeSeries && obj.material) {
+            obj.material.roughness = changes.roughness;
 
-            if (obj.material.uniforms && obj.material.uniforms.shininess) {
-                obj.material.uniforms.shininess.value = changes.shininess;
+            // bespoke shaders (points 3d impostor) read it as a uniform
+            if (obj.material.uniforms && obj.material.uniforms.roughness) {
+                obj.material.uniforms.roughness.value = changes.roughness;
             }
-
             obj.material.needsUpdate = true;
 
-            resolvedChanges.shininess = null;
+            resolvedChanges.roughness = null;
+        }
+
+        if (resolvedChanges.metalness !== null && typeof (changes.metalness) !== 'undefined'
+            && !changes.metalness.timeSeries && obj.material) {
+            obj.material.metalness = changes.metalness;
+
+            if (obj.material.uniforms && obj.material.uniforms.metalness) {
+                obj.material.uniforms.metalness.value = changes.metalness;
+            }
+            obj.material.needsUpdate = true;
+
+            resolvedChanges.metalness = null;
         }
     },
 

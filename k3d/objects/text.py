@@ -1,11 +1,11 @@
 """Text objects for K3D."""
 
 import numpy as np
-from traitlets import Bool, Float, Int, Unicode
-from traittypes import Array
+from traitlets import Bool, Unicode
 
 from .base import EPSILON, Drawable, SingleOrList, TimeSeries
-from ..helpers import array_serialization_wrap, get_bounding_box_point
+from ..helpers import (Array, Float, Int, array_serialization_wrap,
+                       get_bounding_box_point)
 
 
 class Text(Drawable):

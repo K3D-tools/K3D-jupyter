@@ -168,6 +168,8 @@ module.exports = {
             samples: { value: samples },
             alpha_coef: { value: config.alpha_coef },
             gradient_step: { value: config.gradient_step },
+            roughness: { value: typeof (config.roughness) !== 'undefined' ? config.roughness : 0.25 },
+            metalness: { value: typeof (config.metalness) !== 'undefined' ? config.metalness : 0.0 },
             translation: { value: translation },
             rotation: { value: rotation },
             shadowTexture: { type: 't', value: (textureRTT ? textureRTT.texture : null) },
@@ -186,12 +188,13 @@ module.exports = {
                 THREE.UniformsLib.lights,
             ),
             defines: {
+                K3D_ENV_LIGHT: (K3D.parameters.renderer === 'simple' ? 0 : 1),
                 USE_SHADOW: (config.shadow !== 'off' ? 1 : 0),
                 USE_MASK: (maskEnabled ? 1 : 0),
                 RAY_SAMPLES_COUNT: config.focal_length !== 0.0 ? config.ray_samples_count : 0,
             },
             vertexShader: require('./shaders/Volume.vertex.glsl'),
-            fragmentShader: require('./shaders/Volume.fragment.glsl'),
+            fragmentShader: require('../helpers/ggxChunk')(require('./shaders/Volume.fragment.glsl')),
             side: THREE.BackSide,
             depthTest: false,
             depthWrite: false,
@@ -200,12 +203,40 @@ module.exports = {
             transparent: true,
         });
 
+        material.uniforms.k3dEnvSH = K3D.getWorld().k3dEnvSH;
+        material.uniforms.k3dEnvRotation = K3D.getWorld().k3dEnvRotation;
+        material.uniforms.k3dEnvLightDir = K3D.getWorld().k3dEnvLightDir;
+        material.uniforms.k3dEnvLightColor = K3D.getWorld().k3dEnvLightColor;
+
+        Object.assign(material.uniforms, K3D.getWorld().k3dVolumePeel);
+
         geometry.computeBoundingSphere();
         geometry.computeBoundingBox();
 
         const object = new THREE.Mesh(geometry, material);
+        // the peel loop renders volumes as ray segments between layer depths (#277)
+        object.userData.k3dVolumeSegments = true;
         object.applyMatrix4(modelMatrix);
         object.updateMatrixWorld();
+
+        // the volume's occluder shell for the AO prepass: the same march, exiting with
+        // the depth of the point where accumulated opacity crosses one half. Uniforms
+        // shared by reference. MIP has no meaningful shell and stays out of AO.
+        object.userData.k3dVolumeShell = true;
+        object.userData.k3dAODepthMaterial = new THREE.ShaderMaterial({
+            uniforms: material.uniforms,
+            defines: Object.assign({ K3D_AO_DEPTH_PASS: 1 }, material.defines),
+            vertexShader: require('./shaders/Volume.vertex.glsl'),
+            fragmentShader: require('../helpers/ggxChunk')(require('./shaders/Volume.fragment.glsl')),
+            side: THREE.BackSide,
+            depthTest: true,
+            depthWrite: true,
+            lights: true,
+            clipping: true,
+            extensions: {
+                fragDepth: true,
+            },
+        });
 
         /*
             Light Map support
@@ -423,7 +454,8 @@ module.exports = {
             resolvedChanges.opacity_function = null;
         }
 
-        ['samples', 'alpha_coef', 'gradient_step', 'focal_plane', 'focal_length'].forEach((key) => {
+        ['samples', 'alpha_coef', 'gradient_step', 'focal_plane', 'focal_length',
+            'roughness', 'metalness'].forEach((key) => {
             if (typeof (changes[key]) !== 'undefined' && !changes[key].timeSeries) {
                 obj.material.uniforms[key].value = changes[key];
                 resolvedChanges[key] = null;

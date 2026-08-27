@@ -22,12 +22,13 @@ module.exports = {
         config.radial_segments = typeof (config.radial_segments) !== 'undefined' ? config.radial_segments : 8;
         config.width = typeof (config.width) !== 'undefined' ? config.width : 0.1;
         config.opacity = typeof (config.opacity) !== 'undefined' ? config.opacity : 1.0;
-        config.shininess = typeof (config.shininess) !== 'undefined' ? config.shininess : 50.0;
+        config.roughness = typeof (config.roughness) !== 'undefined' ? config.roughness : 0.4;
+        config.metalness = typeof (config.metalness) !== 'undefined' ? config.metalness : 0.0;
 
-        const material = new THREE.MeshPhongMaterial({
+        const material = new THREE.MeshStandardMaterial({
             emissive: 0,
-            shininess: config.shininess,
-            specular: 0x111111,
+            roughness: config.roughness,
+            metalness: config.metalness,
             side: THREE.DoubleSide,
             wireframe: false,
             opacity: config.opacity,
@@ -42,7 +43,7 @@ module.exports = {
         const attribute = (config.attribute && config.attribute.data) || [];
         const modelMatrix = new THREE.Matrix4();
         const position = config.vertices.data;
-        const indices = config.indices.data;
+        const indices = Fn.guardIndices(config.indices.data, position, 'lines');
         const edges = new Set();
         const jump = config.indices_type === 'segment' ? 2 : 3;
 

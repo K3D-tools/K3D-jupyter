@@ -3,7 +3,9 @@ const BufferGeometryUtils = require('three/examples/jsm/utils/BufferGeometryUtil
 const interactionsHelper = require('../helpers/Interactions');
 const marchingCubesPolygonise = require('../../../core/lib/helpers/marchingCubesPolygonise');
 const yieldingLoop = require('../../../core/lib/helpers/yieldingLoop');
-const { areAllChangesResolve, getSide, typedArrayToThree } = require('../helpers/Fn');
+const {
+    areAllChangesResolve, getSide, typedArrayToThree,
+} = require('../helpers/Fn');
 const { commonUpdate } = require('../helpers/Fn');
 const colorMapHelper = require('../../../core/lib/helpers/colorMap');
 const _ = require('../../../lodash');
@@ -28,7 +30,8 @@ module.exports = {
         config.wireframe = typeof (config.wireframe) !== 'undefined' ? config.wireframe : false;
         config.flat_shading = typeof (config.flat_shading) !== 'undefined' ? config.flat_shading : true;
         config.opacity = typeof (config.opacity) !== 'undefined' ? config.opacity : 1.0;
-        config.shininess = typeof (config.shininess) !== 'undefined' ? config.shininess : 50.0;
+        config.roughness = typeof (config.roughness) !== 'undefined' ? config.roughness : 0.4;
+        config.metalness = typeof (config.metalness) !== 'undefined' ? config.metalness : 0.0;
 
         return new Promise((resolve) => {
             const scalarField = config.scalar_field.data;
@@ -41,18 +44,23 @@ module.exports = {
             let isSpacings = false;
             const { level } = config;
             const modelMatrix = new THREE.Matrix4();
-            const MaterialConstructor = config.wireframe ? THREE.MeshBasicMaterial : THREE.MeshPhongMaterial;
+            const MaterialConstructor = config.wireframe ? THREE.MeshBasicMaterial : THREE.MeshStandardMaterial;
             const colorRange = config.color_range;
             const colorMap = (config.color_map && config.color_map.data) || null;
             let opacityFunction = null;
-            let material = new MaterialConstructor({
+            let material = new MaterialConstructor(config.wireframe ? {
+                color: config.color,
+                side: THREE.FrontSide,
+                wireframe: true,
+                opacity: config.opacity,
+            } : {
                 color: config.color,
                 emissive: 0,
-                shininess: config.shininess,
-                specular: 0x111111,
-                side: config.wireframe ? THREE.FrontSide : THREE.DoubleSide,
+                roughness: config.roughness,
+                metalness: config.metalness,
+                side: THREE.DoubleSide,
                 flatShading: config.flat_shading,
-                wireframe: config.wireframe,
+                wireframe: false,
                 opacity: config.opacity,
             });
             let geometry = new THREE.BufferGeometry();
@@ -97,32 +105,39 @@ module.exports = {
                 texture.wrapS = THREE.ClampToEdgeWrapping;
                 texture.needsUpdate = true;
 
-                material = new THREE.ShaderMaterial({
-                    uniforms: _.merge(
-                        {
-                            opacity: { value: config.opacity },
-                            low: { value: colorRange[0] },
-                            high: { value: colorRange[1] },
-                            volumeTexture: { type: 't', value: texture },
-                            colormap: { type: 't', value: colormap },
-                            emissive: { type: 'v3', value: new THREE.Vector3(0, 0, 0) },
-                            specular: { type: 'v3', value: new THREE.Vector3(0.04, 0.04, 0.04) },
-                            shininess: { value: config.shininess },
-
-                        },
-                        THREE.UniformsLib.lights,
-                    ),
-                    defines: {
-                        FLAT_SHADED: config.flat_shading
-                    },
+                // A real MeshStandardMaterial with the volume-texture colouring grafted onto
+                // its chunks - environment lighting and future three upgrades apply untouched.
+                material = new THREE.MeshStandardMaterial({
+                    roughness: config.roughness,
+                    metalness: config.metalness,
                     side: getSide(config),
-                    vertexShader: require('./shaders/MarchingCubesVolume.vertex.glsl'),
-                    fragmentShader: require('./shaders/MarchingCubesVolume.fragment.glsl'),
                     wireframe: config.wireframe,
                     flatShading: config.flat_shading,
-                    lights: true,
-                    clipping: true
+                    opacity: config.opacity,
                 });
+
+                material.uniforms = {
+                    low: { value: colorRange[0] },
+                    high: { value: colorRange[1] },
+                    volumeTexture: { type: 't', value: texture },
+                    colormap: { type: 't', value: colormap },
+                };
+                material.customProgramCacheKey = () => 'k3d-marching-cubes-volume';
+
+                material.onBeforeCompile = (shader) => {
+                    Object.assign(shader.uniforms, material.uniforms);
+
+                    shader.vertexShader = `varying vec3 kLocalPosition;\n${
+                        shader.vertexShader.replace(
+                            '#include <begin_vertex>',
+                            '#include <begin_vertex>\nkLocalPosition = position + vec3(0.5);',
+                        )}`;
+                    shader.fragmentShader = `${require('./shaders/chunks/marchingCubesColor.fragment.header.glsl')}\n${
+                        shader.fragmentShader.replace(
+                            '#include <map_fragment>',
+                            require('./shaders/chunks/marchingCubesColor.fragment.glsl'),
+                        )}`;
+                };
             }
 
             if (K3D.parameters.depthPeels === 0) {
@@ -130,7 +145,15 @@ module.exports = {
                 material.transparent = (config.opacity !== 1.0 || opacityFunction !== null);
             } else {
                 material.blending = THREE.NoBlending;
-                material.onBeforeCompile = K3D.colorOnBeforeCompile;
+
+                const inject = material.onBeforeCompile;
+
+                material.onBeforeCompile = inject === THREE.Material.prototype.onBeforeCompile
+                    ? K3D.colorOnBeforeCompile
+                    : (shader) => {
+                        inject(shader);
+                        K3D.colorOnBeforeCompile(shader);
+                    };
             }
 
             if (spacingsX && spacingsY && spacingsZ) {
@@ -249,6 +272,14 @@ module.exports = {
 
     update(config, changes, obj, K3D) {
         const resolvedChanges = {};
+
+        if (typeof (changes.color) !== 'undefined' && !changes.color.timeSeries) {
+            // the colormap variant colours from the volume texture - a no-op, same as create
+            if (!(obj.material.uniforms && obj.material.uniforms.colormap) && obj.material.color) {
+                obj.material.color.set(changes.color);
+            }
+            resolvedChanges.color = null;
+        }
 
         interactionsHelper.update(config, changes, resolvedChanges, obj);
 

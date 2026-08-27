@@ -24,16 +24,23 @@ Showcase
 .. toctree::
     :hidden:
 
+    showcase/curl-pearls.rst
     showcase/lorenz-system.rst
     showcase/menger-sponge.rst
     showcase/orbits.rst
+    showcase/plasma-wind.rst
     showcase/point-cloud.rst
     showcase/segmentation.rst
+    showcase/stanford-dragon.rst
     showcase/streamlines.rst
     showcase/turbine-cfd.rst
     showcase/terrain.rst
     showcase/vtk-cutter.rst
     showcase/tractogram.rst
+
+.. k3d_plot::
+   :filename: showcase/thumbnails/curl_pearls_thumbnail.py
+   :screenshot:
 
 .. k3d_plot::
    :filename: showcase/thumbnails/lorenz_system_thumbnail.py
@@ -48,11 +55,19 @@ Showcase
    :screenshot:
 
 .. k3d_plot::
+   :filename: showcase/thumbnails/plasma_wind_thumbnail.py
+   :screenshot:
+
+.. k3d_plot::
    :filename: showcase/thumbnails/point_cloud_thumbnail.py
    :screenshot:
 
 .. k3d_plot::
    :filename: showcase/thumbnails/segmentation_thumbnail.py
+   :screenshot:
+
+.. k3d_plot::
+   :filename: showcase/thumbnails/stanford_dragon_thumbnail.py
    :screenshot:
 
 .. k3d_plot::
@@ -79,6 +94,10 @@ Showcase
 
     <div class="grid-container">
 
+.. image:: curl_pearls_thumbnail.png
+   :width: 155
+   :target: showcase/curl-pearls.html
+
 .. image:: lorenz_system_thumbnail.png
    :width: 155
    :target: showcase/lorenz-system.html
@@ -91,6 +110,10 @@ Showcase
    :width: 155
    :target: showcase/orbits.html
 
+.. image:: plasma_wind_thumbnail.png
+   :width: 155
+   :target: showcase/plasma-wind.html
+
 .. image:: point_cloud_thumbnail.png
    :width: 155
    :target: showcase/point-cloud.html
@@ -98,6 +121,10 @@ Showcase
 .. image:: segmentation_thumbnail.png
    :width: 155
    :target: showcase/segmentation.html
+
+.. image:: stanford_dragon_thumbnail.png
+   :width: 155
+   :target: showcase/stanford-dragon.html
 
 .. image:: streamlines_thumbnail.png
    :width: 155

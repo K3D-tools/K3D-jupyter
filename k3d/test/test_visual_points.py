@@ -86,7 +86,9 @@ def test_points_3d_clipping_plane():
     compare("points_3d_clipping_plane")
 
 
-def test_points_3dSpecular():
+def test_points_3dSpecular_alias():
+    # the pre-2.19 shader name folds into '3d': same scene as test_points_3d,
+    # compared against the same reference
     global v, s, o
 
     prepare()
@@ -97,17 +99,17 @@ def test_points_3dSpecular():
 
     pytest.plot += points
 
-    compare("points_3dSpecular")
+    compare("points_3d")
 
 
-def test_points_3dSpecular_sizes():
+def test_points_3d_sizes():
     global v, s, o
 
     prepare()
 
     points = k3d.points(
         v,
-        shader="3dSpecular",
+        shader="3d",
         opacities=o,
         point_sizes=np.linspace(0, 0.2, v.shape[0]),
         color=0xFF0000,
@@ -115,7 +117,7 @@ def test_points_3dSpecular_sizes():
 
     pytest.plot += points
 
-    compare("points_3dSpecular_sizes")
+    compare("points_3d_sizes")
 
 
 def test_points_mesh_sizes():
@@ -232,3 +234,38 @@ def test_points_dot():
     pytest.plot += points
 
     compare("points_dot")
+
+
+def test_points_mesh_dynamic():
+    """Same-count size and colour updates mutate the instances in place - the
+    scene object survives (no delete/create round trip)."""
+    global v, o
+
+    prepare()
+
+    points = k3d.points(
+        v,
+        shader="mesh",
+        opacities=o,
+        point_sizes=np.linspace(0, 0.2, v.shape[0]),
+        color=0xFF0000,
+    )
+    pytest.plot += points
+    pytest.headless.sync(hold_until_refreshed=True)
+
+    uuid_before = pytest.headless.browser.execute_script(
+        "return K3DInstance.getWorld().ObjectsById[%d].uuid;" % points.id
+    )
+
+    points.point_sizes = np.linspace(0.2, 0.05, v.shape[0]).astype(np.float32)
+
+    compare("points_mesh_dynamic_sizes", modes=("simple",))
+
+    points.color = 0x2244AA
+
+    compare("points_mesh_dynamic_color", modes=("simple",))
+
+    uuid_after = pytest.headless.browser.execute_script(
+        "return K3DInstance.getWorld().ObjectsById[%d].uuid;" % points.id
+    )
+    assert uuid_before == uuid_after

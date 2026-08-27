@@ -108,15 +108,24 @@ html_static_path = ['_static']
 def setup(app):
     shutil.copy('./../js/dist/standalone.js', './source/_static/k3d.js')
     shutil.copy('./../js/dist/standalone.js', './source/_static/standalone.js')
+    # a sibling of the bundle, or the embeds build their BVH on the main thread
+    shutil.copy('./../js/dist/k3d-bvh-worker.js', './source/_static/k3d-bvh-worker.js')
     shutil.copy('./../node_modules/requirejs/require.js', './source/_static/require.js')
+
+    # one shared sideload for every embed on the site: without it a kernel-less
+    # page degrades the photographic environment names to the neutral preset
+    import k3d.environments
+    k3d.environments.save_js('./source/_static/k3dEnvironments.js')
 
     try:
         app.add_css_file('style.css')
         app.add_javascript('require.js')
         app.add_javascript('k3d.js')
+        app.add_javascript('k3dEnvironments.js')
     except AttributeError:
         app.add_css_file('style.css')
         app.add_js_file('require.js')
         app.add_js_file('k3d.js')
+        app.add_js_file('k3dEnvironments.js')
 
     app.add_directive('k3d_plot', K3D_Plot)

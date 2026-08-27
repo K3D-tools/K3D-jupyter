@@ -9,7 +9,7 @@ const buffer = require('../../../core/lib/helpers/buffer');
 function getVoxelChunkObject(K3D, config, voxelSize, chunkStructure) {
     const geometry = new THREE.BufferGeometry();
     const voxelsChunkObject = new THREE.Object3D();
-    const MaterialConstructor = config.wireframe ? THREE.MeshBasicMaterial : THREE.MeshPhongMaterial;
+    const MaterialConstructor = config.wireframe ? THREE.MeshBasicMaterial : THREE.MeshStandardMaterial;
     let lineWidth;
     let line;
     let material;
@@ -33,12 +33,19 @@ function getVoxelChunkObject(K3D, config, voxelSize, chunkStructure) {
     geometry.computeBoundingSphere();
     geometry.computeBoundingBox();
 
-    material = new MaterialConstructor({
+    material = new MaterialConstructor(config.wireframe ? {
         vertexColors: true,
-        flatShading: true,
         opacity: config.opacity,
         side: THREE.DoubleSide,
-        wireframe: config.wireframe,
+        wireframe: true,
+    } : {
+        vertexColors: true,
+        flatShading: true,
+        roughness: typeof (config.roughness) !== 'undefined' ? config.roughness : 0.4,
+        metalness: typeof (config.metalness) !== 'undefined' ? config.metalness : 0.0,
+        opacity: config.opacity,
+        side: THREE.DoubleSide,
+        wireframe: false,
     });
 
     if (K3D.parameters.depthPeels === 0) {
@@ -167,6 +174,8 @@ module.exports = {
                 });
             };
 
+            // the greedy mesher bakes opacity < 1.0 into the geometry itself
+            object.userData.builtTransparent = config.opacity < 1.0;
             object.voxelsChunks = voxelsChunks;
             object.addChunk = function (chunk) {
                 const generate = voxelMeshGenerator.initializeGreedyVoxelMesh(

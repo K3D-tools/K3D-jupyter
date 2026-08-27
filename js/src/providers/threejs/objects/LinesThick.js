@@ -5,6 +5,7 @@ const Fn = require('../helpers/Fn');
 
 const { commonUpdate } = Fn;
 const { areAllChangesResolve } = Fn;
+const { computeFiniteBounds } = Fn;
 const colorMapHelper = require('../../../core/lib/helpers/colorMap');
 
 const { getColorsArray } = Fn;
@@ -35,7 +36,7 @@ function create(config, K3D) {
     const attr = (config.attribute && config.attribute.data) || null;
     const modelMatrix = new THREE.Matrix4();
     const vertices = config.vertices.data;
-    const indices = config.indices.data;
+    const indices = Fn.guardIndices(config.indices.data, vertices, 'lines');
     const edges = new Set();
     const jump = config.indices_type === 'segment' ? 2 : 3;
     let offsets;
@@ -134,14 +135,14 @@ function create(config, K3D) {
     const line = new MeshLine.MeshLine();
 
     line.setGeometry(positions, true, null, colors, uvs);
-    line.geometry.computeBoundingSphere();
-    line.geometry.computeBoundingBox();
+    computeFiniteBounds(line.geometry);
 
     const object = new THREE.Mesh(line.geometry, material);
     object.userData.meshLine = line;
     object.userData.lastPositions = new Float32Array(positions);
     object.userData.lastUVs = uvs;
-    object.userData.lastColors = verticesColors;
+    // exactly what setGeometry consumed: expanded per geometry point, or null for colormaps
+    object.userData.lastColors = colors;
     object.userData.edgeVertices = new Uint32Array(edgeVertices);
     object.userData.attributeLength = attr ? attr.length : 0;
     object.userData.verticesLength = vertices.length;
@@ -171,10 +172,50 @@ function create(config, K3D) {
 function update(config, changes, obj, K3D) {
     let uvs = obj.userData.lastUVs;
     let positions = obj.userData.lastPositions;
-    const colors = obj.userData.lastColors;
+    let colors = obj.userData.lastColors;
     const resolvedChanges = {};
 
     let uvsRecomputed = false;
+    let colorsRecomputed = false;
+    const usesColorMap = !!(config.attribute && config.attribute.data && config.attribute.data.length > 0
+        && config.color_range && config.color_range.length > 0
+        && config.color_map && config.color_map.data && config.color_map.data.length > 0);
+
+    if ((typeof (changes.colors) !== 'undefined' && !changes.colors.timeSeries)
+        || (typeof (changes.color) !== 'undefined' && !changes.color.timeSeries)) {
+        // a colormapped line ignores colors/color, same as create
+        if (!usesColorMap && obj.userData.edgeVertices) {
+            const map = obj.userData.edgeVertices;
+            const count = obj.userData.verticesLength / 3;
+            const verticesColors = (changes.colors && changes.colors.data)
+                || (config.colors && config.colors.data) || null;
+            const source = verticesColors && verticesColors.length === count
+                ? colorsToFloat32Array(verticesColors)
+                : getColorsArray(new THREE.Color(config.color), count);
+            const expanded = new Float32Array(map.length * 3);
+
+            for (let i = 0; i < map.length; i++) {
+                expanded[i * 3] = source[map[i] * 3];
+                expanded[i * 3 + 1] = source[map[i] * 3 + 1];
+                expanded[i * 3 + 2] = source[map[i] * 3 + 2];
+            }
+
+            colors = expanded;
+            obj.userData.lastColors = expanded;
+            colorsRecomputed = true;
+        }
+
+        resolvedChanges.colors = null;
+        resolvedChanges.color = null;
+    }
+
+    if (typeof (changes.color_map) !== 'undefined' && !changes.color_map.timeSeries
+        && obj.material.uniforms.map.value) {
+        obj.material.uniforms.map.value.image = colorMapHelper.createCanvasGradient(changes.color_map.data, 1024, 1);
+        obj.material.uniforms.map.value.needsUpdate = true;
+
+        resolvedChanges.color_map = null;
+    }
 
     if (typeof (obj.geometry.attributes.uv) !== 'undefined') {
         const source = obj.userData.edgeVertices;
@@ -233,13 +274,12 @@ function update(config, changes, obj, K3D) {
         obj.userData.lastPositions = positions;
     }
 
-    if (uvsRecomputed || typeof (changes.attribute) !== 'undefined'
+    if (uvsRecomputed || colorsRecomputed || typeof (changes.attribute) !== 'undefined'
         || typeof (changes.vertices) !== 'undefined') {
         obj.userData.meshLine.setGeometry(positions, true, null, colors, uvs);
         obj.geometry.attributes.position.needsUpdate = true;
 
-        obj.geometry.computeBoundingSphere();
-        obj.geometry.computeBoundingBox();
+        computeFiniteBounds(obj.geometry);
 
         resolvedChanges.attribute = null;
         resolvedChanges.vertices = null;

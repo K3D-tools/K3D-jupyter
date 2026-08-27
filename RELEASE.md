@@ -6,12 +6,14 @@ git add and git commit
 rm -rf build
 rm -rf dist
 rm -rf k3d/static
-rm -rf k3d/labextension
 rm -rf js/dist
 python -m build .
+# the hatch-jupyter-builder hook reruns the webpack build, so k3d/static and
+# js/dist are regenerated; build the wheel BEFORE anything that needs a fresh
+# editable install, or rebuild js afterwards (cd js && npm run build)
 twine upload dist/*
 cd js
-grunt build
 npm publish
+# prepublishOnly runs the webpack build and the manifest check
 cd ../docs
 make html

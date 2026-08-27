@@ -47,3 +47,5 @@ First plot
     install
     frontend
     usage
+    renderers
+    cinematic

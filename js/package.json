@@ -1,10 +1,10 @@
 {
   "name": "k3d",
-  "version": "2.18.1",
+  "version": "3.0.0",
   "description": "3D visualization library",
   "author": "k3d team",
   "license": "MIT",
-  "main": "src/index.js",
+  "main": "src/standalone.js",
   "files": [
     "dist",
     "src"
@@ -25,9 +25,6 @@
     "build": "webpack --mode=production",
     "prepublishOnly": "npm run build && node prepublish-check.js",
     "test": "echo \"Error: no test specified\" && exit 1"
-  },
-  "jupyterlab": {
-    "extension": "dist/labplugin"
   },
   "resolutions": {
     "lodash": "^4.18.1"
@@ -64,7 +61,6 @@
     "webpack-visualizer-plugin2": "^1.0.0"
   },
   "dependencies": {
-    "@jupyter-widgets/base": "^4 || ^5 || ^6",
     "@msgpack/msgpack": "^3.1.3",
     "fflate": "^0.8.3",
     "file-saver": "^2.0.5",
@@ -76,6 +72,7 @@
     "screenfull": "^6.0.2",
     "stats.js": "^0.17.0",
     "three": "^0.185.1",
+    "three-gpu-pathtracer": "0.0.24",
     "three-mesh-bvh": "^0.9.14"
   }
 }

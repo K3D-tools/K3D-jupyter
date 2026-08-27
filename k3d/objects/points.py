@@ -1,11 +1,11 @@
 """Points objects for K3D."""
 
 import numpy as np
-from traitlets import Float, Int, TraitError, Unicode, validate
-from traittypes import Array
+from traitlets import TraitError, Unicode, validate
 
 from .base import EPSILON, Drawable, ListOrArray, TimeSeries
-from ..helpers import array_serialization_wrap, get_bounding_box_points
+from ..helpers import (Array, Float, Int, array_serialization_wrap,
+                       get_bounding_box_points)
 
 
 class Points(Drawable):
@@ -31,13 +31,15 @@ class Points(Drawable):
 
             :`dot`: simple dot with uniform color,
 
-            :`3d`: little 3D balls,
-
-            :`3dSpecular`: little 3D balls with specular lightning,
+            :`3d`: little 3D balls (impostors) with full PBR lighting - the highlights
+                are driven by `roughness` and `metalness` (`3dSpecular` is accepted
+                as a legacy alias),
 
             :`mesh`: high precision triangle mesh of a ball (high quality and GPU load).
-        shininess: `float`.
-            Shininess of object material.
+        roughness: `float`.
+            Roughness of object material.
+        metalness: `float`.
+            Metalness of object material.
         mesh_detail: `int`.
             Default is 2. Setting this to a value greater than 0 adds more vertices making it no longer an
             icosahedron. When detail is greater than 1, it's effectively a sphere. Only valid if shader='mesh'
@@ -73,7 +75,8 @@ class Points(Drawable):
         sync=True, **array_serialization_wrap("opacities")
     )
     shader = TimeSeries(Unicode()).tag(sync=True)
-    shininess = TimeSeries(Float(default_value=50.0)).tag(sync=True)
+    roughness = TimeSeries(Float(default_value=0.4, min=0.0, max=1.0)).tag(sync=True)
+    metalness = TimeSeries(Float(default_value=0.0, min=0.0, max=1.0)).tag(sync=True)
     mesh_detail = TimeSeries(Int(min=0, max=12)).tag(sync=True)
     attribute = TimeSeries(Array(dtype=np.float32)).tag(
         sync=True, **array_serialization_wrap("attribute")

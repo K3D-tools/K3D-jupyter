@@ -16,19 +16,25 @@ module.exports = {
         config.color = typeof (config.color) !== 'undefined' ? config.color : 255;
         config.wireframe = typeof (config.wireframe) !== 'undefined' ? config.wireframe : false;
         config.flat_shading = typeof (config.flat_shading) !== 'undefined' ? config.flat_shading : true;
-        config.shininess = typeof (config.shininess) !== 'undefined' ? config.shininess : 50.0;
+        config.roughness = typeof (config.roughness) !== 'undefined' ? config.roughness : 0.4;
+        config.metalness = typeof (config.metalness) !== 'undefined' ? config.metalness : 0.0;
 
         const loader = new THREE.STLLoader();
         const modelMatrix = new THREE.Matrix4();
-        const MaterialConstructor = config.wireframe ? THREE.MeshBasicMaterial : THREE.MeshPhongMaterial;
-        let material = new MaterialConstructor({
+        const MaterialConstructor = config.wireframe ? THREE.MeshBasicMaterial : THREE.MeshStandardMaterial;
+        // MeshBasicMaterial warns about every lighting parameter, so the wireframe branch gets none
+        let material = new MaterialConstructor(config.wireframe ? {
+            color: config.color,
+            side: THREE.DoubleSide,
+            wireframe: true,
+        } : {
             color: config.color,
             emissive: 0,
-            shininess: config.shininess,
-            specular: 0x111111,
+            roughness: config.roughness,
+            metalness: config.metalness,
             flatShading: config.flat_shading,
             side: THREE.DoubleSide,
-            wireframe: config.wireframe,
+            wireframe: false,
         });
         const { text } = config;
         const { binary } = config;
@@ -41,8 +47,10 @@ module.exports = {
         }
 
         if (geometry.hasColors) {
-            material = new THREE.MeshPhongMaterial({
+            material = new THREE.MeshStandardMaterial({
                 opacity: geometry.alpha,
+                roughness: config.roughness,
+                metalness: config.metalness,
                 vertexColors: true,
                 wireframe: config.wireframe,
             });
@@ -68,6 +76,13 @@ module.exports = {
 
     update(config, changes, obj, K3D) {
         const resolvedChanges = {};
+
+        if (typeof (changes.color) !== 'undefined' && !changes.color.timeSeries
+            && obj.material && obj.material.color) {
+            obj.material.color.set(changes.color);
+
+            resolvedChanges.color = null;
+        }
 
         commonUpdate(config, changes, resolvedChanges, obj, K3D);
 

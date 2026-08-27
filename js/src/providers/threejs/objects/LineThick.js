@@ -5,6 +5,7 @@ const Fn = require('../helpers/Fn');
 
 const { commonUpdate } = Fn;
 const { areAllChangesResolve } = Fn;
+const { computeFiniteBounds } = Fn;
 const colorMapHelper = require('../../../core/lib/helpers/colorMap');
 
 const { getColorsArray } = Fn;
@@ -66,8 +67,7 @@ function create(config, K3D) {
     const line = new MeshLine.MeshLine();
 
     line.setGeometry(new Float32Array(position), false, null, colors, uvs);
-    line.geometry.computeBoundingSphere();
-    line.geometry.computeBoundingBox();
+    computeFiniteBounds(line.geometry);
 
     const object = new THREE.Mesh(line.geometry, material);
     object.userData.meshLine = line;
@@ -100,10 +100,41 @@ function create(config, K3D) {
 function update(config, changes, obj, K3D) {
     let uvs = obj.userData.lastUVs;
     let position = obj.userData.lastPosition;
-    const colors = obj.userData.lastColors;
+    let colors = obj.userData.lastColors;
     const resolvedChanges = {};
 
     let uvsRecomputed = false;
+    let colorsRecomputed = false;
+    const usesColorMap = !!(config.attribute && config.attribute.data && config.attribute.data.length > 0
+        && config.color_range && config.color_range.length > 0
+        && config.color_map && config.color_map.data && config.color_map.data.length > 0);
+
+    if ((typeof (changes.colors) !== 'undefined' && !changes.colors.timeSeries)
+        || (typeof (changes.color) !== 'undefined' && !changes.color.timeSeries)) {
+        // a colormapped line ignores colors/color, same as create
+        if (!usesColorMap) {
+            const count = position.length / 3;
+            const verticesColors = (changes.colors && changes.colors.data)
+                || (config.colors && config.colors.data) || null;
+
+            colors = verticesColors && verticesColors.length === count
+                ? colorsToFloat32Array(verticesColors)
+                : getColorsArray(new THREE.Color(config.color), count);
+            obj.userData.lastColors = colors;
+            colorsRecomputed = true;
+        }
+
+        resolvedChanges.colors = null;
+        resolvedChanges.color = null;
+    }
+
+    if (typeof (changes.color_map) !== 'undefined' && !changes.color_map.timeSeries
+        && obj.material.uniforms.map.value) {
+        obj.material.uniforms.map.value.image = colorMapHelper.createCanvasGradient(changes.color_map.data, 1024, 1);
+        obj.material.uniforms.map.value.needsUpdate = true;
+
+        resolvedChanges.color_map = null;
+    }
 
     if (typeof (obj.geometry.attributes.uv) !== 'undefined') {
         if (typeof (changes.color_range) !== 'undefined' && !changes.color_range.timeSeries) {
@@ -153,13 +184,12 @@ function update(config, changes, obj, K3D) {
         obj.userData.lastPosition = position;
     }
 
-    if (uvsRecomputed || typeof (changes.attribute) !== 'undefined'
+    if (uvsRecomputed || colorsRecomputed || typeof (changes.attribute) !== 'undefined'
         || typeof (changes.vertices) !== 'undefined') {
         obj.userData.meshLine.setGeometry(position, false, null, colors, uvs);
         obj.geometry.attributes.position.needsUpdate = true;
 
-        obj.geometry.computeBoundingSphere();
-        obj.geometry.computeBoundingBox();
+        computeFiniteBounds(obj.geometry);
 
         resolvedChanges.attribute = null;
         resolvedChanges.vertices = null;

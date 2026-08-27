@@ -15,15 +15,37 @@ mesh, point clouds, vtk objects, volume renderer, colormaps, etc). The primary a
 to be easy to use as a standalone package like matplotlib, but also to allow interoperation with
 existing libraries as VTK. K3D can be run as:
 
-- Jupyter Notebook extension 🚀
-- Jupyter Lab extension 🎉
-- Google Colab extension 🧪 [still experimental]
+- Jupyter Notebook / JupyterLab widget (anywidget) 🚀
+- Google Colab widget 🎉
+- VS Code notebooks 🧩
 - Standalone HTML/JS 📑
+
+Since 3.0.0 a plot also chooses how it is lit, through `plot.renderer`: `simple` (the
+default rasteriser), `advanced` (image-based lighting with ambient occlusion) or `cinematic`
+(progressive path tracing). **`cinematic` is experimental** — it needs WebGL2 with renderable
+float textures, does not cover every object (`volume_slice` is not drawn, volumes stay
+outside the light simulation), and its API and output may still change; `simple` and
+`advanced` are the stable choices. See
+[Renderers](https://k3d-jupyter.org/user/renderers.html).
 
 Documentation: [https://k3d-jupyter.org](https://k3d-jupyter.org)
 </div>
 
 ## Showcase:
+
+Two frames from the renderers 3.0.0 added, both produced by the code in this repository —
+click either one for how it works.
+
+[![Curl-noise pearls under the advanced renderer](imgs/advanced_curl_pearls.png)](https://k3d-jupyter.org/user/renderers.html)
+
+`advanced`: image-based lighting and ambient occlusion. A million analytic sphere impostors,
+with the occlusion in the crevices between strands doing the sculpting.
+
+[![The Stanford dragon, path traced](imgs/cinematic_dragon.png)](https://k3d-jupyter.org/user/cinematic.html)
+
+`cinematic`: progressive path tracing. 871k triangles read through VTK, 512 samples, lit only
+by an environment map — the shadow under the belly and the light the floor throws back into
+the flank are consequences of the simulation, not effects.
 
 ![points_cloud](imgs/points_cloud.gif)
 
@@ -70,20 +92,12 @@ To install from conda-forge use:
 
 ### Google Colab
 
-First you need to install k3d:
+Since 3.0.0 (the anywidget migration) no extra steps are needed:
 
     !pip install k3d
-    !jupyter nbextension install --py --user k3d
-    !jupyter nbextension enable --py --user k3d
 
-After that you need to activate custom widgets and switch k3d to text protocol:
-
-    import k3d
-    from google.colab import output
-    
-    output.enable_custom_widget_manager()
-    
-    k3d.switch_to_text_protocol()
+`import k3d` and plot - custom widget activation and the text protocol
+are no longer required.
 
 ### Installing directly from GitHub
 
@@ -105,9 +119,8 @@ For a development installation (requires npm and node.js),
     $ cd K3D-jupyter
     $ pip install -e .
 
-Then, if required, JupyterLab installation:
-
-    $ jupyter labextension install ./js
+No separate JupyterLab extension step is needed - the widget ships its own
+frontend module (anywidget).
 
 ### Code of Conduct
 

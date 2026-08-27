@@ -5,6 +5,7 @@ const { handleColorMap } = require('../helpers/Fn');
 const { areAllChangesResolve } = require('../helpers/Fn');
 const { commonUpdate } = require('../helpers/Fn');
 const { getSide } = require('../helpers/Fn');
+const { guardIndices } = require('../helpers/Fn');
 const buffer = require('../../../core/lib/helpers/buffer');
 
 const maximumSlicePlanes = 8;
@@ -45,10 +46,11 @@ module.exports = {
             config.flat_shading = typeof (config.flat_shading) !== 'undefined' ? config.flat_shading : true;
             config.opacity = typeof (config.opacity) !== 'undefined' ? config.opacity : 1.0;
             config.slice_planes = typeof (config.slice_planes) !== 'undefined' ? config.slice_planes : [];
-            config.shininess = typeof (config.shininess) !== 'undefined' ? config.shininess : 50.0;
+            config.roughness = typeof (config.roughness) !== 'undefined' ? config.roughness : 0.4;
+            config.metalness = typeof (config.metalness) !== 'undefined' ? config.metalness : 0.0;
 
             const modelMatrix = new THREE.Matrix4();
-            const MaterialConstructor = config.wireframe ? THREE.MeshBasicMaterial : THREE.MeshPhongMaterial;
+            const MaterialConstructor = config.wireframe ? THREE.MeshBasicMaterial : THREE.MeshStandardMaterial;
             const texture = new THREE.Texture();
             const textureImage = config.texture;
             const textureFileFormat = config.texture_file_format;
@@ -61,7 +63,7 @@ module.exports = {
             const triangleAttribute = (config.triangles_attribute && config.triangles_attribute.data) || null;
             const normals = (config.normals && config.normals.data) || null;
             const vertices = (config.vertices && config.vertices.data) || null;
-            const indices = (config.indices && config.indices.data) || null;
+            const indices = guardIndices((config.indices && config.indices.data) || null, vertices, 'mesh');
             const uvs = (config.uvs && config.uvs.data) || null;
             let geometry = new THREE.BufferGeometry();
             let image;
@@ -79,14 +81,19 @@ module.exports = {
                 geometry.setAttribute('normal', new THREE.BufferAttribute(normals, 3));
             }
 
-            const material = new MaterialConstructor({
+            const material = new MaterialConstructor(config.wireframe ? {
+                color: config.color,
+                side: getSide(config),
+                wireframe: true,
+                opacity: config.opacity,
+            } : {
                 color: config.color,
                 emissive: 0,
-                shininess: config.shininess,
-                specular: 0x111111,
+                roughness: config.roughness,
+                metalness: config.metalness,
                 side: getSide(config),
                 flatShading: config.flat_shading,
-                wireframe: config.wireframe,
+                wireframe: false,
                 opacity: config.opacity,
             });
 
@@ -250,6 +257,25 @@ module.exports = {
             return false;
         }
 
+         if (typeof (changes.vertices) !== 'undefined' && !changes.vertices.timeSeries
+            && typeof (changes.indices) === 'undefined'
+            && obj.geometry && obj.geometry.index !== null
+            && obj.geometry.attributes.position.array.length === changes.vertices.data.length) {
+            obj.geometry.attributes.position.array.set(changes.vertices.data);
+            obj.geometry.attributes.position.needsUpdate = true;
+
+            const userNormals = config.normals && config.normals.data && config.normals.data.length > 0;
+
+            if (obj.geometry.attributes.normal && !userNormals) {
+                obj.geometry.computeVertexNormals();
+            }
+
+            obj.geometry.computeBoundingSphere();
+            obj.geometry.computeBoundingBox();
+
+            resolvedChanges.vertices = null;
+        }
+
         if (obj.geometry && typeof (obj.geometry.attributes.uv) !== 'undefined') {
             if (typeof (changes.color_range) !== 'undefined' && !changes.color_range.timeSeries) {
                 data = obj.geometry.attributes.uv.array;
@@ -333,6 +359,22 @@ module.exports = {
             if (config.slice_planes.length !== 0) {
                 return false;
             }
+        }
+
+        if (typeof (changes.color) !== 'undefined' && !changes.color.timeSeries) {
+            const usesVertexColors = config.colors && config.colors.data && config.colors.data.length > 0;
+            const usesColorMap = !!((config.attribute && config.attribute.data && config.attribute.data.length > 0)
+                || (config.triangles_attribute && config.triangles_attribute.data
+                    && config.triangles_attribute.data.length > 0));
+
+            // vertex colours and colormaps override the base colour, same as create
+            if (!usesVertexColors && !usesColorMap && obj.material.color) {
+                obj.material.color.set(changes.color);
+            }
+            if (obj.material.uniforms && obj.material.uniforms.diffuse) {
+                obj.material.uniforms.diffuse.value = new THREE.Color(changes.color);
+            }
+            resolvedChanges.color = null;
         }
 
         interactionsHelper.update(config, changes, resolvedChanges, obj);

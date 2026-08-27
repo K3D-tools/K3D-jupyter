@@ -1,5 +1,6 @@
 """Utility functions and objects map for K3D objects."""
 
+import math
 from typing import Any
 from typing import Dict as TypingDict
 from typing import Union
@@ -13,7 +14,6 @@ from .texture import Texture
 from .vectors import VectorField, Vectors
 from .volumetric import (MIP, MarchingCubes, SparseVoxels, Volume, VolumeSlice,
                          Voxels, VoxelsGroup)
-from .._version import __version__ as version
 
 # Objects mapping for factory functions
 objects_map: TypingDict[str, Any] = {
@@ -61,10 +61,20 @@ def create_object(
 
     attributes = {k: from_json(obj[k]) for k in obj.keys() if k != "type"}
 
-    # force to use current version
-    attributes["_model_module"] = "k3d"
-    attributes["_model_module_version"] = version
-    attributes["_view_module_version"] = version
+    # Snapshots written before 3.0.0 carry shininess. The trait itself is a tombstone
+    # that raises on any value, so old files are translated here, at the file boundary.
+    shininess = attributes.pop("shininess", None)
+    if shininess is not None and "roughness" not in attributes:
+        attributes["roughness"] = math.sqrt(2.0 / (max(float(shininess), 0.0) + 2.0))
+
+    # Same boundary for the pre-2.19 points shader alias: specular folded into '3d',
+    # the highlights are driven by roughness/metalness.
+    if attributes.get("shader") == "3dSpecular":
+        attributes["shader"] = "3d"
+
+    # widget wiring keys (old snapshots: _model_*/_view_*; new ones: _kind,
+    # _synced_props) are transport details, not object state
+    attributes = {k: v for k, v in attributes.items() if not k.startswith("_")}
 
     if is_chunk:
         return VoxelChunk(**attributes)
@@ -88,7 +98,7 @@ def clone_object(obj: Any) -> Any:
     param: TypingDict[str, Any] = {}
 
     for k, v in obj.traits().items():
-        if "sync" in v.metadata and k not in ["id", "type"]:
+        if k in obj._synced_props and k not in ["id", "type"]:
             param[k] = obj[k]
 
     return objects_map[obj["type"]](**param)

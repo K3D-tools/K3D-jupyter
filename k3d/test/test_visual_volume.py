@@ -121,3 +121,37 @@ def test_volume_mask():
     volume.mask_opacities = [0.025, 1.0]
 
     compare("volume_heart_dynamic_mask_opacities")
+
+
+def test_volume_mesh_depth_peel_composition():
+    """A mesh intersecting a volume interleaves correctly when depth peeling is
+    on (issue #277): the volume march is split into segments bounded by the peel
+    layer depths. Contract: depth_peels >= 3; below that the segmentation is too
+    coarse to be predictable."""
+    prepare(depth_peels=4)
+
+    reader = vtk.vtkXMLImageDataReader()
+    reader.SetFileName("./test/assets/volume.vti")
+    reader.Update()
+    vti = reader.GetOutput()
+
+    x, y, z = vti.GetDimensions()
+    volume_data = (
+        numpy_support.vtk_to_numpy(vti.GetPointData().GetArray(0))
+        .reshape(-1, y, x)
+        .astype(np.float32)
+    )
+
+    pytest.plot += k3d.volume(volume_data, samples=256)
+    pytest.plot += k3d.mesh(
+        np.array(
+            [[-0.45, -0.45, -0.3], [0.45, -0.45, 0.1],
+             [0.45, 0.45, 0.1], [-0.45, 0.45, -0.3]],
+            dtype=np.float32,
+        ),
+        np.array([[0, 1, 2], [0, 2, 3]], dtype=np.uint32),
+        color=0x22AA44,
+        side="double",
+    )
+
+    compare("volume_mesh_depth_peels")

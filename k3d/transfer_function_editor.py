@@ -1,26 +1,21 @@
 import ipywidgets as widgets
 import numpy as np
+
+from ._widget import K3DAnyWidget
 from IPython.display import display
-from traitlets import Int, Unicode, validate
-from traittypes import Array
+from traitlets import Unicode, validate
 from typing import Any
 from typing import Dict as TypingDict
 from typing import List as TypingList
 from typing import Optional
 
-from ._version import __version__ as version
 from .colormaps import paraview_color_maps
-from .helpers import array_serialization_wrap
+from .helpers import Array, Int, array_serialization_wrap
 
 
-class TF_editor(widgets.DOMWidget):
-    _view_name = Unicode("TransferFunctionView").tag(sync=True)
-    _model_name = Unicode("TransferFunctionModel").tag(sync=True)
-    _view_module = Unicode("k3d").tag(sync=True)
-    _model_module = Unicode("k3d").tag(sync=True)
+class TF_editor(K3DAnyWidget):
+    _kind = Unicode("tf_editor").tag(sync=True)
 
-    _view_module_version = Unicode(version).tag(sync=True)
-    _model_module_version = Unicode(version).tag(sync=True)
 
     # readonly (specified at creation)
     height = Int().tag(sync=True)

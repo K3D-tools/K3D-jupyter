@@ -1,15 +1,20 @@
 """Base classes and utilities for K3D objects."""
 
-import ipywidgets as widgets
 import numpy as np
-from traitlets import Any, Bool, Dict, Int, Integer, List, Unicode, Union
-from traittypes import Array
+from traitlets import (Any, Bool, Dict, List, TraitError,
+                       Unicode, Union, validate)
 
-from .._version import __version__ as version
-from ..helpers import (array_serialization_wrap, callback_serialization_wrap,
+from .._widget import K3DModelWidget
+from ..helpers import (Array, Int,
+                       array_serialization_wrap, callback_serialization_wrap,
                        to_json)
 
 EPSILON = np.finfo(np.float32).eps
+
+SHININESS_REMOVED = (
+    "shininess was removed in 3.0.0 - use roughness and metalness instead. "
+    "The equivalent is roughness = sqrt(2 / (shininess + 2)), e.g. the old default 50 -> 0.196."
+)
 
 
 class TimeSeries(Union):
@@ -44,18 +49,16 @@ class ListOrArray(List):
         return super(ListOrArray, self).validate_elements(obj, value)
 
 
-class VoxelChunk(widgets.Widget):
+class VoxelChunk(K3DModelWidget):
     """Voxel chunk class for selective updating voxels."""
 
-    _model_name = Unicode("ChunkModel").tag(sync=True)
-    _model_module = Unicode("k3d").tag(sync=True)
-    _model_module_version = Unicode(version).tag(sync=True)
+    _kind = Unicode("chunk").tag(sync=True)
 
     id = Int().tag(sync=True)
     voxels = Array(dtype=np.uint8).tag(sync=True, **array_serialization_wrap("voxels"))
     coord = Array(dtype=np.uint32).tag(sync=True, **array_serialization_wrap("coord"))
     multiple = Int().tag(sync=True)
-    compression_level = Integer().tag(sync=True)
+    compression_level = Int().tag(sync=True)
 
     def push_data(self, field):
         self.notify_change({"name": field, "type": "change"})
@@ -70,28 +73,36 @@ class VoxelChunk(widgets.Widget):
     def get_binary(self):
         obj = {}
 
-        for k, v in self.traits().items():
-            if "sync" in v.metadata:
-                obj[k] = to_json(k, self[k], self, self["compression_level"])
+        for k in self._synced_props:
+            obj[k] = to_json(k, self[k], self, self["compression_level"])
 
         return obj
 
 
-class Drawable(widgets.Widget):
+class Drawable(K3DModelWidget):
     """
     Base class for drawable objects and groups.
     """
 
-    _model_name = Unicode("ObjectModel").tag(sync=True)
-    _model_module = Unicode("k3d").tag(sync=True)
-    _model_module_version = Unicode(version).tag(sync=True)
+    _kind = Unicode("object").tag(sync=True)
 
-    id = Integer().tag(sync=True)
+    id = Int().tag(sync=True)
     name = Unicode(default_value=None, allow_none=True).tag(sync=True)
     group = Unicode(default_value=None, allow_none=True).tag(sync=True)
     custom_data = Dict(default_value=None, allow_none=True).tag(sync=True)
     visible = TimeSeries(Bool(True)).tag(sync=True)
-    compression_level = Integer().tag(sync=True)
+    compression_level = Int().tag(sync=True)
+
+    # Tombstone. Unknown constructor kwargs are silently swallowed by ipywidgets, so simply
+    # deleting the trait would turn every existing shininess= call into a silent visual change.
+    shininess = Any(default_value=None, allow_none=True)
+
+    @validate("shininess")
+    def _shininess_removed(self, proposal):
+        # None passes - factories forward their tombstone parameter unconditionally
+        if proposal["value"] is None:
+            return None
+        raise TraitError(SHININESS_REMOVED)
 
     def __getitem__(self, name):
         return getattr(self, name)
@@ -149,9 +160,8 @@ class Drawable(widgets.Widget):
     def get_binary(self):
         obj = {}
 
-        for k, v in self.traits().items():
-            if "sync" in v.metadata:
-                obj[k] = to_json(k, self[k], self, self["compression_level"])
+        for k in self._synced_props:
+            obj[k] = to_json(k, self[k], self, self["compression_level"])
 
         return obj
 
@@ -225,6 +235,8 @@ class Group(Drawable):
             for drawables in args
             for drawable in drawables
         )
+
+        super(Group, self).__init__()
 
     def __iter__(self):
         return self.__objs.__iter__()
