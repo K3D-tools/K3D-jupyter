@@ -25,7 +25,7 @@ function getColorLegend(K3D, object) {
         K3D.lastColorMap = {
             objectId: null,
             colorRange: [null, null],
-            colorMap: null
+            colorMap: null,
         };
     }
 
@@ -44,13 +44,12 @@ function getColorLegend(K3D, object) {
     range[1] = Math.max(object.color_range[0], object.color_range[1]);
 
     // avoid regenerating colormap
-    if (K3D.lastColorMap.objectId === object.id &&
-        K3D.lastColorMap.colorRange[0] == range[0] &&
-        K3D.lastColorMap.colorRange[1] == range[1] &&
-        _.isEqual(K3D.lastColorMap.colorMap, object.color_map.data)) {
+    if (K3D.lastColorMap.objectId === object.id
+        && K3D.lastColorMap.colorRange[0] === range[0]
+        && K3D.lastColorMap.colorRange[1] === range[1]
+        && _.isEqual(K3D.lastColorMap.colorMap, object.color_map.data)) {
         return;
     }
-
 
     if (K3D.colorMapNode) {
         K3D.getWorld().targetDOMNode.removeChild(K3D.colorMapNode);
@@ -79,21 +78,21 @@ function getColorLegend(K3D, object) {
     ].join(';');
 
     if (Array.isArray(object.volume)) {
-        let d = object.color_map.data;
-        let tupleSize = (3 + object.volume.length);
+        const d = object.color_map.data;
+        const tupleSize = (3 + object.volume.length);
 
-        let values = new Set(d.filter(function (el, i) {
-            return i % tupleSize == 0;
-        }));
+        const values = new Set(d.filter((el, index) => index % tupleSize === 0));
 
-        colorMap = Array.from(values).map(function (v) {
-            for (let i = 0; i < d.length; i += tupleSize) {
-                if (d[i] === v) {
-                    return [v, d[i + tupleSize - 3], d[i + tupleSize - 2], d[i + tupleSize - 1]];
+        colorMap = Array.from(values).map((v) => {
+            for (let index = 0; index < d.length; index += tupleSize) {
+                if (d[index] === v) {
+                    return [v, d[index + tupleSize - 3], d[index + tupleSize - 2], d[index + tupleSize - 1]];
                 }
             }
-        }).flat();
 
+            // v was taken from d, so the scan always hits; [] keeps flat() output well-formed
+            return [];
+        }).flat();
     } else {
         colorMap = object.color_map.data;
     }
@@ -211,7 +210,7 @@ function getColorLegend(K3D, object) {
     K3D.lastColorMap = {
         objectId: object.id,
         colorRange: range,
-        colorMap: object.color_map.data
+        colorMap: object.color_map.data,
     };
 }
 

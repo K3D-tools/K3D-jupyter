@@ -6,7 +6,7 @@ module.exports = {
         const bvhGeometry = geometry.clone();
         const indices = [];
 
-        let verticesLength = bvhGeometry.attributes.position.count;
+        const verticesLength = bvhGeometry.attributes.position.count;
         for (let i = 0, l = verticesLength; i < l; i++) {
             indices.push(i, i, i);
         }
@@ -17,7 +17,7 @@ module.exports = {
 
     Intersect(object) {
         return function (raycaster) {
-            let intersects = [];
+            const intersects = [];
 
             const inverseMatrix = new THREE.Matrix4();
             inverseMatrix.copy(object.matrixWorld).invert();
@@ -32,29 +32,28 @@ module.exports = {
             let ret = null;
 
             object.geometry.boundsTree.shapecast({
-                boundsTraverseOrder: function (box) {
+                boundsTraverseOrder(box) {
                     return box.distanceToPoint(ray.origin);
                 },
-                intersectsBounds: function (box, isLeaf, score) {
+                intersectsBounds(box, isLeaf, score) {
                     if (score > closestDistance) {
                         return threeMeshBVH.NOT_INTERSECTED;
                     }
 
                     box.expandByScalar(localThreshold);
                     return ray.intersectsBox(box) ? threeMeshBVH.INTERSECTED : threeMeshBVH.NOT_INTERSECTED;
-
                 },
-                intersectsTriangle: function (triangle, triangleIndex) {
+                intersectsTriangle(triangle, triangleIndex) {
                     const distancesToRaySq = ray.distanceSqToPoint(triangle.a);
 
                     if (object.geometry.attributes.sizes || object.isInstancedMesh) {
-
                         if (object.geometry.attributes.sizes) {
                             threshold = object.geometry.attributes.sizes.array[triangleIndex] / 2.0;
                         }
 
                         if (object.isInstancedMesh) {
-                            let matrix = new THREE.Matrix4().fromArray(object.instanceMatrix.array, triangleIndex * 16);
+                            const matrix = new THREE.Matrix4()
+                                .fromArray(object.instanceMatrix.array, triangleIndex * 16);
                             threshold = matrix.getMaxScaleOnAxis() / 2.0;
                         }
 
@@ -71,14 +70,14 @@ module.exports = {
                             const worldPoint = triangle.a.clone().applyMatrix4(object.matrixWorld);
 
                             ret = {
-                                object: object,
+                                object,
                                 point: worldPoint,
                                 distance: raycaster.ray.origin.distanceTo(worldPoint),
-                                index: triangleIndex
+                                index: triangleIndex,
                             };
                         }
                     }
-                }
+                },
             });
 
             if (closestDistance !== Infinity) {
@@ -86,6 +85,6 @@ module.exports = {
             }
 
             return intersects;
-        }
+        };
     },
 };

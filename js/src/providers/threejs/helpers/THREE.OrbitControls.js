@@ -1,4 +1,4 @@
-const { setupUpVector } = require('./../../../core/lib/cameraUpAxis');
+const { setupUpVector } = require('../../../core/lib/cameraUpAxis');
 
 /* eslint-disable */
 module.exports = function (THREE) {

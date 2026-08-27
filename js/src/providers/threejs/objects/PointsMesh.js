@@ -124,7 +124,7 @@ module.exports = {
             );
         } else {
             colors = (pointColors && pointColors.length === positions.length / 3
-                    ? colorsToFloat32Array(pointColors) : getColorsArray(color, positions.length / 3)
+                ? colorsToFloat32Array(pointColors) : getColorsArray(color, positions.length / 3)
             );
         }
 
@@ -196,15 +196,21 @@ module.exports = {
         // compensate through the instance scales
         object.userData.builtPointSize = config.point_size;
 
-        let pointsGeometry = new THREE.BufferGeometry();
+        const pointsGeometry = new THREE.BufferGeometry();
         pointsGeometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
 
         modelMatrix.set.apply(modelMatrix, config.model_matrix.data);
         object.applyMatrix4(modelMatrix);
         object.updateMatrixWorld();
 
-        interactionsHelper.init(config, object, K3D,
-            pointsCallback, pointsIntersect.prepareGeometry(pointsGeometry), pointsIntersect.Intersect);
+        interactionsHelper.init(
+            config,
+            object,
+            K3D,
+            pointsCallback,
+            pointsIntersect.prepareGeometry(pointsGeometry),
+            pointsIntersect.Intersect,
+        );
 
         for (i = 0; i < positions.length / 3; i++) {
             const s = (sizes && sizes[i]) || 1.0;
@@ -233,11 +239,17 @@ module.exports = {
             if (obj.interactions) {
                 obj.stopInteraction();
 
-                let pointsGeometry = new THREE.BufferGeometry();
+                const pointsGeometry = new THREE.BufferGeometry();
                 pointsGeometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
 
-                interactionsHelper.init(config, obj, K3D,
-                    pointsCallback, pointsIntersect.prepareGeometry(pointsGeometry), pointsIntersect.Intersect);
+                interactionsHelper.init(
+                    config,
+                    obj,
+                    K3D,
+                    pointsCallback,
+                    pointsIntersect.prepareGeometry(pointsGeometry),
+                    pointsIntersect.Intersect,
+                );
             }
 
             resolvedChanges.positions = null;

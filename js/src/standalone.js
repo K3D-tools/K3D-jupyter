@@ -1,5 +1,5 @@
-const msgpack = require('./core/lib/helpers/msgpackCodec');
 const fflate = require('fflate');
+const msgpack = require('./core/lib/helpers/msgpackCodec');
 const K3DTransferFunctionEditor = require('./core/lib/transferFunctionEditorCore');
 const serialize = require('./core/lib/helpers/serialize');
 const K3D = require('./core/Core');
@@ -106,7 +106,7 @@ function CreateK3DAndLoadBinarySnapshot(data, targetDOMNode) {
                 K3DInstance = new K3D(
                     ThreeJsProvider,
                     targetDOMNode,
-                    Object.assign({}, data.plot, { standaloneGUI: true }),
+                    ({ ...data.plot, standaloneGUI: true }),
                 );
             } catch (e) {
                 // Log and reject on error

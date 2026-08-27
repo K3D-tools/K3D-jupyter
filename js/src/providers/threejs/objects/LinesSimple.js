@@ -45,7 +45,7 @@ module.exports = {
         const verticesCount = vertices.length / 3;
 
         verticesColors = (verticesColors && verticesColors.length === vertices.length / 3
-                ? colorsToFloat32Array(verticesColors) : getColorsArray(color, vertices.length / 3)
+            ? colorsToFloat32Array(verticesColors) : getColorsArray(color, vertices.length / 3)
         );
 
         for (let i = 0; i < indices.length; i += jump) {
@@ -198,7 +198,6 @@ module.exports = {
         if (typeof (changes.vertices) !== 'undefined' && !changes.vertices.timeSeries
             && obj.userData.edgeVertices
             && changes.vertices.data.length === obj.userData.verticesLength) {
-
             const map = obj.userData.edgeVertices;
             const incoming = changes.vertices.data;
             const target = obj.geometry.attributes.position.array;

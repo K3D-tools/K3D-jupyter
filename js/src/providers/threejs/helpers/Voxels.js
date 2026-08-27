@@ -58,7 +58,7 @@ function getVoxelChunkObject(K3D, config, voxelSize, chunkStructure) {
 
     voxelsChunkObject.add(new THREE.Mesh(
         geometry,
-        material
+        material,
     ));
 
     if (config.outlines && !config.wireframe) {

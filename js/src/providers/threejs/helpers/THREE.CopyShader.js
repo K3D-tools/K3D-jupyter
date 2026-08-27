@@ -1,4 +1,3 @@
-// jshint ignore: start
 // jscs:disable
 
 module.exports = function (THREE) {

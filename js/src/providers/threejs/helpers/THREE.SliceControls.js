@@ -124,7 +124,7 @@ module.exports = function (THREE) {
         }());
 
         this.changeSlice = function (json, change) {
-            let shape = Array.isArray(json.volume) ? json.volume[0].shape : json.volume.shape;
+            const shape = Array.isArray(json.volume) ? json.volume[0].shape : json.volume.shape;
 
             json[`slice_${axis}`] += change;
             json[`slice_${axis}`] = Math.max(-1, Math.min(json[`slice_${axis}`], shape[axisToShape[axis]] - 1));
@@ -205,7 +205,7 @@ module.exports = function (THREE) {
                 return;
             }
 
-            let shape = Array.isArray(json.volume) ? json.volume[0].shape : json.volume.shape;
+            const shape = Array.isArray(json.volume) ? json.volume[0].shape : json.volume.shape;
 
             sliceDistance = json[`slice_${axis}`];
 
@@ -370,7 +370,7 @@ module.exports = function (THREE) {
             delete _pointerPositions[event.pointerId];
 
             for (let i = 0; i < _pointers.length; i++) {
-                if (_pointers[i].pointerId == event.pointerId) {
+                if (_pointers[i].pointerId === event.pointerId) {
                     _pointers.splice(i, 1);
                     return;
                 }
@@ -457,13 +457,13 @@ module.exports = function (THREE) {
                     _mouseLast.copy(_mouseCurrent);
                     break;
 
-                default:
-
+                default: {
                     const position = getSecondPointerPosition(event);
 
                     const dx = event.pageX - position.x;
                     const dy = event.pageY - position.y;
-                    _touchZoomDistanceEnd = _touchZoomDistanceStart = Math.sqrt(dx * dx + dy * dy);
+                    _touchZoomDistanceStart = Math.sqrt(dx * dx + dy * dy);
+                    _touchZoomDistanceEnd = _touchZoomDistanceStart;
 
                     const x = (event.pageX + position.x) / 2;
                     const y = (event.pageY + position.y) / 2;
@@ -477,6 +477,7 @@ module.exports = function (THREE) {
                     }
 
                     break;
+                }
             }
 
             scope.dispatchEvent(startEvent);
@@ -494,7 +495,7 @@ module.exports = function (THREE) {
                     _mouseLast.copy(_mouseCurrent);
                     _mouseCurrent.copy(getMouseOnScreen(event.pageX, event.pageY));
                     break;
-                case 2:
+                case 2: {
                     _mouseLast.copy(_mouseCurrent);
 
                     const position = getSecondPointerPosition(event);
@@ -508,6 +509,7 @@ module.exports = function (THREE) {
                     const y = (event.pageY + position.y) / 2;
                     _mouseCurrent.copy(getMouseOnScreen(x, y));
                     break;
+                }
                 default: // 3 or more
                     _mouseLast.copy(_mouseCurrent);
                     _mouseCurrent.copy(getMouseOnScreen(_pointers[0].pageX, _pointers[0].pageY));

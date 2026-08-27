@@ -2,7 +2,7 @@ const THREE = require('three');
 const interactionsVolumeSlice = require('../interactions/VolumeSlice');
 const interactionsHelper = require('../helpers/Interactions');
 const colorMapHelper = require('../../../core/lib/helpers/colorMap');
-const _ = require("../../../lodash");
+const _ = require('../../../lodash');
 const typedArrayToThree = require('../helpers/Fn').typedArrayToThree;
 const areAllChangesResolve = require('../helpers/Fn').areAllChangesResolve;
 const commonUpdate = require('../helpers/Fn').commonUpdate;
@@ -74,7 +74,7 @@ function getPositions(slice, shape) {
 }
 
 function addTextureToUniforms(uniforms, config) {
-    let d = config.volume.reduce(function (ret, volume, id) {
+    const d = config.volume.reduce((ret, volume, id) => {
         const texture = new THREE.Data3DTexture(
             volume.data,
             volume.shape[2],
@@ -104,13 +104,14 @@ function addTextureToUniforms(uniforms, config) {
         ret.volumeSize.push(new THREE.Vector3(volume.shape[2], volume.shape[1], volume.shape[0]));
 
         return ret;
+    }, {
+        low: [], high: [], volumeTexture: [], volumeSize: [],
+    });
 
-    }, { low: [], high: [], volumeTexture: [], volumeSize: [] });
-
-    uniforms['low'] = { value: d.low };
-    uniforms['high'] = { value: d.high };
-    uniforms['volumeTexture'] = { type: 'tv', value: d.volumeTexture };
-    uniforms['volumeSize'] = { value: d.volumeSize };
+    uniforms.low = { value: d.low };
+    uniforms.high = { value: d.high };
+    uniforms.volumeTexture = { type: 'tv', value: d.volumeTexture };
+    uniforms.volumeSize = { value: d.volumeSize };
 }
 
 /**
@@ -199,7 +200,7 @@ module.exports = {
             activeMasksCount = config.active_masks.data.length;
         }
 
-        let uniforms = {
+        const uniforms = {
             opacity: { value: config.opacity },
             mask: { type: 't', value: mask },
             maskColors: { type: 't', value: maskColors },
@@ -217,7 +218,7 @@ module.exports = {
                 THREE.UniformsLib.lights,
             ),
             defines: {
-                CUBIC: config.interpolation === 2 ? 1 : 0
+                CUBIC: config.interpolation === 2 ? 1 : 0,
             },
             side: THREE.DoubleSide,
             vertexShader: require('./shaders/VolumeSlice.vertex.glsl'),
@@ -226,10 +227,10 @@ module.exports = {
             transparent: (config.opacity !== 1.0 || opacityFunction !== null),
             lights: false,
             clipping: true,
-            onBeforeCompile: function (shader) {
+            onBeforeCompile(shader) {
                 shader.fragmentShader = shader.fragmentShader.replace(/TEXTURE_COUNT/g, config.volume.length);
                 shader.vertexShader = shader.vertexShader.replace(/TEXTURE_COUNT/g, config.volume.length);
-            }
+            },
         });
 
         if (config.flat_shading === false) {
@@ -249,10 +250,10 @@ module.exports = {
         interactionsHelper.init(config, object, K3D, interactionsVolumeSlice);
 
         object.onRemove = function () {
-            const { uniforms } = object.material;
+            const materialUniforms = object.material.uniforms;
 
             ['volumeTexture', 'mask', 'colormap', 'activeMasks', 'maskColors'].forEach((name) => {
-                const uniform = uniforms[name];
+                const uniform = materialUniforms[name];
 
                 if (!uniform || !uniform.value) {
                     return;
@@ -292,9 +293,10 @@ module.exports = {
             resolvedChanges.color_range = null;
         }
 
-        let slice_position_updated = false;
+        let slicePositionUpdated = false;
         ['x', 'y', 'z'].forEach((axis) => {
-            if (!slice_position_updated && typeof (changes[`slice_${axis}`]) !== 'undefined' && !changes[`slice_${axis}`].timeSeries) {
+            if (!slicePositionUpdated && typeof (changes[`slice_${axis}`]) !== 'undefined'
+                && !changes[`slice_${axis}`].timeSeries) {
                 const data = obj.geometry.attributes.position.array;
                 const newData = getPositions(
                     [
@@ -314,7 +316,7 @@ module.exports = {
                 resolvedChanges.slice_x = null;
                 resolvedChanges.slice_y = null;
                 resolvedChanges.slice_z = null;
-                slice_position_updated = true;
+                slicePositionUpdated = true;
             }
         });
 
@@ -326,8 +328,8 @@ module.exports = {
             if (changes.volume.length === obj.material.uniforms.volumeTexture.value.length) {
                 let allDone = true;
 
-                changes.volume.forEach(function (volume, i) {
-                    let val = obj.material.uniforms.volumeTexture.value[i];
+                changes.volume.forEach((volume, i) => {
+                    const val = obj.material.uniforms.volumeTexture.value[i];
 
                     if (val.image.data.constructor === volume.data.constructor && val.image.width === volume.shape[2]
                         && val.image.height === volume.shape[1] && val.image.depth === volume.shape[0]) {

@@ -361,7 +361,8 @@ module.exports = {
                 resolvedChanges[key] = null;
             }
         });
-        if (resolvedChanges.model_matrix !== null && typeof (changes.model_matrix) !== 'undefined' && !changes.model_matrix.timeSeries) {
+        if (resolvedChanges.model_matrix !== null && typeof (changes.model_matrix) !== 'undefined'
+            && !changes.model_matrix.timeSeries) {
             const modelMatrix = new THREE.Matrix4();
 
             modelMatrix.set.apply(modelMatrix, changes.model_matrix.data);
@@ -385,7 +386,8 @@ module.exports = {
             resolvedChanges.model_matrix = null;
         }
 
-        if (resolvedChanges.visible !== null && typeof (changes.visible) !== 'undefined' && !changes.visible.timeSeries) {
+        if (resolvedChanges.visible !== null && typeof (changes.visible) !== 'undefined'
+            && !changes.visible.timeSeries) {
             obj.visible = changes.visible;
 
             resolvedChanges.visible = null;

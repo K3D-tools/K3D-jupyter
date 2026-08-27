@@ -1,6 +1,8 @@
 const THREE = require('three');
 const { GTAOShader, generateMagicSquareNoise } = require('three/examples/jsm/shaders/GTAOShader.js');
-const { PoissonDenoiseShader, generatePdSamplePointInitializer } = require('three/examples/jsm/shaders/PoissonDenoiseShader.js');
+const {
+    PoissonDenoiseShader, generatePdSamplePointInitializer,
+} = require('three/examples/jsm/shaders/PoissonDenoiseShader.js');
 const cameraModes = require('../../../core/lib/cameraMode').cameraModes;
 const error = require('../../../core/lib/Error').error;
 const getSSAAChunkedRender = require('../helpers/SSAAChunkedRender');
@@ -15,7 +17,7 @@ function generateDeterministicNoise(size) {
     for (let i = 0; i < data.length; i++) {
         state = (state + 0x6d2b79f5) | 0;
         let t = Math.imul(state ^ (state >>> 15), 1 | state);
-        t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+        t ^= t + Math.imul(t ^ (t >>> 7), 61 | t);
         data[i] = ((t ^ (t >>> 14)) >>> 0) % 256;
     }
 
@@ -29,11 +31,11 @@ function generateDeterministicNoise(size) {
 }
 
 function depthOnBeforeCompile(globalPeelUniforms, shader) {
-    if (typeof (shader.defines) == 'undefined') {
+    if (typeof (shader.defines) === 'undefined') {
         shader.defines = {};
     }
 
-    if (typeof (shader.defines.PROVIDED_FRAG_COORD_Z) == 'undefined') {
+    if (typeof (shader.defines.PROVIDED_FRAG_COORD_Z) === 'undefined') {
         shader.defines.PROVIDED_FRAG_COORD_Z = 0;
     }
 
@@ -51,7 +53,10 @@ function depthOnBeforeCompile(globalPeelUniforms, shader) {
     );
 
     shader.fragmentShader = require('./shaders/depthShader.fragment.header.glsl') + shader.fragmentShader;
-    shader.fragmentShader = shader.fragmentShader.replace(/}(?![\s\S]*})/gm, require('./shaders/depthShader.fragment.tail.glsl'));
+    shader.fragmentShader = shader.fragmentShader.replace(
+        /}(?![\s\S]*})/gm,
+        require('./shaders/depthShader.fragment.tail.glsl'),
+    );
 }
 
 function colorOnBeforeCompile(globalPeelUniforms, shader) {
@@ -140,12 +145,10 @@ module.exports = function (K3D) {
     const fsCamera = new THREE.OrthographicCamera(-1, 1, 1, -1, 0, 1);
     let aoTexture = null;
     let aoVolTexture = null;
-    let aoSize = new THREE.Vector2(1, 1);
+    const aoSize = new THREE.Vector2(1, 1);
 
     const gtaoMaterial = new THREE.ShaderMaterial({
-        defines: Object.assign({}, GTAOShader.defines, {
-            NORMAL_VECTOR_TYPE: 0,
-        }),
+        defines: { ...GTAOShader.defines, NORMAL_VECTOR_TYPE: 0 },
         uniforms: THREE.UniformsUtils.clone(GTAOShader.uniforms),
         vertexShader: GTAOShader.vertexShader,
         fragmentShader: GTAOShader.fragmentShader,
@@ -156,12 +159,13 @@ module.exports = function (K3D) {
     gtaoMaterial.uniforms.tNoise.value = generateMagicSquareNoise();
 
     const pdMaterial = new THREE.ShaderMaterial({
-        defines: Object.assign({}, PoissonDenoiseShader.defines, {
+        defines: {
+            ...PoissonDenoiseShader.defines,
             NORMAL_VECTOR_TYPE: 0,
             // generated explicitly: the upstream constructor bakes SAMPLE_VECTORS with
             // exponent 1 and skips regeneration when the field already equals the wish
             SAMPLE_VECTORS: generatePdSamplePointInitializer(16, 2, 2),
-        }),
+        },
         uniforms: THREE.UniformsUtils.clone(PoissonDenoiseShader.uniforms),
         vertexShader: PoissonDenoiseShader.vertexShader,
         fragmentShader: PoissonDenoiseShader.fragmentShader,
@@ -233,12 +237,8 @@ module.exports = function (K3D) {
     // shared by every Volume material: segment bounds for the peel-interleaved
     // composition (#277). Black (z == 0) stands in for the near plane on the first
     // segment; white (z == 1) reads as "no bound" through the peelT sentinel.
-    const peelDummyNear = new THREE.DataTexture(
-        new Float32Array([0.0]), 1, 1, THREE.RedFormat, THREE.FloatType,
-    );
-    const peelDummyFar = new THREE.DataTexture(
-        new Float32Array([1.0]), 1, 1, THREE.RedFormat, THREE.FloatType,
-    );
+    const peelDummyNear = new THREE.DataTexture(new Float32Array([0.0]), 1, 1, THREE.RedFormat, THREE.FloatType);
+    const peelDummyFar = new THREE.DataTexture(new Float32Array([1.0]), 1, 1, THREE.RedFormat, THREE.FloatType);
 
     peelDummyNear.needsUpdate = true;
     peelDummyFar.needsUpdate = true;
@@ -936,8 +936,10 @@ module.exports = function (K3D) {
                     composeCinematic(texture, null, buffer.x, buffer.y);
 
                     self.renderer.setViewport(
-                        size.x - self.axesHelper.width, 0,
-                        self.axesHelper.width, self.axesHelper.height,
+                        size.x - self.axesHelper.width,
+                        0,
+                        self.axesHelper.width,
+                        self.axesHelper.height,
                     );
                     self.renderer.render(self.axesHelper.scene, self.axesHelper.camera);
                     self.renderer.setViewport(0, 0, size.x, size.y);
@@ -959,8 +961,10 @@ module.exports = function (K3D) {
                     self.renderer.render(self.gridScene, self.camera);
                     directRender(self.scene, self.camera);
                     self.renderer.setViewport(
-                        size.x - self.axesHelper.width, 0,
-                        self.axesHelper.width, self.axesHelper.height,
+                        size.x - self.axesHelper.width,
+                        0,
+                        self.axesHelper.width,
+                        self.axesHelper.height,
                     );
                     self.renderer.render(self.axesHelper.scene, self.axesHelper.camera);
                     self.renderer.setViewport(0, 0, size.x, size.y);
@@ -1472,9 +1476,17 @@ module.exports = function (K3D) {
 
         self.renderer.clippingPlanes = [];
 
-        return getSSAAChunkedRender(self.renderer, self.axesHelper.scene, self.axesHelper.camera,
-            rtAxesHelper, rtAxesHelper.width, rtAxesHelper.height, [[0, rtAxesHelper.height]],
-            aaLevel, directRender).then((result) => {
+        return getSSAAChunkedRender(
+            self.renderer,
+            self.axesHelper.scene,
+            self.axesHelper.camera,
+            rtAxesHelper,
+            rtAxesHelper.width,
+            rtAxesHelper.height,
+            [[0, rtAxesHelper.height]],
+            aaLevel,
+            directRender,
+        ).then((result) => {
             const axesHelper = new Uint8ClampedArray(width * height * 4);
 
             for (let y = 0; y < rtAxesHelper.height; y++) {
@@ -1551,9 +1563,17 @@ module.exports = function (K3D) {
         );
         self.renderer.clippingPlanes = [];
 
-        return getSSAAChunkedRender(self.renderer, self.axesHelper.scene, self.axesHelper.camera,
-            rtAxesHelper, rtAxesHelper.width, rtAxesHelper.height, [[0, rtAxesHelper.height]],
-            aaLevel, directRender).then((result) => {
+        return getSSAAChunkedRender(
+            self.renderer,
+            self.axesHelper.scene,
+            self.axesHelper.camera,
+            rtAxesHelper,
+            rtAxesHelper.width,
+            rtAxesHelper.height,
+            [[0, rtAxesHelper.height]],
+            aaLevel,
+            directRender,
+        ).then((result) => {
             const axesHelper = new Uint8ClampedArray(width * height * 4);
 
             for (let y = 0; y < rtAxesHelper.height; y++) {
@@ -1568,8 +1588,17 @@ module.exports = function (K3D) {
                 ? new THREE.WebGLRenderTarget(width, height, { type: THREE.FloatType })
                 : rt;
 
-            return getSSAAChunkedRender(self.renderer, self.gridScene, self.camera,
-                rtGrid, width, height, [[0, height]], aaLevel, directRender).then((grid) => {
+            return getSSAAChunkedRender(
+                self.renderer,
+                self.gridScene,
+                self.camera,
+                rtGrid,
+                width,
+                height,
+                [[0, height]],
+                aaLevel,
+                directRender,
+            ).then((grid) => {
                 if (rtGrid !== rt) {
                     rtGrid.dispose();
                 }
@@ -1580,9 +1609,17 @@ module.exports = function (K3D) {
 
                 computeAO(width, height);
 
-                return getSSAAChunkedRender(self.renderer, self.scene, self.camera,
-                    rt, width, height, chunkHeights,
-                    aaLevel, currentRenderMethod).then((scene) => {
+                return getSSAAChunkedRender(
+                    self.renderer,
+                    self.scene,
+                    self.camera,
+                    rt,
+                    width,
+                    height,
+                    chunkHeights,
+                    aaLevel,
+                    currentRenderMethod,
+                ).then((scene) => {
                     rt.dispose();
                     rtAxesHelper.dispose();
                     return [grid, scene, axesHelper];

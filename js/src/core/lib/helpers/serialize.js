@@ -17,7 +17,6 @@ const typesToArray = {
     float64: Float64Array,
 };
 
-
 function isNumeric(n) {
     return !Number.isNaN(parseFloat(n)) && Number.isFinite(parseFloat(n));
 }
@@ -50,7 +49,7 @@ function deserializeArray(obj) {
             obj.compressed_data.byteLength} bytes`);
 
         return {
-            data: data,
+            data,
             shape: obj.shape,
         };
     }
@@ -63,19 +62,21 @@ function serializeArray(obj) {
     if (obj.data.constructor.name === 'DataView') {
         dtype = obj.dtype;
     } else {
-        dtype = _.invert(typesToArray)[obj.data.constructor]
+        dtype = _.invert(typesToArray)[obj.data.constructor];
     }
 
     if (obj.compression_level && obj.compression_level > 0) {
         return {
-            dtype: dtype,
-            compressed_data: fflate.zlibSync(new Uint8Array(exactBuffer(obj.data)),
-                { level: obj.compression_level }),
+            dtype,
+            compressed_data: fflate.zlibSync(
+                new Uint8Array(exactBuffer(obj.data)),
+                { level: obj.compression_level },
+            ),
             shape: obj.shape,
         };
     }
     return {
-        dtype: dtype,
+        dtype,
         data: obj.data,
         shape: obj.shape,
     };
@@ -89,8 +90,8 @@ function deserialize(obj, manager) {
         try {
             obj = msgpack.decode(buffer.base64ToArrayBuffer(obj.substring(7)));
         } catch (err) {
-            error('K3D Error', 'Failed to deserialize base64 data: ' + err.message);
-            throw new Error('Invalid base64 data in serialization: ' + err.message);
+            error('K3D Error', `Failed to deserialize base64 data: ${err.message}`);
+            throw new Error(`Invalid base64 data in serialization: ${err.message}`);
         }
     }
     if (typeof (obj) === 'string' || typeof (obj) === 'boolean') {

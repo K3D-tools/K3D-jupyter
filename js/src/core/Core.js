@@ -1,7 +1,7 @@
 const fflate = require('fflate');
-const msgpack = require('./lib/helpers/msgpackCodec');
-
 const LilGUI = require('lil-gui').GUI;
+
+const msgpack = require('./lib/helpers/msgpackCodec');
 const { viewModes } = require('./lib/viewMode');
 const { cameraUpAxisModes } = require('./lib/cameraUpAxis');
 const _ = require('../lodash');
@@ -112,7 +112,10 @@ function K3D(provider, targetDOMNode, parameters) {
                 // and the listener it installs sits on the main window and captures this
                 // instance.
                 removeFullscreenListener = fullscreen.initialize(
-                    world.targetDOMNode, GUI.controls, currentWindow, self,
+                    world.targetDOMNode,
+                    GUI.controls,
+                    currentWindow,
+                    self,
                 );
             }
         }
@@ -169,8 +172,11 @@ function K3D(provider, targetDOMNode, parameters) {
                 }
             } else {
                 options.push(
-                    'autoshop_01', 'brown_photostudio_02', 'burnt_warehouse',
-                    'moonless_golf', 'venice_sunset',
+                    'autoshop_01',
+                    'brown_photostudio_02',
+                    'burnt_warehouse',
+                    'moonless_golf',
+                    'venice_sunset',
                 );
             }
 
@@ -423,7 +429,7 @@ function K3D(provider, targetDOMNode, parameters) {
         'pointer-events: none',
         'overflow: hidden',
         'user-select: none',
-        '-webkit-user-select: none'
+        '-webkit-user-select: none',
     ].join(';');
 
     this.GUI = GUI;
@@ -1103,7 +1109,7 @@ function K3D(provider, targetDOMNode, parameters) {
      * @param {Number} count
      */
     this.setDepthPeels = function (count) {
-        let objectsPromieses = [];
+        const objectsPromieses = [];
 
         self.parameters.depthPeels = count;
 
@@ -1117,7 +1123,6 @@ function K3D(provider, targetDOMNode, parameters) {
 
         if ((prevDepthPeels === 0 && count > 0)
             || (prevDepthPeels > 0 && count === 0)) {
-
             _.values(world.ObjectsListJson).forEach((json) => {
                 // blending and the peel shader hook are chosen when the material is built, so
                 // every object has to be built again. Dropping it from the scene first is what
@@ -1135,11 +1140,10 @@ function K3D(provider, targetDOMNode, parameters) {
 
         prevDepthPeels = count;
 
-        return Promise.all(objectsPromieses).then(function () {
+        return Promise.all(objectsPromieses).then(() => {
             self.render();
         });
     };
-
 
     /**
      * Set renderer mode of K3D
@@ -1622,7 +1626,7 @@ function K3D(provider, targetDOMNode, parameters) {
 
         return loader(self, data).then((objects) => {
             objects.forEach((object) => {
-                if (!object) { return; }  // Loader could not create it; already reported
+                if (!object) { return; } // Loader could not create it; already reported
 
                 if (timeSeriesReload !== true) {
                     objectsGUIProvider.update(self, object.json, GUI.objects, changes);
@@ -1758,7 +1762,7 @@ function K3D(provider, targetDOMNode, parameters) {
             ));
         } catch (error) {
             console.error('K3D: Failed to set snapshot:', error.message);
-            throw new Error('Invalid snapshot data: ' + error.message);
+            throw new Error(`Invalid snapshot data: ${error.message}`);
         }
     };
 
@@ -1787,7 +1791,7 @@ function K3D(provider, targetDOMNode, parameters) {
             this.gui.destroy();
         }
 
-        Object.keys(world.ObjectsListJson).forEach(function (K3DIdentifier) {
+        Object.keys(world.ObjectsListJson).forEach((K3DIdentifier) => {
             removeObjectFromScene(K3DIdentifier);
             delete world.ObjectsListJson[K3DIdentifier];
         });
@@ -1826,7 +1830,7 @@ function K3D(provider, targetDOMNode, parameters) {
     this.Provider.Initializers.Scene.call(world, this);
     this.Provider.Initializers.Manipulate.call(world, this);
 
-    this.resizeObserver = new ResizeObserver(entries => {
+    this.resizeObserver = new ResizeObserver(() => {
         this.resizeHelper();
     });
     this.resizeObserver.observe(targetDOMNode);

@@ -7,6 +7,7 @@ const { viewModes } = require('../../../core/lib/viewMode');
 const { pow10ceil } = require('../../../core/lib/helpers/math');
 const { cameraModes } = require('../../../core/lib/cameraMode');
 const environmentHelper = require('../helpers/environment');
+
 let rebuildSceneDataPromises = null;
 
 function generateAxesHelper(K3D, axesHelper) {
@@ -56,17 +57,15 @@ function generateAxesHelper(K3D, axesHelper) {
 }
 
 function getSceneBoundingBox(K3D) {
-    /* jshint validthis:true */
-
     const sceneBoundingBox = new THREE.Box3();
     let objectBoundingBox;
-    let world = K3D.getWorld();
+    const world = K3D.getWorld();
 
-    Object.keys(world.ObjectsListJson).forEach(function (K3DIdentifier) {
-        let k3dObject = world.ObjectsById[K3DIdentifier];
+    Object.keys(world.ObjectsListJson).forEach((K3DIdentifier) => {
+        const k3dObject = world.ObjectsById[K3DIdentifier];
 
         if (!k3dObject) {
-            return
+            return;
         }
 
         k3dObject.traverse((object) => {
@@ -88,9 +87,9 @@ function getSceneBoundingBox(K3D) {
                 // the union and end up as NaN camera near/far planes. An empty box is fine —
                 // union() ignores it.
                 if (!objectBoundingBox.isEmpty()
-                    && !(isFinite(objectBoundingBox.min.x) && isFinite(objectBoundingBox.min.y)
-                        && isFinite(objectBoundingBox.min.z) && isFinite(objectBoundingBox.max.x)
-                        && isFinite(objectBoundingBox.max.y) && isFinite(objectBoundingBox.max.z))) {
+                    && !(Number.isFinite(objectBoundingBox.min.x) && Number.isFinite(objectBoundingBox.min.y)
+                        && Number.isFinite(objectBoundingBox.min.z) && Number.isFinite(objectBoundingBox.max.x)
+                        && Number.isFinite(objectBoundingBox.max.y) && Number.isFinite(objectBoundingBox.max.z))) {
                     return;
                 }
 
@@ -187,7 +186,6 @@ function cleanup(grids, gridScene) {
 }
 
 function rebuildSceneData(K3D, grids, axesHelper, force) {
-    /* jshint validthis:true, maxstatements:false */
     const that = this;
 
     if (rebuildSceneDataPromises) {
@@ -220,7 +218,7 @@ function rebuildSceneData(K3D, grids, axesHelper, force) {
         '-x+y+z': ['-x-y', '-x-z', '+x+y', '+y-z', '+x+z', '-y+z'],
         '-x+y-z': ['-x-y', '-x+z', '+x+y', '+y+z', '+x-z', '-y-z'],
         '-x-y+z': ['-x+y', '-x-z', '+x-y', '-y-z', '+x+z', '+y+z'],
-        '-x-y-z': ['-x+y', '-x+z', '+x-y', '-y+z', '+x-z', '+y-z']
+        '-x-y-z': ['-x+y', '-x+z', '+x-y', '-y+z', '+x-z', '+y-z'],
     };
     const labelsShiftMap = ['x', 'x', 'y', 'y', 'z', 'z'];
 
@@ -350,12 +348,12 @@ function rebuildSceneData(K3D, grids, axesHelper, force) {
         // create labels for ticks - iterate over all 8 corners of box
 
         for (i = 0; i < 8; i++) {
-            let corner = (i & 0x01 ? '-' : '+') + 'x' + (i & 0x02 ? '-' : '+') + 'y' + (i & 0x04 ? '-' : '+') + 'z';
+            const corner = `${i & 0x01 ? '-' : '+'}x${i & 0x02 ? '-' : '+'}y${i & 0x04 ? '-' : '+'}z`;
 
             grids.labelsOnPlanes[corner] = {};
             grids.labelsOnPlanes[corner].labels = [];
 
-            cornerToLabeledEdges[corner].forEach(function (edge, index) {
+            cornerToLabeledEdges[corner].forEach((edge, index) => {
                 let j;
                 let p;
                 let label;
@@ -363,7 +361,7 @@ function rebuildSceneData(K3D, grids, axesHelper, force) {
 
                 let deltaPosition = unitVectors[iterateAxis].clone().multiplyScalar(majorScale);
                 let iterationCount = size[iterateAxis] / majorScale;
-                let line = originalEdges[edge];
+                const line = originalEdges[edge];
 
                 if (iterationCount <= 2) {
                     const originalIterationCount = iterationCount;
@@ -373,13 +371,13 @@ function rebuildSceneData(K3D, grids, axesHelper, force) {
                         .multiplyScalar((originalIterationCount * majorScale) / iterationCount);
                 }
 
-                let labelShiftDirection = corner[Math.floor(index / 2) * 2] === "+";
+                const labelShiftDirection = corner[Math.floor(index / 2) * 2] === '+';
 
                 // axis ticks labels
                 for (j = 1; j <= iterationCount - 1; j++) {
                     p = line[0].clone().add(deltaPosition.clone().multiplyScalar(j)).add(
                         unitVectors[labelsShiftMap[index]].clone()
-                            .multiplyScalar(minorScale * (labelShiftDirection ? 1 : -1))
+                            .multiplyScalar(minorScale * (labelShiftDirection ? 1 : -1)),
                     );
 
                     label = Text.create({
@@ -390,17 +388,15 @@ function rebuildSceneData(K3D, grids, axesHelper, force) {
                         size: 0.75,
                     }, K3D);
 
-                    /* jshint loopfunc: true */
                     promises.push(label.then((obj) => {
                         grids.labelsOnPlanes[corner].labels.push(obj);
                     }));
-                    /* jshint loopfunc: false */
                 }
 
                 // axis label
                 p = (new THREE.Vector3()).lerpVectors(line[0], line[1], 0.5).add(
                     unitVectors[labelsShiftMap[index]].clone()
-                        .multiplyScalar(minorScale * 2.0 * (labelShiftDirection ? 1 : -1))
+                        .multiplyScalar(minorScale * 2.0 * (labelShiftDirection ? 1 : -1)),
                 );
 
                 const axisLabel = Text.create({
@@ -496,7 +492,6 @@ function rebuildSceneData(K3D, grids, axesHelper, force) {
 }
 
 function refreshGrid(K3D, grids) {
-    /* jshint validthis:true */
     let currentCorner = '';
     const cameraDirection = new THREE.Vector3();
 
@@ -524,7 +519,6 @@ function refreshGrid(K3D, grids) {
 }
 
 function raycast(K3D, x, y, camera, click, viewMode) {
-    /* jshint validthis:true */
     const meshes = [];
     let intersects = [];
     let needRender = false;
@@ -554,7 +548,7 @@ function raycast(K3D, x, y, camera, click, viewMode) {
     }
 
     if (intersects.length > 0) {
-        let intersect = intersects[0];
+        const intersect = intersects[0];
         K3D.getWorld().targetDOMNode.style.cursor = 'pointer';
 
         if (!click && intersect.object.interactions && intersect.object.interactions.onHover) {
@@ -567,7 +561,6 @@ function raycast(K3D, x, y, camera, click, viewMode) {
     } else {
         K3D.getWorld().targetDOMNode.style.cursor = 'auto';
     }
-
 
     return needRender;
 }

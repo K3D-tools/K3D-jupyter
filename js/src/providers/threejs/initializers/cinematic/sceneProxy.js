@@ -408,8 +408,15 @@ function buildLines(json) {
                 sourceColors[b * 3], sourceColors[b * 3 + 1], sourceColors[b * 3 + 2],
             ] : null;
 
-        geometries.push(streamLine(points, attributes, radius, radialSegments, color,
-            verticesColors, colorMapped ? json.color_range : null));
+        geometries.push(streamLine(
+            points,
+            attributes,
+            radius,
+            radialSegments,
+            color,
+            verticesColors,
+            colorMapped ? json.color_range : null,
+        ));
     }
 
     const geometry = mergeGeometries(geometries);
@@ -448,8 +455,15 @@ function buildVectors(json, sourceObj) {
                         col.getX(t), col.getY(t), col.getZ(t),
                     ] : null;
 
-                geometries.push(streamLine(points, null, radius, 8,
-                    new THREE.Color(0xffffff), verticesColors, null));
+                geometries.push(streamLine(
+                    points,
+                    null,
+                    radius,
+                    8,
+                    new THREE.Color(0xffffff),
+                    verticesColors,
+                    null,
+                ));
             }
 
             if (geometries.length > 0) {
@@ -568,8 +582,13 @@ function buildTextureData(json, sourceMesh) {
         rgba[i * 4 + 3] = Math.round(c[3] * 255);
     }
 
-    const texture = new THREE.DataTexture(rgba, width, height, THREE.RGBAFormat,
-        THREE.UnsignedByteType);
+    const texture = new THREE.DataTexture(
+        rgba,
+        width,
+        height,
+        THREE.RGBAFormat,
+        THREE.UnsignedByteType,
+    );
 
     texture.wrapS = THREE.ClampToEdgeWrapping;
     texture.wrapT = THREE.ClampToEdgeWrapping;
@@ -706,8 +725,12 @@ function buildProxyForObject(sourceObj, json, camera) {
     if (type === 'MarchingCubes' && usesColorMap(json)) {
         // marching-cubes geometry lives in the unit cube [0,1], so local coordinates are
         // already the normalized field coordinates (the -0.5 centering sits in the matrix)
-        return bakeScalarFieldMesh(sourceObj, json, json.attribute,
-            (x, y, z) => [x, y, z]);
+        return bakeScalarFieldMesh(
+            sourceObj,
+            json,
+            json.attribute,
+            (x, y, z) => [x, y, z],
+        );
     }
 
     return buildPassthrough(sourceObj);

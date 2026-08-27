@@ -20,7 +20,6 @@ module.exports = {
                 if (typeof (Intersect) !== 'undefined') {
                     object.interactions.intersect = Intersect(object);
                 }
-
             }
         };
 

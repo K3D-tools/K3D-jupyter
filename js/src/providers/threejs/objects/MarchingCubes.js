@@ -8,7 +8,6 @@ const {
 } = require('../helpers/Fn');
 const { commonUpdate } = require('../helpers/Fn');
 const colorMapHelper = require('../../../core/lib/helpers/colorMap');
-const _ = require('../../../lodash');
 
 function isAttribute(config) {
     return config.attribute && config.attribute.data && config.attribute.data.length > 0
@@ -74,7 +73,8 @@ module.exports = {
             const polygonise = marchingCubesPolygonise;
 
             if (isAttribute(config)) {
-                if (config.opacity_function && config.opacity_function.data && config.opacity_function.data.length > 0) {
+                if (config.opacity_function && config.opacity_function.data
+                    && config.opacity_function.data.length > 0) {
                     opacityFunction = config.opacity_function.data;
                 }
 
@@ -170,11 +170,23 @@ module.exports = {
                 for (j = 0; j < height - 1; j++) {
                     x = 0;
                     for (k = 0; k < width - 1; k++) {
-                        polygonise(positions, scalarField, level,
-                            width, height, length,
-                            k, j, i,
-                            x, y, z,
-                            sx, sy, sz);
+                        polygonise(
+                            positions,
+                            scalarField,
+                            level,
+                            width,
+                            height,
+                            length,
+                            k,
+                            j,
+                            i,
+                            x,
+                            y,
+                            z,
+                            sx,
+                            sy,
+                            sz,
+                        );
                         x += sx;
                     }
                     y += sy;
@@ -187,11 +199,23 @@ module.exports = {
                 for (j = 0; j < height - 1; j++) {
                     x = 0;
                     for (k = 0; k < width - 1; k++) {
-                        polygonise(positions, scalarField, level,
-                            width, height, length,
-                            k, j, i,
-                            x, y, z,
-                            spacingsX.data[k], spacingsY.data[j], spacingsZ.data[i]);
+                        polygonise(
+                            positions,
+                            scalarField,
+                            level,
+                            width,
+                            height,
+                            length,
+                            k,
+                            j,
+                            i,
+                            x,
+                            y,
+                            z,
+                            spacingsX.data[k],
+                            spacingsY.data[j],
+                            spacingsZ.data[i],
+                        );
 
                         x += spacingsX.data[k];
                     }
@@ -201,7 +225,10 @@ module.exports = {
                 z += spacingsZ.data[i];
             };
 
-            yieldingLoop(length - 1, 5, isSpacings ? withSpacings : withoutSpacings,
+            yieldingLoop(
+                length - 1,
+                5,
+                isSpacings ? withSpacings : withoutSpacings,
                 () => {
                     let sizeX = 1.0;
                     let sizeY = 1.0;
@@ -284,8 +311,9 @@ module.exports = {
         interactionsHelper.update(config, changes, resolvedChanges, obj);
 
         if (typeof (changes.attribute) !== 'undefined' && !changes.attribute.timeSeries) {
-            if (obj.material.uniforms &&
-                obj.material.uniforms.volumeTexture.value.image.data.constructor === changes.attribute.data.constructor
+            if (obj.material.uniforms
+                && obj.material.uniforms.volumeTexture.value.image.data.constructor
+                    === changes.attribute.data.constructor
                 && obj.material.uniforms.volumeTexture.value.image.width === changes.attribute.shape[2]
                 && obj.material.uniforms.volumeTexture.value.image.height === changes.attribute.shape[1]
                 && obj.material.uniforms.volumeTexture.value.image.depth === changes.attribute.shape[0]) {
@@ -296,8 +324,8 @@ module.exports = {
             }
         }
 
-        if (obj.material.uniforms &&
-            typeof (changes.color_range) !== 'undefined' && !changes.color_range.timeSeries) {
+        if (obj.material.uniforms
+            && typeof (changes.color_range) !== 'undefined' && !changes.color_range.timeSeries) {
             obj.material.uniforms.low.value = changes.color_range[0];
             obj.material.uniforms.high.value = changes.color_range[1];
 

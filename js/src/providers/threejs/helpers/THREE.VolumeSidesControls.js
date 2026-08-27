@@ -1,5 +1,4 @@
 const objectsGUIprovider = require('../../../core/lib/objectsGUIprovider');
-const _ = require('../../../lodash');
 
 module.exports = function (THREE) {
     THREE.VolumeSidesControls = function (object, domElement, K3D) {
@@ -252,7 +251,7 @@ module.exports = function (THREE) {
         }());
 
         this.changeSlice = function (json, change) {
-            let shape = Array.isArray(json.volume) ? json.volume[0].shape : json.volume.shape;
+            const shape = Array.isArray(json.volume) ? json.volume[0].shape : json.volume.shape;
 
             if (_mouseCurrent.x < 0.5 && _mouseCurrent.y < 0.5) {
                 json.slice_z += change;
@@ -369,7 +368,7 @@ module.exports = function (THREE) {
                 z: 0,
             };
             let sliceDistance = json[`slice_${axis}`];
-            let shape = Array.isArray(json.volume) ? json.volume[0].shape : json.volume.shape;
+            const shape = Array.isArray(json.volume) ? json.volume[0].shape : json.volume.shape;
 
             if (!obj) {
                 return {};
@@ -578,7 +577,7 @@ module.exports = function (THREE) {
             delete _pointerPositions[event.pointerId];
 
             for (let i = 0; i < _pointers.length; i++) {
-                if (_pointers[i].pointerId == event.pointerId) {
+                if (_pointers[i].pointerId === event.pointerId) {
                     _pointers.splice(i, 1);
                     return;
                 }
@@ -659,13 +658,13 @@ module.exports = function (THREE) {
                     _mouseLast.copy(_mouseCurrent);
                     break;
 
-                default:
-
+                default: {
                     const position = getSecondPointerPosition(event);
 
                     const dx = event.offsetX - position.x;
                     const dy = event.offsetY - position.y;
-                    _touchZoomDistanceEnd = _touchZoomDistanceStart = Math.sqrt(dx * dx + dy * dy);
+                    _touchZoomDistanceStart = Math.sqrt(dx * dx + dy * dy);
+                    _touchZoomDistanceEnd = _touchZoomDistanceStart;
 
                     const x = (event.offsetX + position.x) / 2;
                     const y = (event.offsetY + position.y) / 2;
@@ -679,6 +678,7 @@ module.exports = function (THREE) {
                     }
 
                     break;
+                }
             }
 
             scope.dispatchEvent(startEvent);
@@ -692,7 +692,7 @@ module.exports = function (THREE) {
                     _mouseLast.copy(_mouseCurrent);
                     _mouseCurrent.copy(getMouseOnScreen(event.offsetX, event.offsetY));
                     break;
-                case 2:
+                case 2: {
                     _mouseLast.copy(_mouseCurrent);
 
                     const position = getSecondPointerPosition(event);
@@ -706,6 +706,7 @@ module.exports = function (THREE) {
                     const y = (event.offsetY + position.y) / 2;
                     _mouseCurrent.copy(getMouseOnScreen(x, y));
                     break;
+                }
                 default: // 3 or more
                     _mouseLast.copy(_mouseCurrent);
                     _mouseCurrent.copy(getMouseOnScreen(_pointers[0].offsetX, _pointers[0].offsetY));
@@ -807,8 +808,8 @@ module.exports = function (THREE) {
         trackBall.dynamicDampingFactor = 0.1;
         trackBall.initialized = false;
 
-        trackBall.addEventListener('change', (changeEvent) => {
-            _this.dispatchEvent(changeEvent);
+        trackBall.addEventListener('change', (trackBallEvent) => {
+            _this.dispatchEvent(trackBallEvent);
         });
     };
 

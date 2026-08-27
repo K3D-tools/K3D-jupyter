@@ -1,4 +1,3 @@
-// jshint maxstatements:false, maxcomplexity:false, bitwise:false
 // Performance reason
 
 /**
@@ -22,11 +21,23 @@ const fieldNeighbours = new Float32Array(8);
 const { edgeTable } = require('./marchingCubesLookupTables');
 const { triangleTable } = require('./marchingCubesLookupTables');
 
-module.exports = function (positions, field, iso,
-                           width, height, length,
-                           k, j, i,
-                           x, y, z,
-                           sx, sy, sz) {
+module.exports = function (
+    positions,
+    field,
+    iso,
+    width,
+    height,
+    length,
+    k,
+    j,
+    i,
+    x,
+    y,
+    z,
+    sx,
+    sy,
+    sz,
+) {
     let index = 0;
     const ptr = i * width * height + j * width + k;
     let o = 0;

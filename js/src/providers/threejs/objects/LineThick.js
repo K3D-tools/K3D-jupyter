@@ -60,7 +60,7 @@ function create(config, K3D) {
         }
     } else {
         colors = (verticesColors && verticesColors.length === position.length / 3
-                ? colorsToFloat32Array(verticesColors) : getColorsArray(color, position.length / 3)
+            ? colorsToFloat32Array(verticesColors) : getColorsArray(color, position.length / 3)
         );
     }
 

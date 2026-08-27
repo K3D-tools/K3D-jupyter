@@ -29,7 +29,7 @@ if (typeof (sourceCode) === 'undefined') {
     // getHTMLSnapshot), so probing the npm CDN here would only spam CORS errors
     if (typeof (path) !== 'undefined') {
         path = path.replaceAll('\\\\', '/').replaceAll('\\', '/');
-        path = path.split('/').slice(0, -1).join('/') + '/standalone.js';
+        path = `${path.split('/').slice(0, -1).join('/')}/standalone.js`;
 
         try {
             fileLoader(path, (data) => {

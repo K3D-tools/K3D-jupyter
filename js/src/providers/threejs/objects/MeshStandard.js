@@ -257,7 +257,7 @@ module.exports = {
             return false;
         }
 
-         if (typeof (changes.vertices) !== 'undefined' && !changes.vertices.timeSeries
+        if (typeof (changes.vertices) !== 'undefined' && !changes.vertices.timeSeries
             && typeof (changes.indices) === 'undefined'
             && obj.geometry && obj.geometry.index !== null
             && obj.geometry.attributes.position.array.length === changes.vertices.data.length) {

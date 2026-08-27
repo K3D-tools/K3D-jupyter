@@ -179,16 +179,15 @@ function createCanvasGradient1d(colorMap, size, opacityFunction) {
     return canvas;
 }
 
-function createCanvasGradient2d(colorMap, size, opacityFunction) {
+function createCanvasGradient2d(colorMap, size) {
     const canvas = document.createElement('canvas');
     const ctx = canvas.getContext('2d');
     canvas.height = size;
     canvas.width = size;
     const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
 
-
     function drawRect(v1, v2, v3, v4, sx, sy, w, h) {
-        let data = imageData.data;
+        const data = imageData.data;
 
         sx = Math.round(sx);
         sy = Math.round(sy);
@@ -196,24 +195,24 @@ function createCanvasGradient2d(colorMap, size, opacityFunction) {
         h = Math.round(h);
 
         for (let y = sy; y < sy + h; y++) {
-            let t1 = (y - sy) / h;
+            const t1 = (y - sy) / h;
 
-            let i1r = v1[2] * (1 - t1) + v4[2] * t1;
-            let i1g = v1[3] * (1 - t1) + v4[3] * t1;
-            let i1b = v1[4] * (1 - t1) + v4[4] * t1;
+            const i1r = v1[2] * (1 - t1) + v4[2] * t1;
+            const i1g = v1[3] * (1 - t1) + v4[3] * t1;
+            const i1b = v1[4] * (1 - t1) + v4[4] * t1;
 
-            let i2r = v2[2] * (1 - t1) + v3[2] * t1;
-            let i2g = v2[3] * (1 - t1) + v3[3] * t1;
-            let i2b = v2[4] * (1 - t1) + v3[4] * t1;
+            const i2r = v2[2] * (1 - t1) + v3[2] * t1;
+            const i2g = v2[3] * (1 - t1) + v3[3] * t1;
+            const i2b = v2[4] * (1 - t1) + v3[4] * t1;
 
             for (let x = sx; x < sx + w; x++) {
-                let t2 = (x - sx) / w;
+                const t2 = (x - sx) / w;
 
-                let r = i1r * (1 - t2) + i2r * t2;
-                let g = i1g * (1 - t2) + i2g * t2;
-                let b = i1b * (1 - t2) + i2b * t2;
+                const r = i1r * (1 - t2) + i2r * t2;
+                const g = i1g * (1 - t2) + i2g * t2;
+                const b = i1b * (1 - t2) + i2b * t2;
 
-                let ptr = ((size - 1 - y) * size + x) * 4;
+                const ptr = ((size - 1 - y) * size + x) * 4;
 
                 data[ptr] = r * 255;
                 data[ptr + 1] = g * 255;
@@ -223,36 +222,30 @@ function createCanvasGradient2d(colorMap, size, opacityFunction) {
         }
     }
 
-
     const cm = [];
-    let tmp = Array.from(colorMap);
+    const tmp = Array.from(colorMap);
     while (tmp.length) cm.push(tmp.splice(0, 5));
 
-    let v1 = Array.from(new Set(cm.map(function (v) {
-        return v[0];
-    })));
-    let v2 = Array.from(new Set(cm.map(function (v) {
-        return v[1];
-    })));
+    const v1 = Array.from(new Set(cm.map((v) => v[0])));
+    const v2 = Array.from(new Set(cm.map((v) => v[1])));
 
     for (let x = 0; x < v1.length - 1; x++) {
         for (let y = 0; y < v2.length - 1; y++) {
-            let c1 = cm.filter(function (v) {
-                return v[0] == v1[x] && v[1] == v2[y]
-            })[0];
-            let c2 = cm.filter(function (v) {
-                return v[0] == v1[x + 1] && v[1] == v2[y]
-            })[0];
-            let c3 = cm.filter(function (v) {
-                return v[0] == v1[x + 1] && v[1] == v2[y + 1]
-            })[0];
-            let c4 = cm.filter(function (v) {
-                return v[0] == v1[x] && v[1] == v2[y + 1]
-            })[0];
+            const c1 = cm.filter((v) => v[0] === v1[x] && v[1] === v2[y])[0];
+            const c2 = cm.filter((v) => v[0] === v1[x + 1] && v[1] === v2[y])[0];
+            const c3 = cm.filter((v) => v[0] === v1[x + 1] && v[1] === v2[y + 1])[0];
+            const c4 = cm.filter((v) => v[0] === v1[x] && v[1] === v2[y + 1])[0];
 
-            drawRect(c1, c2, c3, c4,
-                v1[x] * size, v2[y] * size,
-                (v1[x + 1] - v1[x]) * size, (v2[y + 1] - v2[y]) * size);
+            drawRect(
+                c1,
+                c2,
+                c3,
+                c4,
+                v1[x] * size,
+                v2[y] * size,
+                (v1[x + 1] - v1[x]) * size,
+                (v2[y + 1] - v2[y]) * size,
+            );
         }
     }
 
@@ -263,17 +256,16 @@ function createCanvasGradient2d(colorMap, size, opacityFunction) {
     return canvas;
 }
 
-
 function createCanvasGradient(colorMap, size, dim, opacityFunction) {
     if (dim === 1) {
         return createCanvasGradient1d(colorMap, size, opacityFunction);
     }
 
     if (dim === 2) {
-        return createCanvasGradient2d(colorMap, size, opacityFunction);
+        return createCanvasGradient2d(colorMap, size);
     }
 
-    throw Error("Not supported");
+    throw Error('Not supported');
 }
 
 function createCanvasColorList(values) {
