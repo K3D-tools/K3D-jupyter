@@ -1,5 +1,8 @@
 """Base classes and utilities for K3D objects."""
 
+from typing import Any as TypingAny
+from typing import Dict as TypingDict
+
 import numpy as np
 from traitlets import (Any, Bool, Dict, List, TraitError,
                        Unicode, Union, validate)
@@ -153,8 +156,6 @@ class Drawable(K3DModelWidget):
         plot.display()
 
     def clone(self):
-        from .utils import clone_object
-
         return clone_object(self)
 
     def get_binary(self):
@@ -254,3 +255,25 @@ class Group(Drawable):
         assert isinstance(arg, Drawable)
 
         return arg
+
+
+def clone_object(obj: TypingAny) -> TypingAny:
+    """Clone an existing object.
+
+    Parameters
+    ----------
+    obj : object
+        The object to clone.
+
+    Returns
+    -------
+    object
+        A new instance of the same object type with copied attributes.
+    """
+    param: TypingDict[str, TypingAny] = {}
+
+    for k, v in obj.traits().items():
+        if k in obj._synced_props and k not in ["id", "type"]:
+            param[k] = obj[k]
+
+    return type(obj)(**param)

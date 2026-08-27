@@ -6,7 +6,7 @@ This package contains all the drawable objects for K3D visualization.
 # Base classes and utilities
 from .base import (EPSILON, Drawable, DrawableWithCallback,
                    DrawableWithVoxelCallback, Group, ListOrArray, SingleOrList,
-                   TimeSeries, VoxelChunk)
+                   TimeSeries, VoxelChunk, clone_object)
 # Geometric objects
 from .geometry import STL, Line, Lines, Mesh, Surface
 # Points objects
@@ -16,7 +16,7 @@ from .text import Label, Text, Text2d, TextureText
 # Texture objects
 from .texture import Texture
 # Utility functions
-from .utils import clone_object, create_object, objects_map
+from .utils import create_object, objects_map
 # Vector objects
 from .vectors import VectorField, Vectors
 # Volumetric objects
