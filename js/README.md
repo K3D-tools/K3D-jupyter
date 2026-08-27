@@ -11,9 +11,10 @@
 ## Available commands
 
 * `grunt serve` - a developer build (open a window browser with live-reload)
-* `grunt test` - to run Unit tests (karma + jasmine + firefox)
-* `grunt doc` - to build source code documentation; output folder: ./doc/
 * `grunt codeStyle` - to check coding style & standards
+* `npm run build` - the production bundle, which is what the Python package ships
+
+Tests are end to end and live on the Python side: `cd k3d && python -m pytest`.
 
 ## How to
 

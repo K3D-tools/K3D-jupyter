@@ -45,22 +45,12 @@ module.exports = function (grunt) {
                 },
             },
         },
-        jsdoc: {
-            dist: {
-                src: ['src/providers/**/*.js', 'src/core/**/*.js'],
-                options: {
-                    destination: 'doc',
-                    readme: 'README.md',
-                },
-            },
-        },
         open: {
             dev: {
                 path: 'http://localhost:9000/development.html',
             },
         },
         clean: {
-            doc: 'doc',
             dist: 'dist',
             dev: 'dev',
         },
@@ -68,11 +58,6 @@ module.exports = function (grunt) {
 
     grunt.registerTask('codeStyle', [
         'eslint',
-    ]);
-
-    grunt.registerTask('doc', [
-        'clean:doc',
-        'jsdoc',
     ]);
 
     grunt.registerTask('build', () => {
