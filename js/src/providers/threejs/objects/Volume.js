@@ -1,5 +1,3 @@
-// jshint maxstatements:false,maxcomplexity:false
-
 const THREE = require('three');
 const _ = require('../../../lodash');
 const colorMapHelper = require('../../../core/lib/helpers/colorMap');
@@ -225,7 +223,7 @@ module.exports = {
         object.userData.k3dVolumeShell = true;
         object.userData.k3dAODepthMaterial = new THREE.ShaderMaterial({
             uniforms: material.uniforms,
-            defines: Object.assign({ K3D_AO_DEPTH_PASS: 1 }, material.defines),
+            defines: { K3D_AO_DEPTH_PASS: 1, ...material.defines },
             vertexShader: require('./shaders/Volume.vertex.glsl'),
             fragmentShader: require('../helpers/ggxChunk')(require('./shaders/Volume.fragment.glsl')),
             side: THREE.BackSide,

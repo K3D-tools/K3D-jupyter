@@ -6,6 +6,15 @@ plot
 
 .. autofunction:: k3d.factory.plot
 
+----------
+Parameters
+----------
+
+The factory forwards everything it is given to the :class:`~k3d.plot.Plot`
+widget, whose traits are the parameters:
+
+.. autoclass:: k3d.plot.Plot
+
 --------
 Examples
 --------

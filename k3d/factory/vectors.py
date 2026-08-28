@@ -1,14 +1,14 @@
 """Factory functions for vector and vector field objects."""
 
-import numpy as np
-from typing import Any
+from typing import Any, Optional, Tuple, Union
 from typing import Dict as TypingDict
 from typing import List as TypingList
-from typing import Optional, Tuple, Union
 
-from .common import _default_color
+import numpy as np
+
 from ..objects import VectorField, Vectors
 from ..transform import process_transform_arguments
+from .common import _default_color
 
 # Type aliases for better readability
 ArrayLike = Union[TypingList, np.ndarray, Tuple]

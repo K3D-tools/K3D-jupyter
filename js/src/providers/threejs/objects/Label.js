@@ -25,7 +25,7 @@ module.exports = {
         const text = config.text || '\\KaTeX';
         const { color } = config;
         const maxLength = config.max_length || 1.0;
-        let { position } = config;
+        const { position } = config;
         const size = config.size || 1;
         const object = new THREE.LineSegments(geometry, material);
         const { overlayDOMNode } = K3D.getWorld();
@@ -46,8 +46,10 @@ module.exports = {
                 domElement.innerHTML = Array.isArray(text) ? text[i] : text;
                 domElement.style.cssText = 'pointer-events: all';
             } else {
-                domElement.innerHTML = katex.renderToString(Array.isArray(text) ? text[i] : text,
-                    { displayMode: true });
+                domElement.innerHTML = katex.renderToString(
+                    Array.isArray(text) ? text[i] : text,
+                    { displayMode: true },
+                );
             }
 
             domElement.style.position = 'absolute';
@@ -74,12 +76,15 @@ module.exports = {
 
         object.frustumCulled = false;
 
-        let positions = new Float32Array(object.positions.length * 2);
+        const positions = new Float32Array(object.positions.length * 2);
 
         for (i = 0; i < object.positions.length; i += 3) {
-            positions[i * 2] = positions[i * 2 + 3] = object.positions[i];
-            positions[i * 2 + 1] = positions[i * 2 + 4] = object.positions[i + 1];
-            positions[i * 2 + 2] = positions[i * 2 + 5] = object.positions[i + 2];
+            positions[i * 2] = object.positions[i];
+            positions[i * 2 + 1] = object.positions[i + 1];
+            positions[i * 2 + 2] = object.positions[i + 2];
+            positions[i * 2 + 3] = object.positions[i];
+            positions[i * 2 + 4] = object.positions[i + 1];
+            positions[i * 2 + 5] = object.positions[i + 2];
         }
 
         object.positions = positions;
@@ -88,7 +93,7 @@ module.exports = {
         object.geometry.computeBoundingBox();
 
         function render() {
-            domElements.forEach(function (domElement, index) {
+            domElements.forEach((domElement, index) => {
                 let x;
                 let y;
                 let v;
@@ -107,30 +112,33 @@ module.exports = {
                         let fiIsOK;
                         const minDistance = 150;
                         const maxIteration = 360;
-                        let i = 0;
+                        let iteration = 0;
 
                         do {
-                            dist = Math.sqrt((coord.x - widthHalf) * (coord.x - widthHalf) +
-                                (coord.y - heightHalf) * (coord.y - heightHalf));
+                            dist = Math.sqrt((coord.x - widthHalf) * (coord.x - widthHalf)
+                                + (coord.y - heightHalf) * (coord.y - heightHalf));
 
-                            let r = 0.98;
+                            const r = 0.98;
 
-                            x = coord.x + Math.cos(fi) * Math.min(widthHalf * r - dist,
-                                Math.min(widthHalf, heightHalf) * maxLength);
-                            y = coord.y + Math.sin(fi) * Math.min(heightHalf * r - dist,
-                                Math.min(widthHalf, heightHalf) * maxLength);
+                            x = coord.x + Math.cos(fi) * Math.min(
+                                widthHalf * r - dist,
+                                Math.min(widthHalf, heightHalf) * maxLength,
+                            );
+                            y = coord.y + Math.sin(fi) * Math.min(
+                                heightHalf * r - dist,
+                                Math.min(widthHalf, heightHalf) * maxLength,
+                            );
 
-                            fiIsOK = K3D.labels.every((point) =>
-                                Math.sqrt((x - point.coord.x) * (x - point.coord.x) +
-                                    (y - point.coord.y) * (y - point.coord.y)) > minDistance);
+                            fiIsOK = K3D.labels.every((point) => Math.sqrt((x - point.coord.x) * (x - point.coord.x)
+                                    + (y - point.coord.y) * (y - point.coord.y)) > minDistance);
 
                             if (!fiIsOK) {
                                 fi += (Math.PI / 180.0) * 0.25;
                             }
 
-                            i++;
+                            iteration++;
                         }
-                        while (!fiIsOK && i < maxIteration);
+                        while (!fiIsOK && iteration < maxIteration);
 
                         coord.x = x;
                         coord.y = y;
@@ -206,9 +214,11 @@ module.exports = {
                             break;
                     }
 
-                    v = new THREE.Vector3((coord.x / world.width - 0.5) * 2.0,
+                    v = new THREE.Vector3(
+                        (coord.x / world.width - 0.5) * 2.0,
                         -(coord.y / world.height - 0.5) * 2.0,
-                        coord.z,);
+                        coord.z,
+                    );
                     v.unproject(world.camera);
 
                     object.positions.set([v.x, v.y, v.z], index * 6 + 3);
@@ -218,8 +228,8 @@ module.exports = {
 
                     K3D.labels.push({
                         mode: config.mode,
-                        coord: coord,
-                        domElement: domElement
+                        coord,
+                        domElement,
                     });
                 } else {
                     domElement.style.display = 'none';
@@ -234,10 +244,8 @@ module.exports = {
         object.domElements = domElements;
 
         object.onRemove = function () {
-            domElements.forEach(function (domElement) {
-                K3D.labels = K3D.labels.filter(function (value) {
-                    return value.domElement !== domElement;
-                });
+            domElements.forEach((domElement) => {
+                K3D.labels = K3D.labels.filter((value) => value.domElement !== domElement);
 
                 overlayDOMNode.removeChild(domElement);
                 domElement = null;
@@ -256,9 +264,8 @@ module.exports = {
         const resolvedChanges = {};
 
         if (typeof (changes.text) !== 'undefined' && !changes.text.timeSeries) {
-
-            obj.domElements.forEach(function (domElement, i) {
-                let text = Array.isArray(changes.text) ? changes.text[i] : changes.text;
+            obj.domElements.forEach((domElement, i) => {
+                const text = Array.isArray(changes.text) ? changes.text[i] : changes.text;
 
                 if (config.is_html) {
                     domElement.innerHTML = text;
@@ -273,7 +280,7 @@ module.exports = {
         }
 
         if (typeof (changes.position) !== 'undefined' && !changes.position.timeSeries) {
-            let newData = changes.position.data || changes.position;
+            const newData = changes.position.data || changes.position;
 
             for (let i = 0; i < newData.length; i += 3) {
                 obj.positions[i * 2] = newData[i];
@@ -287,7 +294,7 @@ module.exports = {
         if (areAllChangesResolve(changes, resolvedChanges)) {
             return Promise.resolve({
                 json: config,
-                obj
+                obj,
             });
         }
         return false;

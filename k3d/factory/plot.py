@@ -1,11 +1,11 @@
 """Factory functions for creating Plot widgets."""
 
-import numpy as np
 import warnings
-from typing import Any
+from typing import Any, Optional, Tuple, Union
 from typing import Dict as TypingDict
 from typing import List as TypingList
-from typing import Optional, Tuple, Union
+
+import numpy as np
 
 from ..plot import Plot
 

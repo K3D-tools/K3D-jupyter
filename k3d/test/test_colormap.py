@@ -1,5 +1,6 @@
-import numpy as np
 import unittest
+
+import numpy as np
 
 from ..colormaps.basic_color_maps import Binary, Rainbow
 from ..helpers import map_colors

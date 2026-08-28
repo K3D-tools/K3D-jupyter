@@ -1,5 +1,3 @@
-// jshint maxstatements:false, maxcomplexity:false, maxdepth:false
-
 const planeHelper = require('./helpers/planeGUI');
 
 function changeParameter(K3D, json, key, value, timeSeriesReload) {
@@ -361,7 +359,7 @@ function update(K3D, json, GUI, changes) {
                 break;
             case 'slice_x':
                 if (json.type === 'VolumeSlice') {
-                    let shape = Array.isArray(json.volume) ? json.volume[0].shape : json.volume.shape;
+                    const shape = Array.isArray(json.volume) ? json.volume[0].shape : json.volume.shape;
 
                     addController(K3D.gui_map[json.id], json, param, -1, shape[2] - 1, 1).onChange(
                         changeParameter.bind(this, K3D, json, param),
@@ -370,7 +368,7 @@ function update(K3D, json, GUI, changes) {
                 break;
             case 'slice_y':
                 if (json.type === 'VolumeSlice') {
-                    let shape = Array.isArray(json.volume) ? json.volume[0].shape : json.volume.shape;
+                    const shape = Array.isArray(json.volume) ? json.volume[0].shape : json.volume.shape;
 
                     addController(K3D.gui_map[json.id], json, param, -1, shape[1] - 1, 1).onChange(
                         changeParameter.bind(this, K3D, json, param),
@@ -379,7 +377,7 @@ function update(K3D, json, GUI, changes) {
                 break;
             case 'slice_z':
                 if (json.type === 'VolumeSlice') {
-                    let shape = Array.isArray(json.volume) ? json.volume[0].shape : json.volume.shape;
+                    const shape = Array.isArray(json.volume) ? json.volume[0].shape : json.volume.shape;
 
                     addController(K3D.gui_map[json.id], json, param, -1, shape[0] - 1, 1).onChange(
                         changeParameter.bind(this, K3D, json, param),

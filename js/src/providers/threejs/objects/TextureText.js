@@ -17,7 +17,7 @@ module.exports = {
         config.font_weight = typeof (config.font_weight) !== 'undefined' ? config.font_weight : 700;
 
         const { color } = config;
-        let { position } = config;
+        const { position } = config;
         const size = config.size || 1.0;
 
         // Setup font
@@ -73,9 +73,9 @@ module.exports = {
         const resolvedChanges = {};
 
         if (typeof (changes.position) !== 'undefined' && !changes.position.timeSeries) {
-            let positions = changes.position.data || changes.position;
+            const positions = changes.position.data || changes.position;
 
-            obj.children.forEach(function (object, index) {
+            obj.children.forEach((object, index) => {
                 object.position.fromArray(positions, index * 3);
             });
 
@@ -83,7 +83,7 @@ module.exports = {
         }
 
         if (typeof (changes.size) !== 'undefined' && !changes.size.timeSeries) {
-            obj.children.forEach(function (object) {
+            obj.children.forEach((object) => {
                 object.scale.set(changes.size, changes.size, changes.size);
             });
 
@@ -93,7 +93,7 @@ module.exports = {
         if (areAllChangesResolve(changes, resolvedChanges)) {
             return Promise.resolve({
                 json: config,
-                obj
+                obj,
             });
         }
         return false;

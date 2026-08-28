@@ -1,7 +1,9 @@
-import numpy as np
 import unittest
 
+import numpy as np
+
 import k3d
+
 from ..transform import Transform
 
 

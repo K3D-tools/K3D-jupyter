@@ -3,10 +3,8 @@
 import numpy as np
 from traitlets import Bool, List, TraitError, Unicode, validate
 
+from ..helpers import Array, Float, Int, array_serialization_wrap, get_bounding_box, get_bounding_box_points
 from .base import Drawable, TimeSeries
-from ..helpers import (Array, Float, Int,
-                       array_serialization_wrap, get_bounding_box,
-                       get_bounding_box_points)
 
 
 class VectorField(Drawable):
@@ -60,7 +58,7 @@ class VectorField(Drawable):
     )
 
     def __init__(self, **kwargs):
-        super(VectorField, self).__init__(**kwargs)
+        super().__init__(**kwargs)
 
         self.set_trait("type", "VectorField")
 
@@ -69,10 +67,8 @@ class VectorField(Drawable):
         shape = proposal["value"].shape
         if len(shape) not in (3, 4) or len(shape) != shape[-1] + 1:
             raise TraitError(
-                "Vector field has invalid shape: {}, "
-                "expected (L, H, W, 3) for a 3D or (H, W, 2) for a 2D field".format(
-                    shape
-                )
+                f"Vector field has invalid shape: {shape}, "
+                "expected (L, H, W, 3) for a 3D or (H, W, 2) for a 2D field"
             )
         return np.array(proposal["value"], np.float32)
 
@@ -135,7 +131,7 @@ class Vectors(Drawable):
     )
 
     def __init__(self, **kwargs):
-        super(Vectors, self).__init__(**kwargs)
+        super().__init__(**kwargs)
 
         self.set_trait("type", "Vectors")
 

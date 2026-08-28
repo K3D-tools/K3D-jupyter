@@ -1,5 +1,3 @@
-// jshint maxdepth:5
-
 const THREE = require('three');
 const _ = require('../../lodash');
 const { pow10ceil } = require('./helpers/math');
@@ -151,16 +149,16 @@ function interpolate(a, b, f, property) {
 
         if (property === 'colors') {
             for (i = 0; i < interpolated.length; i++) {
-                let r1 = (a.data[i] & 255);
-                let r2 = (b.data[i] & 255);
-                let g1 = ((a.data[i] >> 8) & 255);
-                let g2 = ((b.data[i] >> 8) & 255);
-                let b1 = ((a.data[i] >> 16) & 255);
-                let b2 = ((b.data[i] >> 16) & 255);
+                const r1 = (a.data[i] & 255);
+                const r2 = (b.data[i] & 255);
+                const g1 = ((a.data[i] >> 8) & 255);
+                const g2 = ((b.data[i] >> 8) & 255);
+                const b1 = ((a.data[i] >> 16) & 255);
+                const b2 = ((b.data[i] >> 16) & 255);
 
-                let rf = Math.round(r1 + f * (r2 - r1));
-                let gf = Math.round(g1 + f * (g2 - g1));
-                let bf = Math.round(b1 + f * (b2 - b1));
+                const rf = Math.round(r1 + f * (r2 - r1));
+                const gf = Math.round(g1 + f * (g2 - g1));
+                const bf = Math.round(b1 + f * (b2 - b1));
 
                 interpolated[i] = (bf << 16) | (gf << 8) | rf;
             }
@@ -209,7 +207,7 @@ function startAutoPlay(K3D, changeParameters) {
         }
 
         if (K3D.timeSeriesStartTick === null) {
-            K3D.timeSeriesStartTick = time - K3D.parameters.time * 1000.0 / K3D.parameters.timeSpeed;
+            K3D.timeSeriesStartTick = time - (K3D.parameters.time * 1000.0) / K3D.parameters.timeSpeed;
         }
 
         const t = (time - K3D.timeSeriesStartTick) / 1000.0;
@@ -377,8 +375,10 @@ module.exports = {
                 changeParameters('fps', value);
             });
 
-        gui.controllersMap.timeSpeed = animationGUI.add(K3D.parameters, 'timeSpeed').min(0.1).max(5).step(0.01).name(
-            'timeSpeed')
+        gui.controllersMap.timeSpeed = animationGUI.add(K3D.parameters, 'timeSpeed').min(0.1).max(5).step(0.01)
+            .name(
+                'timeSpeed',
+            )
             .onChange((value) => {
                 K3D.timeSeriesStartTick = null;
                 changeParameters('timeSpeed', value);

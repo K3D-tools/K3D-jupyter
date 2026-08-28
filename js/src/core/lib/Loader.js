@@ -32,7 +32,9 @@ function loader(K3D, data) {
             startTime = new Date().getTime();
 
             const interpolated = timeSeries.interpolateTimeSeries(
-                json, K3D.parameters.time, K3D.parameters.timeInterpolation,
+                json,
+                K3D.parameters.time,
+                K3D.parameters.timeInterpolation,
             );
             const changes = (data.changes && data.changes[i]) || interpolated.changes || {};
 
@@ -80,7 +82,7 @@ function loader(K3D, data) {
 
         return Promise.all(objectsPromieses);
     } catch (e) {
-        error('Loader Error', 'K3D Loader failed, please consult browser error console! ' + e.message, false);
+        error('Loader Error', `K3D Loader failed, please consult browser error console! ${e.message}`, false);
         throw e;
     }
 }

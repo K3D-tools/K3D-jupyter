@@ -30,7 +30,6 @@ function detachWindowGUI(gui, K3D) {
         newK3D.load({ objects });
         newK3D.setCamera(K3D.getWorld().controls.getCameraArray());
 
-
         newK3D.adoptListeners(previousListeners);
 
         _.assign(K3D, newK3D);

@@ -42,6 +42,7 @@ dev = [
     "jupyterlab",
     "notebook",
     "pixelmatch",
+    "ruff",
     "pytest",
     "pytest-notebook",
     "pytest-cov",
@@ -149,3 +150,37 @@ build_cmd = "build:prod"
 npm = [
     "npm",
 ]
+
+[tool.ruff]
+# 120 to match max-len in js/.eslintrc.js - one limit for both languages
+line-length = 120
+# matches requires-python; raise both together
+target-version = "py39"
+
+[tool.ruff.lint]
+# pycodestyle (E, W), pyflakes (F), import order (I), bugbear (B), comprehensions (C4),
+# returns (RET), simplifications (SIM) and pyupgrade (UP). Left out on purpose:
+#   N    - pep8-naming would rename matrix variables (T, Rx) and public class names
+#   PTH  - ~150 os.path -> pathlib rewrites with no functional gain
+#   ARG  - unused arguments are usually interface conformance across object providers
+# RUF100 catches a `# noqa` that has outlived its rule - the same kind of rot that let a
+# stale 3.7 guard sit here unnoticed. BLE (blind-except) was tried and dropped: all eight
+# `except Exception` in the package are deliberate, commented fallbacks.
+select = ["E", "F", "W", "I", "B", "C4", "RET", "RUF100", "SIM", "UP"]
+ignore = [
+    # typing.Dict -> dict and the matching imports: 174 annotations, a mechanical
+    # sweep that belongs in its own change rather than in a release
+    "UP006",
+    "UP035",
+    # %-formatting -> f-strings: 100 call sites, no functional gain
+    "UP031",
+]
+
+[tool.ruff.lint.per-file-ignores]
+# sys.path has to be extended before k3d is importable from a source checkout, so these
+# imports cannot come first
+"k3d/test/conftest.py" = ["E402"]
+# B006: origin is rebound by np.array() and boundary is only indexed, so neither mutable
+# default can leak; None would hide the real default from help() and the API reference
+"k3d/platonic.py" = ["B006"]
+"k3d/helpers.py" = ["B006"]

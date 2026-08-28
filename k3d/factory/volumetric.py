@@ -1,16 +1,15 @@
 """Factory functions for volumetric and voxel-based objects."""
 
-import numpy as np
-from typing import Any
+from typing import Any, Optional, Tuple, Union
 from typing import Dict as TypingDict
 from typing import List as TypingList
-from typing import Optional, Tuple, Union
 
-from .common import _default_color, default_colormap, nice_colors
+import numpy as np
+
 from ..helpers import check_attribute_color_range
-from ..objects import (MIP, MarchingCubes, SparseVoxels, Volume, VolumeSlice,
-                       VoxelChunk, Voxels, VoxelsGroup)
+from ..objects import MIP, MarchingCubes, SparseVoxels, Volume, VolumeSlice, VoxelChunk, Voxels, VoxelsGroup
 from ..transform import process_transform_arguments
+from .common import _default_color, default_colormap, nice_colors
 
 # Type aliases for better readability
 ArrayLike = Union[TypingList, np.ndarray, Tuple]

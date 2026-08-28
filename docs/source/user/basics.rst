@@ -97,6 +97,23 @@ In the same way, you can remove objects with the ``-=`` operator:
 Having variables then become convenient if you want to modify objects
 already shown.
 
+Each of these draws a frame by itself. K3D has no render loop - it draws when
+something changed and not otherwise - so building a large scene one object at a
+time pays for a frame per object. ``render_on_change`` turns that off:
+
+.. code:: python3
+
+    plot.render_on_change = False
+
+    for chunk in chunks:
+        plot += k3d.points(chunk)
+
+    plot.render_on_change = True
+    plot.render()
+
+With it off nothing is drawn until you ask, either by calling ``plot.render()``
+or by touching the scene in the browser.
+
 .. note::
 
     It is possible to automatically generate a plot for a

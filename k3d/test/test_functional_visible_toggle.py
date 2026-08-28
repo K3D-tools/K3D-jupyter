@@ -8,7 +8,9 @@ reload's .then), so every show leaked an unremovable duplicate into the scene.
 
 import numpy as np
 import pytest
+
 import k3d
+
 from .plot_compare import prepare
 
 # lil-gui writes the value onto the bound json before onChange, then changeParameter

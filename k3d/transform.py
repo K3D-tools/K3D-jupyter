@@ -1,9 +1,9 @@
-import numpy as np
 import weakref
 from functools import reduce
-from typing import Any
+from typing import Any, Optional
 from typing import List as TypingList
-from typing import Optional
+
+import numpy as np
 
 _epsilon = 1e-6
 
@@ -30,7 +30,7 @@ def get_bounds_fit_matrix(
         except (TypeError, ValueError):
             raise TypeError(
                 "%s: expected float, %s given" % (name, type(value).__name__)
-            )
+            ) from None
     # Create diagonal scaling matrix and set translation
     matrix = np.diagflat(
         np.array((xmax - xmin, ymax - ymin, zmax - zmin, 1.0), np.float32, order="C")
@@ -39,7 +39,7 @@ def get_bounds_fit_matrix(
     return matrix
 
 
-class Transform(object):
+class Transform:
     """
     Abstraction of a 4x4 model transformation matrix with hierarchy support.
 
@@ -133,15 +133,14 @@ class Transform(object):
         elif key in ["parent_matrix", "custom_matrix", "model_matrix"]:
             # Ensure all matrices are 4x4
             value = np.array(value, dtype=np.float32).reshape((4, 4))
-        super(Transform, self).__setattr__(key, value)
+        super().__setattr__(key, value)
         if is_set and key != "model_matrix":
             self._recompute_matrix()
             self._notify_dependants()
 
     def __repr__(self) -> str:
-        return "Transform(bounds={!r}, translation={!r}, rotation={!r}, scaling={!r})".format(
-            self.bounds, self.translation, self.rotation, self.scaling
-        )
+        return (f"Transform(bounds={self.bounds!r}, translation={self.translation!r}, "
+                f"rotation={self.rotation!r}, scaling={self.scaling!r})")
 
     def _recompute_matrix(self) -> None:
         """Recompute the model matrix from all transform parameters."""
@@ -160,9 +159,7 @@ class Transform(object):
                 ymin, ymax, zmin, zmax = -0.5, 0.5, -0.5, 0.5
             else:
                 raise ValueError(
-                    "Wrong size of bounds array ({}), should be 4 for 2D or 6 for 3D bounds.".format(
-                        self.bounds
-                    )
+                    f"Wrong size of bounds array ({self.bounds}), should be 4 for 2D or 6 for 3D bounds."
                 )
             fit_matrix = get_bounds_fit_matrix(xmin, xmax, ymin, ymax, zmin, zmax)
         # Build translation matrix
@@ -205,8 +202,9 @@ class Transform(object):
             )
         else:
             rotation_matrix = np.identity(4)
-        # Build scaling matrix
-        if self.scaling is not None:
+        # Build scaling matrix - kept as if/else to match the rotation block above,
+        # whose multi-line branch cannot become a ternary
+        if self.scaling is not None:  # noqa: SIM108
             scaling_matrix = np.diag(np.append(self.scaling, 1.0))
         else:
             scaling_matrix = np.identity(4)
@@ -317,13 +315,13 @@ def process_transform_arguments(drawable: Any, **kwargs: Any) -> Any:
             kwargs.get("zmax", 0.5),
         ]
 
-        transform_kwargs = dict(
-            bounds=kwargs.get("bounds", separate_bounds),
-            translation=kwargs.get("translation"),
-            rotation=kwargs.get("rotation"),
-            scaling=kwargs.get("scaling"),
-            custom_matrix=kwargs.get("model_matrix"),
-        )
+        transform_kwargs = {
+            "bounds": kwargs.get("bounds", separate_bounds),
+            "translation": kwargs.get("translation"),
+            "rotation": kwargs.get("rotation"),
+            "scaling": kwargs.get("scaling"),
+            "custom_matrix": kwargs.get("model_matrix"),
+        }
         transform = Transform(**transform_kwargs)
 
     transform.add_drawable(drawable)

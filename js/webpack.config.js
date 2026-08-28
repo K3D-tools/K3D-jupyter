@@ -87,7 +87,7 @@ module.exports = [
             // online/inline snapshot templates) and what docs/source/conf.py copies
             {
                 apply: (compiler) => {
-                    compiler.hooks.afterEmit.tap('CopyBuildPlugin', (compilation) => {
+                    compiler.hooks.afterEmit.tap('CopyBuildPlugin', () => {
                         const outputPath = compiler.options.output.path;
                         const files = ['standalone.js', 'standalone.js.map', 'k3d-bvh-worker.js'];
                         const targetDir = path.resolve(__dirname, 'dist');
@@ -96,15 +96,15 @@ module.exports = [
                             fs.mkdirSync(targetDir, { recursive: true });
                         }
 
-                        files.forEach(file => {
+                        files.forEach((file) => {
                             const src = path.join(outputPath, file);
                             if (fs.existsSync(src)) {
                                 fs.copyFileSync(src, path.join(targetDir, file));
                             }
                         });
                     });
-                }
-            }
+                },
+            },
         ],
     },
 ];

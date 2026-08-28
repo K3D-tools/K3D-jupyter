@@ -39,7 +39,7 @@ module.exports = {
             handleColorMap(geometry, colorMap, colorRange, attribute, material);
         } else {
             colors = (verticesColors && verticesColors.length === position.length / 3
-                    ? colorsToFloat32Array(verticesColors) : getColorsArray(color, position.length / 3)
+                ? colorsToFloat32Array(verticesColors) : getColorsArray(color, position.length / 3)
             );
 
             material.setValues({ vertexColors: true });

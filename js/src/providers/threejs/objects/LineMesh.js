@@ -30,7 +30,7 @@ module.exports = {
             side: THREE.DoubleSide,
             wireframe: false,
             opacity: config.opacity,
-            transparent: config.opacity !== 1.0
+            transparent: config.opacity !== 1.0,
         });
         const radialSegments = config.radial_segments;
         const { width } = config;

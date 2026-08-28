@@ -1,6 +1,7 @@
+from typing import Any
+
 import ipywidgets as widgets
 from IPython.display import display
-from typing import Any
 
 
 class PlotDisplayMixin:

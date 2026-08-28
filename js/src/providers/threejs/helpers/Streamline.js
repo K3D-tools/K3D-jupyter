@@ -1,5 +1,3 @@
-// jshint maxstatements:false
-
 const THREE = require('three');
 
 module.exports = function (points, attributes, radius, radialSegments, color, verticesColors, colorRange) {

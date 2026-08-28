@@ -1,14 +1,13 @@
 """Geometric objects for K3D."""
 
-import numpy as np
 import warnings
+
+import numpy as np
 from traitlets import Bool, Bytes, TraitError, Unicode, validate
 
-from .base import (EPSILON, Drawable, DrawableWithCallback, ListOrArray,
-                   TimeSeries)
-from ..helpers import (Array, Float, Int, array_serialization_wrap,
-                       get_bounding_box_points)
+from ..helpers import Array, Float, Int, array_serialization_wrap, get_bounding_box_points
 from ..validation.stl import AsciiStlData, BinaryStlData
+from .base import EPSILON, Drawable, DrawableWithCallback, ListOrArray, TimeSeries
 
 
 class Line(Drawable):
@@ -82,7 +81,7 @@ class Line(Drawable):
     )
 
     def __init__(self, **kwargs):
-        super(Line, self).__init__(**kwargs)
+        super().__init__(**kwargs)
 
         self.set_trait("type", "Line")
 
@@ -188,7 +187,7 @@ class Lines(Drawable):
     )
 
     def __init__(self, **kwargs):
-        super(Lines, self).__init__(**kwargs)
+        super().__init__(**kwargs)
 
         self.set_trait("type", "Lines")
 
@@ -313,7 +312,7 @@ class Mesh(DrawableWithCallback):
     )
 
     def __init__(self, **kwargs):
-        super(Mesh, self).__init__(**kwargs)
+        super().__init__(**kwargs)
 
         self.set_trait("type", "Mesh")
 
@@ -347,7 +346,8 @@ class Mesh(DrawableWithCallback):
         actual = proposal["value"].dtype
 
         if actual not in required:
-            warnings.warn("wrong dtype: %s (%s required)" % (actual, required))
+            warnings.warn("wrong dtype: %s (%s required)" % (actual, required),
+                          stacklevel=2)
 
             return proposal["value"].astype(np.float32)
 
@@ -399,12 +399,12 @@ class STL(Drawable):
     )
 
     def __init__(self, **kwargs):
-        super(STL, self).__init__(**kwargs)
+        super().__init__(**kwargs)
 
         self.set_trait("type", "STL")
 
     def get_bounding_box(self):
-        warnings.warn("STL bounding box is still not supported")
+        warnings.warn("STL bounding box is still not supported", stacklevel=2)
         return [-1, 1, -1, 1, -1, 1]
 
 
@@ -466,7 +466,7 @@ class Surface(DrawableWithCallback):
     )
 
     def __init__(self, **kwargs):
-        super(Surface, self).__init__(**kwargs)
+        super().__init__(**kwargs)
 
         self.set_trait("type", "Surface")
 

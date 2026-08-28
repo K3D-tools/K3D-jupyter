@@ -1,13 +1,12 @@
 """Factory functions for text and label objects."""
 
-from typing import Any
+from typing import Any, Optional, Tuple, Union
 from typing import Dict as TypingDict
 from typing import List as TypingList
-from typing import Optional, Tuple, Union
 
-from .common import _default_color
 from ..objects import Label, Text, Text2d, TextureText
 from ..transform import process_transform_arguments
+from .common import _default_color
 
 # Type aliases for better readability
 ArrayLike = Union[TypingList, Tuple]

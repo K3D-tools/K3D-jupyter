@@ -1,9 +1,8 @@
 """Utility functions and objects map for K3D objects."""
 
 import math
-from typing import Any
+from typing import Any, Union
 from typing import Dict as TypingDict
-from typing import Union
 
 # Import all object classes
 from .base import VoxelChunk
@@ -12,8 +11,7 @@ from .points import Points
 from .text import Label, Text, Text2d, TextureText
 from .texture import Texture
 from .vectors import VectorField, Vectors
-from .volumetric import (MIP, MarchingCubes, SparseVoxels, Volume, VolumeSlice,
-                         Voxels, VoxelsGroup)
+from .volumetric import MIP, MarchingCubes, SparseVoxels, Volume, VolumeSlice, Voxels, VoxelsGroup
 
 # Objects mapping for factory functions
 objects_map: TypingDict[str, Any] = {
@@ -59,7 +57,7 @@ def create_object(
     """
     from ..helpers import from_json
 
-    attributes = {k: from_json(obj[k]) for k in obj.keys() if k != "type"}
+    attributes = {k: from_json(obj[k]) for k in obj if k != "type"}
 
     # Snapshots written before 3.0.0 carry shininess. The trait itself is a tombstone
     # that raises on any value, so old files are translated here, at the file boundary.
@@ -78,27 +76,6 @@ def create_object(
 
     if is_chunk:
         return VoxelChunk(**attributes)
-    else:
-        return objects_map[obj["type"]](**attributes)
+    return objects_map[obj["type"]](**attributes)
 
 
-def clone_object(obj: Any) -> Any:
-    """Clone an existing object.
-
-    Parameters
-    ----------
-    obj : object
-        The object to clone.
-
-    Returns
-    -------
-    object
-        A new instance of the same object type with copied attributes.
-    """
-    param: TypingDict[str, Any] = {}
-
-    for k, v in obj.traits().items():
-        if k in obj._synced_props and k not in ["id", "type"]:
-            param[k] = obj[k]
-
-    return objects_map[obj["type"]](**param)

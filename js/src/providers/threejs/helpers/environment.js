@@ -140,7 +140,7 @@ function normalise(data, width, height) {
         for (let x = 0; x < width; x++) {
             const i = (y * width + x) * 4;
 
-            sum += w * (data[i] + data[i + 1] + data[i + 2]) / 3.0;
+            sum += (w * (data[i] + data[i + 1] + data[i + 2])) / 3.0;
             weightSum += w;
         }
     }

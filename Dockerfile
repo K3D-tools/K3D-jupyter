@@ -48,7 +48,7 @@ RUN pip install -r requirements.txt
 # jupyterlab is here to run Lab for manual widget testing; hatch-jupyter-builder is what the
 # wheel build (`python -m build`) runs on.
 RUN pip install pytest pixelmatch flask selenium webdriver-manager scikit-image vtk build twine \
-        jupyterlab hatch-jupyter-builder
+        jupyterlab hatch-jupyter-builder ruff
 
 # `cd docs && make html` needs these. pyvista and SimpleITK are imported by gallery thumbnail
 # scripts, so the build fails on the first one without them rather than skipping the page.

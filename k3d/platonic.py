@@ -1,12 +1,13 @@
-import numpy as np
 from itertools import product
 from typing import List as TypingList
 from typing import Union
 
+import numpy as np
+
 import k3d
 
 
-class PlatonicSolid(object):
+class PlatonicSolid:
     """Base class for platonic solids."""
 
     @property

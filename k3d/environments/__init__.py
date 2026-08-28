@@ -1,6 +1,7 @@
 """Built-in photographic environments (Poly Haven, CC0), stored as float16 equirects."""
 
 import os
+
 import numpy as np
 
 _DIR = os.path.dirname(os.path.abspath(__file__))

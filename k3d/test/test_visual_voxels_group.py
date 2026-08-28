@@ -3,6 +3,7 @@ import pytest
 import skimage.measure
 
 import k3d
+
 from .plot_compare import compare, prepare
 
 

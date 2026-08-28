@@ -15,9 +15,9 @@ change, otherwise one drag would loop.
 import numpy as np
 import pytest
 
-from .plot_compare import prepare
-
 import k3d
+
+from .plot_compare import prepare
 
 CAPTURE = """
 const object = K3DInstance.getWorld().K3DObjects.children[0];

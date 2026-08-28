@@ -15,7 +15,8 @@ import bvhWorkerSource from './core/lib/bvhWorkerSource';
 // the module can be instantiated more than once (one _esm per widget class), and the
 // object/chunk stub modules may have created the registry first, so every field is
 // ensured rather than assigned
-const REG = globalThis.__k3dWidgets = globalThis.__k3dWidgets || {};
+globalThis.__k3dWidgets = globalThis.__k3dWidgets || {};
+const REG = globalThis.__k3dWidgets;
 
 REG.objects = REG.objects || {};
 REG.chunks = REG.chunks || {};

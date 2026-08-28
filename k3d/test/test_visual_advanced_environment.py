@@ -4,6 +4,7 @@ import numpy as np
 import pytest
 
 import k3d
+
 from .plot_compare import compare, prepare
 
 VERTICES = np.array([[0, 0, 0], [2, 0, 0], [0, 2, 0], [0, 0, 2]], dtype=np.float32)

@@ -1,5 +1,3 @@
-/* jshint indent: false, quotmark: false */
-
 const webpackConfig = require('./webpack.config');
 
 module.exports = function (grunt) {
@@ -12,9 +10,11 @@ module.exports = function (grunt) {
         },
         eslint: {
             options: {
-                config: '.eslintrc.js',
+                // no config path: grunt-eslint 24 does not take one, and eslint finds
+                // .eslintrc.js next to this file on its own
             },
-            target: ['src/core/*.js'],
+            // the sources plus the two build files - nothing in js/ is left unlinted
+            target: ['src/**/*.js', 'Gruntfile.js', 'webpack.config.js'],
         },
         watch: {
             webpack: {
@@ -45,22 +45,12 @@ module.exports = function (grunt) {
                 },
             },
         },
-        jsdoc: {
-            dist: {
-                src: ['src/providers/**/*.js', 'src/core/**/*.js'],
-                options: {
-                    destination: 'doc',
-                    readme: 'README.md',
-                },
-            },
-        },
         open: {
             dev: {
                 path: 'http://localhost:9000/development.html',
             },
         },
         clean: {
-            doc: 'doc',
             dist: 'dist',
             dev: 'dev',
         },
@@ -68,11 +58,6 @@ module.exports = function (grunt) {
 
     grunt.registerTask('codeStyle', [
         'eslint',
-    ]);
-
-    grunt.registerTask('doc', [
-        'clean:doc',
-        'jsdoc',
     ]);
 
     grunt.registerTask('build', () => {

@@ -2,7 +2,7 @@ const cameraUpAxisModes = {
     x: 'x',
     y: 'y',
     z: 'z',
-    none: 'none'
+    none: 'none',
 };
 
 function cameraUpAxisGUI(gui, K3D) {
@@ -10,14 +10,14 @@ function cameraUpAxisGUI(gui, K3D) {
         x: cameraUpAxisModes.x,
         y: cameraUpAxisModes.y,
         z: cameraUpAxisModes.z,
-        none: cameraUpAxisModes.none
+        none: cameraUpAxisModes.none,
     }).name('CameraUpAxis').onChange(
         (axis) => {
             K3D.setCameraUpAxis(axis);
 
             K3D.dispatch(K3D.events.PARAMETERS_CHANGE, {
                 key: 'camera_up_axis',
-                value: axis
+                value: axis,
             });
         },
     );
@@ -36,5 +36,5 @@ function setupUpVector(camera, cameraUpAxis) {
 module.exports = {
     cameraUpAxisGUI,
     cameraUpAxisModes,
-    setupUpVector
+    setupUpVector,
 };

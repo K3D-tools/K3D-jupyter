@@ -37,7 +37,7 @@ function prepareParam(param) {
         uv: param.uv,
         coord: [coord.x, coord.y, coord.z],
         K3DIdentifier: param.object.K3DIdentifier,
-        value
+        value,
     };
 }
 

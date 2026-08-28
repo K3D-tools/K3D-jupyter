@@ -2,7 +2,6 @@ const THREE = require('three');
 let katex = require('katex');
 const { areAllChangesResolve } = require('../helpers/Fn');
 
-
 katex = katex.default || katex;
 
 /**
@@ -44,8 +43,10 @@ module.exports = {
                 domElement.innerHTML = Array.isArray(text) ? text[i] : text;
                 domElement.style.cssText = 'pointer-events: all';
             } else {
-                domElement.innerHTML = katex.renderToString(Array.isArray(text) ? text[i] : text,
-                    { displayMode: true });
+                domElement.innerHTML = katex.renderToString(
+                    Array.isArray(text) ? text[i] : text,
+                    { displayMode: true },
+                );
             }
 
             if (position.data) {
@@ -68,8 +69,7 @@ module.exports = {
         }
 
         function render() {
-            domElements.forEach(function (domElement, index) {
-
+            domElements.forEach((domElement, index) => {
                 let x;
                 let y;
                 const coord = {
@@ -114,24 +114,23 @@ module.exports = {
         object.domElements = domElements;
 
         object.onRemove = function () {
-            domElements.forEach(function (domElement) {
+            domElements.forEach((domElement) => {
                 overlayDOMNode.removeChild(domElement);
                 domElement = null;
             });
 
             domElements = [];
             K3D.off(K3D.events.BEFORE_RENDER, listenersId);
-
         };
 
         object.hide = function () {
-            domElements.forEach(function (domElement) {
+            domElements.forEach((domElement) => {
                 domElement.style.display = 'none';
             });
         };
 
         object.show = function () {
-            domElements.forEach(function (domElement) {
+            domElements.forEach((domElement) => {
                 domElement.style.display = 'block';
             });
         };
@@ -143,9 +142,8 @@ module.exports = {
         const resolvedChanges = {};
 
         if (typeof (changes.text) !== 'undefined' && !changes.text.timeSeries) {
-
-            obj.domElements.forEach(function (domElement, i) {
-                let text = Array.isArray(changes.text) ? changes.text[i] : changes.text;
+            obj.domElements.forEach((domElement, i) => {
+                const text = Array.isArray(changes.text) ? changes.text[i] : changes.text;
 
                 if (config.is_html) {
                     domElement.innerHTML = text;
@@ -169,7 +167,7 @@ module.exports = {
             return Promise.resolve({ json: config, obj });
         }
         return false;
-    }
+    },
 
 };
 

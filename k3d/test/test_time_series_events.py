@@ -8,6 +8,7 @@ import numpy as np
 import pytest
 
 import k3d
+
 from .plot_compare import prepare
 
 A = np.array([[-1, -1, -1], [1, 1, 1]], dtype=np.float32)

@@ -23,7 +23,7 @@ class PlotTimeMixin:
                 if not isinstance(value, dict):
                     continue
 
-                for key in value.keys():
+                for key in value:
                     try:
                         times.add(float(key))
                     except (TypeError, ValueError):
@@ -31,7 +31,7 @@ class PlotTimeMixin:
 
         # Only a dict carries keyframes; the trait defaults to a list.
         if isinstance(self.camera_animation, dict):
-            for key in self.camera_animation.keys():
+            for key in self.camera_animation:
                 try:
                     times.add(float(key))
                 except (TypeError, ValueError):

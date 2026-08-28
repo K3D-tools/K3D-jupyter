@@ -43,7 +43,7 @@ function error(title, message, permanent) {
     const titleNode = document.createElement('b');
 
     titleNode.textContent = title || 'Error';
-    domHelperItem.replaceChildren(titleNode, document.createTextNode(': ' + message));
+    domHelperItem.replaceChildren(titleNode, document.createTextNode(`: ${message}`));
 
     if (!permanent) {
         setTimeout(() => {

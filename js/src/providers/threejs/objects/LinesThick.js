@@ -49,7 +49,7 @@ function create(config, K3D) {
     const verticesCount = vertices.length / 3;
 
     verticesColors = (verticesColors && verticesColors.length === vertices.length / 3
-            ? colorsToFloat32Array(verticesColors) : getColorsArray(color, vertices.length / 3)
+        ? colorsToFloat32Array(verticesColors) : getColorsArray(color, vertices.length / 3)
     );
 
     for (let i = 0; i < indices.length; i += jump) {

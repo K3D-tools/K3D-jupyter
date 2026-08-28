@@ -82,7 +82,7 @@ module.exports = {
             };
         } else {
             colors = (pointColors && pointColors.length === pointPositions.length / 3
-                    ? colorsToFloat32Array(pointColors) : getColorsArray(color, pointPositions.length / 3)
+                ? colorsToFloat32Array(pointColors) : getColorsArray(color, pointPositions.length / 3)
             );
         }
 
@@ -160,8 +160,14 @@ module.exports = {
             Fn.expandBoundingBox(object.geometry.boundingBox, config.point_size * 0.5);
         }
 
-        interactionsHelper.init(config, object, K3D,
-            pointsCallback, pointsIntersect.prepareGeometry(object.geometry), pointsIntersect.Intersect);
+        interactionsHelper.init(
+            config,
+            object,
+            K3D,
+            pointsCallback,
+            pointsIntersect.prepareGeometry(object.geometry),
+            pointsIntersect.Intersect,
+        );
 
         modelMatrix.set.apply(modelMatrix, config.model_matrix.data);
         object.applyMatrix4(modelMatrix);
@@ -186,8 +192,14 @@ module.exports = {
             if (obj.interactions) {
                 obj.stopInteraction();
 
-                interactionsHelper.init(config, obj, K3D,
-                    pointsCallback, pointsIntersect.prepareGeometry(obj.geometry), pointsIntersect.Intersect);
+                interactionsHelper.init(
+                    config,
+                    obj,
+                    K3D,
+                    pointsCallback,
+                    pointsIntersect.prepareGeometry(obj.geometry),
+                    pointsIntersect.Intersect,
+                );
             }
         }
 

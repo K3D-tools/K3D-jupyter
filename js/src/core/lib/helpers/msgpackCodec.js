@@ -64,8 +64,10 @@ function encode(data) {
 }
 
 function decode(data) {
-    return msgpackDecode(data instanceof ArrayBuffer ? new Uint8Array(data) : data,
-        { extensionCodec });
+    return msgpackDecode(
+        data instanceof ArrayBuffer ? new Uint8Array(data) : data,
+        { extensionCodec },
+    );
 }
 
 module.exports = {

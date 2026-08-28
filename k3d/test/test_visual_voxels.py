@@ -1,8 +1,10 @@
-import numpy as np
-import pytest
 from math import cos, sin, sqrt
 
+import numpy as np
+import pytest
+
 import k3d
+
 from .plot_compare import compare, prepare
 
 color_map = (0xFFFF00, 0xFF0000, 0x00FF00)
