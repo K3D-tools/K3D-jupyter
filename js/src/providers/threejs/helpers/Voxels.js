@@ -54,6 +54,7 @@ function getVoxelChunkObject(K3D, config, voxelSize, chunkStructure) {
     } else {
         material.blending = THREE.NoBlending;
         material.onBeforeCompile = K3D.colorOnBeforeCompile;
+        material.userData.k3dPeelDepthOut = true;
     }
 
     voxelsChunkObject.add(new THREE.Mesh(

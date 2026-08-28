@@ -103,6 +103,7 @@ module.exports = {
             } else {
                 material.blending = THREE.NoBlending;
                 material.onBeforeCompile = K3D.colorOnBeforeCompile;
+                material.userData.k3dPeelDepthOut = true;
             }
 
             function finish() {

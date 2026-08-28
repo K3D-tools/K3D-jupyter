@@ -52,6 +52,7 @@ module.exports = {
             material.transparent = false;
             material.blending = THREE.NoBlending;
             material.onBeforeCompile = K3D.colorOnBeforeCompile;
+            material.userData.k3dPeelDepthOut = true;
         }
 
         const geometry = streamLine(position, attribute, width, radialSegments, color, verticesColors, colorRange);

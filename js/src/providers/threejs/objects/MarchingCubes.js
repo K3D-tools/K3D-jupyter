@@ -145,6 +145,7 @@ module.exports = {
                 material.transparent = (config.opacity !== 1.0 || opacityFunction !== null);
             } else {
                 material.blending = THREE.NoBlending;
+                material.userData.k3dPeelDepthOut = true;
 
                 const inject = material.onBeforeCompile;
 

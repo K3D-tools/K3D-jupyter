@@ -14,4 +14,8 @@ if (uLayer != 0){
     }
     #endif
 }
+
+#if defined( K3D_PEEL_DEPTH_OUT )
+k3dPeelDepth = vec4( gl_FragCoord.z, 0.0, 0.0, 1.0 );
+#endif
 }

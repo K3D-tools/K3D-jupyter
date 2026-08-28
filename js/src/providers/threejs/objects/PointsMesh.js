@@ -188,6 +188,7 @@ module.exports = {
                 K3D.colorOnBeforeCompile(shader);
             };
             material.blending = THREE.NoBlending;
+            material.userData.k3dPeelDepthOut = true;
         }
 
         const object = new THREE.InstancedMesh(geometry, material, positions.length / 3);
