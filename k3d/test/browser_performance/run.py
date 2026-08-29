@@ -77,7 +77,7 @@ BUNDLES_DIR = os.path.join(HERE, 'bundles')
 # way to know whether two rows are comparable is the metadata that came with them.
 COLUMNS = (
     'timestamp', 'bundle', 'scene', 'renderer', 'rendererRequested', 'supportsModes',
-    'sets', 'setsFrom', 'objects', 'objectsAt1', 'duplicate', 'menu',
+    'pass', 'sets', 'setsFrom', 'objects', 'objectsAt1', 'duplicate', 'menu',
     'medianMs', 'p95Ms', 'workMs', 'emptyMs', 'dominance', 'underResolved', 'aborted',
     'probeMs', 'probeSpreadPct', 'probeAt1Ms', 'perCopyMs', 'probeLeverSets',
     'probeStepsUsed', 'probePath', 'correctionSkipped',
@@ -271,17 +271,47 @@ def make_app(manifest, csv_path):
 _FRAME_FLOOR_MS = 7.0
 
 
+def _middle_row(group):
+    """The row with the middle probe time, the lower of the two when the count is even.
+
+    A real row, not an average across columns: half of them describe the scene rather than the
+    clock, and a mean of `programs` or `imageFinal` would describe no measurement that happened.
+    """
+    if len(group) == 1:
+        return group[0]
+
+    def probe(row):
+        for field in ('probeMs', 'medianMs'):
+            try:
+                value = float(row.get(field) or 0)
+            except (TypeError, ValueError):
+                continue
+
+            if value > 0:
+                return value
+
+        return float('inf')
+
+    return sorted(group, key=probe)[(len(group) - 1) // 2]
+
+
 def _rows_by_scene(rows):
-    """{scene: {(bundle, renderer): row}} for rows that carry a measurement."""
-    out = {}
+    """{scene: {(bundle, renderer): row}} for rows that carry a measurement.
+
+    A run passes over every scene several times, rotating which bundle leads, so one key holds one
+    row per pass. They collapse to the middle one - see the note printed by `report`.
+    """
+    grouped = {}
 
     for row in rows:
         if row.get('error') or not row.get('medianMs') or row['scene'] == '__empty__':
             continue
 
-        out.setdefault(row['scene'], {})[(row['bundle'], row.get('renderer') or '')] = row
+        key = (row['bundle'], row.get('renderer') or '')
+        grouped.setdefault(row['scene'], {}).setdefault(key, []).append(row)
 
-    return out
+    return {scene: {key: _middle_row(group) for key, group in per_scene.items()}
+            for scene, per_scene in grouped.items()}
 
 
 def _ratio(a, b, field):
@@ -579,18 +609,25 @@ def report(path):
     base = bundles[0]
     print('baseline: %s     compared: %s' % (base, ', '.join(bundles[1:])))
     print()
-    # Bundles are measured in a fixed order, every scene, and that order biases the result.
-    # Measured with the same bytes under two names: the bundle in the SECOND slot came out 15%
-    # faster than the third, fourth and fifth on every scene whose shading samples an
-    # environment map, while scenes drawn with K3D's own shaders were flat to a tenth of a
-    # percent. Third, fourth and fifth agree with each other, so it is the second slot that is
-    # special, not a drift. Until the runner varies the order, read a ratio against the
-    # baseline as carrying that bias, and settle any bundle-to-bundle question by measuring the
-    # same bundle twice under two names in the same run.
-    print('  NOTE: the second bundle measured in each scene is favoured - up to 15% on scenes')
-    print('  that sample an environment map. Add the same bundle twice under two names to see')
-    print('  how much of a difference below is that, and not the code.')
-    print()
+    # Position in the measurement order is worth real time, and it is the machine, not the code.
+    # Measured on ONE unchanged bundle: forty probes back to back on voxels_outline drifted from
+    # 27.6 to 29.1 ms and stepped up after twenty seconds, min to max 1.16x, and the first probe
+    # in a cold browser read 64.8 ms against 27.7 warm. A laptop GPU drops its clocks under
+    # sustained load, so whoever is measured first reads the coolest one. That is why a fixed
+    # order made every later bundle look 5-25% slower on GPU-bound scenes, and why measuring the
+    # same bundle twice under two names did NOT catch it: both copies sat behind the leader, both
+    # already hot, so they agreed with each other and with nothing else.
+    # The runner now rotates the order, one pass per bundle, and each bundle leads once. The rows
+    # below are the middle pass of each bundle. Every pass is still in the CSV under `pass`, so
+    # the drift is there to look at rather than to guess about.
+    passes = {row.get('pass') for row in rows if row.get('pass')}
+
+    if len(passes) < 2:
+        print('  NOTE: one pass per bundle in this run, so each bundle kept the same slot in the')
+        print('  order throughout. The leading bundle measures on the coolest GPU - worth 5-25% on')
+        print('  GPU-bound scenes - so read a ratio against the baseline as carrying that. Raise')
+        print('  `passes` in the runner to rotate the order and take the middle of each.')
+        print()
 
     pairs = []
 
@@ -784,7 +821,7 @@ def compare(first, second):
     against each of the other side's modes.
     """
     def load(path):
-        rows = {}
+        grouped = {}
         collisions = []
 
         with open(path, newline='', encoding='utf-8') as handle:
@@ -792,19 +829,26 @@ def compare(first, second):
                 if row.get('error') or not row.get('workMs') or row['scene'] == '__empty__':
                     continue
 
-                per_scene = rows.setdefault(row['scene'], {})
-                mode = row.get('renderer') or ''
+                grouped.setdefault(row['scene'], {}) \
+                    .setdefault(row.get('renderer') or '', []).append(row)
 
+        rows = {}
+
+        for scene, per_scene in grouped.items():
+            rows[scene] = {}
+
+            for mode, group in per_scene.items():
                 # setRenderer is allowed to refuse a mode the machine cannot do, and then two
-                # requested modes report the same effective one - a silent overwrite here would
-                # hide that the run measured one path twice
-                if mode in per_scene:
-                    collisions.append('%s [%s] requested as %s and %s'
-                                      % (row['scene'], mode or '-',
-                                         per_scene[mode].get('rendererRequested') or '?',
-                                         row.get('rendererRequested') or '?'))
+                # requested modes report the same effective one - collapsing them silently would
+                # hide that the run measured one path twice. Repeated passes over one requested
+                # mode are not that, and they are what `pass` distinguishes.
+                requested = sorted({row.get('rendererRequested') or '?' for row in group})
 
-                per_scene[mode] = row
+                if len(requested) > 1:
+                    collisions.append('%s [%s] requested as %s'
+                                      % (scene, mode or '-', ' and '.join(requested)))
+
+                rows[scene][mode] = _middle_row(group)
 
         for line in collisions:
             print('duplicate in %s: %s' % (os.path.basename(path), line))
