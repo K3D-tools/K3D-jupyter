@@ -71,6 +71,13 @@ function colorOnBeforeCompile(globalPeelUniforms, shader) {
     + 'uniform sampler2D uPrevColorTexture;\n'}${
         shader.fragmentShader}`;
 
+    if (typeof (shader.defines) === 'undefined') {
+        shader.defines = {};
+    }
+
+    // own depth into attachment 1 - what lets a layer cost one pass instead of two
+    shader.defines.K3D_PEEL_DEPTH_OUT = 1;
+
     depthOnBeforeCompile(globalPeelUniforms, shader);
 }
 
@@ -93,6 +100,12 @@ module.exports = function (K3D) {
         powerPreference: 'high-performance',
     });
     const targets = [];
+    const mrtTargets = [];
+    // An empty layer makes every deeper one empty too, so the loop can stop there. Occlusion
+    // queries answer a frame late: the last two layers are probed and the budget shrinks only
+    // while both come back empty, which keeps one known-empty layer as headroom. budget < 0 is
+    // "not measured"; renders into a target ignore it and peel the full count.
+    const peelProbe = { budget: -1, pending: null, free: [] };
     const compositeScene = new THREE.Scene();
     const planeGeometry = new THREE.PlaneGeometry(2, 2, 1, 1);
     const toneMappingMode = { value: 0 };
@@ -312,7 +325,10 @@ module.exports = function (K3D) {
 
     // [0], [1] - layer depth flip/flop (raw z in .r); [2] - accumulator; [3] - layer colour.
     // Half-float accumulation rounds to 8 bits once, at the final blit.
-    function ensureTargets(width, height) {
+    function ensureTargets(rawWidth, rawHeight) {
+        const width = Math.max(1, Math.round(rawWidth));
+        const height = Math.max(1, Math.round(rawHeight));
+
         if (targets.length > 0
             && targets[0].width === width
             && targets[0].height === height) {
@@ -364,6 +380,43 @@ module.exports = function (K3D) {
                 },
             ),
         );
+
+        while (mrtTargets.length) {
+            mrtTargets.pop().dispose();
+        }
+
+        peelProbe.budget = -1;
+
+        if (peelProbe.pending !== null) {
+            peelProbe.pending.queries.forEach((q) => peelProbe.free.push(q));
+            peelProbe.pending = null;
+        }
+    }
+
+    // single-pass flip/flop: attachment 0 layer colour, attachment 1 the depth the next peel
+    // tests against. Allocated on first use.
+    function ensureMrtTargets() {
+        if (mrtTargets.length > 0) {
+            return;
+        }
+
+        for (let i = 0; i < 2; i++) {
+            const target = new THREE.WebGLRenderTarget(
+                targets[0].width,
+                targets[0].height,
+                {
+                    count: 2,
+                    minFilter: THREE.NearestFilter,
+                    magFilter: THREE.NearestFilter,
+                    type: THREE.HalfFloatType,
+                },
+            );
+
+            target.textures[1].format = THREE.RedFormat;
+            target.textures[1].type = THREE.FloatType;
+
+            mrtTargets.push(target);
+        }
     }
 
     function ensureAoTargets(width, height) {
@@ -659,15 +712,81 @@ module.exports = function (K3D) {
         self.renderer.render(aoOverlayScene, fsCamera);
     }
 
+    // An unpatched material blends (WebGL2 shares blend state across attachments) and never
+    // writes attachment 1, so one of them puts the whole frame back on two passes. Volumes are
+    // exempt - they are hidden for the geometry passes.
+    function scenePeelsWithMrt() {
+        let supported = true;
+
+        K3D.getWorld().K3DObjects.traverse((obj) => {
+            if (!supported || !obj.visible || !obj.material || obj.userData.k3dVolumeSegments) {
+                return;
+            }
+
+            if (Array.isArray(obj.material) || obj.material.userData.k3dPeelDepthOut !== true) {
+                supported = false;
+            }
+        });
+
+        return supported;
+    }
+
+    function readPeelProbe() {
+        const pending = peelProbe.pending;
+
+        if (pending === null) {
+            return;
+        }
+
+        if (!pending.queries.every((q) => gl.getQueryParameter(q, gl.QUERY_RESULT_AVAILABLE))) {
+            return;
+        }
+
+        const drawn = pending.queries.map((q) => gl.getQueryParameter(q, gl.QUERY_RESULT) > 0);
+
+        peelProbe.pending = null;
+        pending.queries.forEach((q) => peelProbe.free.push(q));
+
+        if (pending.peels !== K3D.parameters.depthPeels) {
+            return;
+        }
+
+        if (drawn[drawn.length - 1]) {
+            peelProbe.budget = Math.min(pending.peels, pending.layers + 1);
+        } else if (drawn.length > 1 && !drawn[0]) {
+            peelProbe.budget = Math.max(0, pending.layers - 1);
+        } else {
+            peelProbe.budget = pending.layers;
+        }
+    }
+
     // The peeling itself happens in depthShader.fragment.tail: each pass discards fragments
     // not strictly deeper than the previous layer.
+    const peelViewport = new THREE.Vector4();
+    const peelCanvasSize = new THREE.Vector2();
+    const mrtClearColor = [0, 0, 0, 0];
+    const mrtClearDepth = [1, 0, 0, 1];
+
     function depthPeelRender(scene, camera, rt) {
+        let fullFrame = false;
+
         if (typeof (rt) === 'undefined') {
             rt = null;
-            ensureTargets(K3D.getWorld().width, K3D.getWorld().height);
+            // peels cover exactly the region the composite lands in; with renderingSteps > 1 that
+            // is one strip, and a full-frame target would hold it stretched and get point-sampled
+            self.renderer.getViewport(peelViewport);
+            ensureTargets(peelViewport.z, peelViewport.w);
+
+            self.renderer.getSize(peelCanvasSize);
+
+            fullFrame = peelViewport.x === 0 && peelViewport.y === 0
+                && peelViewport.z === peelCanvasSize.x
+                && peelViewport.w === peelCanvasSize.y;
         } else {
             ensureTargets(rt.width, rt.height);
         }
+
+        readPeelProbe();
 
         // restore exactly what was hidden - a filter-based restore would resurrect
         // objects the user hid while their opacity was 0
@@ -691,7 +810,7 @@ module.exports = function (K3D) {
             compositeMaterial.uniforms.tAO.value = aoTexture;
             compositeMaterial.uniforms.tAOVol.value = aoVolTexture;
 
-            if (rt && camera.view && camera.view.enabled) {
+            if (camera.view && camera.view.enabled) {
                 // strip target: vUv covers camera.view rows of the full-frame AO buffer
                 const v = camera.view;
 
@@ -718,11 +837,42 @@ module.exports = function (K3D) {
         self.renderer.setClearColor(0, 0);
         self.renderer.clear();
 
-        function renderLayerColor() {
+        const peels = K3D.parameters.depthPeels;
+        // the budget needs the whole frame in one call: a screenshot has to be exact, and a strip
+        // or a volumeSides quadrant would impose its own depth complexity on the rest of the frame
+        const layers = (fullFrame && peelProbe.budget >= 0)
+            ? Math.min(peels, peelProbe.budget)
+            : peels;
+        const probing = fullFrame && peelProbe.pending === null;
+        const probeQueries = [];
+        const useMrt = scenePeelsWithMrt();
+
+        if (useMrt) {
+            ensureMrtTargets();
+        }
+
+        function renderSceneProbed(index) {
+            const probed = probing && index >= layers - 1;
+            let query = null;
+
+            if (probed) {
+                query = peelProbe.free.pop() || gl.createQuery();
+                gl.beginQuery(gl.ANY_SAMPLES_PASSED_CONSERVATIVE, query);
+            }
+
+            self.renderer.render(scene, camera);
+
+            if (probed) {
+                gl.endQuery(gl.ANY_SAMPLES_PASSED_CONSERVATIVE);
+                probeQueries.push(query);
+            }
+        }
+
+        function renderLayerColor(index) {
             self.renderer.setRenderTarget(targets[3]);
             self.renderer.setClearColor(0, 0);
             self.renderer.clear(true, true, false);
-            self.renderer.render(scene, camera);
+            renderSceneProbed(index);
         }
 
         function renderLayerDepth(target) {
@@ -735,8 +885,22 @@ module.exports = function (K3D) {
             scene.overrideMaterial = null;
         }
 
-        function compositeLayer() {
-            compositeMaterial.uniforms.uTextureA.value = targets[3].texture;
+        // colour and depth in one pass; the attachments need different clear values (empty
+        // layer, far plane), which a single clear colour cannot express
+        function renderLayerMrt(index) {
+            self.renderer.setRenderTarget(mrtTargets[index % 2]);
+            gl.clearBufferfv(gl.COLOR, 0, mrtClearColor);
+            gl.clearBufferfv(gl.COLOR, 1, mrtClearDepth);
+            self.renderer.clear(false, true, false);
+            renderSceneProbed(index);
+        }
+
+        function layerDepthTexture(index) {
+            return useMrt ? mrtTargets[index % 2].textures[1] : targets[index % 2].texture;
+        }
+
+        function compositeTexture(texture) {
+            compositeMaterial.uniforms.uTextureA.value = texture;
             self.renderer.setRenderTarget(targets[2]);
             self.renderer.render(compositeScene, camera);
         }
@@ -792,36 +956,61 @@ module.exports = function (K3D) {
 
             // the march output is already premultiplied - composite it as-is
             compositeMaterial.uniforms.uBlit.value = 2;
-            compositeLayer();
+            compositeTexture(targets[3].texture);
             compositeMaterial.uniforms.uBlit.value = 1;
 
             u.uPeelSegment.value = 0;
         }
 
+        function renderLayer(index) {
+            if (useMrt) {
+                renderLayerMrt(index);
+
+                return;
+            }
+
+            // only the volume segments read the deepest layer's depth
+            if (index === layers && volumeObjects.length === 0) {
+                return;
+            }
+
+            renderLayerDepth(targets[index % 2]);
+        }
+
+        function finishLayer(index) {
+            if (!useMrt) {
+                renderLayerColor(index);
+            }
+
+            compositeTexture(useMrt ? mrtTargets[index % 2].textures[0] : targets[3].texture);
+        }
+
         camera.updateMatrixWorld();
 
         // layer 0: uLayer == 0, so the tail discards nothing
-        renderLayerDepth(targets[0]);
-        renderVolumeSegments(peelDummyNear, targets[0].texture);
-        renderLayerColor();
-        compositeLayer();
+        renderLayer(0);
+        renderVolumeSegments(peelDummyNear, layerDepthTexture(0));
+        finishLayer(0);
 
-        for (let i = 0; i < K3D.parameters.depthPeels; i++) {
-            globalPeelUniforms.uPrevDepthTexture.value = targets[i % 2].texture;
+        for (let i = 0; i < layers; i++) {
+            globalPeelUniforms.uPrevDepthTexture.value = layerDepthTexture(i);
             globalPeelUniforms.uLayer.value = i + 1;
 
-            renderLayerDepth(targets[(i + 1) % 2]);
-            renderVolumeSegments(targets[i % 2].texture, targets[(i + 1) % 2].texture);
-            renderLayerColor();
-            compositeLayer();
+            renderLayer(i + 1);
+            renderVolumeSegments(layerDepthTexture(i), layerDepthTexture(i + 1));
+            finishLayer(i + 1);
         }
 
         globalPeelUniforms.uLayer.value = 0;
-        renderVolumeSegments(targets[K3D.parameters.depthPeels % 2].texture, peelDummyFar);
+        renderVolumeSegments(layerDepthTexture(layers), peelDummyFar);
 
         volumeObjects.forEach((obj) => {
             obj.visible = true;
         });
+
+        if (probeQueries.length > 0) {
+            peelProbe.pending = { queries: probeQueries, layers, peels };
+        }
 
         // final blit of the accumulator
         globalPeelUniforms.uLayer.value = 0;
@@ -1033,8 +1222,6 @@ module.exports = function (K3D) {
             cinematicMode.hideHud();
         }
 
-        const currentRenderMethod = K3D.parameters.depthPeels > 0 ? depthPeelRender : directRender;
-
         if (cameras.length === 0) {
             for (let i = 0; i < 3; i++) {
                 cameras.push(self.camera.clone());
@@ -1070,6 +1257,8 @@ module.exports = function (K3D) {
 
             computeAO(size.x, size.y);
 
+            const currentRenderMethod = K3D.parameters.depthPeels > 0 ? depthPeelRender : directRender;
+
             let p = Promise.resolve();
             const originalControlsEnabledState = self.controls.enabled;
 
@@ -1101,18 +1290,19 @@ module.exports = function (K3D) {
 
                     chunkWidths.forEach((c) => {
                         p = p.then(() => {
-                            self.renderer.setViewport(x + c[0], y, c[1], height);
-                            self.camera.setViewOffset(size.x, size.y, c[0], 0, c[1], size.y);
+                            // the offset belongs on the rendered camera and subdivides this pass,
+                            // which in volumeSides mode is one quadrant
+                            const chunkCamera = viewport < 3 ? cameras[viewport] : self.camera;
 
-                            if (viewport < 3) {
-                                currentRenderMethod(self.scene, cameras[viewport]);
-                            } else {
-                                currentRenderMethod(self.scene, self.camera);
-                            }
+                            self.renderer.setViewport(x + c[0], y, c[1], height);
+                            chunkCamera.setViewOffset(width, height, c[0], 0, c[1], height);
+
+                            currentRenderMethod(self.scene, chunkCamera);
                         });
 
+                        // one macrotask instead of a fixed 50 ms per chunk
                         p = p.then(() => new Promise((chunkResolve) => {
-                            setTimeout(chunkResolve, 50);
+                            setTimeout(chunkResolve, 0);
                         }));
                     });
 
@@ -1168,6 +1358,7 @@ module.exports = function (K3D) {
 
                 self.renderer.setViewport(0, 0, size.x, size.y);
                 self.camera.clearViewOffset();
+                cameras.forEach((camera) => camera.clearViewOffset());
 
                 K3D.dispatch(K3D.events.RENDERED);
 

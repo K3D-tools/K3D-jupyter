@@ -1,7 +1,8 @@
+# Mirrors [project.dependencies] in pyproject.toml - the Docker image installs from here, CI from there.
 anywidget>=0.9.13
-ipywidgets>=7.0.1
+ipywidgets>=7.6.0,<9.0.0
 traittypes
 traitlets
-numpy>=1.11.0
+numpy
 msgpack
 deepcomparer

@@ -1,9 +1,15 @@
 /* eslint no-shadow: 0 */
 
+// A face between two labels merges only if the mask cells compare equal, so both labels go into
+// one number instead of a per-cell array. Negative keeps it in the same winding branch as before.
+const PAIR_BASE = 562949953421312; // 2^49, so base + a*stride + b stays exact in a double
+const PAIR_STRIDE = 16777216; // 2^24, room for the uint16 labels sparse_voxels can hold
+
 function prepareColor(colorMap, voxel) {
-    if (Array.isArray(voxel)) {
-        const ci1 = (Math.abs(voxel[0]) - 1) * 3;
-        const ci2 = (Math.abs(voxel[1]) - 1) * 3;
+    if (voxel <= -PAIR_BASE) {
+        const pair = -voxel - PAIR_BASE;
+        const ci1 = (Math.floor(pair / PAIR_STRIDE) - 1) * 3;
+        const ci2 = ((pair % PAIR_STRIDE) - 1) * 3;
 
         return [
             (colorMap[ci1] + colorMap[ci2]) / 2,
@@ -188,7 +194,7 @@ function generateGreedyVoxelMesh(chunk, colorMap, voxelSize, calculateOutlines, 
                     if (a === b || (a > 0 && b > 0 && !transparent)) {
                         mask[n] = 0;
                     } else if (a > 0) {
-                        mask[n] = transparent && b > 0 ? [a, b] : a;
+                        mask[n] = transparent && b > 0 ? -(PAIR_BASE + a * PAIR_STRIDE + b) : a;
                         maskFilled = true;
                     } else {
                         mask[n] = b > 0 ? -b : 0;

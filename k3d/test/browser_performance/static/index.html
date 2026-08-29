@@ -38,8 +38,10 @@
     Every scene in the visual suite, in every renderer mode the bundle knows. Two vsync-free probes
     give the cost of one copy, and from that the copies needed to make a frame cost the target -
     copies being scene-graph clones that share the original's geometry, so making them is free. The
-    oldest bundle goes first and its copy count is then imposed on the rest, so one scene is always
-    the same workload everywhere. Nothing starts until you press the button. <strong>Keep this window visible and in front</strong> - a
+    first bundle to run searches for the copy count and every other one is handed it, so one scene is
+    always the same workload everywhere. Each scene is then measured once per bundle, rotating which
+    bundle goes first, because the GPU drops its clocks under sustained load and whoever leads reads
+    the coolest one. Nothing starts until you press the button. <strong>Keep this window visible and in front</strong> - a
     background tab gets no animation frames and the numbers would be fiction.
 </p>
 
@@ -59,6 +61,8 @@
     <label>max sets <input type="number" id="maxSets" value="4096" step="1"
         title="4096 lifts the environment and tone scenes off the vsync floor; past that the frame is mostly draw-call submission"></label>
     <label>scenes <input type="number" id="limit" value="0" step="1" title="0 = all"></label>
+    <label>passes <input type="number" id="passes" value="0" step="1"
+        title="0 = one per bundle, so each bundle leads once - whoever leads reads the coolest GPU"></label>
     <label>copies <select id="duplicate">
         <option value="graph">shared geometry</option>
         <option value="k3d">rebuilt per copy</option>
@@ -313,59 +317,70 @@
             }
         }
 
-        // Scene by scene, bundle right after bundle: a machine that drifts drifts equally for all
-        // of them. Only the first entry searches; every later one is handed its copy count, so the
-        // comparison is one workload measured several ways.
+        // Scene by scene, and each pass rotates which bundle goes first, because position in the
+        // order is worth real time. Measured on ONE unchanged bundle: forty probes back to back on
+        // voxels_outline drifted from 27.6 to 29.1 ms and stepped up after twenty seconds, min to
+        // max 1.16x. A laptop GPU drops its clocks under sustained load, so whoever is measured
+        // first reads the coolest one and every later bundle pays for its warm-up. Rotating hands
+        // each bundle the lead once per cycle; the report then takes the median of a bundle's
+        // passes. Only the very first entry searches for the copy count - every later one is
+        // handed it, so a scene is one workload measured several ways.
+        var passes = parseInt(document.getElementById('passes').value, 10) || bundles.length;
         var perScene = bundles.reduce(function (sum, bundle) {
             return sum + modes[bundle].length;
         }, 0);
 
-        progress.total = progress.done + scenes.length * perScene;
+        progress.total = progress.done + scenes.length * perScene * passes;
         tick('measuring');
 
         for (var s = 0; s < scenes.length; s++) {
-            var plan = [];
-
-            bundles.forEach(function (bundle) {
-                modes[bundle].forEach(function (mode) {
-                    plan.push({ bundle: bundle, mode: mode });
-                });
-            });
-
             var sets = null;
             var setsFrom = '';
 
-            for (var i = 0; i < plan.length; i++) {
-                var name = label(plan[i].bundle, plan[i].mode);
+            for (var p = 0; p < passes; p++) {
+                var turn = p % bundles.length;
+                var rotated = bundles.slice(turn).concat(bundles.slice(0, turn));
+                var plan = [];
 
-                status('(' + (s + 1) + '/' + scenes.length + ') ' + scenes[s].name + ' @ ' + name
-                    + (sets === null ? ' (searching)' : ' @ ' + sets + ' sets'));
-                tick(scenes[s].name + ' @ ' + name
-                    + (sets === null ? ' (searching)' : ' @ ' + sets + ' sets'));
+                rotated.forEach(function (bundle) {
+                    modes[bundle].forEach(function (mode) {
+                        plan.push({ bundle: bundle, mode: mode });
+                    });
+                });
 
-                var message = await runScene(plan[i].bundle, scenes[s].file,
-                    empty[name], sets, plan[i].mode);
+                for (var i = 0; i < plan.length; i++) {
+                    var name = label(plan[i].bundle, plan[i].mode);
+                    var where = '(' + (s + 1) + '/' + scenes.length + ') ' + scenes[s].name
+                        + ' @ ' + name + (passes > 1 ? ' pass ' + (p + 1) + '/' + passes : '');
 
-                progress.done += 1;
-                tick(scenes[s].name + ' @ ' + name);
+                    status(where + (sets === null ? ' (searching)' : ' @ ' + sets + ' sets'));
+                    tick(where + (sets === null ? ' (searching)' : ' @ ' + sets + ' sets'));
 
-                if (message.type === 'result') {
-                    if (sets === null) {
-                        sets = message.row.sets;
-                        setsFrom = name;
+                    var message = await runScene(plan[i].bundle, scenes[s].file,
+                        empty[name], sets, plan[i].mode);
+
+                    progress.done += 1;
+                    tick(where);
+
+                    if (message.type === 'result') {
+                        if (sets === null) {
+                            sets = message.row.sets;
+                            setsFrom = name;
+                        }
+
+                        message.row.setsFrom = setsFrom;
+                        message.row.pass = p + 1;
+                        show(message.row, '');
+                        await send(message.row);
+                    } else {
+                        // whoever was going to set the copy count failed, so the next entry ramps
+                        // and becomes the reference - setsFrom in the CSV says who it ended up being
+                        show({ scene: scenes[s].name, bundle: plan[i].bundle,
+                            renderer: plan[i].mode }, message.error || 'error');
+                        await send({ scene: scenes[s].name, bundle: plan[i].bundle,
+                            renderer: plan[i].mode, sets: sets, pass: p + 1,
+                            error: message.error || 'error' });
                     }
-
-                    message.row.setsFrom = setsFrom;
-                    show(message.row, '');
-                    await send(message.row);
-                } else {
-                    // whoever was going to set the copy count failed, so the next entry ramps and
-                    // becomes the reference - setsFrom in the CSV says who it ended up being
-                    show({ scene: scenes[s].name, bundle: plan[i].bundle,
-                        renderer: plan[i].mode }, message.error || 'error');
-                    await send({ scene: scenes[s].name, bundle: plan[i].bundle,
-                        renderer: plan[i].mode, sets: sets,
-                        error: message.error || 'error' });
                 }
             }
         }

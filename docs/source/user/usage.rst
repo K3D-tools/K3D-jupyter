@@ -9,3 +9,4 @@ Usage
     panel
     name
     time
+    gltf

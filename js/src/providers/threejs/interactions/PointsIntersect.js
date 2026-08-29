@@ -54,7 +54,11 @@ module.exports = {
                         if (object.isInstancedMesh) {
                             const matrix = new THREE.Matrix4()
                                 .fromArray(object.instanceMatrix.array, triangleIndex * 16);
-                            threshold = matrix.getMaxScaleOnAxis() / 2.0;
+
+                            // the instance scale is relative to the icosahedron, which already
+                            // has point_size baked into its radius
+                            threshold = (matrix.getMaxScaleOnAxis()
+                                * (object.userData.builtPointSize || 1.0)) / 2.0;
                         }
 
                         localThreshold = threshold / ((object.scale.x + object.scale.y + object.scale.z) / 3);

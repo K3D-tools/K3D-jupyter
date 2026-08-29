@@ -10,13 +10,15 @@ import k3d
 class PlatonicSolid:
     """Base class for platonic solids."""
 
+    # quoted: k3d/__init__ imports this module, so k3d.objects is not bound yet when the
+    # class body runs. Sphinx and typing.get_type_hints resolve them later, once it is.
     @property
-    def mesh(self) -> k3d.objects.geometry.Mesh:
+    def mesh(self) -> "k3d.objects.geometry.Mesh":
         """Return k3d.mesh object of the solid."""
         return k3d.mesh(self.vertices, self.indices, side="double")
 
     @property
-    def points(self) -> k3d.objects.points.Points:
+    def points(self) -> "k3d.objects.points.Points":
         """Return k3d.points object of solid vertices."""
         return k3d.points(
             self.vertices,

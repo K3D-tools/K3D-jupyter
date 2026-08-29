@@ -1,3 +1,4 @@
+from . import platonic
 from ._protocol import switch_to_binary_protocol, switch_to_text_protocol
 from ._version import __version__
 from .colormaps import basic_color_maps, matplotlib_color_maps, paraview_color_maps
@@ -51,6 +52,7 @@ __all__ = [
     "mip",
     "nice_colors",
     "paraview_color_maps",
+    "platonic",
     "plot",
     "points",
     "sparse_voxels",

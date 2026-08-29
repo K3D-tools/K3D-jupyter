@@ -18,7 +18,18 @@ const rules = [
         resourceQuery: /raw/,
         type: 'asset/source',
     },
-    { test: /\.css$/, use: ['style-loader', 'css-loader'] },
+    {
+        test: /\.css$/,
+        use: [
+            'style-loader',
+            {
+                loader: 'css-loader',
+                // KaTeX ships each font as woff2/woff/ttf and all three would be inlined; woff2
+                // alone covers every browser that has WebGL2, and it is first in every src list
+                options: { url: { filter: (url) => !/\.(eot|ttf|woff)(\?.*)?$/.test(url) } },
+            },
+        ],
+    },
 ];
 
 const mode = 'production';

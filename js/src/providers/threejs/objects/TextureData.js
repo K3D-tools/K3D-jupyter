@@ -87,6 +87,7 @@ module.exports = {
             } else {
                 material.blending = THREE.NoBlending;
                 material.onBeforeCompile = K3D.colorOnBeforeCompile;
+                material.userData.k3dPeelDepthOut = true;
             }
 
             if (config.puv.data.length === 9) {

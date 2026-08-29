@@ -161,7 +161,13 @@ module.exports = {
             K3D_COLOR_MAP: useColorMap,
         };
         material.uniforms = uniforms;
-        material.customProgramCacheKey = () => `k3d-points-mesh-${useColorMap}-${opacities !== null ? 1 : 0}`;
+
+        // the key replaces three's default (onBeforeCompile.toString()), so every input that
+        // changes the injected shader has to be in it - peeling included
+        const peel = K3D.parameters.depthPeels !== 0;
+        const cacheKey = `k3d-points-mesh-${useColorMap}-${opacities !== null ? 1 : 0}-${peel ? 1 : 0}`;
+
+        material.customProgramCacheKey = () => cacheKey;
 
         const inject = (shader) => {
             Object.assign(shader.uniforms, material.uniforms);
@@ -178,7 +184,7 @@ module.exports = {
                 )}`;
         };
 
-        if (K3D.parameters.depthPeels === 0) {
+        if (!peel) {
             material.onBeforeCompile = inject;
             material.depthWrite = (config.opacity === 1.0 && opacities === null);
             material.transparent = (config.opacity !== 1.0 || opacities !== null);
@@ -188,6 +194,7 @@ module.exports = {
                 K3D.colorOnBeforeCompile(shader);
             };
             material.blending = THREE.NoBlending;
+            material.userData.k3dPeelDepthOut = true;
         }
 
         const object = new THREE.InstancedMesh(geometry, material, positions.length / 3);

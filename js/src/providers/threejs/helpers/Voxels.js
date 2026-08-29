@@ -54,6 +54,7 @@ function getVoxelChunkObject(K3D, config, voxelSize, chunkStructure) {
     } else {
         material.blending = THREE.NoBlending;
         material.onBeforeCompile = K3D.colorOnBeforeCompile;
+        material.userData.k3dPeelDepthOut = true;
     }
 
     voxelsChunkObject.add(new THREE.Mesh(
@@ -91,7 +92,6 @@ function getVoxelChunkObject(K3D, config, voxelSize, chunkStructure) {
 function rebuildChunk(object, forRebuild) {
     const idsMap = {};
 
-    console.log(`K3D.Voxels rebuildChunk Count:${forRebuild.size}`);
     object.children.forEach((g) => {
         if (g.voxel) {
             idsMap[g.voxel.chunk.id] = g;
@@ -108,6 +108,15 @@ function rebuildChunk(object, forRebuild) {
             for (let j = 0; j < mesh.children.length; j++) {
                 mesh.children[j].geometry.dispose();
                 mesh.children[j].geometry = newMesh.children[j].geometry;
+                newMesh.children[j].material.dispose();
+            }
+
+            // the rebuilt geometry arrives without the BVH addChunk gave it, and edit mode
+            // raycasts this chunk on every pointer move
+            const { geometry } = mesh.children[0];
+
+            if (geometry.attributes.position.count > 0) {
+                geometry.boundsTree = new threeMeshBVH.MeshBVH(geometry);
             }
         }
     });
