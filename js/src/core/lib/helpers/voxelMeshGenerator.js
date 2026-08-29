@@ -2,8 +2,8 @@
 
 // A face between two labels merges only if the mask cells compare equal, so both labels go into
 // one number instead of a per-cell array. Negative keeps it in the same winding branch as before.
-const PAIR_BASE = 562949953421312;
-const PAIR_STRIDE = 16777216;
+const PAIR_BASE = 562949953421312; // 2^49, so base + a*stride + b stays exact in a double
+const PAIR_STRIDE = 16777216; // 2^24, room for the uint16 labels sparse_voxels can hold
 
 function prepareColor(colorMap, voxel) {
     if (voxel <= -PAIR_BASE) {

@@ -64,7 +64,6 @@ module.exports = {
         Texture: require('./objects/Texture'),
         Text: require('./objects/Text'),
         Text2d: require('./objects/Text2d'),
-        TorusKnot: require('./objects/TorusKnot'),
         VectorField: require('./objects/VectorField'),
         Vectors: require('./objects/Vectors'),
         Voxels: require('./objects/Voxels'),

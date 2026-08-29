@@ -70,7 +70,9 @@ def ensure(version, force=False):
     target = os.path.join(BUNDLES_DIR, version)
     complete = all(os.path.isfile(os.path.join(target, name)) for name in FILES)
 
-    if complete and not force:
+    # a release is immutable and worth caching, the working tree's build is not - keeping a copy
+    # of it would measure whatever was built last time instead of what is checked out now
+    if complete and not force and version != 'local':
         return target
 
     if version == 'local':

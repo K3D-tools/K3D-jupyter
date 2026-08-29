@@ -233,6 +233,29 @@ class k3d_remote:
 
         return b64decode(screenshot)
 
+    def get_gltf(self):
+        """Return the scene geometry as a binary glTF (.glb).
+
+        See Plot.fetch_gltf for what a glTF can and cannot carry over from a K3D scene.
+        """
+        gltf = self.browser.execute_script(
+            """
+        return K3DInstance.getGLTF().then(function (glb) {
+            var bytes = new Uint8Array(glb);
+            var chunks = [];
+
+            // one apply() over the whole buffer overflows the argument stack on real meshes
+            for (var i = 0; i < bytes.length; i += 8192) {
+                chunks.push(String.fromCharCode.apply(null, bytes.subarray(i, i + 8192)));
+            }
+
+            return btoa(chunks.join(''));
+        });
+        """
+        )
+
+        return b64decode(gltf)
+
     def close(self):
         if self.server is not None:
             self.server.shutdown()

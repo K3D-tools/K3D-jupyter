@@ -120,15 +120,17 @@ def array_to_json(
     if force_contiguous and not ar.flags["C_CONTIGUOUS"]:
         ar = np.ascontiguousarray(ar)
 
+    # ravel, not flatten: contiguity is already ensured above, so this is a view, while flatten
+    # copies unconditionally. The uncompressed buffer therefore aliases the caller's array.
     if compression_level > 0:
         ret = {
-            "compressed_data": zlib.compress(ar.flatten(), compression_level),
+            "compressed_data": zlib.compress(ar.ravel(), compression_level),
             "dtype": str(ar.dtype),
             "shape": ar.shape,
         }
     else:
         ret = {
-            "data": memoryview(ar.flatten()),
+            "data": memoryview(ar.ravel()),
             "dtype": str(ar.dtype),
             "shape": ar.shape,
         }
@@ -196,6 +198,12 @@ def to_json(
     """
     if hasattr(obj, "compression_level"):
         compression_level = obj.compression_level
+
+    # click_callback/hover_callback: the browser only needs to know a handler is attached, and
+    # the function itself has no serialization. Matches what callback_serialization_wrap sends
+    # on the widget path, which this one has to agree with.
+    if callable(input):
+        return True
 
     if isinstance(input, dict):
         property = obj[name]

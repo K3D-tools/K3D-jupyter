@@ -10,6 +10,7 @@ const loader = require('./lib/Loader');
 const serialize = require('./lib/helpers/serialize');
 const screenshot = require('./lib/screenshot');
 const snapshot = require('./lib/snapshot');
+const gltf = require('./lib/gltf');
 const resetCameraGUI = require('./lib/resetCamera');
 const detachWindowGUI = require('./lib/detachWindow');
 const fullscreen = require('./lib/fullscreen');
@@ -102,6 +103,7 @@ function K3D(provider, targetDOMNode, parameters) {
 
         screenshot.screenshotGUI(GUI.controls, self);
         snapshot.snapshotGUI(GUI.controls, self);
+        gltf.gltfGUI(GUI.controls, self);
         resetCameraGUI(GUI.controls, self);
 
         if (currentWindow === window) {
@@ -1684,6 +1686,15 @@ function K3D(provider, targetDOMNode, parameters) {
      */
     this.getHTMLSnapshot = function (compressionLevel) {
         return snapshot.getHTMLSnapshot(this, compressionLevel);
+    };
+
+    /**
+     * Get scene geometry as a binary glTF
+     * @memberof K3D.Core
+     * @returns {Promise<ArrayBuffer>}
+     */
+    this.getGLTF = function () {
+        return gltf.getGLTF(this);
     };
 
     /**

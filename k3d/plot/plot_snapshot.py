@@ -150,6 +150,54 @@ class PlotSnapshotMixin:
 
         return inner
 
+    def fetch_gltf(self) -> None:
+        """Request exporting the scene on the JS side and saving it in self.gltf
+
+        The result is a string of a binary glTF (.glb) file in base64 encoding.
+        This function requires a round-trip of websocket messages. The result will
+        be available after the current cell finishes execution.
+
+        glTF describes triangles and PBR materials, so an object whose shape only exists while
+        its shader runs cannot be handed over, and is left out rather than exported as the proxy
+        geometry that shader consumes - a volume would otherwise arrive as a plain cube.
+
+        Exported: mesh, surface, stl, marching_cubes, voxels, sparse_voxels, voxels_group,
+        texture built from an image, points with shader='mesh', line and lines with
+        shader='mesh' (tubes) or shader='simple' (glTF line primitives), and the arrowheads of
+        vectors and vector_field.
+
+        Left out: volume, mip, volume_slice, texture built from an attribute, points with
+        shader '3d', 'dot' or 'flat', line and lines with shader='thick', text, text2d, label,
+        texture_text, and the shafts of vectors and vector_field. Switching a points or lines
+        object to shader='mesh' is enough to bring it into the export.
+
+        The grid, axes, lights and color legend are not part of the model and never exported.
+        """
+        self.send({"msg_type": "fetch_gltf"})
+
+    def yield_gltfs(
+            self, generator_function: Callable[[], Generator[bytes, None, None]]
+    ) -> Callable[[], None]:
+        """Decorator for a generator function receiving glTF exports via yield.
+
+        The generator receives the .glb file as `bytes`, ready to be written to disk.
+        """
+
+        @wraps(generator_function)
+        def inner() -> None:
+            generator = generator_function()
+
+            def send_new_value(change: Any) -> None:
+                try:
+                    generator.send(base64.b64decode(change.new))
+                except StopIteration:
+                    self.unobserve(send_new_value, "gltf")
+
+            self.observe(send_new_value, "gltf")
+            generator.send(None)
+
+        return inner
+
     def get_binary_snapshot(
             self, compression_level: int = 9, voxel_chunks: Optional[List[Any]] = None
     ) -> bytes:

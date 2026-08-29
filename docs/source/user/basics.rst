@@ -164,8 +164,8 @@ In a multiple monitor setup, it may be useful to detach the
 plot to a dedicated window. This can be achieved by clicking
 the ``Detach widget`` button.
 
-Screenshots and snapshots
-^^^^^^^^^^^^^^^^^^^^^^^^^
+Screenshots, snapshots and models
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 You can save a screenshot of the current view by pressing the ``Screenshot`` button.
 The filename will be generated as "K3D-", followed by a decimal timestamp
@@ -195,6 +195,11 @@ In this case, you will have to write the output into an HTML file:
 
     with open('plot.html','w') as fp:
         fp.write(plot.get_snapshot())
+
+The third output is the scene geometry itself. The ``Export glTF`` button saves it as a
+``.glb`` model, which unlike a picture or a viewer can be opened in Blender or a slicer, and
+``plot.fetch_gltf()`` does the same from Python. See :ref:`gltf` for what the format is able
+to carry.
 
 ------------
 Plot options

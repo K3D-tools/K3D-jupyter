@@ -73,9 +73,6 @@ Click to watch at YouTube:
 
 Watch: [Interactive showcase gallery](https://k3d-jupyter.org/gallery/index.html)
 
-Jupyter
-version: [![Binder](https://mybinder.org/badge.svg)](https://mybinder.org/v2/gh/K3D-tools/K3D-jupyter/main?filepath=index.ipynb)
-
 ## Installation
 
 ### PyPI

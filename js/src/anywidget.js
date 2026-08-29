@@ -513,6 +513,14 @@ function renderPlot({ model, el }) {
                 saveChanges(model, 'snapshot', view.K3DInstance.getHTMLSnapshot(obj.compression_level));
             }
 
+            if (obj.msg_type === 'fetch_gltf') {
+                view.K3DInstance.getGLTF().then((glb) => {
+                    saveChanges(model, 'gltf', buffer.arrayBufferToBase64(glb));
+                }, (e) => {
+                    console.error('Failed to export glTF.', e);
+                });
+            }
+
             if (obj.msg_type === 'start_auto_play') {
                 view.K3DInstance.startAutoPlay();
             }

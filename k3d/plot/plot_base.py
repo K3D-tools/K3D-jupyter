@@ -65,6 +65,7 @@ class PlotBase(K3DAnyWidget):
     screenshot = Unicode().tag(sync=True)
     snapshot = Unicode().tag(sync=True)
     snapshot_type = Unicode().tag(sync=True)
+    gltf = Unicode().tag(sync=True)
     camera_fov = Float().tag(sync=True)
     name = Unicode(default_value=None, allow_none=True).tag(sync=True)
     axes = List(minlen=3, maxlen=3, default_value=["x", "y", "z"]).tag(sync=True)

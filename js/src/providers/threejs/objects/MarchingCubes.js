@@ -71,6 +71,7 @@ module.exports = {
             let j;
             let k;
             const polygonise = marchingCubesPolygonise;
+            const peel = K3D.parameters.depthPeels !== 0;
 
             if (isAttribute(config)) {
                 if (config.opacity_function && config.opacity_function.data
@@ -122,7 +123,9 @@ module.exports = {
                     volumeTexture: { type: 't', value: texture },
                     colormap: { type: 't', value: colormap },
                 };
-                material.customProgramCacheKey = () => 'k3d-marching-cubes-volume';
+                // the key replaces three's default (onBeforeCompile.toString()), so every input
+                // that changes the injected shader has to be in it - peeling included
+                material.customProgramCacheKey = () => `k3d-marching-cubes-volume-${peel ? 1 : 0}`;
 
                 material.onBeforeCompile = (shader) => {
                     Object.assign(shader.uniforms, material.uniforms);
@@ -140,7 +143,7 @@ module.exports = {
                 };
             }
 
-            if (K3D.parameters.depthPeels === 0) {
+            if (!peel) {
                 material.depthWrite = (config.opacity === 1.0 && opacityFunction === null);
                 material.transparent = (config.opacity !== 1.0 || opacityFunction !== null);
             } else {

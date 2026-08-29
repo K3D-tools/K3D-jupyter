@@ -7,6 +7,7 @@ maintains itself.
 
     python run.py                       # generate what is missing, then serve on a free port
     python run.py --bundles local 2.18.0
+    python run.py --scenes voxels "line_*"  # measure a subset, e.g. to recheck one finding
     python run.py --regenerate          # rebuild the corpus first
     python run.py --report results/perf_x.csv  # every bundle in one run vs the oldest
     python run.py --compare a.csv b.csv # ratio table from two separate runs
@@ -42,6 +43,7 @@ import argparse
 import contextlib
 import csv
 import datetime
+import fnmatch
 import glob
 import json
 import os
@@ -66,6 +68,7 @@ except ImportError:
 
 bundles_module = bundles
 SCENES_DIR = os.path.join(HERE, 'scenes')
+BASELINE_SCENE = '__empty__'
 RESULTS_DIR = os.path.join(HERE, 'results')
 STATIC_DIR = os.path.join(HERE, 'static')
 BUNDLES_DIR = os.path.join(HERE, 'bundles')
@@ -149,6 +152,35 @@ def ensure_corpus(regenerate=False):
         os.chdir(previous)
 
     return manifest, report
+
+
+def select(manifest, patterns):
+    """Narrow the corpus to the named scenes, fnmatch so `voxels*` works.
+
+    A pattern that matches nothing is printed rather than ignored: a subset run is usually a
+    follow-up to a finding, and quietly measuring the whole corpus instead would waste an hour.
+    Manifest order is kept, not command-line order, so a rerun lists scenes the way the full run did.
+    """
+    by_name = {entry['name']: entry for entry in manifest}
+    chosen = set()
+
+    for pattern in patterns:
+        hits = fnmatch.filter(by_name, pattern)
+
+        if not hits:
+            print('  no scene matches %s' % pattern)
+
+        chosen.update(hits)
+
+    if not chosen:
+        return []
+
+    # the page asks for the empty frame by name, once per bundle and mode, and subtracts it from
+    # every scene - scene.html checks that name against this list, so it has to survive the filter
+    # even though no pattern would ever match it
+    chosen.add(BASELINE_SCENE)
+
+    return [entry for entry in manifest if entry['name'] in chosen]
 
 
 def ensure_bundles(versions):
@@ -862,6 +894,9 @@ def main():
     parser.add_argument('--port', type=int, default=0,
                         help='0 (default) - let the system choose a free port')
     parser.add_argument('--bundles', nargs='*', default=['local'])
+    parser.add_argument('--scenes', nargs='+', metavar='NAME',
+                        help='measure only these scenes, fnmatch patterns allowed - the empty-frame '
+                             'baseline is measured either way')
     parser.add_argument('--regenerate', action='store_true')
     parser.add_argument('--no-browser', action='store_true')
     parser.add_argument('--compare', nargs=2, metavar=('A.csv', 'B.csv'),
@@ -891,6 +926,12 @@ def main():
 
         for module_name, label, status, detail in skipped:
             print('  skipped: %s::%s (%s: %s)' % (module_name, label, status, detail))
+
+    if args.scenes:
+        manifest = select(manifest, args.scenes)
+
+        if not manifest:
+            return 1
 
     print('  %d scenes, %.1f MB' % (len(manifest), sum(s['bytes'] for s in manifest) / 1e6))
 

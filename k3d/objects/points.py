@@ -4,10 +4,10 @@ import numpy as np
 from traitlets import TraitError, Unicode, validate
 
 from ..helpers import Array, Float, Int, array_serialization_wrap, get_bounding_box_points
-from .base import EPSILON, Drawable, ListOrArray, TimeSeries
+from .base import EPSILON, DrawableWithCallback, ListOrArray, TimeSeries
 
 
-class Points(Drawable):
+class Points(DrawableWithCallback):
     """
     A point cloud.
 
