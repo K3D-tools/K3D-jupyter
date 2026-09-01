@@ -1,5 +1,6 @@
 """Factory functions for volumetric and voxel-based objects."""
 
+import warnings
 from typing import Any, Optional, Tuple, Union
 from typing import Dict as TypingDict
 from typing import List as TypingList
@@ -207,6 +208,15 @@ def volume_slice(
 
     if len(volume) > 0:
         color_range = check_attribute_color_range(volume, color_range)
+
+    # createCanvasGradient2d writes a fixed alpha, so a transfer function has no channel to
+    # apply to once there are two. Saying so beats dropping it without a word.
+    if isinstance(volume, (list, tuple)) and len(volume) > 1 and len(opacity_function) > 0:
+        warnings.warn(
+            "opacity_function is ignored for a multi-channel volume_slice: the 2D colormap "
+            "carries colour only",
+            stacklevel=2,
+        )
 
     return process_transform_arguments(
         VolumeSlice(

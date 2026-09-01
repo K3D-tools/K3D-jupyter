@@ -30,6 +30,19 @@ class SingleOrList(Union):
         Union.__init__(self, [trait, List(trait)])
 
 
+class ListOrSingle(Union):
+    """A list of `trait`, or one bare `trait` - the mirror of SingleOrList.
+
+    The order is the whole point. Union takes the first trait that validates, and Array()
+    validates a list by coercing it into one dense array, so Array() first would swallow the
+    list case. Unicode() has no such coercion, which is why SingleOrList can afford the
+    opposite order and both classes have to exist.
+    """
+
+    def __init__(self, trait):
+        Union.__init__(self, [List(trait), trait])
+
+
 class ListOrArray(List):
     _cast_types = (tuple, np.ndarray)
 

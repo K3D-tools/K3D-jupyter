@@ -411,6 +411,25 @@ def check_attribute_color_range(
     if color_range is None:
         color_range = []
 
+    # A list of arrays is a multi-channel volume, and the range is per channel: the browser
+    # reads color_range[2 * i] and [2 * i + 1] for channel i, so a two-element range over two
+    # channels would leave the second one reading undefined and its uniforms NaN.
+    if isinstance(attribute, (list, tuple)):
+        if len(color_range) == 2 * len(attribute):
+            return list(color_range)
+
+        ranges = []
+
+        for channel in attribute:
+            low, high = minmax(channel)
+
+            if low == high:
+                high += 1.0
+
+            ranges += [low, high]
+
+        return ranges
+
     if len(color_range) == 2:
         return color_range
     if type(attribute) is dict:

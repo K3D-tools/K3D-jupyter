@@ -14,7 +14,7 @@ from ..helpers import (
     shape_validation,
     sparse_voxels_validation,
 )
-from .base import Drawable, DrawableWithCallback, DrawableWithVoxelCallback, ListOrArray, TimeSeries
+from .base import Drawable, DrawableWithCallback, DrawableWithVoxelCallback, ListOrArray, ListOrSingle, TimeSeries
 
 
 class MarchingCubes(DrawableWithCallback):
@@ -107,6 +107,23 @@ class MarchingCubes(DrawableWithCallback):
         self.set_trait("type", "MarchingCubes")
 
 
+def _volume_dtype(value):
+    """Hold one volume to the dtypes the 3D texture path accepts.
+
+    float16 is deliberate rather than an oversight: it halves the array in the Python heap, on
+    the wire and in VRAM, because typedArrayToThree maps Float16Array to THREE.HalfFloatType.
+    """
+    required = [np.float16, np.float32]
+    actual = np.asarray(value).dtype
+
+    if actual not in required:
+        warnings.warn("wrong dtype: %s (%s required)" % (actual, required), stacklevel=3)
+
+        return np.asarray(value).astype(np.float32)
+
+    return value
+
+
 class VolumeSlice(DrawableWithCallback):
     """Create a Volume slice drawable.
 
@@ -149,10 +166,16 @@ class VolumeSlice(DrawableWithCallback):
             4x4 model transform matrix."""
 
     type = Unicode(read_only=True).tag(sync=True)
-    volume = TimeSeries(Array()).tag(sync=True, **array_serialization_wrap("volume"))
+    # ListOrSingle, not Array: a list of arrays is a multi-channel slice, and the browser keys
+    # the shader's TEXTURE_COUNT off its length. A bare Array() coerces the list into one 4D
+    # array, which then renders as a single channel with a mangled shape.
+    volume = TimeSeries(ListOrSingle(Array())).tag(
+        sync=True, **array_serialization_wrap("volume")
+    )
     color_map = TimeSeries(Array(dtype=np.float32)).tag(
         sync=True, **array_serialization_wrap("color_map")
     )
+    # deliberately no maxlen: a multi-channel slice carries two bounds per channel
     color_range = TimeSeries(ListOrArray(minlen=2, empty_ok=True)).tag(sync=True)
     opacity_function = TimeSeries(Array(dtype=np.float32)).tag(
         sync=True, **array_serialization_wrap("opacity_function")
@@ -184,27 +207,19 @@ class VolumeSlice(DrawableWithCallback):
         if type(proposal["value"]) is dict:
             return proposal["value"]
 
+        # one entry per channel, each held to the same dtype rule as a single volume
         if type(proposal["value"]) is list:
-            return proposal["value"]
+            return [_volume_dtype(channel) for channel in proposal["value"]]
 
         if type(proposal["value"]) is np.ndarray and proposal[
             "value"
         ].dtype is np.dtype(object):
-            return proposal["value"].tolist()
+            return [_volume_dtype(channel) for channel in proposal["value"].tolist()]
 
         if proposal["value"].shape == (0,):
             return np.array(proposal["value"], dtype=np.float32)
 
-        required = [np.float16, np.float32]
-        actual = proposal["value"].dtype
-
-        if actual not in required:
-            warnings.warn("wrong dtype: %s (%s required)" % (actual, required),
-                          stacklevel=2)
-
-            return proposal["value"].astype(np.float32)
-
-        return proposal["value"]
+        return _volume_dtype(proposal["value"])
 
     def get_bounding_box(self):
         return get_bounding_box(self.model_matrix)
