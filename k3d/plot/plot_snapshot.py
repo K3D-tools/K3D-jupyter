@@ -278,7 +278,9 @@ class PlotSnapshotMixin:
             else:
                 raise Exception("Unknown snapshot_type")
             template = read_static(template_file)
-            template = template.replace("[VERSION]", self._view_module_version)
+            # k3d's own version, not _view_module_version: since 3.0.0 Plot is an AnyWidget and
+            # that trait carries anywidget's range, so the unpkg URL came out as k3d@~0.9.*
+            template = template.replace("[VERSION]", version)
             template = template.replace("[HEIGHT]", str(self.height))
             template = template.replace("[ID]", str(id(self)))
         template = template.replace("[DATA]", base64.b64encode(data).decode("utf-8"))
