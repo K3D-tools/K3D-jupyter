@@ -1,5 +1,6 @@
-import numpy as np
 import os
+
+import numpy as np
 import vtk
 
 import k3d

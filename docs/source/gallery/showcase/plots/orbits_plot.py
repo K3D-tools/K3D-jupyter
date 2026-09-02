@@ -105,7 +105,7 @@ def generate():
     speeds = []
     positions = {}
 
-    for i in range(bodies_count):
+    for _ in range(bodies_count):
         lines.append([])
         speeds.append([])
 

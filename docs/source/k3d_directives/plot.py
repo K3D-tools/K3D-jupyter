@@ -1,5 +1,6 @@
 import importlib.util
 import os
+
 from docutils import nodes
 from docutils.parsers.rst import directives
 from sphinx.util.docutils import SphinxDirective
@@ -28,9 +29,8 @@ class K3D_Plot(SphinxDirective):
         image_filepath = os.path.join(os.path.dirname(path),
                                       os.path.splitext(os.path.basename(filename))[0] + '.png')
 
-        if 'screenshot' in self.options:
-            if os.path.isfile(image_filepath):
-                return []
+        if 'screenshot' in self.options and os.path.isfile(image_filepath):
+            return []
 
         spec = importlib.util.spec_from_file_location("module.name", code_path)
         foo = importlib.util.module_from_spec(spec)
