@@ -1,0 +1,19 @@
+version: 2
+
+# target-branch on every entry: without it dependabot opens against the repository's default
+# branch, which is main, and every bump has to be retargeted by hand before it can go through
+# the usual devel -> main route.
+updates:
+  # the published JS package
+  - package-ecosystem: npm
+    directory: /js
+    target-branch: devel
+    schedule:
+      interval: weekly
+
+  # the root package.json, which orchestrates the build
+  - package-ecosystem: npm
+    directory: /
+    target-branch: devel
+    schedule:
+      interval: weekly
