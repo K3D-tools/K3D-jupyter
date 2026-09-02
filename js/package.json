@@ -63,7 +63,7 @@
     "load-grunt-tasks": "5.1.0",
     "style-loader": "^3.3.1",
     "time-grunt": "2.0.0",
-    "webpack": "^5.109.2",
+    "webpack": "^5.110.2",
     "webpack-cli": "^7.2.3",
     "webpack-combine-loaders": "^2.0.4",
     "webpack-node-externals": "^3.0.0",
