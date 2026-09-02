@@ -1,6 +1,7 @@
 [build-system]
 requires = [
-    "hatchling>=1.10.0",
+    # 1.27 is the first with PEP 639 support, which `license`/`license-files` below need
+    "hatchling>=1.27.0",
     "hatch-nodejs-version>=0.3.0",
 ]
 build-backend = "hatchling.build"
@@ -9,20 +10,43 @@ build-backend = "hatchling.build"
 name = "k3d"
 readme = "README.md"
 requires-python = ">=3.9"
+# Static: hatch-nodejs-version supplies only `version`, and package.json's homepage is a
+# git clone URL. Declared dynamic with no hook is what left these null on PyPI.
+description = "WebGL 3D plotting for Jupyter: meshes, isosurfaces, volumes, voxels and point clouds"
+# SPDX expression, not [project.license].file: the file form puts the whole MIT text in the
+# License metadata field, which PyPI renders verbatim instead of as a licence chip
+license = "MIT"
+license-files = ["LICENSE.txt"]
 keywords = [
     "Jupyter",
     "JupyterLab",
     "anywidget",
+    "3d",
+    "webgl",
+    "visualization",
+    "volume-rendering",
+    "point-cloud",
+    "numpy",
 ]
 classifiers = [
+    "Development Status :: 5 - Production/Stable",
+    # not `... JupyterLab :: Extensions`: since 3.0.0 there is no extension to enable
     "Framework :: Jupyter",
+    "Intended Audience :: Science/Research",
+    "Intended Audience :: Education",
+    "Intended Audience :: Developers",
     "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
     "Programming Language :: Python",
     "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3 :: Only",
+    # stops at 3.12: that is what test.yml runs
     "Programming Language :: Python :: 3.9",
     "Programming Language :: Python :: 3.10",
     "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
+    "Topic :: Multimedia :: Graphics :: 3D Rendering",
+    "Topic :: Scientific/Engineering :: Visualization",
 ]
 dependencies = [
     "anywidget>=0.9.13",
@@ -33,7 +57,18 @@ dependencies = [
     "traitlets",
     "traittypes",
 ]
-dynamic = ["version", "description", "authors", "urls"]
+dynamic = ["version"]
+
+[[project.authors]]
+name = "k3d team"
+email = "artur.trzesiok@gmail.com"
+
+[project.urls]
+Documentation = "https://k3d-jupyter.org"
+Homepage = "https://k3d-jupyter.org"
+Source = "https://github.com/K3D-tools/K3D-jupyter"
+Issues = "https://github.com/K3D-tools/K3D-jupyter/issues"
+Changelog = "https://github.com/K3D-tools/K3D-jupyter/releases"
 
 [project.optional-dependencies]
 dev = [
@@ -65,8 +100,6 @@ examples = [
     "vtk"
 ]
 
-[project.license]
-file = "LICENSE.txt"
 
 [tool.hatch.build.targets.wheel]
 exclude = ["k3d/test", "k3d/*.stl"]
@@ -142,6 +175,8 @@ npm = [
 line-length = 120
 # matches requires-python; raise both together
 target-version = "py39"
+# an archived copy of the 2.1.0 test notebook, not maintained code
+extend-exclude = ["examples/old"]
 
 [tool.ruff.lint]
 # pycodestyle (E, W), pyflakes (F), import order (I), bugbear (B), comprehensions (C4),
@@ -170,3 +205,10 @@ ignore = [
 # default can leak; None would hide the real default from help() and the API reference
 "k3d/platonic.py" = ["B006"]
 "k3d/helpers.py" = ["B006"]
+# Notebook conventions, not module conventions: cells re-import and redefine on purpose, a
+# stray import is often there for its side effect, and F821 is unusable because ruff does not
+# parse the statement after an IPython magic - all five hits are `%time x = ...`.
+"examples/**/*.ipynb" = [
+    "B007", "B018", "C408", "C417", "E402", "E501", "E702", "E703", "E731", "E741",
+    "F401", "F811", "F821", "I001", "SIM115", "SIM118", "UP004", "UP015", "W291", "W293",
+]

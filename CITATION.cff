@@ -1,0 +1,35 @@
+cff-version: 1.2.0
+title: K3D-jupyter
+message: If you use this software, please cite it using the metadata from this file.
+type: software
+abstract: >-
+  WebGL 3D plotting for Jupyter. K3D renders meshes, isosurfaces, volumes, voxels, point
+  clouds, lines and VTK objects from plain NumPy arrays, and carries a path-traced
+  cinematic renderer for publication-quality stills.
+authors:
+  - given-names: Artur
+    family-names: Trzęsiok
+  - given-names: Marcin
+    family-names: Kostur
+  - given-names: Tomasz
+    family-names: Gandor
+  - given-names: Thomas
+    family-names: Mattone
+license: MIT
+repository-code: https://github.com/K3D-tools/K3D-jupyter
+url: https://k3d-jupyter.org
+keywords:
+  - 3D visualization
+  - WebGL
+  - Jupyter
+  - volume rendering
+  - scientific visualization
+  - NumPy
+# concept DOI: resolves to the newest deposit, so it needs no edit per release
+identifiers:
+  - type: doi
+    value: 10.5281/zenodo.3247652
+    description: Concept DOI for all versions
+# newest published version, not the working tree - bump on release
+version: 3.0.1
+date-released: "2026-08-29"

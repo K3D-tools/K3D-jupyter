@@ -25,3 +25,13 @@ npm publish
 # prepublishOnly runs the webpack build and the manifest check
 cd ../docs
 make html
+
+# Then the GitHub Release, from main, after the devel -> main PR is merged. This is what
+# archives the release: the Zenodo webhook listens for `release` events only, and never
+# backfills, so a version released without this step is uncitable.
+gh release create vX.Y.Z --repo K3D-tools/K3D-jupyter --target main --title "vX.Y.Z" --generate-notes
+
+# Confirm Zenodo picked it up (a few minutes):
+curl -s https://zenodo.org/api/records/3247652 | python -c "import json,sys; m=json.load(sys.stdin)['metadata']; print(m.get('version'), m.get('publication_date'))"
+
+# Finally bump `version` and `date-released` in CITATION.cff to the version just published.

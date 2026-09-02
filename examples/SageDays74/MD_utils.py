@@ -58,17 +58,16 @@ def lennardjones(U, box, sigma=0.3405, epsilon=0.9959):
     return Epot, F, Vir
 
 
-class simple_molecule_vis(object):
+class simple_molecule_vis:
 
     @classmethod
     def box_coords(cls, bs=2.2):
         a = bs / 2.0
-        box = np.array([-a, -a, -a] + [-a, a, -a] + [a, a, -a] + [a, -a, -a] + [-a, -a, -a] + \
-                       [-a, -a, a] + [-a, a, a] + [a, a, a] + [a, -a, a] + [-a, -a, a] + \
-                       [-a, a, a] + [-a, a, -a] + [-a, a, a] + \
-                       [a, a, a] + [a, a, -a] + [a, a, a] + \
-                       [a, -a, a] + [a, -a, -a] + [a, -a, a])
-        return box
+        return np.array([-a, -a, -a] + [-a, a, -a] + [a, a, -a] + [a, -a, -a] + [-a, -a, -a]
+                        + [-a, -a, a] + [-a, a, a] + [a, a, a] + [a, -a, a] + [-a, -a, a]
+                        + [-a, a, a] + [-a, a, -a] + [-a, a, a]
+                        + [a, a, a] + [a, a, -a] + [a, a, a]
+                        + [a, -a, a] + [a, -a, -a] + [a, -a, a])
 
     def update_box(self, bs=1):
         self.box.vertices = self.box_coords(bs=bs)

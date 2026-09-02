@@ -40,7 +40,7 @@ CAMERA = [0.0705, 0.0411, 0.0538,
           -0.0798, 0.9872, 0.1265]
 
 
-def build_plot(mesh_opacity=0.25):
+def build_plot(mesh_opacity=0.25, background=None, mesh_color=0x0002):
     data = np.load(os.path.normpath(ASSET))
 
     streamlines = k3d.line(data['lines'],
@@ -53,12 +53,14 @@ def build_plot(mesh_opacity=0.25):
     mesh = k3d.mesh(data['vertices'], data['indices'],
                     opacity=mesh_opacity,
                     wireframe=True,
-                    color=0x0002)
+                    color=mesh_color)
 
     # camera_auto_fit off, or the first sync refits and discards the camera we set - which is
     # invisible in a long run (every later frame sets it again) and ruins exactly frame 0
+    extra = {} if background is None else {'background_color': background}
     plot = k3d.plot(grid_visible=False, screenshot_scale=1.0, axes_helper=0,
-                    menu_visibility=False, camera_auto_fit=False, grid_auto_fit=False)
+                    menu_visibility=False, camera_auto_fit=False, grid_auto_fit=False,
+                    **extra)
     plot += streamlines
     plot += mesh
     plot.camera = CAMERA
@@ -108,11 +110,15 @@ def main():
                              '(the showcase camera sits at 13.1)')
     parser.add_argument('--only-frame', type=int, default=None,
                         help='render one frame index only, for probing a look')
+    parser.add_argument('--background', type=lambda s: int(s, 0), default=None,
+                        help='plot background as hex, e.g. 0x000000; default is the theme white')
+    # on a dark background the showcase wireframe (0x0002) is invisible
+    parser.add_argument('--mesh-color', type=lambda s: int(s, 0), default=0x0002)
     args = parser.parse_args()
 
     os.makedirs(args.out, exist_ok=True)
 
-    plot, _ = build_plot(args.mesh_opacity)
+    plot, _ = build_plot(args.mesh_opacity, args.background, args.mesh_color)
     headless = k3d_remote(plot, get_headless_driver(), width=args.width, height=args.height)
 
     # the visual suite's own determinism switch: without it the dithering jitter differs per run

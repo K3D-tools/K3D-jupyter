@@ -1,15 +1,15 @@
 {
   "name": "k3d",
   "version": "3.0.2",
-  "description": "3D visualization library",
+  "description": "WebGL 3D plotting for Jupyter: meshes, isosurfaces, volumes, voxels and point clouds",
   "keywords": [
     "jupyter",
     "widgets",
     "anywidget"
   ],
-  "homepage": "https://github.com/K3D-tools/K3D-jupyter.git",
+  "homepage": "https://k3d-jupyter.org",
   "bugs": {
-    "url": "https://github.com/K3D-tools/K3D-jupyter.git/issues"
+    "url": "https://github.com/K3D-tools/K3D-jupyter/issues"
   },
   "license": "MIT",
   "author": {
