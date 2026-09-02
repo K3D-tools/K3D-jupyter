@@ -76,19 +76,20 @@ dev = [
     "flask",
     "jupyterlab",
     "notebook",
-    "pixelmatch",
+    # pinned like the Chrome version is: pixelmatch decides whether a visual test passes
+    "pixelmatch==0.3.0",
     "ruff",
     "pytest",
-    "pytest-notebook",
-    "pytest-cov",
     "selenium",
-    "webdriver_manager"
+    # imported by k3d/test, so the suite is installable from this extra alone
+    "pillow",
+    "scikit-image",
+    "vtk"
 ]
 # these cover all packages necessary to run the notebooks in `examples/`
 examples = [
     "flask",
     "matplotlib",
-    "mdutils",
     "nibabel",
     "numba",
     "opencv-python",
