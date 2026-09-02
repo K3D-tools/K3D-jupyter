@@ -1,8 +1,9 @@
-import numpy as np
 import os
 
+import numpy as np
+
 import k3d
-from k3d.headless import k3d_remote, get_headless_driver
+from k3d.headless import get_headless_driver, k3d_remote
 
 
 def generate():
@@ -13,7 +14,7 @@ def generate():
 
     v = data.copy()
     v[1:] = (v[1:] - v[:-1])
-    v = np.absolute((v / np.linalg.norm(v, axis=1)[..., np.newaxis]))
+    v = np.absolute(v / np.linalg.norm(v, axis=1)[..., np.newaxis])
     # NaN rows separate the streamlines - their color is never visible
     v = (np.nan_to_num(v) * 255).astype(np.int32)
     colors = np.sum((v * np.array([1, 256, 256 * 256])), axis=1).astype(np.uint32)

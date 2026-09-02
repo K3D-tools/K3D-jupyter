@@ -3,7 +3,7 @@ import sys
 
 sys.path.insert(0, os.path.abspath(os.path.dirname(__file__)))
 
-from renderers_scene import material_grid_plot  # noqa: E402
+from renderers_scene import material_grid_plot
 
 
 def generate():

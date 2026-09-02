@@ -182,7 +182,7 @@ however, its synchronization might be a little bit delayed -- it relies
 on an internal asynchronous traitlets_ mechanism.
 
 Snapshot is a live version of a scene in the form of stand-alone
-HTML file. Similarly to snapshots, you can either press the ``Snapshot HTML``
+HTML file. Similarly to screenshots, you can either press the ``Snapshot HTML``
 button or do it programmatically using:
 
 .. code:: python3
@@ -195,6 +195,10 @@ In this case, you will have to write the output into an HTML file:
 
     with open('plot.html','w') as fp:
         fp.write(plot.get_snapshot())
+
+See :ref:`snapshots` for the three kinds of file this can produce, for taking one from
+the browser instead of from Python, and for the binary form that carries the scene
+without the viewer.
 
 The third output is the scene geometry itself. The ``Export glTF`` button saves it as a
 ``.glb`` model, which unlike a picture or a viewer can be opened in Blender or a slicer, and

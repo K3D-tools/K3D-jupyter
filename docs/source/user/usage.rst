@@ -9,4 +9,5 @@ Usage
     panel
     name
     time
+    snapshots
     gltf

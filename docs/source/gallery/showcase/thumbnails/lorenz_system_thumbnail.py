@@ -2,7 +2,7 @@ import numpy as np
 
 import k3d
 from k3d.colormaps import paraview_color_maps
-from k3d.headless import k3d_remote, get_headless_driver
+from k3d.headless import get_headless_driver, k3d_remote
 
 
 def generate():

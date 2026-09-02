@@ -7,3 +7,5 @@ pydata_sphinx_theme
 pyvista
 SimpleITK
 sphinx-copybutton
+sphinx-sitemap
+sphinxext-opengraph

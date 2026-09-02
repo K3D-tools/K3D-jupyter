@@ -1,6 +1,7 @@
-import SimpleITK as sitk
-import numpy as np
 import os
+
+import numpy as np
+import SimpleITK as sitk
 
 import k3d
 from k3d.helpers import contour

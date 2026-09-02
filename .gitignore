@@ -11,6 +11,11 @@ k3d/static/
 *.pyc
 *~
 .ipynb_checkpoints/
+# scratch notebooks; also keeps them out of `ruff check .`, which respects this file
+Untitled*.ipynb
+# frame dirs written by tools/gallery_gif.py
+.gifframes/
+.ogframe/
 build/
 dist/
 js/test/assets/Lato-Regular.ttf

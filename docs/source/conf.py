@@ -14,6 +14,7 @@ import os
 import shutil
 import sys
 import time
+
 from source.k3d_directives.plot import K3D_Plot
 
 sys.path.insert(0, os.path.abspath('../..'))
@@ -21,7 +22,7 @@ sys.path.insert(0, os.path.abspath('../..'))
 # -- Project information -----------------------------------------------------
 
 project = 'K3D-jupyter'
-author = u'Artur Trzęsiok, Marcin Kostur, Tomasz Gandor, Thomas Mattone'
+author = 'Artur Trzęsiok, Marcin Kostur, Tomasz Gandor, Thomas Mattone'
 copyright = time.strftime('%Y') + ' ' + author
 
 # The full version, including alpha/beta/rc tags
@@ -45,7 +46,10 @@ extensions = [
     'sphinx.ext.viewcode',
     'sphinx.ext.githubpages',
     'sphinx_copybutton',
-    'sphinx.ext.napoleon'
+    'sphinx.ext.napoleon',
+    # meta description, og:/twitter: cards, canonical, sitemap - the pages had none
+    'sphinxext.opengraph',
+    'sphinx_sitemap',
 ]
 
 # Add any paths that contain templates here, relative to this directory.
@@ -65,6 +69,24 @@ exclude_patterns = ['_build', 'Thumbs.db', '.DS_Store']
 # a list of builtin themes.
 #
 html_theme = 'pydata_sphinx_theme'
+
+# both extensions build absolute URLs from this and emit nothing without it
+html_baseurl = 'https://k3d-jupyter.org/'
+
+# single-version docs: the default scheme would write /en/latest/ prefixes into the sitemap
+sitemap_url_scheme = '{link}'
+
+ogp_site_url = html_baseurl
+ogp_site_name = 'K3D-jupyter'
+ogp_type = 'website'
+ogp_enable_meta_description = True
+# one shared card; per-page og:image via page metadata is a follow-up
+ogp_image = 'https://k3d-jupyter.org/_static/og-image.png'
+ogp_image_alt = 'Blood-flow streamlines coloured by velocity inside a wireframe vessel wall, rendered by K3D-jupyter'
+# without summary_large_image some unfurlers fall back to a small thumbnail
+ogp_custom_meta_tags = [
+    '<meta name="twitter:card" content="summary_large_image" />',
+]
 
 html_theme_options = {
     "show_prev_next": False,
@@ -103,6 +125,9 @@ html_sidebars = {
 # relative to this directory. They are copied after the builtin static files,
 # so a file named "default.css" will overwrite the builtin "default.css".
 html_static_path = ['_static']
+
+# copied to the site root; serves robots.txt, which was 404
+html_extra_path = ['_extra']
 
 
 def setup(app):

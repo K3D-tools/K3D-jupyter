@@ -5,7 +5,7 @@ import k3d
 
 def generate():
     xs = []
-    for i in range(5):
+    for _ in range(5):
         xs.append(np.random.randn(150, 3).astype(np.float32))
 
     plt_points_red = k3d.points(xs[0],
