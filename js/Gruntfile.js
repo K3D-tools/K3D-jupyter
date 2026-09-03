@@ -10,8 +10,7 @@ module.exports = function (grunt) {
         },
         eslint: {
             options: {
-                // no config path: grunt-eslint 24 does not take one, and eslint finds
-                // .eslintrc.js next to this file on its own
+                // left empty: eslint finds eslint.config.js in this directory on its own
             },
             // the sources plus the two build files - nothing in js/ is left unlinted
             target: ['src/**/*.js', 'Gruntfile.js', 'webpack.config.js'],

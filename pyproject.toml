@@ -77,7 +77,7 @@ dev = [
     "jupyterlab",
     "notebook",
     # pinned like the Chrome version is: pixelmatch decides whether a visual test passes
-    "pixelmatch==0.3.0",
+    "pixelmatch==0.4.0",
     "ruff",
     "pytest",
     "selenium",
@@ -172,7 +172,7 @@ npm = [
 ]
 
 [tool.ruff]
-# 120 to match max-len in js/.eslintrc.js - one limit for both languages
+# 120 to match max-len in js/eslint.config.js - one limit for both languages
 line-length = 120
 # matches requires-python; raise both together
 target-version = "py39"
