@@ -2,7 +2,7 @@ import pytest
 
 import k3d
 
-from .plot_compare import compare, prepare
+from .plot_compare import GLYPH_AA_BUDGET, compare, prepare
 
 
 def test_texture_text():
@@ -28,4 +28,4 @@ def test_texture_text():
         size=1.0,
     )
 
-    compare("texture_text", camera_factor=0.5)
+    compare("texture_text", camera_factor=0.5, max_mismatched_pixels=GLYPH_AA_BUDGET)

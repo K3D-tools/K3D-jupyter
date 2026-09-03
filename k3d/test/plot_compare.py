@@ -13,6 +13,10 @@ RESULTS_DIR = os.path.join(TEST_DIR, "results")
 REF_SAMPLES = 32
 CINEMATIC_SCREENSHOT_SCALE = 0.5
 
+# Glyph edges move by a few pixels between freetype versions (Debian image vs CI runner); a
+# misplaced or missing label differs by hundreds, so text tests tolerate this much and no more.
+GLYPH_AA_BUDGET = 32
+
 # Modes listed in K3D_ACCEPT_REFERENCES ("cinematic", "simple,advanced", "all") have their
 # renders written as the new reference instead of asserted. Never set in CI.
 ACCEPT_REFERENCES = [
