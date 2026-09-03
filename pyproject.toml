@@ -172,7 +172,7 @@ npm = [
 ]
 
 [tool.ruff]
-# 120 to match max-len in js/.eslintrc.js - one limit for both languages
+# 120 to match max-len in js/eslint.config.js - one limit for both languages
 line-length = 120
 # matches requires-python; raise both together
 target-version = "py39"
