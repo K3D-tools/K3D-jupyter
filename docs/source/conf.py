@@ -135,7 +135,8 @@ def setup(app):
     shutil.copy('./../js/dist/standalone.js', './source/_static/standalone.js')
     # a sibling of the bundle, or the embeds build their BVH on the main thread
     shutil.copy('./../js/dist/k3d-bvh-worker.js', './source/_static/k3d-bvh-worker.js')
-    shutil.copy('./../node_modules/requirejs/require.js', './source/_static/require.js')
+    # js/node_modules, not the root tree: the root manifest declares no dependencies
+    shutil.copy('./../js/node_modules/requirejs/require.js', './source/_static/require.js')
 
     # one shared sideload for every embed on the site: without it a kernel-less
     # page degrades the photographic environment names to the neutral preset

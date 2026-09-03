@@ -34,40 +34,27 @@
     "prepublishOnly": "npm run build && node prepublish-check.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
-  "resolutions": {
-    "lodash": "^4.18.1",
-    "**/globule/minimatch": "^3.1.5"
-  },
   "overrides": {
     "minimatch@~3.0.2": "^3.1.5"
   },
   "devDependencies": {
-    "components-webfontloader": "1.5.2",
     "copy-webpack-plugin": "^14.0.0",
-    "cors": "2.8.5",
-    "css-loader": "^6.7.1",
+    "css-loader": "^7.1.5",
     "eslint": "^8.16.0",
     "eslint-config-airbnb-base": "^15.0.0",
     "eslint-plugin-import": "^2.26.0",
-    "eslint-plugin-markdown": "^2.2.1",
-    "express": "^5.2.1",
     "grunt": "^1.5.3",
     "grunt-contrib-clean": "2.0.1",
     "grunt-contrib-connect": "^5.0.1",
     "grunt-contrib-watch": "^1.1.0",
     "grunt-eslint": "^24.0.0",
-    "grunt-express-server": "0.5.4",
     "grunt-open": "^0.2.4",
-    "grunt-webpack": "^5.0.0",
-    "json-loader": "^0.5.7",
+    "grunt-webpack": "^7.0.1",
     "load-grunt-tasks": "5.1.0",
-    "style-loader": "^3.3.1",
+    "style-loader": "^4.0.0",
     "time-grunt": "2.0.0",
-    "webpack": "^5.109.2",
-    "webpack-cli": "^4.9.2",
-    "webpack-combine-loaders": "^2.0.4",
-    "webpack-node-externals": "^3.0.0",
-    "webpack-visualizer-plugin2": "^1.0.0"
+    "webpack": "^5.110.3",
+    "webpack-cli": "^7.2.3"
   },
   "dependencies": {
     "@msgpack/msgpack": "^3.1.3",

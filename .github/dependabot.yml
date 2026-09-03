@@ -1,19 +1,29 @@
 version: 2
 
-# target-branch on every entry: without it dependabot opens against the repository's default
-# branch, which is main, and every bump has to be retargeted by hand before it can go through
-# the usual devel -> main route.
 updates:
-  # the published JS package
+  # only /js: the root package.json declares no dependencies, so there is nothing to bump
   - package-ecosystem: npm
     directory: /js
+    # without this, bumps target the default branch (main) and need retargeting by hand
     target-branch: devel
     schedule:
-      interval: weekly
-
-  # the root package.json, which orchestrates the build
-  - package-ecosystem: npm
-    directory: /
-    target-branch: devel
-    schedule:
-      interval: weekly
+      interval: monthly
+    open-pull-requests-limit: 3
+    groups:
+      # one PR per role, not per package: the first run of this file opened nine, and every
+      # one of them conflicted with the others on js/package-lock.json
+      dev-dependencies:
+        dependency-type: development
+      runtime-dependencies:
+        dependency-type: production
+        update-types: [minor, patch]
+    ignore:
+      # eslint 9 dropped .eslintrc and airbnb-base ended at 15.0.0 without a flat config,
+      # so this is a lint-stack rewrite rather than a bump
+      - dependency-name: eslint
+        update-types: [version-update:semver-major]
+      - dependency-name: grunt-eslint
+        update-types: [version-update:semver-major]
+      # grunt-webpack 8 needs node ^22.13, above the node this project is developed on
+      - dependency-name: grunt-webpack
+        update-types: [version-update:semver-major]
