@@ -254,6 +254,16 @@ def test_cinematic_params_are_validated():
     # a plot parameter is dead in the headless and snapshot paths until listed in _PLOT_PARAMS
     assert plot.get_plot_params()["cinematicGlossyFilter"] == 0.0
 
+    # unset by default: a notebook render is not expected to reproduce bit for bit
+    assert plot.cinematic_seed is None
+    plot.cinematic_seed = 7
+    assert plot.get_plot_params()["cinematicSeed"] == 7
+    for bad in (0, -1, 2**31):
+        with pt.raises(TraitError):
+            plot.cinematic_seed = bad
+    plot.cinematic_seed = None
+    assert plot.get_plot_params()["cinematicSeed"] is None
+
 
 def test_cinematic_params_reach_the_snapshot():
     plot = k3d.plot(renderer="cinematic", cinematic_samples=16, cinematic_bounces=4)

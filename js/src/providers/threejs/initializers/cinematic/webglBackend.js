@@ -39,9 +39,9 @@ function lcgRandom(seed) {
 }
 
 // stableNoise pins the per-sample sequences only; the per-pixel offsets in
-// stratifiedOffsetTexture are Math.random blue noise, so repeatability across page
-// loads requires reseeding them too.
-function reseedOffsetTexture(tracer) {
+// stratifiedOffsetTexture are blue noise drawn from Math.random, so a repeatable
+// render needs them drawn from the seed too. null hands them back to Math.random.
+function reseedOffsetTexture(tracer, seed) {
     const pathTracer = tracer._pathTracer;
     const texture = pathTracer && pathTracer.material
         && pathTracer.material.stratifiedOffsetTexture;
@@ -55,7 +55,7 @@ function reseedOffsetTexture(tracer) {
     const generator = new BlueNoiseGenerator();
 
     generator.size = texture.image.width;
-    generator.random = lcgRandom(1);
+    generator.random = seed === null ? Math.random : lcgRandom(seed);
 
     const { data, maxValue } = generator.generate();
     const pixels = texture.image.data;
@@ -204,15 +204,13 @@ module.exports = function createWebGLBackend(renderer) {
             // the sample loop is driven externally
             tracer.renderDelay = 0;
             tracer.fadeDuration = 0;
-            // per-sample seeds, not wall-clock: N samples are a pure function of the scene
-            tracer.stableNoise = true;
+            // noise is pinned or freed through setSeed(), driven by the cinematicSeed parameter
             // K3D tone-maps the accumulation target itself; skip the library's canvas copy
             tracer.renderToCanvas = false;
             // the generator asks for one primitive per leaf through maxLeafTris, which is
             // deprecated and warns on every rebuild; bvhOptions is spread last, so saying the
             // same thing under its current name and clearing the old key silences it
             tracer._generator.bvhOptions = { maxLeafTris: undefined, targetLeafSize: 1 };
-            reseedOffsetTexture(tracer);
 
             if (typeof window !== 'undefined') {
                 // diagnostic handle for headless probes
@@ -229,6 +227,16 @@ module.exports = function createWebGLBackend(renderer) {
         // fireflies - rough bounce, then a mirror catching a small bright light - do not.
         setGlossyFilter(factor) {
             tracer.filterGlossyFactor = factor;
+        },
+
+        // null: the library takes its own Math.random paths, so every accumulation differs.
+        // An integer: seeded stratified jitter plus seeded offsets, so N samples are a pure
+        // function of the scene - what a reference-image suite needs and a notebook does not.
+        setSeed(seed) {
+            const pinned = seed !== null && seed !== undefined;
+
+            tracer.stableNoise = pinned;
+            reseedOffsetTexture(tracer, pinned ? seed : null);
         },
 
         // One renderSample() advances one tile, bounding the GPU work per call: an

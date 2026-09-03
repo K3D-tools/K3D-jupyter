@@ -61,6 +61,7 @@ _PLOT_PARAMS = (
     ("cinematicSamples", "cinematic_samples"),
     ("cinematicBounces", "cinematic_bounces"),
     ("cinematicGlossyFilter", "cinematic_glossy_filter"),
+    ("cinematicSeed", "cinematic_seed"),
     ("cameraAnimation", "camera_animation"),
     ("customData", "custom_data"),
     ("fps", "fps"),

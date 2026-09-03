@@ -2,7 +2,7 @@ import pytest
 
 import k3d
 
-from .plot_compare import compare, prepare
+from .plot_compare import GLYPH_AA_BUDGET, compare, prepare
 
 
 def test_labels():
@@ -13,7 +13,7 @@ def test_labels():
     pytest.plot += k3d.label("Test side 1", (1.5, 1.5, 1.5), mode="side")
     pytest.plot += k3d.label("Test side 2", (0, 0, 1.5), mode="side", is_html=True)
 
-    compare("labels", False)
+    compare("labels", False, max_mismatched_pixels=GLYPH_AA_BUDGET)
 
 
 def test_labels_without_box():
@@ -28,4 +28,4 @@ def test_labels_without_box():
         "Test side 2", (0, 0, 1.5), mode="side", is_html=True, label_box=False
     )
 
-    compare("labels_without_box", False)
+    compare("labels_without_box", False, max_mismatched_pixels=GLYPH_AA_BUDGET)

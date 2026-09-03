@@ -61,7 +61,8 @@ def pytest_sessionstart(session):
         shutil.rmtree(results, ignore_errors=True)
 
     pytest.plot = k3d.plot(
-        screenshot_scale=1.0, antialias=2, camera_auto_fit=False, colorbar_object_id=0
+        screenshot_scale=1.0, antialias=2, camera_auto_fit=False, colorbar_object_id=0,
+        cinematic_seed=1
     )
     print(pytest.plot.get_static_path())
     gpu = session.config.getoption("--gpu")

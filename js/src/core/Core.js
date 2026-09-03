@@ -492,6 +492,7 @@ function K3D(provider, targetDOMNode, parameters) {
             cinematicSamples: 64,
             cinematicBounces: 6,
             cinematicGlossyFilter: 0.25,
+            cinematicSeed: null,
             snapshotType: 'full',
             customData: null,
             additionalJsCode: '',
@@ -1262,6 +1263,16 @@ function K3D(provider, targetDOMNode, parameters) {
      */
     this.setCinematicGlossyFilter = function (factor) {
         self.parameters.cinematicGlossyFilter = factor;
+        self.render();
+    };
+
+    /**
+     * Pin or free the noise of the cinematic renderer
+     * @memberof K3D.Core
+     * @param {Number|null} seed null draws fresh noise each accumulation; an integer makes it repeatable
+     */
+    this.setCinematicSeed = function (seed) {
+        self.parameters.cinematicSeed = seed === undefined ? null : seed;
         self.render();
     };
 

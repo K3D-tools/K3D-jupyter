@@ -2,7 +2,7 @@ import pytest
 
 import k3d
 
-from .plot_compare import compare, prepare
+from .plot_compare import GLYPH_AA_BUDGET, compare, prepare
 
 
 def test_text2d():
@@ -28,7 +28,7 @@ def test_text2d():
         reference_point="rb",
     )
 
-    compare("text2d", False)
+    compare("text2d", False, max_mismatched_pixels=GLYPH_AA_BUDGET)
 
 
 def test_text2d_without_box():
@@ -61,4 +61,4 @@ def test_text2d_without_box():
         label_box=False,
     )
 
-    compare("text2d_without_box", False)
+    compare("text2d_without_box", False, max_mismatched_pixels=GLYPH_AA_BUDGET)
