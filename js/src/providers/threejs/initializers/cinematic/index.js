@@ -41,6 +41,8 @@ module.exports = function cinematic(K3D, renderer, hooks) {
     let envKey = null;
     let lastBounces = null;
     let lastGlossyFilter = null;
+    // undefined, not null: null is a legal seed, and the first pass must still apply it
+    let lastSeed;
     // the stratified-sample texture rebuilds on the first sample after a scene or bounce
     // change and consumes seeded RNG draws reset() does not replay: warm up one sample first
     let needsWarmup = true;
@@ -240,6 +242,7 @@ module.exports = function cinematic(K3D, renderer, hooks) {
             ready = false;
             lastBounces = null;
             lastGlossyFilter = null;
+            lastSeed = undefined;
             sceneDirty = true;
             onError(e);
         });
@@ -268,6 +271,15 @@ module.exports = function cinematic(K3D, renderer, hooks) {
         if (lastGlossyFilter !== glossyFilter) {
             backend.setGlossyFilter(glossyFilter);
             lastGlossyFilter = glossyFilter;
+            needsWarmup = true;
+            holdSamples();
+        }
+
+        const seed = K3D.parameters.cinematicSeed === undefined ? null : K3D.parameters.cinematicSeed;
+
+        if (lastSeed !== seed) {
+            backend.setSeed(seed);
+            lastSeed = seed;
             needsWarmup = true;
             holdSamples();
         }

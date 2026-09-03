@@ -42,6 +42,7 @@ The parameters
     plot.cinematic_samples = 64          # accumulation budget, [1, 100000]
     plot.cinematic_bounces = 6           # light bounces, [1, 32]
     plot.cinematic_glossy_filter = 0.25  # widen glossy lobes after a rough bounce, [0, 1]
+    plot.cinematic_seed = None           # None: fresh noise each time; an int: repeatable
 
 ``cinematic_samples``
     How many samples the accumulation gathers before it parks. Noise falls off as
@@ -60,6 +61,14 @@ The parameters
 
 ``cinematic_glossy_filter``
     Firefly control, described below. 0 leaves light transport unbiased.
+
+``cinematic_seed``
+    ``None``, the default, draws fresh noise for every accumulation, so two renders of
+    the same scene differ in their residual grain the way two photographs do. An
+    integer pins the noise: the same plot then renders the same image, sample for
+    sample, across page loads and machines - what a reference-image test suite or a
+    frame-by-frame animation needs, and what a notebook does not. Different seeds
+    give different, equally valid patterns.
 
 .. note::
     Path tracing produces high dynamic range: bounced light between bright

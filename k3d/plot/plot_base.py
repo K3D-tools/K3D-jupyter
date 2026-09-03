@@ -135,6 +135,20 @@ class PlotBase(K3DAnyWidget):
         if not 1 <= value <= 32:
             raise TraitError("cinematic_bounces must be in [1, 32], got %s" % value)
         return value
+    # None: fresh noise every accumulation. An int: N samples are a pure function of the scene
+    cinematic_seed = Int(default_value=None, allow_none=True).tag(sync=True)
+
+    @validate("cinematic_seed")
+    def _validate_cinematic_seed(self, proposal):
+        value = proposal["value"]
+        if value is None:
+            return None
+        value = int(value)
+        # the offset generator is a 31-bit LCG; 0 is reserved so "unset" and "seeded" never blur
+        if not 1 <= value <= 2**31 - 1:
+            raise TraitError("cinematic_seed must be None or in [1, 2**31 - 1], got %s" % value)
+        return value
+
     cinematic_glossy_filter = Float(default_value=0.25).tag(sync=True)
 
     @validate("cinematic_glossy_filter")
