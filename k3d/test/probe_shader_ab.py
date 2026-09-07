@@ -41,7 +41,9 @@ def power():
                              capture_output=True, text=True, timeout=10).stdout
         return float(out.strip().split("\n")[0])
     except Exception:
-        return float("nan")
+        # None, not a nan: a reading that failed is a missing sample,
+        # and saying so beats leaning on nan != nan to filter it
+        return None
 
 
 def blob(n):
@@ -90,9 +92,11 @@ def timed(headless, plot, label):
         times.append(time.perf_counter() - t0)
         watts.append(power())
 
-    print("  %-22s mediana %6.2f s   min %6.2f   max %6.2f   %5.1f W"
+    drawn = [w for w in watts if w is not None]
+
+    print("  %-22s mediana %6.2f s   min %6.2f   max %6.2f   %s"
           % (label, statistics.median(times), min(times), max(times),
-             statistics.mean([w for w in watts if w == w])))
+             "%5.1f W" % statistics.mean(drawn) if drawn else "   ? W"))
 
     return statistics.median(times)
 
