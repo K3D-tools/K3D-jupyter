@@ -1734,6 +1734,9 @@ function K3D(provider, targetDOMNode, parameters) {
         }
 
         return loader(self, data).then((objects) => {
+            // an update in place keeps the instance, so what a renderer cached from it holds
+            let rebuilt = false;
+
             objects.forEach((object) => {
                 if (!object) { // Loader could not create it; already reported
                     rebuilt = true;
@@ -1746,9 +1749,6 @@ function K3D(provider, targetDOMNode, parameters) {
                 }
 
                 if (timeSeriesReload !== true) {
-            // an update in place keeps the instance, so what a renderer cached from it holds
-            let rebuilt = false;
-
                     objectsGUIProvider.update(self, object.json, GUI.objects, changes);
                 }
 

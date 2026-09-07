@@ -1898,7 +1898,11 @@ module.exports = function (K3D) {
             chunkHeights.push([o1, o2 - o1]);
         }
 
-        const rt = new THREE.WebGLRenderTarget(width, Math.ceil(height / chunkCount), {
+        // Full height even when chunked: the chunks are selected by scissor, so they share one
+        // target and one projection. It costs no more than this path already paid - the grid
+        // pass allocated a full-height target of its own - and it costs less, because that
+        // second allocation is now the same object.
+        const rt = new THREE.WebGLRenderTarget(width, height, {
             type: THREE.FloatType,
         });
 
@@ -1932,9 +1936,7 @@ module.exports = function (K3D) {
                 );
             }
 
-            const rtGrid = chunkCount > 1
-                ? new THREE.WebGLRenderTarget(width, height, { type: THREE.FloatType })
-                : rt;
+            // the grid is read out before the scene draws over it
 
             return getSSAAChunkedRender(
                 self.renderer,
