@@ -114,9 +114,14 @@ module.exports = function (renderer, scene, camera, rt, fullWidth, fullHeight, c
                 // readback and scissor are both bottom-up; c[0] counts from the top
                 const bottom = fullHeight - c[0] - height;
 
+                // one chunk covers the target, so the rect is the whole of it and the test is
+                // semantically a no-op - but only semantically: a software rasteriser pays for
+                // it per fragment, which is every pixel of every jitter pass
+                const chunked = chunkHeights.length > 1;
+
                 [rt, sampleRenderTarget].forEach((target) => {
                     target.scissor.set(0, bottom, width, height);
-                    target.scissorTest = true;
+                    target.scissorTest = chunked;
                 });
 
                 for (let i = 0; i < jitterOffsets.length; i++) {
