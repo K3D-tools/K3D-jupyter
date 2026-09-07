@@ -10,44 +10,9 @@ import k3d
 SAMPLES = 128
 BOUNCES = 5
 
-# where the camera sits, as a direction from the centre and a multiple of the largest extent
-# straight at the front of the chest, lifted 18 degrees: the ribs then stand edge-on at
-# the margins instead of sweeping across the heart
-VIEW = np.array([0.0, -1.0, 0.325])
-DISTANCE = 1.3
-# the colour range's lower bound, which also decides what counts as tissue for the aim
-LOW = 300
-# the sharp plane, as a fraction of the camera's own distance, so it stays on the front of the
-# tissue when DISTANCE moves. 0 would focus on the camera's target instead, and that sits behind
-# the surface anyone is actually looking at
-FOCUS = 0.77
-
-
-def centre_of_tissue(img, size, low):
-    """World-space centroid of the voxels the colour range keeps.
-
-    Marginals rather than argwhere: this is 83 million voxels and only three numbers are wanted.
-    """
-    mass = img > low
-    # int64 throughout: numpy's default integer is 32-bit on Windows, and the first moment of
-    # five million voxels over five hundred slices overflows it into a negative centroid
-    total = float(mass.sum(dtype=np.int64))
-
-    if total == 0.0:
-        return np.zeros(3)
-
-    # the array is (z, y, x) and bounds are (x, y, z)
-    axes = [mass.sum(axis=(0, 1), dtype=np.int64),
-            mass.sum(axis=(0, 2), dtype=np.int64),
-            mass.sum(axis=(1, 2), dtype=np.int64)]
-    centre = []
-
-    for extent, counts in zip(size, axes):
-        index = float((counts * np.arange(counts.shape[0], dtype=np.int64)).sum()) / total
-
-        centre.append(-extent / 2.0 + (index + 0.5) / counts.shape[0] * extent)
-
-    return np.array(centre)
+# the framing Artur settled on, read off the plot with the camera he orbited to
+CAMERA = [82.32, -141.33, 74.31, -3.12, 5.48, -7.39, 0.03, 0.17, 0.99]
+FOCUS_DISTANCE = 131.2
 
 
 def generate():
@@ -67,17 +32,13 @@ def generate():
                             alpha_coef=250,
                             samples=256,
                             light_scale=2.25,
-                            color_range=[LOW, 900],
+                            color_range=[300, 900],
                             color_map=color_map,
                             compression_level=5)
 
     plt_volume.transform.bounds = [-size[0] / 2, size[0] / 2,
                                    -size[1] / 2, size[1] / 2,
                                    -size[2] / 2, size[2] / 2]
-
-    # aim at the centre of mass of what the colour range keeps, not at the centre of the data
-    # box: the tissue is nowhere near it, and pointing at the box leaves the subject off frame
-    target = centre_of_tissue(img, size, LOW)
 
     plot = k3d.plot(renderer='cinematic',
                     environment='neutral',
@@ -94,11 +55,8 @@ def generate():
                     lighting=1.5)
     plot += plt_volume
 
-    distance = DISTANCE * float(size.max())
-    plot.cinematic_focus_distance = FOCUS * distance
-
-    offset = VIEW / np.linalg.norm(VIEW) * distance
-    plot.camera = [*(target + offset), *target, 0, 0, 1]
+    plot.cinematic_focus_distance = FOCUS_DISTANCE
+    plot.camera = CAMERA
 
     plot.snapshot_type = 'inline'
     return plot.get_snapshot()
