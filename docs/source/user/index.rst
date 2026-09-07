@@ -48,4 +48,5 @@ First plot
     frontend
     usage
     renderers
+    volumes
     cinematic
