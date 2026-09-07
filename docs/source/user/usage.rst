@@ -11,3 +11,4 @@ Usage
     time
     snapshots
     gltf
+    headless

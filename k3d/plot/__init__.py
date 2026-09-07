@@ -37,7 +37,9 @@ class Plot(
         grid_visible: `bool`.
             Enable or disable grid.
         screenshot_scale: `Float`.
-            Multiplier to screenshot resolution.
+            Multiplier to screenshot resolution. A screenshot is the plot's own width and
+            height times this, whatever resolution the interactive view happens to be
+            drawing at.
         voxel_paint_color: `int`.
             The (initial) integer value to be inserted when editing voxels.
         label_color: `int`.

@@ -43,6 +43,7 @@ The parameters
     plot.cinematic_bounces = 6           # light bounces, [1, 32]
     plot.cinematic_glossy_filter = 0.25  # widen glossy lobes after a rough bounce, [0, 1]
     plot.cinematic_seed = None           # None: fresh noise each time; an int: repeatable
+    plot.cinematic_denoise = 0.0         # filter strength in noise sigmas, 0 is off
     plot.cinematic_bokeh_size = 0.0      # aperture diameter in scene units, 0 is a pinhole
     plot.cinematic_focus_distance = 0.0  # 0 focuses on the camera's target
     plot.cinematic_aperture_blades = 0   # 0 is a round iris, 3 to 16 a polygonal one
@@ -170,7 +171,9 @@ travels to the browser over an asynchronous request, so a screenshot taken immed
 afterwards renders whichever scene the page happens to be holding - sometimes the one
 you just set, sometimes the previous one. The symptom is two byte-identical files in
 the middle of a sequence. ``hold_until_refreshed=True`` waits for the page to confirm it
-has the new state, which is what every reference image in this library uses.
+has the new state, which is what every reference image in this library uses. The rest of
+that API - the drivers, the resolution, the diagnostics - is on its own page,
+:ref:`headless`.
 
 Denoising
 ~~~~~~~~~
@@ -427,7 +430,7 @@ collision the tracer measures the change of the normalised intensity over one
 with the transfer function colour and the volume's own ``roughness`` and
 ``metalness``. Bone and skin in a CT get highlights, Fresnel and an orientation;
 soft tissue with gentle gradients stays gas. Gas events scatter forward with a
-Henyey-Greenstein phase function (asymmetry 0.5), the way tissue does, so light
+Henyey-Greenstein phase function (asymmetry 0.85, as measured tissue does), so light
 reaches deeper than an isotropic phase would let it:
 
 .. k3d_plot ::
