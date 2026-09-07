@@ -1,5 +1,6 @@
 import atexit
 import copy
+import hashlib
 import logging
 import threading
 import time
@@ -80,6 +81,219 @@ def _property_changed(current, synced, object_id, name):
         return True
 
 
+# One lane per 64-bit word up to this many; past that words this far apart share a lane.
+_CHECKSUM_LANES = 1 << 20
+
+
+class _ArrayFingerprint:
+    """An ndarray property as the last sync left it, in a few dozen bytes.
+
+    Bytes, not values, so two answers differ from the elementwise != this replaces: nan
+    equals itself, and -0.0 does not equal 0.0. Both resolve to the browser already holding
+    the bytes it would be sent.
+
+    The digest sums the buffer in lanes rather than hashing it whole, because hashing is
+    compute bound and a reduction is not. Up to 8 MB every word gets a lane of its own and
+    the comparison is exact; above that a lane collects the words 8 MB apart, so moving a
+    value to another position within its own lane is the one edit this cannot see. Changing
+    any value always shows, and neighbours are in different lanes.
+    """
+
+    __slots__ = ("shape", "dtype", "digest")
+
+    def __init__(self, shape, dtype, digest):
+        self.shape = shape
+        self.dtype = dtype
+        self.digest = digest
+
+    def __eq__(self, other):
+        return (
+                isinstance(other, _ArrayFingerprint)
+                and self.shape == other.shape
+                and self.dtype == other.dtype
+                and self.digest == other.digest
+        )
+
+    __hash__ = None
+
+
+def _array_fingerprint(array):
+    """Fingerprint of `array`, or None when it is not a plain contiguous buffer."""
+    try:
+        raw = np.frombuffer(memoryview(array).cast("B"), dtype=np.uint8)
+    except (BufferError, NotImplementedError, TypeError, ValueError):
+        return None  # object dtype, or a strided view - the caller falls back to deepcopy
+
+    split = raw.size - raw.size % 8
+    words = raw[:split].view(np.uint64)
+    digest = hashlib.blake2b(digest_size=16)
+
+    if words.size:
+        lanes = min(_CHECKSUM_LANES, words.size)
+        covered = words.size // lanes * lanes
+        digest.update(words[:covered].reshape(-1, lanes).sum(axis=0, dtype=np.uint64))
+        digest.update(words[covered:])
+
+    digest.update(raw[split:])
+
+    return _ArrayFingerprint(array.shape, str(array.dtype), digest.digest())
+
+
+class _Snapshot:
+    """A dict or list snapshot whose arrays were replaced by fingerprints.
+
+    Time series traits are dicts of frames, so the array is not always the property itself.
+    """
+
+    __slots__ = ("kind", "value")
+
+    def __init__(self, kind, value):
+        self.kind = kind
+        self.value = value
+
+
+def _holds_array(value, depth=0):
+    if isinstance(value, np.ndarray):
+        return True
+
+    if depth == 4:
+        return False
+
+    if isinstance(value, dict):
+        return any(_holds_array(v, depth + 1) for v in value.values())
+
+    if isinstance(value, (list, tuple)):
+        return any(_holds_array(v, depth + 1) for v in value)
+
+    return False
+
+
+def _snapshot(value):
+    """What the next sync diffs against - deepcopy wherever a fingerprint will not do."""
+    if isinstance(value, np.ndarray):
+        fingerprint = _array_fingerprint(value)
+
+        return copy.deepcopy(value) if fingerprint is None else fingerprint
+
+    if isinstance(value, dict) and _holds_array(value):
+        return _Snapshot(dict, {k: _snapshot(v) for k, v in value.items()})
+
+    if isinstance(value, (list, tuple)) and _holds_array(value):
+        return _Snapshot(type(value), [_snapshot(v) for v in value])
+
+    return copy.deepcopy(value)
+
+
+def _snapshot_changed(current, snapshot, object_id, name):
+    """_property_changed against a snapshot that may hold fingerprints instead of values."""
+    if isinstance(snapshot, _ArrayFingerprint):
+        if not isinstance(current, np.ndarray):
+            return True
+
+        fresh = _array_fingerprint(current)
+
+        return fresh is None or fresh != snapshot
+
+    if isinstance(snapshot, _Snapshot):
+        if type(current) is not snapshot.kind:
+            return True
+
+        if snapshot.kind is dict:
+            return current.keys() != snapshot.value.keys() or any(
+                _snapshot_changed(current[k], snapshot.value[k], object_id, name)
+                for k in snapshot.value
+            )
+
+        return len(current) != len(snapshot.value) or any(
+            _snapshot_changed(c, s, object_id, name)
+            for c, s in zip(current, snapshot.value)
+        )
+
+    return _property_changed(current, snapshot, object_id, name)
+
+
+def _resync(current, snapshot, object_id, name):
+    """Whether the property changed, and the snapshot the next sync should diff against.
+
+    An unchanged property keeps the snapshot it already has, rather than building another.
+    """
+    if isinstance(snapshot, _ArrayFingerprint) and isinstance(current, np.ndarray):
+        fresh = _array_fingerprint(current)
+
+        if fresh is not None:
+            return fresh != snapshot, fresh
+
+        return True, copy.deepcopy(current)
+
+    if _snapshot_changed(current, snapshot, object_id, name):
+        return True, _snapshot(current)
+
+    return False, snapshot
+
+
+class _SyncState:
+    """What the browser was last told, and the diff that brings it up to date.
+
+    Outside the Flask route so a test can drive it - and time it - without a browser.
+    """
+
+    def __init__(self, plot):
+        self.plot = plot
+        self.synced_plot = dict.fromkeys(plot.get_plot_params().keys())
+        self.synced_objects = {}
+
+    def diff(self):
+        current_plot_params = self.plot.get_plot_params()
+        plot_diff = {
+            k: current_plot_params[k]
+            for k in current_plot_params
+            if current_plot_params[k] != self.synced_plot[k]
+               and k != "minimumFps"
+        }
+        objects_diff = {}
+        synced_objects = {}
+
+        for o in self.plot.objects:
+            if o.id not in self.synced_objects:
+                objects_diff[o.id] = {
+                    k: to_json(k, o[k], o)
+                    for k in o._synced_props
+                }
+                synced_objects[o.id] = {k: _snapshot(o[k]) for k in o._synced_props}
+
+                continue
+
+            previous = self.synced_objects[o.id]
+            snapshot = {}
+
+            for p in o._synced_props:
+                if p.startswith("_"):
+                    snapshot[p] = _snapshot(o[p])
+
+                    continue
+
+                if p == "voxels_group":
+                    sync, snapshot[p] = True, _snapshot(o[p])
+                else:
+                    sync, snapshot[p] = _resync(o[p], previous[p], o.id, p)
+
+                if sync:
+                    if o.id not in objects_diff:
+                        objects_diff[o.id] = {"id": o.id, "type": o.type}
+                    objects_diff[o.id][p] = to_json(p, o[p], o)
+
+            synced_objects[o.id] = snapshot
+
+        for k in self.synced_objects:
+            if k not in self.plot.object_ids:
+                objects_diff[k] = None  # to remove from plot
+
+        self.synced_objects = synced_objects
+        self.synced_plot = current_plot_params
+
+        return {"plot_diff": plot_diff, "objects_diff": objects_diff}
+
+
 DEFAULT_STARTUP_TIMEOUT = 60.0
 DEFAULT_REFRESH_TIMEOUT = 120.0
 
@@ -131,8 +345,7 @@ class k3d_remote:
         self.thread.daemon = True
         self.thread.start()
 
-        self.synced_plot = dict.fromkeys(k3d_plot.get_plot_params().keys())
-        self.synced_objects = {}
+        self._sync = _SyncState(k3d_plot)
 
         @self.api.route("/<path:path>")
         def static_file(path):
