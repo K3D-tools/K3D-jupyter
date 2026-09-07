@@ -1,4 +1,5 @@
 const THREE = require('three');
+const { PhysicalCamera } = require('three-gpu-pathtracer/src/objects/PhysicalCamera.js');
 const { cameraModes } = require('../../../core/lib/cameraMode');
 const { recalculateFrustum } = require('../helpers/Fn');
 
@@ -11,7 +12,12 @@ const { recalculateFrustum } = require('../helpers/Fn');
 module.exports = function (K3D) {
     const currentFar = 1000;
 
-    this.camera = new THREE.PerspectiveCamera(K3D.parameters.cameraFov, this.width / this.height, 0.1, currentFar);
+    // PhysicalCamera is a PerspectiveCamera that also carries a lens, which is the only way
+    // the path tracer will read one - its uniform copies nothing from a camera that is not
+    // an instance of this class. Its own default is f/1.4, which would defocus every plot
+    // on sight, so it starts stopped all the way down and cinematic_bokeh_size opens it.
+    this.camera = new PhysicalCamera(K3D.parameters.cameraFov, this.width / this.height, 0.1, currentFar);
+    this.camera.bokehSize = 0;
     this.camera.position.set(2, -3, 0.2);
     this.camera.up.set(0, 0, 1);
     this.camera.frustum = new THREE.Frustum();

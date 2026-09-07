@@ -20,14 +20,13 @@ module.exports = {
         config.samples = config.samples || 512.0;
         config.alpha_coef = typeof (config.alpha_coef) !== 'undefined' ? config.alpha_coef : 50.0;
         config.gradient_step = config.gradient_step || 0.005;
+        // snapshots written before this trait existed have no key, and the object GUI builds
+        // its controls from the keys it finds
+        config.light_scale = typeof (config.light_scale) !== 'undefined' ? config.light_scale : 1.0;
         config.shadow = config.shadow || 'off';
         config.interpolation = typeof (config.interpolation) !== 'undefined' ? config.interpolation : true;
         config.shadow_delay = config.shadow_delay || 500;
         config.shadow_res = closestPowOfTwo(config.shadow_res || 128);
-
-        config.ray_samples_count = config.ray_samples_count || 16;
-        config.focal_plane = config.focal_plane || 512.0;
-        config.focal_length = typeof (config.focal_length) !== 'undefined' ? config.focal_length : 0.0;
 
         const randomMul = typeof (window.randomMul) !== 'undefined' ? window.randomMul : 255.0;
         const gl = K3D.getWorld().renderer.getContext();
@@ -168,11 +167,11 @@ module.exports = {
             gradient_step: { value: config.gradient_step },
             roughness: { value: typeof (config.roughness) !== 'undefined' ? config.roughness : 0.25 },
             metalness: { value: typeof (config.metalness) !== 'undefined' ? config.metalness : 0.0 },
+            // the march has no use for it; the cinematic tracer reads it off this material
+            light_scale: { value: typeof (config.light_scale) !== 'undefined' ? config.light_scale : 1.0 },
             translation: { value: translation },
             rotation: { value: rotation },
             shadowTexture: { type: 't', value: (textureRTT ? textureRTT.texture : null) },
-            focal_length: { value: config.focal_length },
-            focal_plane: { value: config.focal_plane },
             scale: { value: scale },
             volumeTexture: { type: 't', value: texture },
             mask: { type: 't', value: mask },
@@ -189,7 +188,6 @@ module.exports = {
                 K3D_ENV_LIGHT: (K3D.parameters.renderer === 'simple' ? 0 : 1),
                 USE_SHADOW: (config.shadow !== 'off' ? 1 : 0),
                 USE_MASK: (maskEnabled ? 1 : 0),
-                RAY_SAMPLES_COUNT: config.focal_length !== 0.0 ? config.ray_samples_count : 0,
             },
             vertexShader: require('./shaders/Volume.vertex.glsl'),
             fragmentShader: require('../helpers/ggxChunk')(require('./shaders/Volume.fragment.glsl')),
@@ -388,14 +386,6 @@ module.exports = {
             resolvedChanges.color_range = null;
         }
 
-        if (typeof (changes.focal_length) !== 'undefined' && !changes.focal_length.timeSeries) {
-            if ((obj.material.uniforms.focal_length.value === 0.0 && changes.focal_length !== 0.0)
-                || changes.focal_length === 0.0) {
-                // shader needs to be recompile
-                return false;
-            }
-        }
-
         if (typeof (changes.volume) !== 'undefined' && !changes.volume.timeSeries) {
             if (obj.material.uniforms.volumeTexture.value.image.data.constructor === changes.volume.data.constructor
                 && obj.material.uniforms.volumeTexture.value.image.width === changes.volume.shape[2]
@@ -452,8 +442,8 @@ module.exports = {
             resolvedChanges.opacity_function = null;
         }
 
-        ['samples', 'alpha_coef', 'gradient_step', 'focal_plane', 'focal_length',
-            'roughness', 'metalness'].forEach((key) => {
+        ['samples', 'alpha_coef', 'gradient_step',
+            'roughness', 'metalness', 'light_scale'].forEach((key) => {
             if (typeof (changes[key]) !== 'undefined' && !changes[key].timeSeries) {
                 obj.material.uniforms[key].value = changes[key];
                 resolvedChanges[key] = null;

@@ -19,6 +19,23 @@ function environmentRotation(K3D) {
     }
 }
 
+// Where the sharp plane sits, resolved the one way: the parameter when it is set, and
+// otherwise whatever the camera is pointed at. The focus helper draws this same number, so it
+// has to come from here too, or the green plane would lie about where the focus is.
+function resolveFocusDistance(K3D) {
+    const explicit = K3D.parameters.cinematicFocusDistance || 0.0;
+
+    if (explicit > 0.0) {
+        return explicit;
+    }
+
+    const world = K3D.getWorld();
+
+    return world.controls && world.controls.target
+        ? world.camera.position.distanceTo(world.controls.target)
+        : world.camera.position.length();
+}
+
 module.exports = function cinematic(K3D, renderer, hooks) {
     const backend = createWebGLBackend(renderer);
     const proxy = createSceneProxy(K3D);
@@ -34,18 +51,21 @@ module.exports = function cinematic(K3D, renderer, hooks) {
     // not every camera path emits CAMERA_CHANGE, so the loop compares matrices
     const lastCamera = { view: new THREE.Matrix4(), projection: new THREE.Matrix4() };
     let cameraKnown = false;
-    let ready = false;
     let scene = null;
     let sceneDirty = true;
     let materialsDirty = false;
     let envKey = null;
     let lastBounces = null;
     let lastGlossyFilter = null;
+    let lastDenoise = 0.0;
     // undefined, not null: null is a legal seed, and the first pass must still apply it
     let lastSeed;
     // the stratified-sample texture rebuilds on the first sample after a scene or bounce
     // change and consumes seeded RNG draws reset() does not replay: warm up one sample first
     let needsWarmup = true;
+    // the first draw of a fresh program pays for compiling it - 16 s for the volume shader on a
+    // laptop 4070 through ANGLE - and the call blocks, so the notice has to be painted first
+    let announceCompile = true;
     // a bump strands every in-flight accumulation loop
     let generation = 0;
     let hud = null;
@@ -70,15 +90,41 @@ module.exports = function cinematic(K3D, renderer, hooks) {
         settleUntil = performance.now() + SETTLE_MS;
     }
 
-    // edits the tracer refreshes without a BVH rebuild. Colour stays out: for points and
-    // tubes it is baked into vertex colours, so changing it is a geometry change.
-    const MATERIAL_ONLY = ['roughness', 'metalness', 'opacity'];
+    // edits the tracer refreshes without a BVH rebuild, whatever the object is
+    const MATERIAL_ONLY = ['roughness', 'metalness', 'opacity', 'light_scale'];
+    // and these on a volume only - on points and tubes the same keys are baked into vertex
+    // attributes, where changing one is geometry
+    const VOLUME_MATERIAL_ONLY = ['color_range', 'alpha_coef', 'gradient_step'];
+
+    // OBJECT_CHANGE names one key, OBJECT_LOADED a whole set; no payload means assume the worst
+    function materialOnly(change) {
+        if (!change || typeof change !== 'object') {
+            return false;
+        }
+
+        const keys = change.keys || (typeof change.key === 'string' ? [change.key] : null);
+
+        if (keys === null || keys.length === 0) {
+            return false;
+        }
+
+        const json = K3D.getWorld().ObjectsListJson[change.id];
+        const volume = Boolean(json) && json.type === 'Volume';
+
+        return keys.every((key) => MATERIAL_ONLY.indexOf(key) !== -1
+            || (volume && VOLUME_MATERIAL_ONLY.indexOf(key) !== -1));
+    }
 
     ['OBJECT_LOADED', 'OBJECT_REMOVED', 'OBJECT_CHANGE'].forEach((name) => {
         K3D.on(K3D.events[name], (change) => {
-            if (change && MATERIAL_ONLY.indexOf(change.key) !== -1) {
+            if (materialOnly(change)) {
                 materialsDirty = true;
             } else {
+                if (name === 'OBJECT_LOADED') {
+                    // the event does not always name an object, so only a full drop is safe
+                    proxy.invalidate();
+                }
+
                 sceneDirty = true;
             }
 
@@ -153,7 +199,7 @@ module.exports = function cinematic(K3D, renderer, hooks) {
 
     function buildScene() {
         scene = new THREE.Scene();
-        proxy.populate(scene, K3D.getWorld().camera);
+        proxy.populate(scene, K3D.getWorld().camera, { volumes: backend.volumeSupported() });
         applyEnvironment(scene);
 
         return scene;
@@ -189,6 +235,23 @@ module.exports = function cinematic(K3D, renderer, hooks) {
         return hud;
     }
 
+    // The counter says how much has been spent; this says whether it was enough. Silent
+    // until the variance buffer is on and its first readback has landed, so a plot nobody
+    // asked to measure reads exactly as it did before.
+    function sampleHud(samples, budget) {
+        // A fresh program costs about fifteen seconds on a volume scene, and the sample counter
+        // cannot move until it links - so without this the renderer looks stopped at zero for as
+        // long as the driver takes. Ask the tracer rather than latching a flag, because every new
+        // variant compiles again: opening the aperture is a different program from closing it.
+        if (backend.isReady() && backend.isCompiling()) {
+            return 'cinematic: compiling shader…';
+        }
+
+        const whole = Math.floor(Math.min(samples, budget));
+
+        return `cinematic: ${whole} / ${budget} samples`;
+    }
+
     function setHud(text) {
         const node = ensureHud();
 
@@ -208,6 +271,35 @@ module.exports = function cinematic(K3D, renderer, hooks) {
         node.style.display = 'block';
     }
 
+    // ensurePrepared runs before the scene reaches the tracer, so on a first prepare there is
+    // no camera to put a lens on - which is why the scene handover calls this again.
+    function applyDepthOfField() {
+        // a pinhole is the default, and then the focus distance cannot matter - resolving it
+        // anyway would recompute and reset on every camera move for an effect that is off
+        const bokehSize = K3D.parameters.cinematicBokehSize || 0.0;
+        let focusDistance = 0.0;
+
+        if (bokehSize > 0.0) {
+            focusDistance = resolveFocusDistance(K3D);
+        }
+
+        const apertureBlades = bokehSize > 0.0
+            ? (K3D.parameters.cinematicApertureBlades || 0) : 0;
+        const current = backend.depthOfField();
+
+        // against the camera, never against what we remember applying: setupCamera closes the
+        // aperture, and Core calls it on every assignment to plot.camera - once a frame in an
+        // animation, which is where a remembered value silently loses the lens for good
+        if (current !== null
+            && Math.abs(current.bokehSize - bokehSize) < 1e-9
+            && current.focusDistance === focusDistance
+            && current.apertureBlades === (apertureBlades >= 3 ? apertureBlades : 0)) {
+            return false;
+        }
+
+        return backend.setDepthOfField(bokehSize, focusDistance, apertureBlades);
+    }
+
     function startBuild(key) {
         const camera = K3D.getWorld().camera;
         const built = buildScene();
@@ -217,9 +309,11 @@ module.exports = function cinematic(K3D, renderer, hooks) {
         materialsDirty = false;
         envKey = key;
         setHud('cinematic: building BVH…');
+        announceCompile = true;
 
         if (triangles < workerTriangles) {
             backend.setScene(built, camera);
+            applyDepthOfField();
             lastBuild = { triangles, worker: false };
             needsWarmup = true;
 
@@ -233,13 +327,13 @@ module.exports = function cinematic(K3D, renderer, hooks) {
                 backend.setScene(built, camera);
             }
 
+            applyDepthOfField();
             lastBuild = { triangles, worker: offThread };
             needsWarmup = true;
         }, (e) => {
             // the generator holds the failed build and refuses a synchronous one: drop the
             // tracer so the retry starts from a clean one
             backend.dispose();
-            ready = false;
             lastBounces = null;
             lastGlossyFilter = null;
             lastSeed = undefined;
@@ -253,9 +347,8 @@ module.exports = function cinematic(K3D, renderer, hooks) {
     // the main thread has to stay in the caller's tick, or the frame that follows composites
     // one microtask later than the build and lands on a different image.
     function ensurePrepared() {
-        if (!ready) {
+        if (!backend.isReady()) {
             backend.init();
-            ready = true;
         }
 
         // bounces alter only the tracer material - never the BVH
@@ -266,11 +359,37 @@ module.exports = function cinematic(K3D, renderer, hooks) {
             holdSamples();
         }
 
+        // The filter is guided by the two halves of the accumulation, which fill one blend
+        // per completed sample. Switching it on part way through finds them empty and there is
+        // no way to fill them for samples already spent, so this restarts - which is also what
+        // makes switching it off show the raw image straight away.
+        const denoise = K3D.parameters.cinematicDenoise || 0.0;
+
+        if (lastDenoise !== denoise) {
+            const wasOn = lastDenoise > 0.0;
+            const isOn = denoise > 0.0;
+
+            lastDenoise = denoise;
+
+            if (wasOn !== isOn) {
+                // required: a fixed-size render must not switch the buffer off underneath the
+                // filter, or a screenshot comes out unfiltered while the viewport is not
+                backend.setVariance(isOn, true);
+                needsWarmup = true;
+                holdSamples();
+            }
+        }
+
         const glossyFilter = K3D.parameters.cinematicGlossyFilter || 0.0;
 
         if (lastGlossyFilter !== glossyFilter) {
             backend.setGlossyFilter(glossyFilter);
             lastGlossyFilter = glossyFilter;
+            needsWarmup = true;
+            holdSamples();
+        }
+
+        if (applyDepthOfField()) {
             needsWarmup = true;
             holdSamples();
         }
@@ -340,19 +459,49 @@ module.exports = function cinematic(K3D, renderer, hooks) {
         return building === null ? run() : building.then(run);
     }
 
-    // headless yields through the task queue: rAF is throttled on a hidden page and would
+    // wall clock, not a turn count: the yield below is not throttled, so turns say nothing
+    const STALL_MS = 20000;
+
+    // Headless yields through the task queue: rAF is throttled on a hidden page and would
     // stall the suite. The interactive path drives itself off rAF instead (see wake()).
-    const yieldToBrowser = (fn) => setTimeout(fn, 0);
+    // Not setTimeout: Chrome clamps a self-rescheduling chain to ~4.4 ms, and this one turns
+    // once per tile - at 4K that alone floors a 128-sample frame at 45 s.
+    const yieldToBrowser = (() => {
+        if (typeof MessageChannel === 'undefined') {
+            return (fn) => setTimeout(fn, 0);
+        }
+
+        const channel = new MessageChannel();
+        const pending = [];
+
+        channel.port1.onmessage = () => {
+            const fn = pending.shift();
+
+            if (fn) {
+                fn();
+            }
+        };
+
+        return (fn) => {
+            pending.push(fn);
+            channel.port2.postMessage(0);
+        };
+    })();
 
     function renderUntil(target, gen, budget, present, interruptible = true) {
         return new Promise((resolve, reject) => {
             const started = performance.now();
             // the counter does not advance while shaders compile or the library is paused;
-            // without a ceiling on fruitless iterations the caller's promise never settles
-            let idle = 0;
+            // without a ceiling on fruitless waiting the caller's promise never settles
+            let idleSince = null;
             let lastSamples = -1;
 
             function step() {
+                if (announceCompile) {
+                    setHud('cinematic: compiling shader…');
+                    announceCompile = false;
+                }
+
                 if (interruptible && gen !== generation) {
                     resolve({ samples: 0, ms: 0, stale: true });
                     return;
@@ -379,7 +528,7 @@ module.exports = function cinematic(K3D, renderer, hooks) {
 
                 if (budget) {
                     // whole samples: the counter advances by a fraction per tile
-                    setHud(`cinematic: ${Math.floor(Math.min(samples, budget))} / ${budget} samples`);
+                    setHud(sampleHud(samples, budget));
                 }
 
                 if (samples >= target) {
@@ -390,17 +539,19 @@ module.exports = function cinematic(K3D, renderer, hooks) {
                 }
 
                 if (samples === lastSamples) {
-                    idle++;
-
-                    // generous: shader compilation on a software renderer legitimately
-                    // costs hundreds of idle iterations
-                    if (idle > 5000) {
+                    // the clock runs only while nothing is compiling, or this would cap
+                    // compile time rather than catch a stall - the volume shader takes ~16 s
+                    if (backend.isCompiling()) {
+                        idleSince = null;
+                    } else if (idleSince === null) {
+                        idleSince = performance.now();
+                    } else if (performance.now() - idleSince > STALL_MS) {
                         reject(new Error(`the path tracer stopped advancing at ${samples} `
                             + `of ${target} samples`));
                         return;
                     }
                 } else {
-                    idle = 0;
+                    idleSince = null;
                     lastSamples = samples;
                 }
 
@@ -461,7 +612,7 @@ module.exports = function cinematic(K3D, renderer, hooks) {
                 return renderSamplesAsync(budget, budget, !isHeadless);
             })).then((result) => {
                 if (!result.stale) {
-                    setHud(`cinematic: ${result.samples} / ${budget} samples`);
+                    setHud(sampleHud(result.samples, budget));
                 }
 
                 return result;
@@ -559,9 +710,24 @@ module.exports = function cinematic(K3D, renderer, hooks) {
                     // a moving camera discards the accumulation every frame, leaving nothing
                     // traced to show, and a camera that has just stopped is probably still being
                     // dragged: rasterise until it holds still
-                    if (performance.now() < settleUntil && rasterizePreview !== null) {
+                    // the focus helper is a rasterised affordance: while it is up there is
+                    // nothing to accumulate, and tracing behind it would only waste the GPU
+                    const helper = K3D.getWorld().focusHelper === true;
+
+                    if ((helper || performance.now() < settleUntil) && rasterizePreview !== null) {
                         rasterizePreview();
-                        setHud(`cinematic: 0 / ${budget} samples`);
+                        setHud(helper
+                            ? 'cinematic: focus helper - tracing paused'
+                            : sampleHud(0, budget));
+                        frameHandle = window.requestAnimationFrame(frame);
+
+                        return;
+                    }
+
+                    if (announceCompile) {
+                        // the browser needs a frame to paint it before the blocking call
+                        setHud('cinematic: compiling shader…');
+                        announceCompile = false;
                         frameHandle = window.requestAnimationFrame(frame);
 
                         return;
@@ -589,7 +755,7 @@ module.exports = function cinematic(K3D, renderer, hooks) {
                 }
 
                 // samples advance by a fraction per tile - report whole ones
-                setHud(`cinematic: ${Math.floor(Math.min(samples, budget))} / ${budget} samples`);
+                setHud(sampleHud(samples, budget));
 
                 if (samples >= budget) {
                     wanted = false;
@@ -624,6 +790,31 @@ module.exports = function cinematic(K3D, renderer, hooks) {
             return lastBuild;
         },
 
+        // How far from converged the accumulation is, as a relative RMS error of the
+        // mean. Off by default and reached only from here: it costs three float
+        // targets and nothing consumes the number yet, so it is not a plot parameter.
+        setVariance(enabled, required) {
+            backend.setVariance(enabled, required);
+        },
+
+        // Re-compose what is already accumulated, without tracing another sample. A finished
+        // render presents nothing more on its own, so anything that changes how the accumulation
+        // is turned into pixels - the denoiser above all - would otherwise not show until the
+        // next sample, which may never come.
+        present() {
+            if (presentFrame === null || !backend.isReady()) {
+                return false;
+            }
+
+            presentFrame(backend.targetTexture());
+
+            return true;
+        },
+
+        varianceHalves() {
+            return backend.varianceHalves();
+        },
+
         hideHud() {
             if (hud !== null) {
                 hud.style.display = 'none';
@@ -656,3 +847,5 @@ module.exports = function cinematic(K3D, renderer, hooks) {
         dispose: backend.dispose,
     };
 };
+
+module.exports.resolveFocusDistance = resolveFocusDistance;

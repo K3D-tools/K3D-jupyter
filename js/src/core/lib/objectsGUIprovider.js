@@ -173,12 +173,12 @@ function update(K3D, json, GUI, changes) {
 
     const defaultParams = ['visible', 'outlines', 'wireframe', 'flat_shading', 'use_head', 'head_size', 'line_width',
         'scale', 'font_size', 'font_weight', 'size', 'point_size', 'level', 'samples', 'alpha_coef', 'gradient_step',
-        'shadow_delay', 'focal_length', 'focal_plane', 'on_top', 'max_length', 'label_box', 'is_html',
+        'shadow_delay', 'on_top', 'max_length', 'label_box', 'is_html',
         // One entry per parameter - these are matched with indexOf().
-        'roughness', 'metalness', 'mask_opacity'];
+        'roughness', 'metalness', 'light_scale', 'mask_opacity'];
 
     const availableParams = defaultParams.concat(['color', 'origin_color', 'origin_color', 'head_color',
-        'outlines_color', 'text', 'shader', 'shadow_res', 'shadow', 'ray_samples_count', 'width', 'radial_segments',
+        'outlines_color', 'text', 'shader', 'shadow_res', 'shadow', 'width', 'radial_segments',
         'mesh_detail', 'opacity', 'color_range', 'name', 'group', 'color_map', 'mode',
         'direction', 'slice_x', 'slice_y', 'slice_z', 'volumeSliceMask']);
 
@@ -268,6 +268,8 @@ function update(K3D, json, GUI, changes) {
             const ranges = {
                 roughness: [0.0, 1.0, 0.01],
                 metalness: [0.0, 1.0, 0.01],
+                // the trait has no ceiling; 1 is neutral and a few times that is plenty
+                light_scale: [0.0, 4.0, 0.05],
                 mask_opacity: [0.0, 1.0, 0.01],
             };
 
@@ -394,13 +396,6 @@ function update(K3D, json, GUI, changes) {
             case 'shadow':
                 if (json.type === 'Volume') {
                     addController(K3D.gui_map[json.id], json, param, ['off', 'on_demand', 'dynamic']).onChange(
-                        changeParameter.bind(this, K3D, json, param),
-                    );
-                }
-                break;
-            case 'ray_samples_count':
-                if (json.type === 'Volume') {
-                    addController(K3D.gui_map[json.id], json, param, [8, 16, 32, 64]).onChange(
                         changeParameter.bind(this, K3D, json, param),
                     );
                 }

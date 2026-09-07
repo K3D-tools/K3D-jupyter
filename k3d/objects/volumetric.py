@@ -253,6 +253,11 @@ class Volume(Drawable):
         metalness: `float`.
             Metalness of the specular highlight: 0.0 dielectric, 1.0 metal tinted
             by the transfer-function colour.
+        light_scale: `float`.
+            Multiplies the light the medium collects, so the volume can be exposed without
+            touching the rest of the scene. Only the cinematic renderer reads it. Every
+            ratio in the image survives, self-shadowing included - unlike a brighter
+            environment, which lifts the geometry around the volume as well.
         shadow: `str`.
             Type of shadow on volume.
 
@@ -303,12 +308,10 @@ class Volume(Drawable):
         return value
     roughness = TimeSeries(Float(default_value=0.25, min=0.0, max=1.0)).tag(sync=True)
     metalness = TimeSeries(Float(default_value=0.0, min=0.0, max=1.0)).tag(sync=True)
+    light_scale = TimeSeries(Float(default_value=1.0, min=0.0)).tag(sync=True)
     shadow = TimeSeries(Unicode()).tag(sync=True)
     shadow_res = TimeSeries(Int(min=31, max=513, default_value=128)).tag(sync=True)
     shadow_delay = TimeSeries(Float()).tag(sync=True)
-    ray_samples_count = TimeSeries(Int(min=1, max=128, default_value=16)).tag(sync=True)
-    focal_length = TimeSeries(Float()).tag(sync=True)
-    focal_plane = TimeSeries(Float()).tag(sync=True)
     interpolation = TimeSeries(Bool()).tag(sync=True)
     mask = Array(dtype=np.uint8).tag(sync=True, **array_serialization_wrap("mask"))
     mask_opacities = TimeSeries(Array(dtype=np.float32)).tag(

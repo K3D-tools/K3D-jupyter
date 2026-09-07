@@ -1089,6 +1089,27 @@ module.exports = function (K3D) {
 
     // lazy: building the path tracer and its BVH is expensive
     let cinematicMode = null;
+    // Where the lens is focused, shown by cutting the scene open there rather than by standing a
+    // plane in it. A plane cannot work: the raster volume draws with depthTest and depthWrite off
+    // (objects/Volume.js:195), so it neither occludes nor is occluded, and a plane in front of it
+    // reads as a flat backdrop at every distance. Clipping does work, because the volume shader
+    // implements it inside its own ray march - so the cut face IS the focus plane, and dragging
+    // the distance sweeps a cross-section through the data. Costs nothing in the traced image:
+    // this is applied around the raster preview only.
+    self.focusClipPlanes = function () {
+        if (self.focusHelper !== true || K3D.parameters.renderer !== 'cinematic') {
+            return null;
+        }
+
+        const distance = cinematic.resolveFocusDistance(K3D);
+        const forward = new THREE.Vector3(0, 0, -1).applyQuaternion(self.camera.quaternion);
+
+        // keep what is at or beyond the focus distance: dot(forward, p) - (dot(forward, eye) + d) >= 0
+        return [new THREE.Plane(
+            forward,
+            -(forward.dot(self.camera.position) + distance),
+        )];
+    };
 
     function getCinematic() {
         if (cinematicMode === null) {
@@ -1148,7 +1169,18 @@ module.exports = function (K3D) {
                     self.renderer.setViewport(0, 0, size.x, size.y);
                     self.renderer.clear();
                     self.renderer.render(self.gridScene, self.camera);
+
+                    const focusClip = self.focusClipPlanes();
+
+                    if (focusClip !== null) {
+                        self.renderer.clippingPlanes = focusClip;
+                    }
+
                     directRender(self.scene, self.camera);
+
+                    if (focusClip !== null) {
+                        self.renderer.clippingPlanes = [];
+                    }
                     self.renderer.setViewport(
                         size.x - self.axesHelper.width,
                         0,
@@ -1451,11 +1483,41 @@ module.exports = function (K3D) {
     };
 
     // --- cinematic volume hybrid ---
-    // volumes and MIPs stay out of the path-traced BVH: they march from the camera to
-    // the first path-traced hit (proxy-scene depth, through the peel segment uniforms)
-    // and composite premultiplied over the accumulation, before the tone curve.
+    // MIPs (and volumes the tracer did not take over) stay out of the path-traced BVH: they
+    // march from the camera to the first path-traced hit (proxy-scene depth, through the peel
+    // segment uniforms) and composite premultiplied over the accumulation, before the tone curve.
     const cinematicVolume = { depth: null, layer: null, active: false };
     let composeTarget = null;
+    // One bilateral pass over the traced image, in linear HDR, before tone mapping. Monte Carlo
+    // noise is additive in linear space and is not after a tone curve, which compresses the
+    // highlights the noise sits on. A single 5x5 kernel and nothing wider: that radius covers the
+    // grain and almost nothing else, and a cascade reaching further trades it for a smooth lie.
+    const denoiseMaterial = new THREE.ShaderMaterial({
+        uniforms: {
+            tDiffuse: { value: null },
+            tHalfA: { value: null },
+            tHalfB: { value: null },
+            uSize: { value: new THREE.Vector2(1, 1) },
+            uVarWeight: { value: 0.25 },
+            // overwritten from cinematic_denoise on every use; one default, in one place
+            uPhi: { value: 0.0 },
+        },
+        vertexShader: require('./shaders/composite.vertex.glsl'),
+        fragmentShader: require('./shaders/denoise.fragment.glsl'),
+        depthTest: false,
+        depthWrite: false,
+        blending: THREE.NoBlending,
+    });
+    const denoiseScene = new THREE.Scene();
+    let denoiseTarget = null;
+
+    {
+        const plane = new THREE.Mesh(planeGeometry, denoiseMaterial);
+
+        plane.frustumCulled = false;
+        denoiseScene.add(plane);
+    }
+
     const rawBlitMaterial = new THREE.ShaderMaterial({
         uniforms: {
             tDiffuse: { value: null },
@@ -1511,9 +1573,19 @@ module.exports = function (K3D) {
     function renderCinematicVolumeLayer(proxyScene, width, height) {
         const world = K3D.getWorld();
         const volumeObjects = [];
+        // a volume the tracer tracks through is neither marched again nor a depth cut for the rest
+        const traced = new Set();
+        const tracedProxies = [];
+
+        proxyScene.traverse((node) => {
+            if (node.userData.k3dVolumeSource) {
+                traced.add(node.userData.k3dVolumeSource);
+                tracedProxies.push(node);
+            }
+        });
 
         world.K3DObjects.traverse((obj) => {
-            if (obj.visible && obj.userData.k3dVolumeShell) {
+            if (obj.visible && obj.userData.k3dVolumeShell && !traced.has(obj)) {
                 volumeObjects.push(obj);
             }
         });
@@ -1538,6 +1610,9 @@ module.exports = function (K3D) {
         // the mutations below are global state the other renderers read - restore on throw
         try {
             proxyScene.background = null;
+            tracedProxies.forEach((node) => {
+                node.visible = false;
+            });
 
             self.renderer.setRenderTarget(cinematicVolume.depth);
             self.renderer.setViewport(0, 0, width, height);
@@ -1555,7 +1630,7 @@ module.exports = function (K3D) {
 
             // leaves only - hiding the K3DObjects group would hide the volumes too
             world.K3DObjects.traverse((obj) => {
-                if (obj.visible && obj.material && !obj.userData.k3dVolumeShell) {
+                if (obj.visible && obj.material && (!obj.userData.k3dVolumeShell || traced.has(obj))) {
                     obj.visible = false;
                     shown.push(obj);
                 }
@@ -1569,6 +1644,9 @@ module.exports = function (K3D) {
         } finally {
             proxyScene.overrideMaterial = null;
             proxyScene.background = savedBackground;
+            tracedProxies.forEach((node) => {
+                node.visible = true;
+            });
             shown.forEach((obj) => {
                 obj.visible = true;
             });
@@ -1580,7 +1658,72 @@ module.exports = function (K3D) {
     }
 
     // compose accumulation and volume layer in linear space, then exactly one tone curve
-    function composeCinematic(ptTexture, rt, width, height) {
+    // The one place the traced image can be filtered: after the accumulation, before tone
+    // mapping, and on the path both the canvas and the screenshot go through. Filtering
+    // after tone mapping would work in display space, where the noise is no longer additive.
+    function denoiseCinematic(ptTexture, width, height) {
+        const strength = K3D.parameters.cinematicDenoise || 0.0;
+
+        // zero is off, and the only value that leaves the traced image exactly as it was
+        if (!(strength > 0.0)) {
+            return ptTexture;
+        }
+
+        let guide = null;
+
+        try {
+            // Read only. The buffer is switched on where the user asks for the filter, not from
+            // here: setFixedSize deliberately switches it off so a screenshot does not allocate
+            // three float targets at its own resolution, and asking for it back inside the frame
+            // path did that allocation anyway - at 4K, mid-screenshot, which cost the context.
+            guide = getCinematic().varianceHalves();
+        } catch (e) {
+            guide = null;
+        }
+
+        // no measurement, no filter: without variance there is nothing to tell noise from
+        // structure, and a filter guided by colour alone is the one upstream already ships
+        if (guide === null) {
+            return ptTexture;
+        }
+
+        if (denoiseTarget === null || denoiseTarget.width !== width
+            || denoiseTarget.height !== height) {
+            if (denoiseTarget !== null) {
+                denoiseTarget.dispose();
+            }
+
+            denoiseTarget = new THREE.WebGLRenderTarget(width, height, {
+                minFilter: THREE.NearestFilter,
+                magFilter: THREE.NearestFilter,
+                type: THREE.FloatType,
+                depthBuffer: false,
+            });
+        }
+
+        const u = denoiseMaterial.uniforms;
+
+        u.tDiffuse.value = ptTexture;
+        u.tHalfA.value = guide.a;
+        u.tHalfB.value = guide.b;
+        u.uVarWeight.value = guide.weight;
+        u.uSize.value.set(width, height);
+        u.uPhi.value = strength;
+
+        self.renderer.setRenderTarget(denoiseTarget);
+        self.renderer.setViewport(0, 0, width, height);
+        self.renderer.render(denoiseScene, fsCamera);
+
+        u.tDiffuse.value = null;
+        u.tHalfA.value = null;
+        u.tHalfB.value = null;
+
+        return denoiseTarget.texture;
+    }
+
+    function composeCinematic(rawTexture, rt, width, height) {
+        const ptTexture = denoiseCinematic(rawTexture, width, height);
+
         if (!cinematicVolume.active) {
             toneBlitMaterial.uniforms.tDiffuse.value = ptTexture;
             toneBlitMaterial.uniforms.uSize.value.set(width, height);
@@ -1783,17 +1926,13 @@ module.exports = function (K3D) {
                 self.renderer,
                 self.gridScene,
                 self.camera,
-                rtGrid,
+                rt,
                 width,
                 height,
                 [[0, height]],
                 aaLevel,
                 directRender,
             ).then((grid) => {
-                if (rtGrid !== rt) {
-                    rtGrid.dispose();
-                }
-
                 K3D.parameters.clippingPlanes.forEach((plane) => {
                     self.renderer.clippingPlanes.push(new THREE.Plane(new THREE.Vector3().fromArray(plane), plane[3]));
                 });

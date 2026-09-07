@@ -159,6 +159,44 @@ class PlotBase(K3DAnyWidget):
                 "cinematic_glossy_filter must be in [0, 1], got %s" % value
             )
         return value
+    cinematic_denoise = Float(default_value=0.0).tag(sync=True)
+
+    @validate("cinematic_denoise")
+    def _validate_cinematic_denoise(self, proposal):
+        value = float(proposal["value"])
+        if value < 0.0:
+            raise TraitError("cinematic_denoise must be >= 0, got %s" % value)
+        return value
+
+    cinematic_bokeh_size = Float(default_value=0.0).tag(sync=True)
+
+    @validate("cinematic_bokeh_size")
+    def _validate_cinematic_bokeh_size(self, proposal):
+        value = float(proposal["value"])
+        if value < 0.0:
+            raise TraitError("cinematic_bokeh_size must be >= 0, got %s" % value)
+        return value
+
+    cinematic_focus_distance = Float(default_value=0.0).tag(sync=True)
+
+    @validate("cinematic_focus_distance")
+    def _validate_cinematic_focus_distance(self, proposal):
+        value = float(proposal["value"])
+        if value < 0.0:
+            raise TraitError("cinematic_focus_distance must be >= 0, got %s" % value)
+        return value
+
+    cinematic_aperture_blades = Int(default_value=0).tag(sync=True)
+
+    @validate("cinematic_aperture_blades")
+    def _validate_cinematic_aperture_blades(self, proposal):
+        value = int(proposal["value"])
+        if value != 0 and not 3 <= value <= 16:
+            raise TraitError(
+                "cinematic_aperture_blades must be 0 or in [3, 16], got %s" % value
+            )
+        return value
+
     camera_mode = Unicode().tag(sync=True)
     additional_js_code = Unicode().tag(sync=True)
     manipulate_mode = Unicode().tag(sync=True)

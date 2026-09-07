@@ -118,8 +118,12 @@ function CreateK3DAndLoadBinarySnapshot(data, targetDOMNode) {
                 setTimeout(() => {
                     if (data.plot.camera.length > 0) {
                         K3DInstance.setCamera(data.plot.camera);
-                        K3DInstance.render();
                     }
+
+                    // unconditionally: a snapshot without a camera still has to be drawn, and in
+                    // cinematic this is the only thing that starts the accumulation - the raster
+                    // modes hide the omission behind their own refresh loop
+                    K3DInstance.render();
                 }, 10);
                 return resolve(K3DInstance);
             }).catch((e) => {

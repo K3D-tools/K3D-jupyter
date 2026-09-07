@@ -294,14 +294,36 @@ function fromSideload(name) {
     return fromArray(entry.decoded);
 }
 
+// One texture per environment - the rotation is applied where the map is used, never baked in.
+// The module owns what it hands out: a fresh instance costs the tracer its whole importance
+// sampling CDF, and callers must not dispose it.
+const byName = new Map();
+const byArray = new WeakMap();
+
+// the key carries which source answered, so a late sideload still replaces the preset fallback
+function nameKey(name) {
+    const catalog = (typeof (window) !== 'undefined') && window.k3dEnvironments;
+
+    return `${name}|${catalog && catalog[name] ? 'sideload' : 'preset'}`;
+}
+
 module.exports = {
     getEnvironmentTexture(environment) {
         if (environment && environment.data && environment.shape) {
-            return fromArray(ensureTyped(environment));
+            if (!byArray.has(environment)) {
+                byArray.set(environment, fromArray(ensureTyped(environment)));
+            }
+
+            return byArray.get(environment);
         }
 
         const name = typeof (environment) === 'string' ? environment : 'neutral';
+        const key = nameKey(name);
 
-        return fromSideload(name) || fromPreset(name);
+        if (!byName.has(key)) {
+            byName.set(key, fromSideload(name) || fromPreset(name));
+        }
+
+        return byName.get(key);
     },
 };

@@ -30,8 +30,6 @@ uniform sampler3D volumeTexture;
 
 uniform sampler2D colormap;
 uniform sampler2D jitterTexture;
-uniform float focal_length;
-uniform float focal_plane;
 uniform float low;
 uniform float high;
 uniform mat4 modelViewMatrix;
@@ -202,39 +200,11 @@ void main() {
     aabb[0] = aabb[0] * scale.xyz + translation.xyz;
     aabb[1] = aabb[1] * scale.xyz + translation.xyz;
 
-    #if (RAY_SAMPLES_COUNT > 0)
-    vec4 accuColor = vec4(0.0, 0.0, 0.0, 0.0);
-
-    for (int ray_samples = 0; ray_samples < RAY_SAMPLES_COUNT; ray_samples++) {
-
-        vec4 value = vec4(0.0, 0.0, 0.0, 0.0);
-
-        vec3 direction = normalize(transformedWorldPosition - transformedCameraPosition);
-
-        // Focal plane correction
-        vec3 P = transformedCameraPosition + direction * focal_plane;
-
-        float r = texture2D(jitterTexture, vec2(0.3) + gl_FragCoord.xy / 64.0 * float(ray_samples + 3)).r;
-        vec3 apertureShift = normalize(vec3(
-                                           1.0 - 2.0 * texture2D(jitterTexture, vec2(0.0) + gl_FragCoord.xy / 64.0 * float(ray_samples)).r,
-                                           1.0 - 2.0 * texture2D(jitterTexture, vec2(0.1) + gl_FragCoord.xy / 64.0 * float(ray_samples + 1)).r,
-                                           1.0 - 2.0 * texture2D(jitterTexture, vec2(0.2) + gl_FragCoord.xy / 64.0 * float(ray_samples + 2)).r
-                                       )) * r * focal_length;
-
-        direction = normalize(P - (transformedCameraPosition + apertureShift));
-
-        vec3 eye = P - direction * 1000000.0;
-
-        intersect(makeRay(eye, direction), aabb, tmin, tmax);
-
-        vec3 rayOrigin = eye;
-        #else
         vec4 value = vec4(0.0, 0.0, 0.0, 0.0);
         vec3 direction = normalize(transformedWorldPosition - transformedCameraPosition);
         intersect(makeRay(transformedCameraPosition, direction), aabb, tmin, tmax);
 
         vec3 rayOrigin = transformedCameraPosition;
-        #endif
         // the sampling grid is anchored to the whole box, never to the segment -
         // every segmentation samples identical positions, so layer joints cannot seam
         float tBox = max(0.0, tmin);
@@ -450,16 +420,5 @@ void main() {
         return;
         #endif
 
-        #if (RAY_SAMPLES_COUNT > 0)
-
-        accuColor += value;
-    }
-
-    gl_FragColor = accuColor / float(RAY_SAMPLES_COUNT);
-
-    #else
-
-    gl_FragColor = value;
-
-    #endif
+        gl_FragColor = value;
 }
