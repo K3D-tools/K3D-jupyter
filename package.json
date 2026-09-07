@@ -1,6 +1,6 @@
 {
   "name": "k3d",
-  "version": "3.0.3",
+  "version": "3.1.0",
   "description": "WebGL 3D plotting for Jupyter: meshes, isosurfaces, volumes, voxels and point clouds",
   "keywords": [
     "jupyter",
