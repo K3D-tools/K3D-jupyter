@@ -377,8 +377,14 @@ module.exports = function cinematic(K3D, renderer, hooks) {
                 // required: a fixed-size render must not switch the buffer off underneath the
                 // filter, or a screenshot comes out unfiltered while the viewport is not
                 backend.setVariance(isOn, true);
-                needsWarmup = true;
-                holdSamples();
+
+                // Only switching it on discards the accumulation. Switching off costs nothing:
+                // the filter reads the accumulation at compose time and never wrote into it, so
+                // the traced samples are still worth exactly what they were.
+                if (isOn) {
+                    needsWarmup = true;
+                    holdSamples();
+                }
             }
         }
 
