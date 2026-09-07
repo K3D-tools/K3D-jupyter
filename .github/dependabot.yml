@@ -22,8 +22,6 @@ updates:
       # so this is a lint-stack rewrite rather than a bump
       - dependency-name: eslint
         update-types: [version-update:semver-major]
-      - dependency-name: grunt-eslint
-        update-types: [version-update:semver-major]
       # grunt-webpack 8 needs node ^22.13, above the node this project is developed on
       - dependency-name: grunt-webpack
         update-types: [version-update:semver-major]

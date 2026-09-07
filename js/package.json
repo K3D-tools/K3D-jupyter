@@ -56,7 +56,6 @@
     "grunt-contrib-clean": "2.0.1",
     "grunt-contrib-connect": "^5.0.1",
     "grunt-contrib-watch": "^1.1.0",
-    "grunt-eslint": "^27.0.0",
     "grunt-open": "^0.2.4",
     "grunt-webpack": "^7.0.1",
     "load-grunt-tasks": "5.1.0",
