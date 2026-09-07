@@ -14,7 +14,12 @@ from werkzeug.serving import make_server
 
 from .helpers import to_json
 
-# Set up module-level logger
+# Nothing here narrates its own success. A notebook calls sync() once per frame of an animation,
+# and a breadcrumb per call buries whatever the cell was asked to show; the same argument that
+# silenced werkzeug's request log applies to our own. Warnings and errors stay at their level
+# and are never suppressed. Raise this logger to DEBUG to get all of it back:
+#
+#     logging.getLogger('k3d.headless').setLevel(logging.DEBUG)
 logger = logging.getLogger(__name__)
 if not logger.hasHandlers():
     handler = logging.StreamHandler()
@@ -27,6 +32,21 @@ logger.setLevel(logging.INFO)
 
 
 # logging.basicConfig(filename='test.log', level=logging.DEBUG)
+class _QuietRequestHandler(WSGIRequestHandler):
+    """Serves without narrating.
+
+    The page polls /ping every few seconds for as long as the session is open - it is how it
+    notices that the Python side went away - and werkzeug logs every request it answers. In a
+    notebook that buries whatever the cell was actually asked to show. Raise this module's
+    logger to DEBUG to get the request log back; errors are never suppressed, they go through
+    log_error.
+    """
+
+    def log_request(self, code="-", size="-"):
+        if logger.isEnabledFor(logging.DEBUG):
+            super().log_request(code, size)
+
+
 
 def _property_changed(current, synced, object_id, name):
     """Whether a synced property was edited.
@@ -101,7 +121,9 @@ class k3d_remote:
 
         self.api = Flask(__name__)
 
-        self.server = make_server("localhost", port, self.api)
+        self.server = make_server(
+            "localhost", port, self.api, request_handler=_QuietRequestHandler
+        )
 
         self.thread = threading.Thread(
             target=lambda: self.server.serve_forever(), daemon=True
@@ -124,44 +146,8 @@ class k3d_remote:
         @self.api.route("/", methods=["POST"])
         def generate():
             try:
-                current_plot_params = self.k3d_plot.get_plot_params()
-                plot_diff = {
-                    k: current_plot_params[k]
-                    for k in current_plot_params
-                    if current_plot_params[k] != self.synced_plot[k]
-                       and k != "minimumFps"
-                }
-                objects_diff = {}
-                for o in self.k3d_plot.objects:
-                    if o.id not in self.synced_objects:
-                        objects_diff[o.id] = {
-                            k: to_json(k, o[k], o)
-                            for k in o._synced_props
-                        }
-                    else:
-                        for p in o._synced_props:
-                            if p.startswith("_"):
-                                continue
-                            if p == "voxels_group":
-                                sync = True
-                            else:
-                                sync = _property_changed(
-                                    o[p], self.synced_objects[o.id][p], o.id, p
-                                )
-                            if sync:
-                                if o.id not in objects_diff:
-                                    objects_diff[o.id] = {"id": o.id, "type": o.type}
-                                objects_diff[o.id][p] = to_json(p, o[p], o)
-                for k in self.synced_objects:
-                    if k not in self.k3d_plot.object_ids:
-                        objects_diff[k] = None  # to remove from plot
-                diff = {"plot_diff": plot_diff, "objects_diff": objects_diff}
-                self.synced_objects = {
-                    v.id: {k: copy.deepcopy(v[k]) for k in v._synced_props}
-                    for v in self.k3d_plot.objects
-                }
-                self.synced_plot = current_plot_params
-                logger.info("Generated plot diff and objects diff for sync.")
+                diff = self._sync.diff()
+                logger.debug("Generated plot diff and objects diff for sync.")
                 return Response(
                     msgpack.packb(diff, use_bin_type=True),
                     mimetype="application/octet-stream",
@@ -192,7 +178,7 @@ class k3d_remote:
         for _ in range(5):
             if self.browser.execute_script("return typeof(k3dRefresh) !== 'undefined'"):
                 self.browser.execute_script("k3dRefresh()")
-                logger.info("k3dRefresh executed in browser.")
+                logger.debug("k3dRefresh executed in browser.")
                 break
             time.sleep(0.2)
         else:
@@ -231,7 +217,16 @@ class k3d_remote:
             % only_canvas
         )
 
-        return b64decode(screenshot)
+        if status != 200:
+            raise RuntimeError("the page could not post its screenshot (HTTP %s)" % status)
+
+        # the body lands on the server thread, so it can arrive after the script resolves
+        if not self._screenshot_ready.wait(timeout or self.refresh_timeout):
+            raise TimeoutError(
+                "the screenshot was rendered but never arrived over the HTTP channel"
+            )
+
+        return self._screenshot
 
     def get_gltf(self):
         """Return the scene geometry as a binary glTF (.glb).
@@ -313,3 +308,85 @@ def get_headless_firefox_driver(no_headless=False):
         options.add_argument("--enable-unsafe-swiftshader")
 
     return _relax_timeouts(webdriver.Firefox(options=options))
+    def get_memory(self, collect=True):
+        """The page's JS heap in megabytes, or None where the browser does not report it.
+
+        `precise` and `collected` say whether the numbers can be trusted: without
+        --enable-precise-memory-info Chrome answers with a frozen constant, and without
+        --js-flags=--expose-gc the reading carries the last frame's garbage. Pass both through
+        get_headless_driver(extra_args=...). used against total is the fragmentation signal.
+        """
+        result = self.browser.execute_script(
+            """
+            var collect = arguments[0];
+            var gc = typeof window.gc === 'function';
+
+            if (collect && gc) { window.gc(); window.gc(); }
+
+            if (!performance.memory) { return null; }
+
+            return [performance.memory.usedJSHeapSize,
+                    performance.memory.totalJSHeapSize,
+                    performance.memory.jsHeapSizeLimit,
+                    gc];
+            """,
+            bool(collect),
+        )
+
+        if result is None:
+            return None
+
+        used, total, limit, has_gc = result
+        mb = 1024.0 * 1024.0
+
+        return {
+            "used_mb": used / mb,
+            "total_mb": total / mb,
+            "limit_mb": limit / mb,
+            "collected": bool(collect and has_gc),
+            "precise": self._memory_is_precise(),
+        }
+
+    def _memory_is_precise(self, probe_mb=24):
+        """Whether usedJSHeapSize follows what the page allocates.
+
+        Tested, not guessed: the quantised answer is a fixed 10000000 bytes, which no property of
+        the number reveals. The probe chunk is released before returning.
+        """
+        if self._precise_memory is None:
+            self._precise_memory = bool(self.browser.execute_script(
+                """
+                var mb = arguments[0];
+
+                if (!performance.memory) { return false; }
+
+                var before = performance.memory.usedJSHeapSize;
+                var probe = new Uint8Array(mb * 1048576);
+
+                // touched, or the pages are never committed and the reading would not move even
+                // where the counter is honest
+                for (var i = 0; i < probe.length; i += 4096) { probe[i] = 1; }
+
+                var after = performance.memory.usedJSHeapSize;
+
+                probe = null;
+
+                return (after - before) > (mb * 1048576) * 0.6;
+                """,
+                probe_mb,
+            ))
+
+        return self._precise_memory
+
+    def get_gl_info(self):
+        """What the browser is actually rendering with.
+
+        A container that loses its GPU passthrough falls back to software rendering without
+        failing, and every timing taken there is meaningless while every image still looks
+        right. Returns None when the page has no plot yet.
+        """
+        return self.browser.execute_script(
+            "return typeof K3DInstance !== 'undefined' && K3DInstance "
+            "? K3DInstance.glInfo : null;"
+        )
+

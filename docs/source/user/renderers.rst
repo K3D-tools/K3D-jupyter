@@ -178,3 +178,54 @@ It is **experimental**, it needs WebGL2 with renderable float textures, and it
 keeps the shape of everything you asked for without always keeping the
 implementation. Its parameters, the environments that light it, and the list of
 what changes object by object live on their own page: :ref:`cinematic`.
+
+What you are rendering on
+-------------------------
+
+All three renderers depend on the GPU the browser actually got, and that is not
+always the one you expect. A container that loses its GPU passthrough does not
+fail: it falls back to a software renderer, every image still comes out correct,
+and only the clock tells you - which is a trap when the thing you are measuring
+is time.
+
+K3D reports it at startup. In a browser the lines land in the console; from a
+headless session they are a dict:
+
+.. code-block:: python3
+
+    from k3d.headless import k3d_remote, get_headless_driver
+
+    plot = k3d.plot()
+    headless = k3d_remote(plot, get_headless_driver())
+
+    headless.get_gl_info()
+
+.. code-block:: text
+
+    {'vendor': 'Google Inc. (NVIDIA)',
+     'renderer': 'ANGLE (NVIDIA, NVIDIA GeForce RTX 4070 Laptop GPU Direct3D11 vs_5_0 ps_5_0, D3D11)',
+     'unmaskedVendor': 'Google Inc. (NVIDIA)',
+     'unmaskedRenderer': 'ANGLE (NVIDIA, NVIDIA GeForce RTX 4070 Laptop GPU (0x00002860) Direct3D11 vs_5_0 ps_5_0, D3D11)',
+     'version': 'WebGL 2.0 (OpenGL ES 3.0 Chromium)',
+     'depthBits': 24,
+     'stencilBits': 8,
+     'maxTextureSize': 16384,
+     'maxTextureImageUnits': 16}
+
+The tell is the renderer string: software rendering names itself there, usually
+``SwiftShader``. The limits are not a tell, and reading them that way misleads -
+the software renderer advertises 32 fragment texture units where the ANGLE/D3D11
+path above offers 16, so a scene that fits in the container can still run out of
+units on the real card. ``cinematic`` is the renderer that notices, since it
+needs fifteen of them for a traced volume.
+
+A headless session says nothing about its own progress. It answers a /ping
+every few seconds for as long as it is open, and ``sync()`` runs once per frame
+of an animation - a line for each would bury whatever the cell was asked to
+show. Warnings and errors are never suppressed. To get the rest back:
+
+.. code-block:: python3
+
+    import logging
+
+    logging.getLogger('k3d.headless').setLevel(logging.DEBUG)

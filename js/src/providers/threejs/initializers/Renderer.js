@@ -316,12 +316,26 @@ module.exports = function (K3D) {
     // runs synchronously from the K3D.Core constructor, so it must not be assumed present.
     const debugInfo = gl.getExtension('WEBGL_debug_renderer_info');
 
+    // kept rather than only logged: a container that falls back to software rendering says so
+    // nowhere else, and from Python the console is out of reach
+    K3D.glInfo = {
+        vendor: gl.getParameter(gl.VENDOR),
+        renderer: gl.getParameter(gl.RENDERER),
+        unmaskedVendor: debugInfo ? gl.getParameter(debugInfo.UNMASKED_VENDOR_WEBGL) : null,
+        unmaskedRenderer: debugInfo ? gl.getParameter(debugInfo.UNMASKED_RENDERER_WEBGL) : null,
+        version: gl.getParameter(gl.VERSION),
+        depthBits: gl.getParameter(gl.DEPTH_BITS),
+        stencilBits: gl.getParameter(gl.STENCIL_BITS),
+        maxTextureSize: gl.getParameter(gl.MAX_TEXTURE_SIZE),
+        maxTextureImageUnits: gl.getParameter(gl.MAX_TEXTURE_IMAGE_UNITS),
+    };
+
     if (debugInfo) {
-        console.log('K3D: (UNMASKED_VENDOR_WEBGL)', gl.getParameter(debugInfo.UNMASKED_VENDOR_WEBGL));
-        console.log('K3D: (UNMASKED_RENDERER_WEBGL)', gl.getParameter(debugInfo.UNMASKED_RENDERER_WEBGL));
+        console.log('K3D: (UNMASKED_VENDOR_WEBGL)', K3D.glInfo.unmaskedVendor);
+        console.log('K3D: (UNMASKED_RENDERER_WEBGL)', K3D.glInfo.unmaskedRenderer);
     }
-    console.log('K3D: (depth bits)', gl.getParameter(gl.DEPTH_BITS));
-    console.log('K3D: (stencil bits)', gl.getParameter(gl.STENCIL_BITS));
+    console.log('K3D: (depth bits)', K3D.glInfo.depthBits);
+    console.log('K3D: (stencil bits)', K3D.glInfo.stencilBits);
 
     // [0], [1] - layer depth flip/flop (raw z in .r); [2] - accumulator; [3] - layer colour.
     // Half-float accumulation rounds to 8 bits once, at the final blit.
