@@ -1713,6 +1713,10 @@ function K3D(provider, targetDOMNode, parameters) {
                 // nothing
             }
 
+            // the loader path below announces itself and this early return did not, so a renderer
+            // holding a scene of its own - cinematic - kept tracing the object it had just lost
+            dispatch(self.events.OBJECT_LOADED);
+
             // the render has to follow the removal: it is the last frame drawn, so rendering
             // first leaves the object on screen until something else triggers a new one
             if (timeSeriesReload !== true) {
