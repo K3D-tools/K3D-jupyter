@@ -33,6 +33,73 @@ function replaceOnce(source, needle, replacement, what) {
     return source.replace(needle, () => replacement);
 }
 
+// No K3D object builds a MeshPhysicalMaterial, so sheen and iridescence are zero for every
+// material - but neither is guarded, so both are evaluated on every bounce and then multiplied by
+// that zero. The call sites come out before the chunks: their callers sit in bsdf_functions,
+// which this file re-inserts verbatim, so dropping the chunks alone would not compile.
+const IRIDESCENCE_CALL = '\n\t\tvec3 iridescenceF = evalIridescence( 1.0, surf.iridescenceIor,'
+    + ' dot( wi, wh ), surf.iridescenceThickness, f0Color );\n'
+    + '\t\tF = mix( F, iridescenceF,  surf.iridescence );\n';
+
+const SHEEN_CALLS = '\n\t\t// sheen\n'
+    + '\t\tcolor *= mix( 1.0, sheenAlbedoScaling( wo, wi, surf ), surf.sheen );\n'
+    + '\t\tcolor += sheenColor( wo, wi, halfVector, surf ) * surf.sheen;\n';
+
+const SHEEN_COLOR_FN = '\n\t// sheen\n'
+    + '\tvec3 sheenColor( vec3 wo, vec3 wi, vec3 wh, SurfaceRecord surf ) {\n\n'
+    + '\t\tfloat cosThetaO = saturateCos( wo.z );\n'
+    + '\t\tfloat cosThetaI = saturateCos( wi.z );\n'
+    + '\t\tfloat cosThetaH = wh.z;\n\n'
+    + '\t\tfloat D = velvetD( cosThetaH, surf.sheenRoughness );\n'
+    + '\t\tfloat G = velvetG( cosThetaO, cosThetaI, surf.sheenRoughness );\n\n'
+    + '\t\t// See equation (1) in http://www.aconty.com/pdf/s2017_pbs_imageworks_sheen.pdf\n'
+    + '\t\tvec3 color = surf.sheenColor;\n'
+    + '\t\tcolor *= D * G / ( 4.0 * abs( cosThetaO * cosThetaI ) );\n'
+    + '\t\tcolor *= wi.z;\n\n'
+    + '\t\treturn color;\n\n'
+    + '\t}\n';
+
+function stripDeadLobes(source) {
+    let shader = source;
+
+    shader = replaceOnce(
+        shader,
+        IRIDESCENCE_CALL,
+        '',
+        'the iridescence call in specularEval is not in the fragment shader exactly once',
+    );
+
+    shader = replaceOnce(
+        shader,
+        SHEEN_CALLS,
+        '',
+        'the sheen calls in bsdfEval is not in the fragment shader exactly once',
+    );
+
+    shader = replaceOnce(
+        shader,
+        SHEEN_COLOR_FN,
+        '',
+        'the sheenColor definition is not in the fragment shader exactly once',
+    );
+
+    shader = replaceOnce(
+        shader,
+        BSDFGLSL.iridescence_functions,
+        '',
+        'the iridescence chunk is not in the fragment shader exactly once',
+    );
+
+    shader = replaceOnce(
+        shader,
+        BSDFGLSL.sheen_functions,
+        '',
+        'the sheen chunk is not in the fragment shader exactly once',
+    );
+
+    return shader;
+}
+
 function patchFragmentShader(source) {
     let shader = source;
 
@@ -136,7 +203,7 @@ function patchFragmentShader(source) {
         'fog hit handling in main() is not in the fragment shader exactly once',
     );
 
-    return shader;
+    return stripDeadLobes(shader);
 }
 
 // RGBA8 pixels of the row a texture( lut, vec2( x, 0.5 ) ) lookup reads; the K3D LUT is a
