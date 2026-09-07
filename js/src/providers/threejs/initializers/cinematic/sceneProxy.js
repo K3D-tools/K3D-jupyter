@@ -791,15 +791,12 @@ module.exports = function createSceneProxy(K3D) {
     // them without OBJECT_REMOVED)
     const cache = new Map();
 
-    K3D.on(K3D.events.OBJECT_CHANGE, (change) => {
-        if (change && typeof change.id !== 'undefined') {
-            cache.delete(String(change.id));
-        }
-    });
     K3D.on(K3D.events.OBJECT_REMOVED, (id) => {
         cache.delete(String(id));
     });
-    // OBJECT_LOADED is index.js's call - it knows which keys moved, and calls invalidate()
+    // An edit is index.js's call, not ours: it knows which keys moved, so it decides between
+    // forget(), invalidate() and keeping the entry for syncMaterials. Dropping it here as well
+    // emptied the cache under the material fast path, which then had nothing left to sync.
 
     return {
         // mirrors every visible K3DObjects child into `scene`; returns the proxied count
@@ -947,6 +944,11 @@ module.exports = function createSceneProxy(K3D) {
                     node.material.needsUpdate = true;
                 });
             });
+        },
+
+        // one object's entry, for an edit that names it
+        forget(id) {
+            cache.delete(String(id));
         },
 
         invalidate() {

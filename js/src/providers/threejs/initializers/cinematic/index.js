@@ -123,6 +123,8 @@ module.exports = function cinematic(K3D, renderer, hooks) {
                 if (name === 'OBJECT_LOADED') {
                     // the event does not always name an object, so only a full drop is safe
                     proxy.invalidate();
+                } else if (change && typeof change.id !== 'undefined') {
+                    proxy.forget(change.id);
                 }
 
                 sceneDirty = true;
