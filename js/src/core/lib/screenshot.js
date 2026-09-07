@@ -8,15 +8,23 @@ function getScreenshot(K3D, scale, onlyCanvas) {
         const htmlElementCanvas = document.createElement('canvas');
         const { clearColor } = K3D.parameters;
         const world = K3D.getWorld();
-        const canvas3d = world.renderer.domElement;
         let renderPromise;
         let t;
 
         t = new Date().getTime();
-        finalCanvas.width = Math.floor(canvas3d.width * scale);
-        htmlElementCanvas.width = Math.floor(canvas3d.width * scale);
-        finalCanvas.height = Math.floor(canvas3d.height * scale);
-        htmlElementCanvas.height = Math.floor(canvas3d.height * scale);
+
+        // the output resolution is the plot's own size times screenshot_scale, and nothing else:
+        // the canvas backing store would bring the adaptive quality factor with it, which Canvas.js
+        // lowers to hold minimum_fps, so a file would shrink because the last frames were slow, and
+        // the display's pixel ratio would make the same plot produce different files on different
+        // machines. With minimum_fps off, which is the default, this is what the canvas already is.
+        const width = Math.floor(world.width * scale);
+        const height = Math.floor(world.height * scale);
+
+        finalCanvas.width = width;
+        htmlElementCanvas.width = width;
+        finalCanvas.height = height;
+        htmlElementCanvas.height = height;
 
         K3D.heavyOperationAsync = true;
         K3D.labels = [];
