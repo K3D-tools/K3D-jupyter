@@ -9,9 +9,9 @@ from base64 import b64decode
 import msgpack
 import numpy as np
 from deepcomparer import deep_compare
-from flask import Flask, send_from_directory
+from flask import Flask, request, send_from_directory
 from werkzeug import Response
-from werkzeug.serving import make_server
+from werkzeug.serving import WSGIRequestHandler, make_server
 
 from .helpers import to_json
 
@@ -32,7 +32,6 @@ if not logger.hasHandlers():
 logger.setLevel(logging.INFO)
 
 
-# logging.basicConfig(filename='test.log', level=logging.DEBUG)
 class _QuietRequestHandler(WSGIRequestHandler):
     """Serves without narrating.
 
@@ -48,6 +47,7 @@ class _QuietRequestHandler(WSGIRequestHandler):
             super().log_request(code, size)
 
 
+# logging.basicConfig(filename='test.log', level=logging.DEBUG)
 
 def _property_changed(current, synced, object_id, name):
     """Whether a synced property was edited.
@@ -332,6 +332,8 @@ class k3d_remote:
         self.browser = driver
         self.k3d_plot = k3d_plot
         self.refresh_timeout = refresh_timeout
+        # settled on first use by _memory_is_precise; fixed for the browser's life
+        self._precise_memory = None
 
         self.api = Flask(__name__)
 
@@ -351,6 +353,18 @@ class k3d_remote:
         def static_file(path):
             root_dir = self.k3d_plot.get_static_path()
             return send_from_directory(root_dir, path)
+
+        # filled by the /screenshot route on the server thread
+        self._screenshot = None
+        self._screenshot_ready = threading.Event()
+
+        @self.api.route("/screenshot", methods=["POST"])
+        def screenshot():
+            # not through execute_script: its return values are never released
+            self._screenshot = request.get_data()
+            self._screenshot_ready.set()
+
+            return Response(":)")
 
         @self.api.route("/ping")
         def ping():
@@ -411,116 +425,6 @@ class k3d_remote:
                     )
                 time.sleep(0.1)
 
-    def get_browser_screenshot(self):
-        return self.browser.get_screenshot_as_png()
-
-    def camera_reset(self, factor=1.5):
-        self.browser.execute_script("K3DInstance.resetCamera(%f)" % factor)
-        # refresh dom elements
-        self.browser.execute_script("K3DInstance.refreshGrid()")
-        self.browser.execute_script("K3DInstance.dispatch(K3DInstance.events.RENDERED)")
-
-    def get_screenshot(self, only_canvas=False):
-        screenshot = self.browser.execute_script(
-            """
-        return K3DInstance.getScreenshot(K3DInstance.parameters.screenshotScale, %d).then(function (d){
-        return d.toDataURL().split(',')[1];
-        });
-        """
-            % only_canvas
-        )
-
-        if status != 200:
-            raise RuntimeError("the page could not post its screenshot (HTTP %s)" % status)
-
-        # the body lands on the server thread, so it can arrive after the script resolves
-        if not self._screenshot_ready.wait(timeout or self.refresh_timeout):
-            raise TimeoutError(
-                "the screenshot was rendered but never arrived over the HTTP channel"
-            )
-
-        return self._screenshot
-
-    def get_gltf(self):
-        """Return the scene geometry as a binary glTF (.glb).
-
-        See Plot.fetch_gltf for what a glTF can and cannot carry over from a K3D scene.
-        """
-        gltf = self.browser.execute_script(
-            """
-        return K3DInstance.getGLTF().then(function (glb) {
-            var bytes = new Uint8Array(glb);
-            var chunks = [];
-
-            // one apply() over the whole buffer overflows the argument stack on real meshes
-            for (var i = 0; i < bytes.length; i += 8192) {
-                chunks.push(String.fromCharCode.apply(null, bytes.subarray(i, i + 8192)));
-            }
-
-            return btoa(chunks.join(''));
-        });
-        """
-        )
-
-        return b64decode(gltf)
-
-    def close(self):
-        if self.server is not None:
-            self.server.shutdown()
-            self.server = None
-
-        if self.browser is not None:
-            # quit(), not close(): close() only closes the current window and would leave the
-            # WebDriver session and the chromedriver/browser processes behind.
-            self.browser.quit()
-            self.browser = None
-
-
-def _relax_timeouts(driver):
-    """Cinematic screenshots block inside a single execute_script call for tens of minutes.
-    Both limits are raised: the 120 s HTTP timeout is the effective bound, since a promise
-    returned from execute_script is not an async script and the script timeout never fires."""
-    driver.set_script_timeout(3600)
-
-    client_config = getattr(driver.command_executor, "_client_config", None)
-
-    if client_config is not None:
-        client_config.timeout = 3600
-
-    return driver
-
-
-def get_headless_driver(no_headless=False, gpu=False):
-    from selenium import webdriver
-
-    options = webdriver.ChromeOptions()
-
-    options.add_argument("--no-sandbox")
-
-    if not no_headless:
-        if gpu:
-            options.add_argument("--headless=new")
-            options.add_argument("--ignore-gpu-blocklist")
-            options.add_argument("--enable-webgl")
-        else:
-            options.add_argument("--headless")
-            options.add_argument("--enable-unsafe-swiftshader")
-
-    return _relax_timeouts(webdriver.Chrome(options=options))
-
-
-def get_headless_firefox_driver(no_headless=False):
-    from selenium import webdriver
-
-    options = webdriver.FirefoxOptions()
-
-    options.add_argument("--no-sandbox")
-
-    if not no_headless:
-        options.add_argument("--headless")
-        options.add_argument("--enable-unsafe-swiftshader")
-
-    return _relax_timeouts(webdriver.Firefox(options=options))
     def get_memory(self, collect=True):
         """The page's JS heap in megabytes, or None where the browser does not report it.
 
@@ -603,3 +507,145 @@ def get_headless_firefox_driver(no_headless=False):
             "? K3DInstance.glInfo : null;"
         )
 
+    def get_browser_screenshot(self):
+        return self.browser.get_screenshot_as_png()
+
+    def camera_reset(self, factor=1.5):
+        self.browser.execute_script("K3DInstance.resetCamera(%f)" % factor)
+        # refresh dom elements
+        self.browser.execute_script("K3DInstance.refreshGrid()")
+        self.browser.execute_script("K3DInstance.dispatch(K3DInstance.events.RENDERED)")
+
+    def get_screenshot(self, only_canvas=False, timeout=None):
+        """The rendered PNG, posted back over this session's own HTTP server.
+
+        Not returned from execute_script: every value that crosses that boundary stays in the
+        page's heap for the life of the browser, and no CDP call releases it. At 4K that is about
+        10 MB a frame, so a few hundred frames reach the tab's heap limit. toBlob keeps the image
+        off the JS heap entirely and skips base64 both ways.
+        """
+        self._screenshot = None
+        self._screenshot_ready.clear()
+
+        status = self.browser.execute_script(
+            """
+        var onlyCanvas = arguments[0];
+
+        return K3DInstance.getScreenshot(K3DInstance.parameters.screenshotScale, onlyCanvas)
+            .then(function (canvas) {
+                return new Promise(function (resolve, reject) {
+                    canvas.toBlob(function (blob) {
+                        if (!blob) { reject(new Error('canvas produced no blob')); return; }
+
+                        var req = new XMLHttpRequest();
+
+                        req.open('POST', '/screenshot', true);
+                        req.onload = function () { resolve(req.status); };
+                        req.onerror = function () { reject(new Error('screenshot POST failed')); };
+                        req.send(blob);
+                    }, 'image/png');
+                });
+            });
+        """,
+            bool(only_canvas),
+        )
+
+        if status != 200:
+            raise RuntimeError("the page could not post its screenshot (HTTP %s)" % status)
+
+        # the body lands on the server thread, so it can arrive after the script resolves
+        if not self._screenshot_ready.wait(timeout or self.refresh_timeout):
+            raise TimeoutError(
+                "the screenshot was rendered but never arrived over the HTTP channel"
+            )
+
+        return self._screenshot
+
+    def get_gltf(self):
+        """Return the scene geometry as a binary glTF (.glb).
+
+        See Plot.fetch_gltf for what a glTF can and cannot carry over from a K3D scene.
+        """
+        gltf = self.browser.execute_script(
+            """
+        return K3DInstance.getGLTF().then(function (glb) {
+            var bytes = new Uint8Array(glb);
+            var chunks = [];
+
+            // one apply() over the whole buffer overflows the argument stack on real meshes
+            for (var i = 0; i < bytes.length; i += 8192) {
+                chunks.push(String.fromCharCode.apply(null, bytes.subarray(i, i + 8192)));
+            }
+
+            return btoa(chunks.join(''));
+        });
+        """
+        )
+
+        return b64decode(gltf)
+
+    def close(self):
+        if self.server is not None:
+            self.server.shutdown()
+            self.server = None
+
+        if self.browser is not None:
+            # quit(), not close(): close() only closes the current window and would leave the
+            # WebDriver session and the chromedriver/browser processes behind.
+            self.browser.quit()
+            self.browser = None
+
+
+def _relax_timeouts(driver):
+    """Cinematic screenshots block inside a single execute_script call for tens of minutes.
+    Both limits are raised: the 120 s HTTP timeout is the effective bound, since a promise
+    returned from execute_script is not an async script and the script timeout never fires."""
+    driver.set_script_timeout(3600)
+
+    client_config = getattr(driver.command_executor, "_client_config", None)
+
+    if client_config is not None:
+        client_config.timeout = 3600
+
+    return driver
+
+
+def get_headless_driver(no_headless=False, gpu=False, extra_args=None):
+    """A Chrome driver for a headless plot.
+
+    extra_args go to the browser verbatim after the defaults, for switches the library should not
+    choose for everyone - "--enable-precise-memory-info", "--js-flags=--expose-gc".
+    """
+    from selenium import webdriver
+
+    options = webdriver.ChromeOptions()
+
+    options.add_argument("--no-sandbox")
+
+    if not no_headless:
+        if gpu:
+            options.add_argument("--headless=new")
+            options.add_argument("--ignore-gpu-blocklist")
+            options.add_argument("--enable-webgl")
+        else:
+            options.add_argument("--headless")
+            options.add_argument("--enable-unsafe-swiftshader")
+
+    for arg in extra_args or []:
+        options.add_argument(arg)
+
+    return _relax_timeouts(webdriver.Chrome(options=options))
+
+
+def get_headless_firefox_driver(no_headless=False):
+    from selenium import webdriver
+
+    options = webdriver.FirefoxOptions()
+
+    options.add_argument("--no-sandbox")
+
+    if not no_headless:
+        options.add_argument("--headless")
+        options.add_argument("--enable-unsafe-swiftshader")
+
+    return _relax_timeouts(webdriver.Firefox(options=options))
