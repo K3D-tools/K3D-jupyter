@@ -594,6 +594,11 @@ module.exports = function cinematic(K3D, renderer, hooks) {
         // accumulate to the plot's sample budget, presenting every sample on the canvas;
         // resolves with stale: true when superseded
         renderFrame() {
+            // nobody can see a headless canvas, and a screenshot traces its own frame from zero
+            if (isHeadless) {
+                return Promise.resolve({ samples: 0, ms: 0 });
+            }
+
             const budget = K3D.parameters.cinematicSamples;
             const world = K3D.getWorld();
 
@@ -607,9 +612,7 @@ module.exports = function cinematic(K3D, renderer, hooks) {
                     prepareOverlay(scene, world.width, world.height);
                 }
 
-                // headless never looks at the canvas - the screenshot composes its own frame -
-                // and presenting between samples costs a clear and two scene draws each time
-                return renderSamplesAsync(budget, budget, !isHeadless);
+                return renderSamplesAsync(budget, budget, true);
             })).then((result) => {
                 if (!result.stale) {
                     setHud(sampleHud(result.samples, budget));
