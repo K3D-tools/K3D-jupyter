@@ -45,7 +45,7 @@ The parameters
     plot.cinematic_seed = None           # None: fresh noise each time; an int: repeatable
     plot.cinematic_denoise = 0.0         # filter strength in noise sigmas, 0 is off
     plot.cinematic_bokeh_size = 0.0      # aperture diameter in scene units, 0 is a pinhole
-    plot.cinematic_focus_distance = 0.0  # 0 focuses on the camera's target
+    plot.cinematic_focus_distance = 0.0  # distance from the camera; 0 is as far as its target
     plot.cinematic_aperture_blades = 0   # 0 is a round iris, 3 to 16 a polygonal one
 
 ``cinematic_samples``

@@ -1,6 +1,11 @@
 import numpy as np
 
 import k3d
+from k3d.headless import get_headless_driver, k3d_remote
+
+# the same frame as the six environment shots on this page, for one look across it
+WIDTH = 560
+HEIGHT = 360
 
 
 def generate():
@@ -34,5 +39,10 @@ def generate():
 
     plot.camera = [2.4, -2.4, 1.6, 0, 0, 0, 0, 0, 1]
 
-    plot.snapshot_type = 'inline'
-    return plot.get_snapshot()
+    headless = k3d_remote(plot, get_headless_driver(), width=WIDTH, height=HEIGHT)
+    headless.sync(hold_until_refreshed=True)
+
+    png = headless.get_screenshot()
+    headless.close()
+
+    return png
