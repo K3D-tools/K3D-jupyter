@@ -574,6 +574,9 @@ module.exports = function cinematic(K3D, renderer, hooks) {
     // (KHR_parallel_shader_compile): yield until the accumulator reaches the budget
     function renderSamplesAsync(count, budget, present, interruptible = true) {
         const gen = ++generation;
+
+        // an intermediate blend exists only to be looked at
+        backend.setBlendEveryTile(present);
         const warmup = needsWarmup
             ? renderUntil(1, gen, 0, false, interruptible)
             : Promise.resolve({ samples: 0 });
@@ -712,6 +715,7 @@ module.exports = function cinematic(K3D, renderer, hooks) {
                     }
 
                     backend.setTiles(world.width, world.height);
+                    backend.setBlendEveryTile(true);
 
                     if (cameraMoved()) {
                         backend.updateCamera();

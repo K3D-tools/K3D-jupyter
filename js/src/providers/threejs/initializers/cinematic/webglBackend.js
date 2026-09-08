@@ -86,6 +86,38 @@ module.exports = function createWebGLBackend(renderer) {
     // read as convergence.
     let epoch = 0;
 
+    // Upstream blends the whole frame after every tile, and within a sample each of those
+    // blends overwrites the last, so only the one closing a sample decides the image.
+    let blendEveryTile = true;
+    let blendPatched = false;
+
+    function installBlendThrottle(inner) {
+        if (blendPatched || !inner || !inner._blendQuad) {
+            return;
+        }
+
+        const quad = inner._blendQuad;
+        const render = quad.render.bind(quad);
+
+        quad.render = (r) => {
+            if (blendEveryTile) {
+                render(r);
+
+                return;
+            }
+
+            const total = Math.max(1, inner.tiles.x) * Math.max(1, inner.tiles.y);
+            // samples is bumped after this call, so this is the blend closing a sample
+            const next = inner.samples + (1 / total);
+
+            if (Math.abs(next - Math.round(next)) < 1e-6) {
+                render(r);
+            }
+        };
+
+        blendPatched = true;
+    }
+
     // Resolves with a usable worker or null: availability is decided by building one triangle
     // rather than assumed, since the source has to reach here from the page or the kernel. The
     // parallel worker is not used - it needs SharedArrayBuffer, which requires cross-origin
@@ -296,6 +328,7 @@ module.exports = function createWebGLBackend(renderer) {
 
         init() {
             tracer = new WebGLPathTracer(renderer);
+            installBlendThrottle(tracer._pathTracer);
             installVolumeMaterial();
             tracer.dynamicLowRes = false;
             tracer.minSamples = 1;
@@ -343,8 +376,7 @@ module.exports = function createWebGLBackend(renderer) {
         // uninterrupted full-frame trace stalls the page and can trip the driver watchdog,
         // which tears down the GL context. A ceiling on the tile count breaks that bound at
         // exactly the resolutions that need it - at 6, a 4K frame gets tiles of 230k pixels,
-        // twice the budget - so it sits where the per-call overhead of 256 tiles starts to
-        // matter instead, which is past any frame this renderer can allocate.
+        // twice the budget - so it sits well past any frame this renderer can allocate.
         setTiles(width, height) {
             const perTile = 120000;
             const tiles = Math.min(16, Math.max(1, Math.ceil(Math.sqrt((width * height) / perTile))));
@@ -352,6 +384,12 @@ module.exports = function createWebGLBackend(renderer) {
             tracer.tiles.set(tiles, tiles);
 
             return tiles * tiles;
+        },
+
+        // Whether the accumulation is blended after every tile or only after the last one of
+        // a sample. Every tile is right exactly when every tile is shown.
+        setBlendEveryTile(on) {
+            blendEveryTile = on !== false;
         },
 
         // one sample is spread over this many renderSample() calls
