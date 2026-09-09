@@ -1,4 +1,5 @@
 #include <common>
+#include <k3d_color_range>
 #include <clipping_planes_pars_fragment>
 #include <lights_pars_begin>
 
@@ -23,8 +24,6 @@ uniform mat4 modelViewMatrix;
 uniform sampler3D mask;
 uniform float maskOpacities[256];
 uniform bool maskEnabled;
-
-float inv_range;
 
 struct Ray {
     vec3 origin;
@@ -106,7 +105,6 @@ void main() {
     float reducedSamples = samples / 2.0;
     float dist;
 
-    inv_range = 1.0 / (high - low);
     aabb[0] = aabb[0] * scale.xyz + translation.xyz;
     aabb[1] = aabb[1] * scale.xyz + translation.xyz;
 
@@ -154,7 +152,7 @@ void main() {
         #endif
 
         float px = texture(volumeTexture, textcoord).x;
-        float scaled_px = (px - low) * inv_range;
+        float scaled_px = k3dScaleToRange(px, low, high);
 
         if (scaled_px > 0.0) {
             scaled_px = min(scaled_px, 0.99);

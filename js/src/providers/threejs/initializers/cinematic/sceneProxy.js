@@ -155,12 +155,12 @@ function pointColors(json, count) {
     if (usesColorMap(json)) {
         const sample = colorMapSampler(json.color_map.data, opacityFunctionOf(json));
         const attribute = json.attribute.data;
-        const low = json.color_range[0];
-        const span = json.color_range[1] - low || 1.0;
         const colors = new Float32Array(count * 3);
 
         for (let i = 0; i < count; i++) {
-            const rgba = sample((attribute[i] - low) / span);
+            const rgba = sample(Fn.scaleToColorRange(
+                attribute[i], json.color_range[0], json.color_range[1],
+            ));
 
             colors[i * 3] = rgba[0];
             colors[i * 3 + 1] = rgba[1];
@@ -533,13 +533,13 @@ function bakeScalarFieldMesh(sourceMesh, json, field, toFieldCoords) {
     const position = geometry.attributes.position;
     const sample = trilinearSampler(field.data, field.shape);
     const colorMap = colorMapSampler(json.color_map.data, opacityFunctionOf(json));
-    const low = json.color_range[0];
-    const span = json.color_range[1] - low || 1.0;
     const colors = new Float32Array(position.count * 3);
 
     for (let i = 0; i < position.count; i++) {
         const uvw = toFieldCoords(position.getX(i), position.getY(i), position.getZ(i));
-        const rgba = colorMap((sample(uvw[0], uvw[1], uvw[2]) - low) / span);
+        const rgba = colorMap(Fn.scaleToColorRange(
+            sample(uvw[0], uvw[1], uvw[2]), json.color_range[0], json.color_range[1],
+        ));
 
         colors[i * 3] = rgba[0];
         colors[i * 3 + 1] = rgba[1];
@@ -570,12 +570,10 @@ function buildTextureData(json, sourceMesh) {
     const width = json.attribute.shape[1];
     const data = json.attribute.data;
     const sample = colorMapSampler(json.color_map.data, opacityFunctionOf(json));
-    const low = json.color_range[0];
-    const span = json.color_range[1] - low || 1.0;
     const rgba = new Uint8Array(width * height * 4);
 
     for (let i = 0; i < width * height; i++) {
-        const c = sample((data[i] - low) / span);
+        const c = sample(Fn.scaleToColorRange(data[i], json.color_range[0], json.color_range[1]));
 
         rgba[i * 4] = Math.round(c[0] * 255);
         rgba[i * 4 + 1] = Math.round(c[1] * 255);

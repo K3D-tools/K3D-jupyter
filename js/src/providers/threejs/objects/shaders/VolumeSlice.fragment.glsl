@@ -1,4 +1,5 @@
 #include <common>
+#include <k3d_color_range>
 
 precision highp sampler3D;
 
@@ -47,7 +48,7 @@ void main() {
     #pragma unroll_loop_start
     for (int i = 0; i < TEXTURE_COUNT; i++) {
         px = cubicSample(volumeTexture[i], coord, volumeSize[i]).x;
-        scaled_px = (px - low[i]) / (high[i] - low[i]);
+        scaled_px = k3dScaleToRange(px, low[i], high[i]);
         scaled_px = max(min(scaled_px, 0.99), 0.01);
         cm_coord[i] = scaled_px;
     }

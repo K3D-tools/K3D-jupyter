@@ -6,6 +6,8 @@ uniform float low;
 uniform float high;
 attribute float attributes;
 varying vec3 kPointColor;
+
+#include <k3d_color_range>
 #endif
 
 #if K3D_PER_POINT_OPACITY == 1

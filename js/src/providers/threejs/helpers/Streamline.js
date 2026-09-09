@@ -1,4 +1,5 @@
 const THREE = require('three');
+const { scaleToColorRange } = require('./Fn');
 
 module.exports = function (points, attributes, radius, radialSegments, color, verticesColors, colorRange) {
     const geometry = new THREE.BufferGeometry();
@@ -107,7 +108,7 @@ module.exports = function (points, attributes, radius, radialSegments, color, ve
             vertices.push(vertex.x, vertex.y, vertex.z);
 
             if (attributes !== null && attributes.length > 0) {
-                uvs.push((attributes[i] - colorRange[0]) / (colorRange[1] - colorRange[0]), j / radialSegments);
+                uvs.push(scaleToColorRange(attributes[i], colorRange[0], colorRange[1]), j / radialSegments);
             } else if (verticesColors !== null && verticesColors.length > 0) {
                 colors.push(verticesColors[i * 3], verticesColors[i * 3 + 1], verticesColors[i * 3 + 2]);
             } else {

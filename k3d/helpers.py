@@ -416,7 +416,11 @@ def check_attribute_color_range(
     # channels would leave the second one reading undefined and its uniforms NaN.
     if isinstance(attribute, (list, tuple)):
         if len(color_range) == 2 * len(attribute):
-            return list(color_range)
+            color_range = [float(v) for v in color_range]
+            for i in range(0, len(color_range), 2):
+                if color_range[i] == color_range[i + 1]:
+                    color_range[i + 1] += 1.0
+            return color_range
 
         ranges = []
 
@@ -431,7 +435,10 @@ def check_attribute_color_range(
         return ranges
 
     if len(color_range) == 2:
-        return color_range
+        low, high = float(color_range[0]), float(color_range[1])
+        if low == high:
+            high += 1.0
+        return [low, high]
     if type(attribute) is dict:
         t = [minmax(attribute[k]) for k in attribute]
         color_range = [min([v[0] for v in t]), max([v[1] for v in t])]
@@ -475,7 +482,11 @@ def map_colors(
     map_array = map_array.reshape((map_array.size // 4, 4))
 
     # normalizing attribute for range lookup
-    attribute = (attribute - a_min) / (a_max - a_min)
+    span = a_max - a_min
+    if span == 0:
+        attribute = np.full(np.shape(attribute), 0.5, dtype=np.float64)
+    else:
+        attribute = (np.asarray(attribute, dtype=np.float64) - a_min) / span
 
     red, green, blue = [
         np.array(

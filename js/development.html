@@ -65,49 +65,54 @@
         var framesSinceRotation = 0;
         var rotationIndex = 0;
         var twoPi = Math.PI * 2;
-        
+
         function rotate() {
-            var time = (performance.now() - initialTime) * 0.001;
-            var radius = 250.0;
-            
-            var x = Math.sin(time) * radius;
-            var y = Math.cos(time) * radius;
-            var z = 1.0;
+          var time = (performance.now() - initialTime) * 0.001;
+          var radius = 250.0;
 
-            if (K3DInstance) {
-                K3DInstance.setCamera([x, y, z, 0.5, 0.5, 0.5, 0, 0, 1]);
-            }
-            
-            var currentRotationIndex = Math.floor(time / twoPi);
-            if (currentRotationIndex !== rotationIndex) {
-                var rotationsCompleted = currentRotationIndex - rotationIndex;
-                var durationMs = rotationsCompleted * twoPi * 1000;
-                console.log("FPS (full rotation): " + (framesSinceRotation * 1000 / durationMs).toFixed(2));
-                rotationIndex = currentRotationIndex;
-                framesSinceRotation = 0;
-            }
+          var x = Math.sin(time) * radius;
+          var y = Math.cos(time) * radius;
+          var z = 1.0;
 
-            frame++;
-            framesSinceRotation++;
-            
-            requestAnimationFrame(rotate);
+          if (K3DInstance) {
+            K3DInstance.setCamera([x, y, z, 0.5, 0.5, 0.5, 0, 0, 1]);
+          }
+
+          var currentRotationIndex = Math.floor(time / twoPi);
+          if (currentRotationIndex !== rotationIndex) {
+            var rotationsCompleted = currentRotationIndex - rotationIndex;
+            var durationMs = rotationsCompleted * twoPi * 1000;
+            console.log("FPS (full rotation): " + (framesSinceRotation * 1000 / durationMs).toFixed(2));
+            rotationIndex = currentRotationIndex;
+            framesSinceRotation = 0;
+          }
+
+          frame++;
+          framesSinceRotation++;
+
+          requestAnimationFrame(rotate);
         }
-        
+
         // rotate();
 
         // K3DInstance.on(K3DInstance.events.OBJECT_HOVERED, (params) => {
         //   console.log(params);
         // });
 
-        // setTimeout(function () {
-        //   let jsons = ret.getWorld().ObjectsListJson;
-        
-        //   Object.keys(jsons).forEach(function(id) {
-        //     jsons[id].samples = 10000;
-        //     jsons[id].shadow = 'off';
-        //     K3DInstance.reload(jsons[id]);
-        //   });
-        // }, 500);
+        setTimeout(function () {
+          let jsons = ret.getWorld().ObjectsListJson;
+
+          K3DInstance.setCamera([359.2559719224738, -111.85641943374866, 211.21662872808872, 194.72171263611855, 64.22236489255688, 290.88872842921705, -0.5674990713564746, -0.7568423493521428, 0.32424444827424714]);
+          // K3DInstance.setRenderer("cinematic");
+          // K3DInstance.setEnvironment("neutral");
+          // Object.keys(jsons).forEach(function (id) {
+          //   jsons[id].samples = 256;
+          //   jsons[id].color_range = [75, 400];
+          //   jsons[id].shadow = 'off';
+          //   jsons[id].alpha_coef = 75;
+          //   K3DInstance.reload(jsons[id]);
+          // });
+        }, 500);
       });
     });
   });

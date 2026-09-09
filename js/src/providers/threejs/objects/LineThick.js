@@ -9,6 +9,7 @@ const { computeFiniteBounds } = Fn;
 const colorMapHelper = require('../../../core/lib/helpers/colorMap');
 
 const { getColorsArray } = Fn;
+const { scaleToColorRange } = Fn;
 
 /**
  * Loader strategy to handle Line object
@@ -56,7 +57,7 @@ function create(config, K3D) {
         uvs = new Float32Array(attribute.length);
 
         for (let i = 0; i < attribute.length; i++) {
-            uvs[i] = (attribute[i] - colorRange[0]) / (colorRange[1] - colorRange[0]);
+            uvs[i] = scaleToColorRange(attribute[i], colorRange[0], colorRange[1]);
         }
     } else {
         colors = (verticesColors && verticesColors.length === position.length / 3
@@ -141,13 +142,10 @@ function update(config, changes, obj, K3D) {
             const attribute = (config.attribute && config.attribute.data) || null;
 
             if (attribute && attribute.length === obj.geometry.attributes.uv.array.length) {
-                const low = changes.color_range[0];
-                const span = changes.color_range[1] - low;
-
                 uvs = new Float32Array(attribute.length);
 
                 for (let i = 0; i < uvs.length; i++) {
-                    uvs[i] = (attribute[i] - low) / span;
+                    uvs[i] = scaleToColorRange(attribute[i], changes.color_range[0], changes.color_range[1]);
                 }
 
                 obj.userData.lastUVs = uvs;
@@ -161,13 +159,10 @@ function update(config, changes, obj, K3D) {
                 return false;
             }
 
-            const low = config.color_range[0];
-            const span = config.color_range[1] - low;
-
             uvs = new Float32Array(changes.attribute.data.length);
 
             for (let i = 0; i < uvs.length; i++) {
-                uvs[i] = (changes.attribute.data[i] - low) / span;
+                uvs[i] = scaleToColorRange(changes.attribute.data[i], config.color_range[0], config.color_range[1]);
             }
 
             obj.userData.lastUVs = uvs;

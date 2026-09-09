@@ -21,6 +21,7 @@ varying vec4 vColor;
 varying vec4 mvPosition;
 
 #include <common>
+#include <k3d_color_range>
 #include <clipping_planes_pars_vertex>
 #include <logdepthbuf_pars_vertex>
 
@@ -45,7 +46,7 @@ void main() {
     #endif
 
     #if (USE_COLOR_MAP == 1)
-    float scaled_px = (attributes - low) / (high - low);
+    float scaled_px = k3dScaleToRange(attributes, low, high);
     vec4 finalSphereColor = texture2D(colormap, vec2(scaled_px, 0.5));
 
     finalSphereColor.a *= perPointOpacity;

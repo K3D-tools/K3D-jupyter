@@ -9,6 +9,7 @@ const { computeFiniteBounds } = Fn;
 const colorMapHelper = require('../../../core/lib/helpers/colorMap');
 
 const { getColorsArray } = Fn;
+const { scaleToColorRange } = Fn;
 
 /**
  * Loader strategy to handle Lines object
@@ -126,7 +127,7 @@ function create(config, K3D) {
         uvs = new Float32Array(attribute.length);
 
         for (let i = 0; i < attribute.length; i++) {
-            uvs[i] = (attribute[i] - colorRange[0]) / (colorRange[1] - colorRange[0]);
+            uvs[i] = scaleToColorRange(attribute[i], colorRange[0], colorRange[1]);
         }
 
         colors = null;
@@ -220,13 +221,10 @@ function update(config, changes, obj, K3D) {
     if (typeof (obj.geometry.attributes.uv) !== 'undefined') {
         const source = obj.userData.edgeVertices;
         const renormalise = (attribute, range) => {
-            const low = range[0];
-            const span = range[1] - low;
-
             uvs = new Float32Array(source.length);
 
             for (let i = 0; i < uvs.length; i++) {
-                uvs[i] = (attribute[source[i]] - low) / span;
+                uvs[i] = scaleToColorRange(attribute[source[i]], range[0], range[1]);
             }
 
             obj.userData.lastUVs = uvs;

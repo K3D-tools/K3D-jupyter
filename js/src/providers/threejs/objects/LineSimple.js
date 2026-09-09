@@ -8,6 +8,7 @@ const { areAllChangesResolve } = Fn;
 const { computeFiniteBounds } = Fn;
 const { getColorsArray } = Fn;
 const { handleColorMap } = Fn;
+const { scaleToColorRange } = Fn;
 
 /**
  * Loader strategy to handle Line object
@@ -67,11 +68,8 @@ module.exports = {
                 const uv = obj.geometry.attributes.uv.array;
 
                 if (attribute && attribute.length === uv.length) {
-                    const low = changes.color_range[0];
-                    const span = changes.color_range[1] - low;
-
                     for (let i = 0; i < uv.length; i++) {
-                        uv[i] = (attribute[i] - low) / span;
+                        uv[i] = scaleToColorRange(attribute[i], changes.color_range[0], changes.color_range[1]);
                     }
 
                     obj.geometry.attributes.uv.needsUpdate = true;
@@ -84,8 +82,9 @@ module.exports = {
                 const data = obj.geometry.attributes.uv.array;
 
                 for (let i = 0; i < data.length; i++) {
-                    data[i] = (changes.attribute.data[i] - config.color_range[0])
-                        / (config.color_range[1] - config.color_range[0]);
+                    data[i] = scaleToColorRange(
+                        changes.attribute.data[i], config.color_range[0], config.color_range[1],
+                    );
                 }
 
                 obj.geometry.attributes.uv.needsUpdate = true;

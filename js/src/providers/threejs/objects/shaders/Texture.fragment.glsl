@@ -1,4 +1,5 @@
 #include <common>
+#include <k3d_color_range>
 #include <clipping_planes_pars_fragment>
 #include <logdepthbuf_pars_fragment>
 
@@ -14,7 +15,7 @@ void main() {
     #include <logdepthbuf_fragment>
 
     vec4 tcolor = texture2D(map, vUv);
-    float value = (tcolor.x - low) / (high - low);
+    float value = k3dScaleToRange(tcolor.x, low, high);
 
     vec4 color = texture2D(colormap, vec2(value, 0.5));
 

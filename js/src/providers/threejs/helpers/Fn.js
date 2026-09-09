@@ -2,6 +2,12 @@ const THREE = require('three');
 const { createCanvasGradient } = require('../../../core/lib/helpers/colorMap');
 const Float16Array = require('../../../core/lib/helpers/float16Array');
 
+function scaleToColorRange(value, low, high) {
+    const range = high - low;
+
+    return range !== 0 ? (value - low) / range : 0.5;
+}
+
 function getSpaceDimensionsFromTargetElement(world) {
     // A zero here means the host has not laid the node out yet (a flex row that derives width
     // from content, a collapsed Accordion, a hidden Tab), never that there is nothing to draw.
@@ -32,6 +38,7 @@ function getSide(config) {
 }
 
 module.exports = {
+    scaleToColorRange,
     /**
      * Finds the nearest (greater than x) power of two of given x
      * @inner
@@ -294,7 +301,7 @@ module.exports = {
             uvs = new Float32Array(attributes.length);
 
             for (i = 0; i < attributes.length; i++) {
-                uvs[i] = (attributes[i] - colorRange[0]) / (colorRange[1] - colorRange[0]);
+                uvs[i] = scaleToColorRange(attributes[i], colorRange[0], colorRange[1]);
             }
 
             geometry.setAttribute('uv', new THREE.BufferAttribute(uvs, 1));

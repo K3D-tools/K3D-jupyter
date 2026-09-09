@@ -6,7 +6,12 @@ import numpy as np
 from traitlets import Bool, Bytes, TraitError, Unicode, validate
 
 from ..helpers import Array, Float, Int, array_serialization_wrap, get_bounding_box_points
-from ..validation.stl import AsciiStlData, BinaryStlData
+from ..validation.stl import (
+    AsciiStlData,
+    BinaryStlData,
+    vertices_from_ascii,
+    vertices_from_binary,
+)
 from .base import EPSILON, Drawable, DrawableWithCallback, ListOrArray, TimeSeries
 
 
@@ -404,8 +409,14 @@ class STL(Drawable):
         self.set_trait("type", "STL")
 
     def get_bounding_box(self):
-        warnings.warn("STL bounding box is still not supported", stacklevel=2)
-        return [-1, 1, -1, 1, -1, 1]
+        if self.text is not None:
+            vertices = vertices_from_ascii(self.text)
+        elif self.binary is not None:
+            vertices = vertices_from_binary(self.binary)
+        else:
+            vertices = np.zeros((0, 3), dtype=np.float32)
+
+        return get_bounding_box_points(vertices, self.model_matrix)
 
 
 class Surface(DrawableWithCallback):

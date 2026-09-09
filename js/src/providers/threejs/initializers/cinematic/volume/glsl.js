@@ -110,9 +110,11 @@ const volumeDeclarations = /* glsl */`
     }
 
     // uvw is the box-local position + 0.5, the raster's texture coordinate
+    #include <k3d_color_range>
+
     float k3dVolumeExtinction( vec3 uvw, out vec3 albedo ) {
         float px = texture( volumeTexture, uvw ).x;
-        float scaled = ( px - volumeLow ) / ( volumeHigh - volumeLow );
+        float scaled = k3dScaleToRange( px, volumeLow, volumeHigh );
         albedo = vec3( 0.0 );
 
         // the raster skips samples at or below low; the negated test also drops NaN
@@ -133,7 +135,7 @@ const volumeDeclarations = /* glsl */`
 
     // the raster's normalised intensity at a texture coordinate, 0 at or below low
     float k3dVolumeScaled( vec3 uvw ) {
-        float scaled = ( texture( volumeTexture, uvw ).x - volumeLow ) / ( volumeHigh - volumeLow );
+        float scaled = k3dScaleToRange( texture( volumeTexture, uvw ).x, volumeLow, volumeHigh );
         return scaled > 0.0 ? min( scaled, 1.0 ) : 0.0;
     }
 

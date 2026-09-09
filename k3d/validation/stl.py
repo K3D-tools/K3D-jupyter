@@ -1,7 +1,8 @@
 import re
 import struct
-from typing import Any
+from typing import Any, Union
 
+import numpy as np
 from traitlets import Bytes, TraitError, Unicode
 
 # reference to https://stackoverflow.com/a/385597/1338797
@@ -40,6 +41,46 @@ stl_re = (
 )
 
 ascii_stl = re.compile(stl_re, re.VERBOSE)
+
+_vertex_line = re.compile(
+    r"vertex\s+(" + float_re + r")\s+(" + float_re + r")\s+(" + float_re + r")",
+    re.VERBOSE | re.IGNORECASE,
+)
+
+# Binary STL facet: 12-byte normal, 3 vertices, 2-byte attribute. itemsize 50.
+_FACET = np.dtype(
+    {
+        "names": ["normal", "vertices", "attr"],
+        "formats": [("<f4", (3,)), ("<f4", (3, 3)), "<u2"],
+        "itemsize": 50,
+    }
+)
+
+
+def vertices_from_ascii(text: str) -> np.ndarray:
+    """Return an (N, 3) float32 array of vertex positions from ASCII STL."""
+    found = _vertex_line.findall(text)
+    if not found:
+        return np.zeros((0, 3), dtype=np.float32)
+    return np.array(found, dtype=np.float32)
+
+
+def vertices_from_binary(data: Union[bytes, bytearray, memoryview, np.ndarray]) -> np.ndarray:
+    """Return an (N, 3) float32 array of vertex positions from binary STL."""
+    if isinstance(data, np.ndarray):
+        buf = np.ascontiguousarray(data).reshape(-1)
+        if buf.dtype != np.uint8:
+            buf = buf.view(np.uint8)
+    else:
+        buf = np.frombuffer(data, dtype=np.uint8)
+
+    offset = BinaryStlData.HEADER + BinaryStlData.COUNT_SIZE
+    if buf.size < offset:
+        return np.zeros((0, 3), dtype=np.float32)
+
+    (count,) = struct.unpack_from("<I", memoryview(buf), BinaryStlData.HEADER)
+    facets = np.frombuffer(buf, dtype=_FACET, count=count, offset=offset)
+    return np.ascontiguousarray(facets["vertices"].reshape(-1, 3))
 
 
 class AsciiStlData(Unicode):

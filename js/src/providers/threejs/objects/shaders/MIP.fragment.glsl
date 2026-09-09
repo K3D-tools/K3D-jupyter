@@ -1,4 +1,5 @@
 #include <common>
+#include <k3d_color_range>
 #include <clipping_planes_pars_fragment>
 #include <lights_pars_begin>
 
@@ -77,8 +78,6 @@ float peelT(sampler2D depthTexture, vec3 origin, vec3 dir, float noHitT) {
 varying vec3 localPosition;
 varying vec3 transformedCameraPosition;
 varying vec3 transformedWorldPosition;
-
-float inv_range;
 
 struct Ray {
     vec3 origin;
@@ -164,7 +163,6 @@ void main() {
     float px = -3.402823466e+38F;
     vec4 pxColor = vec4(0.0, 0.0, 0.0, 0.0);
 
-    inv_range = 1.0 / (high - low);
     aabb[0] = aabb[0] * scale.xyz + translation.xyz;
     aabb[1] = aabb[1] * scale.xyz + translation.xyz;
 
@@ -245,7 +243,7 @@ void main() {
         }
     }
 
-    float scaled_px = (px - low) * inv_range;
+    float scaled_px = k3dScaleToRange(px, low, high);
 
     if (scaled_px > 0.0) {
         scaled_px = min(scaled_px, 0.99);
