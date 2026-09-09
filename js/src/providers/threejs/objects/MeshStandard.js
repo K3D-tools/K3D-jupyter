@@ -285,7 +285,9 @@ module.exports = {
                 if (config.attribute.data.length > 0) {
                     for (i = 0; i < data.length; i++) {
                         data[i] = scaleToColorRange(
-                            config.attribute.data[i], config.color_range[0], config.color_range[1],
+                            config.attribute.data[i],
+                            config.color_range[0],
+                            config.color_range[1],
                         );
                     }
                 }
@@ -309,7 +311,9 @@ module.exports = {
 
                 for (i = 0; i < data.length; i++) {
                     data[i] = scaleToColorRange(
-                        changes.attribute.data[i], config.color_range[0], config.color_range[1],
+                        changes.attribute.data[i],
+                        config.color_range[0],
+                        config.color_range[1],
                     );
                 }
 

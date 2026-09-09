@@ -144,7 +144,9 @@ module.exports = {
                 if (attribute && attribute.length === uv.length) {
                     for (let i = 0; i < uv.length; i++) {
                         uv[i] = scaleToColorRange(
-                            attribute[i], changes.color_range[0], changes.color_range[1],
+                            attribute[i],
+                            changes.color_range[0],
+                            changes.color_range[1],
                         );
                     }
                     obj.geometry.attributes.uv.needsUpdate = true;
@@ -159,7 +161,9 @@ module.exports = {
 
                 for (let i = 0; i < uv.length; i++) {
                     uv[i] = scaleToColorRange(
-                        changes.attribute.data[i], config.color_range[0], config.color_range[1],
+                        changes.attribute.data[i],
+                        config.color_range[0],
+                        config.color_range[1],
                     );
                 }
                 obj.geometry.attributes.uv.needsUpdate = true;

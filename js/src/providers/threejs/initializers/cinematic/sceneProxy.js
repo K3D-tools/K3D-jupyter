@@ -158,9 +158,7 @@ function pointColors(json, count) {
         const colors = new Float32Array(count * 3);
 
         for (let i = 0; i < count; i++) {
-            const rgba = sample(Fn.scaleToColorRange(
-                attribute[i], json.color_range[0], json.color_range[1],
-            ));
+            const rgba = sample(Fn.scaleToColorRange(attribute[i], json.color_range[0], json.color_range[1]));
 
             colors[i * 3] = rgba[0];
             colors[i * 3 + 1] = rgba[1];
@@ -538,7 +536,9 @@ function bakeScalarFieldMesh(sourceMesh, json, field, toFieldCoords) {
     for (let i = 0; i < position.count; i++) {
         const uvw = toFieldCoords(position.getX(i), position.getY(i), position.getZ(i));
         const rgba = colorMap(Fn.scaleToColorRange(
-            sample(uvw[0], uvw[1], uvw[2]), json.color_range[0], json.color_range[1],
+            sample(uvw[0], uvw[1], uvw[2]),
+            json.color_range[0],
+            json.color_range[1],
         ));
 
         colors[i * 3] = rgba[0];

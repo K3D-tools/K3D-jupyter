@@ -83,7 +83,9 @@ module.exports = {
 
                 for (let i = 0; i < data.length; i++) {
                     data[i] = scaleToColorRange(
-                        changes.attribute.data[i], config.color_range[0], config.color_range[1],
+                        changes.attribute.data[i],
+                        config.color_range[0],
+                        config.color_range[1],
                     );
                 }
 
