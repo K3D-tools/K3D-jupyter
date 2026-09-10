@@ -780,10 +780,7 @@ module.exports = {
                         pmrem = new THREE.PMREMGenerator(self.renderer);
                     }
 
-                    if (environmentEquirect !== null) {
-                        environmentEquirect.dispose();
-                    }
-
+                    // not disposed: the helper hands the same instance to every caller
                     environmentEquirect = environmentHelper.getEnvironmentTexture(K3D.parameters.environment);
                     self.scene.environment = pmrem.fromEquirectangular(environmentEquirect).texture;
                     environmentSource = K3D.parameters.environment;

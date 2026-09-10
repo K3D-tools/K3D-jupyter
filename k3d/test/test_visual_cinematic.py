@@ -33,8 +33,10 @@ def _cloud(size=40, falloff=3.0):
 
 
 def test_cinematic_volume_hybrid():
-    """Volumes are not path traced: the march stops at the first traced hit and composites
-    over the accumulation. The sphere overlaps the cloud, so both failure directions show."""
+    """The volume is path traced: delta tracking through its 3D texture inside the fog machinery,
+    with the box as the medium boundary in the BVH. The sphere overlaps the cloud, so the medium
+    has to shadow the mesh and the mesh has to occlude the medium; the raster overlay path is
+    covered by test_cinematic_mip_hybrid instead."""
     prepare()
 
     vertices, indices = _sphere(0.5, (0.7, 0.0, 0.0))

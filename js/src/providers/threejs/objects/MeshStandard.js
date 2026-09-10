@@ -6,6 +6,7 @@ const { areAllChangesResolve } = require('../helpers/Fn');
 const { commonUpdate } = require('../helpers/Fn');
 const { getSide } = require('../helpers/Fn');
 const { guardIndices } = require('../helpers/Fn');
+const { scaleToColorRange } = require('../helpers/Fn');
 const buffer = require('../../../core/lib/helpers/buffer');
 
 const maximumSlicePlanes = 8;
@@ -283,15 +284,21 @@ module.exports = {
 
                 if (config.attribute.data.length > 0) {
                     for (i = 0; i < data.length; i++) {
-                        data[i] = (config.attribute.data[i] - config.color_range[0])
-                            / (config.color_range[1] - config.color_range[0]);
+                        data[i] = scaleToColorRange(
+                            config.attribute.data[i],
+                            config.color_range[0],
+                            config.color_range[1],
+                        );
                     }
                 }
 
                 if (config.triangles_attribute.data.length > 0) {
                     for (i = 0; i < data.length; i++) {
-                        data[i] = (config.triangles_attribute.data[Math.floor(i / 3)] - config.color_range[0])
-                            / (config.color_range[1] - config.color_range[0]);
+                        data[i] = scaleToColorRange(
+                            config.triangles_attribute.data[Math.floor(i / 3)],
+                            config.color_range[0],
+                            config.color_range[1],
+                        );
                     }
                 }
 
@@ -303,8 +310,11 @@ module.exports = {
                 data = obj.geometry.attributes.uv.array;
 
                 for (i = 0; i < data.length; i++) {
-                    data[i] = (changes.attribute.data[i] - config.color_range[0])
-                        / (config.color_range[1] - config.color_range[0]);
+                    data[i] = scaleToColorRange(
+                        changes.attribute.data[i],
+                        config.color_range[0],
+                        config.color_range[1],
+                    );
                 }
 
                 obj.geometry.attributes.uv.needsUpdate = true;

@@ -23,17 +23,6 @@
 <div id="canvasTarget"></div>
 
 <script>
-  function stringToArrayBuffer(str) {
-    var buf = new ArrayBuffer(str.length);
-    var bufView = new Uint8Array(buf);
-
-    for (var i = 0, strLen = str.length; i < strLen; i++) {
-      bufView[i] = str.charCodeAt(i);
-    }
-
-    return buf;
-  }
-
   function isPromise(obj) {
     return obj instanceof Promise;
   }
@@ -81,120 +70,133 @@
 
         window.refreshed = false;
 
-        req.overrideMimeType('text/plain; charset=x-user-defined');
-        req.open('POST', '/', false); //synchronous
-        req.send(null);
+        // arraybuffer rather than the charset=x-user-defined string trick: a volume arrives
+        // here as hundreds of megabytes, and a JS string costs two bytes per byte plus a
+        // per-character loop to get the bytes back. Asynchronous because responseType is
+        // forbidden on a synchronous request - and nothing depended on that wait, since the
+        // work this starts finishes in a promise and window.refreshed is what reports it.
+        req.open('POST', '/', true);
+        req.responseType = 'arraybuffer';
 
-        if (req.status == 200) {
+        req.onload = function () {
 
-          var data = K3DInstance.msgpack.decode(
-            new Uint8Array(stringToArrayBuffer(req.response)),
-            {codec: K3DInstance.MsgpackCodec}
-          );
+          if (req.status == 200) {
 
-          var map = {
-            cameraAutoFit: "setCameraAutoFit",
-            lighting: "setDirectionalLightingIntensity",
-            time: "setTime",
-            fps: "setFps",
-            timeSpeed: "setTimeSpeed",
-            timeInterpolation: "setTimeInterpolation",
-            gridAutoFit: "setGridAutoFit",
-            gridVisible: "setGridVisible",
-            gridColor: "setGridColor",
-            depthPeels: "setDepthPeels",
-            renderer: "setRenderer",
-            environment: "setEnvironment",
-            environmentRotation: "setEnvironmentRotation",
-            aoRadius: "setAORadius",
-            aoStrength: "setAOStrength",
-            cinematicSamples: "setCinematicSamples",
-            cinematicBounces: "setCinematicBounces",
-            cinematicGlossyFilter: "setCinematicGlossyFilter",
-            cinematicSeed: "setCinematicSeed",
-            toneMapping: "setToneMapping",
-            fpsMeter: "setFpsMeter",
-            screenshotScale: "setScreenshotScale",
-            // voxel_paint_color: "setVoxelPaintColor",
-            clearColor: "setClearColor",
-            grid: "setGrid",
-            camera_mode: "setCameraMode",
-            render_on_change: "setRenderOnChange",
-            camera: "setCamera",
-            cameraAnimation: "setCameraAnimation",
-            clippingPlanes: "setClippingPlanes",
-            // object_ids: "onObjectsListChange",
-            menuVisibility: "setMenuVisibility",
-            colorbarObjectId: "setColorMapLegend",
-            // colorbar_scientific: "setColorbarScientific",
-            // rendering_steps: "setRenderingSteps",
-            axes: "setAxes",
-            cameraNoRotate: "setCameraLock",
-            cameraNoZoom: "setCameraLock",
-            cameraNoPan: "setCameraLock",
-            cameraRotateSpeed: "setCameraSpeeds",
-            cameraZoomSpeed: "setCameraSpeeds",
-            cameraPanSpeed: "setCameraSpeeds",
-            cameraFov: "setCameraFOV",
-            cameraDampingFactor: "setCameraDampingFactor",
-            axesHelper: "setAxesHelper",
-            snapshot_type: "setSnapshotType",
-            name: "setName",
-            mode: "setViewMode",
-            cameraMode: "setCameraMode",
-            // manipulate_mode: "setManipulateMode"
-          };
+            var data = K3DInstance.msgpack.decode(
+              new Uint8Array(req.response),
+              {codec: K3DInstance.MsgpackCodec}
+            );
 
-          let promises = [];
+            var map = {
+              cameraAutoFit: "setCameraAutoFit",
+              lighting: "setDirectionalLightingIntensity",
+              time: "setTime",
+              fps: "setFps",
+              timeSpeed: "setTimeSpeed",
+              timeInterpolation: "setTimeInterpolation",
+              gridAutoFit: "setGridAutoFit",
+              gridVisible: "setGridVisible",
+              gridColor: "setGridColor",
+              depthPeels: "setDepthPeels",
+              renderer: "setRenderer",
+              environment: "setEnvironment",
+              environmentRotation: "setEnvironmentRotation",
+              aoRadius: "setAORadius",
+              aoStrength: "setAOStrength",
+              cinematicSamples: "setCinematicSamples",
+              cinematicBounces: "setCinematicBounces",
+              cinematicGlossyFilter: "setCinematicGlossyFilter",
+              cinematicSeed: "setCinematicSeed",
+              cinematicDenoise: "setCinematicDenoise",
+              cinematicBokehSize: "setCinematicBokehSize",
+              cinematicFocusDistance: "setCinematicFocusDistance",
+              cinematicApertureBlades: "setCinematicApertureBlades",
+              toneMapping: "setToneMapping",
+              fpsMeter: "setFpsMeter",
+              screenshotScale: "setScreenshotScale",
+              // voxel_paint_color: "setVoxelPaintColor",
+              clearColor: "setClearColor",
+              grid: "setGrid",
+              camera_mode: "setCameraMode",
+              render_on_change: "setRenderOnChange",
+              camera: "setCamera",
+              cameraAnimation: "setCameraAnimation",
+              clippingPlanes: "setClippingPlanes",
+              // object_ids: "onObjectsListChange",
+              menuVisibility: "setMenuVisibility",
+              colorbarObjectId: "setColorMapLegend",
+              // colorbar_scientific: "setColorbarScientific",
+              renderingSteps: "setRenderingSteps",
+              axes: "setAxes",
+              cameraNoRotate: "setCameraLock",
+              cameraNoZoom: "setCameraLock",
+              cameraNoPan: "setCameraLock",
+              cameraRotateSpeed: "setCameraSpeeds",
+              cameraZoomSpeed: "setCameraSpeeds",
+              cameraPanSpeed: "setCameraSpeeds",
+              cameraFov: "setCameraFOV",
+              cameraDampingFactor: "setCameraDampingFactor",
+              axesHelper: "setAxesHelper",
+              snapshot_type: "setSnapshotType",
+              name: "setName",
+              mode: "setViewMode",
+              cameraMode: "setCameraMode",
+              // manipulate_mode: "setManipulateMode"
+            };
 
-          Object.keys(data.plot_diff).forEach(function (k) {
-            if (map[k]) {
-              let ret = K3DInstance[map[k]](data.plot_diff[k]);
+            let promises = [];
 
-              if (isPromise(ret)) {
-                promises.push(ret);
-              }
-            } else {
-              K3DInstance.parameters[k] = data.plot_diff[k];
-            }
-          });
+            Object.keys(data.plot_diff).forEach(function (k) {
+              if (map[k]) {
+                let ret = K3DInstance[map[k]](data.plot_diff[k]);
 
-          Promise.all(promises).then(function () {
-            Object.keys(data.objects_diff).forEach(function (k) {
-              let diff = data.objects_diff[k];
-
-              if (diff === null) {
-                K3DInstance.removeObject(k);
-                return;
-              }
-
-              let json = K3DInstance.getWorld().ObjectsListJson[diff.id] || {};
-              let load = Object.keys(json).length === 0;
-
-              Object.keys(diff).forEach((k) => {
-                json[k] = diff[k] = K3DInstance.serialize.deserialize(diff[k]);
-              });
-
-              if (load) {
-                promises.push(K3DInstance.load({objects: [json]}));
+                if (isPromise(ret)) {
+                  promises.push(ret);
+                }
               } else {
-                promises.push(K3DInstance.reload(json, diff));
+                K3DInstance.parameters[k] = data.plot_diff[k];
               }
             });
 
-            if (promises.length > 0) {
-              Promise.all(promises).then(function () {
-                window.refreshed = true;
-              }).catch(function (error) {
-                console.error(error);
+            Promise.all(promises).then(function () {
+              Object.keys(data.objects_diff).forEach(function (k) {
+                let diff = data.objects_diff[k];
+
+                if (diff === null) {
+                  K3DInstance.removeObject(k);
+                  return;
+                }
+
+                let json = K3DInstance.getWorld().ObjectsListJson[diff.id] || {};
+                let load = Object.keys(json).length === 0;
+
+                Object.keys(diff).forEach((k) => {
+                  json[k] = diff[k] = K3DInstance.serialize.deserialize(diff[k]);
+                });
+
+                if (load) {
+                  promises.push(K3DInstance.load({objects: [json]}));
+                } else {
+                  promises.push(K3DInstance.reload(json, diff));
+                }
               });
-            } else {
-              window.refreshed = true;
-            }
-          });
-        } else {
-          console.error('k3dRefresh', req.response);
-        }
+
+              if (promises.length > 0) {
+                Promise.all(promises).then(function () {
+                  window.refreshed = true;
+                }).catch(function (error) {
+                  console.error(error);
+                });
+              } else {
+                window.refreshed = true;
+              }
+            });
+          } else {
+            console.error('k3dRefresh', req.response);
+          }
+        };
+
+        req.send(null);
       }
     });
   }

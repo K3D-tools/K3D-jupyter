@@ -3,7 +3,7 @@ import unittest
 import numpy as np
 
 from ..colormaps.basic_color_maps import Binary, Rainbow
-from ..helpers import map_colors
+from ..helpers import check_attribute_color_range, map_colors
 
 
 class TestPythonColorMapping(unittest.TestCase):
@@ -33,6 +33,12 @@ class TestPythonColorMapping(unittest.TestCase):
         colors = map_colors(attribute, Binary)
         # then
         self.assertTrue((colors == [0xFFFFFF, 0x7F7F7F, 0]).all())
+
+    def test_equal_color_range_is_widened(self):
+        self.assertEqual(check_attribute_color_range(np.zeros(3), [5.0, 5.0]), [5.0, 6.0])
+
+        colors = map_colors(np.full(4, 5.0), Rainbow, color_range=(5.0, 5.0))
+        self.assertTrue((colors == np.ones(4, dtype=np.int32) * 0xFF).all())
 
 
 if __name__ == "__main__":

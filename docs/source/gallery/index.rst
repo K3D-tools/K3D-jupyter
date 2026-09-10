@@ -37,6 +37,7 @@ Showcase
     showcase/terrain.rst
     showcase/vtk-cutter.rst
     showcase/tractogram.rst
+    showcase/cinematic-heart.rst
 
 .. k3d_plot::
    :filename: showcase/thumbnails/curl_pearls_thumbnail.py
@@ -89,6 +90,10 @@ Showcase
 .. k3d_plot::
     :filename: showcase/thumbnails/tractogram_thumbnail.py
     :screenshot:
+
+.. k3d_plot::
+   :filename: showcase/thumbnails/cinematic_heart_thumbnail.py
+   :screenshot:
 
 .. raw:: html
 
@@ -145,6 +150,10 @@ Showcase
 .. image:: tractogram_thumbnail.png
    :width: 155
    :target: showcase/tractogram.html
+
+.. image:: cinematic_heart_thumbnail.png
+   :width: 155
+   :target: showcase/cinematic-heart.html
 
 .. raw:: html
 

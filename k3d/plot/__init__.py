@@ -37,7 +37,9 @@ class Plot(
         grid_visible: `bool`.
             Enable or disable grid.
         screenshot_scale: `Float`.
-            Multiplier to screenshot resolution.
+            Multiplier to screenshot resolution. A screenshot is the plot's own width and
+            height times this, whatever resolution the interactive view happens to be
+            drawing at.
         voxel_paint_color: `int`.
             The (initial) integer value to be inserted when editing voxels.
         label_color: `int`.
@@ -194,6 +196,34 @@ class Plot(
             the roughness already gathered along a path, in [0, 1]. Default 0.25.
             It removes fireflies where they live and leaves a specular seen
             directly untouched; 0 disables it.
+        cinematic_denoise: `Float`.
+            How hard the cinematic renderer filters Monte Carlo noise out of the
+            traced image, measured in standard deviations of the noise it estimates
+            per pixel. Default 0 is off, and the only value that leaves the image
+            exactly as it was traced. Around 2 removes most of the grain a moderate
+            sample budget leaves behind; around 4 bone in a CT scan starts to look
+            waxy, because the grain and the trabecular texture under it go together.
+            The filter is guided by the spread between two halves of the accumulation
+            and runs in linear space before tone mapping, over a five by five kernel
+            and no wider - which is where the grain is and where almost nothing else
+            is. It is not a substitute for samples: it is worth roughly four times as
+            many of them on a volume, and nothing at all once the render has
+            converged.
+        cinematic_bokeh_size: `Float`.
+            Diameter of the cinematic renderer's aperture, in scene units. Default 0,
+            a pinhole - everything in focus, and the only value that leaves the image
+            identical to the other renderers. Anything above it defocuses whatever is
+            not at the focus distance, and costs a shader recompile the first time it
+            leaves zero.
+        cinematic_focus_distance: `Float`.
+            How far in front of the camera the cinematic renderer focuses, in scene
+            units. Default 0 means the camera's own target, so the plot is sharp where
+            you are looking. Ignored while cinematic_bokeh_size is 0.
+        cinematic_aperture_blades: `Int`.
+            How many blades the cinematic renderer's iris has: 0, the default, is a
+            perfect circle, and 3 to 16 give an aperture of that many sides, which is
+            what makes an out-of-focus highlight read as hexagonal rather than round.
+            Ignored while cinematic_bokeh_size is 0.
         menu_visibility: `Bool`.
             Whether the panel in the top right corner is shown.
         colorbar_object_id: `int`.

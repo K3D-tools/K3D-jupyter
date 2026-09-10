@@ -3,6 +3,7 @@ const THREE = require('three');
 // K3D composites its own render targets, so three's sRGB output (on by default since r152) would
 // cover only part of the pipeline.
 THREE.ColorManagement.enabled = false;
+THREE.ShaderChunk.k3d_color_range = require('./objects/shaders/chunks/colorRange.glsl');
 
 const threeMeshBVH = require('three-mesh-bvh');
 

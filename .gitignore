@@ -51,3 +51,5 @@ k3d/labextension/
 /docs/source/_static/k3dEnvironments.js
 .yarn
 build.cmd
+# binary snapshots dropped into the dev page for manual testing
+js/*.k3d

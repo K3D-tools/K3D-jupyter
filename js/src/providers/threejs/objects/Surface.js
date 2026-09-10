@@ -4,6 +4,7 @@ const interactionsHelper = require('../helpers/Interactions');
 const { handleColorMap } = require('../helpers/Fn');
 const { areAllChangesResolve } = require('../helpers/Fn');
 const { commonUpdate } = require('../helpers/Fn');
+const { scaleToColorRange } = require('../helpers/Fn');
 
 /**
  * Loader strategy to handle Surface object
@@ -142,8 +143,11 @@ module.exports = {
 
                 if (attribute && attribute.length === uv.length) {
                     for (let i = 0; i < uv.length; i++) {
-                        uv[i] = (attribute[i] - changes.color_range[0])
-                            / (changes.color_range[1] - changes.color_range[0]);
+                        uv[i] = scaleToColorRange(
+                            attribute[i],
+                            changes.color_range[0],
+                            changes.color_range[1],
+                        );
                     }
                     obj.geometry.attributes.uv.needsUpdate = true;
 
@@ -156,8 +160,11 @@ module.exports = {
                 const uv = obj.geometry.attributes.uv.array;
 
                 for (let i = 0; i < uv.length; i++) {
-                    uv[i] = (changes.attribute.data[i] - config.color_range[0])
-                        / (config.color_range[1] - config.color_range[0]);
+                    uv[i] = scaleToColorRange(
+                        changes.attribute.data[i],
+                        config.color_range[0],
+                        config.color_range[1],
+                    );
                 }
                 obj.geometry.attributes.uv.needsUpdate = true;
 

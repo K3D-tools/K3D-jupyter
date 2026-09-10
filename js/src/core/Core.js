@@ -271,6 +271,54 @@ function K3D(provider, targetDOMNode, parameters) {
                 self.setCinematicGlossyFilter(value);
                 changeParameters.call(self, 'cinematic_glossy_filter', value);
             }));
+        // no maximum on either: both are lengths in scene units, and a scene is any size
+        cinematicControls.push(GUI.controls.add(self.parameters, 'cinematicBokehSize')
+            .min(0.0)
+            .listen()
+            .onChange((value) => {
+                self.setCinematicBokehSize(value);
+                changeParameters.call(self, 'cinematic_bokeh_size', value);
+            }));
+        cinematicControls.push(GUI.controls.add(self.parameters, 'cinematicFocusDistance')
+            .min(0.0)
+            .listen()
+            .onChange((value) => {
+                self.setCinematicFocusDistance(value);
+                changeParameters.call(self, 'cinematic_focus_distance', value);
+            }));
+        cinematicControls.push(GUI.controls.add(self.parameters, 'cinematicApertureBlades')
+            .step(1).min(0).max(16)
+            .listen()
+            .onChange((value) => {
+                self.setCinematicApertureBlades(value);
+                changeParameters.call(self, 'cinematic_aperture_blades', value);
+            }));
+        // deliberately not a plot parameter: this is an affordance for the person adjusting the
+        // focus, not part of what the plot is, so it stays out of sync, snapshots and Python
+        const focusHelperProxy = { focusHelper: false };
+
+        cinematicControls.push(GUI.controls.add(focusHelperProxy, 'focusHelper')
+            .name('focus helper')
+            .onChange((value) => {
+                self.getWorld().focusHelper = value;
+                self.render();
+            }));
+
+        // One number rather than a switch beside a strength, the way cinematic_bokeh_size
+        // already works: 0 is off and is the only value that leaves the image as it was
+        // traced. Around 2 takes out most of the grain a moderate budget leaves; by 4 bone
+        // in a CT scan goes waxy, because the grain and the trabecular texture under it
+        // leave together.
+        cinematicControls.push(GUI.controls.add(self.parameters, 'cinematicDenoise')
+            .name('denoise')
+            .step(0.05)
+            .min(0.0)
+            .max(6.0)
+            .listen()
+            .onChange((value) => {
+                self.setCinematicDenoise(value);
+                changeParameters.call(self, 'cinematic_denoise', value);
+            }));
 
         self.refreshRendererGUI = function () {
             const mode = self.parameters.renderer;
@@ -493,6 +541,10 @@ function K3D(provider, targetDOMNode, parameters) {
             cinematicBounces: 6,
             cinematicGlossyFilter: 0.25,
             cinematicSeed: null,
+            cinematicDenoise: 0.0,
+            cinematicBokehSize: 0.0,
+            cinematicFocusDistance: 0.0,
+            cinematicApertureBlades: 0,
             snapshotType: 'full',
             customData: null,
             additionalJsCode: '',
@@ -1277,6 +1329,46 @@ function K3D(provider, targetDOMNode, parameters) {
     };
 
     /**
+     * Set how hard the cinematic renderer filters noise out of the traced image
+     * @memberof K3D.Core
+     * @param {Number} strength in standard deviations of the estimated noise; 0 is off
+     */
+    this.setCinematicDenoise = function (strength) {
+        self.parameters.cinematicDenoise = strength;
+        self.render();
+    };
+
+    /**
+     * Set the aperture of the cinematic renderer's lens
+     * @memberof K3D.Core
+     * @param {Number} size diameter in scene units; 0 is a pinhole, everything in focus
+     */
+    this.setCinematicBokehSize = function (size) {
+        self.parameters.cinematicBokehSize = size;
+        self.render();
+    };
+
+    /**
+     * Set how far in front of the camera the cinematic renderer focuses
+     * @memberof K3D.Core
+     * @param {Number} distance in scene units; 0 focuses on the camera's own target
+     */
+    this.setCinematicFocusDistance = function (distance) {
+        self.parameters.cinematicFocusDistance = distance;
+        self.render();
+    };
+
+    /**
+     * Set the shape of the cinematic renderer's iris
+     * @memberof K3D.Core
+     * @param {Number} blades 0 is a circle; 3 or more gives an aperture of that many sides
+     */
+    this.setCinematicApertureBlades = function (blades) {
+        self.parameters.cinematicApertureBlades = blades;
+        self.render();
+    };
+
+    /**
      * Set tone mapping of K3D
      * @memberof K3D.Core
      * @param {String} name 'none', 'agx' or 'aces'
@@ -1621,6 +1713,10 @@ function K3D(provider, targetDOMNode, parameters) {
                 // nothing
             }
 
+            // the loader path below announces itself and this early return did not, so a renderer
+            // holding a scene of its own - cinematic - kept tracing the object it had just lost
+            dispatch(self.events.OBJECT_LOADED);
+
             // the render has to follow the removal: it is the last frame drawn, so rendering
             // first leaves the object on screen until something else triggers a new one
             if (timeSeriesReload !== true) {
@@ -1638,8 +1734,19 @@ function K3D(provider, targetDOMNode, parameters) {
         }
 
         return loader(self, data).then((objects) => {
+            // an update in place keeps the instance, so what a renderer cached from it holds
+            let rebuilt = false;
+
             objects.forEach((object) => {
-                if (!object) { return; } // Loader could not create it; already reported
+                if (!object) { // Loader could not create it; already reported
+                    rebuilt = true;
+
+                    return;
+                }
+
+                if (world.ObjectsById[object.json.id] !== object.obj) {
+                    rebuilt = true;
+                }
 
                 if (timeSeriesReload !== true) {
                     objectsGUIProvider.update(self, object.json, GUI.objects, changes);
@@ -1660,7 +1767,12 @@ function K3D(provider, targetDOMNode, parameters) {
                 }
             });
 
-            dispatch(self.events.OBJECT_LOADED);
+            // no payload means "assume everything changed"
+            const loaded = (!rebuilt && changes && typeof changes === 'object')
+                ? { id: json.id, keys: Object.keys(changes) }
+                : null;
+
+            dispatch(self.events.OBJECT_LOADED, loaded);
 
             if (timeSeriesReload !== true) {
                 self.refreshAfterObjectsChange(true);

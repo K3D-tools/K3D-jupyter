@@ -15,12 +15,12 @@ def generate():
                     renderer='cinematic',
                     environment='studio')
 
-    plot += k3d.volume(blob, samples=256, alpha_coef=120,
+    plot += k3d.volume(blob, samples=256, alpha_coef=15,
                        color_map=k3d.matplotlib_color_maps.jet,
                        color_range=[80, 900],
                        compression_level=7)
 
-    # plane through the blob: gas in front dims it, gas behind is cut by the march
+    # plane through the blob: the gas shadows and dims it, the plane occludes the gas behind
     plot += k3d.mesh(np.array([[-1.3, -1.3, -0.5], [1.3, -1.3, 0.4],
                                [1.3, 1.3, 0.4], [-1.3, 1.3, -0.5]], np.float32),
                      np.array([[0, 1, 2], [0, 2, 3]], np.uint32),

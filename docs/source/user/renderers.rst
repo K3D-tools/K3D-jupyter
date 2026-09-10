@@ -72,14 +72,9 @@ All lit objects use physically based materials with two knobs:
 ``TraitError`` with that formula, and legacy ``.k3d`` snapshots are converted
 automatically on load.
 
-Both parameters live in the 0-1 range and are validated at assignment.
-
-Volumetric objects (``volume``, ``mip``) carry the same two knobs for the
-specular highlight of their isodensity surface (default ``roughness=0.25``) -
-lower roughness makes noisy gradients sparkle like wet tissue, which may even
-be desired. ``metalness`` tints and strengthens the highlight with the
-transfer-function colour; it never darkens the body, because a volume has no
-environment reflection to replace the lost diffuse light with.
+Both parameters live in the 0-1 range and are validated at assignment. What they mean
+for a volume, which has no environment reflection to trade diffuse light for, is on
+:ref:`volumes`.
 
 Environments
 ------------
@@ -121,20 +116,6 @@ spheres again, under ``venice_sunset`` with AgX tone mapping:
     ``standalone.js`` - this documentation does exactly that, which is why the
     dropdown above carries the full catalog.
 
-Since 3.0.0 a ``volume`` composes correctly with meshes that intersect it
-when depth peeling is enabled (``plot.depth_peels >= 3`` - fewer layers make
-the segmentation too coarse to be predictable). The ray march is split into
-segments bounded by the peel layers, so geometry inside the volume occludes
-and is occluded sample-accurately, in both renderers:
-
-.. k3d_plot ::
-  :filename: plots/renderers_volume_peel_plot.py
-
-Volumetric data (``volume``, ``mip``) and the ``points`` 3d impostors read the
-same environment: diffuse light from the map's spherical harmonics plus one
-dominant directional light distilled from it, so a directional HDRI models
-volumes consistently with every mesh in the scene.
-
 Ambient occlusion
 -----------------
 
@@ -142,7 +123,8 @@ Ambient occlusion
 deterministic and screenshots are seam-free at any ``rendering_steps``. Real
 surfaces occlude; volumes and MIPs contribute the shell where their accumulated
 opacity crosses one half, so dense structures cast and receive contact shadows
-too. Two knobs (shown in the panel only when the advanced renderer is active):
+too - see :ref:`volumes`. Two knobs (shown in the panel only when the advanced
+renderer is active):
 
 .. code-block:: python3
 
@@ -176,5 +158,57 @@ as above, path traced (the counter in the corner tells you when it has settled):
 
 It is **experimental**, it needs WebGL2 with renderable float textures, and it
 keeps the shape of everything you asked for without always keeping the
-implementation. Its parameters, the environments that light it, and the list of
-what changes object by object live on their own page: :ref:`cinematic`.
+implementation. A volume is where it differs most from the other two, and that
+comparison is on :ref:`volumes`. Its parameters, the environments that light it, and
+the list of what changes object by object live on their own page: :ref:`cinematic`.
+
+What you are rendering on
+-------------------------
+
+All three renderers depend on the GPU the browser actually got, and that is not
+always the one you expect. A container that loses its GPU passthrough does not
+fail: it falls back to a software renderer, every image still comes out correct,
+and only the clock tells you - which is a trap when the thing you are measuring
+is time.
+
+K3D reports it at startup. In a browser the lines land in the console; from a
+headless session they are a dict:
+
+.. code-block:: python3
+
+    from k3d.headless import k3d_remote, get_headless_driver
+
+    plot = k3d.plot()
+    headless = k3d_remote(plot, get_headless_driver())
+
+    headless.get_gl_info()
+
+.. code-block:: text
+
+    {'vendor': 'Google Inc. (NVIDIA)',
+     'renderer': 'ANGLE (NVIDIA, NVIDIA GeForce RTX 4070 Laptop GPU Direct3D11 vs_5_0 ps_5_0, D3D11)',
+     'unmaskedVendor': 'Google Inc. (NVIDIA)',
+     'unmaskedRenderer': 'ANGLE (NVIDIA, NVIDIA GeForce RTX 4070 Laptop GPU (0x00002860) Direct3D11 vs_5_0 ps_5_0, D3D11)',
+     'version': 'WebGL 2.0 (OpenGL ES 3.0 Chromium)',
+     'depthBits': 24,
+     'stencilBits': 8,
+     'maxTextureSize': 16384,
+     'maxTextureImageUnits': 16}
+
+The tell is the renderer string: software rendering names itself there, usually
+``SwiftShader``. The limits are not a tell, and reading them that way misleads -
+the software renderer advertises 32 fragment texture units where the ANGLE/D3D11
+path above offers 16, so a scene that fits in the container can still run out of
+units on the real card. ``cinematic`` is the renderer that notices, since it
+needs fifteen of them for a traced volume.
+
+A headless session says nothing about its own progress. It answers a /ping
+every few seconds for as long as it is open, and ``sync()`` runs once per frame
+of an animation - a line for each would bury whatever the cell was asked to
+show. Warnings and errors are never suppressed. To get the rest back:
+
+.. code-block:: python3
+
+    import logging
+
+    logging.getLogger('k3d.headless').setLevel(logging.DEBUG)

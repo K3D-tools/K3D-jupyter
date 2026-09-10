@@ -5,3 +5,5 @@ uniform sampler3D volumeTexture;
 uniform float low;
 uniform float high;
 varying vec3 kLocalPosition;
+
+#include <k3d_color_range>

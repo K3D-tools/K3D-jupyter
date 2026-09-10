@@ -2,6 +2,7 @@
 // the path tracer. K3DObjects is the source of truth and is never modified.
 const THREE = require('three');
 const { mergeGeometries, mergeVertices } = require('three/examples/jsm/utils/BufferGeometryUtils');
+const { FogVolumeMaterial } = require('three-gpu-pathtracer');
 const streamLine = require('../../helpers/Streamline');
 const Fn = require('../../helpers/Fn');
 const buffer = require('../../../../core/lib/helpers/buffer');
@@ -154,12 +155,10 @@ function pointColors(json, count) {
     if (usesColorMap(json)) {
         const sample = colorMapSampler(json.color_map.data, opacityFunctionOf(json));
         const attribute = json.attribute.data;
-        const low = json.color_range[0];
-        const span = json.color_range[1] - low || 1.0;
         const colors = new Float32Array(count * 3);
 
         for (let i = 0; i < count; i++) {
-            const rgba = sample((attribute[i] - low) / span);
+            const rgba = sample(Fn.scaleToColorRange(attribute[i], json.color_range[0], json.color_range[1]));
 
             colors[i * 3] = rgba[0];
             colors[i * 3 + 1] = rgba[1];
@@ -532,13 +531,15 @@ function bakeScalarFieldMesh(sourceMesh, json, field, toFieldCoords) {
     const position = geometry.attributes.position;
     const sample = trilinearSampler(field.data, field.shape);
     const colorMap = colorMapSampler(json.color_map.data, opacityFunctionOf(json));
-    const low = json.color_range[0];
-    const span = json.color_range[1] - low || 1.0;
     const colors = new Float32Array(position.count * 3);
 
     for (let i = 0; i < position.count; i++) {
         const uvw = toFieldCoords(position.getX(i), position.getY(i), position.getZ(i));
-        const rgba = colorMap((sample(uvw[0], uvw[1], uvw[2]) - low) / span);
+        const rgba = colorMap(Fn.scaleToColorRange(
+            sample(uvw[0], uvw[1], uvw[2]),
+            json.color_range[0],
+            json.color_range[1],
+        ));
 
         colors[i * 3] = rgba[0];
         colors[i * 3 + 1] = rgba[1];
@@ -569,12 +570,10 @@ function buildTextureData(json, sourceMesh) {
     const width = json.attribute.shape[1];
     const data = json.attribute.data;
     const sample = colorMapSampler(json.color_map.data, opacityFunctionOf(json));
-    const low = json.color_range[0];
-    const span = json.color_range[1] - low || 1.0;
     const rgba = new Uint8Array(width * height * 4);
 
     for (let i = 0; i < width * height; i++) {
-        const c = sample((data[i] - low) / span);
+        const c = sample(Fn.scaleToColorRange(data[i], json.color_range[0], json.color_range[1]));
 
         rgba[i * 4] = Math.round(c[0] * 255);
         rgba[i * 4 + 1] = Math.round(c[1] * 255);
@@ -606,6 +605,52 @@ function buildTextureData(json, sourceMesh) {
     });
 
     return bakeWorldMatrix(new THREE.Mesh(sourceMesh.geometry, material), sourceMesh);
+}
+
+// The tracer sees a volume as a closed fog box: the BVH only tells a ray where it enters and
+// leaves the medium, the tracer material does the tracking against the 3D texture itself.
+// Density and opacity of the fog material are therefore meaningless here; only its flag is.
+// the flag makes upstream track entering and leaving the medium; the zero makes it an empty
+// passthrough if the K3D medium is ever off while the box is in the BVH. density goes on after
+// construction: FogVolumeMaterial declares it only after MeshStandardMaterial has already
+// warned about an unknown parameter
+function fogBoundary() {
+    const material = new FogVolumeMaterial();
+
+    material.density = 0;
+
+    return material;
+}
+
+function buildVolume(sourceObj) {
+    const u = sourceObj.material && sourceObj.material.uniforms;
+
+    if (!u || !u.volumeTexture || !u.volumeTexture.value || !u.colormap || !u.colormap.value) {
+        return null;
+    }
+
+    // the same unit box Volume.js marches, under the same matrix
+    const mesh = bakeWorldMatrix(
+        new THREE.Mesh(new THREE.BoxGeometry(1, 1, 1), fogBoundary()),
+        sourceObj,
+    );
+
+    mesh.userData.k3dVolume = {
+        texture: u.volumeTexture.value,
+        transferFunction: u.colormap.value,
+        low: u.low.value,
+        high: u.high.value,
+        alphaCoef: u.alpha_coef.value,
+        matrixWorld: mesh.matrixWorld,
+        roughness: u.roughness ? u.roughness.value : 0.25,
+        lightScale: u.light_scale ? u.light_scale.value : 1.0,
+        metalness: u.metalness ? u.metalness.value : 0.0,
+        gradientStep: u.gradient_step ? u.gradient_step.value : 0.005,
+    };
+    // the raster volume layer skips the object the tracer took over; not JSON-safe, never clone proxies
+    mesh.userData.k3dVolumeSource = sourceObj;
+
+    return mesh;
 }
 
 function isMeshVolume(json) {
@@ -682,10 +727,13 @@ function buildProxyForObject(sourceObj, json, camera) {
         return null;
     }
 
-    if (type === 'Label' || type === 'Text' || type === 'Text2d'
-        || type === 'Volume' || type === 'MIP') {
-        // labels are camera-mutated per frame; volumes composite as a layer
+    if (type === 'Label' || type === 'Text' || type === 'Text2d' || type === 'MIP') {
+        // labels are camera-mutated per frame; MIPs composite as a raster layer
         return null;
+    }
+
+    if (type === 'Volume') {
+        return buildVolume(sourceObj);
     }
 
     if (type === 'Points') {
@@ -741,26 +789,22 @@ module.exports = function createSceneProxy(K3D) {
     // them without OBJECT_REMOVED)
     const cache = new Map();
 
-    K3D.on(K3D.events.OBJECT_CHANGE, (change) => {
-        if (change && typeof change.id !== 'undefined') {
-            cache.delete(String(change.id));
-        }
-    });
     K3D.on(K3D.events.OBJECT_REMOVED, (id) => {
         cache.delete(String(id));
     });
-    // OBJECT_LOADED carries no payload and reloads mutate objects in place (same instance,
-    // new data), so only a full drop is safe here
-    K3D.on(K3D.events.OBJECT_LOADED, () => {
-        cache.clear();
-    });
+    // An edit is index.js's call, not ours: it knows which keys moved, so it decides between
+    // forget(), invalidate() and keeping the entry for syncMaterials. Dropping it here as well
+    // emptied the cache under the material fast path, which then had nothing left to sync.
 
     return {
         // mirrors every visible K3DObjects child into `scene`; returns the proxied count
-        populate(scene, camera) {
+        populate(scene, camera, options) {
             const world = K3D.getWorld();
             const alive = new Set();
             let proxied = 0;
+            // the tracer material tracks through one medium
+            let volumeClaimed = false;
+            const volumesSupported = !options || options.volumes !== false;
 
             // no rasterising loop runs in cinematic, so matrixWorld is stale until forced
             world.K3DObjects.updateMatrixWorld(true);
@@ -784,6 +828,32 @@ module.exports = function createSceneProxy(K3D) {
                     K3D.parameters.time,
                     K3D.parameters.timeInterpolation,
                 ).json;
+
+                if (json.type === 'Volume') {
+                    if (!volumesSupported) {
+                        // stays on the raster layer; the backend has already said why
+                        return;
+                    }
+
+                    if (volumeClaimed) {
+                        console.warn('K3D.cinematic: only the first volume is path traced - '
+                            + `volume ${id} stays on the raster layer`);
+
+                        return;
+                    }
+
+                    // the medium does not read the mask, so a masked volume keeps the
+                    // raster path rather than being traced as if it had none
+                    if (sourceObj.material && sourceObj.material.defines
+                        && sourceObj.material.defines.USE_MASK === 1) {
+                        console.warn('K3D.cinematic: the path tracer does not apply volume masks - '
+                            + `volume ${id} stays on the raster layer`);
+
+                        return;
+                    }
+
+                    volumeClaimed = true;
+                }
 
                 alive.add(id);
 
@@ -844,6 +914,25 @@ module.exports = function createSceneProxy(K3D) {
                         node.material.metalness = json.metalness;
                     }
 
+                    // the tracer's surface parameters come from the raster object's uniforms,
+                    // like they do in buildVolume: the proxy's own boundary material is
+                    // upstream's fog material, and json here is not time-series resolved
+                    if (node.userData.k3dVolume && node.userData.k3dVolumeSource.material) {
+                        const source = node.userData.k3dVolumeSource.material.uniforms;
+
+                        node.userData.k3dVolume.roughness = source.roughness.value;
+                        node.userData.k3dVolume.metalness = source.metalness.value;
+                        node.userData.k3dVolume.lightScale = source.light_scale.value;
+                        // the transfer function too, so a colour-range edit needs no rebuild
+                        node.userData.k3dVolume.low = source.low.value;
+                        node.userData.k3dVolume.high = source.high.value;
+                        node.userData.k3dVolume.alphaCoef = source.alpha_coef.value;
+
+                        if (source.gradient_step) {
+                            node.userData.k3dVolume.gradientStep = source.gradient_step.value;
+                        }
+                    }
+
                     if (typeof json.opacity !== 'undefined') {
                         node.material.opacity = json.opacity;
                         node.material.transparent = json.opacity < 1.0;
@@ -853,6 +942,11 @@ module.exports = function createSceneProxy(K3D) {
                     node.material.needsUpdate = true;
                 });
             });
+        },
+
+        // one object's entry, for an edit that names it
+        forget(id) {
+            cache.delete(String(id));
         },
 
         invalidate() {

@@ -96,13 +96,33 @@ module.exports = function (renderer, scene, camera, rt, fullWidth, fullHeight, c
 
         copyUniforms.tDiffuse.value = sampleRenderTarget.texture;
 
-        const fullresImage = new Uint8ClampedArray(fullWidth * fullHeight * 4);
         let p = Promise.resolve();
 
+        // Every chunk is rendered through the SAME projection an unchunked render uses, and
+        // is selected by scissor instead. A per-chunk sub-frustum is a different projection
+        // matrix - setViewOffset with a chunk height scales y by fullHeight/chunkHeight - and
+        // float32 rasterisation then rounds a fraction of vertical positions onto a different
+        // 1/256 subpixel, so the strips did not reassemble into the image a single pass draws.
+        // Scissor changes nothing a fragment can observe: same matrix, same viewport, same
+        // gl_FragCoord, fragments outside the rect discarded. The render targets carry the
+        // rect rather than the renderer, because setRenderTarget copies scissor state off the
+        // target it binds (three.module.js) and would undo it on every pass.
         chunkHeights.forEach((c) => {
             p = p.then(() => {
                 const { width } = rt;
                 const height = c[1];
+                // readback and scissor are both bottom-up; c[0] counts from the top
+                const bottom = fullHeight - c[0] - height;
+
+                // one chunk covers the target, so the rect is the whole of it and the test is
+                // semantically a no-op - but only semantically: a software rasteriser pays for
+                // it per fragment, which is every pixel of every jitter pass
+                const chunked = chunkHeights.length > 1;
+
+                [rt, sampleRenderTarget].forEach((target) => {
+                    target.scissor.set(0, bottom, width, height);
+                    target.scissorTest = chunked;
+                });
 
                 for (let i = 0; i < jitterOffsets.length; i++) {
                     const jitterOffset = jitterOffsets[i];
@@ -111,9 +131,9 @@ module.exports = function (renderer, scene, camera, rt, fullWidth, fullHeight, c
                         fullWidth,
                         fullHeight,
                         jitterOffset[0] * 0.0625,
-                        jitterOffset[1] * 0.0625 + c[0], // 0.0625 = 1 / 16
+                        jitterOffset[1] * 0.0625, // 0.0625 = 1 / 16
                         width,
-                        height,
+                        fullHeight,
                     );
 
                     let sampleWeight = baseSampleWeight;
@@ -137,10 +157,9 @@ module.exports = function (renderer, scene, camera, rt, fullWidth, fullHeight, c
                     renderer.render(scene2, camera2);
                 }
 
-                fullresImage.set(
-                    getArrayFromRenderTarget(renderer, rt).subarray(0, width * height * 4),
-                    (fullHeight - height - c[0]) * width * 4,
-                );
+                [rt, sampleRenderTarget].forEach((target) => {
+                    target.scissorTest = false;
+                });
             });
 
             p = p.then(() => new Promise((chunkResolve) => {
@@ -155,11 +174,16 @@ module.exports = function (renderer, scene, camera, rt, fullWidth, fullHeight, c
 
             renderer.autoClear = autoClear;
             renderer.setClearColor(oldClearColor, oldClearAlpha);
+
+            // one readback of the whole target: each chunk was scissored into its own rows
+            // of it, so there is nothing left to reassemble
+            const image = getArrayFromRenderTarget(renderer, rt);
+
             sampleRenderTarget.dispose();
             copyMaterial.dispose();
             quad2.geometry.dispose();
 
-            resolve(fullresImage);
+            resolve(image);
         });
     });
 };

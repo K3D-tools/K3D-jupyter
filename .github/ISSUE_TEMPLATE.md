@@ -1,7 +1,6 @@
 Note (please remove it):
-Before you report an error please make sure your
-k3d python and js version is the same. Instructions are
-[here](https://github.com/K3D-tools/K3D-jupyter/blob/main/HOW-TO.md#check-if-python-and-js-version-of-k3d-match).
+Before you report an error please make sure the Python and JavaScript
+versions of k3d match. The plot panel's Info folder shows both.
 
 * K3D version:
 * Python version:

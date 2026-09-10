@@ -181,6 +181,19 @@ The PNG file is contained in the ``plot.screenshot`` attribute,
 however, its synchronization might be a little bit delayed -- it relies
 on an internal asynchronous traitlets_ mechanism.
 
+The size of that PNG is the plot's own ``width`` and ``height`` times
+``plot.screenshot_scale`` (2.0 by default), and nothing else -- not the resolution the
+interactive view happens to be drawing at. That view lowers its own resolution to hold
+``plot.minimum_fps`` when you set one, and a browser on a HiDPI screen raises it whether
+you set one or not; before 3.1.0 both reached the file, so a screenshot came out smaller because
+the last few frames had been slow, and the same notebook produced different sizes on
+different machines.
+
+From a script rather than a notebook there is no widget to press a button on, and
+``plot.screenshot`` never fills in because nothing is displaying the plot. See
+:ref:`headless` for the browser-in-a-subprocess that renders one anyway, which is how
+every image in this documentation is made.
+
 Snapshot is a live version of a scene in the form of stand-alone
 HTML file. Similarly to screenshots, you can either press the ``Snapshot HTML``
 button or do it programmatically using:

@@ -9,8 +9,19 @@ TEST_DIR = os.path.dirname(os.path.abspath(__file__))
 REFERENCES_DIR = os.path.join(TEST_DIR, "references")
 RESULTS_DIR = os.path.join(TEST_DIR, "results")
 
-# Cinematic references are half scale (640x360) at this budget; changing either invalidates them.
-REF_SAMPLES = 32
+# Cinematic references are half scale (640x360) at this budget; changing either invalidates
+# them - every file under references/cinematic has to be regenerated.
+#
+# Why a budget this low is enough to catch regressions: cinematic_seed is pinned in
+# conftest, so a render is bit-reproducible, and the comparison below allows zero
+# mismatched pixels. Any change that moves the image fails the test at 16 samples exactly
+# as it would at 256. Sample count buys convergence, and convergence is not what a
+# reference comparison measures.
+#
+# Why not lower still: a reference is also read by a person. When a test fails, the diff
+# has to let someone tell a darker material from a re-rolled noise field, and that is what
+# stops being legible first.
+REF_SAMPLES = 16
 CINEMATIC_SCREENSHOT_SCALE = 0.5
 
 # Glyph edges move by a few pixels between freetype versions (Debian image vs CI runner); a
@@ -51,6 +62,10 @@ def prepare(depth_peels=0):
     pytest.plot.ao_strength = 1.8
     pytest.plot.cinematic_samples = 64
     pytest.plot.cinematic_bounces = 6
+    pytest.plot.cinematic_denoise = 0.0
+    pytest.plot.cinematic_bokeh_size = 0.0
+    pytest.plot.cinematic_focus_distance = 0.0
+    pytest.plot.cinematic_aperture_blades = 0
     pytest.plot.cinematic_glossy_filter = 0.25
     # compare() halves this for cinematic; reset so an abort cannot leave later renders half size.
     pytest.plot.screenshot_scale = 1.0

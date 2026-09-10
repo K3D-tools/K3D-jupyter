@@ -5,7 +5,7 @@ import k3d
 
 from .plot_compare import compare, prepare
 
-N = 100
+N = 40
 
 theta = np.linspace(0, 2.0 * np.pi, N)
 phi = np.linspace(0, 2.0 * np.pi, N)

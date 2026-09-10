@@ -11,6 +11,7 @@ uniform float opacity;
 varying vec4 worldPosition;
 
 #include <common>
+#include <k3d_color_range>
 #include <dithering_pars_fragment>
 #include <clipping_planes_pars_fragment>
 #include <logdepthbuf_pars_fragment>
@@ -21,9 +22,8 @@ void main() {
     #include <logdepthbuf_fragment>
 
     vec3 coord = (worldPosition.xyz - b1) / (b2 - b1);
-    float inv_range = 1.0 / (high - low);
     float px = texture(volumeTexture, coord).x;
-    float scaled_px = (px - low) * inv_range;
+    float scaled_px = k3dScaleToRange(px, low, high);
 
     scaled_px = max(min(scaled_px, 0.99), 0.01);
     vec4 texelColor = texture(colormap, vec2(scaled_px, 0.5));
