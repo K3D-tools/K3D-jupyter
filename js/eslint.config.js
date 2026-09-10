@@ -48,6 +48,16 @@ module.exports = [
             // K3D is the single ambient object; helpers take it explicitly even when the
             // enclosing Init(K3D) scope already has it, because other modules call them
             'no-shadow': ['error', { allow: ['K3D'] }],
+            // eslint 10.10.0 started reporting Object.prototype names (`constructor`,
+            // `toString`, ...) that the old exception map skipped by accident.
+            // `new typedArray.constructor(n)` and `new K3D.constructor(...)` are the
+            // real constructors; the property is lowercase because that is the language.
+            'new-cap': ['error', {
+                newIsCap: true,
+                newIsCapExceptions: ['constructor'],
+                capIsNew: false,
+                capIsNewExceptions: ['Immutable.Map', 'Immutable.Set', 'Immutable.List'],
+            }],
             // airbnb's three options, plus eslint 8's caughtErrors: the five empty catches in
             // Core.js and webglBackend.js are deliberate, and ecmaVersion 2018 has no `catch {}`
             'no-unused-vars': ['error', {
