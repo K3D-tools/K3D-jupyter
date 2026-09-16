@@ -31,6 +31,10 @@ module.exports = {
 
             let ret = null;
 
+            // the BVH sorted the index buffer it was built on, so the slot it reports is not
+            // the point number; the index it kept still says which point each slot holds
+            const bvhIndex = object.geometry.boundsTree.geometry.index;
+
             object.geometry.boundsTree.shapecast({
                 boundsTraverseOrder(box) {
                     return box.distanceToPoint(ray.origin);
@@ -44,16 +48,17 @@ module.exports = {
                     return ray.intersectsBox(box) ? threeMeshBVH.INTERSECTED : threeMeshBVH.NOT_INTERSECTED;
                 },
                 intersectsTriangle(triangle, triangleIndex) {
+                    const point = bvhIndex.getX(triangleIndex * 3);
                     const distancesToRaySq = ray.distanceSqToPoint(triangle.a);
 
                     if (object.geometry.attributes.sizes || object.isInstancedMesh) {
                         if (object.geometry.attributes.sizes) {
-                            threshold = object.geometry.attributes.sizes.array[triangleIndex] / 2.0;
+                            threshold = object.geometry.attributes.sizes.array[point] / 2.0;
                         }
 
                         if (object.isInstancedMesh) {
                             const matrix = new THREE.Matrix4()
-                                .fromArray(object.instanceMatrix.array, triangleIndex * 16);
+                                .fromArray(object.instanceMatrix.array, point * 16);
 
                             // the instance scale is relative to the icosahedron, which already
                             // has point_size baked into its radius
@@ -77,7 +82,7 @@ module.exports = {
                                 object,
                                 point: worldPoint,
                                 distance: raycaster.ray.origin.distanceTo(worldPoint),
-                                index: triangleIndex,
+                                index: point,
                             };
                         }
                     }

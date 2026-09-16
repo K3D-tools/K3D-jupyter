@@ -218,6 +218,14 @@ class PlotBase(K3DAnyWidget):
             self._relay_send_state(content.get("ids", []))
         elif content.get("msg_type") == "object_change":
             self._relay_apply_change(buffers)
+        elif content.get("msg_type") in ("click_callback", "hover_callback"):
+            # a relayed frontend has no object comm: the browser addresses the plot and
+            # names the object, whose own handler takes it from here
+            target = content.get("K3DIdentifier")
+            obj = next((o for o in self.objects if o.id == target), None)
+
+            if obj is not None and hasattr(obj, "_handle_custom_msg"):
+                obj._handle_custom_msg(content, buffers)
         else:
             super()._handle_custom_msg(content, buffers)
 

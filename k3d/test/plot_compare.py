@@ -70,6 +70,7 @@ def prepare(depth_peels=0):
     # compare() halves this for cinematic; reset so an abort cannot leave later renders half size.
     pytest.plot.screenshot_scale = 1.0
     pytest.plot.camera_mode = "trackball"
+    pytest.plot.camera_auto_fit = True
     pytest.plot.camera = [2, -3, 0.2, 0.0, 0.0, 0.0, 0, 0, 1]
     pytest.plot.background_color = 0xFFFFFF
     pytest.plot.camera_fov = 60.0

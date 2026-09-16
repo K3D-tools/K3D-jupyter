@@ -573,6 +573,8 @@ function renderPlot({ model, el }) {
                 logarithmicDepthBuffer: model.get('logarithmic_depth_buffer'),
                 lighting: model.get('lighting'),
                 cameraMode: model.get('camera_mode'),
+                viewMode: model.get('mode'),
+                manipulateMode: model.get('manipulate_mode'),
                 snapshotType: model.get('snapshot_type'),
                 backendVersion: model.get('_backend_version'),
                 screenshotScale: model.get('screenshot_scale'),
@@ -707,30 +709,35 @@ function renderPlot({ model, el }) {
             (change) => saveChanges(model, change.key, change.value),
         );
 
-        view.voxelsCallback = view.K3DInstance.on(view.K3DInstance.events.VOXELS_CALLBACK, (param) => {
-            const entry = REG.objects[param.object.K3DIdentifier];
+        // a relayed object has no model in this context, so its callback travels over the
+        // plot comm carrying the id the kernel needs to find the object
+        const sendCallback = (id, message) => {
+            const entry = REG.objects[id];
 
-            if (entry && entry.model) {
-                entry.model.send({
-                    msg_type: 'click_callback',
-                    coord: param.coord,
-                });
+            if (!entry) {
+                return;
             }
+
+            if (entry.model) {
+                entry.model.send(message);
+            } else {
+                view.model.send(_.extend({ K3DIdentifier: id }, message));
+            }
+        };
+
+        view.voxelsCallback = view.K3DInstance.on(view.K3DInstance.events.VOXELS_CALLBACK, (param) => {
+            sendCallback(param.object.K3DIdentifier, { msg_type: 'click_callback', coord: param.coord });
         });
 
         view.objectHoverCallback = view.K3DInstance.on(view.K3DInstance.events.OBJECT_HOVERED, (param) => {
-            const entry = REG.objects[param.K3DIdentifier];
-
-            if (entry && entry.model && view.K3DInstance.parameters.viewMode === viewModes.callback) {
-                entry.model.send(_.extend({ msg_type: 'hover_callback' }, param));
+            if (view.K3DInstance.parameters.viewMode === viewModes.callback) {
+                sendCallback(param.K3DIdentifier, _.extend({ msg_type: 'hover_callback' }, param));
             }
         });
 
         view.objectClickCallback = view.K3DInstance.on(view.K3DInstance.events.OBJECT_CLICKED, (param) => {
-            const entry = REG.objects[param.K3DIdentifier];
-
-            if (entry && entry.model && view.K3DInstance.parameters.viewMode === viewModes.callback) {
-                entry.model.send(_.extend({ msg_type: 'click_callback' }, param));
+            if (view.K3DInstance.parameters.viewMode === viewModes.callback) {
+                sendCallback(param.K3DIdentifier, _.extend({ msg_type: 'click_callback' }, param));
             }
         });
 
