@@ -121,7 +121,9 @@ def _volume_dtype(value):
 
         return np.asarray(value).astype(np.float32)
 
-    return value
+    # a strided view (np.transpose) would be copied on every serialisation and defeat the
+    # headless fingerprint; one contiguous copy here, none later
+    return np.ascontiguousarray(value)
 
 
 class VolumeSlice(DrawableWithCallback):
@@ -345,7 +347,7 @@ class Volume(Drawable):
 
             return proposal["value"].astype(np.float32)
 
-        return proposal["value"]
+        return np.ascontiguousarray(proposal["value"])
 
     def shadow_map_update(self, direction=None):
         """Request updating the shadow map in browser."""
@@ -450,7 +452,7 @@ class MIP(Drawable):
 
             return proposal["value"].astype(np.float32)
 
-        return proposal["value"]
+        return np.ascontiguousarray(proposal["value"])
 
     def get_bounding_box(self):
         return get_bounding_box(self.model_matrix)

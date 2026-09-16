@@ -662,7 +662,7 @@ def get_bounding_box_points(arr, model_matrix):
     ndarray
         Array of numbers [min_x, max_x, min_y, max_y, min_z, max_z].
     """
-    d = arr.flatten()
+    d = _flatten_frames(arr)
 
     if d.shape[0] < 3:
         d = np.array([0, 0, 0])
@@ -678,20 +678,38 @@ def get_bounding_box_points(arr, model_matrix):
     return get_bounding_box(model_matrix, boundary)
 
 
+def _flatten_frames(arr):
+    """One flat array of coordinates, whether `arr` is an array or a time series of them."""
+    if isinstance(arr, dict):
+        frames = [np.asarray(v, dtype=np.float64).flatten() for v in arr.values()]
+
+        return np.concatenate(frames) if frames else np.array([])
+
+    return np.asarray(arr, dtype=np.float64).flatten()
+
+
 def get_bounding_box_point(position):
-    """Return the boundaries of a position.
+    """Return the boundaries of one or more 3D positions.
 
     Parameters
     ----------
     position : array_like
-        Array of numbers.
+        One position, n positions, or a time series of either.
 
     Returns
     -------
-    ndarray
-        Array of numbers.
+    ndarray or None
+        Array of numbers [min_x, max_x, min_y, max_y, min_z, max_z], or None for a position
+        that is not three-dimensional (a 2D overlay has no place in the scene's box).
     """
-    return np.dstack([np.array(position), np.array(position)]).flatten()
+    d = _flatten_frames(position)
+
+    if d.shape[0] == 0 or d.shape[0] % 3 != 0:
+        return None
+
+    points = d.reshape(-1, 3)
+
+    return np.dstack([np.nanmin(points, axis=0), np.nanmax(points, axis=0)]).flatten()
 
 
 def unify_color_map(cm):

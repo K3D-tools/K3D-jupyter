@@ -72,6 +72,10 @@ _PLOT_PARAMS = (
     ("fps", "fps"),
     ("minimumFps", "minimum_fps"),
     ("additionalJsCode", "additional_js_code"),
+    ("voxelPaintColor", "voxel_paint_color"),
+    ("renderOnChange", "render_on_change"),
+    ("manipulateMode", "manipulate_mode"),
+    ("colorbarScientific", "colorbar_scientific"),
 )
 
 
