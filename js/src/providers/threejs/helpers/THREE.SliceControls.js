@@ -47,6 +47,9 @@ module.exports = function (THREE) {
         // API
 
         this.enabled = true;
+        // locks Core writes through setCameraLock; a slice view has no rotation to lock
+        this.noZoom = false;
+        this.noPan = false;
 
         this.screen = {
             left: 0, top: 0, width: 0, height: 0,
@@ -164,7 +167,7 @@ module.exports = function (THREE) {
             const change = _mouseCurrent.clone().sub(_mouseLast);
 
             if (change.length() > 0) {
-                if (Math.abs(change.y) > EPS) {
+                if (Math.abs(change.y) > EPS && !_this.noZoom) {
                     _zoomPanCurrent.z += change.y;
                 }
 
@@ -180,6 +183,10 @@ module.exports = function (THREE) {
 
         this.changePan = function () {
             const change = _mouseCurrent.clone().sub(_mouseLast);
+
+            if (_this.noPan) {
+                return false;
+            }
 
             if (change.length() > 0) {
                 _zoomPanCurrent.x += change.x * 5;
@@ -559,7 +566,7 @@ module.exports = function (THREE) {
         }
 
         function onMouseWheel(event) {
-            if (_this.enabled === false) {
+            if (_this.enabled === false || _this.noZoom) {
                 return;
             }
 

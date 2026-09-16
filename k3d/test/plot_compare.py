@@ -74,6 +74,11 @@ def prepare(depth_peels=0):
     # not leave it on for the ones comparing without a camera_reset
     pytest.plot.camera_auto_fit = False
     pytest.plot.camera = [2, -3, 0.2, 0.0, 0.0, 0.0, 0, 0, 1]
+    # and in the page, like mode: a camera moved in the browser (a drag, a manipulator) never
+    # reaches the plot, so assigning the same value there produces no diff and does not arrive
+    pytest.headless.browser.execute_script(
+        "if (K3DInstance) { K3DInstance.setCamera(arguments[0]); }", pytest.plot.camera
+    )
     pytest.plot.background_color = 0xFFFFFF
     pytest.plot.camera_fov = 60.0
     pytest.plot.time = 0.0

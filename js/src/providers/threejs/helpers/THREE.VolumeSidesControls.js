@@ -303,7 +303,7 @@ module.exports = function (THREE) {
             const change = _mouseCurrent.clone().sub(_mouseLast);
 
             if (change.length() > 0) {
-                if (Math.abs(change.y) > EPS) {
+                if (Math.abs(change.y) > EPS && !_this.noZoom) {
                     _zoomPanCurrent.x.z += change.y;
                     _zoomPanCurrent.y.z += change.y;
                     _zoomPanCurrent.z.z += change.y;
@@ -322,6 +322,10 @@ module.exports = function (THREE) {
         this.changePan = function () {
             const change = _mouseCurrent.clone().sub(_mouseLast);
             let bonus = 0;
+
+            if (_this.noPan) {
+                return false;
+            }
 
             if (_touchZoomDistanceEnd !== _touchZoomDistanceStart) {
                 bonus = (_touchZoomDistanceStart - _touchZoomDistanceEnd) * 0.0005;
@@ -741,7 +745,7 @@ module.exports = function (THREE) {
         }
 
         function onMouseWheel(event) {
-            if (scope.enabled === false) return;
+            if (scope.enabled === false || _this.noZoom) return;
 
             event.preventDefault();
 
@@ -798,6 +802,13 @@ module.exports = function (THREE) {
 
         trackBall.update();
 
+        // the locks live on the inner trackball; Core writes them on this object, so forward
+        ['noRotate', 'noZoom', 'noPan'].forEach((lock) => {
+            Object.defineProperty(_this, lock, {
+                get: () => trackBall[lock],
+                set: (value) => { trackBall[lock] = value; },
+            });
+        });
         trackBall.noRotate = K3D.parameters.cameraNoRotate;
         trackBall.noZoom = K3D.parameters.cameraNoZoom;
         trackBall.noPan = K3D.parameters.cameraNoPan;

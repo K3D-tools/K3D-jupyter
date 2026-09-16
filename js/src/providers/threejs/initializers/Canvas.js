@@ -116,24 +116,37 @@ function createVolumeSideControls(self, K3D) {
     return controls;
 }
 
+// both families of flags, since Core writes both: Trackball reads no*, Orbit enable*
+function applyCameraLock(controls, K3D) {
+    controls.noRotate = K3D.parameters.cameraNoRotate;
+    controls.noZoom = K3D.parameters.cameraNoZoom;
+    controls.noPan = K3D.parameters.cameraNoPan;
+    controls.enableRotate = !K3D.parameters.cameraNoRotate;
+    controls.enableZoom = !K3D.parameters.cameraNoZoom;
+    controls.enablePan = !K3D.parameters.cameraNoPan;
+}
+
 function createControls(self, K3D) {
+    let controls = null;
+
     if (K3D.parameters.cameraMode === cameraModes.trackball) {
-        return createTrackballControls(self, K3D);
-    }
-    if (K3D.parameters.cameraMode === cameraModes.orbit) {
-        return createOrbitControls(self, K3D);
-    }
-    if (K3D.parameters.cameraMode === cameraModes.fly) {
-        return createFlyControls(self, K3D);
-    }
-    if (K3D.parameters.cameraMode === cameraModes.sliceViewer) {
-        return createSliceControls(self, K3D);
-    }
-    if (K3D.parameters.cameraMode === cameraModes.volumeSides) {
-        return createVolumeSideControls(self, K3D);
+        controls = createTrackballControls(self, K3D);
+    } else if (K3D.parameters.cameraMode === cameraModes.orbit) {
+        controls = createOrbitControls(self, K3D);
+    } else if (K3D.parameters.cameraMode === cameraModes.fly) {
+        controls = createFlyControls(self, K3D);
+    } else if (K3D.parameters.cameraMode === cameraModes.sliceViewer) {
+        controls = createSliceControls(self, K3D);
+    } else if (K3D.parameters.cameraMode === cameraModes.volumeSides) {
+        controls = createVolumeSideControls(self, K3D);
     }
 
-    return null;
+    if (controls !== null) {
+        // fresh controls know nothing of the lock in force
+        applyCameraLock(controls, K3D);
+    }
+
+    return controls;
 }
 
 /**

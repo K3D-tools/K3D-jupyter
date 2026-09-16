@@ -1052,6 +1052,10 @@ function K3D(provider, targetDOMNode, parameters) {
         world.controls.noRotate = cameraNoRotate;
         world.controls.noZoom = cameraNoZoom;
         world.controls.noPan = cameraNoPan;
+        // OrbitControls reads its own flags
+        world.controls.enableRotate = !cameraNoRotate;
+        world.controls.enableZoom = !cameraNoZoom;
+        world.controls.enablePan = !cameraNoPan;
     };
 
     /**
