@@ -91,10 +91,17 @@ module.exports = function cinematic(K3D, renderer, hooks) {
     }
 
     // edits the tracer refreshes without a BVH rebuild, whatever the object is
-    const MATERIAL_ONLY = ['roughness', 'metalness', 'opacity', 'light_scale'];
+    // not opacity: it flips `transparent`, and a fast-path update measured 68 pixels off a
+    // fresh build on voxels (test_visual_voxels, dynamic opacity), so it rebuilds until the
+    // difference is understood
+    const MATERIAL_ONLY = ['roughness', 'metalness', 'light_scale'];
     // and these on a volume only - on points and tubes the same keys are baked into vertex
     // attributes, where changing one is geometry
     const VOLUME_MATERIAL_ONLY = ['color_range', 'alpha_coef', 'gradient_step'];
+
+    // A headless sync addresses its diff: k3d.headless sends {id, type, ...changed}, so a
+    // material edit arrives carrying two keys that are bookkeeping, not content.
+    const BOOKKEEPING = ['id', 'type'];
 
     // OBJECT_CHANGE names one key, OBJECT_LOADED a whole set; no payload means assume the worst
     function materialOnly(change) {
@@ -111,7 +118,13 @@ module.exports = function cinematic(K3D, renderer, hooks) {
         const json = K3D.getWorld().ObjectsListJson[change.id];
         const volume = Boolean(json) && json.type === 'Volume';
 
-        return keys.every((key) => MATERIAL_ONLY.indexOf(key) !== -1
+        const content = keys.filter((key) => BOOKKEEPING.indexOf(key) === -1);
+
+        if (content.length === 0) {
+            return false;
+        }
+
+        return content.every((key) => MATERIAL_ONLY.indexOf(key) !== -1
             || (volume && VOLUME_MATERIAL_ONLY.indexOf(key) !== -1));
     }
 
@@ -439,10 +452,13 @@ module.exports = function cinematic(K3D, renderer, hooks) {
         }
 
         if (materialsDirty) {
-            // BVH untouched: refresh the material texture only
+            // BVH untouched: refresh the material texture only. A material edit can still
+            // recompile the program, and the first sample after that rebuilds the stratified
+            // texture - warm up like a rebuild does, or the noise pattern shifts.
             proxy.syncMaterials();
             backend.updateMaterials();
             materialsDirty = false;
+            needsWarmup = true;
         }
 
         if (key !== envKey) {

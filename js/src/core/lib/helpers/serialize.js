@@ -111,8 +111,8 @@ function deserialize(obj, manager) {
             return p;
         }, []);
     }
-    // time series or dict
-    let timeSeries = true;
+    // time series or dict; an empty dict has no frames and is not a series
+    let timeSeries = Object.keys(obj).length > 0;
     const deserializedObj = Object.keys(obj).reduce((p, k) => {
         if (!isNumeric(k)) {
             timeSeries = false;

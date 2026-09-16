@@ -1,6 +1,12 @@
 const THREE = require('three');
 const _ = require('../../lodash');
 const { pow10ceil } = require('./helpers/math');
+const Float16Array = require('./helpers/float16Array');
+
+// custom_data is free-form metadata: a dict keyed by numbers there is the user's, not a time axis
+function isTimeSeries(property, value) {
+    return property !== 'custom_data' && Boolean(value) && typeof (value.timeSeries) !== 'undefined';
+}
 
 function clone(val) {
     if (typeof (val) === 'object') {
@@ -27,7 +33,7 @@ function getObjectsWithTimeSeriesAndMinMax(K3D) {
         let hasTimeSeries = false;
 
         Object.keys(obj).forEach((property) => {
-            if (obj[property] && typeof (obj[property].timeSeries) !== 'undefined') {
+            if (isTimeSeries(property, obj[property])) {
                 hasTimeSeries = true;
 
                 Object.keys(obj[property]).forEach((t) => {
@@ -67,7 +73,7 @@ function getTimeSeriesTimes(K3D) {
         const obj = world.ObjectsListJson[id];
 
         Object.keys(obj).forEach((property) => {
-            if (obj[property] && typeof (obj[property].timeSeries) !== 'undefined') {
+            if (isTimeSeries(property, obj[property])) {
                 Object.keys(obj[property]).forEach((t) => {
                     if (!Number.isNaN(parseFloat(t))) {
                         times.add(parseFloat(t));
@@ -161,6 +167,15 @@ function interpolate(a, b, f, property) {
                 const bf = Math.round(b1 + f * (b2 - b1));
 
                 interpolated[i] = (bf << 16) | (gf << 8) | rf;
+            }
+        } else if (a.data.constructor === Float16Array) {
+            // the stand-in holds half-float bit patterns, which do not blend as numbers
+            const { fromHalfFloat, toHalfFloat } = THREE.DataUtils;
+
+            for (i = 0; i < interpolated.length; i++) {
+                const va = fromHalfFloat(a.data[i]);
+
+                interpolated[i] = toHalfFloat(va + f * (fromHalfFloat(b.data[i]) - va));
             }
         } else {
             for (i = 0; i < interpolated.length; i++) {
@@ -275,7 +290,7 @@ module.exports = {
             let i;
             let f;
 
-            if (json[property] && typeof (json[property].timeSeries) !== 'undefined') {
+            if (isTimeSeries(property, json[property])) {
                 keypoints = Object.keys(json[property]).reduce((p, k) => {
                     if (!Number.isNaN(parseFloat(k))) {
                         p.push({ v: parseFloat(k), k });

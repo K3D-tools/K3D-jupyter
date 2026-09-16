@@ -114,6 +114,12 @@ function registerRelayedChunk(dict) {
     REG.chunks[attrs.id] = { attributes: attrs };
 }
 
+// completion only: a load() resolves to the object's json and its Object3D, and this list is
+// cleared solely by an explicit 'render', which render_on_change never sends
+function trackRender(view, work) {
+    view.renderPromises.push(Promise.resolve(work).then(() => undefined));
+}
+
 function requestMissingObjects(view, ids) {
     const missing = ids.filter((id) => !REG.objects[id] && !view.pendingFetch.has(id));
 
@@ -302,7 +308,7 @@ const PLOT_HANDLERS = {
     lighting: (v) => v.K3DInstance.setDirectionalLightingIntensity(v.model.get('lighting')),
     time: (v) => {
         if (v.K3DInstance.parameters.time !== v.model.get('time')) {
-            v.renderPromises.push(v.K3DInstance.setTime(v.model.get('time')));
+            trackRender(v, v.K3DInstance.setTime(v.model.get('time')));
         }
     },
     fps: (v) => v.K3DInstance.setFps(v.model.get('fps')),
@@ -347,14 +353,14 @@ const PLOT_HANDLERS = {
         v.objectIds = current;
 
         _.difference(previous, current).forEach((id) => {
-            v.renderPromises.push(v.K3DInstance.removeObject(id));
+            trackRender(v, v.K3DInstance.removeObject(id));
         });
 
         const added = _.difference(current, previous);
 
         added.forEach((id) => {
             if (REG.objects[id]) {
-                v.renderPromises.push(v.K3DInstance.load({ objects: [REG.objects[id].attributes] }));
+                trackRender(v, v.K3DInstance.load({ objects: [REG.objects[id].attributes] }));
             }
         });
 
@@ -440,7 +446,7 @@ function renderPlot({ model, el }) {
         },
         refreshObject(id, changed) {
             if (model.get('object_ids').indexOf(id) !== -1) {
-                view.renderPromises.push(view.K3DInstance.reload(REG.objects[id].attributes, changed));
+                trackRender(view, view.K3DInstance.reload(REG.objects[id].attributes, changed));
             }
         },
     };
@@ -482,7 +488,7 @@ function renderPlot({ model, el }) {
 
                     if (model.get('object_ids').indexOf(attrs.id) !== -1
                         && !view.K3DInstance.getObjectById(attrs.id)) {
-                        view.renderPromises.push(view.K3DInstance.load({ objects: [attrs] }));
+                        trackRender(view, view.K3DInstance.load({ objects: [attrs] }));
                     }
                 });
             }
@@ -638,7 +644,7 @@ function renderPlot({ model, el }) {
 
         model.get('object_ids').forEach((id) => {
             if (REG.objects[id]) {
-                view.renderPromises.push(view.K3DInstance.load({ objects: [REG.objects[id].attributes] }));
+                trackRender(view, view.K3DInstance.load({ objects: [REG.objects[id].attributes] }));
             }
         });
 
