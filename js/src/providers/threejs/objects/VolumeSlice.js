@@ -283,8 +283,13 @@ module.exports = {
 
         if (typeof (changes.color_range) !== 'undefined' && !changes.color_range.timeSeries) {
             if (Array.isArray(obj.material.uniforms.low.value)) {
-                obj.material.uniforms.low.value[0] = changes.color_range[0];
-                obj.material.uniforms.high.value[0] = changes.color_range[1];
+                // one pair per channel, the same layout addTextureToUniforms built
+                for (let id = 0; id < obj.material.uniforms.low.value.length; id += 1) {
+                    if (typeof (changes.color_range[id * 2 + 1]) === 'number') {
+                        obj.material.uniforms.low.value[id] = changes.color_range[id * 2];
+                        obj.material.uniforms.high.value[id] = changes.color_range[id * 2 + 1];
+                    }
+                }
             } else {
                 obj.material.uniforms.low.value = changes.color_range[0];
                 obj.material.uniforms.high.value = changes.color_range[1];
@@ -350,7 +355,11 @@ module.exports = {
             const maskValue = obj.material.uniforms.mask.value;
 
             if (maskValue && maskValue.image && maskValue.image.data.length > 0
-                && maskValue.image.data.constructor === changes.mask.data.constructor) {
+                && maskValue.image.data.constructor === changes.mask.data.constructor
+                // same dimensions, or texImage3D uploads the new data into the old ones
+                && maskValue.image.width === changes.mask.shape[2]
+                && maskValue.image.height === changes.mask.shape[1]
+                && maskValue.image.depth === changes.mask.shape[0]) {
                 obj.material.uniforms.mask.value.image.data = changes.mask.data;
                 obj.material.uniforms.mask.value.needsUpdate = true;
 

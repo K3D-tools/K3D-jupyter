@@ -126,6 +126,17 @@ def _volume_dtype(value):
     return np.ascontiguousarray(value)
 
 
+def _channels(volumes):
+    """Hold a multi-channel slice to what the browser's colormap can build a gradient for."""
+    if len(volumes) > 2:
+        raise TraitError(
+            "volume_slice takes one or two channels, got %d: the browser builds the colormap "
+            "gradient for one or two and raises on more" % len(volumes)
+        )
+
+    return volumes
+
+
 class VolumeSlice(DrawableWithCallback):
     """Create a Volume slice drawable.
 
@@ -211,12 +222,15 @@ class VolumeSlice(DrawableWithCallback):
 
         # one entry per channel, each held to the same dtype rule as a single volume
         if type(proposal["value"]) is list:
-            return [_volume_dtype(channel) for channel in proposal["value"]]
+            return [_volume_dtype(channel) for channel in _channels(proposal["value"])]
 
         if type(proposal["value"]) is np.ndarray and proposal[
             "value"
         ].dtype is np.dtype(object):
-            return [_volume_dtype(channel) for channel in proposal["value"].tolist()]
+            return [
+                _volume_dtype(channel)
+                for channel in _channels(proposal["value"].tolist())
+            ]
 
         if proposal["value"].shape == (0,):
             return np.array(proposal["value"], dtype=np.float32)
