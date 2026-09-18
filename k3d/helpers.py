@@ -637,14 +637,27 @@ def get_bounding_box(model_matrix, boundary=[-0.5, 0.5, -0.5, 0.5, -0.5, 0.5]):
         Model matrix boundaries.
     """
     # Homogeneous coordinate 1: these are points, not directions, so the matrix's
-    # translation column has to apply.
-    b_min = np.array([boundary[0], boundary[2], boundary[4], 1])
-    b_max = np.array([boundary[1], boundary[3], boundary[5], 1])
+    # translation column has to apply. All eight corners, because a rotation or a mirror
+    # maps the min corner past the max one and a box with min > max drops out of get_auto_grid.
+    corners = np.array([
+        [boundary[i], boundary[2 + j], boundary[4 + k], 1.0]
+        for i in (0, 1) for j in (0, 1) for k in (0, 1)
+    ])
 
-    b_min = model_matrix.dot(b_min)
-    b_max = model_matrix.dot(b_max)
+    transformed = np.concatenate([
+        corners.dot(matrix.T)[:, 0:3] for matrix in _model_matrices(model_matrix)
+    ])
 
-    return np.dstack([b_min[0:3], b_max[0:3]]).flatten()
+    return np.dstack([
+        np.nanmin(transformed, axis=0), np.nanmax(transformed, axis=0)
+    ]).flatten()
+
+
+def _model_matrices(model_matrix):
+    """Every 4x4 matrix in `model_matrix`, whether it is one matrix or a time series of them."""
+    frames = model_matrix.values() if isinstance(model_matrix, dict) else [model_matrix]
+
+    return [np.asarray(matrix, dtype=np.float64).reshape(4, 4) for matrix in frames]
 
 
 def get_bounding_box_points(arr, model_matrix):
@@ -688,13 +701,15 @@ def _flatten_frames(arr):
     return np.asarray(arr, dtype=np.float64).flatten()
 
 
-def get_bounding_box_point(position):
+def get_bounding_box_point(position, model_matrix=None):
     """Return the boundaries of one or more 3D positions.
 
     Parameters
     ----------
     position : array_like
         One position, n positions, or a time series of either.
+    model_matrix : ndarray, optional
+        Matrix of numbers the renderer applies to the position. Must have four columns.
 
     Returns
     -------
@@ -708,8 +723,12 @@ def get_bounding_box_point(position):
         return None
 
     points = d.reshape(-1, 3)
+    boundary = np.dstack([np.nanmin(points, axis=0), np.nanmax(points, axis=0)]).flatten()
 
-    return np.dstack([np.nanmin(points, axis=0), np.nanmax(points, axis=0)]).flatten()
+    if model_matrix is None:
+        return boundary
+
+    return get_bounding_box(model_matrix, boundary)
 
 
 def unify_color_map(cm):
