@@ -134,14 +134,25 @@ function requestMissingObjects(view, ids) {
 // typed arrays ride to the kernel as plain msgpack bin + dtype, so the python
 // side can read them with from_json instead of a custom ext codec
 function relayEncodableValue(value) {
-    if (value && value.data && value.data.buffer) {
-        return {
-            ...value,
-            data: new Uint8Array(value.data.buffer, value.data.byteOffset, value.data.byteLength),
-        };
+    if (!value) {
+        return value;
     }
 
-    return value;
+    const encoded = { ...value };
+    let touched = false;
+
+    // compressed_data as well as data: from_json reads whichever the payload carries, and an
+    // object with compression_level > 0 sends only the compressed one
+    ['data', 'compressed_data'].forEach((key) => {
+        const view = value[key];
+
+        if (view && view.buffer) {
+            encoded[key] = new Uint8Array(view.buffer, view.byteOffset, view.byteLength);
+            touched = true;
+        }
+    });
+
+    return touched ? encoded : value;
 }
 
 // deserialized snapshot of every synced trait - the equivalent of the old
@@ -269,7 +280,11 @@ function initChunk({ model }) {
             Object.keys(REG.objects).forEach((id) => {
                 if (REG.objects[id].attributes.type === 'VoxelsGroup') {
                     runOnEveryPlot(REG.objects[id].attributes.id, (plot, objInstance) => {
-                        objInstance.updateChunk(attrs);
+                        // a hidden group is not in the scene and has no instance to update;
+                        // the edit stays in REG.chunks, which is what rebuilds it
+                        if (objInstance && objInstance.updateChunk) {
+                            objInstance.updateChunk(attrs);
+                        }
                     });
                 }
             });

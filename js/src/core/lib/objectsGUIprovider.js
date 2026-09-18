@@ -17,6 +17,13 @@ function changeParameter(K3D, json, key, value, timeSeriesReload) {
 }
 
 function update(K3D, json, GUI, changes) {
+    // with the menu off there is no folder tree to update, and building one against the
+    // destroyed dat.GUI leaves gui_map pointing at widgets that no longer exist - the rebuild
+    // then sees every id as already present and adds nothing
+    if (!K3D.gui) {
+        return;
+    }
+
     let sliceViewerControllers;
 
     function moveToGroup(config) {

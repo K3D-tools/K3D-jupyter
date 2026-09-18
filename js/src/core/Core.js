@@ -382,6 +382,11 @@ function K3D(provider, targetDOMNode, parameters) {
         });
     }
 
+    // ids removed while a load was still resolving; the loader finishes on image.onload and
+    // would otherwise put the object back after the removal
+    const removedWhileLoading = new Set();
+    let pendingLoads = 0;
+
     function removeObjectFromScene(id) {
         let object = self.Provider.Helpers.getObjectById(world, id);
         if (object) {
@@ -1636,6 +1641,10 @@ function K3D(provider, targetDOMNode, parameters) {
      * @param {String} id
      */
     this.removeObject = function (id) {
+        if (pendingLoads > 0) {
+            removedWhileLoading.add(id);
+        }
+
         removeObjectFromScene(id);
         delete world.ObjectsListJson[id];
 
@@ -1694,9 +1703,20 @@ function K3D(provider, targetDOMNode, parameters) {
      * @throws {Error} If Loader fails
      */
     this.load = function (json) {
+        pendingLoads += 1;
+
         return loader(self, json).then((objects) => {
             objects.forEach((object) => {
                 if (!object) { return; }
+
+                // a texture resolves on image.onload, and a removal that arrived meanwhile
+                // would otherwise be undone here - the object goes back into the registry and
+                // stays in the scene with nothing left to remove it
+                if (removedWhileLoading.has(object.json.id)) {
+                    removeObjectFromScene(object.json.id);
+
+                    return;
+                }
 
                 objectsGUIProvider.update(self, object.json, GUI.objects, null);
 
@@ -1720,6 +1740,12 @@ function K3D(provider, targetDOMNode, parameters) {
             self.refreshAfterObjectsChange(false);
 
             return objects;
+        }).finally(() => {
+            pendingLoads -= 1;
+
+            if (pendingLoads === 0) {
+                removedWhileLoading.clear();
+            }
         });
     };
 
