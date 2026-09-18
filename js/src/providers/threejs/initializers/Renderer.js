@@ -6,6 +6,7 @@ const {
 const cameraModes = require('../../../core/lib/cameraMode').cameraModes;
 const error = require('../../../core/lib/Error').error;
 const getSSAAChunkedRender = require('../helpers/SSAAChunkedRender');
+const { unpremultiply } = require('../helpers/SSAAChunkedRender');
 const cinematic = require('./cinematic');
 
 // The upstream denoiser noise (GTAOPass._generateNoise) comes from Math.random and would
@@ -220,6 +221,7 @@ module.exports = function (K3D) {
             tDiffuse: { value: null },
             uSize: { value: new THREE.Vector2(1, 1) },
             uToneMapping: toneMappingMode,
+            uPremultiplied: { value: 1 },
             toneMappingExposure: { value: 1.0 },
         },
         vertexShader: require('./shaders/composite.vertex.glsl'),
@@ -1082,6 +1084,7 @@ module.exports = function (K3D) {
 
             toneBlitMaterial.uniforms.tDiffuse.value = toneTarget.texture;
             toneBlitMaterial.uniforms.uSize.value.set(width, height);
+            toneBlitMaterial.uniforms.uPremultiplied.value = 1;
 
             self.renderer.setRenderTarget(rt);
             self.renderer.setViewport(viewport);
@@ -1751,6 +1754,7 @@ module.exports = function (K3D) {
         if (!cinematicVolume.active) {
             toneBlitMaterial.uniforms.tDiffuse.value = ptTexture;
             toneBlitMaterial.uniforms.uSize.value.set(width, height);
+            toneBlitMaterial.uniforms.uPremultiplied.value = 0;
 
             self.renderer.setRenderTarget(rt);
             self.renderer.setViewport(0, 0, width, height);
@@ -1785,6 +1789,7 @@ module.exports = function (K3D) {
 
         toneBlitMaterial.uniforms.tDiffuse.value = composeTarget.texture;
         toneBlitMaterial.uniforms.uSize.value.set(width, height);
+        toneBlitMaterial.uniforms.uPremultiplied.value = 0;
 
         self.renderer.setRenderTarget(rt);
         self.renderer.setViewport(0, 0, width, height);
@@ -1873,7 +1878,7 @@ module.exports = function (K3D) {
 
                     self.renderer.readRenderTargetPixels(rt, 0, 0, width, height, pixels);
 
-                    return [new Uint8ClampedArray(pixels.buffer), axesHelper];
+                    return [unpremultiply(new Uint8ClampedArray(pixels.buffer)), axesHelper];
                 } finally {
                     self.renderer.setRenderTarget(null);
                     rt.dispose();

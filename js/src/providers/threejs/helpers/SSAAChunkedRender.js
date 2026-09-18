@@ -39,6 +39,25 @@ const JitterVectors = [
     ],
 ];
 
+// Blending leaves a render target premultiplied, and ImageData - which is what every one of
+// these arrays becomes - is straight alpha. Without this a half-transparent red over white
+// composites to 0.75 instead of 1.0 in the red channel.
+function unpremultiply(image) {
+    for (let i = 0; i < image.length; i += 4) {
+        const a = image[i + 3];
+
+        if (a > 0 && a < 255) {
+            const scale = 255.0 / a;
+
+            image[i] = Math.round(image[i] * scale);
+            image[i + 1] = Math.round(image[i + 1] * scale);
+            image[i + 2] = Math.round(image[i + 2] * scale);
+        }
+    }
+
+    return image;
+}
+
 function getArrayFromRenderTarget(renderer, rt) {
     const array = new Float32Array(rt.width * rt.height * 4);
     const image = new Uint8ClampedArray(rt.width * rt.height * 4);
@@ -46,8 +65,14 @@ function getArrayFromRenderTarget(renderer, rt) {
 
     renderer.readRenderTargetPixels(rt, 0, 0, rt.width, rt.height, array);
 
-    for (i = 0; i < array.length; i++) {
-        image[i] = Math.floor(array[i] * 256.0);
+    for (i = 0; i < array.length; i += 4) {
+        const a = array[i + 3];
+        const scale = a > 0.0 ? 1.0 / a : 0.0;
+
+        image[i] = Math.floor(array[i] * scale * 256.0);
+        image[i + 1] = Math.floor(array[i + 1] * scale * 256.0);
+        image[i + 2] = Math.floor(array[i + 2] * scale * 256.0);
+        image[i + 3] = Math.floor(a * 256.0);
     }
 
     return image;
@@ -187,3 +212,5 @@ module.exports = function (renderer, scene, camera, rt, fullWidth, fullHeight, c
         });
     });
 };
+
+module.exports.unpremultiply = unpremultiply;
