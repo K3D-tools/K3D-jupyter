@@ -409,6 +409,14 @@ module.exports = {
         ['opacity'].forEach((key) => {
             if (changes[key] && !changes[key].timeSeries) {
                 obj.material.uniforms[key].value = changes[key];
+
+                // which pass the material is drawn in is decided from this value at creation:
+                // without redeciding it, a new alpha reaches the shader with blending still off
+                const opacityFunction = (config.opacity_function && config.opacity_function.data
+                    && config.opacity_function.data.length > 0);
+
+                obj.material.transparent = (changes[key] !== 1.0 || opacityFunction);
+                obj.material.depthWrite = !obj.material.transparent;
                 obj.material.needsUpdate = true;
 
                 resolvedChanges[key] = null;
