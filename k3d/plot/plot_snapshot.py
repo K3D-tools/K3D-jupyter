@@ -76,6 +76,7 @@ _PLOT_PARAMS = (
     ("renderOnChange", "render_on_change"),
     ("manipulateMode", "manipulate_mode"),
     ("colorbarScientific", "colorbar_scientific"),
+    ("snapshotType", "snapshot_type"),
 )
 
 

@@ -4,6 +4,9 @@ import math
 from typing import Any, Union
 from typing import Dict as TypingDict
 
+import numpy as np
+from traitlets import Bytes
+
 # Import all object classes
 from .base import VoxelChunk
 from .geometry import STL, Line, Lines, Mesh, Surface
@@ -74,8 +77,21 @@ def create_object(
     # _synced_props) are transport details, not object state
     attributes = {k: v for k, v in attributes.items() if not k.startswith("_")}
 
-    if is_chunk:
-        return VoxelChunk(**attributes)
-    return objects_map[obj["type"]](**attributes)
+    # to_json sends True so the browser knows a handler is attached; True is not callable
+    attributes = {
+        k: v
+        for k, v in attributes.items()
+        if not (k.endswith("_callback") and not callable(v))
+    }
+
+    cls = VoxelChunk if is_chunk else objects_map[obj["type"]]
+
+    # bytes go over the wire as a uint8 array, and from_json gives that array back
+    for key, trait in cls.class_traits().items():
+        value = attributes.get(key)
+        if isinstance(trait, Bytes) and value is not None and not isinstance(value, bytes):
+            attributes[key] = np.asarray(value, dtype=np.uint8).tobytes()
+
+    return cls(**attributes)
 
 
