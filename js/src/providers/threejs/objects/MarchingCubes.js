@@ -265,6 +265,7 @@ module.exports = {
 
                     object = new THREE.Mesh(geometry, material);
                     object.scale.set(1.0 / sizeX, 1.0 / sizeY, 1.0 / sizeZ);
+                    object.initialScale = object.scale.clone();
 
                     interactionsHelper.init(config, object, K3D);
 
