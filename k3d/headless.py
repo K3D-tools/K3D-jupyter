@@ -139,6 +139,17 @@ def _array_fingerprint(array):
     return _ArrayFingerprint(array.shape, str(array.dtype), digest.digest())
 
 
+class _Handler:
+    """Marker for a callable trait: the wire only carries whether a handler is attached."""
+
+    __slots__ = ()
+
+    def __eq__(self, other):
+        return isinstance(other, _Handler)
+
+    __hash__ = None
+
+
 class _Snapshot:
     """A dict or list snapshot whose arrays were replaced by fingerprints.
 
@@ -150,6 +161,22 @@ class _Snapshot:
     def __init__(self, kind, value):
         self.kind = kind
         self.value = value
+
+
+def _param_snapshot(value):
+    """What a plot parameter is compared against next time.
+
+    environment goes out as a typed array, and array_to_json hands over a memoryview of the
+    user's own buffer: the stored value would follow an in-place edit and never look changed.
+    """
+    if isinstance(value, dict) and isinstance(value.get("data"), memoryview):
+        return {
+            k: _array_fingerprint(np.frombuffer(v.cast("B"), dtype=np.uint8))
+            if isinstance(v, memoryview) else v
+            for k, v in value.items()
+        }
+
+    return value
 
 
 def _holds_array(value, depth=0):
@@ -170,6 +197,10 @@ def _holds_array(value, depth=0):
 
 def _snapshot(value):
     """What the next sync diffs against - deepcopy wherever a fingerprint will not do."""
+    # a bound method would drag its owner - and anything unpicklable it holds - through deepcopy
+    if callable(value):
+        return _Handler()
+
     if isinstance(value, np.ndarray):
         fingerprint = _array_fingerprint(value)
 
@@ -186,6 +217,9 @@ def _snapshot(value):
 
 def _snapshot_changed(current, snapshot, object_id, name):
     """_property_changed against a snapshot that may hold fingerprints instead of values."""
+    if isinstance(snapshot, _Handler):
+        return not callable(current)
+
     if isinstance(snapshot, _ArrayFingerprint):
         if not isinstance(current, np.ndarray):
             return True
@@ -244,10 +278,11 @@ class _SyncState:
 
     def diff(self):
         current_plot_params = self.plot.get_plot_params()
+        comparable = {k: _param_snapshot(v) for k, v in current_plot_params.items()}
         plot_diff = {
             k: current_plot_params[k]
             for k in current_plot_params
-            if current_plot_params[k] != self.synced_plot[k]
+            if comparable[k] != self.synced_plot[k]
                and k != "minimumFps"
         }
         objects_diff = {}
@@ -289,7 +324,7 @@ class _SyncState:
                 objects_diff[k] = None  # to remove from plot
 
         self.synced_objects = synced_objects
-        self.synced_plot = current_plot_params
+        self.synced_plot = comparable
 
         return {"plot_diff": plot_diff, "objects_diff": objects_diff}
 

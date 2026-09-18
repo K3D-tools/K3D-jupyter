@@ -114,10 +114,9 @@
               toneMapping: "setToneMapping",
               fpsMeter: "setFpsMeter",
               screenshotScale: "setScreenshotScale",
-              // voxel_paint_color: "setVoxelPaintColor",
+              voxelPaintColor: "setVoxelPaint",
               clearColor: "setClearColor",
               grid: "setGrid",
-              camera_mode: "setCameraMode",
               renderOnChange: "setRenderOnChange",
               camera: "setCamera",
               cameraAnimation: "setCameraAnimation",
@@ -137,9 +136,18 @@
               cameraFov: "setCameraFOV",
               cameraDampingFactor: "setCameraDampingFactor",
               axesHelper: "setAxesHelper",
-              snapshot_type: "setSnapshotType",
+              axesHelperColors: "setAxesHelperColors",
+              labelColor: "setLabelColor",
+              cameraUpAxis: "setCameraUpAxis",
+              hiddenObjectIds: "setHiddenObjectIds",
+              additionalJsCode: "setAdditionalJsCode",
+              sliceViewerObjectId: "setSliceViewer",
+              sliceViewerMaskObjectIds: "setSliceViewerMaskObjects",
+              sliceViewerDirection: "setSliceViewerDirection",
+              snapshotType: "setSnapshotType",
               name: "setName",
-              mode: "setViewMode",
+              // the keys are what get_plot_params() emits, not the trait names
+              viewMode: "setViewMode",
               cameraMode: "setCameraMode",
               manipulateMode: "setManipulateMode",
             };
@@ -152,7 +160,8 @@
               let diff = data.objects_diff[k];
 
               if (diff === null) {
-                K3DInstance.removeObject(k);
+                // the keys of a decoded map are strings; removeObject compares the id with ===
+                K3DInstance.removeObject(parseInt(k, 10));
                 return;
               }
 
