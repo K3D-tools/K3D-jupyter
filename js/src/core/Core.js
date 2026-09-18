@@ -1878,6 +1878,11 @@ function K3D(provider, targetDOMNode, parameters) {
                 data = msgpack.decode(data);
             }
 
+            // "replacing the current scene" (user/snapshots.rst): whatever is on the plot goes
+            Object.keys(world.ObjectsListJson).forEach((id) => {
+                self.removeObject(parseInt(id, 10));
+            });
+
             Object.keys(data.chunkList).forEach((k) => {
                 const chunk = data.chunkList[k];
                 world.chunkList[chunk.id] = {
@@ -1894,10 +1899,13 @@ function K3D(provider, targetDOMNode, parameters) {
                 });
             });
 
-            return self.load({ objects: data.objects }).then(() => self.refreshAfterObjectsChange(
-                false,
-                true,
-            ));
+            const time = (data.plot || {}).time;
+
+            return self.load({ objects: data.objects })
+                // after the objects: setTime clamps to the range of the loaded time series,
+                // and on an empty scene that range is [0, 0]
+                .then(() => (typeof (time) === 'number' ? self.setTime(time) : null))
+                .then(() => self.refreshAfterObjectsChange(false, true));
         } catch (error) {
             console.error('K3D: Failed to set snapshot:', error.message);
             throw new Error(`Invalid snapshot data: ${error.message}`);
