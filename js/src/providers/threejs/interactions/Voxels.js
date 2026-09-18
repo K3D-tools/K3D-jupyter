@@ -10,7 +10,15 @@ module.exports = function (object, mesh, rollOverMesh, K3D) {
         let i;
 
         for (i = 0; i < obj.children.length; i++) {
+            const previous = obj.children[i].geometry;
+
             obj.children[i].geometry = newMesh.children[i].geometry;
+
+            // the old buffers stay on the GPU otherwise, and the tree describes them
+            if (previous && previous !== obj.children[i].geometry) {
+                previous.boundsTree = null;
+                previous.dispose();
+            }
         }
     }
 

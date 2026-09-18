@@ -794,6 +794,11 @@ module.exports = {
                     }
 
                     // not disposed: the helper hands the same instance to every caller
+                    if (self.scene.environment) {
+                        // pmrem.fromEquirectangular allocates a new render target every time
+                        self.scene.environment.dispose();
+                    }
+
                     environmentEquirect = environmentHelper.getEnvironmentTexture(K3D.parameters.environment);
                     self.scene.environment = pmrem.fromEquirectangular(environmentEquirect).texture;
                     environmentSource = K3D.parameters.environment;

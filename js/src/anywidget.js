@@ -452,6 +452,12 @@ function renderPlot({ model, el }) {
     };
 
     let disposed = false;
+    // the model outlives the view: every listener left here answers for a dead plot
+    const modelListeners = [];
+    const listen = (event, handler) => {
+        modelListeners.push([event, handler]);
+        model.on(event, handler);
+    };
     const resizeObserver = new ResizeObserver(() => {
         if (view.K3DInstance) {
             view.K3DInstance.resizeHelper();
@@ -471,7 +477,7 @@ function renderPlot({ model, el }) {
 
         REG.plots.push(view);
 
-        model.on('msg:custom', (obj, buffers) => {
+        listen('msg:custom', (obj, buffers) => {
             if (obj.msg_type === 'snapshot_source' && buffers && buffers.length > 0) {
                 window.k3dCompressed = buffer.arrayBufferToBase64(buffers[0].buffer);
             }
@@ -564,7 +570,7 @@ function renderPlot({ model, el }) {
             if (key.charAt(0) === '_') {
                 return;
             }
-            model.on(`change:${key}`, () => {
+            listen(`change:${key}`, () => {
                 if (model._k3dOwnChange) {
                     return;
                 }
@@ -789,6 +795,9 @@ function renderPlot({ model, el }) {
             clearTimeout(view.cameraSyncTimeout);
             view.cameraSyncTimeout = null;
         }
+
+        modelListeners.forEach(([event, handler]) => model.off(event, handler));
+        modelListeners.length = 0;
 
         if (view.K3DInstance) {
             view.K3DInstance.disable();
