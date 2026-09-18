@@ -30,11 +30,12 @@ class MarchingCubes(DrawableWithCallback):
         level: `float`.
             Value at the computed isosurface.
         spacings_x: `array_like`.
-            A spacings in x axis. Should match to scalar_field shape.
+            Distances between consecutive samples along x: one shorter than that axis of
+            scalar_field. Any other length is ignored and the axis falls back to even spacing.
         spacings_y: `array_like`.
-            A spacings in y axis. Should match to scalar_field shape.
+            Distances between consecutive samples along y, one shorter than that axis.
         spacings_z: `array_like`.
-            A spacings in z axis. Should match to scalar_field shape.
+            Distances between consecutive samples along z, one shorter than that axis.
         color: `int`.
             Packed RGB color of the isosurface (0xff0000 is red, 0xff is blue).
         attribute: `array_like`.

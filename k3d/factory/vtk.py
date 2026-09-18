@@ -67,12 +67,15 @@ def vtk_poly_data(
     if vtk is None:
         raise RuntimeError("vtk module is not available")
 
+    # indices below read GetPolys() only, so strips have to be triangulated whatever their
+    # size: a strip of exactly 3 points left the mesh with no indices at all
     if (
             max(
                 poly_data.GetPolys().GetMaxCellSize(),
                 poly_data.GetStrips().GetMaxCellSize(),
             )
             > 3
+            or poly_data.GetStrips().GetNumberOfCells() > 0
     ):
         cut_triangles = vtk.vtkTriangleFilter()
         cut_triangles.SetInputData(poly_data)

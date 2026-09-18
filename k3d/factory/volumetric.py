@@ -59,12 +59,14 @@ def volume(
     )
 
     if opacity_function is None:
+        # ravel first: a colormap given as (N, 4) slices by row here, and the ramp then spans
+        # whatever the sampled rows happen to hold instead of the first column
         if type(color_map) is dict:
             values = np.concatenate(
-                [np.asarray(frame, np.float32)[::4] for frame in color_map.values()]
+                [np.asarray(frame, np.float32).ravel()[::4] for frame in color_map.values()]
             )
         else:
-            values = np.asarray(color_map, np.float32)[::4]
+            values = np.asarray(color_map, np.float32).ravel()[::4]
         opacity_function = [np.min(values), 0.0, np.max(values), 1.0]
 
     return process_transform_arguments(
@@ -131,12 +133,14 @@ def mip(
     if opacity_function is None:
         # color_map may be a TimeSeries dict, which cannot be sliced; derive the default
         # ramp from the union of its frames in that case.
+        # ravel first: a colormap given as (N, 4) slices by row here, and the ramp then spans
+        # whatever the sampled rows happen to hold instead of the first column
         if type(color_map) is dict:
             values = np.concatenate(
-                [np.asarray(frame, np.float32)[::4] for frame in color_map.values()]
+                [np.asarray(frame, np.float32).ravel()[::4] for frame in color_map.values()]
             )
         else:
-            values = np.asarray(color_map, np.float32)[::4]
+            values = np.asarray(color_map, np.float32).ravel()[::4]
         opacity_function = [np.min(values), 0.0, np.max(values), 1.0]
 
     return process_transform_arguments(
@@ -203,7 +207,7 @@ def volume_slice(
     )
 
     if len(volume) > 0:
-        color_range = check_attribute_color_range(volume, color_range)
+        color_range = check_attribute_color_range(volume, color_range, channels=True)
 
     # createCanvasGradient2d writes a fixed alpha, so a transfer function has no channel to
     # apply to once there are two. Saying so beats dropping it without a word.
@@ -307,6 +311,11 @@ def sparse_voxels(
             and np.shape(space_size) == (3,)
             and all(d > 0 for d in space_size)
     )
+
+    # a named parameter never reaches **kwargs, which is the only thing
+    # process_transform_arguments reads - so bounds was accepted and dropped
+    if bounds is not None:
+        kwargs["bounds"] = bounds
 
     return process_transform_arguments(
         SparseVoxels(
