@@ -426,7 +426,9 @@ class PlotBase(K3DAnyWidget):
         self.camera_no_zoom = camera_no_zoom
         self.camera_no_pan = camera_no_pan
 
-        self.on_msg(self._handle_custom_msg)
+        # not on_msg(self._handle_custom_msg): the comm calls this method already, and
+        # registering it again makes an unknown message recurse into it as a callback, with the
+        # dispatcher's (widget, content, buffers) against a two-argument method
         self.camera_rotate_speed = camera_rotate_speed
         self.camera_zoom_speed = camera_zoom_speed
         self.camera_pan_speed = camera_pan_speed

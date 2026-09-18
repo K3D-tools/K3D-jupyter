@@ -259,6 +259,7 @@ class PlotSnapshotMixin:
             additional_js_code: str = "",
     ) -> str:
         """Produce on the Python side a HTML document with the current plot embedded."""
+        import datetime
         import os
         import zlib
 
@@ -294,6 +295,12 @@ class PlotSnapshotMixin:
             template = template.replace("[VERSION]", version)
             template = template.replace("[HEIGHT]", str(self.height))
             template = template.replace("[ID]", str(id(self)))
+        # the title of every template carries it, and an unsubstituted placeholder is what a
+        # viewer saw in its tab
+        template = template.replace(
+            "[TIMESTAMP]",
+            datetime.datetime.now(datetime.timezone.utc).strftime("%Y-%m-%d %H:%M:%S UTC"),
+        )
         template = template.replace("[DATA]", base64.b64encode(data).decode("utf-8"))
         return template.replace("[ADDITIONAL]",
                                     self.additional_js_code + '\n' + additional_js_code)
