@@ -273,7 +273,8 @@ module.exports = function (THREE) {
             if (axis === 'z') {
                 up = up.negate();
                 ray = ray.negate();
-                sliceDistance = json.volume.shape[0] - 1 - json.slice_z;
+                sliceDistance = (Array.isArray(json.volume)
+                    ? json.volume[0].shape : json.volume.shape)[0] - 1 - json.slice_z;
             }
 
             const slicePosition = obj.position.clone().sub(ray.multiplyScalar(0.5)).add(
@@ -325,6 +326,11 @@ module.exports = function (THREE) {
 
                         if (!sliceJson) {
                             return;
+                        }
+
+                        if (typeof (sliceJson.originalOpacity) === 'undefined') {
+                            sliceJson.originalOpacity = sliceJson.opacity;
+                            sliceJson.originalSlicePlanes = sliceJson.slice_planes;
                         }
 
                         if (sliceJson.opacity === 1.0) {
@@ -598,6 +604,30 @@ module.exports = function (THREE) {
         }
 
         this.dispose = function () {
+            // the mask objects are the user's, and their opacity and clipping are ours
+            K3D.parameters.sliceViewerMaskObjectIds.forEach((objId) => {
+                const sliceJson = K3D.getWorld().ObjectsListJson[objId];
+
+                if (!sliceJson || typeof (sliceJson.originalOpacity) === 'undefined') {
+                    return;
+                }
+
+                const restored = {
+                    opacity: sliceJson.originalOpacity,
+                    slice_planes: sliceJson.originalSlicePlanes,
+                };
+
+                Object.assign(sliceJson, restored);
+                delete sliceJson.originalOpacity;
+                delete sliceJson.originalSlicePlanes;
+
+                const obj = K3D.getObjectById(objId);
+
+                if (obj) {
+                    K3D.Provider.Objects[sliceJson.type].update(sliceJson, restored, obj, K3D);
+                }
+            });
+
             scope.domElement.removeEventListener('contextmenu', contextmenu);
 
             scope.domElement.removeEventListener('pointerdown', onPointerDown);

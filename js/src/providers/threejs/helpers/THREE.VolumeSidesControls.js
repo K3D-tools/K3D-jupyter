@@ -159,7 +159,14 @@ module.exports = function (THREE) {
 
             K3D.parameters.sliceViewerMaskObjectIds.forEach((objId) => {
                 const jsonMask = K3D.getWorld().ObjectsListJson[objId];
+
+                // the id may name an object that was removed, or one that has not loaded yet
+                if (!jsonMask) {
+                    return;
+                }
+
                 jsonMask.originalSlicePlanes = jsonMask.slice_planes;
+                jsonMask.originalOpacity = jsonMask.opacity;
             });
 
             switch (scene) {
@@ -211,16 +218,26 @@ module.exports = function (THREE) {
 
             K3D.parameters.sliceViewerMaskObjectIds.forEach((objId) => {
                 const jsonMask = K3D.getWorld().ObjectsListJson[objId];
+
+                if (!jsonMask || typeof (jsonMask.originalSlicePlanes) === 'undefined') {
+                    return;
+                }
+
                 jsonMask.slice_planes = jsonMask.originalSlicePlanes;
+                jsonMask.opacity = jsonMask.originalOpacity;
 
                 const obj = K3D.getObjectById(objId);
 
                 if (obj) {
                     objectProvider = K3D.Provider.Objects[jsonMask.type];
-                    objectProvider.update(jsonMask, { slice_planes: jsonMask.slice_planes }, obj, K3D);
+                    objectProvider.update(jsonMask, {
+                        slice_planes: jsonMask.slice_planes,
+                        opacity: jsonMask.opacity,
+                    }, obj, K3D);
                 }
 
                 delete jsonMask.originalSlicePlanes;
+                delete jsonMask.originalOpacity;
             });
 
             if (scene === 2) {
@@ -439,6 +456,11 @@ module.exports = function (THREE) {
             K3D.parameters.sliceViewerMaskObjectIds.forEach((objId) => {
                 const o = K3D.getObjectById(objId);
                 const jsonConfig = K3D.getWorld().ObjectsListJson[objId];
+
+                if (!jsonConfig) {
+                    return;
+                }
+
                 const slicePlane = jsonConfig.slice_planes;
 
                 if (o) {
@@ -523,6 +545,10 @@ module.exports = function (THREE) {
                         const sliceJson = K3D.getWorld().ObjectsListJson[objId];
                         const sliceChange = {};
 
+                        if (!sliceJson) {
+                            return;
+                        }
+
                         if (sliceJson.opacity === 1.0) {
                             sliceChange.opacity = 0.95;
                             sliceJson.opacity = 0.95;
@@ -547,6 +573,10 @@ module.exports = function (THREE) {
                     _this.dispatchEvent(changeEvent);
                 }
             } else {
+                // the 3D quadrant has no slice to move, and a wheel left unconsumed here jumps
+                // the slice as soon as the cursor enters one of the 2D panels
+                _wheelDelta = 0;
+
                 if (lastMode === null) {
                     lastMode = 2;
                 }

@@ -875,6 +875,12 @@ function K3D(provider, targetDOMNode, parameters) {
 
     this.setSliceViewerDirection = function (direction) {
         self.parameters.sliceViewerDirection = direction;
+
+        // the mask is clipped along the old axis until the controls recompute the plane
+        if (world.controls.reslice) {
+            world.controls.reslice();
+        }
+
         world.controls.update();
         self.render();
     };
