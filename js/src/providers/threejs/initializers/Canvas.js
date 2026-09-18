@@ -2,6 +2,18 @@ const THREE = require('three');
 const { cameraModes } = require('../../../core/lib/cameraMode');
 const { recalculateFrustum } = require('../helpers/Fn');
 
+// up before lookAt: the roll of the view is decided by the up vector, so setting it afterwards
+// leaves the gizmo tilted until something aligns it again
+function alignAxesCamera(self, K3D) {
+    const camDistance = (3.0 * 0.5) / Math.tan(THREE.MathUtils.degToRad(K3D.parameters.cameraFov / 2.0));
+
+    self.axesHelper.camera.position.copy(
+        self.camera.position.clone().sub(self.controls.target).normalize().multiplyScalar(camDistance),
+    );
+    self.axesHelper.camera.up.copy(self.camera.up);
+    self.axesHelper.camera.lookAt(0, 0, 0);
+}
+
 function addEvents(self, K3D, controls) {
     controls.getCameraArray = function () {
         const r = [];
@@ -20,12 +32,7 @@ function addEvents(self, K3D, controls) {
 
         K3D.dispatch(K3D.events.CAMERA_CHANGE, r);
 
-        const camDistance = (3.0 * 0.5) / Math.tan(THREE.MathUtils.degToRad(K3D.parameters.cameraFov / 2.0));
-
-        self.axesHelper.camera.position.copy(self.camera.position.clone().sub(self.controls.target).normalize()
-            .multiplyScalar(camDistance));
-        self.axesHelper.camera.lookAt(0, 0, 0);
-        self.axesHelper.camera.up.copy(self.camera.up);
+        alignAxesCamera(self, K3D);
     });
 
     controls.addEventListener('change', () => {
@@ -346,6 +353,10 @@ module.exports = function (K3D) {
         if (target && self.controls.target) {
             self.controls.target.copy(target);
         }
+
+        // camera_up_axis comes through here: without this the gizmo keeps the previous up and
+        // sits rolled over until the first drag fires a change event
+        alignAxesCamera(self, K3D);
     };
 
     refresh();

@@ -1140,6 +1140,8 @@ function K3D(provider, targetDOMNode, parameters) {
         self.parameters.cameraUpAxis = axis;
 
         self.getWorld().changeControls(true);
+        // the environment map is spun around the effective up axis, and only this rebuilds it
+        world.applyRendererMode(self);
 
         if (GUI.controls) {
             GUI.controls.controllers.forEach((controller) => {

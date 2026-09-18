@@ -106,7 +106,9 @@ module.exports = function (K3D) {
     // queries answer a frame late: the last two layers are probed and the budget shrinks only
     // while both come back empty, which keeps one known-empty layer as headroom. budget < 0 is
     // "not measured"; renders into a target ignore it and peel the full count.
-    const peelProbe = { budget: -1, pending: null, free: [] };
+    const peelProbe = {
+        budget: -1, peels: -1, pending: null, free: [],
+    };
     const compositeScene = new THREE.Scene();
     const planeGeometry = new THREE.PlaneGeometry(2, 2, 1, 1);
     const toneMappingMode = { value: 0 };
@@ -695,7 +697,9 @@ module.exports = function (K3D) {
 
     // Multiplies the AO buffer onto whatever the main scene was just rendered into.
     function applyAOOverlay(camera, rt) {
-        if (aoTexture === null) {
+        // only the advanced renderer computes this buffer; cinematic rasterises its preview
+        // through the same path and would otherwise keep multiplying the last advanced frame in
+        if (aoTexture === null || K3D.parameters.renderer !== 'advanced') {
             return;
         }
 
@@ -720,8 +724,12 @@ module.exports = function (K3D) {
             scale.set(1 / rt.width, 1 / rt.height);
             bias.set(0, 0);
         } else {
-            // canvas: gl_FragCoord is global, the AO buffer covers the whole canvas
-            scale.set(1 / aoSize.x, 1 / aoSize.y);
+            // canvas: gl_FragCoord is global and counted in drawing-buffer pixels, which is not
+            // getSize() once setPixelRatio is anything but 1 - minimum_fps moves it every frame
+            const buffer = new THREE.Vector2();
+
+            self.renderer.getDrawingBufferSize(buffer);
+            scale.set(1 / buffer.x, 1 / buffer.y);
             bias.set(0, 0);
         }
 
@@ -854,6 +862,14 @@ module.exports = function (K3D) {
         self.renderer.clear();
 
         const peels = K3D.parameters.depthPeels;
+
+        // the budget converges for one peel count, and the probe only walks it by one layer per
+        // frame: kept across a change, raising depth_peels takes a dozen frames to take effect
+        if (peelProbe.peels !== peels) {
+            peelProbe.peels = peels;
+            peelProbe.budget = -1;
+        }
+
         // the budget needs the whole frame in one call: a screenshot has to be exact, and a strip
         // or a volumeSides quadrant would impose its own depth complexity on the rest of the frame
         const layers = (fullFrame && peelProbe.budget >= 0)
@@ -1401,7 +1417,13 @@ module.exports = function (K3D) {
                     self.axesHelper.width,
                     self.axesHelper.height,
                 );
+                // the compass is an overlay, not part of the scene: global clipping planes are
+                // still set here and would cut it, which the offscreen path already avoids
+                const scenePlanes = self.renderer.clippingPlanes;
+
+                self.renderer.clippingPlanes = [];
                 self.renderer.render(self.axesHelper.scene, self.axesHelper.camera);
+                self.renderer.clippingPlanes = scenePlanes;
 
                 self.renderer.setViewport(0, 0, size.x, size.y);
                 self.camera.clearViewOffset();
