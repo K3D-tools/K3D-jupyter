@@ -825,6 +825,16 @@ function K3D(provider, targetDOMNode, parameters) {
         }
     };
 
+    // The path tracer has no notion of a clipping plane - upstream's material does not mention
+    // one - so honouring these would mean writing clipping into its shader. Saying so beats
+    // dropping them without a word, which is what volume_slice already does in this renderer.
+    function warnClippingUnsupported() {
+        if (self.parameters.renderer === 'cinematic' && self.parameters.clippingPlanes.length > 0) {
+            console.warn('K3D.cinematic: clipping_planes are not applied by the cinematic renderer '
+                + '- use simple or advanced for a clipped view');
+        }
+    }
+
     this.setClippingPlanes = function (newPlanes) {
         const planes = _.cloneDeep(newPlanes);
         self.parameters.clippingPlanes.length = 0;
@@ -832,6 +842,8 @@ function K3D(provider, targetDOMNode, parameters) {
         planes.forEach((p) => {
             self.parameters.clippingPlanes.push(p);
         });
+
+        warnClippingUnsupported();
 
         if (GUI.clippingPlanes) {
             clippingPlanesGUIProvider(self, GUI.clippingPlanes);
@@ -1244,6 +1256,7 @@ function K3D(provider, targetDOMNode, parameters) {
         }
 
         self.parameters.renderer = mode;
+        warnClippingUnsupported();
 
         if (self.refreshRendererGUI) {
             self.refreshRendererGUI();

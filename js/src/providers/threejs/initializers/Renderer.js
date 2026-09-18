@@ -1150,15 +1150,14 @@ module.exports = function (K3D) {
                     self.renderer.getClearColor(presentClearColor);
                     // autoClear is off for the whole renderer and the blit composites premultiplied
                     // over what the canvas already holds: presenting onto the previous frame walks a
-                    // semi-transparent object up to opaque, one sample at a time. Clearing costs the
-                    // grid and the axes, so they are drawn again around the accumulation.
+                    // semi-transparent object up to opaque, one sample at a time. Clearing costs
+                    // the axes, which are drawn again after the accumulation.
                     self.renderer.setRenderTarget(null);
                     self.renderer.setViewport(0, 0, size.x, size.y);
                     // background_color is a CSS background on the target node, so the canvas
                     // clears to nothing and lets it through
                     self.renderer.setClearColor(0, 0);
                     self.renderer.clear();
-                    self.renderer.render(self.gridScene, self.camera);
 
                     composeCinematic(texture, null, buffer.x, buffer.y);
 
@@ -1185,7 +1184,6 @@ module.exports = function (K3D) {
                     self.renderer.setRenderTarget(null);
                     self.renderer.setViewport(0, 0, size.x, size.y);
                     self.renderer.clear();
-                    self.renderer.render(self.gridScene, self.camera);
 
                     const focusClip = self.focusClipPlanes();
 
@@ -1549,6 +1547,7 @@ module.exports = function (K3D) {
         uniforms: {
             tDiffuse: { value: null },
             uSize: { value: new THREE.Vector2(1, 1) },
+            uPremultiply: { value: 0 },
         },
         vertexShader: require('./shaders/composite.vertex.glsl'),
         fragmentShader: require('./shaders/rawBlit.fragment.glsl'),
@@ -1606,7 +1605,12 @@ module.exports = function (K3D) {
 
         proxyScene.traverse((node) => {
             if (node.userData.k3dVolumeSource) {
-                traced.add(node.userData.k3dVolumeSource);
+                // a medium the tracer refused is a passthrough box: it must not cut the march,
+                // and its source goes back to the raster layer, which is what the warning says
+                if (node.userData.k3dVolumeRejected !== true) {
+                    traced.add(node.userData.k3dVolumeSource);
+                }
+
                 tracedProxies.push(node);
             }
         });
@@ -1781,15 +1785,19 @@ module.exports = function (K3D) {
         self.renderer.clear(true, false, false);
 
         rawBlitMaterial.uniforms.uSize.value.set(width, height);
+        // upstream's BlendMaterial writes straight colour with coverage in alpha, the layer comes
+        // out of ordinary blending premultiplied, and the blend below composites premultiplied
+        rawBlitMaterial.uniforms.uPremultiply.value = 1;
         rawBlitMaterial.uniforms.tDiffuse.value = ptTexture;
         self.renderer.render(rawBlitScene, fsCamera);
 
+        rawBlitMaterial.uniforms.uPremultiply.value = 0;
         rawBlitMaterial.uniforms.tDiffuse.value = cinematicVolume.layer.texture;
         self.renderer.render(rawBlitScene, fsCamera);
 
         toneBlitMaterial.uniforms.tDiffuse.value = composeTarget.texture;
         toneBlitMaterial.uniforms.uSize.value.set(width, height);
-        toneBlitMaterial.uniforms.uPremultiplied.value = 0;
+        toneBlitMaterial.uniforms.uPremultiplied.value = 1;
 
         self.renderer.setRenderTarget(rt);
         self.renderer.setViewport(0, 0, width, height);
@@ -1820,6 +1828,12 @@ module.exports = function (K3D) {
         }
 
         const mode = getCinematic();
+        // the interactive loop shares this tracer: left running, its next frame resizes the tiles
+        // and turns per-tile blending back on in the middle of this accumulation
+        const resume = mode.isRunning();
+
+        mode.abort();
+
         const size = new THREE.Vector2();
 
         // per-frame object work (volume light maps included) hangs off BEFORE_RENDER
@@ -1885,6 +1899,12 @@ module.exports = function (K3D) {
                 }
             }).finally(() => {
                 mode.releaseFixedSize();
+
+                // releaseFixedSize resets the tracer, so there is nothing left to keep: the
+                // viewport starts a fresh accumulation instead of freezing on the last frame
+                if (resume) {
+                    mode.wake();
+                }
             });
         });
     }

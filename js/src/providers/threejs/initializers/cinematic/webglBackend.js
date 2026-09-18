@@ -260,15 +260,19 @@ module.exports = function createWebGLBackend(renderer) {
         }
 
         let volume = null;
+        let carrier = null;
 
         scene.traverse((node) => {
             if (volume === null && node.userData && node.userData.k3dVolume) {
                 volume = node.userData.k3dVolume;
+                carrier = node;
             }
         });
 
         if (volume !== null) {
-            material.setVolume(volume, renderer);
+            // a refused medium leaves the proxy a passthrough box; the mark sends the object
+            // back to the raster layer rather than dropping it from the image altogether
+            carrier.userData.k3dVolumeRejected = material.setVolume(volume, renderer) === false;
         } else {
             material.clearVolume();
         }
