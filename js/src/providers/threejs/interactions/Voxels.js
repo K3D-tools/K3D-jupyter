@@ -110,12 +110,14 @@ module.exports = function (object, mesh, rollOverMesh, K3D) {
         if (mesh.voxel.chunk.voxels instanceof Uint8Array) {
             mesh.voxel.chunk.voxels[i] = K3D.parameters.voxelPaintColor;
         } else {
-            mesh.voxel.chunk.voxels.set(
+            // setEdited, not set(..., true): the fifth argument means "skip the neighbouring
+            // chunks" in a voxel group and "also update the sparse array" in sparse voxels, so
+            // one flag could not be right for both and a voxel on a chunk border was dropped
+            mesh.voxel.chunk.voxels.setEdited(
                 voxelCoordinate.x,
                 voxelCoordinate.y,
                 voxelCoordinate.z,
                 K3D.parameters.voxelPaintColor,
-                true,
             );
         }
 
@@ -164,12 +166,14 @@ module.exports = function (object, mesh, rollOverMesh, K3D) {
         if (mesh.voxel.chunk.voxels instanceof Uint8Array) {
             mesh.voxel.chunk.voxels[i] = K3D.parameters.voxelPaintColor;
         } else {
-            mesh.voxel.chunk.voxels.set(
+            // setEdited, not set(..., true): the fifth argument means "skip the neighbouring
+            // chunks" in a voxel group and "also update the sparse array" in sparse voxels, so
+            // one flag could not be right for both and a voxel on a chunk border was dropped
+            mesh.voxel.chunk.voxels.setEdited(
                 voxelCoordinate.x,
                 voxelCoordinate.y,
                 voxelCoordinate.z,
                 K3D.parameters.voxelPaintColor,
-                true,
             );
         }
 

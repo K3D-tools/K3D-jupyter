@@ -39,7 +39,9 @@ class MarchingCubes(DrawableWithCallback):
         color: `int`.
             Packed RGB color of the isosurface (0xff0000 is red, 0xff is blue).
         attribute: `array_like`.
-            Array of float attribute for the color mapping, coresponding to each vertex.
+            3D array of float sampled on the same grid as scalar_field, from which the surface
+            colour is read at each vertex. A flat, per-vertex array is not accepted: it cannot be
+            sampled at a position and is ignored, with a warning in the browser console.
         color_map: `list`.
             A list of float quadruplets (attribute value, R, G, B), sorted by attribute value. The first
             quadruplet should have value 0.0, the last 1.0; R, G, B are RGB color components in the range 0.0 to 1.0.

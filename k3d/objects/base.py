@@ -88,6 +88,8 @@ class VoxelChunk(K3DModelWidget):
     id = Int().tag(sync=True)
     voxels = Array(dtype=np.uint8).tag(sync=True, **array_serialization_wrap("voxels"))
     coord = Array(dtype=np.uint32).tag(sync=True, **array_serialization_wrap("coord"))
+    # accepted and synced for compatibility with stored snapshots; nothing in the browser reads
+    # it, so setting it has no effect on what is drawn
     multiple = Int().tag(sync=True)
     compression_level = Int().tag(sync=True)
 

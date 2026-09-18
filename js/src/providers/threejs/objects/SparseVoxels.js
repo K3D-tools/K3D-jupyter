@@ -13,6 +13,11 @@ function K3DVoxelsMap(config) {
 
     this._map = new Map();
 
+    // the counterpart of VoxelsGroup.setEdited: here the sparse array has to be kept in step
+    this.setEdited = function (x, y, z, value) {
+        return this.set(x, y, z, value, true);
+    };
+
     this.set = function (x, y, z, value, updateSparseVoxels) {
         const v = config.sparse_voxels.data;
 
