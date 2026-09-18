@@ -1480,17 +1480,27 @@ module.exports = function (K3D) {
         // an unforced request arriving while a render is in flight is dropped - the caller gets
         // the frame already on its way. A forced one queues behind it instead, never in parallel.
         if (renderingPromise === null) {
-            renderingPromise = render().then(() => {
-                renderingPromise = null;
+            // clear the queue only while this link is still its tail: clearing it from an older
+            // link lets the next unforced request start a second render beside the one in flight
+            const link = render().then(() => {
+                if (renderingPromise === link) {
+                    renderingPromise = null;
+                }
             });
+
+            renderingPromise = link;
 
             return renderingPromise;
         }
 
         if (force) {
-            renderingPromise = renderingPromise.then(render).then(() => {
-                renderingPromise = null;
+            const link = renderingPromise.then(render).then(() => {
+                if (renderingPromise === link) {
+                    renderingPromise = null;
+                }
             });
+
+            renderingPromise = link;
         }
 
         return renderingPromise;
