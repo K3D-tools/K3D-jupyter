@@ -82,8 +82,12 @@ module.exports = {
             });
 
             if (K3D.parameters.depthPeels === 0) {
-                material.depthWrite = (config.opacity === 1.0 && !hasOpacityFunction);
-                material.transparent = (config.opacity !== 1.0 || hasOpacityFunction);
+                // Texture has no opacity trait, so this is undefined and every texture was
+                // drawn in the transparent pass with depth writes off
+                const opacity = typeof (config.opacity) !== 'undefined' ? config.opacity : 1.0;
+
+                material.depthWrite = (opacity === 1.0 && !hasOpacityFunction);
+                material.transparent = (opacity !== 1.0 || hasOpacityFunction);
             } else {
                 material.blending = THREE.NoBlending;
                 material.onBeforeCompile = K3D.colorOnBeforeCompile;

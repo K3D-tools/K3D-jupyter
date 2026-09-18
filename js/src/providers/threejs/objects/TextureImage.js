@@ -44,8 +44,12 @@ module.exports = {
             geometry.computeBoundingSphere();
             geometry.computeBoundingBox();
 
-            image.onload = function () {
-                material = new THREE.MeshBasicMaterial({ color: 0xffffff, side: THREE.DoubleSide, map: texture });
+            function build(decoded) {
+                material = new THREE.MeshBasicMaterial({
+                    color: 0xffffff,
+                    side: THREE.DoubleSide,
+                    map: decoded ? texture : null,
+                });
                 object = new THREE.Mesh(geometry, material);
 
                 interactionsHelper.init(config, object, K3D);
@@ -55,6 +59,8 @@ module.exports = {
 
                 object.updateMatrixWorld();
 
+                // minFilter is set once, from the parameter: it used to be overwritten with
+                // Linear two lines later, so interpolation=False only reached magFilter
                 if (config.interpolation) {
                     texture.minFilter = THREE.LinearFilter;
                     texture.magFilter = THREE.LinearFilter;
@@ -65,10 +71,21 @@ module.exports = {
 
                 texture.image = image;
                 texture.flipY = false;
-                texture.minFilter = THREE.LinearFilter;
                 texture.needsUpdate = true;
 
                 resolve(object);
+            }
+
+            image.onload = function () {
+                build(true);
+            };
+
+            // Loader waits on the whole batch at once, so a format the browser cannot decode -
+            // tiff among them, which the docstring still lists - used to hang every object in it
+            image.onerror = function () {
+                console.warn(`K3D: texture in ${config.file_format} could not be decoded by the `
+                    + 'browser - the plane is shown blank');
+                build(false);
             };
         });
     },
