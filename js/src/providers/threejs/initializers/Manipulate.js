@@ -9,7 +9,7 @@ module.exports = function (K3D) {
     const world = K3D.getWorld();
     let draggingState = false;
 
-    K3D.on(K3D.events.VIEW_MODE_CHANGE, (mode) => {
+    function applyViewMode(mode) {
         if (mode === viewModes.manipulate) {
             world.K3DObjects.children.forEach((obj) => {
                 if (!obj.transformControls && world.ObjectsListJson[obj.K3DIdentifier].model_matrix) {
@@ -71,7 +71,13 @@ module.exports = function (K3D) {
                 }
             });
         }
-    });
+    }
+
+    K3D.on(K3D.events.VIEW_MODE_CHANGE, applyViewMode);
+
+    // an object loaded after the mode was set - every object, when the mode came from the
+    // constructor - would otherwise never get a handle
+    K3D.on(K3D.events.OBJECT_LOADED, () => applyViewMode(K3D.parameters.viewMode));
 
     K3D.on(K3D.events.MANIPULATE_MODE_CHANGE, (manipulateMode) => {
         world.K3DObjects.children.forEach((obj) => {

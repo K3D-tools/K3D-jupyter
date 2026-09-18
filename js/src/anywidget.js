@@ -629,6 +629,16 @@ function renderPlot({ model, el }) {
                 voxelPaintColor: model.get('voxel_paint_color'),
                 hiddenObjectIds: model.get('hidden_object_ids'),
                 additionalJsCode: model.get('additional_js_code'),
+                cameraUpAxis: model.get('camera_up_axis'),
+                time: model.get('time'),
+                timeSpeed: model.get('time_speed'),
+                fpsMeter: model.get('fps_meter'),
+                minimumFps: model.get('minimum_fps'),
+                renderingSteps: model.get('rendering_steps'),
+                axesHelperColors: model.get('axes_helper_colors'),
+                colorbarScientific: model.get('colorbar_scientific'),
+                customData: model.get('custom_data'),
+                height: model.get('height'),
             });
 
             if (model.get('camera_auto_fit') === false) {
