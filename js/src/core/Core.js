@@ -1164,7 +1164,9 @@ function K3D(provider, targetDOMNode, parameters) {
      */
     this.setGridColor = function (color) {
         self.parameters.gridColor = color;
-        self.rebuildSceneData().then(() => {
+
+        // force: with grid_auto_fit off the grid block is skipped and the colour never arrives
+        self.rebuildSceneData(true).then(() => {
             self.render();
         });
     };

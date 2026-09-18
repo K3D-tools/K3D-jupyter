@@ -7,6 +7,7 @@ const { viewModes } = require('../../../core/lib/viewMode');
 const { pow10ceil } = require('../../../core/lib/helpers/math');
 const { cameraModes } = require('../../../core/lib/cameraMode');
 const environmentHelper = require('../helpers/environment');
+const { recalculateFrustum } = require('../helpers/Fn');
 
 let rebuildSceneDataPromises = null;
 
@@ -37,6 +38,7 @@ function generateAxesHelper(K3D, axesHelper) {
         promises.push(label.then((obj) => {
             axesHelper[axis] = obj;
             axesHelper[axis].color = colors[i];
+            axesHelper.labelColor = K3D.parameters.labelColor;
         }));
     });
 
@@ -238,6 +240,9 @@ function rebuildSceneData(K3D, grids, axesHelper, force) {
         updateAxesHelper |= K3D.parameters.axesHelperColors[0] !== axesHelper.x.color
             || K3D.parameters.axesHelperColors[1] !== axesHelper.y.color
             || K3D.parameters.axesHelperColors[2] !== axesHelper.z.color;
+
+        // the letters carry the label colour in their style, set once when they were made
+        updateAxesHelper |= K3D.parameters.labelColor !== axesHelper.labelColor;
     }
 
     if (updateAxesHelper) {
@@ -274,7 +279,10 @@ function rebuildSceneData(K3D, grids, axesHelper, force) {
     if (K3D.parameters.gridAutoFit || force) {
         // Grid generation
 
-        sceneBoundingBox = K3D.getSceneBoundingBox() || sceneBoundingBox;
+        // only with auto fit: otherwise the box stays the grid the user asked for
+        if (K3D.parameters.gridAutoFit) {
+            sceneBoundingBox = K3D.getSceneBoundingBox() || sceneBoundingBox;
+        }
 
         // cleanup previous data
         cleanup(grids, this.gridScene);
@@ -482,6 +490,9 @@ function rebuildSceneData(K3D, grids, axesHelper, force) {
     this.camera.far = (camDistance + fullSceneDiameter / 2) * 5.0;
     this.camera.near = fullSceneDiameter * 0.0001;
     this.camera.updateProjectionMatrix();
+
+    // the frustum clips the DOM labels, and it was computed with the previous far plane
+    recalculateFrustum(this.camera);
 
     rebuildSceneDataPromises = promises;
 

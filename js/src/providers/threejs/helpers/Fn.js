@@ -90,6 +90,9 @@ module.exports = {
         world.camera.aspect = world.width / world.height;
         world.camera.updateProjectionMatrix();
 
+        // the frustum decides which DOM labels are drawn; a new aspect leaves it stale
+        this.recalculateFrustum(world.camera);
+
         world.renderer.setSize(world.width, world.height);
     },
 
