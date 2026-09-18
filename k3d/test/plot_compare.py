@@ -101,12 +101,18 @@ def compare(
 
     threshold             per-pixel colour-distance tolerance passed to pixelmatch,
                           a fraction in 0..1. Governs when a single pixel counts as
-                          different at all.
+                          different at all. pixelmatch calls a pixel different when the
+                          YIQ distance exceeds 35215 * threshold^2, so the default 0.2
+                          lets a uniform shift of 52 levels per channel through on every
+                          pixel of the image. That tolerance is what absorbs driver-level
+                          antialiasing differences; it is not an exact match, and a change
+                          in exposure, tone mapping or light intensity can hide under it.
     max_mismatched_pixels how many differing pixels the image may still contain and
                           pass, as an absolute count (pixelmatch's return value).
-                          0 keeps the historical behaviour of demanding an exact match.
+                          0 means no pixel may differ *by more than threshold*.
 
     Note that pixelmatch returns a pixel count, so the two knobs are not interchangeable.
+    Pass threshold=0 for a comparison that answers "did this image change at all".
 
     The advanced render is compared against references/advanced/<name>.png. When that file
     does not exist, it is compared against the simple reference: no file means "advanced has
@@ -160,8 +166,11 @@ def compare(
             print("accepted", ref_name)
             continue
 
-        if reference is None:
-            reference = Image.new("RGBA", result.size)
+        assert reference is not None, (
+            "%s [%s]: no reference at %s. An empty image would pass for any white scene, which is "
+            "what a test that rendered nothing produces - run with K3D_ACCEPT_REFERENCES to write "
+            "one." % (name, mode, reference_path)
+        )
 
         mismatch = pixelmatch(
             result, reference, img_diff, threshold=threshold, includeAA=True
