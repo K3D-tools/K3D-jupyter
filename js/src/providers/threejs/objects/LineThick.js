@@ -179,8 +179,13 @@ function update(config, changes, obj, K3D) {
         obj.userData.lastPosition = position;
     }
 
-    if (uvsRecomputed || colorsRecomputed || typeof (changes.attribute) !== 'undefined'
-        || typeof (changes.vertices) !== 'undefined') {
+    // a time series is not resolved here - the loader has to rebuild, or the geometry stays
+    const attributeChanged = typeof (changes.attribute) !== 'undefined'
+        && !changes.attribute.timeSeries;
+    const verticesChanged = typeof (changes.vertices) !== 'undefined'
+        && !changes.vertices.timeSeries;
+
+    if (uvsRecomputed || colorsRecomputed || attributeChanged || verticesChanged) {
         obj.userData.meshLine.setGeometry(position, false, null, colors, uvs);
         obj.geometry.attributes.position.needsUpdate = true;
 

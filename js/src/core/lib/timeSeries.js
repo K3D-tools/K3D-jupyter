@@ -12,7 +12,8 @@ function clone(val) {
     if (typeof (val) === 'object') {
         if (val.data) {
             return {
-                data: val.data.slice(0),
+                // not slice(): it goes through Symbol.species and drops the Float16Array marker
+                data: new val.data.constructor(val.data),
                 shape: val.shape,
             };
         }
@@ -140,6 +141,18 @@ function interpolate(a, b, f, property) {
     }
 
     if (_.isNumber(a)) {
+        // a packed 0xRRGGBB blended as a number carries bits across the byte boundaries
+        if (typeof (property) === 'string' && /(^|_)color$/.test(property)) {
+            const channel = (v, shift) => ((v >> shift) & 255);
+            const mix = (shift) => {
+                const ca = channel(a, shift);
+
+                return Math.round(ca + f * (channel(b, shift) - ca)) << shift;
+            };
+
+            return mix(16) | mix(8) | mix(0);
+        }
+
         return a + f * (b - a);
     }
 
@@ -300,9 +313,13 @@ module.exports = {
                 }, []).sort((q, w) => q.v - w.v);
 
                 if (time <= keypoints[0].v) {
-                    interpolatedJson[property] = json[property][keypoints[0].k];
+                    // clone: an object's update() writes into what it is given, and that would
+                    // overwrite the stored keyframe
+                    interpolatedJson[property] = clone(json[property][keypoints[0].k]);
                 } else if (time >= keypoints[keypoints.length - 1].v) {
-                    interpolatedJson[property] = json[property][keypoints[keypoints.length - 1].k];
+                    interpolatedJson[property] = clone(
+                        json[property][keypoints[keypoints.length - 1].k],
+                    );
                 } else {
                     for (i = 0; i < keypoints.length; i++) {
                         if (Math.abs(keypoints[i].v - time) < 0.001) {
@@ -313,7 +330,9 @@ module.exports = {
 
                         if (keypoints[i].v > time && i > 0) {
                             if (!interpolation) {
-                                interpolatedJson[property] = json[property][keypoints[i - 1].k];
+                                interpolatedJson[property] = clone(
+                                    json[property][keypoints[i - 1].k],
+                                );
 
                                 break;
                             }
