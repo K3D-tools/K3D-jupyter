@@ -58,6 +58,8 @@ function createOrbitControls(self, K3D) {
 
     controls.type = cameraModes.orbit;
     controls.rotateSpeed = K3D.parameters.cameraRotateSpeed;
+    controls.zoomSpeed = K3D.parameters.cameraZoomSpeed;
+    controls.panSpeed = K3D.parameters.cameraPanSpeed;
 
     if (K3D.parameters.cameraDampingFactor > 0.0) {
         controls.enableDamping = true;
@@ -139,6 +141,11 @@ function createControls(self, K3D) {
         controls = createSliceControls(self, K3D);
     } else if (K3D.parameters.cameraMode === cameraModes.volumeSides) {
         controls = createVolumeSideControls(self, K3D);
+    } else {
+        // no controls at all means a dead canvas and an error only in the browser console
+        console.warn(`K3D: unknown camera_mode '${K3D.parameters.cameraMode}', using trackball`);
+        K3D.parameters.cameraMode = cameraModes.trackball;
+        controls = createTrackballControls(self, K3D);
     }
 
     if (controls !== null) {
@@ -326,11 +333,19 @@ module.exports = function (K3D) {
             return;
         }
 
+        // the camera keeps its position, so fresh controls looking at the origin swing the view
+        const target = (self.controls && self.controls.target)
+            ? self.controls.target.clone() : null;
+
         if (self.controls) {
             self.controls.dispose();
         }
 
         self.controls = createControls(self, K3D);
+
+        if (target && self.controls.target) {
+            self.controls.target.copy(target);
+        }
     };
 
     refresh();
