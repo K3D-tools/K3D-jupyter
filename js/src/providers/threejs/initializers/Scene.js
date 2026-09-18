@@ -525,7 +525,9 @@ function raycast(K3D, x, y, camera, click, viewMode) {
 
     this.raycaster.setFromCamera(new THREE.Vector2(x, y), camera);
 
-    this.K3DObjects.traverse((object) => {
+    // traverseVisible, not traverse: an object hidden by visible - including a time series of
+    // it - is not on screen, so it must not answer a click nor steal one from what is behind it
+    this.K3DObjects.traverseVisible((object) => {
         if (object.interactions) {
             if (object.geometry && object.geometry.attributes.position.count === 0) {
                 return;
@@ -894,6 +896,12 @@ module.exports = {
                 }
             }
         }
+
+        K3D.on(K3D.events.MOUSE_LEAVE, () => {
+            // without this the RENDERED pass below keeps hovering the last position under a
+            // cursor that is no longer over the canvas
+            self.lastMouseCoord = null;
+        });
 
         K3D.on(K3D.events.MOUSE_MOVE, cb.bind(this, false));
         K3D.on(K3D.events.MOUSE_CLICK, cb.bind(this, true));

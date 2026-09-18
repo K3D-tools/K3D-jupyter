@@ -260,6 +260,7 @@ module.exports = function (K3D) {
             self.renderer.domElement.removeEventListener('pointermove', onDocumentMouseMove);
             self.renderer.domElement.removeEventListener('pointerdown', onDocumentMouseDown);
             self.renderer.domElement.removeEventListener('pointerup', onDocumentMouseUp);
+            self.renderer.domElement.removeEventListener('pointerleave', onDocumentMouseLeave);
             window.removeEventListener('visibilitychange', onVisibilityChange);
             self.controls.dispose();
 
@@ -294,12 +295,17 @@ module.exports = function (K3D) {
         K3D.dispatch(K3D.events.MOUSE_MOVE, getCoordinate(event));
     }
 
+    function onDocumentMouseLeave() {
+        K3D.dispatch(K3D.events.MOUSE_LEAVE);
+    }
+
     this.renderer.setSize(this.width, this.height);
     this.targetDOMNode.appendChild(this.renderer.domElement);
 
     this.renderer.domElement.addEventListener('pointermove', onDocumentMouseMove, false);
     this.renderer.domElement.addEventListener('pointerdown', onDocumentMouseDown, false);
     this.renderer.domElement.addEventListener('pointerup', onDocumentMouseUp, false);
+    this.renderer.domElement.addEventListener('pointerleave', onDocumentMouseLeave, false);
 
     this.controls = createControls(self, K3D);
 

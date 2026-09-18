@@ -2069,6 +2069,7 @@ K3D.prototype.events = {
     VOXELS_CALLBACK: 'voxelsCallback',
     MOUSE_MOVE: 'mouseMove',
     MOUSE_CLICK: 'mouseClick',
+    MOUSE_LEAVE: 'mouseLeave',
 };
 
 module.exports = K3D;
