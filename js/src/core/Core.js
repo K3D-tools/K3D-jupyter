@@ -887,6 +887,14 @@ function K3D(provider, targetDOMNode, parameters) {
 
     this.setColorbarScientific = function (flag) {
         self.parameters.colorbarScientific = flag;
+
+        // the legend is cached on the object and its range, and the tick format is neither, so
+        // without dropping the cache the new setting waited for something else to rebuild it
+        if (self.lastColorMap) {
+            self.lastColorMap.objectId = null;
+        }
+
+        self.setColorMapLegend(self.parameters.colorbarObjectId);
         self.render();
     };
 

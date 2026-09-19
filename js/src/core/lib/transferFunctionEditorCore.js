@@ -9,7 +9,9 @@ function K3DTransferFunctionEditor(targetDOMNode, parameters, onChange) {
     let colorPicker;
     let colorMap = parameters.colorMap;
     let polygon;
-    let draggableElement;
+    // false, not undefined: isDragging() compares against false, so an editor that had never
+    // been dragged reported itself as dragging and every color_map set from python was ignored
+    let draggableElement = false;
     let rect;
     const topMargin = 10;
     const bottomSection = 40;
@@ -125,6 +127,10 @@ function K3DTransferFunctionEditor(targetDOMNode, parameters, onChange) {
                             newX, 0.5,
                             colorMap[colorMap.length - 4], 1.0,
                         ],
+                        // the stride of a colormap entry past its position; without it the loop
+                        // step is NaN, the colour of every stop reads undefined and the new
+                        // point comes out grey
+                        1,
                     );
 
                     for (i = 0; i < data.length; i += 5) {
