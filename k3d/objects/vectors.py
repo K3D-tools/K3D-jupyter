@@ -30,6 +30,9 @@ class VectorField(Drawable):
             Packed RGB color of the origins (0xff0000 is red, 0xff is blue) when `colors` is empty.
         head_color: `int`.
             Packed RGB color of the vector heads (0xff0000 is red, 0xff is blue) when `colors` is empty.
+        color: `int`.
+            Packed RGB color of the vectors (0xff0000 is red, 0xff is blue), used for whichever of
+            `origin_color` and `head_color` is not given.
         use_head: `bool`.
             Whether vectors should display an arrow head.
         head_size: `float`.
@@ -97,6 +100,9 @@ class Vectors(Drawable):
             Packed RGB color of the origins (0xff0000 is red, 0xff is blue), default: same as color.
         head_color: `int`.
             Packed RGB color of the vector heads (0xff0000 is red, 0xff is blue), default: same as color.
+        color: `int`.
+            Packed RGB color of the vectors (0xff0000 is red, 0xff is blue), used for whichever of
+            `origin_color` and `head_color` is not given.
         use_head: `bool`.
             Whether vectors should display an arrow head.
         head_size: `float`.

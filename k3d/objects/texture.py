@@ -16,7 +16,7 @@ class Texture(DrawableWithCallback):
     """
     A 2D image displayed as a texture.
 
-    By default, the texture image is mapped into the square: -0.5 < x, y < 0.5, z = 1.
+    By default, the texture image is mapped into the square: -0.5 < x, y < 0.5, z = 0.
     If the size (scale, aspect ratio) or position should be different then the texture should be transformed
     using the model_matrix.
 

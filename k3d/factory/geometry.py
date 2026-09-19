@@ -358,7 +358,11 @@ def mesh(
     compression_level : int, optional
         Level of data compression [-1, 9], by default 0.
     triangles_attribute : list, optional
-        _description_, by default []
+        Array of float attribute for the color mapping, one value per triangle rather than per
+        vertex; used when `attribute` is empty, by default [].
+    slice_planes : list, optional
+        Planes [a, b, c, d] the section outline is drawn along, up to eight of them. The outline
+        is drawn in the object colour, without the colormap, by default [].
     **kwargs
         For other keyword-only arguments, see :ref:`process_transform_arguments`.
 

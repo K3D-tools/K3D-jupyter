@@ -25,10 +25,11 @@ project = 'K3D-jupyter'
 author = 'Artur Trzęsiok, Marcin Kostur, Tomasz Gandor, Thomas Mattone'
 copyright = time.strftime('%Y') + ' ' + author
 
-# The full version, including alpha/beta/rc tags
-here = os.path.dirname(__file__)
-repo = os.path.join(here, '..', '..')
-version_ns = {}
+# The full version, including alpha/beta/rc tags, read from the package being documented
+from k3d._version import __version__  # noqa: E402
+
+release = __version__
+version = '.'.join(release.split('.')[:2])
 
 # -- General configuration ---------------------------------------------------
 

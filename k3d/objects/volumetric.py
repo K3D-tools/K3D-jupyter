@@ -267,6 +267,9 @@ class Volume(Drawable):
             Number of iteration per 1 unit of space.
         alpha_coef: `float`.
             Alpha multiplier.
+        gradient_step: `float`.
+            Distance the finite differences of the shading gradient are taken over, as a fraction
+            of the mean edge of the volume's box.
         roughness: `float`.
             Roughness of the specular highlight of the isodensity surface (GGX), 0.0-1.0.
         metalness: `float`.
@@ -396,13 +399,16 @@ class MIP(Drawable):
             to 0 and 1 in the color map respectively.
         samples: `float`.
             Number of iteration per 1 unit of space.
-        gradient_step: `float`
-            Gradient light step.
+        gradient_step: `float`.
+            Distance the finite differences of the shading gradient are taken over, as a fraction
+            of the mean edge of the volume's box.
         roughness: `float`.
             Roughness of the specular highlight of the isodensity surface (GGX), 0.0-1.0.
         metalness: `float`.
             Metalness of the specular highlight: 0.0 dielectric, 1.0 metal tinted
             by the transfer-function colour.
+        interpolation: `bool`.
+            Whether the ray march should interpolate the data or read the nearest voxel.
         mask: `array_like`.
             3D array of `int` in range (0, 255), indexed as [z, y, x].
         mask_opacities: `array_like`.

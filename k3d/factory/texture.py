@@ -33,6 +33,51 @@ def texture(
         compression_level: int = 0,
         **kwargs: Any,
 ) -> Texture:
+    """
+    Create a Texture drawable from an encoded image or from data and a colormap.
+
+    Parameters
+    ----------
+    binary : bytes, optional
+        Image file contents, as read from disk. Default is None.
+    file_format : str, optional
+        Format of the image in `binary`, without the dot, for example 'png' or 'jpg'. The browser
+        has to be able to decode it. Default is None.
+    color_map : list, optional
+        A list of float quadruplets (attribute value, R, G, B), sorted by attribute value. The
+        first quadruplet should have value 0.0, the last 1.0; R, G, B are RGB color components in
+        the range 0.0 to 1.0. Default is None.
+    color_range : list, optional
+        A pair [min_value, max_value], which determines the levels of color attribute mapped to 0
+        and 1 in the color map respectively. Default is None.
+    attribute : array_like, optional
+        Array of float attribute for the color mapping, coresponding to each pixels. Default is
+        None.
+    puv : array_like, optional
+        Origin and two edge vectors [P, U, V] of the plane the texture is drawn on, nine floats in
+        all. Default is None.
+    opacity_function : list, optional
+        A list of float tuples (attribute value, opacity), sorted by attribute value. The first
+        tuple should have value 0.0, the last 1.0; opacity is in the range 0.0 to 1.0. Default is
+        None.
+    interpolation : bool, optional
+        Whether data should be interpolatedor not. Default is True.
+    name : str, optional
+        A name of the object. Default is None.
+    group : str, optional
+        A name of a group. Default is None.
+    custom_data : dict, optional
+        An object with custom data attached to object. Default is None.
+    compression_level : int, optional
+        Level of compression [-1, 9]. Default is 0.
+    **kwargs
+        Additional keyword arguments passed to process_transform_arguments.
+
+    Returns
+    -------
+    Texture
+        The created Texture object.
+    """
     if color_range is None:
         color_range = []
     if attribute is None:

@@ -135,7 +135,8 @@ class PlotBase(K3DAnyWidget):
         if not 1 <= value <= 32:
             raise TraitError("cinematic_bounces must be in [1, 32], got %s" % value)
         return value
-    # None: fresh noise every accumulation. An int: N samples are a pure function of the scene
+    # None: fresh noise every accumulation. An int in [1, 2**31 - 1]: N samples are a pure
+    # function of the scene. 0 is refused - see the validator below for why
     cinematic_seed = Int(default_value=None, allow_none=True).tag(sync=True)
 
     @validate("cinematic_seed")
