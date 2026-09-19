@@ -27,8 +27,10 @@ jobs :
       - name : Lint
         # before the install, so a style break fails in seconds rather than after a build
         run : |
-          python -m pip install ruff
-          python -m ruff check k3d
+          # pinned, and the same version the Docker image pins: an unpinned linter turns the
+          # build red on its own release schedule. The path is the one RELEASE.md uses.
+          python -m pip install ruff==0.16.5
+          python -m ruff check .
           cd js && npm ci && npx grunt codeStyle
       - name : Install
         run : python -m pip install -e ".[dev,examples]"
