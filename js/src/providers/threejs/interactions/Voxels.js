@@ -10,7 +10,15 @@ module.exports = function (object, mesh, rollOverMesh, K3D) {
         let i;
 
         for (i = 0; i < obj.children.length; i++) {
+            const previous = obj.children[i].geometry;
+
             obj.children[i].geometry = newMesh.children[i].geometry;
+
+            // the old buffers stay on the GPU otherwise, and the tree describes them
+            if (previous && previous !== obj.children[i].geometry) {
+                previous.boundsTree = null;
+                previous.dispose();
+            }
         }
     }
 
@@ -47,11 +55,11 @@ module.exports = function (object, mesh, rollOverMesh, K3D) {
         return object.children.find((obj) => {
             if (obj.voxel
                 && coordinate.x >= obj.voxel.chunk.offset[0]
-                && coordinate.x <= obj.voxel.chunk.offset[0] + obj.voxel.chunk.size[0]
+                && coordinate.x < obj.voxel.chunk.offset[0] + obj.voxel.chunk.size[0]
                 && coordinate.y >= obj.voxel.chunk.offset[1]
-                && coordinate.y <= obj.voxel.chunk.offset[1] + obj.voxel.chunk.size[1]
+                && coordinate.y < obj.voxel.chunk.offset[1] + obj.voxel.chunk.size[1]
                 && coordinate.z >= obj.voxel.chunk.offset[2]
-                && coordinate.z <= obj.voxel.chunk.offset[2] + obj.voxel.chunk.size[2]) {
+                && coordinate.z < obj.voxel.chunk.offset[2] + obj.voxel.chunk.size[2]) {
                 return obj;
             }
 
@@ -102,12 +110,14 @@ module.exports = function (object, mesh, rollOverMesh, K3D) {
         if (mesh.voxel.chunk.voxels instanceof Uint8Array) {
             mesh.voxel.chunk.voxels[i] = K3D.parameters.voxelPaintColor;
         } else {
-            mesh.voxel.chunk.voxels.set(
+            // setEdited, not set(..., true): the fifth argument means "skip the neighbouring
+            // chunks" in a voxel group and "also update the sparse array" in sparse voxels, so
+            // one flag could not be right for both and a voxel on a chunk border was dropped
+            mesh.voxel.chunk.voxels.setEdited(
                 voxelCoordinate.x,
                 voxelCoordinate.y,
                 voxelCoordinate.z,
                 K3D.parameters.voxelPaintColor,
-                true,
             );
         }
 
@@ -156,38 +166,43 @@ module.exports = function (object, mesh, rollOverMesh, K3D) {
         if (mesh.voxel.chunk.voxels instanceof Uint8Array) {
             mesh.voxel.chunk.voxels[i] = K3D.parameters.voxelPaintColor;
         } else {
-            mesh.voxel.chunk.voxels.set(
+            // setEdited, not set(..., true): the fifth argument means "skip the neighbouring
+            // chunks" in a voxel group and "also update the sparse array" in sparse voxels, so
+            // one flag could not be right for both and a voxel on a chunk border was dropped
+            mesh.voxel.chunk.voxels.setEdited(
                 voxelCoordinate.x,
                 voxelCoordinate.y,
                 voxelCoordinate.z,
                 K3D.parameters.voxelPaintColor,
-                true,
             );
         }
 
         updateObject(mesh);
 
-        if (voxelCoordinate.x === mesh.voxel.chunk.offset.x) {
+        // a voxel on a chunk face changes what the neighbour's mesher sees across it
+        const { offset, size } = mesh.voxel.chunk;
+
+        if (voxelCoordinate.x === offset[0]) {
             updateChunk(voxelCoordinate, { x: -1, y: 0, z: 0 });
         }
 
-        if (voxelCoordinate.x === mesh.voxel.chunk.offset.x + mesh.voxel.chunk.size - 1) {
+        if (voxelCoordinate.x === offset[0] + size[0] - 1) {
             updateChunk(voxelCoordinate, { x: 1, y: 0, z: 0 });
         }
 
-        if (voxelCoordinate.y === mesh.voxel.chunk.offset.y) {
+        if (voxelCoordinate.y === offset[1]) {
             updateChunk(voxelCoordinate, { x: 0, y: -1, z: 0 });
         }
 
-        if (voxelCoordinate.y === mesh.voxel.chunk.offset.y + mesh.voxel.chunk.size - 1) {
+        if (voxelCoordinate.y === offset[1] + size[1] - 1) {
             updateChunk(voxelCoordinate, { x: 0, y: 1, z: 0 });
         }
 
-        if (voxelCoordinate.z === mesh.voxel.chunk.offset.z) {
-            updateChunk(voxelCoordinate, { x: 1, y: 0, z: -1 });
+        if (voxelCoordinate.z === offset[2]) {
+            updateChunk(voxelCoordinate, { x: 0, y: 0, z: -1 });
         }
 
-        if (voxelCoordinate.z === mesh.voxel.chunk.offset.z + mesh.voxel.chunk.size - 1) {
+        if (voxelCoordinate.z === offset[2] + size[2] - 1) {
             updateChunk(voxelCoordinate, { x: 0, y: 0, z: 1 });
         }
 

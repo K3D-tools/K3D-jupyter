@@ -9,7 +9,7 @@ module.exports = function (K3D) {
     const world = K3D.getWorld();
     let draggingState = false;
 
-    K3D.on(K3D.events.VIEW_MODE_CHANGE, (mode) => {
+    function applyViewMode(mode) {
         if (mode === viewModes.manipulate) {
             world.K3DObjects.children.forEach((obj) => {
                 if (!obj.transformControls && world.ObjectsListJson[obj.K3DIdentifier].model_matrix) {
@@ -43,12 +43,28 @@ module.exports = function (K3D) {
 
                             obj.updateMatrix();
 
+                            // Surface, VectorField and MarchingCubes place their mesh at an
+                            // offset of their own and commonUpdate reapplies it on the way
+                            // back, so obj.matrix is model_matrix times that offset. Sending it
+                            // whole moves the object by the offset on every round trip.
+                            const initial = new THREE.Matrix4();
+
+                            if (obj.initialPosition || obj.initialScale) {
+                                initial.compose(
+                                    obj.initialPosition || new THREE.Vector3(0, 0, 0),
+                                    new THREE.Quaternion(),
+                                    obj.initialScale || new THREE.Vector3(1, 1, 1),
+                                );
+                            }
+
+                            const modelMatrix = obj.matrix.clone().multiply(initial.invert());
+
                             K3D.dispatch(K3D.events.OBJECT_CHANGE, {
                                 id: obj.K3DIdentifier,
                                 key: 'model_matrix',
                                 value: {
                                     // model_matrix travels row-major, Matrix4.elements is column-major
-                                    data: new Float32Array(obj.matrix.clone().transpose().elements),
+                                    data: new Float32Array(modelMatrix.transpose().elements),
                                     shape: [4, 4],
                                 },
                             });
@@ -71,7 +87,13 @@ module.exports = function (K3D) {
                 }
             });
         }
-    });
+    }
+
+    K3D.on(K3D.events.VIEW_MODE_CHANGE, applyViewMode);
+
+    // an object loaded after the mode was set - every object, when the mode came from the
+    // constructor - would otherwise never get a handle
+    K3D.on(K3D.events.OBJECT_LOADED, () => applyViewMode(K3D.parameters.viewMode));
 
     K3D.on(K3D.events.MANIPULATE_MODE_CHANGE, (manipulateMode) => {
         world.K3DObjects.children.forEach((obj) => {

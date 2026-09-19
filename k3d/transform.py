@@ -114,12 +114,15 @@ class Transform:
         elif key == "rotation":
             # Convert rotation to quaternion, normalize, and ensure valid axis
             value = np.array(value, dtype=np.float32).reshape(4)
-            value[0] = np.fmod(value[0], 2.0 * np.pi)
-            if value[0] < 0.0:
-                value[0] += 2.0 * np.pi
-            value[0] = np.cos(value[0] / 2)
+            angle = float(np.fmod(value[0], 2.0 * np.pi))
+            if angle < 0.0:
+                angle += 2.0 * np.pi
+            half = angle / 2.0
+            value[0] = np.cos(half)
             norm = np.linalg.norm(value[1:4])
-            needed_norm = np.sqrt(1 - value[0] * value[0])
+            # sin(half), not sqrt(1 - w*w): w is stored as float32, cos(5e-5) rounds to 1.0
+            # there, and the axis is then scaled to zero - an identity matrix for a real turn
+            needed_norm = abs(np.sin(half))
             if abs(norm - needed_norm) > _epsilon:
                 if norm < _epsilon:
                     raise ValueError(

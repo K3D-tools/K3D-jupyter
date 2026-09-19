@@ -382,6 +382,11 @@ function K3D(provider, targetDOMNode, parameters) {
         });
     }
 
+    // ids removed while a load was still resolving; the loader finishes on image.onload and
+    // would otherwise put the object back after the removal
+    const removedWhileLoading = new Set();
+    let pendingLoads = 0;
+
     function removeObjectFromScene(id) {
         let object = self.Provider.Helpers.getObjectById(world, id);
         if (object) {
@@ -825,6 +830,16 @@ function K3D(provider, targetDOMNode, parameters) {
         }
     };
 
+    // The path tracer has no notion of a clipping plane - upstream's material does not mention
+    // one - so honouring these would mean writing clipping into its shader. Saying so beats
+    // dropping them without a word, which is what volume_slice already does in this renderer.
+    function warnClippingUnsupported() {
+        if (self.parameters.renderer === 'cinematic' && self.parameters.clippingPlanes.length > 0) {
+            console.warn('K3D.cinematic: clipping_planes are not applied by the cinematic renderer '
+                + '- use simple or advanced for a clipped view');
+        }
+    }
+
     this.setClippingPlanes = function (newPlanes) {
         const planes = _.cloneDeep(newPlanes);
         self.parameters.clippingPlanes.length = 0;
@@ -832,6 +847,8 @@ function K3D(provider, targetDOMNode, parameters) {
         planes.forEach((p) => {
             self.parameters.clippingPlanes.push(p);
         });
+
+        warnClippingUnsupported();
 
         if (GUI.clippingPlanes) {
             clippingPlanesGUIProvider(self, GUI.clippingPlanes);
@@ -870,11 +887,25 @@ function K3D(provider, targetDOMNode, parameters) {
 
     this.setColorbarScientific = function (flag) {
         self.parameters.colorbarScientific = flag;
+
+        // the legend is cached on the object and its range, and the tick format is neither, so
+        // without dropping the cache the new setting waited for something else to rebuild it
+        if (self.lastColorMap) {
+            self.lastColorMap.objectId = null;
+        }
+
+        self.setColorMapLegend(self.parameters.colorbarObjectId);
         self.render();
     };
 
     this.setSliceViewerDirection = function (direction) {
         self.parameters.sliceViewerDirection = direction;
+
+        // the mask is clipped along the old axis until the controls recompute the plane
+        if (world.controls.reslice) {
+            world.controls.reslice();
+        }
+
         world.controls.update();
         self.render();
     };
@@ -1052,6 +1083,10 @@ function K3D(provider, targetDOMNode, parameters) {
         world.controls.noRotate = cameraNoRotate;
         world.controls.noZoom = cameraNoZoom;
         world.controls.noPan = cameraNoPan;
+        // OrbitControls reads its own flags
+        world.controls.enableRotate = !cameraNoRotate;
+        world.controls.enableZoom = !cameraNoZoom;
+        world.controls.enablePan = !cameraNoPan;
     };
 
     /**
@@ -1113,6 +1148,8 @@ function K3D(provider, targetDOMNode, parameters) {
         self.parameters.cameraUpAxis = axis;
 
         self.getWorld().changeControls(true);
+        // the environment map is spun around the effective up axis, and only this rebuilds it
+        world.applyRendererMode(self);
 
         if (GUI.controls) {
             GUI.controls.controllers.forEach((controller) => {
@@ -1154,7 +1191,9 @@ function K3D(provider, targetDOMNode, parameters) {
      */
     this.setGridColor = function (color) {
         self.parameters.gridColor = color;
-        self.rebuildSceneData().then(() => {
+
+        // force: with grid_auto_fit off the grid block is skipped and the colour never arrives
+        self.rebuildSceneData(true).then(() => {
             self.render();
         });
     };
@@ -1232,6 +1271,7 @@ function K3D(provider, targetDOMNode, parameters) {
         }
 
         self.parameters.renderer = mode;
+        warnClippingUnsupported();
 
         if (self.refreshRendererGUI) {
             self.refreshRendererGUI();
@@ -1611,6 +1651,10 @@ function K3D(provider, targetDOMNode, parameters) {
      * @param {String} id
      */
     this.removeObject = function (id) {
+        if (pendingLoads > 0) {
+            removedWhileLoading.add(id);
+        }
+
         removeObjectFromScene(id);
         delete world.ObjectsListJson[id];
 
@@ -1669,9 +1713,20 @@ function K3D(provider, targetDOMNode, parameters) {
      * @throws {Error} If Loader fails
      */
     this.load = function (json) {
+        pendingLoads += 1;
+
         return loader(self, json).then((objects) => {
             objects.forEach((object) => {
                 if (!object) { return; }
+
+                // a texture resolves on image.onload, and a removal that arrived meanwhile
+                // would otherwise be undone here - the object goes back into the registry and
+                // stays in the scene with nothing left to remove it
+                if (removedWhileLoading.has(object.json.id)) {
+                    removeObjectFromScene(object.json.id);
+
+                    return;
+                }
 
                 objectsGUIProvider.update(self, object.json, GUI.objects, null);
 
@@ -1695,6 +1750,12 @@ function K3D(provider, targetDOMNode, parameters) {
             self.refreshAfterObjectsChange(false);
 
             return objects;
+        }).finally(() => {
+            pendingLoads -= 1;
+
+            if (pendingLoads === 0) {
+                removedWhileLoading.clear();
+            }
         });
     };
 
@@ -1874,6 +1935,11 @@ function K3D(provider, targetDOMNode, parameters) {
                 data = msgpack.decode(data);
             }
 
+            // "replacing the current scene" (user/snapshots.rst): whatever is on the plot goes
+            Object.keys(world.ObjectsListJson).forEach((id) => {
+                self.removeObject(parseInt(id, 10));
+            });
+
             Object.keys(data.chunkList).forEach((k) => {
                 const chunk = data.chunkList[k];
                 world.chunkList[chunk.id] = {
@@ -1890,10 +1956,13 @@ function K3D(provider, targetDOMNode, parameters) {
                 });
             });
 
-            return self.load({ objects: data.objects }).then(() => self.refreshAfterObjectsChange(
-                false,
-                true,
-            ));
+            const time = (data.plot || {}).time;
+
+            return self.load({ objects: data.objects })
+                // after the objects: setTime clamps to the range of the loaded time series,
+                // and on an empty scene that range is [0, 0]
+                .then(() => (typeof (time) === 'number' ? self.setTime(time) : null))
+                .then(() => self.refreshAfterObjectsChange(false, true));
         } catch (error) {
             console.error('K3D: Failed to set snapshot:', error.message);
             throw new Error(`Invalid snapshot data: ${error.message}`);
@@ -2057,6 +2126,7 @@ K3D.prototype.events = {
     VOXELS_CALLBACK: 'voxelsCallback',
     MOUSE_MOVE: 'mouseMove',
     MOUSE_CLICK: 'mouseClick',
+    MOUSE_LEAVE: 'mouseLeave',
 };
 
 module.exports = K3D;

@@ -12,6 +12,18 @@ katex = katex.default || katex;
  * @param {K3D}
  * @return {Object} 3D object ready to render
  */
+
+// KaTeX throws on bad LaTeX, and create() runs before the promise exists: the exception would
+// come out of load() and take the whole batch with it
+function renderLatex(domElement, text) {
+    try {
+        domElement.innerHTML = katex.renderToString(text, { displayMode: true });
+    } catch (error) {
+        console.warn('K3D: KaTeX could not render', text, error.message);
+        domElement.textContent = typeof (text) === 'string' ? text : '';
+    }
+}
+
 module.exports = {
     create(config, K3D, axesHelper) {
         config.visible = typeof (config.visible) !== 'undefined' ? config.visible : true;
@@ -45,10 +57,7 @@ module.exports = {
                 domElement.innerHTML = Array.isArray(text) ? text[i] : text;
                 domElement.style.cssText = 'pointer-events: all';
             } else {
-                domElement.innerHTML = katex.renderToString(
-                    Array.isArray(text) ? text[i] : text,
-                    { displayMode: true },
-                );
+                renderLatex(domElement, Array.isArray(text) ? text[i] : text);
             }
 
             domElement.style.position = 'absolute';
@@ -172,12 +181,27 @@ module.exports = {
 
         object.boundingBox = new THREE.Box3().setFromArray(object.positions);
 
-        object.show();
+        // the loader only sets K3DObject.visible, and these elements live outside the scene
+        if (config.visible === false) {
+            object.hide();
+        } else {
+            object.show();
+        }
 
         return Promise.resolve(object);
     },
     update(config, changes, obj) {
         const resolvedChanges = {};
+
+        // one div per label was decided in create(): a different count has to be rebuilt
+        const incoming = changes.position && (changes.position.data || changes.position);
+        const wanted = incoming ? incoming.length / 3 : obj.domElements.length;
+        const labels = (typeof (changes.text) !== 'undefined' && Array.isArray(changes.text))
+            ? changes.text.length : obj.domElements.length;
+
+        if (wanted !== obj.domElements.length || labels !== obj.domElements.length) {
+            return false;
+        }
 
         if (typeof (changes.text) !== 'undefined' && !changes.text.timeSeries) {
             obj.domElements.forEach((domElement, i) => {
@@ -187,7 +211,7 @@ module.exports = {
                     domElement.innerHTML = text;
                     domElement.style.pointerEvents = 'all';
                 } else {
-                    domElement.innerHTML = katex.renderToString(text, { displayMode: true });
+                    renderLatex(domElement, text);
                     domElement.style.pointerEvents = 'none';
                 }
             });

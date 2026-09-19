@@ -170,7 +170,12 @@ function generateGreedyVoxelMesh(chunk, colorMap, voxelSize, calculateOutlines, 
         u = (d + 1) % 3;
         v = (d + 2) % 3;
 
-        for (x[d] = -1 + chunk.offset[d]; x[d] < ending[d];) {
+        // the plane at `ending` is the next chunk's lower boundary too. On a dense grid the
+        // chunks tile it, so that chunk draws it and this one stops one plane short; a group of
+        // chunks may have gaps, so there it keeps drawing its own top face.
+        const last = (voxelsIsArray && ending[d] < dims[d]) ? ending[d] - 1 : ending[d];
+
+        for (x[d] = -1 + chunk.offset[d]; x[d] < last;) {
             // Compute mask
             let maskFilled = false;
 

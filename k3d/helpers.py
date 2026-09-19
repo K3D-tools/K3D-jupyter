@@ -46,6 +46,13 @@ class Array(_TraitArray):
         if self.dtype is not None and isinstance(value, np.ndarray):
             target = np.dtype(self.dtype)
 
+            # the cast below happens before any .valid() validator runs, and into an unsigned
+            # dtype it wraps: -1 reaches a validator promising to reject it as 65535
+            if target.kind == "u" and value.dtype.kind in "if" and (value < 0).any():
+                raise TraitError(
+                    "Negative values cannot be stored in a %s array" % target.name
+                )
+
             if target == np.float32 and value.dtype == np.float64:
                 value = value.astype(np.float32)
             elif value.dtype != target and value.dtype.name == target.name:
@@ -115,6 +122,11 @@ def array_to_json(
     elif ar.dtype == np.uint64:  # the JS deserializer has no uint64 typed array
         logger.debug("Converting uint64 array to uint32 for JS compatibility.")
         ar = ar.astype(np.uint32)
+
+    # JS typed arrays read a buffer little-endian and the deserializer keys off str(dtype),
+    # which for a big-endian array is '>f4' - a key typesToArray does not have
+    if ar.dtype.byteorder == ">":
+        ar = ar.astype(ar.dtype.newbyteorder("<"))
 
     # make sure it's contiguous
     if force_contiguous and not ar.flags["C_CONTIGUOUS"]:
@@ -392,6 +404,7 @@ def minmax(arr: np.ndarray) -> TypingList[float]:
 def check_attribute_color_range(
         attribute: Union[np.ndarray, TypingDict[str, np.ndarray]],
         color_range: Union[TypingList[float], Tuple[float, ...]] = (),
+        channels: bool = False,
 ) -> TypingList[float]:
     """Return color range versus provided attribute.
 
@@ -401,6 +414,10 @@ def check_attribute_color_range(
         Array of numbers.
     color_range : tuple, optional
         Two numbers, by default ().
+    channels : bool, optional
+        Whether a list means one attribute per channel, by default False. Only volume_slice
+        takes several channels; everywhere else a list is one attribute written out by hand,
+        and reading it as channels returns a range per slice that no trait accepts.
 
     Returns
     -------
@@ -411,16 +428,26 @@ def check_attribute_color_range(
     if color_range is None:
         color_range = []
 
-    # A list of arrays is a multi-channel volume, and the range is per channel: the browser
-    # reads color_range[2 * i] and [2 * i + 1] for channel i, so a two-element range over two
-    # channels would leave the second one reading undefined and its uniforms NaN.
-    if isinstance(attribute, (list, tuple)):
+    # The range is per channel: the browser reads color_range[2 * i] and [2 * i + 1] for
+    # channel i, so a two-element range over two channels would leave the second one reading
+    # undefined and its uniforms NaN.
+    if channels and isinstance(attribute, (list, tuple)):
         if len(color_range) == 2 * len(attribute):
             color_range = [float(v) for v in color_range]
             for i in range(0, len(color_range), 2):
                 if color_range[i] == color_range[i + 1]:
                     color_range[i + 1] += 1.0
             return color_range
+
+        # one range asked for over several channels means the same range on each of them,
+        # which is what a caller writing color_range=[0, 1] is asking for
+        if len(color_range) == 2:
+            low, high = float(color_range[0]), float(color_range[1])
+
+            if low == high:
+                high += 1.0
+
+            return [low, high] * len(attribute)
 
         ranges = []
 
@@ -439,6 +466,9 @@ def check_attribute_color_range(
         if low == high:
             high += 1.0
         return [low, high]
+    # a nested list is one attribute written out by hand; the paths below index .size
+    if isinstance(attribute, (list, tuple)):
+        attribute = np.asarray(attribute)
     if type(attribute) is dict:
         t = [minmax(attribute[k]) for k in attribute]
         color_range = [min([v[0] for v in t]), max([v[1] for v in t])]
@@ -518,9 +548,10 @@ def bounding_corners(
     ndarray
         Corner points coordinates.
     """
-    return np.array(
-        list(itertools.product(bounds[:2], bounds[2:4], bounds[4:] or z_bounds))
-    )
+    # len(), not `or`: a numpy slice has no truth value and raises here
+    z = bounds[4:] if len(bounds[4:]) > 0 else z_bounds
+
+    return np.array(list(itertools.product(bounds[:2], bounds[2:4], z)))
 
 
 def min_bounding_dimension(bounds: Union[TypingList[float], np.ndarray]) -> float:
@@ -538,7 +569,9 @@ def min_bounding_dimension(bounds: Union[TypingList[float], np.ndarray]) -> floa
     number
         Minimum value of the array.
     """
-    return min(abs(x1 - x0) for x0, x1 in zip(bounds, bounds[1:]))
+    # the pairs are (min_x, max_x), (min_y, max_y), (min_z, max_z); zipping neighbours instead
+    # measures max_x against min_y and reports 0 for any two axes that meet
+    return min(abs(x1 - x0) for x0, x1 in zip(bounds[::2], bounds[1::2]))
 
 
 def shape_validation(*dimensions):
@@ -637,14 +670,27 @@ def get_bounding_box(model_matrix, boundary=[-0.5, 0.5, -0.5, 0.5, -0.5, 0.5]):
         Model matrix boundaries.
     """
     # Homogeneous coordinate 1: these are points, not directions, so the matrix's
-    # translation column has to apply.
-    b_min = np.array([boundary[0], boundary[2], boundary[4], 1])
-    b_max = np.array([boundary[1], boundary[3], boundary[5], 1])
+    # translation column has to apply. All eight corners, because a rotation or a mirror
+    # maps the min corner past the max one and a box with min > max drops out of get_auto_grid.
+    corners = np.array([
+        [boundary[i], boundary[2 + j], boundary[4 + k], 1.0]
+        for i in (0, 1) for j in (0, 1) for k in (0, 1)
+    ])
 
-    b_min = model_matrix.dot(b_min)
-    b_max = model_matrix.dot(b_max)
+    transformed = np.concatenate([
+        corners.dot(matrix.T)[:, 0:3] for matrix in _model_matrices(model_matrix)
+    ])
 
-    return np.dstack([b_min[0:3], b_max[0:3]]).flatten()
+    return np.dstack([
+        np.nanmin(transformed, axis=0), np.nanmax(transformed, axis=0)
+    ]).flatten()
+
+
+def _model_matrices(model_matrix):
+    """Every 4x4 matrix in `model_matrix`, whether it is one matrix or a time series of them."""
+    frames = model_matrix.values() if isinstance(model_matrix, dict) else [model_matrix]
+
+    return [np.asarray(matrix, dtype=np.float64).reshape(4, 4) for matrix in frames]
 
 
 def get_bounding_box_points(arr, model_matrix):
@@ -662,7 +708,7 @@ def get_bounding_box_points(arr, model_matrix):
     ndarray
         Array of numbers [min_x, max_x, min_y, max_y, min_z, max_z].
     """
-    d = arr.flatten()
+    d = _flatten_frames(arr)
 
     if d.shape[0] < 3:
         d = np.array([0, 0, 0])
@@ -678,20 +724,44 @@ def get_bounding_box_points(arr, model_matrix):
     return get_bounding_box(model_matrix, boundary)
 
 
-def get_bounding_box_point(position):
-    """Return the boundaries of a position.
+def _flatten_frames(arr):
+    """One flat array of coordinates, whether `arr` is an array or a time series of them."""
+    if isinstance(arr, dict):
+        frames = [np.asarray(v, dtype=np.float64).flatten() for v in arr.values()]
+
+        return np.concatenate(frames) if frames else np.array([])
+
+    return np.asarray(arr, dtype=np.float64).flatten()
+
+
+def get_bounding_box_point(position, model_matrix=None):
+    """Return the boundaries of one or more 3D positions.
 
     Parameters
     ----------
     position : array_like
-        Array of numbers.
+        One position, n positions, or a time series of either.
+    model_matrix : ndarray, optional
+        Matrix of numbers the renderer applies to the position. Must have four columns.
 
     Returns
     -------
-    ndarray
-        Array of numbers.
+    ndarray or None
+        Array of numbers [min_x, max_x, min_y, max_y, min_z, max_z], or None for a position
+        that is not three-dimensional (a 2D overlay has no place in the scene's box).
     """
-    return np.dstack([np.array(position), np.array(position)]).flatten()
+    d = _flatten_frames(position)
+
+    if d.shape[0] == 0 or d.shape[0] % 3 != 0:
+        return None
+
+    points = d.reshape(-1, 3)
+    boundary = np.dstack([np.nanmin(points, axis=0), np.nanmax(points, axis=0)]).flatten()
+
+    if model_matrix is None:
+        return boundary
+
+    return get_bounding_box(model_matrix, boundary)
 
 
 def unify_color_map(cm):

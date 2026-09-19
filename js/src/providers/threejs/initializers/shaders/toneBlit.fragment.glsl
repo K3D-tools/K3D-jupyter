@@ -3,6 +3,8 @@
 uniform sampler2D tDiffuse;
 uniform vec2 uSize;
 uniform int uToneMapping;
+// 1 when the source holds premultiplied colour, as any target written by ordinary blending does
+uniform int uPremultiplied;
 
 vec3 k3dToneMap(vec3 color) {
     if (uToneMapping == 1) {
@@ -22,5 +24,7 @@ void main (void)
 
     if (color.a == 0.) discard;
 
-    gl_FragColor = vec4(k3dToneMap(color.rgb) * color.a, color.a);
+    vec3 straight = (uPremultiplied == 1) ? color.rgb / color.a : color.rgb;
+
+    gl_FragColor = vec4(k3dToneMap(straight) * color.a, color.a);
 }

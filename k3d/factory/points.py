@@ -41,6 +41,72 @@ def points(
         mesh_detail: int = 2,
         **kwargs: Any,
 ) -> Points:
+    """
+    Create a Points drawable representing a point cloud.
+
+    Parameters
+    ----------
+    positions : array_like
+        Array with (x, y, z) coordinates of the points.
+    colors : array_like, optional
+        Same-length array of (`int`) packed RGB color of the points (0xff0000 is red, 0xff is
+        blue). Default is None.
+    color : int, optional
+        Packed RGB color of the points (0xff0000 is red, 0xff is blue) when `colors` is empty.
+        Default is 255.
+    point_size : float, optional
+        Diameter of the balls representing the points in 3D space. Default is 1.0.
+    point_sizes : array_like, optional
+        Same-length array of `float` sizes of the points. Default is None.
+    roughness : float, optional
+        Roughness of object material. Default is 0.4.
+    metalness : float, optional
+        Metalness of object material. Default is 0.0.
+    shininess : float, optional
+        Removed in 3.0.0; passing it raises. Use roughness and metalness. Default is None.
+    shader : str, optional
+        Display style (name of the shader used) of the points. Legal values are: 'flat' simple
+        circles with uniform color, 'dot' simple dot with uniform color, '3d' little 3D balls
+        (impostors) with full PBR lighting - the highlights are driven by `roughness` and
+        `metalness` (`3dSpecular` is accepted as a legacy alias), 'mesh' high precision triangle
+        mesh of a ball (high quality and GPU load). Default is '3d'.
+    opacity : float, optional
+        Opacity of the points, in the range 0.0 to 1.0. Default is 1.0.
+    opacities : array_like, optional
+        Same-length array of `float` opacities of the points, used instead of `opacity`. Default
+        is None.
+    attribute : array_like, optional
+        Array of float attribute for the color mapping, coresponding to each point. Default is
+        None.
+    color_map : list, optional
+        A list of float quadruplets (attribute value, R, G, B), sorted by attribute value. The
+        first quadruplet should have value 0.0, the last 1.0; R, G, B are RGB color components in
+        the range 0.0 to 1.0. Default is None.
+    color_range : list, optional
+        A pair [min_value, max_value], which determines the levels of color attribute mapped to 0
+        and 1 in the color map respectively. Default is None.
+    opacity_function : list, optional
+        A list of float tuples (attribute value, opacity), sorted by attribute value. The first
+        tuple should have value 0.0, the last 1.0; opacity is in the range 0.0 to 1.0. Default is
+        None.
+    name : str, optional
+        A name of the object. Default is None.
+    group : str, optional
+        A name of a group. Default is None.
+    custom_data : dict, optional
+        An object with custom data attached to object. Default is None.
+    compression_level : int, optional
+        Level of compression [-1, 9]. Default is 0.
+    mesh_detail : int, optional
+        Subdivision level of the ball mesh; only used by shader='mesh'. Default is 2.
+    **kwargs
+        Additional keyword arguments passed to process_transform_arguments.
+
+    Returns
+    -------
+    Points
+        The created Points object.
+    """
     if colors is None:
         colors = []
     if point_sizes is None:

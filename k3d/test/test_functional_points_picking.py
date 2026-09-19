@@ -5,6 +5,10 @@ radius has to follow point_size - the billboard shader keeps it on the material,
 shader in the instance scale on top of the icosahedron it bakes point_size into. None of
 this was reachable from Python until Points grew the callback traits, so nothing exercised
 either path.
+
+The cloud has to be bigger than one BVH leaf. three-mesh-bvh sorts the index buffer it is built
+on, so past a handful of points the slot a hit reports stops being the point number - and four
+points never left their leaf, which is how a test asserting `index == i` stayed green.
 """
 
 import numpy as np
@@ -14,7 +18,10 @@ import k3d
 
 from .plot_compare import prepare
 
-POSITIONS = np.array([[0, 0, 0], [1, 0, 0], [0, 1, 0], [0, 0, 1]], dtype=np.float32)
+# an 8x8 plane in z = 0, viewed straight down z: every point is a whole unit from its
+# neighbours, so a ray aimed at one of them passes no other within the pick radius
+POSITIONS = np.array([[x, y, 0] for y in range(8) for x in range(8)], dtype=np.float32)
+CAMERA = [3.5, 3.5, 25.0, 3.5, 3.5, 0.0, 0.0, 1.0, 0.0]
 
 # aim the raycaster dead centre at one point and report what the object hands back
 PROBE = """
@@ -65,6 +72,10 @@ def _cloud(shader, callback=True):
         obj.click_callback = lambda params: None
 
     pytest.plot += obj
+    # the shared default camera grazes the plane at three degrees, where a whole column of
+    # points sits inside one pick radius along the ray
+    pytest.plot.camera_auto_fit = False
+    pytest.plot.camera = CAMERA
     pytest.headless.sync(hold_until_refreshed=True)
 
     return obj
@@ -89,6 +100,17 @@ def test_callbacks_arm_and_disarm_picking():
     obj.click_callback = None
     pytest.headless.sync(hold_until_refreshed=True)
     assert _probe(0) == {"armed": False}
+
+
+def test_dropping_one_callback_keeps_the_other():
+    obj = _cloud("3d")
+    obj.hover_callback = lambda params: None
+    pytest.headless.sync(hold_until_refreshed=True)
+
+    obj.click_callback = None
+    pytest.headless.sync(hold_until_refreshed=True)
+
+    assert _probe(0)["hits"] == 1
 
 
 def test_switching_shader_keeps_picking_armed():

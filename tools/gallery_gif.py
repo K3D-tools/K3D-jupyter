@@ -131,7 +131,8 @@ def main():
         # get_auto_grid, not a bounding box of our own: it is what the browser fits to, and it
         # copes with the NaN separators that divide the streamlines
         grid = np.array(plot.get_auto_grid(), dtype=np.float64)
-        centre = (grid[:3] + grid[3:]) / 2.0
+        # get_auto_grid is [xmin, xmax, ymin, ymax, zmin, zmax], the same layout as a bounding box
+        centre = (grid[0::2] + grid[1::2]) / 2.0
 
         for frame in wanted:
             plot.camera = orbit(centre, frame, args.frames, args.elevation, args.azimuth)

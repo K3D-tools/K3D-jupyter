@@ -17,6 +17,13 @@ function changeParameter(K3D, json, key, value, timeSeriesReload) {
 }
 
 function update(K3D, json, GUI, changes) {
+    // with the menu off there is no folder tree to update, and building one against the
+    // destroyed dat.GUI leaves gui_map pointing at widgets that no longer exist - the rebuild
+    // then sees every id as already present and adds nothing
+    if (!K3D.gui) {
+        return;
+    }
+
     let sliceViewerControllers;
 
     function moveToGroup(config) {
@@ -488,11 +495,19 @@ function update(K3D, json, GUI, changes) {
         );
     }
 
-    if (json.type === 'Volume') {
+    // the light map exists only while shadows are on, and so does the method behind this
+    if (json.type === 'Volume' && json.shadow && json.shadow !== 'off') {
         if (findControllers('refreshLightMap').length === 0) {
             const obj = {
                 refreshLightMap() {
-                    K3D.getObjectById(json.id).refreshLightMap();
+                    const object = K3D.getObjectById(json.id);
+
+                    // shadows switched off since, or the volume hidden: nothing to refresh
+                    if (!object || typeof (object.refreshLightMap) !== 'function') {
+                        return;
+                    }
+
+                    object.refreshLightMap();
                     K3D.render();
                 },
             };

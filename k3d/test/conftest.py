@@ -66,14 +66,11 @@ def pytest_sessionstart(session):
     )
     print(pytest.plot.get_static_path())
     gpu = session.config.getoption("--gpu")
+    # get_headless_driver already raises both timeouts to an hour, which is what a cinematic
+    # screenshot needs: it blocks inside one execute_script call, and the HTTP timeout is the
+    # bound that actually fires. Lowering them here undid exactly that.
     driver = get_headless_driver(gpu=gpu)
 
-    # One cinematic screenshot is one long call; the client HTTP timeout defaults to 120s.
-    driver.set_script_timeout(600)
-
-    client_config = getattr(driver.command_executor, "_client_config", None)
-    if client_config is not None:
-        client_config.timeout = 900
     pytest.headless = k3d_remote(pytest.plot, driver)
     pytest.headless.browser.execute_script("window.randomMul = 0.0;")
 

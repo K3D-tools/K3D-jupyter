@@ -1,3 +1,4 @@
+import pickle
 import unittest
 import zlib
 
@@ -82,3 +83,36 @@ class TestBinarySnapshot(unittest.TestCase):
 
     def test_voxel_chunks_available_before_any_load(self):
         self.assertEqual(plot().voxel_chunks, [])
+
+
+class TestPlotParams(unittest.TestCase):
+    """Traits the widget path handles have to reach the snapshot and headless too."""
+
+    def test_widget_only_params_reach_the_snapshot(self):
+        source = plot(voxel_paint_color=5, render_on_change=False, manipulate_mode="rotate")
+        source.colorbar_scientific = True
+
+        params = source.get_plot_params()
+
+        self.assertEqual(params["voxelPaintColor"], 5)
+        self.assertEqual(params["renderOnChange"], False)
+        self.assertEqual(params["manipulateMode"], "rotate")
+        self.assertEqual(params["colorbarScientific"], True)
+
+        restored = plot()
+        restored.load_binary_snapshot(source.get_binary_snapshot(1))
+
+        self.assertEqual(restored.voxel_paint_color, 5)
+        self.assertEqual(restored.render_on_change, False)
+        self.assertEqual(restored.manipulate_mode, "rotate")
+        self.assertEqual(restored.colorbar_scientific, True)
+
+    def test_plot_pickles(self):
+        """anywidget swaps the instance class for a dynamic one, which pickle cannot name."""
+        source = plot(background_color=0x123456)
+        source += points(np.array([[0, 0, 0], [1, 1, 1]], dtype=np.float32))
+
+        restored = pickle.loads(pickle.dumps(source))
+
+        self.assertEqual(restored.background_color, 0x123456)
+        self.assertEqual(len(restored.objects), 1)

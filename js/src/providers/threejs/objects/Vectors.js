@@ -166,7 +166,8 @@ function createText(text, origin, destination, labelSize, K3D) {
     const center = origin.clone().add(destination).divideScalar(2);
     const textConfig = {
         position: [center.x, center.y, center.z],
-        referencePoint: 'cb',
+        // reference_point, the name Text reads: camelCase here silently fell back to 'lb'
+        reference_point: 'cb',
         text,
         size: labelSize,
     };

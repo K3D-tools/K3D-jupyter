@@ -3,7 +3,12 @@
 import numpy as np
 from traitlets import Bool, Bytes, Unicode
 
-from ..helpers import Array, array_serialization_wrap, get_bounding_box
+from ..helpers import (
+    Array,
+    array_serialization_wrap,
+    get_bounding_box,
+    get_bounding_box_points,
+)
 from .base import DrawableWithCallback, ListOrArray, TimeSeries
 
 
@@ -11,7 +16,7 @@ class Texture(DrawableWithCallback):
     """
     A 2D image displayed as a texture.
 
-    By default, the texture image is mapped into the square: -0.5 < x, y < 0.5, z = 1.
+    By default, the texture image is mapped into the square: -0.5 < x, y < 0.5, z = 0.
     If the size (scale, aspect ratio) or position should be different then the texture should be transformed
     using the model_matrix.
 
@@ -64,4 +69,14 @@ class Texture(DrawableWithCallback):
         self.set_trait("type", "Texture")
 
     def get_bounding_box(self):
-        return get_bounding_box(self.model_matrix)
+        puv = np.asarray(self.puv, dtype=np.float64).flatten()
+
+        if puv.shape[0] != 9:
+            return get_bounding_box(self.model_matrix)
+
+        # the quad is p, p + u, p + v, p + u + v - not the unit square
+        p, u, v = puv[0:3], puv[3:6], puv[6:9]
+
+        return get_bounding_box_points(
+            np.array([p, p + u, p + v, p + u + v]), self.model_matrix
+        )

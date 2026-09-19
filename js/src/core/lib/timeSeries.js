@@ -1,12 +1,19 @@
 const THREE = require('three');
 const _ = require('../../lodash');
 const { pow10ceil } = require('./helpers/math');
+const Float16Array = require('./helpers/float16Array');
+
+// custom_data is free-form metadata: a dict keyed by numbers there is the user's, not a time axis
+function isTimeSeries(property, value) {
+    return property !== 'custom_data' && Boolean(value) && typeof (value.timeSeries) !== 'undefined';
+}
 
 function clone(val) {
     if (typeof (val) === 'object') {
         if (val.data) {
             return {
-                data: val.data.slice(0),
+                // not slice(): it goes through Symbol.species and drops the Float16Array marker
+                data: new val.data.constructor(val.data),
                 shape: val.shape,
             };
         }
@@ -27,7 +34,7 @@ function getObjectsWithTimeSeriesAndMinMax(K3D) {
         let hasTimeSeries = false;
 
         Object.keys(obj).forEach((property) => {
-            if (obj[property] && typeof (obj[property].timeSeries) !== 'undefined') {
+            if (isTimeSeries(property, obj[property])) {
                 hasTimeSeries = true;
 
                 Object.keys(obj[property]).forEach((t) => {
@@ -67,7 +74,7 @@ function getTimeSeriesTimes(K3D) {
         const obj = world.ObjectsListJson[id];
 
         Object.keys(obj).forEach((property) => {
-            if (obj[property] && typeof (obj[property].timeSeries) !== 'undefined') {
+            if (isTimeSeries(property, obj[property])) {
                 Object.keys(obj[property]).forEach((t) => {
                     if (!Number.isNaN(parseFloat(t))) {
                         times.add(parseFloat(t));
@@ -134,6 +141,18 @@ function interpolate(a, b, f, property) {
     }
 
     if (_.isNumber(a)) {
+        // a packed 0xRRGGBB blended as a number carries bits across the byte boundaries
+        if (typeof (property) === 'string' && /(^|_)color$/.test(property)) {
+            const channel = (v, shift) => ((v >> shift) & 255);
+            const mix = (shift) => {
+                const ca = channel(a, shift);
+
+                return Math.round(ca + f * (channel(b, shift) - ca)) << shift;
+            };
+
+            return mix(16) | mix(8) | mix(0);
+        }
+
         return a + f * (b - a);
     }
 
@@ -161,6 +180,15 @@ function interpolate(a, b, f, property) {
                 const bf = Math.round(b1 + f * (b2 - b1));
 
                 interpolated[i] = (bf << 16) | (gf << 8) | rf;
+            }
+        } else if (a.data.constructor === Float16Array) {
+            // the stand-in holds half-float bit patterns, which do not blend as numbers
+            const { fromHalfFloat, toHalfFloat } = THREE.DataUtils;
+
+            for (i = 0; i < interpolated.length; i++) {
+                const va = fromHalfFloat(a.data[i]);
+
+                interpolated[i] = toHalfFloat(va + f * (fromHalfFloat(b.data[i]) - va));
             }
         } else {
             for (i = 0; i < interpolated.length; i++) {
@@ -275,7 +303,7 @@ module.exports = {
             let i;
             let f;
 
-            if (json[property] && typeof (json[property].timeSeries) !== 'undefined') {
+            if (isTimeSeries(property, json[property])) {
                 keypoints = Object.keys(json[property]).reduce((p, k) => {
                     if (!Number.isNaN(parseFloat(k))) {
                         p.push({ v: parseFloat(k), k });
@@ -285,9 +313,13 @@ module.exports = {
                 }, []).sort((q, w) => q.v - w.v);
 
                 if (time <= keypoints[0].v) {
-                    interpolatedJson[property] = json[property][keypoints[0].k];
+                    // clone: an object's update() writes into what it is given, and that would
+                    // overwrite the stored keyframe
+                    interpolatedJson[property] = clone(json[property][keypoints[0].k]);
                 } else if (time >= keypoints[keypoints.length - 1].v) {
-                    interpolatedJson[property] = json[property][keypoints[keypoints.length - 1].k];
+                    interpolatedJson[property] = clone(
+                        json[property][keypoints[keypoints.length - 1].k],
+                    );
                 } else {
                     for (i = 0; i < keypoints.length; i++) {
                         if (Math.abs(keypoints[i].v - time) < 0.001) {
@@ -298,7 +330,9 @@ module.exports = {
 
                         if (keypoints[i].v > time && i > 0) {
                             if (!interpolation) {
-                                interpolatedJson[property] = json[property][keypoints[i - 1].k];
+                                interpolatedJson[property] = clone(
+                                    json[property][keypoints[i - 1].k],
+                                );
 
                                 break;
                             }

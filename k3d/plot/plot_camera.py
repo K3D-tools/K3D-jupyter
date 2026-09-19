@@ -11,7 +11,10 @@ class PlotCameraMixin:
         self.send({"msg_type": "reset_camera", "factor": factor})
 
     def get_auto_grid(self) -> np.ndarray:
-        if len(self.objects) == 0:
+        # a 2D overlay has no box; a scene of only those is as empty as no scene
+        boxes = [b for b in (o.get_bounding_box() for o in self.objects) if b is not None]
+
+        if len(boxes) == 0:
             return np.array(
                 [
                     self.grid[0],
@@ -23,7 +26,7 @@ class PlotCameraMixin:
                 ]
             )
 
-        d = np.stack([o.get_bounding_box() for o in self.objects])
+        d = np.stack(boxes)
 
         return np.dstack(
             [np.nanmin(d[:, 0::2], axis=0), np.nanmax(d[:, 1::2], axis=0)]

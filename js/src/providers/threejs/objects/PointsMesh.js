@@ -50,7 +50,12 @@ function rebuildInstanceMatrices(obj, config, changes) {
     const scale = new THREE.Vector3();
 
     for (let i = 0; i < positions.length / 3; i++) {
-        const s = ((sizes && sizes[i]) || 1.0) * factor;
+        // not `|| 1.0`: a size of 0 is a point asked to disappear, and the fallback turned it
+        // into the largest sphere in the set.
+        // The instance is scaled against the diameter the geometry was built with, so an entry
+        // of point_sizes is the point's size - a multiplier here, a size in every billboard
+        // shader and in the documentation, which is the reading kept.
+        const s = sizes ? sizes[i] / obj.userData.builtPointSize : factor;
 
         obj.setMatrixAt(
             i,
@@ -62,6 +67,10 @@ function rebuildInstanceMatrices(obj, config, changes) {
     }
 
     obj.instanceMatrix.needsUpdate = true;
+    // three computes these off the instance matrices once and caches them; left stale, frustum
+    // culling tests the moved points against where they used to be and hides them outright
+    obj.boundingBox = null;
+    obj.boundingSphere = null;
 }
 
 module.exports = {
@@ -220,7 +229,8 @@ module.exports = {
         );
 
         for (i = 0; i < positions.length / 3; i++) {
-            const s = (sizes && sizes[i]) || 1.0;
+            // an entry of point_sizes is a diameter, and the geometry carries point_size
+            const s = sizes ? sizes[i] / config.point_size : 1.0;
 
             object.setMatrixAt(
                 i,

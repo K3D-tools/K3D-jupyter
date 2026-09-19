@@ -160,6 +160,8 @@ module.exports = {
             Fn.expandBoundingBox(object.geometry.boundingBox, config.point_size * 0.5);
         }
 
+        object.userData.pointSizeInPixels = (config.shader === 'dot');
+
         interactionsHelper.init(
             config,
             object,

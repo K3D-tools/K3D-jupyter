@@ -680,8 +680,15 @@ function normalizeMergeAttributes(node) {
         const position = source.getAttribute('position');
         const missing = Object.keys(MERGE_ATTRIBUTES)
             .filter((name) => !source.getAttribute(name));
+        // an existing attribute of the wrong width is as bad as a missing one: the merged buffer
+        // takes its stride from whichever mesh the generator reaches first
+        const narrow = Object.keys(MERGE_ATTRIBUTES).filter((name) => {
+            const attribute = source.getAttribute(name);
 
-        if (!position || missing.length === 0) {
+            return attribute && attribute.itemSize !== MERGE_ATTRIBUTES[name];
+        });
+
+        if (!position || (missing.length === 0 && narrow.length === 0)) {
             return;
         }
 
@@ -704,6 +711,20 @@ function normalizeMergeAttributes(node) {
 
             if (name === 'color') {
                 array.fill(1.0);
+            }
+
+            geometry.setAttribute(name, new THREE.BufferAttribute(array, itemSize));
+        });
+
+        narrow.forEach((name) => {
+            const itemSize = MERGE_ATTRIBUTES[name];
+            const attribute = source.getAttribute(name);
+            const array = new Float32Array(attribute.count * itemSize);
+
+            for (let i = 0; i < attribute.count; i++) {
+                for (let c = 0; c < attribute.itemSize && c < itemSize; c++) {
+                    array[i * itemSize + c] = attribute.array[i * attribute.itemSize + c];
+                }
             }
 
             geometry.setAttribute(name, new THREE.BufferAttribute(array, itemSize));
@@ -788,6 +809,7 @@ module.exports = function createSceneProxy(K3D) {
     // keyed by object id: ids survive reloads, instances do not (addOrUpdateObject swaps
     // them without OBJECT_REMOVED)
     const cache = new Map();
+    let cameraFacing = false;
 
     K3D.on(K3D.events.OBJECT_REMOVED, (id) => {
         cache.delete(String(id));
@@ -797,11 +819,19 @@ module.exports = function createSceneProxy(K3D) {
     // emptied the cache under the material fast path, which then had nothing left to sync.
 
     return {
+        // whether the last populate built anything frozen facing the camera, which only holds
+        // for the camera it was built with
+        hasCameraFacing() {
+            return cameraFacing;
+        },
+
         // mirrors every visible K3DObjects child into `scene`; returns the proxied count
         populate(scene, camera, options) {
             const world = K3D.getWorld();
             const alive = new Set();
             let proxied = 0;
+
+            cameraFacing = false;
             // the tracer material tracks through one medium
             let volumeClaimed = false;
             const volumesSupported = !options || options.volumes !== false;
@@ -858,6 +888,10 @@ module.exports = function createSceneProxy(K3D) {
                 alive.add(id);
 
                 let entry = cache.get(id);
+
+                if (json.type === 'TextureText') {
+                    cameraFacing = true;
+                }
 
                 // camera-frozen billboards cannot be reused between frames
                 if (!entry || entry.source !== sourceObj || json.type === 'TextureText') {
@@ -935,7 +969,12 @@ module.exports = function createSceneProxy(K3D) {
 
                     if (typeof json.opacity !== 'undefined') {
                         node.material.opacity = json.opacity;
-                        node.material.transparent = json.opacity < 1.0;
+                        // alpha also comes from an opacity function, the way sanitizeMaterial saw it
+                        const hasOpacityFunction = Boolean(json.opacity_function
+                            && json.opacity_function.data
+                            && json.opacity_function.data.length > 0);
+
+                        node.material.transparent = json.opacity < 1.0 || hasOpacityFunction;
                         node.material.depthWrite = !node.material.transparent;
                     }
 

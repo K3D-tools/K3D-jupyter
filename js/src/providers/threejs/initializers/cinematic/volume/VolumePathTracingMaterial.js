@@ -329,7 +329,8 @@ class VolumePathTracingMaterial extends PhysicalPathTracingMaterial {
 
     // texture and transferFunction are the Volume object's own instances; matrixWorld is the
     // world matrix of its unit box; roughness, metalness and gradientStep are the Volume's own
-    // traits, the rest are the hybrid's constants unless a caller overrides them
+    // traits, the rest are the hybrid's constants unless a caller overrides them.
+    // Returns false when the medium is refused and the caller has to place it elsewhere.
     setVolume({
         texture, transferFunction, low, high, alphaCoef, matrixWorld,
         roughness = 0.25, metalness = 0.0, gradientStep = 0.005, lightScale = 1.0,
@@ -360,7 +361,7 @@ class VolumePathTracingMaterial extends PhysicalPathTracingMaterial {
                 + 'parameter, left to the raster layer');
             this.clearVolume();
 
-            return;
+            return false;
         }
 
         u.volumeTexture.value = texture;
@@ -427,6 +428,8 @@ class VolumePathTracingMaterial extends PhysicalPathTracingMaterial {
         u.volumeEnabled.value = 1;
 
         this.syncDefines(1);
+
+        return true;
     }
 
     clearVolume() {

@@ -1,5 +1,6 @@
 """Factory functions for geometric objects."""
 
+import warnings
 from typing import Any, Optional, Tuple, Union
 from typing import Dict as TypingDict
 from typing import List as TypingList
@@ -10,6 +11,27 @@ from ..helpers import check_attribute_color_range
 from ..objects import STL, Line, Lines, Mesh, Surface
 from ..transform import process_transform_arguments
 from .common import _default_color, default_colormap
+
+# only LineMesh builds a lit material; thick and simple draw unlit tubes and lines, so these
+# two traits reach the browser and nothing reads them
+LINE_MATERIAL_DEFAULTS = {"roughness": 0.4, "metalness": 0.0}
+
+
+def _warn_unlit_line(shader, roughness, metalness):
+    if shader == "mesh":
+        return
+
+    ignored = [name for name, value in (("roughness", roughness), ("metalness", metalness))
+               if value is not None and value != LINE_MATERIAL_DEFAULTS[name]]
+
+    if ignored:
+        warnings.warn(
+            "%s %s ignored by the '%s' line shader, which draws unlit geometry - use "
+            "shader='mesh' for a lit line" % (
+                " and ".join(ignored), "are" if len(ignored) > 1 else "is", shader),
+            stacklevel=3,
+        )
+
 
 # Type aliases for better readability
 ArrayLike = Union[TypingList, np.ndarray, Tuple]
@@ -108,6 +130,8 @@ def lines(
         np.array(attribute, np.float32) if type(attribute) is not dict else attribute
     )
     color_range = check_attribute_color_range(attribute, color_range)
+
+    _warn_unlit_line(shader, roughness, metalness)
 
     return process_transform_arguments(
         Lines(
@@ -217,6 +241,8 @@ def line(
         np.array(attribute, np.float32) if type(attribute) is not dict else attribute
     )
     color_range = check_attribute_color_range(attribute, color_range)
+
+    _warn_unlit_line(shader, roughness, metalness)
 
     return process_transform_arguments(
         Line(
@@ -332,7 +358,11 @@ def mesh(
     compression_level : int, optional
         Level of data compression [-1, 9], by default 0.
     triangles_attribute : list, optional
-        _description_, by default []
+        Array of float attribute for the color mapping, one value per triangle rather than per
+        vertex; used when `attribute` is empty, by default [].
+    slice_planes : list, optional
+        Planes [a, b, c, d] the section outline is drawn along, up to eight of them. The outline
+        is drawn in the object colour, without the colormap, by default [].
     **kwargs
         For other keyword-only arguments, see :ref:`process_transform_arguments`.
 

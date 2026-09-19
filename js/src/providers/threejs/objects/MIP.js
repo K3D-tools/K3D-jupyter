@@ -211,6 +211,18 @@ module.exports = {
     update(config, changes, obj, K3D) {
         const resolvedChanges = {};
 
+        // the march reads the box off these uniforms, and only create() ever filled them
+        if (typeof (changes.model_matrix) !== 'undefined' && !changes.model_matrix.timeSeries) {
+            const matrix = new THREE.Matrix4();
+
+            matrix.set.apply(matrix, changes.model_matrix.data);
+            matrix.decompose(
+                obj.material.uniforms.translation.value,
+                obj.material.uniforms.rotation.value,
+                obj.material.uniforms.scale.value,
+            );
+        }
+
         if (typeof (changes.color_range) !== 'undefined' && !changes.color_range.timeSeries) {
             obj.material.uniforms.low.value = changes.color_range[0];
             obj.material.uniforms.high.value = changes.color_range[1];
@@ -263,7 +275,9 @@ module.exports = {
         }
 
         if (typeof (changes.mask_opacities) !== 'undefined' && !changes.mask_opacities.timeSeries) {
-            if (obj.material.uniforms.maskOpacities.value !== null) {
+            // maskOpacities is always a 256-entry array; the mask texture is what says whether
+            // the shader has USE_MASK at all, and without it the object has to be rebuilt
+            if (obj.material.uniforms.mask.value !== null) {
                 obj.material.uniforms.maskOpacities.value = ensure256size(changes.mask_opacities.data);
                 obj.material.uniforms.maskOpacities.value.needsUpdate = true;
 

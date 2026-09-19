@@ -2,15 +2,27 @@ const VoxelsHelper = require('../helpers/Voxels');
 const { areAllChangesResolve } = require('../helpers/Fn');
 const { commonUpdate } = require('../helpers/Fn');
 
+function voxelKey(config, x, y, z) {
+    const size = config.space_size.data;
+
+    return (z * size[1] + y) * size[0] + x;
+}
+
 function K3DVoxelsMap(config) {
     let newArray;
 
     this._map = new Map();
 
+    // the counterpart of VoxelsGroup.setEdited: here the sparse array has to be kept in step
+    this.setEdited = function (x, y, z, value) {
+        return this.set(x, y, z, value, true);
+    };
+
     this.set = function (x, y, z, value, updateSparseVoxels) {
         const v = config.sparse_voxels.data;
 
-        this._map.set((z * config.space_size.data[0] + y) * config.space_size.data[1] + x, value);
+        // [z][y][x]: the row stride is the width and the slice stride is width * height
+        this._map.set(voxelKey(config, x, y, z), value);
 
         if (updateSparseVoxels) {
             for (let i = 0; i < v.length; i += 4) {
@@ -45,7 +57,7 @@ function K3DVoxelsMap(config) {
     };
 
     this.get = function (x, y, z) {
-        return this._map.get((z * config.space_size.data[0] + y) * config.space_size.data[1] + x);
+        return this._map.get(voxelKey(config, x, y, z));
     };
 }
 

@@ -21,6 +21,10 @@ function getSpaceDimensionsFromTargetElement(world) {
     ];
 }
 
+function nonEmpty(value) {
+    return Boolean(value && value.data && value.data.length > 0);
+}
+
 function getSide(config) {
     const map = {
         front: THREE.FrontSide, back: THREE.BackSide, double: THREE.DoubleSide,
@@ -85,6 +89,9 @@ module.exports = {
 
         world.camera.aspect = world.width / world.height;
         world.camera.updateProjectionMatrix();
+
+        // the frustum decides which DOM labels are drawn; a new aspect leaves it stale
+        this.recalculateFrustum(world.camera);
 
         world.renderer.setSize(world.width, world.height);
     },
@@ -381,7 +388,12 @@ module.exports = {
             }
 
             obj.rotation.set(0.0, 0.0, 0.0);
-            obj.scale.set(1.0, 1.0, 1.0);
+
+            if (obj.initialScale) {
+                obj.scale.copy(obj.initialScale);
+            } else {
+                obj.scale.set(1.0, 1.0, 1.0);
+            }
 
             obj.applyMatrix4(modelMatrix);
             obj.updateMatrixWorld();
@@ -404,17 +416,24 @@ module.exports = {
             && !changes.opacity.timeSeries && obj.material) {
             obj.material.opacity = changes.opacity;
 
-            obj.material.side = getSide({
-                opacity: changes.opacity, side: config.side,
-            });
+            // an object without a side trait (surface) keeps the side its create() chose
+            if (typeof (config.side) !== 'undefined') {
+                obj.material.side = getSide({
+                    opacity: changes.opacity, side: config.side,
+                });
+            }
 
             if (obj.material.uniforms && obj.material.uniforms.opacity) {
                 obj.material.uniforms.opacity.value = changes.opacity;
             }
 
             if (K3D.parameters.depthPeels === 0) {
-                obj.material.depthWrite = changes.opacity === 1.0;
-                obj.material.transparent = changes.opacity !== 1.0;
+                // alpha also comes from per-point opacities and from an opacity function, the
+                // same way every create() computes these two flags
+                const hasAlpha = nonEmpty(config.opacities) || nonEmpty(config.opacity_function);
+
+                obj.material.depthWrite = changes.opacity === 1.0 && !hasAlpha;
+                obj.material.transparent = changes.opacity !== 1.0 || hasAlpha;
             }
 
             obj.material.needsUpdate = true;

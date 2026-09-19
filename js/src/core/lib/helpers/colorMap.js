@@ -99,7 +99,7 @@ function mergeColorMapWithOpacity(colormap, opacity, dim) {
     ), []);
 }
 
-function createSVGGradient(svg, id, colormap, opacity, horizontal) {
+function createSVGGradient(svg, id, colormap, opacity, horizontal, reversed) {
     const svgNS = svg.namespaceURI;
     const grad = document.createElementNS(svgNS, 'linearGradient');
 
@@ -109,16 +109,18 @@ function createSVGGradient(svg, id, colormap, opacity, horizontal) {
 
     grad.setAttribute('id', id);
 
+    // reversed: the start of the colormap belongs at the far end, which is what a color_range
+    // given high-to-low asks the shader for
     if (horizontal) {
-        grad.setAttribute('x1', '0');
-        grad.setAttribute('x2', '1');
+        grad.setAttribute('x1', reversed ? '1' : '0');
+        grad.setAttribute('x2', reversed ? '0' : '1');
         grad.setAttribute('y1', '0');
         grad.setAttribute('y2', '0');
     } else {
         grad.setAttribute('x1', '0');
         grad.setAttribute('x2', '0');
-        grad.setAttribute('y1', '1');
-        grad.setAttribute('y2', '0');
+        grad.setAttribute('y1', reversed ? '0' : '1');
+        grad.setAttribute('y2', reversed ? '1' : '0');
     }
 
     const data = mergeColorMapWithOpacity(colormap, opacity, 1);

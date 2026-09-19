@@ -32,7 +32,9 @@ class PlotDisplayMixin:
 
     def close(self) -> None:
         """Remove plot from all its ipywidgets.Output()-s."""
-        for output in self.outputs:
+        # Widget.__del__ calls this, and it fires on a plot whose __init__ raised - a rejected
+        # trait then reports itself twice, the second time as an unrelated AttributeError
+        for output in getattr(self, "outputs", []):
             output.clear_output()
 
         self.outputs = []

@@ -2,6 +2,18 @@ const THREE = require('three');
 const { cameraModes } = require('../../../core/lib/cameraMode');
 const { recalculateFrustum } = require('../helpers/Fn');
 
+// up before lookAt: the roll of the view is decided by the up vector, so setting it afterwards
+// leaves the gizmo tilted until something aligns it again
+function alignAxesCamera(self, K3D) {
+    const camDistance = (3.0 * 0.5) / Math.tan(THREE.MathUtils.degToRad(K3D.parameters.cameraFov / 2.0));
+
+    self.axesHelper.camera.position.copy(
+        self.camera.position.clone().sub(self.controls.target).normalize().multiplyScalar(camDistance),
+    );
+    self.axesHelper.camera.up.copy(self.camera.up);
+    self.axesHelper.camera.lookAt(0, 0, 0);
+}
+
 function addEvents(self, K3D, controls) {
     controls.getCameraArray = function () {
         const r = [];
@@ -20,12 +32,7 @@ function addEvents(self, K3D, controls) {
 
         K3D.dispatch(K3D.events.CAMERA_CHANGE, r);
 
-        const camDistance = (3.0 * 0.5) / Math.tan(THREE.MathUtils.degToRad(K3D.parameters.cameraFov / 2.0));
-
-        self.axesHelper.camera.position.copy(self.camera.position.clone().sub(self.controls.target).normalize()
-            .multiplyScalar(camDistance));
-        self.axesHelper.camera.lookAt(0, 0, 0);
-        self.axesHelper.camera.up.copy(self.camera.up);
+        alignAxesCamera(self, K3D);
     });
 
     controls.addEventListener('change', () => {
@@ -58,6 +65,8 @@ function createOrbitControls(self, K3D) {
 
     controls.type = cameraModes.orbit;
     controls.rotateSpeed = K3D.parameters.cameraRotateSpeed;
+    controls.zoomSpeed = K3D.parameters.cameraZoomSpeed;
+    controls.panSpeed = K3D.parameters.cameraPanSpeed;
 
     if (K3D.parameters.cameraDampingFactor > 0.0) {
         controls.enableDamping = true;
@@ -116,24 +125,42 @@ function createVolumeSideControls(self, K3D) {
     return controls;
 }
 
+// both families of flags, since Core writes both: Trackball reads no*, Orbit enable*
+function applyCameraLock(controls, K3D) {
+    controls.noRotate = K3D.parameters.cameraNoRotate;
+    controls.noZoom = K3D.parameters.cameraNoZoom;
+    controls.noPan = K3D.parameters.cameraNoPan;
+    controls.enableRotate = !K3D.parameters.cameraNoRotate;
+    controls.enableZoom = !K3D.parameters.cameraNoZoom;
+    controls.enablePan = !K3D.parameters.cameraNoPan;
+}
+
 function createControls(self, K3D) {
+    let controls = null;
+
     if (K3D.parameters.cameraMode === cameraModes.trackball) {
-        return createTrackballControls(self, K3D);
-    }
-    if (K3D.parameters.cameraMode === cameraModes.orbit) {
-        return createOrbitControls(self, K3D);
-    }
-    if (K3D.parameters.cameraMode === cameraModes.fly) {
-        return createFlyControls(self, K3D);
-    }
-    if (K3D.parameters.cameraMode === cameraModes.sliceViewer) {
-        return createSliceControls(self, K3D);
-    }
-    if (K3D.parameters.cameraMode === cameraModes.volumeSides) {
-        return createVolumeSideControls(self, K3D);
+        controls = createTrackballControls(self, K3D);
+    } else if (K3D.parameters.cameraMode === cameraModes.orbit) {
+        controls = createOrbitControls(self, K3D);
+    } else if (K3D.parameters.cameraMode === cameraModes.fly) {
+        controls = createFlyControls(self, K3D);
+    } else if (K3D.parameters.cameraMode === cameraModes.sliceViewer) {
+        controls = createSliceControls(self, K3D);
+    } else if (K3D.parameters.cameraMode === cameraModes.volumeSides) {
+        controls = createVolumeSideControls(self, K3D);
+    } else {
+        // no controls at all means a dead canvas and an error only in the browser console
+        console.warn(`K3D: unknown camera_mode '${K3D.parameters.cameraMode}', using trackball`);
+        K3D.parameters.cameraMode = cameraModes.trackball;
+        controls = createTrackballControls(self, K3D);
     }
 
-    return null;
+    if (controls !== null) {
+        // fresh controls know nothing of the lock in force
+        applyCameraLock(controls, K3D);
+    }
+
+    return controls;
 }
 
 /**
@@ -247,6 +274,7 @@ module.exports = function (K3D) {
             self.renderer.domElement.removeEventListener('pointermove', onDocumentMouseMove);
             self.renderer.domElement.removeEventListener('pointerdown', onDocumentMouseDown);
             self.renderer.domElement.removeEventListener('pointerup', onDocumentMouseUp);
+            self.renderer.domElement.removeEventListener('pointerleave', onDocumentMouseLeave);
             window.removeEventListener('visibilitychange', onVisibilityChange);
             self.controls.dispose();
 
@@ -281,12 +309,17 @@ module.exports = function (K3D) {
         K3D.dispatch(K3D.events.MOUSE_MOVE, getCoordinate(event));
     }
 
+    function onDocumentMouseLeave() {
+        K3D.dispatch(K3D.events.MOUSE_LEAVE);
+    }
+
     this.renderer.setSize(this.width, this.height);
     this.targetDOMNode.appendChild(this.renderer.domElement);
 
     this.renderer.domElement.addEventListener('pointermove', onDocumentMouseMove, false);
     this.renderer.domElement.addEventListener('pointerdown', onDocumentMouseDown, false);
     this.renderer.domElement.addEventListener('pointerup', onDocumentMouseUp, false);
+    this.renderer.domElement.addEventListener('pointerleave', onDocumentMouseLeave, false);
 
     this.controls = createControls(self, K3D);
 
@@ -307,11 +340,23 @@ module.exports = function (K3D) {
             return;
         }
 
+        // the camera keeps its position, so fresh controls looking at the origin swing the view
+        const target = (self.controls && self.controls.target)
+            ? self.controls.target.clone() : null;
+
         if (self.controls) {
             self.controls.dispose();
         }
 
         self.controls = createControls(self, K3D);
+
+        if (target && self.controls.target) {
+            self.controls.target.copy(target);
+        }
+
+        // camera_up_axis comes through here: without this the gizmo keeps the previous up and
+        // sits rolled over until the first drag fires a change event
+        alignAxesCamera(self, K3D);
     };
 
     refresh();

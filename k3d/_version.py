@@ -13,8 +13,9 @@ def _fetchVersion() -> str:
     except Exception:
         pass
 
-    # source tree: js/package.json carries the canonical version
-    js_pkg = Path(__file__).parent.parent / "js" / "package.json"
+    # source tree: the root package.json is what hatch-nodejs-version reads, so it is the one
+    # the wheel and the PyPI release are named after
+    js_pkg = Path(__file__).parent.parent / "package.json"
     if js_pkg.exists():
         try:
             with js_pkg.open() as f:

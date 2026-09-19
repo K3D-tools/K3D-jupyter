@@ -48,6 +48,16 @@ module.exports = {
         }
 
         const material = new MaterialConstructor(materialParams);
+
+        // without this the whole frame falls back to the slow peeling path (scenePeelsWithMrt
+        // refuses a scene with one unprepared material) and a translucent surface is blended
+        // into the peel layers instead of being peeled
+        if (K3D.parameters.depthPeels !== 0) {
+            material.blending = THREE.NoBlending;
+            material.onBeforeCompile = K3D.colorOnBeforeCompile;
+            material.userData.k3dPeelDepthOut = true;
+        }
+
         const geometry = new THREE.BufferGeometry();
         const vertices = new Float32Array(width * height * 3);
         const indices = [];

@@ -71,12 +71,15 @@ class TF_editor(K3DAnyWidget):
 
         cm_min, cm_max = np.min(proposal["value"][::4]), np.max(proposal["value"][::4])
 
-        if cm_min != 0.0 or cm_max != 1.0:
-            proposal["value"][::4] = (proposal["value"][::4] - cm_min) / (
-                    cm_max - cm_min
-            )
+        if cm_min == 0.0 and cm_max == 1.0:
+            return proposal["value"]
 
-        return proposal["value"]
+        # a copy: the trait casts without copying when the dtype already matches, so this
+        # would otherwise rescale the caller's own array behind its back
+        value = np.array(proposal["value"], copy=True)
+        value[::4] = (value[::4] - cm_min) / (cm_max - cm_min)
+
+        return value
 
     @validate("opacity_function")
     def _validate_opacity_function(self, proposal: TypingDict[str, Any]) -> np.ndarray:
@@ -85,12 +88,14 @@ class TF_editor(K3DAnyWidget):
 
         of_min, of_max = np.min(proposal["value"][::2]), np.max(proposal["value"][::2])
 
-        if of_min != 0.0 or of_max != 1.0:
-            proposal["value"][::2] = (proposal["value"][::2] - of_min) / (
-                    of_max - of_min
-            )
+        if of_min == 0.0 and of_max == 1.0:
+            return proposal["value"]
 
-        return proposal["value"]
+        # a copy, for the same reason as the colormap above
+        value = np.array(proposal["value"], copy=True)
+        value[::2] = (value[::2] - of_min) / (of_max - of_min)
+
+        return value
 
 
 def transfer_function_editor(

@@ -23,7 +23,7 @@ Basic
     import numpy as np
     import pyvista as pv
 
-    data = pv.raed('cow.vtp')
+    data = pv.read('cow.vtp')
 
     plt_vtk = k3d.vtk_poly_data(data)
 

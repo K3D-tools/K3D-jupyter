@@ -58,6 +58,11 @@ module.exports = function cinematic(K3D, renderer, hooks) {
     let lastBounces = null;
     let lastGlossyFilter = null;
     let lastDenoise = 0.0;
+    // the rasterised layer of what the tracer did not take over; rebuilt once per accumulation
+    let overlayDirty = true;
+    // the camera the traced scene was built with, for the billboards frozen against it
+    const builtCamera = new THREE.Matrix4();
+    let builtCameraKnown = false;
     // undefined, not null: null is a legal seed, and the first pass must still apply it
     let lastSeed;
     // the stratified-sample texture rebuilds on the first sample after a scene or bounce
@@ -91,10 +96,17 @@ module.exports = function cinematic(K3D, renderer, hooks) {
     }
 
     // edits the tracer refreshes without a BVH rebuild, whatever the object is
-    const MATERIAL_ONLY = ['roughness', 'metalness', 'opacity', 'light_scale'];
+    // not opacity: it flips `transparent`, and a fast-path update measured 68 pixels off a
+    // fresh build on voxels (test_visual_voxels, dynamic opacity), so it rebuilds until the
+    // difference is understood
+    const MATERIAL_ONLY = ['roughness', 'metalness', 'light_scale'];
     // and these on a volume only - on points and tubes the same keys are baked into vertex
     // attributes, where changing one is geometry
     const VOLUME_MATERIAL_ONLY = ['color_range', 'alpha_coef', 'gradient_step'];
+
+    // A headless sync addresses its diff: k3d.headless sends {id, type, ...changed}, so a
+    // material edit arrives carrying two keys that are bookkeeping, not content.
+    const BOOKKEEPING = ['id', 'type'];
 
     // OBJECT_CHANGE names one key, OBJECT_LOADED a whole set; no payload means assume the worst
     function materialOnly(change) {
@@ -111,7 +123,13 @@ module.exports = function cinematic(K3D, renderer, hooks) {
         const json = K3D.getWorld().ObjectsListJson[change.id];
         const volume = Boolean(json) && json.type === 'Volume';
 
-        return keys.every((key) => MATERIAL_ONLY.indexOf(key) !== -1
+        const content = keys.filter((key) => BOOKKEEPING.indexOf(key) === -1);
+
+        if (content.length === 0) {
+            return false;
+        }
+
+        return content.every((key) => MATERIAL_ONLY.indexOf(key) !== -1
             || (volume && VOLUME_MATERIAL_ONLY.indexOf(key) !== -1));
     }
 
@@ -138,6 +156,7 @@ module.exports = function cinematic(K3D, renderer, hooks) {
     function restart() {
         generation++;
         needsWarmup = true;
+        overlayDirty = true;
         holdSamples();
         backend.reset();
     }
@@ -200,9 +219,14 @@ module.exports = function cinematic(K3D, renderer, hooks) {
     }
 
     function buildScene() {
+        const { camera } = K3D.getWorld();
+
         scene = new THREE.Scene();
-        proxy.populate(scene, K3D.getWorld().camera, { volumes: backend.volumeSupported() });
+        proxy.populate(scene, camera, { volumes: backend.volumeSupported() });
         applyEnvironment(scene);
+
+        builtCamera.copy(camera.matrixWorld);
+        builtCameraKnown = true;
 
         return scene;
     }
@@ -339,6 +363,8 @@ module.exports = function cinematic(K3D, renderer, hooks) {
             lastBounces = null;
             lastGlossyFilter = null;
             lastSeed = undefined;
+            // dispose() drops the variance buffer; without this the filter is never asked for again
+            lastDenoise = null;
             sceneDirty = true;
             onError(e);
         });
@@ -439,10 +465,13 @@ module.exports = function cinematic(K3D, renderer, hooks) {
         }
 
         if (materialsDirty) {
-            // BVH untouched: refresh the material texture only
+            // BVH untouched: refresh the material texture only. A material edit can still
+            // recompile the program, and the first sample after that rebuilds the stratified
+            // texture - warm up like a rebuild does, or the noise pattern shifts.
             proxy.syncMaterials();
             backend.updateMaterials();
             materialsDirty = false;
+            needsWarmup = true;
         }
 
         if (key !== envKey) {
@@ -660,12 +689,15 @@ module.exports = function cinematic(K3D, renderer, hooks) {
         releaseFixedSize() {
             backend.releaseFixedSize();
             backend.reset();
+            // the layer target was resized to the screenshot: the viewport needs its own again
+            overlayDirty = true;
         },
 
         // one renderSample() per animation frame, never a loop inside a single task: the
         // browser composites between frames and an edit lands on the next one.
         wake() {
             wanted = true;
+            overlayDirty = true;
 
             if (frameHandle !== null) {
                 return;
@@ -746,6 +778,23 @@ module.exports = function cinematic(K3D, renderer, hooks) {
                         frameHandle = window.requestAnimationFrame(frame);
 
                         return;
+                    }
+
+                    // texture_text is frozen facing the camera of the build, and the docs promise
+                    // the orientation the accumulation started with. Only a scene that has any.
+                    if (proxy.hasCameraFacing() && builtCameraKnown
+                        && !builtCamera.equals(world.camera.matrixWorld)) {
+                        sceneDirty = true;
+                        frameHandle = window.requestAnimationFrame(frame);
+
+                        return;
+                    }
+
+                    if (overlayDirty && prepareOverlay !== null) {
+                        // the offscreen path builds it per accumulation as well; without this the
+                        // layer is missing here and a later screenshot leaves a stale one behind
+                        prepareOverlay(scene, world.width, world.height);
+                        overlayDirty = false;
                     }
 
                     if (needsWarmup) {
@@ -834,6 +883,12 @@ module.exports = function cinematic(K3D, renderer, hooks) {
             if (hud !== null) {
                 hud.style.display = 'none';
             }
+        },
+
+        // whether the interactive loop is running, for callers that have to stop it and put
+        // it back afterwards
+        isRunning() {
+            return wanted;
         },
 
         // strands any in-flight accumulation without discarding prepared state

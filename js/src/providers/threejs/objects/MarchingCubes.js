@@ -10,9 +10,22 @@ const { commonUpdate } = require('../helpers/Fn');
 const colorMapHelper = require('../../../core/lib/helpers/colorMap');
 
 function isAttribute(config) {
-    return config.attribute && config.attribute.data && config.attribute.data.length > 0
+    const usable = config.attribute && config.attribute.data && config.attribute.data.length > 0
         && config.color_range && config.color_range.length > 0
         && config.color_map && config.color_map.data && config.color_map.data.length > 0;
+
+    // the attribute is sampled as a 3D field over the same grid as scalar_field. A flat array
+    // built a 1 x 1 x N texture - past MAX_3D_TEXTURE_SIZE for any real field, which leaves the
+    // surface in one colour with nothing said.
+    if (usable && (!config.attribute.shape || config.attribute.shape.length !== 3)) {
+        console.warn('K3D.marching_cubes: attribute is sampled as a 3D field on the same grid as '
+            + `scalar_field; an array of shape ${JSON.stringify(config.attribute.shape)} is not `
+            + 'one and is ignored');
+
+        return false;
+    }
+
+    return usable;
 }
 
 /**
@@ -122,6 +135,8 @@ module.exports = {
                     high: { value: colorRange[1] },
                     volumeTexture: { type: 't', value: texture },
                     colormap: { type: 't', value: colormap },
+                    // filled in once the spacings are summed, below
+                    kVolumeSize: { value: new THREE.Vector3(1, 1, 1) },
                 };
                 // the key replaces three's default (onBeforeCompile.toString()), so every input
                 // that changes the injected shader has to be in it - peeling included
@@ -130,10 +145,12 @@ module.exports = {
                 material.onBeforeCompile = (shader) => {
                     Object.assign(shader.uniforms, material.uniforms);
 
-                    shader.vertexShader = `varying vec3 kLocalPosition;\n${
+                    // the geometry runs from the origin to the field size, not from -0.5 to
+                    // 0.5: adding a half clamped four vertices in five to the texture face
+                    shader.vertexShader = `varying vec3 kLocalPosition;\nuniform vec3 kVolumeSize;\n${
                         shader.vertexShader.replace(
                             '#include <begin_vertex>',
-                            '#include <begin_vertex>\nkLocalPosition = position + vec3(0.5);',
+                            '#include <begin_vertex>\nkLocalPosition = position / kVolumeSize;',
                         )}`;
                     shader.fragmentShader = `${require('./shaders/chunks/marchingCubesColor.fragment.header.glsl')}\n${
                         shader.fragmentShader.replace(
@@ -253,6 +270,10 @@ module.exports = {
                         sizeZ = spacingsZ.data.reduce((p, v) => p + v, 0);
                     }
 
+                    if (material.uniforms && material.uniforms.kVolumeSize) {
+                        material.uniforms.kVolumeSize.value.set(sizeX, sizeY, sizeZ);
+                    }
+
                     geometry.boundingSphere = new THREE.Sphere(
                         new THREE.Vector3(0.5 * sizeX, 0.5 * sizeY, 0.5 * sizeZ),
                         new THREE.Vector3(0.5 * sizeX, 0.5 * sizeY, 0.5 * sizeZ).length(),
@@ -265,6 +286,7 @@ module.exports = {
 
                     object = new THREE.Mesh(geometry, material);
                     object.scale.set(1.0 / sizeX, 1.0 / sizeY, 1.0 / sizeZ);
+                    object.initialScale = object.scale.clone();
 
                     interactionsHelper.init(config, object, K3D);
 
