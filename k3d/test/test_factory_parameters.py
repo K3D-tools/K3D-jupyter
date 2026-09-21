@@ -73,7 +73,7 @@ FACTORIES = {
     "surface": lambda **kw: k3d.surface(np.zeros((4, 4), np.float32), **kw),
     "text": lambda **kw: k3d.text("a", **kw),
     "text2d": lambda **kw: k3d.text2d("a", **kw),
-    "texture": lambda **kw: k3d.texture(**kw),
+    "texture": k3d.texture,  # takes no positional argument, so the factory is the builder
     "texture_text": lambda **kw: k3d.texture_text("a", **kw),
     "vector_field": lambda **kw: k3d.vector_field(np.zeros((2, 2, 2, 3), np.float32), **kw),
     "vectors": lambda **kw: k3d.vectors([0, 0, 0], [1, 1, 1], **kw),
