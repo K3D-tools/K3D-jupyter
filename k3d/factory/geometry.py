@@ -1,7 +1,7 @@
 """Factory functions for geometric objects."""
 
 import warnings
-from typing import Any, Optional, Tuple, Union
+from typing import Any, Callable, Optional, Tuple, Union
 from typing import Dict as TypingDict
 from typing import List as TypingList
 
@@ -59,6 +59,7 @@ def lines(
         group: Optional[str] = None,
         custom_data: Optional[TypingDict[str, Any]] = None,
         compression_level: int = 0,
+        visible: bool = True,
         **kwargs: Any,
 ) -> Lines:
     """
@@ -106,6 +107,8 @@ def lines(
         An object with custom data attached to object. Default is None.
     compression_level : int, optional
         Level of compression [-1, 9]. Default is 0.
+    visible : bool, optional
+        Whether the object is drawn. Default is True.
     **kwargs
         Additional keyword arguments passed to process_transform_arguments.
 
@@ -154,6 +157,7 @@ def lines(
             group=group,
             custom_data=custom_data,
             compression_level=compression_level,
+            visible=visible,
         ),
         **kwargs,
     )
@@ -177,6 +181,7 @@ def line(
         group: Optional[str] = None,
         custom_data: Optional[TypingDict[str, Any]] = None,
         compression_level: int = 0,
+        visible: bool = True,
         **kwargs: Any,
 ) -> Line:
     """
@@ -217,6 +222,8 @@ def line(
         An object with custom data attached to object, by default None.
     compression_level : int, optional
         Level of data compression [-1, 9], by default 0.
+    visible : bool, optional
+        Whether the object is drawn. Default is True.
     **kwargs
         Additional keyword arguments passed to process_transform_arguments.
 
@@ -263,6 +270,7 @@ def line(
             group=group,
             custom_data=custom_data,
             compression_level=compression_level,
+            visible=visible,
         ),
         **kwargs,
     )
@@ -297,6 +305,9 @@ def mesh(
         custom_data: Optional[TypingDict[str, Any]] = None,
         compression_level: int = 0,
         triangles_attribute: ArrayLike = None,
+        visible: bool = True,
+        click_callback: Optional[Callable] = None,
+        hover_callback: Optional[Callable] = None,
         **kwargs: Any,
 ) -> Mesh:
     """Create a Mesh drawable from 3D triangles.
@@ -363,6 +374,14 @@ def mesh(
     slice_planes : list, optional
         Planes [a, b, c, d] the section outline is drawn along, up to eight of them. The outline
         is drawn in the object colour, without the colormap, by default [].
+    visible : bool, optional
+        Whether the object is drawn. Default is True.
+    click_callback : callable, optional
+        Called with the picking parameters when the object is clicked, while the plot is
+        in mode='callback'. Default is None.
+    hover_callback : callable, optional
+        Called with the picking parameters when the cursor is over the object, while the
+        plot is in mode='callback'. Default is None.
     **kwargs
         For other keyword-only arguments, see :ref:`process_transform_arguments`.
 
@@ -450,6 +469,9 @@ def mesh(
             group=group,
             custom_data=custom_data,
             compression_level=compression_level,
+            visible=visible,
+            click_callback=click_callback,
+            hover_callback=hover_callback,
         ),
         **kwargs,
     )
@@ -468,6 +490,7 @@ def stl(
         group: Optional[str] = None,
         custom_data: Optional[TypingDict[str, Any]] = None,
         compression_level: int = 0,
+        visible: bool = True,
         **kwargs: Any,
 ) -> STL:
     """Create an STL drawable for data in STereoLitograpy format.
@@ -494,6 +517,8 @@ def stl(
         A object with custom data attached to object.
     compression_level : int, optional
         Level of data compression [-1, 9], by default 0.
+    visible : bool, optional
+        Whether the object is drawn. Default is True.
     **kwargs
         For other keyword-only arguments, see :ref:`process_transform_arguments`.
 
@@ -518,6 +543,7 @@ def stl(
             group=group,
             custom_data=custom_data,
             compression_level=compression_level,
+            visible=visible,
         ),
         **kwargs,
     )
@@ -539,6 +565,9 @@ def surface(
         group: Optional[str] = None,
         custom_data: Optional[TypingDict[str, Any]] = None,
         compression_level: int = 0,
+        visible: bool = True,
+        click_callback: Optional[Callable] = None,
+        hover_callback: Optional[Callable] = None,
         **kwargs: Any,
 ) -> Surface:
     """Create a Surface drawable.
@@ -584,6 +613,14 @@ def surface(
         A object with custom data attached to object.
     compression_level : int, optional
         Level of data compression [-1, 9], by default 0.
+    visible : bool, optional
+        Whether the object is drawn. Default is True.
+    click_callback : callable, optional
+        Called with the picking parameters when the object is clicked, while the plot is
+        in mode='callback'. Default is None.
+    hover_callback : callable, optional
+        Called with the picking parameters when the cursor is over the object, while the
+        plot is in mode='callback'. Default is None.
     **kwargs
         For other keyword-only arguments, see :ref:`process_transform_arguments`.
 
@@ -624,6 +661,9 @@ def surface(
             group=group,
             custom_data=custom_data,
             compression_level=compression_level,
+            visible=visible,
+            click_callback=click_callback,
+            hover_callback=hover_callback,
         ),
         **kwargs,
     )

@@ -1,6 +1,6 @@
 """Factory function for VTK PolyData objects."""
 
-from typing import Any, Optional, Tuple, Union
+from typing import Any, Callable, Optional, Tuple, Union
 from typing import Dict as TypingDict
 from typing import List as TypingList
 
@@ -48,6 +48,9 @@ def vtk_poly_data(
         group: Optional[str] = None,
         custom_data: Optional[TypingDict[str, Any]] = None,
         compression_level: int = 0,
+        visible: bool = True,
+        click_callback: Optional[Callable] = None,
+        hover_callback: Optional[Callable] = None,
         **kwargs: Any,
 ) -> Mesh:
     """
@@ -108,6 +111,14 @@ def vtk_poly_data(
         An object with custom data attached to object. Default is None.
     compression_level : int, optional
         Level of compression [-1, 9]. Default is 0.
+    visible : bool, optional
+        Whether the object is drawn. Default is True.
+    click_callback : callable, optional
+        Called with the picking parameters when the object is clicked, while the plot is
+        in mode='callback'. Default is None.
+    hover_callback : callable, optional
+        Called with the picking parameters when the cursor is over the object, while the
+        plot is in mode='callback'. Default is None.
     **kwargs
         Additional keyword arguments passed to process_transform_arguments.
 
@@ -199,6 +210,9 @@ def vtk_poly_data(
             group=group,
             custom_data=custom_data,
             compression_level=compression_level,
+            visible=visible,
+            click_callback=click_callback,
+            hover_callback=hover_callback,
         ),
         **kwargs,
     )

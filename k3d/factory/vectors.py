@@ -28,6 +28,7 @@ def vector_field(
         group: Optional[str] = None,
         custom_data: Optional[TypingDict[str, Any]] = None,
         compression_level: int = 0,
+        visible: bool = True,
         **kwargs: Any,
 ) -> VectorField:
     """
@@ -66,6 +67,8 @@ def vector_field(
         An object with custom data attached to object. Default is None.
     compression_level : int, optional
         Level of compression [-1, 9]. Default is 0.
+    visible : bool, optional
+        Whether the object is drawn. Default is True.
     **kwargs
         Additional keyword arguments passed to process_transform_arguments.
 
@@ -91,6 +94,7 @@ def vector_field(
             group=group,
             custom_data=custom_data,
             compression_level=compression_level,
+            visible=visible,
         ),
         **kwargs,
     )
@@ -112,6 +116,7 @@ def vectors(
         group: Optional[str] = None,
         custom_data: Optional[TypingDict[str, Any]] = None,
         compression_level: int = 0,
+        visible: bool = True,
         **kwargs: Any,
 ) -> Vectors:
     """
@@ -154,6 +159,8 @@ def vectors(
         An object with custom data attached to object. Default is None.
     compression_level : int, optional
         Level of compression [-1, 9]. Default is 0.
+    visible : bool, optional
+        Whether the object is drawn. Default is True.
     **kwargs
         Additional keyword arguments passed to process_transform_arguments.
 
@@ -185,6 +192,7 @@ def vectors(
             group=group,
             custom_data=custom_data,
             compression_level=compression_level,
+            visible=visible,
         ),
         **kwargs,
     )

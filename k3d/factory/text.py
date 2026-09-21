@@ -25,6 +25,7 @@ def text(
         group: Optional[str] = None,
         custom_data: Optional[TypingDict[str, Any]] = None,
         compression_level: int = 0,
+        visible: bool = True,
         **kwargs: Any,
 ) -> Text:
     """
@@ -58,6 +59,8 @@ def text(
         An object with custom data attached to object. Default is None.
     compression_level : int, optional
         Level of compression [-1, 9]. Default is 0.
+    visible : bool, optional
+        Whether the object is drawn. Default is True.
     **kwargs
         Additional keyword arguments passed to process_transform_arguments.
 
@@ -83,6 +86,7 @@ def text(
             group=group,
             custom_data=custom_data,
             compression_level=compression_level,
+            visible=visible,
         ),
         **kwargs,
     )
@@ -100,6 +104,7 @@ def text2d(
         group: Optional[str] = None,
         custom_data: Optional[TypingDict[str, Any]] = None,
         compression_level: int = 0,
+        visible: bool = True,
 ) -> Text2d:
     """
     Create a Text2d drawable, rendered with KaTeX at a fixed place on the canvas.
@@ -130,6 +135,8 @@ def text2d(
         An object with custom data attached to object. Default is None.
     compression_level : int, optional
         Level of compression [-1, 9]. Default is 0.
+    visible : bool, optional
+        Whether the object is drawn. Default is True.
 
     Returns
     -------
@@ -148,6 +155,7 @@ def text2d(
         group=group,
         custom_data=custom_data,
         compression_level=compression_level,
+        visible=visible,
     )
 
 
@@ -165,6 +173,7 @@ def label(
         group: Optional[str] = None,
         custom_data: Optional[TypingDict[str, Any]] = None,
         compression_level: int = 0,
+        visible: bool = True,
         **kwargs: Any,
 ) -> Label:
     """
@@ -200,6 +209,8 @@ def label(
         An object with custom data attached to object. Default is None.
     compression_level : int, optional
         Level of compression [-1, 9]. Default is 0.
+    visible : bool, optional
+        Whether the object is drawn. Default is True.
     **kwargs
         Additional keyword arguments passed to process_transform_arguments.
 
@@ -223,6 +234,7 @@ def label(
             group=group,
             custom_data=custom_data,
             compression_level=compression_level,
+            visible=visible,
         ),
         **kwargs,
     )
@@ -240,6 +252,7 @@ def texture_text(
         group: Optional[str] = None,
         custom_data: Optional[TypingDict[str, Any]] = None,
         compression_level: int = 0,
+        visible: bool = True,
         **kwargs: Any,
 ) -> TextureText:
     """
@@ -272,6 +285,8 @@ def texture_text(
         An object with custom data attached to object. Default is None.
     compression_level : int, optional
         Level of compression [-1, 9]. Default is 0.
+    visible : bool, optional
+        Whether the object is drawn. Default is True.
     **kwargs
         Additional keyword arguments passed to process_transform_arguments.
 
@@ -293,6 +308,7 @@ def texture_text(
             group=group,
             custom_data=custom_data,
             compression_level=compression_level,
+            visible=visible,
         ),
         **kwargs,
     )

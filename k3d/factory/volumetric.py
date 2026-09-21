@@ -1,7 +1,7 @@
 """Factory functions for volumetric and voxel-based objects."""
 
 import warnings
-from typing import Any, Optional, Tuple, Union
+from typing import Any, Callable, Optional, Tuple, Union
 from typing import Dict as TypingDict
 from typing import List as TypingList
 
@@ -40,6 +40,7 @@ def volume(
         group: Optional[str] = None,
         custom_data: Optional[TypingDict[str, Any]] = None,
         compression_level: int = 0,
+        visible: bool = True,
         **kwargs: Any,
 ) -> Volume:
     """
@@ -100,6 +101,8 @@ def volume(
         An object with custom data attached to object. Default is None.
     compression_level : int, optional
         Level of compression [-1, 9]. Default is 0.
+    visible : bool, optional
+        Whether the object is drawn. Default is True.
     **kwargs
         Additional keyword arguments passed to process_transform_arguments.
 
@@ -142,6 +145,7 @@ def volume(
             opacity_function=opacity_function,
             color_range=color_range,
             compression_level=compression_level,
+            visible=visible,
             samples=samples,
             alpha_coef=alpha_coef,
             gradient_step=gradient_step,
@@ -178,6 +182,7 @@ def mip(
         group: Optional[str] = None,
         custom_data: Optional[TypingDict[str, Any]] = None,
         compression_level: int = 0,
+        visible: bool = True,
         **kwargs: Any,
 ) -> MIP:
     """
@@ -224,6 +229,8 @@ def mip(
         An object with custom data attached to object. Default is None.
     compression_level : int, optional
         Level of compression [-1, 9]. Default is 0.
+    visible : bool, optional
+        Whether the object is drawn. Default is True.
     **kwargs
         Additional keyword arguments passed to process_transform_arguments.
 
@@ -278,6 +285,7 @@ def mip(
             group=group,
             custom_data=custom_data,
             compression_level=compression_level,
+            visible=visible,
         ),
         **kwargs,
     )
@@ -301,6 +309,9 @@ def volume_slice(
         group: Optional[str] = None,
         custom_data: Optional[TypingDict[str, Any]] = None,
         compression_level: int = 0,
+        visible: bool = True,
+        click_callback: Optional[Callable] = None,
+        hover_callback: Optional[Callable] = None,
         **kwargs: Any,
 ) -> VolumeSlice:
     """
@@ -348,6 +359,14 @@ def volume_slice(
         An object with custom data attached to object. Default is None.
     compression_level : int, optional
         Level of compression [-1, 9]. Default is 0.
+    visible : bool, optional
+        Whether the object is drawn. Default is True.
+    click_callback : callable, optional
+        Called with the picking parameters when the object is clicked, while the plot is
+        in mode='callback'. Default is None.
+    hover_callback : callable, optional
+        Called with the picking parameters when the cursor is over the object, while the
+        plot is in mode='callback'. Default is None.
     **kwargs
         Additional keyword arguments passed to process_transform_arguments.
 
@@ -408,6 +427,9 @@ def volume_slice(
             group=group,
             custom_data=custom_data,
             compression_level=compression_level,
+            visible=visible,
+            click_callback=click_callback,
+            hover_callback=hover_callback,
         ),
         **kwargs,
     )
@@ -427,6 +449,7 @@ def voxels(
         group: Optional[str] = None,
         custom_data: Optional[TypingDict[str, Any]] = None,
         compression_level: int = 0,
+        visible: bool = True,
         **kwargs: Any,
 ) -> Voxels:
     """
@@ -464,6 +487,8 @@ def voxels(
         An object with custom data attached to object. Default is None.
     compression_level : int, optional
         Level of compression [-1, 9]. Default is 0.
+    visible : bool, optional
+        Whether the object is drawn. Default is True.
     **kwargs
         Additional keyword arguments passed to process_transform_arguments.
 
@@ -495,6 +520,7 @@ def voxels(
             group=group,
             custom_data=custom_data,
             compression_level=compression_level,
+            visible=visible,
         ),
         **kwargs,
     )
@@ -515,6 +541,7 @@ def sparse_voxels(
         group: Optional[str] = None,
         custom_data: Optional[TypingDict[str, Any]] = None,
         compression_level: int = 0,
+        visible: bool = True,
         **kwargs: Any,
 ) -> SparseVoxels:
     """
@@ -554,6 +581,8 @@ def sparse_voxels(
         An object with custom data attached to object. Default is None.
     compression_level : int, optional
         Level of compression [-1, 9]. Default is 0.
+    visible : bool, optional
+        Whether the object is drawn. Default is True.
     **kwargs
         Additional keyword arguments passed to process_transform_arguments.
 
@@ -591,6 +620,7 @@ def sparse_voxels(
             group=group,
             custom_data=custom_data,
             compression_level=compression_level,
+            visible=visible,
         ),
         **kwargs,
     )
@@ -611,6 +641,7 @@ def voxels_group(
         group: Optional[str] = None,
         custom_data: Optional[TypingDict[str, Any]] = None,
         compression_level: int = 0,
+        visible: bool = True,
         **kwargs: Any,
 ) -> VoxelsGroup:
     """
@@ -649,6 +680,8 @@ def voxels_group(
         An object with custom data attached to object. Default is None.
     compression_level : int, optional
         Level of compression [-1, 9]. Default is 0.
+    visible : bool, optional
+        Whether the object is drawn. Default is True.
     **kwargs
         Additional keyword arguments passed to process_transform_arguments.
 
@@ -688,6 +721,7 @@ def voxels_group(
             group=group,
             custom_data=custom_data,
             compression_level=compression_level,
+            visible=visible,
         ),
         **kwargs,
     )
@@ -714,6 +748,9 @@ def marching_cubes(
         group: Optional[str] = None,
         custom_data: Optional[TypingDict[str, Any]] = None,
         compression_level: int = 0,
+        visible: bool = True,
+        click_callback: Optional[Callable] = None,
+        hover_callback: Optional[Callable] = None,
         **kwargs: Any,
 ) -> MarchingCubes:
     """
@@ -772,6 +809,14 @@ def marching_cubes(
         An object with custom data attached to object. Default is None.
     compression_level : int, optional
         Level of compression [-1, 9]. Default is 0.
+    visible : bool, optional
+        Whether the object is drawn. Default is True.
+    click_callback : callable, optional
+        Called with the picking parameters when the object is clicked, while the plot is
+        in mode='callback'. Default is None.
+    hover_callback : callable, optional
+        Called with the picking parameters when the cursor is over the object, while the
+        plot is in mode='callback'. Default is None.
     **kwargs
         Additional keyword arguments passed to process_transform_arguments.
 
@@ -823,6 +868,9 @@ def marching_cubes(
             group=group,
             custom_data=custom_data,
             compression_level=compression_level,
+            visible=visible,
+            click_callback=click_callback,
+            hover_callback=hover_callback,
         ),
         **kwargs,
     )

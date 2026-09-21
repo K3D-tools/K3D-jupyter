@@ -70,6 +70,16 @@ def plot(
         time_interpolation: bool = True,
         additional_js_code: str = '',
         custom_data: Optional[TypingDict[str, Any]] = None,
+        mode: str = "view",
+        rendering_steps: int = 1,
+        colorbar_scientific: bool = False,
+        camera: Optional[ArrayLike] = None,
+        camera_animation: Optional[Union[TypingDict[float, ArrayLike], ArrayLike]] = None,
+        clipping_planes: Optional[ArrayLike] = None,
+        hidden_object_ids: Optional[TypingList[int]] = None,
+        slice_viewer_object_id: int = -1,
+        slice_viewer_direction: str = "z",
+        slice_viewer_mask_object_ids: Optional[TypingList[int]] = None,
 ) -> Plot:
     """
     Create a Plot widget, the canvas every drawable is added to.
@@ -248,6 +258,31 @@ def plot(
         Additional Js code that will be run after plot is initialized Default is ''.
     custom_data : dict, optional
         An object with custom data attached to object. Default is None.
+    mode : str, optional
+        Mode of the plot. Legal values are: 'view' plain viewing, 'add' clicking adds a voxel,
+        'change' clicking changes a voxel, 'callback' clicking or hovering calls the object's
+        click_callback or hover_callback, 'manipulate' objects carry a transform gizmo. Default is
+        'view'.
+    rendering_steps : int, optional
+        Number of steps a single render is split into, which keeps the browser responsive on heavy
+        scenes. Default is 1.
+    colorbar_scientific : bool, optional
+        Format the color bar ticks in scientific notation. Default is False.
+    camera : array_like, optional
+        Camera as [position_x, position_y, position_z, target_x, target_y, target_z, up_x, up_y,
+        up_z]. An empty list leaves the camera to camera_auto_fit. Default is [].
+    camera_animation : dict or array_like, optional
+        A dictionary of time -> camera keyframes, played back by the plot's time. Default is [].
+    clipping_planes : array_like, optional
+        List of clipping planes, each [A, B, C, D] of Ax + By + Cz + D = 0. Default is [].
+    hidden_object_ids : list, optional
+        Ids of objects hidden without changing their visible trait. Default is [].
+    slice_viewer_object_id : int, optional
+        Id of the object shown in the slice viewer, -1 for none. Default is -1.
+    slice_viewer_direction : str, optional
+        Slicing direction of the slice viewer. Legal values are: 'x', 'y', 'z'. Default is 'z'.
+    slice_viewer_mask_object_ids : list, optional
+        Ids of the objects the slice viewer draws as a mask over the slice. Default is [].
 
     Returns
     -------
@@ -267,6 +302,16 @@ def plot(
         axes = ["x", "y", "z"]
     if axes_helper_colors is None:
         axes_helper_colors = [0xFF0000, 0x00FF00, 0x0000FF]
+    if camera is None:
+        camera = []
+    if camera_animation is None:
+        camera_animation = []
+    if clipping_planes is None:
+        clipping_planes = []
+    if hidden_object_ids is None:
+        hidden_object_ids = []
+    if slice_viewer_mask_object_ids is None:
+        slice_viewer_mask_object_ids = []
 
     return Plot(
         antialias=antialias,
@@ -324,4 +369,14 @@ def plot(
         additional_js_code=additional_js_code,
         fps_meter=fps_meter,
         custom_data=custom_data,
+        mode=mode,
+        rendering_steps=rendering_steps,
+        colorbar_scientific=colorbar_scientific,
+        camera=camera,
+        camera_animation=camera_animation,
+        clipping_planes=clipping_planes,
+        hidden_object_ids=hidden_object_ids,
+        slice_viewer_object_id=slice_viewer_object_id,
+        slice_viewer_direction=slice_viewer_direction,
+        slice_viewer_mask_object_ids=slice_viewer_mask_object_ids,
     )
