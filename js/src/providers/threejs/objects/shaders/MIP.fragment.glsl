@@ -130,12 +130,25 @@ float getMaskOpacity(vec3 pos) {
     return maskOpacities[maskValue];
 }
 
+// Rec. 709 luminance. An RGB volume carries no scalar of its own, and a maximum is a maximum
+// of something: this is it. The colour then comes from the voxel that reached it.
+const vec3 kLuma = vec3(0.2126, 0.7152, 0.0722);
+
+float getVolumeScalar(vec3 pos)
+{
+    #if (USE_RGB_VOLUME == 1)
+    return dot(texture(volumeTexture, pos).rgb, kLuma);
+    #else
+    return texture(volumeTexture, pos).x;
+    #endif
+}
+
 float getMaskedVolume(vec3 pos)
 {
     #if (USE_MASK == 1)
-    return texture(volumeTexture, pos).x * getMaskOpacity(pos);
+    return getVolumeScalar(pos) * getMaskOpacity(pos);
     #else
-    return texture(volumeTexture, pos).x;
+    return getVolumeScalar(pos);
     #endif
 }
 
@@ -228,9 +241,9 @@ void main() {
         #endif
 
         #if (USE_MASK == 1)
-        float newPx = texture(volumeTexture, textcoord).x * getMaskOpacity(textcoord);
+        float newPx = getVolumeScalar(textcoord) * getMaskOpacity(textcoord);
         #else
-        float newPx = texture(volumeTexture, textcoord).x;
+        float newPx = getVolumeScalar(textcoord);
         #endif
 
         if (newPx > px) {
@@ -243,12 +256,23 @@ void main() {
         }
     }
 
+    #if (USE_RGB_VOLUME == 1)
+    // no window: the ramp runs along luminance 0..1, the way opacity_function was given
+    float scaled_px = px;
+    #else
     float scaled_px = k3dScaleToRange(px, low, high);
+    #endif
 
     if (scaled_px > 0.0) {
         scaled_px = min(scaled_px, 0.99);
 
+        #if (USE_RGB_VOLUME == 1)
+        // the colour of the voxel that won the maximum, alpha out of the ramp
+        pxColor = vec4(texture(volumeTexture, maxTextcoord).rgb,
+                       texture(colormap, vec2(scaled_px, 0.5)).a);
+        #else
         pxColor = texture(colormap, vec2(scaled_px, 0.5));
+        #endif
     }
 
     #ifdef K3D_AO_DEPTH_PASS

@@ -212,10 +212,6 @@ sample at a time, so turning it on afterwards finds them empty and restarts the
 accumulation. And it costs memory - three float buffers at the resolution being
 filtered, which at a 4K screenshot is not free.
 
-.. k3d_plot ::
-   :filename: plots/cinematic_denoise_plot.py
-   :screenshot:
-
 Depth of field
 ~~~~~~~~~~~~~~
 

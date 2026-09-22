@@ -482,6 +482,14 @@ class Surface(DrawableWithCallback):
         self.set_trait("type", "Surface")
 
     def get_bounding_box(self):
-        from ..helpers import get_bounding_box
+        from ..helpers import _flatten_frames, get_bounding_box
 
-        return get_bounding_box(self.model_matrix)
+        # the renderer puts a vertex at the raw height; only x and y come from the matrix
+        heights = _flatten_frames(self.heights)
+        boundary = [-0.5, 0.5, -0.5, 0.5, -0.5, 0.5]
+
+        if heights.shape[0] > 0:
+            boundary[4] = float(np.nanmin(heights))
+            boundary[5] = float(np.nanmax(heights))
+
+        return get_bounding_box(self.model_matrix, boundary)

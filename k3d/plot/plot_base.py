@@ -135,7 +135,8 @@ class PlotBase(K3DAnyWidget):
         if not 1 <= value <= 32:
             raise TraitError("cinematic_bounces must be in [1, 32], got %s" % value)
         return value
-    # None: fresh noise every accumulation. An int: N samples are a pure function of the scene
+    # None: fresh noise every accumulation. An int in [1, 2**31 - 1]: N samples are a pure
+    # function of the scene. 0 is refused - see the validator below for why
     cinematic_seed = Int(default_value=None, allow_none=True).tag(sync=True)
 
     @validate("cinematic_seed")
@@ -218,6 +219,14 @@ class PlotBase(K3DAnyWidget):
             self._relay_send_state(content.get("ids", []))
         elif content.get("msg_type") == "object_change":
             self._relay_apply_change(buffers)
+        elif content.get("msg_type") in ("click_callback", "hover_callback"):
+            # a relayed frontend has no object comm: the browser addresses the plot and
+            # names the object, whose own handler takes it from here
+            target = content.get("K3DIdentifier")
+            obj = next((o for o in self.objects if o.id == target), None)
+
+            if obj is not None and hasattr(obj, "_handle_custom_msg"):
+                obj._handle_custom_msg(content, buffers)
         else:
             super()._handle_custom_msg(content, buffers)
 
@@ -418,7 +427,9 @@ class PlotBase(K3DAnyWidget):
         self.camera_no_zoom = camera_no_zoom
         self.camera_no_pan = camera_no_pan
 
-        self.on_msg(self._handle_custom_msg)
+        # not on_msg(self._handle_custom_msg): the comm calls this method already, and
+        # registering it again makes an unknown message recurse into it as a callback, with the
+        # dispatcher's (widget, content, buffers) against a two-argument method
         self.camera_rotate_speed = camera_rotate_speed
         self.camera_zoom_speed = camera_zoom_speed
         self.camera_pan_speed = camera_pan_speed

@@ -28,8 +28,55 @@ def vector_field(
         group: Optional[str] = None,
         custom_data: Optional[TypingDict[str, Any]] = None,
         compression_level: int = 0,
+        visible: bool = True,
         **kwargs: Any,
 ) -> VectorField:
+    """
+    Create a VectorField drawable for plotting a regular grid of arrows.
+
+    Parameters
+    ----------
+    vectors : array_like
+        Array of (dx, dy, dz) components on a 2D or 3D grid.
+    colors : array_like, optional
+        Twice the length of vectors array of int: packed RGB colors (0xff0000 is red, 0xff is
+        blue). The array has consecutive pairs (origin_color, head_color) for vectors in row-major
+        order. Default is None.
+    origin_color : int, optional
+        Packed RGB color of the origins (0xff0000 is red, 0xff is blue) when `colors` is empty.
+        Default is None.
+    head_color : int, optional
+        Packed RGB color of the vector heads (0xff0000 is red, 0xff is blue) when `colors` is
+        empty. Default is None.
+    color : int, optional
+        Packed RGB color of the vectors (0xff0000 is red, 0xff is blue), used for whichever of
+        `origin_color` and `head_color` is not given. Default is 255.
+    use_head : bool, optional
+        Whether vectors should display an arrow head. Default is True.
+    head_size : float, optional
+        The size of the arrow heads. Default is 1.0.
+    scale : float, optional
+        Scale factor applied to every vector. Default is 1.0.
+    line_width : float, optional
+        Width of the vector segments. Default is 0.01.
+    name : str, optional
+        A name of the object. Default is None.
+    group : str, optional
+        A name of a group. Default is None.
+    custom_data : dict, optional
+        An object with custom data attached to object. Default is None.
+    compression_level : int, optional
+        Level of compression [-1, 9]. Default is 0.
+    visible : bool, optional
+        Whether the object is drawn. Default is True.
+    **kwargs
+        Additional keyword arguments passed to process_transform_arguments.
+
+    Returns
+    -------
+    VectorField
+        The created VectorField object.
+    """
     if colors is None:
         colors = []
 
@@ -47,6 +94,7 @@ def vector_field(
             group=group,
             custom_data=custom_data,
             compression_level=compression_level,
+            visible=visible,
         ),
         **kwargs,
     )
@@ -68,8 +116,59 @@ def vectors(
         group: Optional[str] = None,
         custom_data: Optional[TypingDict[str, Any]] = None,
         compression_level: int = 0,
+        visible: bool = True,
         **kwargs: Any,
 ) -> Vectors:
+    """
+    Create a Vectors drawable for plotting arrows from explicit origins.
+
+    Parameters
+    ----------
+    origins : array_like
+        Array of (x, y, z) coordinates the vectors start at.
+    vectors : array_like, optional
+        Array of (dx, dy, dz) components, one per origin. Default is None.
+    colors : array_like, optional
+        Twice the length of vectors array of int: packed RGB colors (0xff0000 is red, 0xff is
+        blue). The array has consecutive pairs (origin_color, head_color) for vectors in row-major
+        order. Default is None.
+    origin_color : int, optional
+        Packed RGB color of the origins (0xff0000 is red, 0xff is blue), default: same as color.
+        Default is None.
+    head_color : int, optional
+        Packed RGB color of the vector heads (0xff0000 is red, 0xff is blue), default: same as
+        color. Default is None.
+    color : int, optional
+        Packed RGB color of the vectors (0xff0000 is red, 0xff is blue), used for whichever of
+        `origin_color` and `head_color` is not given. Default is 255.
+    use_head : bool, optional
+        Whether vectors should display an arrow head. Default is True.
+    head_size : float, optional
+        The size of the arrow heads. Default is 1.0.
+    labels : list, optional
+        Array of strings displayed at the middle of each vector. Default is None.
+    label_size : float, optional
+        Font size of the labels in em HTML units. Default is 1.0.
+    line_width : float, optional
+        Width of the vector segments. Default is 0.01.
+    name : str, optional
+        A name of the object. Default is None.
+    group : str, optional
+        A name of a group. Default is None.
+    custom_data : dict, optional
+        An object with custom data attached to object. Default is None.
+    compression_level : int, optional
+        Level of compression [-1, 9]. Default is 0.
+    visible : bool, optional
+        Whether the object is drawn. Default is True.
+    **kwargs
+        Additional keyword arguments passed to process_transform_arguments.
+
+    Returns
+    -------
+    Vectors
+        The created Vectors object.
+    """
     if colors is None:
         colors = []
     if labels is None:
@@ -93,6 +192,7 @@ def vectors(
             group=group,
             custom_data=custom_data,
             compression_level=compression_level,
+            visible=visible,
         ),
         **kwargs,
     )

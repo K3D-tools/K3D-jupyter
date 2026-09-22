@@ -58,7 +58,7 @@ class Text(Drawable):
         self.set_trait("type", "Text")
 
     def get_bounding_box(self):
-        return get_bounding_box_point(self.position)
+        return get_bounding_box_point(self.position, self.model_matrix)
 
 
 class Text2d(Drawable):
@@ -104,7 +104,8 @@ class Text2d(Drawable):
         self.set_trait("type", "Text2d")
 
     def get_bounding_box(self):
-        return get_bounding_box_point(self.position)
+        # screen coordinates in [0, 1]: a 2D overlay has no place in the scene's box
+        return None
 
 
 class Label(Drawable):
@@ -157,7 +158,7 @@ class Label(Drawable):
         self.set_trait("type", "Label")
 
     def get_bounding_box(self):
-        return get_bounding_box_point(self.position)
+        return get_bounding_box_point(self.position, self.model_matrix)
 
 
 class TextureText(Drawable):
@@ -210,4 +211,4 @@ class TextureText(Drawable):
         self.set_trait("type", "TextureText")
 
     def get_bounding_box(self):
-        return get_bounding_box_point(self.position)
+        return get_bounding_box_point(self.position, self.model_matrix)

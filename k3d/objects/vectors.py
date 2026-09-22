@@ -30,6 +30,9 @@ class VectorField(Drawable):
             Packed RGB color of the origins (0xff0000 is red, 0xff is blue) when `colors` is empty.
         head_color: `int`.
             Packed RGB color of the vector heads (0xff0000 is red, 0xff is blue) when `colors` is empty.
+        color: `int`.
+            Packed RGB color of the vectors (0xff0000 is red, 0xff is blue), used for whichever of
+            `origin_color` and `head_color` is not given.
         use_head: `bool`.
             Whether vectors should display an arrow head.
         head_size: `float`.
@@ -97,6 +100,9 @@ class Vectors(Drawable):
             Packed RGB color of the origins (0xff0000 is red, 0xff is blue), default: same as color.
         head_color: `int`.
             Packed RGB color of the vector heads (0xff0000 is red, 0xff is blue), default: same as color.
+        color: `int`.
+            Packed RGB color of the vectors (0xff0000 is red, 0xff is blue), used for whichever of
+            `origin_color` and `head_color` is not given.
         use_head: `bool`.
             Whether vectors should display an arrow head.
         head_size: `float`.
@@ -136,6 +142,22 @@ class Vectors(Drawable):
         self.set_trait("type", "Vectors")
 
     def get_bounding_box(self):
-        return get_bounding_box_points(
-            np.stack([self.origins, self.vectors]), self.model_matrix
-        )
+        # the box holds both ends of every arrow; the components alone are not positions
+        origins, vectors = self.origins, self.vectors
+
+        if isinstance(origins, dict) or isinstance(vectors, dict):
+            frames = origins if isinstance(origins, dict) else vectors
+            ends = {}
+
+            for key in frames:
+                o = origins[key] if isinstance(origins, dict) else origins
+                v = vectors[key] if isinstance(vectors, dict) else vectors
+                ends[key] = np.concatenate([np.asarray(o).reshape(-1, 3),
+                                            np.asarray(o).reshape(-1, 3) + np.asarray(v).reshape(-1, 3)])
+
+            return get_bounding_box_points(ends, self.model_matrix)
+
+        origins = np.asarray(origins).reshape(-1, 3)
+        vectors = np.asarray(vectors).reshape(-1, 3)
+
+        return get_bounding_box_points(np.concatenate([origins, origins + vectors]), self.model_matrix)

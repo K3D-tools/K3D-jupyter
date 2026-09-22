@@ -20,7 +20,7 @@ const maximumSlicePlanes = 8;
  */
 
 function getSlicePlanesUniform(slicePlanes, modelMatrix) {
-    const planes = slicePlanes.map((p) => {
+    const planes = slicePlanes.slice(0, maximumSlicePlanes).map((p) => {
         const mathPlane = new THREE.Plane(new THREE.Vector3().fromArray(p), p[3]);
         const localPlane = mathPlane.clone().applyMatrix4((new THREE.Matrix4()).copy(modelMatrix).invert());
 
@@ -113,6 +113,19 @@ module.exports = {
                 }
 
                 if (config.slice_planes && config.slice_planes.length > 0) {
+                    if (config.slice_planes.length > maximumSlicePlanes) {
+                        console.warn(`K3D: slice_planes is limited to ${maximumSlicePlanes} on a `
+                            + `mesh; the remaining ${config.slice_planes.length - maximumSlicePlanes} `
+                            + 'are not applied');
+                    }
+
+                    // the outline is drawn by its own shader, which has one colour and no
+                    // colormap: saying so beats letting an attribute disappear quietly
+                    if (colorMap && attribute && attribute.length > 0) {
+                        console.warn('K3D.slice_planes: the section outline is drawn in the '
+                            + 'object colour - its colormap is not applied to the outline');
+                    }
+
                     geometry = geometry.toNonIndexed();
                     geometry.computeBoundingSphere();
                     geometry.computeBoundingBox();
@@ -160,7 +173,7 @@ module.exports = {
                                     value: new THREE.Color(config.color),
                                 },
                                 slicePlanesCount: {
-                                    value: config.slice_planes.length,
+                                    value: Math.min(config.slice_planes.length, maximumSlicePlanes),
                                 },
                                 opacity: {
                                     value: config.opacity,
@@ -242,6 +255,14 @@ module.exports = {
                     texture.minFilter = THREE.LinearFilter;
                     texture.needsUpdate = true;
                     material.needsUpdate = true;
+                    finish();
+                };
+
+                // Loader waits on every object of the batch at once, so a texture the browser
+                // cannot decode used to hang all of them rather than this one mesh
+                image.onerror = function () {
+                    console.warn(`K3D: mesh texture in ${textureFileFormat} could not be decoded `
+                        + '- the mesh is shown without it');
                     finish();
                 };
             } else {

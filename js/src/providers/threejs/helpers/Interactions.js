@@ -9,7 +9,11 @@ module.exports = {
                     geometry = object.geometry;
                 }
 
-                object.geometry.boundsTree = new threeMeshBVH.MeshBVH(geometry);
+                // indirect keeps the index buffer as it came, so faceIndex stays the triangle
+                // number the user sent; the points path maps the slot itself and needs the sort
+                object.geometry.boundsTree = new threeMeshBVH.MeshBVH(geometry, {
+                    indirect: typeof (Intersect) === 'undefined',
+                });
 
                 if (InteractionsCallback) {
                     object.interactions = InteractionsCallback(object, K3D);
@@ -18,7 +22,7 @@ module.exports = {
                 }
 
                 if (typeof (Intersect) !== 'undefined') {
-                    object.interactions.intersect = Intersect(object);
+                    object.interactions.intersect = Intersect(object, K3D);
                 }
             }
         };
@@ -37,11 +41,10 @@ module.exports = {
 
     update(config, changes, resolvedChanges, obj) {
         if (typeof (changes.click_callback) !== 'undefined' || typeof (changes.hover_callback) !== 'undefined') {
-            if ((changes.click_callback || changes.hover_callback)) {
+            // config carries both flags as they stand; changes names only the one that moved
+            if (config.click_callback || config.hover_callback) {
                 obj.startInteraction();
-            }
-
-            if (!(changes.click_callback || changes.hover_callback)) {
+            } else {
                 obj.stopInteraction();
             }
 

@@ -4,7 +4,7 @@ from typing import Any as TypingAny
 from typing import Dict as TypingDict
 
 import numpy as np
-from traitlets import Any, Bool, Dict, List, TraitError, Unicode, Union, validate
+from traitlets import Any, Bool, Dict, List, TraitError, Undefined, Unicode, Union, validate
 
 from .._widget import K3DModelWidget
 from ..helpers import Array, Int, array_serialization_wrap, callback_serialization_wrap, to_json
@@ -18,11 +18,29 @@ SHININESS_REMOVED = (
 
 
 class TimeSeries(Union):
+    """A trait, or a dict of keyframes of it.
+
+    The dict comes first. Union takes the first branch that validates, and Array() validates a
+    dict by coercing it into a 0-d object array - after which the value is neither a keyframe
+    dictionary nor usable data, and get_time_series_times() sees nothing to animate.
+    """
+
     def __init__(self, trait):
-        if isinstance(trait, list):
-            Union.__init__(self, trait + [Dict(t) for t in trait])
-        else:
-            Union.__init__(self, [trait, Dict(trait)])
+        self.value_traits = trait if isinstance(trait, list) else [trait]
+
+        Union.__init__(self, [Dict(t) for t in self.value_traits] + self.value_traits)
+
+    def default(self, obj=None):
+        # Union reads its default off the first branch, which is now the keyframe dict: without
+        # this every time series would start as {}, and a trait like visible would reach the
+        # browser as an object instead of a boolean
+        for trait in self.value_traits:
+            value = trait.default(obj)
+
+            if value is not Undefined:
+                return value
+
+        return super().default(obj)
 
 
 class SingleOrList(Union):
@@ -70,11 +88,21 @@ class VoxelChunk(K3DModelWidget):
     id = Int().tag(sync=True)
     voxels = Array(dtype=np.uint8).tag(sync=True, **array_serialization_wrap("voxels"))
     coord = Array(dtype=np.uint32).tag(sync=True, **array_serialization_wrap("coord"))
+    # accepted and synced for compatibility with stored snapshots; nothing in the browser reads
+    # it, so setting it has no effect on what is drawn
     multiple = Int().tag(sync=True)
     compression_level = Int().tag(sync=True)
 
     def push_data(self, field):
-        self.notify_change({"name": field, "type": "change"})
+        # observers read change.owner and change.new - the relay in plot_base does - so a
+        # notification without them raises inside whoever is listening
+        self.notify_change({
+            "name": field,
+            "type": "change",
+            "owner": self,
+            "old": self[field],
+            "new": self[field],
+        })
 
     def __init__(self, **kwargs):
         self.id = id(self)
@@ -155,7 +183,15 @@ class Drawable(K3DModelWidget):
         Arguments:
             field: `str`.
                 The field name."""
-        self.notify_change({"name": field, "type": "change"})
+        # observers read change.owner and change.new - the relay in plot_base does - so a
+        # notification without them raises inside whoever is listening
+        self.notify_change({
+            "name": field,
+            "type": "change",
+            "owner": self,
+            "old": self[field],
+            "new": self[field],
+        })
 
     def _ipython_display_(self, **kwargs):
         """Called when `IPython.display.display` is called on the widget."""

@@ -17,7 +17,7 @@ Examples
     from k3d.transform import process_transform_arguments
 
     vertices = [[1, 1, 1], [1, -1, -1], [-1, 1, -1], [-1, -1, 1]]
-    indices = [[0, 1, 2], [0, 2, 3], [0, 3, 4], [0, 3, 1], [3, 2, 1]]
+    indices = [[0, 1, 2], [0, 2, 3], [0, 3, 1], [3, 2, 1]]
 
     plt_tetra = k3d.mesh(vertices, indices,
                          color=0x00a86b)

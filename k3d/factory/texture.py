@@ -1,6 +1,6 @@
 """Factory function for texture objects."""
 
-from typing import Any, Optional, Tuple, Union
+from typing import Any, Callable, Optional, Tuple, Union
 from typing import Dict as TypingDict
 from typing import List as TypingList
 
@@ -31,8 +31,64 @@ def texture(
         group: Optional[str] = None,
         custom_data: Optional[TypingDict[str, Any]] = None,
         compression_level: int = 0,
+        visible: bool = True,
+        click_callback: Optional[Callable] = None,
+        hover_callback: Optional[Callable] = None,
         **kwargs: Any,
 ) -> Texture:
+    """
+    Create a Texture drawable from an encoded image or from data and a colormap.
+
+    Parameters
+    ----------
+    binary : bytes, optional
+        Image file contents, as read from disk. Default is None.
+    file_format : str, optional
+        Format of the image in `binary`, without the dot, for example 'png' or 'jpg'. The browser
+        has to be able to decode it. Default is None.
+    color_map : list, optional
+        A list of float quadruplets (attribute value, R, G, B), sorted by attribute value. The
+        first quadruplet should have value 0.0, the last 1.0; R, G, B are RGB color components in
+        the range 0.0 to 1.0. Default is None.
+    color_range : list, optional
+        A pair [min_value, max_value], which determines the levels of color attribute mapped to 0
+        and 1 in the color map respectively. Default is None.
+    attribute : array_like, optional
+        Array of float attribute for the color mapping, coresponding to each pixels. Default is
+        None.
+    puv : array_like, optional
+        Origin and two edge vectors [P, U, V] of the plane the texture is drawn on, nine floats in
+        all. Default is None.
+    opacity_function : list, optional
+        A list of float tuples (attribute value, opacity), sorted by attribute value. The first
+        tuple should have value 0.0, the last 1.0; opacity is in the range 0.0 to 1.0. Default is
+        None.
+    interpolation : bool, optional
+        Whether data should be interpolatedor not. Default is True.
+    name : str, optional
+        A name of the object. Default is None.
+    group : str, optional
+        A name of a group. Default is None.
+    custom_data : dict, optional
+        An object with custom data attached to object. Default is None.
+    compression_level : int, optional
+        Level of compression [-1, 9]. Default is 0.
+    visible : bool, optional
+        Whether the object is drawn. Default is True.
+    click_callback : callable, optional
+        Called with the picking parameters when the object is clicked, while the plot is
+        in mode='callback'. Default is None.
+    hover_callback : callable, optional
+        Called with the picking parameters when the cursor is over the object, while the
+        plot is in mode='callback'. Default is None.
+    **kwargs
+        Additional keyword arguments passed to process_transform_arguments.
+
+    Returns
+    -------
+    Texture
+        The created Texture object.
+    """
     if color_range is None:
         color_range = []
     if attribute is None:
@@ -62,6 +118,9 @@ def texture(
             group=group,
             custom_data=custom_data,
             compression_level=compression_level,
+            visible=visible,
+            click_callback=click_callback,
+            hover_callback=hover_callback,
         ),
         **kwargs,
     )

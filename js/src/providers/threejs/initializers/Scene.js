@@ -7,6 +7,7 @@ const { viewModes } = require('../../../core/lib/viewMode');
 const { pow10ceil } = require('../../../core/lib/helpers/math');
 const { cameraModes } = require('../../../core/lib/cameraMode');
 const environmentHelper = require('../helpers/environment');
+const { recalculateFrustum } = require('../helpers/Fn');
 
 let rebuildSceneDataPromises = null;
 
@@ -37,6 +38,7 @@ function generateAxesHelper(K3D, axesHelper) {
         promises.push(label.then((obj) => {
             axesHelper[axis] = obj;
             axesHelper[axis].color = colors[i];
+            axesHelper.labelColor = K3D.parameters.labelColor;
         }));
     });
 
@@ -238,6 +240,9 @@ function rebuildSceneData(K3D, grids, axesHelper, force) {
         updateAxesHelper |= K3D.parameters.axesHelperColors[0] !== axesHelper.x.color
             || K3D.parameters.axesHelperColors[1] !== axesHelper.y.color
             || K3D.parameters.axesHelperColors[2] !== axesHelper.z.color;
+
+        // the letters carry the label colour in their style, set once when they were made
+        updateAxesHelper |= K3D.parameters.labelColor !== axesHelper.labelColor;
     }
 
     if (updateAxesHelper) {
@@ -274,7 +279,10 @@ function rebuildSceneData(K3D, grids, axesHelper, force) {
     if (K3D.parameters.gridAutoFit || force) {
         // Grid generation
 
-        sceneBoundingBox = K3D.getSceneBoundingBox() || sceneBoundingBox;
+        // only with auto fit: otherwise the box stays the grid the user asked for
+        if (K3D.parameters.gridAutoFit) {
+            sceneBoundingBox = K3D.getSceneBoundingBox() || sceneBoundingBox;
+        }
 
         // cleanup previous data
         cleanup(grids, this.gridScene);
@@ -483,6 +491,9 @@ function rebuildSceneData(K3D, grids, axesHelper, force) {
     this.camera.near = fullSceneDiameter * 0.0001;
     this.camera.updateProjectionMatrix();
 
+    // the frustum clips the DOM labels, and it was computed with the previous far plane
+    recalculateFrustum(this.camera);
+
     rebuildSceneDataPromises = promises;
 
     return Promise.all(promises).then((v) => {
@@ -525,7 +536,9 @@ function raycast(K3D, x, y, camera, click, viewMode) {
 
     this.raycaster.setFromCamera(new THREE.Vector2(x, y), camera);
 
-    this.K3DObjects.traverse((object) => {
+    // traverseVisible, not traverse: an object hidden by visible - including a time series of
+    // it - is not on screen, so it must not answer a click nor steal one from what is behind it
+    this.K3DObjects.traverseVisible((object) => {
         if (object.interactions) {
             if (object.geometry && object.geometry.attributes.position.count === 0) {
                 return;
@@ -781,6 +794,11 @@ module.exports = {
                     }
 
                     // not disposed: the helper hands the same instance to every caller
+                    if (self.scene.environment) {
+                        // pmrem.fromEquirectangular allocates a new render target every time
+                        self.scene.environment.dispose();
+                    }
+
                     environmentEquirect = environmentHelper.getEnvironmentTexture(K3D.parameters.environment);
                     self.scene.environment = pmrem.fromEquirectangular(environmentEquirect).texture;
                     environmentSource = K3D.parameters.environment;
@@ -894,6 +912,12 @@ module.exports = {
                 }
             }
         }
+
+        K3D.on(K3D.events.MOUSE_LEAVE, () => {
+            // without this the RENDERED pass below keeps hovering the last position under a
+            // cursor that is no longer over the canvas
+            self.lastMouseCoord = null;
+        });
 
         K3D.on(K3D.events.MOUSE_MOVE, cb.bind(this, false));
         K3D.on(K3D.events.MOUSE_CLICK, cb.bind(this, true));

@@ -42,6 +42,10 @@ class Points(DrawableWithCallback):
         mesh_detail: `int`.
             Default is 2. Setting this to a value greater than 0 adds more vertices making it no longer an
             icosahedron. When detail is greater than 1, it's effectively a sphere. Only valid if shader='mesh'
+        opacity: `float`.
+            Opacity of the points, in the range 0.0 to 1.0.
+        opacities: `array_like`.
+            Same-length array of `float` opacities of the points, used instead of `opacity`.
         attribute: `array_like`.
             Array of float attribute for the color mapping, coresponding to each point.
         color_map: `list`.

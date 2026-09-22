@@ -114,6 +114,12 @@ function registerRelayedChunk(dict) {
     REG.chunks[attrs.id] = { attributes: attrs };
 }
 
+// completion only: a load() resolves to the object's json and its Object3D, and this list is
+// cleared solely by an explicit 'render', which render_on_change never sends
+function trackRender(view, work) {
+    view.renderPromises.push(Promise.resolve(work).then(() => undefined));
+}
+
 function requestMissingObjects(view, ids) {
     const missing = ids.filter((id) => !REG.objects[id] && !view.pendingFetch.has(id));
 
@@ -128,14 +134,25 @@ function requestMissingObjects(view, ids) {
 // typed arrays ride to the kernel as plain msgpack bin + dtype, so the python
 // side can read them with from_json instead of a custom ext codec
 function relayEncodableValue(value) {
-    if (value && value.data && value.data.buffer) {
-        return {
-            ...value,
-            data: new Uint8Array(value.data.buffer, value.data.byteOffset, value.data.byteLength),
-        };
+    if (!value) {
+        return value;
     }
 
-    return value;
+    const encoded = { ...value };
+    let touched = false;
+
+    // compressed_data as well as data: from_json reads whichever the payload carries, and an
+    // object with compression_level > 0 sends only the compressed one
+    ['data', 'compressed_data'].forEach((key) => {
+        const view = value[key];
+
+        if (view && view.buffer) {
+            encoded[key] = new Uint8Array(view.buffer, view.byteOffset, view.byteLength);
+            touched = true;
+        }
+    });
+
+    return touched ? encoded : value;
 }
 
 // deserialized snapshot of every synced trait - the equivalent of the old
@@ -263,7 +280,11 @@ function initChunk({ model }) {
             Object.keys(REG.objects).forEach((id) => {
                 if (REG.objects[id].attributes.type === 'VoxelsGroup') {
                     runOnEveryPlot(REG.objects[id].attributes.id, (plot, objInstance) => {
-                        objInstance.updateChunk(attrs);
+                        // a hidden group is not in the scene and has no instance to update;
+                        // the edit stays in REG.chunks, which is what rebuilds it
+                        if (objInstance && objInstance.updateChunk) {
+                            objInstance.updateChunk(attrs);
+                        }
                     });
                 }
             });
@@ -302,7 +323,7 @@ const PLOT_HANDLERS = {
     lighting: (v) => v.K3DInstance.setDirectionalLightingIntensity(v.model.get('lighting')),
     time: (v) => {
         if (v.K3DInstance.parameters.time !== v.model.get('time')) {
-            v.renderPromises.push(v.K3DInstance.setTime(v.model.get('time')));
+            trackRender(v, v.K3DInstance.setTime(v.model.get('time')));
         }
     },
     fps: (v) => v.K3DInstance.setFps(v.model.get('fps')),
@@ -347,14 +368,14 @@ const PLOT_HANDLERS = {
         v.objectIds = current;
 
         _.difference(previous, current).forEach((id) => {
-            v.renderPromises.push(v.K3DInstance.removeObject(id));
+            trackRender(v, v.K3DInstance.removeObject(id));
         });
 
         const added = _.difference(current, previous);
 
         added.forEach((id) => {
             if (REG.objects[id]) {
-                v.renderPromises.push(v.K3DInstance.load({ objects: [REG.objects[id].attributes] }));
+                trackRender(v, v.K3DInstance.load({ objects: [REG.objects[id].attributes] }));
             }
         });
 
@@ -440,12 +461,18 @@ function renderPlot({ model, el }) {
         },
         refreshObject(id, changed) {
             if (model.get('object_ids').indexOf(id) !== -1) {
-                view.renderPromises.push(view.K3DInstance.reload(REG.objects[id].attributes, changed));
+                trackRender(view, view.K3DInstance.reload(REG.objects[id].attributes, changed));
             }
         },
     };
 
     let disposed = false;
+    // the model outlives the view: every listener left here answers for a dead plot
+    const modelListeners = [];
+    const listen = (event, handler) => {
+        modelListeners.push([event, handler]);
+        model.on(event, handler);
+    };
     const resizeObserver = new ResizeObserver(() => {
         if (view.K3DInstance) {
             view.K3DInstance.resizeHelper();
@@ -465,7 +492,7 @@ function renderPlot({ model, el }) {
 
         REG.plots.push(view);
 
-        model.on('msg:custom', (obj, buffers) => {
+        listen('msg:custom', (obj, buffers) => {
             if (obj.msg_type === 'snapshot_source' && buffers && buffers.length > 0) {
                 window.k3dCompressed = buffer.arrayBufferToBase64(buffers[0].buffer);
             }
@@ -482,7 +509,7 @@ function renderPlot({ model, el }) {
 
                     if (model.get('object_ids').indexOf(attrs.id) !== -1
                         && !view.K3DInstance.getObjectById(attrs.id)) {
-                        view.renderPromises.push(view.K3DInstance.load({ objects: [attrs] }));
+                        trackRender(view, view.K3DInstance.load({ objects: [attrs] }));
                     }
                 });
             }
@@ -558,7 +585,7 @@ function renderPlot({ model, el }) {
             if (key.charAt(0) === '_') {
                 return;
             }
-            model.on(`change:${key}`, () => {
+            listen(`change:${key}`, () => {
                 if (model._k3dOwnChange) {
                     return;
                 }
@@ -573,6 +600,8 @@ function renderPlot({ model, el }) {
                 logarithmicDepthBuffer: model.get('logarithmic_depth_buffer'),
                 lighting: model.get('lighting'),
                 cameraMode: model.get('camera_mode'),
+                viewMode: model.get('mode'),
+                manipulateMode: model.get('manipulate_mode'),
                 snapshotType: model.get('snapshot_type'),
                 backendVersion: model.get('_backend_version'),
                 screenshotScale: model.get('screenshot_scale'),
@@ -621,6 +650,16 @@ function renderPlot({ model, el }) {
                 voxelPaintColor: model.get('voxel_paint_color'),
                 hiddenObjectIds: model.get('hidden_object_ids'),
                 additionalJsCode: model.get('additional_js_code'),
+                cameraUpAxis: model.get('camera_up_axis'),
+                time: model.get('time'),
+                timeSpeed: model.get('time_speed'),
+                fpsMeter: model.get('fps_meter'),
+                minimumFps: model.get('minimum_fps'),
+                renderingSteps: model.get('rendering_steps'),
+                axesHelperColors: model.get('axes_helper_colors'),
+                colorbarScientific: model.get('colorbar_scientific'),
+                customData: model.get('custom_data'),
+                height: model.get('height'),
             });
 
             if (model.get('camera_auto_fit') === false) {
@@ -636,7 +675,7 @@ function renderPlot({ model, el }) {
 
         model.get('object_ids').forEach((id) => {
             if (REG.objects[id]) {
-                view.renderPromises.push(view.K3DInstance.load({ objects: [REG.objects[id].attributes] }));
+                trackRender(view, view.K3DInstance.load({ objects: [REG.objects[id].attributes] }));
             }
         });
 
@@ -707,30 +746,35 @@ function renderPlot({ model, el }) {
             (change) => saveChanges(model, change.key, change.value),
         );
 
-        view.voxelsCallback = view.K3DInstance.on(view.K3DInstance.events.VOXELS_CALLBACK, (param) => {
-            const entry = REG.objects[param.object.K3DIdentifier];
+        // a relayed object has no model in this context, so its callback travels over the
+        // plot comm carrying the id the kernel needs to find the object
+        const sendCallback = (id, message) => {
+            const entry = REG.objects[id];
 
-            if (entry && entry.model) {
-                entry.model.send({
-                    msg_type: 'click_callback',
-                    coord: param.coord,
-                });
+            if (!entry) {
+                return;
             }
+
+            if (entry.model) {
+                entry.model.send(message);
+            } else {
+                view.model.send(_.extend({ K3DIdentifier: id }, message));
+            }
+        };
+
+        view.voxelsCallback = view.K3DInstance.on(view.K3DInstance.events.VOXELS_CALLBACK, (param) => {
+            sendCallback(param.object.K3DIdentifier, { msg_type: 'click_callback', coord: param.coord });
         });
 
         view.objectHoverCallback = view.K3DInstance.on(view.K3DInstance.events.OBJECT_HOVERED, (param) => {
-            const entry = REG.objects[param.K3DIdentifier];
-
-            if (entry && entry.model && view.K3DInstance.parameters.viewMode === viewModes.callback) {
-                entry.model.send(_.extend({ msg_type: 'hover_callback' }, param));
+            if (view.K3DInstance.parameters.viewMode === viewModes.callback) {
+                sendCallback(param.K3DIdentifier, _.extend({ msg_type: 'hover_callback' }, param));
             }
         });
 
         view.objectClickCallback = view.K3DInstance.on(view.K3DInstance.events.OBJECT_CLICKED, (param) => {
-            const entry = REG.objects[param.K3DIdentifier];
-
-            if (entry && entry.model && view.K3DInstance.parameters.viewMode === viewModes.callback) {
-                entry.model.send(_.extend({ msg_type: 'click_callback' }, param));
+            if (view.K3DInstance.parameters.viewMode === viewModes.callback) {
+                sendCallback(param.K3DIdentifier, _.extend({ msg_type: 'click_callback' }, param));
             }
         });
 
@@ -766,6 +810,9 @@ function renderPlot({ model, el }) {
             clearTimeout(view.cameraSyncTimeout);
             view.cameraSyncTimeout = null;
         }
+
+        modelListeners.forEach(([event, handler]) => model.off(event, handler));
+        modelListeners.length = 0;
 
         if (view.K3DInstance) {
             view.K3DInstance.disable();

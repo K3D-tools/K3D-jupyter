@@ -114,18 +114,17 @@
               toneMapping: "setToneMapping",
               fpsMeter: "setFpsMeter",
               screenshotScale: "setScreenshotScale",
-              // voxel_paint_color: "setVoxelPaintColor",
+              voxelPaintColor: "setVoxelPaint",
               clearColor: "setClearColor",
               grid: "setGrid",
-              camera_mode: "setCameraMode",
-              render_on_change: "setRenderOnChange",
+              renderOnChange: "setRenderOnChange",
               camera: "setCamera",
               cameraAnimation: "setCameraAnimation",
               clippingPlanes: "setClippingPlanes",
               // object_ids: "onObjectsListChange",
               menuVisibility: "setMenuVisibility",
               colorbarObjectId: "setColorMapLegend",
-              // colorbar_scientific: "setColorbarScientific",
+              colorbarScientific: "setColorbarScientific",
               renderingSteps: "setRenderingSteps",
               axes: "setAxes",
               cameraNoRotate: "setCameraLock",
@@ -137,59 +136,69 @@
               cameraFov: "setCameraFOV",
               cameraDampingFactor: "setCameraDampingFactor",
               axesHelper: "setAxesHelper",
-              snapshot_type: "setSnapshotType",
+              axesHelperColors: "setAxesHelperColors",
+              labelColor: "setLabelColor",
+              cameraUpAxis: "setCameraUpAxis",
+              hiddenObjectIds: "setHiddenObjectIds",
+              additionalJsCode: "setAdditionalJsCode",
+              sliceViewerObjectId: "setSliceViewer",
+              sliceViewerMaskObjectIds: "setSliceViewerMaskObjects",
+              sliceViewerDirection: "setSliceViewerDirection",
+              snapshotType: "setSnapshotType",
               name: "setName",
-              mode: "setViewMode",
+              // the keys are what get_plot_params() emits, not the trait names
+              viewMode: "setViewMode",
               cameraMode: "setCameraMode",
-              // manipulate_mode: "setManipulateMode"
+              manipulateMode: "setManipulateMode",
             };
 
-            let promises = [];
+            // objects first: a camera, a grid or a time applied to an empty scene is applied to
+            // the wrong scene, and the first sync of a session used to do exactly that
+            let objectPromises = [];
 
-            Object.keys(data.plot_diff).forEach(function (k) {
-              if (map[k]) {
-                let ret = K3DInstance[map[k]](data.plot_diff[k]);
+            Object.keys(data.objects_diff).forEach(function (k) {
+              let diff = data.objects_diff[k];
 
-                if (isPromise(ret)) {
-                  promises.push(ret);
-                }
+              if (diff === null) {
+                // the keys of a decoded map are strings; removeObject compares the id with ===
+                K3DInstance.removeObject(parseInt(k, 10));
+                return;
+              }
+
+              let json = K3DInstance.getWorld().ObjectsListJson[diff.id] || {};
+              let load = Object.keys(json).length === 0;
+
+              Object.keys(diff).forEach((key) => {
+                json[key] = diff[key] = K3DInstance.serialize.deserialize(diff[key]);
+              });
+
+              if (load) {
+                objectPromises.push(K3DInstance.load({objects: [json]}));
               } else {
-                K3DInstance.parameters[k] = data.plot_diff[k];
+                objectPromises.push(K3DInstance.reload(json, diff));
               }
             });
 
-            Promise.all(promises).then(function () {
-              Object.keys(data.objects_diff).forEach(function (k) {
-                let diff = data.objects_diff[k];
+            Promise.all(objectPromises).then(function () {
+              let plotPromises = [];
 
-                if (diff === null) {
-                  K3DInstance.removeObject(k);
-                  return;
-                }
+              Object.keys(data.plot_diff).forEach(function (k) {
+                if (map[k]) {
+                  let ret = K3DInstance[map[k]](data.plot_diff[k]);
 
-                let json = K3DInstance.getWorld().ObjectsListJson[diff.id] || {};
-                let load = Object.keys(json).length === 0;
-
-                Object.keys(diff).forEach((k) => {
-                  json[k] = diff[k] = K3DInstance.serialize.deserialize(diff[k]);
-                });
-
-                if (load) {
-                  promises.push(K3DInstance.load({objects: [json]}));
+                  if (isPromise(ret)) {
+                    plotPromises.push(ret);
+                  }
                 } else {
-                  promises.push(K3DInstance.reload(json, diff));
+                  K3DInstance.parameters[k] = data.plot_diff[k];
                 }
               });
 
-              if (promises.length > 0) {
-                Promise.all(promises).then(function () {
-                  window.refreshed = true;
-                }).catch(function (error) {
-                  console.error(error);
-                });
-              } else {
-                window.refreshed = true;
-              }
+              return Promise.all(plotPromises);
+            }).then(function () {
+              window.refreshed = true;
+            }).catch(function (error) {
+              console.error(error);
             });
           } else {
             console.error('k3dRefresh', req.response);

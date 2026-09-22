@@ -11,7 +11,7 @@ const { commonUpdate } = require('../helpers/Fn');
  * @return {Object} 3D object ready to render
  */
 module.exports = {
-    create(config) {
+    create(config, K3D) {
         config.visible = typeof (config.visible) !== 'undefined' ? config.visible : true;
         config.color = typeof (config.color) !== 'undefined' ? config.color : 255;
         config.wireframe = typeof (config.wireframe) !== 'undefined' ? config.wireframe : false;
@@ -49,11 +49,23 @@ module.exports = {
         if (geometry.hasColors) {
             material = new THREE.MeshStandardMaterial({
                 opacity: geometry.alpha,
+                // the alpha comes from the file's COLOR= header and did nothing without this;
+                // side matches the branch above, which is what stops an open model from
+                // showing through its own back faces
+                transparent: geometry.alpha < 1.0,
+                depthWrite: geometry.alpha >= 1.0,
+                side: THREE.DoubleSide,
                 roughness: config.roughness,
                 metalness: config.metalness,
                 vertexColors: true,
                 wireframe: config.wireframe,
             });
+        }
+
+        if (K3D.parameters.depthPeels !== 0) {
+            material.blending = THREE.NoBlending;
+            material.onBeforeCompile = K3D.colorOnBeforeCompile;
+            material.userData.k3dPeelDepthOut = true;
         }
 
         if (config.flat_shading === false) {

@@ -51,7 +51,9 @@ def test_time_series_interpolates():
     prepare()
     pytest.plot += _points(POSITIONS_B)
 
-    # Rendered once first: time set in the same sync that brings the object in does not take.
+    # Rendered at time 0 first, so the interpolated frame below is compared against a scene
+    # that has already been drawn once. (A time set in the same sync as the object used to be
+    # lost - headless applied plot_diff before objects_diff - which is why this existed.)
     compare("time_series_frame_a", camera_factor=None)
 
     pytest.plot.time = 0.5

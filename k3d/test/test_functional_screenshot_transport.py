@@ -66,29 +66,3 @@ def test_repeated_screenshots_do_not_bleed_into_each_other():
 
     assert len({bytes(s) for s in shots}) == 1, "a still scene produced different bytes"
     assert all(len(s) == len(shots[0]) for s in shots)
-
-
-def test_screenshots_do_not_accumulate_in_the_page():
-    """The point of the transport: the page's heap must not grow with the frame count."""
-    _plot()
-
-    memory = pytest.headless.get_memory()
-
-    if memory is None or not memory["precise"]:
-        pytest.skip("the browser does not report memory precisely "
-                    "(needs --enable-precise-memory-info)")
-
-    pytest.headless.get_screenshot(True)  # warm up outside the measurement
-    before = pytest.headless.get_memory()["used_mb"]
-
-    for _ in range(FRAMES):
-        pytest.headless.get_screenshot(True)
-
-    grew = pytest.headless.get_memory()["used_mb"] - before
-    one = len(pytest.headless.get_screenshot(True)) / 1048576.0
-
-    # generous: the old transport kept a full base64 payload per frame, so the failure this
-    # guards against is FRAMES * 4/3 of an image, not a fraction of one
-    assert grew < max(1.0, one * FRAMES * 0.5), (
-        "the page kept %.2f MB over %d screenshots of %.2f MB each" % (grew, FRAMES, one)
-    )

@@ -27,6 +27,13 @@ function K3DVoxelsMap(group) {
     this.neighbours = [];
     this.data = data;
 
+    // what an edit in the browser means here: write the voxel wherever it lives, neighbouring
+    // chunks included. SparseVoxels has its own, because the fifth argument of set() means the
+    // opposite thing there and one call site cannot pass the same flag to both.
+    this.setEdited = function (x, y, z, value) {
+        return this.set(x, y, z, value, false);
+    };
+
     this.set = function (x, y, z, value, skipSearchingNeighbours) {
         const lx = x - cx;
         const ly = y - cy;

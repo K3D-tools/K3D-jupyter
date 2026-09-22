@@ -6,6 +6,7 @@ const {
 const cameraModes = require('../../../core/lib/cameraMode').cameraModes;
 const error = require('../../../core/lib/Error').error;
 const getSSAAChunkedRender = require('../helpers/SSAAChunkedRender');
+const { unpremultiply } = require('../helpers/SSAAChunkedRender');
 const cinematic = require('./cinematic');
 
 // The upstream denoiser noise (GTAOPass._generateNoise) comes from Math.random and would
@@ -105,7 +106,9 @@ module.exports = function (K3D) {
     // queries answer a frame late: the last two layers are probed and the budget shrinks only
     // while both come back empty, which keeps one known-empty layer as headroom. budget < 0 is
     // "not measured"; renders into a target ignore it and peel the full count.
-    const peelProbe = { budget: -1, pending: null, free: [] };
+    const peelProbe = {
+        budget: -1, peels: -1, pending: null, free: [],
+    };
     const compositeScene = new THREE.Scene();
     const planeGeometry = new THREE.PlaneGeometry(2, 2, 1, 1);
     const toneMappingMode = { value: 0 };
@@ -220,6 +223,7 @@ module.exports = function (K3D) {
             tDiffuse: { value: null },
             uSize: { value: new THREE.Vector2(1, 1) },
             uToneMapping: toneMappingMode,
+            uPremultiplied: { value: 1 },
             toneMappingExposure: { value: 1.0 },
         },
         vertexShader: require('./shaders/composite.vertex.glsl'),
@@ -693,7 +697,9 @@ module.exports = function (K3D) {
 
     // Multiplies the AO buffer onto whatever the main scene was just rendered into.
     function applyAOOverlay(camera, rt) {
-        if (aoTexture === null) {
+        // only the advanced renderer computes this buffer; cinematic rasterises its preview
+        // through the same path and would otherwise keep multiplying the last advanced frame in
+        if (aoTexture === null || K3D.parameters.renderer !== 'advanced') {
             return;
         }
 
@@ -718,8 +724,12 @@ module.exports = function (K3D) {
             scale.set(1 / rt.width, 1 / rt.height);
             bias.set(0, 0);
         } else {
-            // canvas: gl_FragCoord is global, the AO buffer covers the whole canvas
-            scale.set(1 / aoSize.x, 1 / aoSize.y);
+            // canvas: gl_FragCoord is global and counted in drawing-buffer pixels, which is not
+            // getSize() once setPixelRatio is anything but 1 - minimum_fps moves it every frame
+            const buffer = new THREE.Vector2();
+
+            self.renderer.getDrawingBufferSize(buffer);
+            scale.set(1 / buffer.x, 1 / buffer.y);
             bias.set(0, 0);
         }
 
@@ -852,6 +862,14 @@ module.exports = function (K3D) {
         self.renderer.clear();
 
         const peels = K3D.parameters.depthPeels;
+
+        // the budget converges for one peel count, and the probe only walks it by one layer per
+        // frame: kept across a change, raising depth_peels takes a dozen frames to take effect
+        if (peelProbe.peels !== peels) {
+            peelProbe.peels = peels;
+            peelProbe.budget = -1;
+        }
+
         // the budget needs the whole frame in one call: a screenshot has to be exact, and a strip
         // or a volumeSides quadrant would impose its own depth complexity on the rest of the frame
         const layers = (fullFrame && peelProbe.budget >= 0)
@@ -1082,6 +1100,7 @@ module.exports = function (K3D) {
 
             toneBlitMaterial.uniforms.tDiffuse.value = toneTarget.texture;
             toneBlitMaterial.uniforms.uSize.value.set(width, height);
+            toneBlitMaterial.uniforms.uPremultiplied.value = 1;
 
             self.renderer.setRenderTarget(rt);
             self.renderer.setViewport(viewport);
@@ -1147,15 +1166,14 @@ module.exports = function (K3D) {
                     self.renderer.getClearColor(presentClearColor);
                     // autoClear is off for the whole renderer and the blit composites premultiplied
                     // over what the canvas already holds: presenting onto the previous frame walks a
-                    // semi-transparent object up to opaque, one sample at a time. Clearing costs the
-                    // grid and the axes, so they are drawn again around the accumulation.
+                    // semi-transparent object up to opaque, one sample at a time. Clearing costs
+                    // the axes, which are drawn again after the accumulation.
                     self.renderer.setRenderTarget(null);
                     self.renderer.setViewport(0, 0, size.x, size.y);
                     // background_color is a CSS background on the target node, so the canvas
                     // clears to nothing and lets it through
                     self.renderer.setClearColor(0, 0);
                     self.renderer.clear();
-                    self.renderer.render(self.gridScene, self.camera);
 
                     composeCinematic(texture, null, buffer.x, buffer.y);
 
@@ -1182,7 +1200,6 @@ module.exports = function (K3D) {
                     self.renderer.setRenderTarget(null);
                     self.renderer.setViewport(0, 0, size.x, size.y);
                     self.renderer.clear();
-                    self.renderer.render(self.gridScene, self.camera);
 
                     const focusClip = self.focusClipPlanes();
 
@@ -1400,7 +1417,13 @@ module.exports = function (K3D) {
                     self.axesHelper.width,
                     self.axesHelper.height,
                 );
+                // the compass is an overlay, not part of the scene: global clipping planes are
+                // still set here and would cut it, which the offscreen path already avoids
+                const scenePlanes = self.renderer.clippingPlanes;
+
+                self.renderer.clippingPlanes = [];
                 self.renderer.render(self.axesHelper.scene, self.axesHelper.camera);
+                self.renderer.clippingPlanes = scenePlanes;
 
                 self.renderer.setViewport(0, 0, size.x, size.y);
                 self.camera.clearViewOffset();
@@ -1480,17 +1503,27 @@ module.exports = function (K3D) {
         // an unforced request arriving while a render is in flight is dropped - the caller gets
         // the frame already on its way. A forced one queues behind it instead, never in parallel.
         if (renderingPromise === null) {
-            renderingPromise = render().then(() => {
-                renderingPromise = null;
+            // clear the queue only while this link is still its tail: clearing it from an older
+            // link lets the next unforced request start a second render beside the one in flight
+            const link = render().then(() => {
+                if (renderingPromise === link) {
+                    renderingPromise = null;
+                }
             });
+
+            renderingPromise = link;
 
             return renderingPromise;
         }
 
         if (force) {
-            renderingPromise = renderingPromise.then(render).then(() => {
-                renderingPromise = null;
+            const link = renderingPromise.then(render).then(() => {
+                if (renderingPromise === link) {
+                    renderingPromise = null;
+                }
             });
+
+            renderingPromise = link;
         }
 
         return renderingPromise;
@@ -1536,6 +1569,7 @@ module.exports = function (K3D) {
         uniforms: {
             tDiffuse: { value: null },
             uSize: { value: new THREE.Vector2(1, 1) },
+            uPremultiply: { value: 0 },
         },
         vertexShader: require('./shaders/composite.vertex.glsl'),
         fragmentShader: require('./shaders/rawBlit.fragment.glsl'),
@@ -1593,7 +1627,12 @@ module.exports = function (K3D) {
 
         proxyScene.traverse((node) => {
             if (node.userData.k3dVolumeSource) {
-                traced.add(node.userData.k3dVolumeSource);
+                // a medium the tracer refused is a passthrough box: it must not cut the march,
+                // and its source goes back to the raster layer, which is what the warning says
+                if (node.userData.k3dVolumeRejected !== true) {
+                    traced.add(node.userData.k3dVolumeSource);
+                }
+
                 tracedProxies.push(node);
             }
         });
@@ -1741,6 +1780,7 @@ module.exports = function (K3D) {
         if (!cinematicVolume.active) {
             toneBlitMaterial.uniforms.tDiffuse.value = ptTexture;
             toneBlitMaterial.uniforms.uSize.value.set(width, height);
+            toneBlitMaterial.uniforms.uPremultiplied.value = 0;
 
             self.renderer.setRenderTarget(rt);
             self.renderer.setViewport(0, 0, width, height);
@@ -1767,14 +1807,19 @@ module.exports = function (K3D) {
         self.renderer.clear(true, false, false);
 
         rawBlitMaterial.uniforms.uSize.value.set(width, height);
+        // upstream's BlendMaterial writes straight colour with coverage in alpha, the layer comes
+        // out of ordinary blending premultiplied, and the blend below composites premultiplied
+        rawBlitMaterial.uniforms.uPremultiply.value = 1;
         rawBlitMaterial.uniforms.tDiffuse.value = ptTexture;
         self.renderer.render(rawBlitScene, fsCamera);
 
+        rawBlitMaterial.uniforms.uPremultiply.value = 0;
         rawBlitMaterial.uniforms.tDiffuse.value = cinematicVolume.layer.texture;
         self.renderer.render(rawBlitScene, fsCamera);
 
         toneBlitMaterial.uniforms.tDiffuse.value = composeTarget.texture;
         toneBlitMaterial.uniforms.uSize.value.set(width, height);
+        toneBlitMaterial.uniforms.uPremultiplied.value = 1;
 
         self.renderer.setRenderTarget(rt);
         self.renderer.setViewport(0, 0, width, height);
@@ -1805,6 +1850,12 @@ module.exports = function (K3D) {
         }
 
         const mode = getCinematic();
+        // the interactive loop shares this tracer: left running, its next frame resizes the tiles
+        // and turns per-tile blending back on in the middle of this accumulation
+        const resume = mode.isRunning();
+
+        mode.abort();
+
         const size = new THREE.Vector2();
 
         // per-frame object work (volume light maps included) hangs off BEFORE_RENDER
@@ -1863,13 +1914,19 @@ module.exports = function (K3D) {
 
                     self.renderer.readRenderTargetPixels(rt, 0, 0, width, height, pixels);
 
-                    return [new Uint8ClampedArray(pixels.buffer), axesHelper];
+                    return [unpremultiply(new Uint8ClampedArray(pixels.buffer)), axesHelper];
                 } finally {
                     self.renderer.setRenderTarget(null);
                     rt.dispose();
                 }
             }).finally(() => {
                 mode.releaseFixedSize();
+
+                // releaseFixedSize resets the tracer, so there is nothing left to keep: the
+                // viewport starts a fresh accumulation instead of freezing on the last frame
+                if (resume) {
+                    mode.wake();
+                }
             });
         });
     }

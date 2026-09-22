@@ -137,7 +137,7 @@ class Plot(
 
             :`z`: z axis,
 
-            :`none`: Handling click_callback and hover_callback on some type of objects.
+            :`none`: no fixed up axis - the camera is free to roll.
         snapshot_type: `string`.
             Can be 'full', 'online' or 'inline'.
         axes: `list`.
@@ -196,6 +196,10 @@ class Plot(
             the roughness already gathered along a path, in [0, 1]. Default 0.25.
             It removes fireflies where they live and leaves a specular seen
             directly untouched; 0 disables it.
+        cinematic_seed: `int` or `None`.
+            Seed of the path tracer's sample sequence, an int in the range [1, 2**31 - 1]. With
+            None every accumulation starts from fresh noise; with a seed the same scene renders
+            the same image every time. 0 is refused, so that "unset" and "seeded" never blur.
         cinematic_denoise: `Float`.
             How hard the cinematic renderer filters Monte Carlo noise out of the
             traced image, measured in standard deviations of the noise it estimates

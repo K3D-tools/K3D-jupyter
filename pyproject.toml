@@ -126,12 +126,29 @@ artifacts = [
 source = "nodejs"
 
 [tool.hatch.build.targets.sdist]
+# An allowlist, not a denylist. Hatchling packs the whole working tree minus .gitignore and the
+# names below, so anything a developer leaves in the checkout - a scan, a dump, a notebook - ships
+# to PyPI. This is what the sdist has to carry to rebuild: the package, the sources the
+# jupyter-builder hook feeds to webpack, and the metadata.
+include = [
+    "k3d",
+    "js/src",
+    "js/package.json",
+    "js/package-lock.json",
+    "js/webpack.config.js",
+    "js/eslint.config.js",
+    "js/Gruntfile.js",
+    "package.json",
+    "package-lock.json",
+    "pyproject.toml",
+    "README.md",
+    "LICENSE.txt",
+    "CITATION.cff",
+    "requirements.txt",
+    "tools",
+]
 exclude = [
-    ".github",
-    "docs",
-    "imgs",
     "k3d/test",
-    "examples",
 ]
 artifacts = [
     "k3d/static/widget.mjs",

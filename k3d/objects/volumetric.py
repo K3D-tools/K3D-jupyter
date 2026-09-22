@@ -11,6 +11,7 @@ from ..helpers import (
     Int,
     array_serialization_wrap,
     get_bounding_box,
+    rgb_volume_channels,
     shape_validation,
     sparse_voxels_validation,
 )
@@ -30,15 +31,18 @@ class MarchingCubes(DrawableWithCallback):
         level: `float`.
             Value at the computed isosurface.
         spacings_x: `array_like`.
-            A spacings in x axis. Should match to scalar_field shape.
+            Distances between consecutive samples along x: one shorter than that axis of
+            scalar_field. Any other length is ignored and the axis falls back to even spacing.
         spacings_y: `array_like`.
-            A spacings in y axis. Should match to scalar_field shape.
+            Distances between consecutive samples along y, one shorter than that axis.
         spacings_z: `array_like`.
-            A spacings in z axis. Should match to scalar_field shape.
+            Distances between consecutive samples along z, one shorter than that axis.
         color: `int`.
             Packed RGB color of the isosurface (0xff0000 is red, 0xff is blue).
         attribute: `array_like`.
-            Array of float attribute for the color mapping, coresponding to each vertex.
+            3D array of float sampled on the same grid as scalar_field, from which the surface
+            colour is read at each vertex. A flat, per-vertex array is not accepted: it cannot be
+            sampled at a position and is ignored, with a warning in the browser console.
         color_map: `list`.
             A list of float quadruplets (attribute value, R, G, B), sorted by attribute value. The first
             quadruplet should have value 0.0, the last 1.0; R, G, B are RGB color components in the range 0.0 to 1.0.
@@ -116,12 +120,30 @@ def _volume_dtype(value):
     required = [np.float16, np.float32]
     actual = np.asarray(value).dtype
 
+    # colour per voxel is measured, and uint8 is how it is measured; casting it to float32
+    # would quadruple a photographic volume and add no precision that exists in the data
+    if rgb_volume_channels(value) and actual == np.uint8:
+        return np.ascontiguousarray(value)
+
     if actual not in required:
         warnings.warn("wrong dtype: %s (%s required)" % (actual, required), stacklevel=3)
 
         return np.asarray(value).astype(np.float32)
 
-    return value
+    # a strided view (np.transpose) would be copied on every serialisation and defeat the
+    # headless fingerprint; one contiguous copy here, none later
+    return np.ascontiguousarray(value)
+
+
+def _channels(volumes):
+    """Hold a multi-channel slice to what the browser's colormap can build a gradient for."""
+    if len(volumes) > 2:
+        raise TraitError(
+            "volume_slice takes one or two channels, got %d: the browser builds the colormap "
+            "gradient for one or two and raises on more" % len(volumes)
+        )
+
+    return volumes
 
 
 class VolumeSlice(DrawableWithCallback):
@@ -209,12 +231,15 @@ class VolumeSlice(DrawableWithCallback):
 
         # one entry per channel, each held to the same dtype rule as a single volume
         if type(proposal["value"]) is list:
-            return [_volume_dtype(channel) for channel in proposal["value"]]
+            return [_volume_dtype(channel) for channel in _channels(proposal["value"])]
 
         if type(proposal["value"]) is np.ndarray and proposal[
             "value"
         ].dtype is np.dtype(object):
-            return [_volume_dtype(channel) for channel in proposal["value"].tolist()]
+            return [
+                _volume_dtype(channel)
+                for channel in _channels(proposal["value"].tolist())
+            ]
 
         if proposal["value"].shape == (0,):
             return np.array(proposal["value"], dtype=np.float32)
@@ -248,6 +273,9 @@ class Volume(Drawable):
             Number of iteration per 1 unit of space.
         alpha_coef: `float`.
             Alpha multiplier.
+        gradient_step: `float`.
+            Distance the finite differences of the shading gradient are taken over, as a fraction
+            of the mean edge of the volume's box.
         roughness: `float`.
             Roughness of the specular highlight of the isodensity surface (GGX), 0.0-1.0.
         metalness: `float`.
@@ -339,13 +367,17 @@ class Volume(Drawable):
         required = [np.float16, np.float32]
         actual = proposal["value"].dtype
 
+        # see _volume_dtype: an RGB volume keeps its uint8, because the colour is measured
+        if rgb_volume_channels(proposal["value"]) and actual == np.uint8:
+            return np.ascontiguousarray(proposal["value"])
+
         if actual not in required:
             warnings.warn("wrong dtype: %s (%s required)" % (actual, required),
                           stacklevel=2)
 
             return proposal["value"].astype(np.float32)
 
-        return proposal["value"]
+        return np.ascontiguousarray(proposal["value"])
 
     def shadow_map_update(self, direction=None):
         """Request updating the shadow map in browser."""
@@ -377,13 +409,16 @@ class MIP(Drawable):
             to 0 and 1 in the color map respectively.
         samples: `float`.
             Number of iteration per 1 unit of space.
-        gradient_step: `float`
-            Gradient light step.
+        gradient_step: `float`.
+            Distance the finite differences of the shading gradient are taken over, as a fraction
+            of the mean edge of the volume's box.
         roughness: `float`.
             Roughness of the specular highlight of the isodensity surface (GGX), 0.0-1.0.
         metalness: `float`.
             Metalness of the specular highlight: 0.0 dielectric, 1.0 metal tinted
             by the transfer-function colour.
+        interpolation: `bool`.
+            Whether the ray march should interpolate the data or read the nearest voxel.
         mask: `array_like`.
             3D array of `int` in range (0, 255), indexed as [z, y, x].
         mask_opacities: `array_like`.
@@ -444,13 +479,17 @@ class MIP(Drawable):
         required = [np.float16, np.float32]
         actual = proposal["value"].dtype
 
+        # see _volume_dtype: an RGB volume keeps its uint8, because the colour is measured
+        if rgb_volume_channels(proposal["value"]) and actual == np.uint8:
+            return np.ascontiguousarray(proposal["value"])
+
         if actual not in required:
             warnings.warn("wrong dtype: %s (%s required)" % (actual, required),
                           stacklevel=2)
 
             return proposal["value"].astype(np.float32)
 
-        return proposal["value"]
+        return np.ascontiguousarray(proposal["value"])
 
     def get_bounding_box(self):
         return get_bounding_box(self.model_matrix)

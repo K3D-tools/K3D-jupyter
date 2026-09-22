@@ -123,25 +123,32 @@ module.exports = function (points, attributes, radius, radialSegments, color, ve
 
     for (let i = 0; i < points.length / 3; i++) {
         mat = null;
+        tangent = null;
+        P1 = new THREE.Vector3().fromArray(points, i * 3);
 
-        if (i !== points.length / 3 - 1) {
-            P1 = new THREE.Vector3().fromArray(points, i * 3);
-            P2 = new THREE.Vector3().fromArray(points, i * 3 + 3);
-            tangent = P2.clone().sub(P1).normalize();
-        } else {
-            P1 = new THREE.Vector3().fromArray(points, i * 3);
-            P2 = new THREE.Vector3().fromArray(points, i * 3 - 3);
-            P2.add(P1.clone().sub(P2).multiplyScalar(2.0));
-        }
-
-        if (Number.isNaN(P1.x) || Number.isNaN(P1.y) || Number.isNaN(P1.z)
-            || Number.isNaN(P2.x) || Number.isNaN(P2.y) || Number.isNaN(P2.z)) {
+        // the separator itself: close the run here
+        if (Number.isNaN(P1.x) || Number.isNaN(P1.y) || Number.isNaN(P1.z)) {
             connectRings(start);
             lastTangent = null;
             N = null;
             start += newRingCount;
             newRingCount = 0;
 
+            continue;
+        }
+
+        P2 = (i !== points.length / 3 - 1)
+            ? new THREE.Vector3().fromArray(points, i * 3 + 3)
+            : null;
+
+        if (P2 !== null && !Number.isNaN(P2.x) && !Number.isNaN(P2.y) && !Number.isNaN(P2.z)) {
+            tangent = P2.clone().sub(P1).normalize();
+        } else if (lastTangent !== null) {
+            // the last point of the array, or the one before a separator: it still closes a run
+            // and needs its ring, which testing the next point for NaN used to cost it
+            P2 = P1.clone().add(lastTangent);
+        } else {
+            // a run of a single point has no direction to extrude a tube along
             continue;
         }
 
@@ -171,7 +178,12 @@ module.exports = function (points, attributes, radius, radialSegments, color, ve
         }
 
         makeRing(P1, P2, i, mat);
-        lastTangent = tangent.clone();
+
+        // the closing point of a run has no forward tangent of its own; the previous one stays,
+        // which is what the old code got by leaving the variable from the last iteration alone
+        if (tangent !== null) {
+            lastTangent = tangent.clone();
+        }
     }
 
     connectRings(start);

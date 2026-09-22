@@ -148,11 +148,9 @@ module.exports = function (THREE) {
         this.update = function () {
             const offset = new THREE.Vector3();
 
-            // so camera.up is the orbit axis
-            setupUpVector(object, K3D.parameters.cameraUpAxis);
-
-            const quat = new THREE.Quaternion().setFromUnitVectors(object.up, new THREE.Vector3(0, 1, 0));
-            const quatInverse = quat.clone().invert();
+            const yAxis = new THREE.Vector3(0, 1, 0);
+            const quat = new THREE.Quaternion();
+            const quatInverse = new THREE.Quaternion();
 
             const lastPosition = new THREE.Vector3();
             const lastQuaternion = new THREE.Quaternion();
@@ -163,6 +161,12 @@ module.exports = function (THREE) {
             // with no arguments, so a `silent` declared there would stay undefined forever and
             // every silent update would still dispatch 'change' and drive a redundant render
             return function update(silent) {
+
+                // per update, the way TrackballControls does it: camera.up is the orbit axis, and
+                // both camera_up_axis and a camera set from Python can change it after this point
+                setupUpVector(object, K3D.parameters.cameraUpAxis);
+                quat.setFromUnitVectors(object.up, yAxis);
+                quatInverse.copy(quat).invert();
 
                 const position = scope.object.position;
 

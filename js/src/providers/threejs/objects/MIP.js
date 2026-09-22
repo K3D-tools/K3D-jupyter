@@ -1,7 +1,8 @@
 const THREE = require('three');
 const _ = require('../../../lodash');
 const colorMapHelper = require('../../../core/lib/helpers/colorMap');
-const { typedArrayToThree } = require('../helpers/Fn');
+const { volumeChannels } = require('../helpers/Fn');
+const { volumeTexture } = require('../helpers/Fn');
 const { areAllChangesResolve } = require('../helpers/Fn');
 const { commonUpdate } = require('../helpers/Fn');
 const { ensure256size } = require('../helpers/Fn');
@@ -31,40 +32,26 @@ module.exports = {
         let maskEnabled = false;
         let opacityFunction = (config.opacity_function && config.opacity_function.data) || null;
         const colorRange = config.color_range;
+        const isRgbVolume = volumeChannels(config.volume.shape) > 1;
+        // an RGB volume maps nothing, so the gradient is there only to carry the alpha ramp
+        const rampColorMap = isRgbVolume ? [0.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0] : colorMap;
         const { samples } = config;
         let jitterTexture;
 
-        if (opacityFunction === null) {
-            opacityFunction = [colorMap[0], 0.0, colorMap[colorMap.length - 4], 1.0];
+        if (opacityFunction === null || opacityFunction.length === 0) {
+            opacityFunction = [
+                rampColorMap[0], 0.0, rampColorMap[rampColorMap.length - 4], 1.0,
+            ];
         }
 
         modelMatrix.set.apply(modelMatrix, config.model_matrix.data);
         modelMatrix.decompose(translation, rotation, scale);
 
-        const texture = new THREE.Data3DTexture(
+        const texture = volumeTexture(
             config.volume.data,
-            config.volume.shape[2],
-            config.volume.shape[1],
-            config.volume.shape[0],
+            config.volume.shape,
+            config.interpolation,
         );
-
-        texture.format = THREE.RedFormat;
-        texture.type = typedArrayToThree(config.volume.data.constructor);
-
-        texture.generateMipmaps = false;
-
-        if (config.interpolation) {
-            texture.minFilter = THREE.LinearFilter;
-            texture.magFilter = THREE.LinearFilter;
-        } else {
-            texture.minFilter = THREE.NearestFilter;
-            texture.magFilter = THREE.NearestFilter;
-        }
-
-        texture.wrapS = THREE.ClampToEdgeWrapping;
-        texture.wrapT = THREE.ClampToEdgeWrapping;
-        texture.wrapR = THREE.ClampToEdgeWrapping;
-        texture.needsUpdate = true;
 
         jitterTexture = new THREE.DataTexture(
             new Uint8Array(_.range(64 * 64).map(() => randomMul * Math.random())),
@@ -80,7 +67,7 @@ module.exports = {
         jitterTexture.generateMipmaps = false;
         jitterTexture.needsUpdate = true;
 
-        const canvas = colorMapHelper.createCanvasGradient(colorMap, 1024, 1, opacityFunction);
+        const canvas = colorMapHelper.createCanvasGradient(rampColorMap, 1024, 1, opacityFunction);
         const colormap = new THREE.CanvasTexture(
             canvas,
             THREE.UVMapping,
@@ -120,8 +107,8 @@ module.exports = {
                     config.volume.shape[0],
                 ),
             },
-            low: { value: colorRange[0] },
-            high: { value: colorRange[1] },
+            low: { value: typeof (colorRange[0]) === 'number' ? colorRange[0] : 0.0 },
+            high: { value: typeof (colorRange[1]) === 'number' ? colorRange[1] : 1.0 },
             gradient_step: { value: config.gradient_step },
             roughness: { value: typeof (config.roughness) !== 'undefined' ? config.roughness : 0.25 },
             metalness: { value: typeof (config.metalness) !== 'undefined' ? config.metalness : 0.0 },
@@ -144,6 +131,7 @@ module.exports = {
                 K3D_ENV_LIGHT: (K3D.parameters.renderer === 'simple' ? 0 : 1),
                 USE_SPECULAR: 1,
                 USE_MASK: (maskEnabled ? 1 : 0),
+                USE_RGB_VOLUME: (isRgbVolume ? 1 : 0),
             },
             vertexShader: require('./shaders/MIP.vertex.glsl'),
             fragmentShader: require('../helpers/ggxChunk')(require('./shaders/MIP.fragment.glsl')),
@@ -211,6 +199,18 @@ module.exports = {
     update(config, changes, obj, K3D) {
         const resolvedChanges = {};
 
+        // the march reads the box off these uniforms, and only create() ever filled them
+        if (typeof (changes.model_matrix) !== 'undefined' && !changes.model_matrix.timeSeries) {
+            const matrix = new THREE.Matrix4();
+
+            matrix.set.apply(matrix, changes.model_matrix.data);
+            matrix.decompose(
+                obj.material.uniforms.translation.value,
+                obj.material.uniforms.rotation.value,
+                obj.material.uniforms.scale.value,
+            );
+        }
+
         if (typeof (changes.color_range) !== 'undefined' && !changes.color_range.timeSeries) {
             obj.material.uniforms.low.value = changes.color_range[0];
             obj.material.uniforms.high.value = changes.color_range[1];
@@ -263,7 +263,9 @@ module.exports = {
         }
 
         if (typeof (changes.mask_opacities) !== 'undefined' && !changes.mask_opacities.timeSeries) {
-            if (obj.material.uniforms.maskOpacities.value !== null) {
+            // maskOpacities is always a 256-entry array; the mask texture is what says whether
+            // the shader has USE_MASK at all, and without it the object has to be rebuilt
+            if (obj.material.uniforms.mask.value !== null) {
                 obj.material.uniforms.maskOpacities.value = ensure256size(changes.mask_opacities.data);
                 obj.material.uniforms.maskOpacities.value.needsUpdate = true;
 

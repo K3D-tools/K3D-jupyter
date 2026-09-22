@@ -1,6 +1,7 @@
 """Factory functions for geometric objects."""
 
-from typing import Any, Optional, Tuple, Union
+import warnings
+from typing import Any, Callable, Optional, Tuple, Union
 from typing import Dict as TypingDict
 from typing import List as TypingList
 
@@ -10,6 +11,27 @@ from ..helpers import check_attribute_color_range
 from ..objects import STL, Line, Lines, Mesh, Surface
 from ..transform import process_transform_arguments
 from .common import _default_color, default_colormap
+
+# only LineMesh builds a lit material; thick and simple draw unlit tubes and lines, so these
+# two traits reach the browser and nothing reads them
+LINE_MATERIAL_DEFAULTS = {"roughness": 0.4, "metalness": 0.0}
+
+
+def _warn_unlit_line(shader, roughness, metalness):
+    if shader == "mesh":
+        return
+
+    ignored = [name for name, value in (("roughness", roughness), ("metalness", metalness))
+               if value is not None and value != LINE_MATERIAL_DEFAULTS[name]]
+
+    if ignored:
+        warnings.warn(
+            "%s %s ignored by the '%s' line shader, which draws unlit geometry - use "
+            "shader='mesh' for a lit line" % (
+                " and ".join(ignored), "are" if len(ignored) > 1 else "is", shader),
+            stacklevel=3,
+        )
+
 
 # Type aliases for better readability
 ArrayLike = Union[TypingList, np.ndarray, Tuple]
@@ -37,6 +59,7 @@ def lines(
         group: Optional[str] = None,
         custom_data: Optional[TypingDict[str, Any]] = None,
         compression_level: int = 0,
+        visible: bool = True,
         **kwargs: Any,
 ) -> Lines:
     """
@@ -84,6 +107,8 @@ def lines(
         An object with custom data attached to object. Default is None.
     compression_level : int, optional
         Level of compression [-1, 9]. Default is 0.
+    visible : bool, optional
+        Whether the object is drawn. Default is True.
     **kwargs
         Additional keyword arguments passed to process_transform_arguments.
 
@@ -109,6 +134,8 @@ def lines(
     )
     color_range = check_attribute_color_range(attribute, color_range)
 
+    _warn_unlit_line(shader, roughness, metalness)
+
     return process_transform_arguments(
         Lines(
             vertices=vertices,
@@ -130,6 +157,7 @@ def lines(
             group=group,
             custom_data=custom_data,
             compression_level=compression_level,
+            visible=visible,
         ),
         **kwargs,
     )
@@ -153,6 +181,7 @@ def line(
         group: Optional[str] = None,
         custom_data: Optional[TypingDict[str, Any]] = None,
         compression_level: int = 0,
+        visible: bool = True,
         **kwargs: Any,
 ) -> Line:
     """
@@ -193,6 +222,8 @@ def line(
         An object with custom data attached to object, by default None.
     compression_level : int, optional
         Level of data compression [-1, 9], by default 0.
+    visible : bool, optional
+        Whether the object is drawn. Default is True.
     **kwargs
         Additional keyword arguments passed to process_transform_arguments.
 
@@ -218,6 +249,8 @@ def line(
     )
     color_range = check_attribute_color_range(attribute, color_range)
 
+    _warn_unlit_line(shader, roughness, metalness)
+
     return process_transform_arguments(
         Line(
             vertices=vertices,
@@ -237,6 +270,7 @@ def line(
             group=group,
             custom_data=custom_data,
             compression_level=compression_level,
+            visible=visible,
         ),
         **kwargs,
     )
@@ -271,6 +305,9 @@ def mesh(
         custom_data: Optional[TypingDict[str, Any]] = None,
         compression_level: int = 0,
         triangles_attribute: ArrayLike = None,
+        visible: bool = True,
+        click_callback: Optional[Callable] = None,
+        hover_callback: Optional[Callable] = None,
         **kwargs: Any,
 ) -> Mesh:
     """Create a Mesh drawable from 3D triangles.
@@ -332,7 +369,19 @@ def mesh(
     compression_level : int, optional
         Level of data compression [-1, 9], by default 0.
     triangles_attribute : list, optional
-        _description_, by default []
+        Array of float attribute for the color mapping, one value per triangle rather than per
+        vertex; used when `attribute` is empty, by default [].
+    slice_planes : list, optional
+        Planes [a, b, c, d] the section outline is drawn along, up to eight of them. The outline
+        is drawn in the object colour, without the colormap, by default [].
+    visible : bool, optional
+        Whether the object is drawn. Default is True.
+    click_callback : callable, optional
+        Called with the picking parameters when the object is clicked, while the plot is
+        in mode='callback'. Default is None.
+    hover_callback : callable, optional
+        Called with the picking parameters when the cursor is over the object, while the
+        plot is in mode='callback'. Default is None.
     **kwargs
         For other keyword-only arguments, see :ref:`process_transform_arguments`.
 
@@ -420,6 +469,9 @@ def mesh(
             group=group,
             custom_data=custom_data,
             compression_level=compression_level,
+            visible=visible,
+            click_callback=click_callback,
+            hover_callback=hover_callback,
         ),
         **kwargs,
     )
@@ -438,6 +490,7 @@ def stl(
         group: Optional[str] = None,
         custom_data: Optional[TypingDict[str, Any]] = None,
         compression_level: int = 0,
+        visible: bool = True,
         **kwargs: Any,
 ) -> STL:
     """Create an STL drawable for data in STereoLitograpy format.
@@ -464,6 +517,8 @@ def stl(
         A object with custom data attached to object.
     compression_level : int, optional
         Level of data compression [-1, 9], by default 0.
+    visible : bool, optional
+        Whether the object is drawn. Default is True.
     **kwargs
         For other keyword-only arguments, see :ref:`process_transform_arguments`.
 
@@ -488,6 +543,7 @@ def stl(
             group=group,
             custom_data=custom_data,
             compression_level=compression_level,
+            visible=visible,
         ),
         **kwargs,
     )
@@ -509,6 +565,9 @@ def surface(
         group: Optional[str] = None,
         custom_data: Optional[TypingDict[str, Any]] = None,
         compression_level: int = 0,
+        visible: bool = True,
+        click_callback: Optional[Callable] = None,
+        hover_callback: Optional[Callable] = None,
         **kwargs: Any,
 ) -> Surface:
     """Create a Surface drawable.
@@ -554,6 +613,14 @@ def surface(
         A object with custom data attached to object.
     compression_level : int, optional
         Level of data compression [-1, 9], by default 0.
+    visible : bool, optional
+        Whether the object is drawn. Default is True.
+    click_callback : callable, optional
+        Called with the picking parameters when the object is clicked, while the plot is
+        in mode='callback'. Default is None.
+    hover_callback : callable, optional
+        Called with the picking parameters when the cursor is over the object, while the
+        plot is in mode='callback'. Default is None.
     **kwargs
         For other keyword-only arguments, see :ref:`process_transform_arguments`.
 
@@ -594,6 +661,9 @@ def surface(
             group=group,
             custom_data=custom_data,
             compression_level=compression_level,
+            visible=visible,
+            click_callback=click_callback,
+            hover_callback=hover_callback,
         ),
         **kwargs,
     )

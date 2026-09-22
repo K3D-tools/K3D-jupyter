@@ -18,15 +18,18 @@ function detachWindowGUI(gui, K3D) {
     function reinitializeK3D(DOM) {
         const world = K3D.getWorld();
         const newK3D = new K3D.constructor(K3D.Provider, DOM, K3D.parameters);
-        const objects = world.K3DObjects.children.reduce((prev, object) => {
-            prev.push(world.ObjectsListJson[object.K3DIdentifier]);
-
-            return prev;
-        }, []);
+        // every object, not the scene's children: Text and Text2d are DOM overlays and were
+        // never added to K3DObjects, so reading the scene dropped them on every detach
+        const objects = Object.keys(world.ObjectsListJson).map((id) => world.ObjectsListJson[id]);
 
         const previousListeners = K3D.getListeners();
 
         K3D.disable();
+        // before load: a VoxelsGroup carrying chunks_ids indexes this list while it builds
+        if (world.chunkList) {
+            newK3D.setChunkList(world.chunkList);
+        }
+
         newK3D.load({ objects });
         newK3D.setCamera(K3D.getWorld().controls.getCameraArray());
 

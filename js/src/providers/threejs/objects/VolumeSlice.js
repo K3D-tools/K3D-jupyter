@@ -3,7 +3,8 @@ const interactionsVolumeSlice = require('../interactions/VolumeSlice');
 const interactionsHelper = require('../helpers/Interactions');
 const colorMapHelper = require('../../../core/lib/helpers/colorMap');
 const _ = require('../../../lodash');
-const typedArrayToThree = require('../helpers/Fn').typedArrayToThree;
+const volumeChannels = require('../helpers/Fn').volumeChannels;
+const buildVolumeTexture = require('../helpers/Fn').volumeTexture;
 const areAllChangesResolve = require('../helpers/Fn').areAllChangesResolve;
 const commonUpdate = require('../helpers/Fn').commonUpdate;
 
@@ -75,31 +76,12 @@ function getPositions(slice, shape) {
 
 function addTextureToUniforms(uniforms, config) {
     const d = config.volume.reduce((ret, volume, id) => {
-        const texture = new THREE.Data3DTexture(
-            volume.data,
-            volume.shape[2],
-            volume.shape[1],
-            volume.shape[0],
-        );
-        texture.format = THREE.RedFormat;
-        texture.type = typedArrayToThree(volume.data.constructor);
+        const texture = buildVolumeTexture(volume.data, volume.shape, config.interpolation > 0);
 
-        texture.generateMipmaps = false;
-        texture.wrapS = THREE.ClampToEdgeWrapping;
-        texture.wrapT = THREE.ClampToEdgeWrapping;
-
-        if (config.interpolation > 0) {
-            texture.minFilter = THREE.LinearFilter;
-            texture.magFilter = THREE.LinearFilter;
-        } else {
-            texture.minFilter = THREE.NearestFilter;
-            texture.magFilter = THREE.NearestFilter;
-        }
-
-        texture.needsUpdate = true;
-
-        ret.low.push(config.color_range[id * 2]);
-        ret.high.push(config.color_range[id * 2 + 1]);
+        // an RGB slice has no range to window, and an undefined uniform reaches the shader
+        // as NaN rather than as "unused"
+        ret.low.push(typeof (config.color_range[id * 2]) === 'number' ? config.color_range[id * 2] : 0.0);
+        ret.high.push(typeof (config.color_range[id * 2 + 1]) === 'number' ? config.color_range[id * 2 + 1] : 1.0);
         ret.volumeTexture.push(texture);
         ret.volumeSize.push(new THREE.Vector3(volume.shape[2], volume.shape[1], volume.shape[0]));
 
@@ -144,7 +126,11 @@ module.exports = {
         const shape = Array.isArray(config.volume) ? config.volume[0].shape : config.volume.shape;
         config.volume = Array.isArray(config.volume) ? config.volume : [config.volume];
 
-        const canvas = colorMapHelper.createCanvasGradient(colorMap, 1024, config.volume.length, opacityFunction);
+        const isRgbVolume = volumeChannels(shape) > 1;
+        // the shader ignores it under USE_RGB_VOLUME, but the uniform has to hold a texture
+        const canvas = isRgbVolume
+            ? colorMapHelper.createCanvasGradient([0.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0], 1024, 1, null)
+            : colorMapHelper.createCanvasGradient(colorMap, 1024, config.volume.length, opacityFunction);
         const colormap = new THREE.CanvasTexture(
             canvas,
             THREE.UVMapping,
@@ -219,6 +205,7 @@ module.exports = {
             ),
             defines: {
                 CUBIC: config.interpolation === 2 ? 1 : 0,
+                USE_RGB_VOLUME: (isRgbVolume ? 1 : 0),
             },
             side: THREE.DoubleSide,
             vertexShader: require('./shaders/VolumeSlice.vertex.glsl'),
@@ -283,8 +270,13 @@ module.exports = {
 
         if (typeof (changes.color_range) !== 'undefined' && !changes.color_range.timeSeries) {
             if (Array.isArray(obj.material.uniforms.low.value)) {
-                obj.material.uniforms.low.value[0] = changes.color_range[0];
-                obj.material.uniforms.high.value[0] = changes.color_range[1];
+                // one pair per channel, the same layout addTextureToUniforms built
+                for (let id = 0; id < obj.material.uniforms.low.value.length; id += 1) {
+                    if (typeof (changes.color_range[id * 2 + 1]) === 'number') {
+                        obj.material.uniforms.low.value[id] = changes.color_range[id * 2];
+                        obj.material.uniforms.high.value[id] = changes.color_range[id * 2 + 1];
+                    }
+                }
             } else {
                 obj.material.uniforms.low.value = changes.color_range[0];
                 obj.material.uniforms.high.value = changes.color_range[1];
@@ -331,7 +323,9 @@ module.exports = {
                 changes.volume.forEach((volume, i) => {
                     const val = obj.material.uniforms.volumeTexture.value[i];
 
-                    if (val.image.data.constructor === volume.data.constructor && val.image.width === volume.shape[2]
+                    if (val.image.data.constructor === volume.data.constructor
+                        && val.image.data.length === volume.data.length
+                        && val.image.width === volume.shape[2]
                         && val.image.height === volume.shape[1] && val.image.depth === volume.shape[0]) {
                         val.image.data = volume.data;
                         val.needsUpdate = true;
@@ -350,7 +344,11 @@ module.exports = {
             const maskValue = obj.material.uniforms.mask.value;
 
             if (maskValue && maskValue.image && maskValue.image.data.length > 0
-                && maskValue.image.data.constructor === changes.mask.data.constructor) {
+                && maskValue.image.data.constructor === changes.mask.data.constructor
+                // same dimensions, or texImage3D uploads the new data into the old ones
+                && maskValue.image.width === changes.mask.shape[2]
+                && maskValue.image.height === changes.mask.shape[1]
+                && maskValue.image.depth === changes.mask.shape[0]) {
                 obj.material.uniforms.mask.value.image.data = changes.mask.data;
                 obj.material.uniforms.mask.value.needsUpdate = true;
 
@@ -400,6 +398,14 @@ module.exports = {
         ['opacity'].forEach((key) => {
             if (changes[key] && !changes[key].timeSeries) {
                 obj.material.uniforms[key].value = changes[key];
+
+                // which pass the material is drawn in is decided from this value at creation:
+                // without redeciding it, a new alpha reaches the shader with blending still off
+                const opacityFunction = (config.opacity_function && config.opacity_function.data
+                    && config.opacity_function.data.length > 0);
+
+                obj.material.transparent = (changes[key] !== 1.0 || opacityFunction);
+                obj.material.depthWrite = !obj.material.transparent;
                 obj.material.needsUpdate = true;
 
                 resolvedChanges[key] = null;

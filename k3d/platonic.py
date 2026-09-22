@@ -7,6 +7,28 @@ import numpy as np
 import k3d
 
 
+def _wind_outwards(vertices, indices):
+    """Return `indices` with every triangle wound counter-clockwise seen from outside.
+
+    These solids are convex and centred on their own centroid, so the test is the sign of the
+    face normal against the direction from the centroid to the face.
+    """
+    v = np.asarray(vertices, np.float64).reshape(-1, 3)
+    tris = np.asarray(indices, np.int64).reshape(-1, 3)
+    centre = v.mean(axis=0)
+    out = []
+
+    for a, b, c in tris:
+        normal = np.cross(v[b] - v[a], v[c] - v[a])
+
+        if np.dot(normal, (v[a] + v[b] + v[c]) / 3.0 - centre) < 0.0:
+            a, b, c = a, c, b
+
+        out += [int(a), int(b), int(c)]
+
+    return out
+
+
 class PlatonicSolid:
     """Base class for platonic solids."""
 
@@ -180,6 +202,7 @@ class Dodecahedron(PlatonicSolid):
                 2,
                 14,
             ]
+            self.indices = _wind_outwards(self.vertices, self.indices)
         else:
             raise TypeError("Origin should have 3 coordinates.")
 
@@ -251,6 +274,7 @@ class Cube(PlatonicSolid):
                 6,
                 7,
             ]
+            self.indices = _wind_outwards(self.vertices, self.indices)
 
         else:
             raise TypeError("Origin attribute should have 3 coordinates.")
@@ -361,6 +385,7 @@ class Icosahedron(PlatonicSolid):
                 9,
                 11,
             ]
+            self.indices = _wind_outwards(self.vertices, self.indices)
 
         else:
             raise TypeError("Origin attribute should have 3 coordinates.")
@@ -428,6 +453,7 @@ class Octahedron(PlatonicSolid):
                 4,
                 5,
             ]
+            self.indices = _wind_outwards(self.vertices, self.indices)
 
         else:
             raise TypeError("Origin attribute should have 3 coordinates.")
@@ -463,6 +489,7 @@ class Tetrahedron(PlatonicSolid):
 
             self.vertices = tetrahedron_vertices
             self.indices = [0, 1, 2, 0, 1, 3, 1, 2, 3, 0, 2, 3]
+            self.indices = _wind_outwards(self.vertices, self.indices)
 
         else:
             raise TypeError("Origin attribute should have 3 coordinates.")

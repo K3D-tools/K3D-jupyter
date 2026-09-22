@@ -38,6 +38,7 @@ Showcase
     showcase/vtk-cutter.rst
     showcase/tractogram.rst
     showcase/cinematic-heart.rst
+    showcase/visible-human.rst
 
 .. k3d_plot::
    :filename: showcase/thumbnails/curl_pearls_thumbnail.py
@@ -93,6 +94,10 @@ Showcase
 
 .. k3d_plot::
    :filename: showcase/thumbnails/cinematic_heart_thumbnail.py
+   :screenshot:
+
+.. k3d_plot::
+   :filename: showcase/thumbnails/visible_human_thumbnail.py
    :screenshot:
 
 .. raw:: html
@@ -154,6 +159,10 @@ Showcase
 .. image:: cinematic_heart_thumbnail.png
    :width: 155
    :target: showcase/cinematic-heart.html
+
+.. image:: visible_human_thumbnail.png
+   :width: 155
+   :target: showcase/visible-human.html
 
 .. raw:: html
 
@@ -221,6 +230,10 @@ API
 
 .. k3d_plot::
    :filename: api/thumbnails/volume_render_mhd_thumbnail.py
+   :screenshot:
+
+.. k3d_plot::
+   :filename: api/thumbnails/volume_rgb_thumbnail.py
    :screenshot:
 
 .. k3d_plot::
@@ -298,6 +311,10 @@ API
 .. image:: volume_render_mhd_thumbnail.png
    :width: 155
    :target: ../reference/factory.volume.html#render-mhd-volumetric-data
+
+.. image:: volume_rgb_thumbnail.png
+   :width: 155
+   :target: ../reference/factory.volume.html#colour-per-voxel
 
 .. image:: voxels_shapes_thumbnail.png
    :width: 155

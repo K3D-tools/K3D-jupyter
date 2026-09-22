@@ -215,3 +215,19 @@ def test_the_checksum_compares_bytes_not_values():
 
     assert _snapshot(nan) == _snapshot(nan)
     assert _snapshot(np.array([0.0], np.float32)) != _snapshot(np.array([-0.0], np.float32))
+
+
+def test_strided_volume_is_held_contiguous_and_fingerprinted():
+    """np.transpose hands the trait a strided view; a view cannot be fingerprinted, and with one
+    NaN inside it an elementwise comparison never says 'unchanged' - so the whole volume would be
+    resent on every sync. The validator makes it contiguous once instead."""
+    ct = np.random.default_rng(1).standard_normal((4, 5, 6)).astype(np.float16)
+    ct[0, 0, 0] = np.nan
+    volume = k3d.volume(np.transpose(ct, (2, 1, 0)), color_range=[0, 1])
+
+    assert volume.volume.flags["C_CONTIGUOUS"]
+
+    _, state = _synced(volume)
+
+    assert _touched(state) == {}
+    assert _touched(state) == {}

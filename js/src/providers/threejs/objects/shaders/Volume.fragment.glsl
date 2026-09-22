@@ -137,12 +137,25 @@ float getMaskOpacity(vec3 pos) {
     return maskOpacities[maskValue];
 }
 
+// Rec. 709 luminance. An RGB volume carries no scalar of its own, and everything the march
+// does besides colour - the alpha ramp, the gradient it shades with - needs one.
+const vec3 kLuma = vec3(0.2126, 0.7152, 0.0722);
+
+float getVolumeScalar(vec3 pos)
+{
+    #if (USE_RGB_VOLUME == 1)
+    return dot(texture(volumeTexture, pos).rgb, kLuma);
+    #else
+    return texture(volumeTexture, pos).x;
+    #endif
+}
+
 float getMaskedVolume(vec3 pos)
 {
     #if (USE_MASK == 1)
-    return texture(volumeTexture, pos).x * getMaskOpacity(pos);
+    return getVolumeScalar(pos) * getMaskOpacity(pos);
     #else
-    return texture(volumeTexture, pos).x;
+    return getVolumeScalar(pos);
     #endif
 }
 
@@ -275,8 +288,15 @@ void main() {
             #pragma unroll_loop_end
             #endif
 
+            #if (USE_RGB_VOLUME == 1)
+            // no window: the colour is final and opacity_function spans luminance 0..1
+            vec4 kRgbSample = texture(volumeTexture, textcoord);
+            px = dot(kRgbSample.rgb, kLuma);
+            float scaled_px = px;
+            #else
             px = texture(volumeTexture, textcoord).x;
             float scaled_px = k3dScaleToRange(px, low, high);
+            #endif
 
             if (scaled_px > 0.0) {
                 #if (USE_MASK == 1)
@@ -301,7 +321,12 @@ void main() {
 
                     scaled_px = min(scaled_px, 0.99);
 
+                    #if (USE_RGB_VOLUME == 1)
+                    // colour straight out of the data, alpha out of the ramp
+                    pxColor = vec4(kRgbSample.rgb, texture(colormap, vec2(scaled_px, 0.5)).a);
+                    #else
                     pxColor = texture(colormap, vec2(scaled_px, 0.5));
+                    #endif
 
                     pxColor.a = 1.0 - pow(1.0 - pxColor.a, step * alpha_coef);
                     pxColor.a *= (1.0 - value.a);

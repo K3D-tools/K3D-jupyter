@@ -1,6 +1,6 @@
 """Factory function for VTK PolyData objects."""
 
-from typing import Any, Optional, Tuple, Union
+from typing import Any, Callable, Optional, Tuple, Union
 from typing import Dict as TypingDict
 from typing import List as TypingList
 
@@ -48,8 +48,85 @@ def vtk_poly_data(
         group: Optional[str] = None,
         custom_data: Optional[TypingDict[str, Any]] = None,
         compression_level: int = 0,
+        visible: bool = True,
+        click_callback: Optional[Callable] = None,
+        hover_callback: Optional[Callable] = None,
         **kwargs: Any,
 ) -> Mesh:
+    """
+    Create a Mesh drawable from a vtkPolyData object.
+
+    Parameters
+    ----------
+    poly_data : vtkPolyData
+        The polygonal data to convert. Cells with more than three points, and triangle strips, are
+        triangulated first.
+    color : int, optional
+        Packed RGB color of the mesh (0xff0000 is red, 0xff is blue) when not using color maps.
+        Default is 255.
+    color_attribute : tuple, optional
+        Attribute to colour by, as (array name, min, max) read from the point data. Default is
+        None.
+    color_map : list, optional
+        A list of float quadruplets (attribute value, R, G, B), sorted by attribute value. The
+        first quadruplet should have value 0.0, the last 1.0; R, G, B are RGB color components in
+        the range 0.0 to 1.0. Default is None.
+    side : str, optional
+        Which faces of the mesh are drawn: 'front', 'back' or 'double'. Default is 'front'.
+    slice_planes : list, optional
+        Planes [a, b, c, d] the section outline is drawn along, up to eight of them. The outline
+        is drawn in the object colour. Default is None.
+    wireframe : bool, optional
+        Whether mesh should display as wireframe. Default is False.
+    opacity : float, optional
+        Opacity of mesh. Default is 1.0.
+    volume : array_like, optional
+        3D array sampled for the colour of each fragment, with volume_bounds giving the box it
+        spans. Default is None.
+    volume_bounds : array_like, optional
+        Bounding box [xmin, xmax, ymin, ymax, zmin, zmax] of `volume`. Default is None.
+    opacity_function : list, optional
+        A list of float tuples (attribute value, opacity), sorted by attribute value. The first
+        tuple should have value 0.0, the last 1.0; opacity is in the range 0.0 to 1.0. Default is
+        None.
+    color_range : list, optional
+        A pair [min_value, max_value], which determines the levels of color attribute mapped to 0
+        and 1 in the color map respectively. Default is None.
+    cell_color_attribute : tuple, optional
+        Attribute to colour by, as (array name, min, max) read from the cell data. Default is
+        None.
+    flat_shading : bool, optional
+        Whether mesh should display with flat shading. Default is True.
+    roughness : float, optional
+        Roughness of object material. Default is 0.4.
+    metalness : float, optional
+        Metalness of object material. Default is 0.0.
+    shininess : float, optional
+        Removed in 3.0.0; passing it raises. Use roughness and metalness. Default is None.
+    name : str, optional
+        A name of the object. Default is None.
+    group : str, optional
+        A name of a group. Default is None.
+    custom_data : dict, optional
+        An object with custom data attached to object. Default is None.
+    compression_level : int, optional
+        Level of compression [-1, 9]. Default is 0.
+    visible : bool, optional
+        Whether the object is drawn. Default is True.
+    click_callback : callable, optional
+        Called with the picking parameters when the object is clicked, while the plot is
+        in mode='callback'. Default is None.
+    hover_callback : callable, optional
+        Called with the picking parameters when the cursor is over the object, while the
+        plot is in mode='callback'. Default is None.
+    **kwargs
+        Additional keyword arguments passed to process_transform_arguments.
+
+    Returns
+    -------
+    Mesh
+        The created Mesh object.
+    """
     if slice_planes is None:
         slice_planes = []
     if volume is None:
@@ -67,12 +144,15 @@ def vtk_poly_data(
     if vtk is None:
         raise RuntimeError("vtk module is not available")
 
+    # indices below read GetPolys() only, so strips have to be triangulated whatever their
+    # size: a strip of exactly 3 points left the mesh with no indices at all
     if (
             max(
                 poly_data.GetPolys().GetMaxCellSize(),
                 poly_data.GetStrips().GetMaxCellSize(),
             )
             > 3
+            or poly_data.GetStrips().GetNumberOfCells() > 0
     ):
         cut_triangles = vtk.vtkTriangleFilter()
         cut_triangles.SetInputData(poly_data)
@@ -130,6 +210,9 @@ def vtk_poly_data(
             group=group,
             custom_data=custom_data,
             compression_level=compression_level,
+            visible=visible,
+            click_callback=click_callback,
+            hover_callback=hover_callback,
         ),
         **kwargs,
     )

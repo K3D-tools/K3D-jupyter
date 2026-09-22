@@ -7,7 +7,8 @@ uniform vec3 volumeSize[TEXTURE_COUNT];
 varying vec3 coord;
 
 void main() {
-    coord = position + vec3(0.5) + 0.5 / volumeSize[0];
+    // getPositions already puts the plane at the centre of the voxel
+    coord = position + vec3(0.5);
 
     vec4 mvPosition = modelViewMatrix * vec4(position, 1.0);
 

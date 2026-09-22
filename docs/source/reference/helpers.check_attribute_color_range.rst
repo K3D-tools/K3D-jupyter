@@ -20,10 +20,10 @@ Color range
 
     attribute = np.linspace(0, 0.5, 100)
 
-    color_range = k3d.helpers.check_attribute_range(attribute, color_range=[0, 1])
+    color_range = k3d.helpers.check_attribute_color_range(attribute, color_range=[0, 1])
 
     """
-    (0, 1)
+    [0.0, 1.0]
     """
 
 No color range
@@ -36,8 +36,8 @@ No color range
 
     attribute = np.linspace(0, 0.5, 100)
 
-    color_range = k3d.helpers.check_attribute_range(attribute)
+    color_range = k3d.helpers.check_attribute_color_range(attribute)
 
     """
-    (0.0, 0.5)
+    [0.0, 0.5]
     """
