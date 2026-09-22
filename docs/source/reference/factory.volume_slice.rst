@@ -10,6 +10,44 @@ volume_slice
 Examples
 --------
 
+Colour per voxel
+^^^^^^^^^^^^^^^^
+
+:download:`visiblehuman.nii.gz <./assets/factory/visiblehuman.nii.gz>`
+
+A slice of an RGB volume carries no lighting and no window, so the plane is the photograph:
+the renderer writes without a colour-space conversion and what reaches the framebuffer is the
+bytes that went in.
+
+.. code-block:: python3
+
+    import k3d
+    import numpy as np
+    import SimpleITK as sitk
+
+    # RGB24 NIfTI: SimpleITK returns it as [z, y, x, 3] uint8, which is the order
+    # a volume is indexed in, so there is nothing to transpose
+    im_sitk = sitk.ReadImage('visiblehuman.nii.gz')
+    img = np.ascontiguousarray(sitk.GetArrayFromImage(im_sitk))
+    size = np.array(im_sitk.GetSize()) * np.array(im_sitk.GetSpacing())
+    bounds = [-size[0] / 2, size[0] / 2,
+              -size[1] / 2, size[1] / 2,
+              -size[2] / 2, size[2] / 2]
+    nz, ny, nx = img.shape[:3]
+
+    plt_slice = k3d.volume_slice(img,
+                                 slice_z=nz // 2,
+                                 slice_y=ny // 2,
+                                 slice_x=nx // 2,
+                                 bounds=bounds)
+
+    plot = k3d.plot(camera_mode='volume_sides', background_color=0, grid_visible=False)
+    plot += plt_slice
+    plot.display()
+
+.. k3d_plot ::
+  :filename: plots/factory/volume_slice_rgb_plot.py
+
 Render mhd volumetric data as three plane view
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
