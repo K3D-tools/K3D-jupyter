@@ -97,3 +97,37 @@ Mask
 .. k3d_plot ::
     :filename: plots/factory/mip_mask_plot.py
 
+Colour per voxel
+^^^^^^^^^^^^^^^^
+
+:download:`visiblehuman.nii.gz <./assets/factory/visiblehuman.nii.gz>`
+
+A maximum has to be a maximum of something, and colour has only one scalar: ``mip`` maximises
+Rec. 709 luminance along the ray and keeps the colour of the voxel that reached it. On this
+head that is bone and teeth, seen through the skin, in the colours they have.
+
+.. code-block:: python3
+
+    import k3d
+    import numpy as np
+    import SimpleITK as sitk
+
+    # RGB24 NIfTI: SimpleITK returns it as [z, y, x, 3] uint8, which is the order
+    # a volume is indexed in, so there is nothing to transpose
+    im_sitk = sitk.ReadImage('visiblehuman.nii.gz')
+    img = np.ascontiguousarray(sitk.GetArrayFromImage(im_sitk))
+    size = np.array(im_sitk.GetSize()) * np.array(im_sitk.GetSpacing())
+    bounds = [-size[0] / 2, size[0] / 2,
+              -size[1] / 2, size[1] / 2,
+              -size[2] / 2, size[2] / 2]
+
+    plt_mip = k3d.mip(img, samples=512, bounds=bounds)
+
+    plot = k3d.plot(background_color=0, grid_visible=False)
+    plot += plt_mip
+    plot.display()
+
+    plot.camera = [180, 290, 110, 0, 0, 0, 0, 0, 1]
+
+.. k3d_plot ::
+  :filename: plots/factory/mip_rgb_plot.py
