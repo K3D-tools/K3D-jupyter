@@ -28,13 +28,11 @@ def generate():
                     grid_visible=False,
                     axes_helper=0)
     plot += plt_volume
-    plot.camera_auto_fit = False
-    # the file is RAS, so -y is the back of the head; the face is on +y
-    plot.camera = [180, 290, 110, 0, 0, 0, 0, 0, 1]
 
     headless = k3d_remote(plot, get_headless_driver(), width=800, height=800)
 
     headless.sync(hold_until_refreshed=True)
+    headless.camera_reset(1)
 
     screenshot = headless.get_screenshot()
     headless.close()

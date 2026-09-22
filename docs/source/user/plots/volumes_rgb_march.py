@@ -14,6 +14,6 @@ def generate():
     plot = stage()
     plot += k3d.volume(rgb, opacity_function=OPACITY_FUNCTION, alpha_coef=ALPHA_COEF,
                        samples=SAMPLES, bounds=bounds)
-    plot.camera = [180, 290, 110, 0, 0, 0, 0, 0, 1]
+    plot.camera = [227, -265, 132, 0, 0, 0, 0, 0, 1]
 
     return shoot(plot)

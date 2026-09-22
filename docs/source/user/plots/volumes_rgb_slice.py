@@ -15,6 +15,6 @@ def generate():
     plot = stage()
     plot += k3d.volume_slice(rgb, slice_z=nz // 2, slice_y=ny // 2, slice_x=nx // 2,
                              bounds=bounds)
-    plot.camera = [180, 290, 110, 0, 0, 0, 0, 0, 1]
+    plot.camera = [227, -265, 132, 0, 0, 0, 0, 0, 1]
 
     return shoot(plot)

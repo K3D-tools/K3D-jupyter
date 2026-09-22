@@ -22,7 +22,6 @@ def generate():
 
     plot = k3d.plot(background_color=0, grid_visible=False)
     plot += plt_mip
-    plot.camera = [180, 290, 110, 0, 0, 0, 0, 0, 1]
 
     plot.snapshot_type = 'inline'
     return plot.get_snapshot()

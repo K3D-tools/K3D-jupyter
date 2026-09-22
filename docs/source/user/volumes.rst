@@ -9,6 +9,87 @@ transported rather than by what a surface does, which makes it the one place whe
 choice of renderer changes the picture rather than the polish. Everything on this page
 applies to ``k3d.volume``; ``mip`` follows it where it says so.
 
+Colour per voxel
+----------------
+
+A scan can measure colour rather than a quantity to map. The Visible Human cryosections are
+photographs, and an RGB-encoded NIfTI carries them as three bytes a voxel. A 4D array of
+``uint8`` shaped ``[z, y, x, 3]`` or ``[z, y, x, 4]`` passed to ``volume``, ``volume_slice``
+or ``mip`` is drawn as the colour it is. Nothing is left for a colormap to do, so ``color_map``
+and ``color_range`` are refused with a warning rather than quietly ignored, and the ``uint8`` is
+kept rather than cast - a cast to ``float32`` would quadruple a photographic volume without
+adding precision the data has.
+
+.. list-table::
+   :widths: 50 50
+
+   * - .. image:: volumes_rgb_slice.png
+          :width: 100%
+          :target: ../_images/volumes_rgb_slice.png
+
+     - ``volume_slice``. A slice carries no lighting and no window, so what reaches the
+       framebuffer is the bytes that went in: the renderer writes without a colour-space
+       conversion, and the plane is the photograph.
+
+   * - .. image:: volumes_rgb_march.png
+          :width: 100%
+          :target: ../_images/volumes_rgb_march.png
+
+     - ``volume``. The same data marched, with the opacity ramp rising from 0.30 - low enough
+       to leave the embedding medium behind, high enough to put the surface where the skin is
+       already itself.
+
+One thing has to be invented, and it is the alpha: the march has to know where to stop, and
+colour does not say. It comes from Rec. 709 luminance shaped by ``opacity_function``, which is
+therefore the whole transfer function here, and the same luminance feeds the gradient the shader
+lights with, so a colour volume shades like any other.
+
+Where that ramp rises matters more than it would for a scalar field, and it is the one thing to
+know before reaching for this. A volume is sampled trilinearly, so every surface has a rim where
+the texture fades in. A scalar field hides it: whatever value the ray stops at, the colormap turns
+it into a full-intensity colour. Here the value *is* the colour, so a ray stopping halfway up the
+rim paints a half-bright one. Measured on a white ball, a ramp rising from 0.02 renders it at 76
+levels, the same ball with the ramp rising from 0.45 renders at 249, and with
+``interpolation=False`` the low ramp renders at 255, because there is no rim to stop in. Start the
+ramp where the data is already itself.
+
+``mip`` maximises that same luminance and keeps the colour of the voxel that reached it, because a
+maximum has to be a maximum of something. On this head that is bone and teeth, through the skin,
+in the colours they have:
+
+.. image:: volumes_rgb_mip.png
+   :width: 100%
+   :target: ../_images/volumes_rgb_mip.png
+
+The path tracer has no medium for this. Its density is a single channel and its colour comes from
+a transfer function, so an RGB volume stays on the rasterised layer with a warning, alongside a
+masked volume and any volume past the first.
+
+Reading one is a question for the file, not for k3d. SimpleITK returns RGB24 straight as
+``[z, y, x, 3]`` ``uint8``, the order a volume is indexed in; nibabel hands the same file over as
+a structured dtype, one ``uint8`` field per channel, which needs a ``view`` before it is an
+ordinary array. A film needs neither: ``(frames, height, width, 3)`` is already the shape, with
+time where depth usually goes. ``examples/volume_rgb.ipynb`` loads this head and ends with ten
+seconds of video as a space-time block.
+
+.. note::
+   The head on this page is ``visiblehuman.nii.gz`` from `niivue-images
+   <https://github.com/neurolabusc/niivue-images>`_, an RGB24 NIfTI of `Visible Human Project
+   <https://www.nlm.nih.gov/research/visible/visible_human.html>`_ cryosection photographs
+   (U.S. National Library of Medicine). 196 x 240 x 256 voxels at 1 mm, 36 MB unpacked.
+
+.. k3d_plot ::
+   :filename: plots/volumes_rgb_slice.py
+   :screenshot:
+
+.. k3d_plot ::
+   :filename: plots/volumes_rgb_march.py
+   :screenshot:
+
+.. k3d_plot ::
+   :filename: plots/volumes_rgb_mip.py
+   :screenshot:
+
 Materials
 ---------
 

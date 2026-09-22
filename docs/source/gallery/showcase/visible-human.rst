@@ -41,7 +41,7 @@ so there is no colormap in this scene and nothing to tune about the palette.
     plot += plt_volume
     plot.display()
 
-    plot.camera = [180, 290, 110, 0, 0, 0, 0, 0, 1]
+    plot.camera = [227, -265, 132, 0, 0, 0, 0, 0, 1]
 
 ``opacity_function`` is the whole transfer function here, and it runs along Rec. 709
 luminance, because colour has no other scalar to offer and the march has to know where to

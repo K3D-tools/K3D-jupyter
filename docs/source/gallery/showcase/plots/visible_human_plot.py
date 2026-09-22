@@ -12,8 +12,7 @@ import k3d
 OPACITY_FUNCTION = [0.0, 0.0, 0.30, 0.0, 0.42, 1.0, 1.0, 1.0]
 ALPHA_COEF = 120
 SAMPLES = 512
-# the file is RAS, so -y is the back of the head; the face is on +y
-CAMERA = [180, 290, 110, 0, 0, 0, 0, 0, 1]
+CAMERA = [227, -265, 132, 0, 0, 0, 0, 0, 1]
 
 
 def head():
