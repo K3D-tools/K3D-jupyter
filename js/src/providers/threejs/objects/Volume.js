@@ -2,7 +2,8 @@ const THREE = require('three');
 const _ = require('../../../lodash');
 const colorMapHelper = require('../../../core/lib/helpers/colorMap');
 const { closestPowOfTwo } = require('../helpers/Fn');
-const { typedArrayToThree } = require('../helpers/Fn');
+const { volumeChannels } = require('../helpers/Fn');
+const { volumeTexture } = require('../helpers/Fn');
 const { areAllChangesResolve } = require('../helpers/Fn');
 const { commonUpdate } = require('../helpers/Fn');
 const { ensure256size } = require('../helpers/Fn');
@@ -39,6 +40,10 @@ module.exports = {
         let lightMapSize = config.shadow_res;
         const colorMap = (config.color_map && config.color_map.data) || null;
         let opacityFunction = (config.opacity_function && config.opacity_function.data) || null;
+        const isRgbVolume = volumeChannels(config.volume.shape) > 1;
+        // an RGB volume maps nothing, so the gradient is there only to carry the alpha ramp:
+        // white at both ends leaves opacity_function as the only thing it encodes
+        const rampColorMap = isRgbVolume ? [0.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0] : colorMap;
         const colorRange = config.color_range;
         const { samples } = config;
         let mask = null;
@@ -59,38 +64,20 @@ module.exports = {
             throw new Error(`To big light map size. gl.MAX_TEXTURE_SIZE=${maxTextureSize}`);
         }
 
-        if (opacityFunction === null) {
-            opacityFunction = [colorMap[0], 0.0, colorMap[colorMap.length - 4], 1.0];
+        if (opacityFunction === null || opacityFunction.length === 0) {
+            opacityFunction = [
+                rampColorMap[0], 0.0, rampColorMap[rampColorMap.length - 4], 1.0,
+            ];
         }
 
         modelMatrix.set.apply(modelMatrix, config.model_matrix.data);
         modelMatrix.decompose(translation, rotation, scale);
 
-        const texture = new THREE.Data3DTexture(
+        const texture = volumeTexture(
             config.volume.data,
-            config.volume.shape[2],
-            config.volume.shape[1],
-            config.volume.shape[0],
+            config.volume.shape,
+            config.interpolation,
         );
-
-        texture.format = THREE.RedFormat;
-        texture.type = typedArrayToThree(config.volume.data.constructor);
-
-        texture.generateMipmaps = false;
-
-        if (config.interpolation) {
-            texture.minFilter = THREE.LinearFilter;
-            texture.magFilter = THREE.LinearFilter;
-        } else {
-            texture.minFilter = THREE.NearestFilter;
-            texture.magFilter = THREE.NearestFilter;
-        }
-
-        texture.wrapS = THREE.ClampToEdgeWrapping;
-        texture.wrapT = THREE.ClampToEdgeWrapping;
-        texture.wrapR = THREE.ClampToEdgeWrapping;
-
-        texture.needsUpdate = true;
 
         jitterTexture = new THREE.DataTexture(
             new Uint8Array(_.range(64 * 64).map(() => randomMul * Math.random())),
@@ -106,7 +93,7 @@ module.exports = {
         jitterTexture.generateMipmaps = false;
         jitterTexture.needsUpdate = true;
 
-        const canvas = colorMapHelper.createCanvasGradient(colorMap, 1024, 1, opacityFunction);
+        const canvas = colorMapHelper.createCanvasGradient(rampColorMap, 1024, 1, opacityFunction);
         const colormap = new THREE.CanvasTexture(
             canvas,
             THREE.UVMapping,
@@ -188,6 +175,7 @@ module.exports = {
                 K3D_ENV_LIGHT: (K3D.parameters.renderer === 'simple' ? 0 : 1),
                 USE_SHADOW: (config.shadow !== 'off' ? 1 : 0),
                 USE_MASK: (maskEnabled ? 1 : 0),
+                USE_RGB_VOLUME: (isRgbVolume ? 1 : 0),
             },
             vertexShader: require('./shaders/Volume.vertex.glsl'),
             fragmentShader: require('../helpers/ggxChunk')(require('./shaders/Volume.fragment.glsl')),
@@ -252,6 +240,7 @@ module.exports = {
                     defines: {
                         USE_MAP: 1,
                         USE_MASK: (maskEnabled ? 1 : 0),
+                        USE_RGB_VOLUME: (isRgbVolume ? 1 : 0),
                     },
                     vertexShader: require('./shaders/Volume.lightmap.vertex.glsl'),
                     fragmentShader: require('./shaders/Volume.lightmap.fragment.glsl'),
@@ -400,6 +389,7 @@ module.exports = {
 
         if (typeof (changes.volume) !== 'undefined' && !changes.volume.timeSeries) {
             if (obj.material.uniforms.volumeTexture.value.image.data.constructor === changes.volume.data.constructor
+                && obj.material.uniforms.volumeTexture.value.image.data.length === changes.volume.data.length
                 && obj.material.uniforms.volumeTexture.value.image.width === changes.volume.shape[2]
                 && obj.material.uniforms.volumeTexture.value.image.height === changes.volume.shape[1]
                 && obj.material.uniforms.volumeTexture.value.image.depth === changes.volume.shape[0]) {

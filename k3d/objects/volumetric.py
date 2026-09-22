@@ -11,6 +11,7 @@ from ..helpers import (
     Int,
     array_serialization_wrap,
     get_bounding_box,
+    rgb_volume_channels,
     shape_validation,
     sparse_voxels_validation,
 )
@@ -118,6 +119,11 @@ def _volume_dtype(value):
     """
     required = [np.float16, np.float32]
     actual = np.asarray(value).dtype
+
+    # colour per voxel is measured, and uint8 is how it is measured; casting it to float32
+    # would quadruple a photographic volume and add no precision that exists in the data
+    if rgb_volume_channels(value) and actual == np.uint8:
+        return np.ascontiguousarray(value)
 
     if actual not in required:
         warnings.warn("wrong dtype: %s (%s required)" % (actual, required), stacklevel=3)
@@ -361,6 +367,10 @@ class Volume(Drawable):
         required = [np.float16, np.float32]
         actual = proposal["value"].dtype
 
+        # see _volume_dtype: an RGB volume keeps its uint8, because the colour is measured
+        if rgb_volume_channels(proposal["value"]) and actual == np.uint8:
+            return np.ascontiguousarray(proposal["value"])
+
         if actual not in required:
             warnings.warn("wrong dtype: %s (%s required)" % (actual, required),
                           stacklevel=2)
@@ -468,6 +478,10 @@ class MIP(Drawable):
 
         required = [np.float16, np.float32]
         actual = proposal["value"].dtype
+
+        # see _volume_dtype: an RGB volume keeps its uint8, because the colour is measured
+        if rgb_volume_channels(proposal["value"]) and actual == np.uint8:
+            return np.ascontiguousarray(proposal["value"])
 
         if actual not in required:
             warnings.warn("wrong dtype: %s (%s required)" % (actual, required),

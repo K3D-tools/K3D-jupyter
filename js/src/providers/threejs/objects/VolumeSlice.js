@@ -3,7 +3,8 @@ const interactionsVolumeSlice = require('../interactions/VolumeSlice');
 const interactionsHelper = require('../helpers/Interactions');
 const colorMapHelper = require('../../../core/lib/helpers/colorMap');
 const _ = require('../../../lodash');
-const typedArrayToThree = require('../helpers/Fn').typedArrayToThree;
+const volumeChannels = require('../helpers/Fn').volumeChannels;
+const buildVolumeTexture = require('../helpers/Fn').volumeTexture;
 const areAllChangesResolve = require('../helpers/Fn').areAllChangesResolve;
 const commonUpdate = require('../helpers/Fn').commonUpdate;
 
@@ -75,31 +76,12 @@ function getPositions(slice, shape) {
 
 function addTextureToUniforms(uniforms, config) {
     const d = config.volume.reduce((ret, volume, id) => {
-        const texture = new THREE.Data3DTexture(
-            volume.data,
-            volume.shape[2],
-            volume.shape[1],
-            volume.shape[0],
-        );
-        texture.format = THREE.RedFormat;
-        texture.type = typedArrayToThree(volume.data.constructor);
+        const texture = buildVolumeTexture(volume.data, volume.shape, config.interpolation > 0);
 
-        texture.generateMipmaps = false;
-        texture.wrapS = THREE.ClampToEdgeWrapping;
-        texture.wrapT = THREE.ClampToEdgeWrapping;
-
-        if (config.interpolation > 0) {
-            texture.minFilter = THREE.LinearFilter;
-            texture.magFilter = THREE.LinearFilter;
-        } else {
-            texture.minFilter = THREE.NearestFilter;
-            texture.magFilter = THREE.NearestFilter;
-        }
-
-        texture.needsUpdate = true;
-
-        ret.low.push(config.color_range[id * 2]);
-        ret.high.push(config.color_range[id * 2 + 1]);
+        // an RGB slice has no range to window, and an undefined uniform reaches the shader
+        // as NaN rather than as "unused"
+        ret.low.push(typeof (config.color_range[id * 2]) === 'number' ? config.color_range[id * 2] : 0.0);
+        ret.high.push(typeof (config.color_range[id * 2 + 1]) === 'number' ? config.color_range[id * 2 + 1] : 1.0);
         ret.volumeTexture.push(texture);
         ret.volumeSize.push(new THREE.Vector3(volume.shape[2], volume.shape[1], volume.shape[0]));
 
@@ -144,7 +126,11 @@ module.exports = {
         const shape = Array.isArray(config.volume) ? config.volume[0].shape : config.volume.shape;
         config.volume = Array.isArray(config.volume) ? config.volume : [config.volume];
 
-        const canvas = colorMapHelper.createCanvasGradient(colorMap, 1024, config.volume.length, opacityFunction);
+        const isRgbVolume = volumeChannels(shape) > 1;
+        // the shader ignores it under USE_RGB_VOLUME, but the uniform has to hold a texture
+        const canvas = isRgbVolume
+            ? colorMapHelper.createCanvasGradient([0.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0], 1024, 1, null)
+            : colorMapHelper.createCanvasGradient(colorMap, 1024, config.volume.length, opacityFunction);
         const colormap = new THREE.CanvasTexture(
             canvas,
             THREE.UVMapping,
@@ -219,6 +205,7 @@ module.exports = {
             ),
             defines: {
                 CUBIC: config.interpolation === 2 ? 1 : 0,
+                USE_RGB_VOLUME: (isRgbVolume ? 1 : 0),
             },
             side: THREE.DoubleSide,
             vertexShader: require('./shaders/VolumeSlice.vertex.glsl'),
@@ -336,7 +323,9 @@ module.exports = {
                 changes.volume.forEach((volume, i) => {
                     const val = obj.material.uniforms.volumeTexture.value[i];
 
-                    if (val.image.data.constructor === volume.data.constructor && val.image.width === volume.shape[2]
+                    if (val.image.data.constructor === volume.data.constructor
+                        && val.image.data.length === volume.data.length
+                        && val.image.width === volume.shape[2]
                         && val.image.height === volume.shape[1] && val.image.depth === volume.shape[0]) {
                         val.image.data = volume.data;
                         val.needsUpdate = true;

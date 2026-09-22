@@ -385,6 +385,21 @@ def download(url: str) -> str:
     return basename
 
 
+def rgb_volume_channels(value: Any) -> int:
+    """Number of colour channels a volume carries per voxel, 0 if it is a scalar field.
+
+    A trailing axis of 3 or 4 on an otherwise 3D array means the colour was measured - a
+    photographic cryosection, an RGB-encoded NIfTI - so there is nothing for a colormap to
+    map and the data goes to the GPU as colour.
+    """
+    shape = getattr(value, "shape", ())
+
+    if len(shape) == 4 and shape[3] in (3, 4):
+        return int(shape[3])
+
+    return 0
+
+
 def minmax(arr: np.ndarray) -> TypingList[float]:
     """Return the minimum and maximum value of an array.
 

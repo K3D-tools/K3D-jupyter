@@ -70,6 +70,10 @@ out float tmin, out float tmax
     tmax = min(min(tmax, tymax), tzmax);
 }
 
+// Rec. 709 luminance. An RGB volume carries no scalar of its own, and everything the march
+// does besides colour - the alpha ramp, the gradient it shades with - needs one.
+const vec3 kLuma = vec3(0.2126, 0.7152, 0.0722);
+
 float getMaskOpacity(vec3 pos) {
     int maskValue = int(texture(mask, pos).r * 255.0);
 
@@ -151,8 +155,13 @@ void main() {
         #pragma unroll_loop_end
         #endif
 
+        #if (USE_RGB_VOLUME == 1)
+        float px = dot(texture(volumeTexture, textcoord).rgb, kLuma);
+        float scaled_px = px;
+        #else
         float px = texture(volumeTexture, textcoord).x;
         float scaled_px = k3dScaleToRange(px, low, high);
+        #endif
 
         if (scaled_px > 0.0) {
             scaled_px = min(scaled_px, 0.99);

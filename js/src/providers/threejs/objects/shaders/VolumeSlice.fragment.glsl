@@ -42,6 +42,10 @@ void main() {
     #include <clipping_planes_fragment>
     #include <logdepthbuf_fragment>
 
+    #if (USE_RGB_VOLUME == 1)
+    // the colour is the measurement; a slice is opaque and its alpha is the object's opacity
+    vec4 texelColor = vec4(cubicSample(volumeTexture[0], coord, volumeSize[0]).rgb, 1.0);
+    #else
     float px, scaled_px;
     vec2 cm_coord;
 
@@ -55,6 +59,7 @@ void main() {
     #pragma unroll_loop_end
 
     vec4 texelColor = texture(colormap, cm_coord);
+    #endif
 
     if (activeMasksCount > 0) {
         float maskValue = texture(mask, coord).r * 255.0;

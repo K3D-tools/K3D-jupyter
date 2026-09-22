@@ -882,6 +882,17 @@ module.exports = function createSceneProxy(K3D) {
                         return;
                     }
 
+                    // the medium takes its density from the red channel and its colour from a
+                    // transfer function, so an RGB volume would be traced as a fog shaped by
+                    // red and tinted by a ramp that carries no colour at all
+                    if (sourceObj.material && sourceObj.material.defines
+                        && sourceObj.material.defines.USE_RGB_VOLUME === 1) {
+                        console.warn('K3D.cinematic: the path tracer has no medium for colour per '
+                            + `voxel - volume ${id} stays on the raster layer`);
+
+                        return;
+                    }
+
                     volumeClaimed = true;
                 }
 

@@ -7,7 +7,7 @@ from typing import List as TypingList
 
 import numpy as np
 
-from ..helpers import check_attribute_color_range
+from ..helpers import check_attribute_color_range, rgb_volume_channels
 from ..objects import MIP, MarchingCubes, SparseVoxels, Volume, VolumeSlice, VoxelChunk, Voxels, VoxelsGroup
 from ..transform import process_transform_arguments
 from .common import _default_color, default_colormap, nice_colors
@@ -17,6 +17,21 @@ ArrayLike = Union[TypingList, np.ndarray, Tuple]
 ColorMap = Union[TypingList[TypingList[float]], TypingDict[str, Any], np.ndarray]
 ColorRange = TypingList[float]
 OpacityFunction = TypingList[float]
+
+
+def _warn_rgb_ignores(color_map, color_range):
+    """An RGB volume maps nothing, so a colormap or a range would only look like it works."""
+    if color_map is not None and len(color_map) > 0:
+        warnings.warn(
+            "color_map is ignored for an RGB volume: the colour is in the data",
+            stacklevel=3,
+        )
+
+    if color_range is not None and len(color_range) > 0:
+        warnings.warn(
+            "color_range is ignored for an RGB volume: there is no scalar to window",
+            stacklevel=3,
+        )
 
 
 def volume(
@@ -49,7 +64,11 @@ def volume(
     Parameters
     ----------
     volume : array_like
-        3D array of `float`, indexed as [z, y, x].
+        3D array of `float`, indexed as [z, y, x]. A 4D array of `uint8` shaped [z, y, x, 3] or
+        [z, y, x, 4] is colour per voxel instead - the measurement itself, the way a photographic
+        or RGB-encoded scan carries it - and is drawn without a colormap: color_map and
+        color_range are ignored, and the alpha comes from opacity_function over Rec. 709
+        luminance.
     color_map : list, optional
         A list of float quadruplets (attribute value, R, G, B), sorted by attribute value. The
         first quadruplet should have value 0.0, the last 1.0; R, G, B are RGB color components in
@@ -118,25 +137,36 @@ def volume(
     if mask_opacities is None:
         mask_opacities = []
 
-    if color_map is None:
-        color_map = default_colormap
+    if rgb_volume_channels(volume):
+        _warn_rgb_ignores(color_map, color_range)
 
-    color_range = (
-        check_attribute_color_range(volume, color_range)
-        if type(color_range) is not dict
-        else color_range
-    )
+        color_map = []
+        color_range = []
 
-    if opacity_function is None:
-        # ravel first: a colormap given as (N, 4) slices by row here, and the ramp then spans
-        # whatever the sampled rows happen to hold instead of the first column
-        if type(color_map) is dict:
-            values = np.concatenate(
-                [np.asarray(frame, np.float32).ravel()[::4] for frame in color_map.values()]
-            )
-        else:
-            values = np.asarray(color_map, np.float32).ravel()[::4]
-        opacity_function = [np.min(values), 0.0, np.max(values), 1.0]
+        # the colour needs no ramp, the alpha does: without one the box is opaque and all you
+        # see is its front face. Luminance from 0 to 1 is the axis this ramp runs along.
+        if opacity_function is None:
+            opacity_function = [0.0, 0.0, 1.0, 1.0]
+    else:
+        if color_map is None:
+            color_map = default_colormap
+
+        color_range = (
+            check_attribute_color_range(volume, color_range)
+            if type(color_range) is not dict
+            else color_range
+        )
+
+        if opacity_function is None:
+            # ravel first: a colormap given as (N, 4) slices by row here, and the ramp then
+            # spans whatever the sampled rows happen to hold instead of the first column
+            if type(color_map) is dict:
+                values = np.concatenate(
+                    [np.asarray(frame, np.float32).ravel()[::4] for frame in color_map.values()]
+                )
+            else:
+                values = np.asarray(color_map, np.float32).ravel()[::4]
+            opacity_function = [np.min(values), 0.0, np.max(values), 1.0]
 
     return process_transform_arguments(
         Volume(
@@ -191,7 +221,10 @@ def mip(
     Parameters
     ----------
     volume : array_like
-        3D array of `float`, indexed as [z, y, x].
+        3D array of `float`, indexed as [z, y, x]. A 4D array of `uint8` shaped [z, y, x, 3] or
+        [z, y, x, 4] is colour per voxel; the maximum along the ray is then taken over Rec. 709
+        luminance and the pixel keeps the colour of the voxel that reached it, so color_map and
+        color_range are ignored and opacity_function runs along that luminance.
     color_map : list, optional
         A list of float quadruplets (attribute value, R, G, B), sorted by attribute value. The
         first quadruplet should have value 0.0, the last 1.0; R, G, B are RGB color components in
@@ -246,27 +279,38 @@ def mip(
     if mask_opacities is None:
         mask_opacities = []
 
-    if color_map is None:
-        color_map = default_colormap
+    if rgb_volume_channels(volume):
+        _warn_rgb_ignores(color_map, color_range)
 
-    color_range = (
-        check_attribute_color_range(volume, color_range)
-        if type(color_range) is not dict
-        else color_range
-    )
+        color_map = []
+        color_range = []
 
-    if opacity_function is None:
-        # color_map may be a TimeSeries dict, which cannot be sliced; derive the default
-        # ramp from the union of its frames in that case.
-        # ravel first: a colormap given as (N, 4) slices by row here, and the ramp then spans
-        # whatever the sampled rows happen to hold instead of the first column
-        if type(color_map) is dict:
-            values = np.concatenate(
-                [np.asarray(frame, np.float32).ravel()[::4] for frame in color_map.values()]
-            )
-        else:
-            values = np.asarray(color_map, np.float32).ravel()[::4]
-        opacity_function = [np.min(values), 0.0, np.max(values), 1.0]
+        # the brightest voxel along the ray still needs an alpha, and it comes from the same
+        # luminance that decided which voxel that was
+        if opacity_function is None:
+            opacity_function = [0.0, 0.0, 1.0, 1.0]
+    else:
+        if color_map is None:
+            color_map = default_colormap
+
+        color_range = (
+            check_attribute_color_range(volume, color_range)
+            if type(color_range) is not dict
+            else color_range
+        )
+
+        if opacity_function is None:
+            # color_map may be a TimeSeries dict, which cannot be sliced; derive the default
+            # ramp from the union of its frames in that case.
+            # ravel first: a colormap given as (N, 4) slices by row here, and the ramp then
+            # spans whatever the sampled rows happen to hold instead of the first column
+            if type(color_map) is dict:
+                values = np.concatenate(
+                    [np.asarray(frame, np.float32).ravel()[::4] for frame in color_map.values()]
+                )
+            else:
+                values = np.asarray(color_map, np.float32).ravel()[::4]
+            opacity_function = [np.min(values), 0.0, np.max(values), 1.0]
 
     return process_transform_arguments(
         MIP(
@@ -320,7 +364,10 @@ def volume_slice(
     Parameters
     ----------
     volume : array_like, optional
-        3D array of `float`, indexed as [z, y, x]. Default is None.
+        3D array of `float`, indexed as [z, y, x]. A list of two such arrays is a two-channel
+        slice, read through a 2D colormap. A 4D array of `uint8` shaped [z, y, x, 3] or
+        [z, y, x, 4] is colour per voxel and is drawn as it stands, without a colormap.
+        Default is None.
     color_map : list, optional
         A list of float quadruplets (attribute value, R, G, B), sorted by attribute value. The
         first quadruplet should have value 0.0, the last 1.0; R, G, B are RGB color components in
@@ -386,18 +433,32 @@ def volume_slice(
     if active_masks is None:
         active_masks = []
 
-    if color_map is None:
+    if color_map is None and not rgb_volume_channels(volume):
         color_map = default_colormap
 
     if color_map_masks is None:
         color_map_masks = nice_colors
 
-    color_map = (
-        np.array(color_map, np.float32) if type(color_map) is not dict else color_map
-    )
+    if rgb_volume_channels(volume):
+        _warn_rgb_ignores(color_map, color_range)
 
-    if len(volume) > 0:
-        color_range = check_attribute_color_range(volume, color_range, channels=True)
+        if len(opacity_function) > 0:
+            warnings.warn(
+                "opacity_function is ignored for an RGB volume_slice: a slice is opaque and "
+                "its alpha is the object's opacity",
+                stacklevel=2,
+            )
+
+        color_map = []
+        color_range = []
+        opacity_function = []
+    else:
+        color_map = (
+            np.array(color_map, np.float32) if type(color_map) is not dict else color_map
+        )
+
+        if len(volume) > 0:
+            color_range = check_attribute_color_range(volume, color_range, channels=True)
 
     # createCanvasGradient2d writes a fixed alpha, so a transfer function has no channel to
     # apply to once there are two. Saying so beats dropping it without a word.

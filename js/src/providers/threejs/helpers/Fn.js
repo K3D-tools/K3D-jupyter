@@ -315,7 +315,68 @@ module.exports = {
         }
     },
 
+    /**
+     * Colour channels a volume carries per voxel, 0 when it is a scalar field to map.
+     * @param {Array} shape [z, y, x] for a scalar field, [z, y, x, 3|4] for colour
+     * @returns {Number}
+     */
+    volumeChannels(shape) {
+        return (shape.length === 4 && (shape[3] === 3 || shape[3] === 4)) ? shape[3] : 1;
+    },
+
+    /**
+     * Data3DTexture for one volume, scalar or colour.
+     *
+     * A colour volume is uploaded as RGBA even when it arrives as RGB: WebGL2 aligns texture
+     * rows to 4 bytes, so RGB8 needs a width divisible by 4 and silently shears the image
+     * otherwise. Padding once at load costs a third of the memory and works on every driver.
+     * @returns {THREE.Data3DTexture}
+     */
+    volumeTexture(data, shape, interpolation) {
+        const channels = module.exports.volumeChannels(shape);
+        let payload = data;
+
+        if (channels === 3) {
+            const voxels = shape[0] * shape[1] * shape[2];
+            const opaque = (data instanceof Uint8Array) ? 255 : 1.0;
+
+            payload = new data.constructor(voxels * 4);
+
+            for (let i = 0, o = 0, s = 0; i < voxels; i++) {
+                payload[o++] = data[s++];
+                payload[o++] = data[s++];
+                payload[o++] = data[s++];
+                payload[o++] = opaque;
+            }
+        }
+
+        const texture = new THREE.Data3DTexture(payload, shape[2], shape[1], shape[0]);
+
+        texture.format = (channels > 1) ? THREE.RGBAFormat : THREE.RedFormat;
+        texture.type = module.exports.typedArrayToThree(payload.constructor);
+        texture.generateMipmaps = false;
+
+        if (interpolation) {
+            texture.minFilter = THREE.LinearFilter;
+            texture.magFilter = THREE.LinearFilter;
+        } else {
+            texture.minFilter = THREE.NearestFilter;
+            texture.magFilter = THREE.NearestFilter;
+        }
+
+        texture.wrapS = THREE.ClampToEdgeWrapping;
+        texture.wrapT = THREE.ClampToEdgeWrapping;
+        texture.wrapR = THREE.ClampToEdgeWrapping;
+        texture.needsUpdate = true;
+
+        return texture;
+    },
+
     typedArrayToThree(creator) {
+        if (creator === Uint8Array) {
+            return THREE.UnsignedByteType;
+        }
+
         if (creator === Int16Array) {
             return THREE.ShortType;
         }
