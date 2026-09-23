@@ -132,7 +132,7 @@ module.exports = function (renderer, scene, camera, rt, fullWidth, fullHeight, c
         // gl_FragCoord, fragments outside the rect discarded. The render targets carry the
         // rect rather than the renderer, because setRenderTarget copies scissor state off the
         // target it binds (three.module.js) and would undo it on every pass.
-        chunkHeights.forEach((c) => {
+        chunkHeights.forEach((c, chunkIndex) => {
             p = p.then(() => {
                 const { width } = rt;
                 const height = c[1];
@@ -187,9 +187,13 @@ module.exports = function (renderer, scene, camera, rt, fullWidth, fullHeight, c
                 });
             });
 
-            p = p.then(() => new Promise((chunkResolve) => {
-                setTimeout(chunkResolve, 100);
-            }));
+            // one macrotask instead of a fixed 100 ms, matching the interactive path, and
+            // none at all after the last chunk - nothing follows it but the readback
+            if (chunkIndex < chunkHeights.length - 1) {
+                p = p.then(() => new Promise((chunkResolve) => {
+                    setTimeout(chunkResolve, 0);
+                }));
+            }
         });
 
         p = p.then(() => {
