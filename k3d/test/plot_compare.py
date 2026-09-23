@@ -52,6 +52,19 @@ GLYPH_AA_BUDGET = 32
 # In levels: a uniform 3-level shift still passes, where a uniform 52-level shift used to.
 DEFAULT_THRESHOLD = 0.012
 
+# Cinematic is the one renderer here that is not deterministic, and the tight threshold above
+# is what made that visible. Measured on vector_field_3d_scale: six renders of the same scene, same
+# seed, same container give two distinct images - five of one, one of the other - differing in
+# three isolated pixels by exactly 16 levels each. Exactly 16 is the tell: REF_SAMPLES is 16, so
+# one sample of the sixteen lands on the other side of a triangle edge and moves the average by a
+# sixteenth of full scale. Which side it lands on follows BVH traversal order, which is not fixed.
+#
+# So cinematic gets a budget and the raster modes keep zero. 64 pixels is 0.03% of a 640x360
+# frame and 170x below the smallest real cinematic difference measured while repairing the
+# references (10978 pixels): a change that matters cannot hide under it, and a flipped edge
+# sample cannot fail the suite at random.
+CINEMATIC_FLAKE_BUDGET = 64
+
 # Modes listed in K3D_ACCEPT_REFERENCES ("cinematic", "simple,advanced", "all") have their
 # renders written as the new reference instead of asserted. Never set in CI.
 ACCEPT_REFERENCES = [
@@ -186,6 +199,8 @@ def compare(
     max_mismatched_pixels how many differing pixels the image may still contain and
                           pass, as an absolute count (pixelmatch's return value).
                           0 means no pixel may differ *by more than threshold*.
+                          A cinematic comparison always gets at least
+                          CINEMATIC_FLAKE_BUDGET, because that renderer is stochastic.
 
     Note that pixelmatch returns a pixel count, so the two knobs are not interchangeable.
     Pass threshold=0 for a comparison that answers "did this image change at all".
@@ -253,7 +268,12 @@ def compare(
             result, reference, img_diff, threshold=threshold, includeAA=True
         )
 
-        if mismatch > max_mismatched_pixels:
+        budget = max_mismatched_pixels
+
+        if mode == "cinematic":
+            budget = max(budget, CINEMATIC_FLAKE_BUDGET)
+
+        if mismatch > budget:
             os.makedirs(os.path.join(RESULTS_DIR, mode), exist_ok=True)
 
             with open(os.path.join(RESULTS_DIR, ref_name + ".k3d"), "wb") as f:
@@ -262,12 +282,12 @@ def compare(
             reference.save(os.path.join(RESULTS_DIR, ref_name + "_reference.png"))
             img_diff.save(os.path.join(RESULTS_DIR, ref_name + "_diff.png"))
 
-            print(ref_name, mismatch, max_mismatched_pixels)
+            print(ref_name, mismatch, budget)
 
-        assert mismatch <= max_mismatched_pixels, (
+        assert mismatch <= budget, (
             "%s [%s]: %d pixel(s) differ from the reference (budget %d, per-pixel threshold %g); "
             "artifacts written to %s"
-            % (name, mode, mismatch, max_mismatched_pixels, threshold, RESULTS_DIR)
+            % (name, mode, mismatch, budget, threshold, RESULTS_DIR)
         )
 
     if len(modes) > 1 and pytest.plot.renderer != "simple":
