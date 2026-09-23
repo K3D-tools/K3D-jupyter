@@ -5,6 +5,8 @@ import pytest
 from PIL import Image
 from pixelmatch.contrib.PIL import pixelmatch
 
+from k3d.plot.plot_snapshot import _PLOT_PARAMS
+
 TEST_DIR = os.path.dirname(os.path.abspath(__file__))
 REFERENCES_DIR = os.path.join(TEST_DIR, "references")
 RESULTS_DIR = os.path.join(TEST_DIR, "results")
@@ -36,6 +38,29 @@ ACCEPT_REFERENCES = [
     if mode.strip()
 ]
 
+# Every reference this run overwrote. conftest turns a non-empty list into a non-zero exit:
+# an accepting run asserts nothing, so it must never be readable as a passing one.
+ACCEPTED = []
+
+# Every plot parameter as the harness plot was born, captured by conftest before the first test.
+# prepare() restores all of them, so a trait added to the plot is covered the day it is added
+# rather than the day someone remembers to extend a list here.
+BASELINE = {}
+
+# Restored in the page instead of on the plot, or not restorable from a value at all.
+#   mode, camera: a change made in the browser never reaches the plot, so assigning the same
+#     value produces no diff and never arrives
+#   depth_peels: prepare() takes it as an argument
+_BASELINE_SKIP = {"mode", "camera", "depthPeels"}
+
+
+def capture_baseline(plot):
+    """Record the plot's parameters as the state every test starts from."""
+    BASELINE.clear()
+    BASELINE.update(plot.get_plot_params())
+
+    return BASELINE
+
 
 def prepare(depth_peels=0):
     # mode is not a synced trait, so it can only be reset in the page. A plot left in manipulate
@@ -49,40 +74,23 @@ def prepare(depth_peels=0):
     while len(pytest.plot.objects) > 0:
         pytest.plot -= pytest.plot.objects[-1]
 
-    pytest.plot.clipping_planes = []
-    pytest.plot.colorbar_object_id = 0
-    pytest.plot.grid_visible = True
+    # Every parameter back to how the harness plot was born. The hand-written list this
+    # replaced covered 26 of 65, and the 39 it missed leaked between tests - slice_viewer_object_id
+    # pointed at an object prepare() had already removed for every test after the slice viewer ran.
+    for key, trait in _PLOT_PARAMS:
+        if key in _BASELINE_SKIP or key not in BASELINE:
+            continue
+
+        value = BASELINE[key]
+        setattr(pytest.plot, trait, list(value) if isinstance(value, list) else value)
+
     pytest.plot.depth_peels = depth_peels
-    pytest.plot.rendering_steps = 1
-    pytest.plot.renderer = "simple"
-    pytest.plot.environment = "neutral"
-    pytest.plot.environment_rotation = 0.0
-    pytest.plot.tone_mapping = "none"
-    pytest.plot.ao_radius = 0.07
-    pytest.plot.ao_strength = 1.8
-    pytest.plot.cinematic_samples = 64
-    pytest.plot.cinematic_bounces = 6
-    pytest.plot.cinematic_denoise = 0.0
-    pytest.plot.cinematic_bokeh_size = 0.0
-    pytest.plot.cinematic_focus_distance = 0.0
-    pytest.plot.cinematic_aperture_blades = 0
-    pytest.plot.cinematic_glossy_filter = 0.25
-    # compare() halves this for cinematic; reset so an abort cannot leave later renders half size.
-    pytest.plot.screenshot_scale = 1.0
-    pytest.plot.camera_mode = "trackball"
-    # the harness plot is created with auto-fit off (conftest); a test that turns it on must
-    # not leave it on for the ones comparing without a camera_reset
-    pytest.plot.camera_auto_fit = False
     pytest.plot.camera = [2, -3, 0.2, 0.0, 0.0, 0.0, 0, 0, 1]
     # and in the page, like mode: a camera moved in the browser (a drag, a manipulator) never
     # reaches the plot, so assigning the same value there produces no diff and does not arrive
     pytest.headless.browser.execute_script(
         "if (K3DInstance) { K3DInstance.setCamera(arguments[0]); }", pytest.plot.camera
     )
-    pytest.plot.background_color = 0xFFFFFF
-    pytest.plot.camera_fov = 60.0
-    pytest.plot.time = 0.0
-    pytest.plot.time_interpolation = True
     pytest.headless.sync(hold_until_refreshed=True)
     pytest.headless.camera_reset()
 
@@ -163,6 +171,7 @@ def compare(
 
             os.makedirs(os.path.dirname(accepted_path), exist_ok=True)
             result.save(accepted_path)
+            ACCEPTED.append(ref_name)
             print("accepted", ref_name)
             continue
 

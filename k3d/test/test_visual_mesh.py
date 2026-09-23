@@ -4,7 +4,6 @@ import vtk
 from vtk.util import numpy_support
 
 import k3d
-from k3d.helpers import download
 
 from .plot_compare import compare, prepare
 
@@ -58,9 +57,7 @@ def test_mesh_attribute():
 def test_mesh_advanced():
     prepare()
 
-    filename = download(
-        "https://github.com/To-Fujita/Babylon.js_3D_Graphics/raw/master/scenes/stl/Cute%20Darth%20Vader.stl"
-    )
+    filename = "./test/assets/darth_vader.stl"
 
     reader = vtk.vtkSTLReader()
     reader.SetFileName(filename)
@@ -80,9 +77,7 @@ def test_mesh_advanced():
 def test_mesh_advanced_smoothed():
     prepare()
 
-    filename = download(
-        "https://github.com/To-Fujita/Babylon.js_3D_Graphics/raw/master/scenes/stl/Cute%20Darth%20Vader.stl"
-    )
+    filename = "./test/assets/darth_vader.stl"
 
     reader = vtk.vtkSTLReader()
     reader.SetFileName(filename)
@@ -102,9 +97,7 @@ def test_mesh_advanced_smoothed():
 def test_mesh_advanced_roughness():
     prepare()
 
-    filename = download(
-        "https://github.com/To-Fujita/Babylon.js_3D_Graphics/raw/master/scenes/stl/Cute%20Darth%20Vader.stl"
-    )
+    filename = "./test/assets/darth_vader.stl"
 
     reader = vtk.vtkSTLReader()
     reader.SetFileName(filename)
@@ -129,9 +122,7 @@ def test_mesh_advanced_roughness():
 def test_mesh_advanced_opacity():
     prepare()
 
-    filename = download(
-        "https://github.com/To-Fujita/Babylon.js_3D_Graphics/raw/master/scenes/stl/Cute%20Darth%20Vader.stl"
-    )
+    filename = "./test/assets/darth_vader.stl"
 
     reader = vtk.vtkSTLReader()
     reader.SetFileName(filename)
@@ -152,9 +143,7 @@ def test_mesh_advanced_opacity():
 def test_mesh_advanced_opacity_depth_peels():
     prepare(depth_peels=8)
 
-    filename = download(
-        "https://github.com/To-Fujita/Babylon.js_3D_Graphics/raw/master/scenes/stl/Cute%20Darth%20Vader.stl"
-    )
+    filename = "./test/assets/darth_vader.stl"
 
     reader = vtk.vtkSTLReader()
     reader.SetFileName(filename)
@@ -183,9 +172,7 @@ def test_mesh_advanced_opacity_depth_peels():
 def test_mesh_advanced_wireframe():
     prepare(depth_peels=0)
 
-    filename = download(
-        "https://github.com/To-Fujita/Babylon.js_3D_Graphics/raw/master/scenes/stl/Cute%20Darth%20Vader.stl"
-    )
+    filename = "./test/assets/darth_vader.stl"
 
     reader = vtk.vtkSTLReader()
     reader.SetFileName(filename)
@@ -253,9 +240,7 @@ def test_mesh_attribute_advanced():
 def test_mesh_triangle_attribute():
     prepare()
 
-    filename = download(
-        "https://github.com/To-Fujita/Babylon.js_3D_Graphics/raw/master/scenes/stl/Cute%20Darth%20Vader.stl"
-    )
+    filename = "./test/assets/darth_vader.stl"
 
     reader = vtk.vtkSTLReader()
     reader.SetFileName(filename)
@@ -281,9 +266,7 @@ def test_mesh_triangle_attribute():
 def test_mesh_volume_data():
     prepare()
 
-    filename = download(
-        "https://github.com/To-Fujita/Babylon.js_3D_Graphics/raw/master/scenes/stl/Cute%20Darth%20Vader.stl"
-    )
+    filename = "./test/assets/darth_vader.stl"
 
     reader = vtk.vtkSTLReader()
     reader.SetFileName(filename)
@@ -318,9 +301,7 @@ def test_mesh_volume_data():
 def test_mesh_volume_data_no_depth_peels():
     prepare(depth_peels=0)
 
-    filename = download(
-        "https://github.com/To-Fujita/Babylon.js_3D_Graphics/raw/master/scenes/stl/Cute%20Darth%20Vader.stl"
-    )
+    filename = "./test/assets/darth_vader.stl"
 
     reader = vtk.vtkSTLReader()
     reader.SetFileName(filename)
@@ -365,9 +346,7 @@ def test_mesh_volume_data_no_depth_peels():
 def test_mesh_volume_data_depth_peels():
     prepare(depth_peels=8)
 
-    filename = download(
-        "https://github.com/To-Fujita/Babylon.js_3D_Graphics/raw/master/scenes/stl/Cute%20Darth%20Vader.stl"
-    )
+    filename = "./test/assets/darth_vader.stl"
 
     reader = vtk.vtkSTLReader()
     reader.SetFileName(filename)

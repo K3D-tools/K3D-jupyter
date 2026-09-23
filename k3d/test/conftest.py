@@ -14,9 +14,16 @@ import pytest
 import k3d
 from k3d.headless import get_headless_driver, k3d_remote
 
+from .plot_compare import capture_baseline
+
 
 def pytest_addoption(parser):
     parser.addoption("--gpu", action="store_true", default=False, help="run tests with GPU support")
+
+
+def _accepting():
+    """Modes whose renders this run will overwrite instead of asserting."""
+    return [m.strip() for m in os.environ.get("K3D_ACCEPT_REFERENCES", "").split(",") if m.strip()]
 
 
 def pytest_configure(config):
@@ -25,6 +32,16 @@ def pytest_configure(config):
     This hook is called for every plugin and initial conftest
     file after command line options have been parsed.
     """
+    # Accepting references asserts nothing. Doing it on a machine whose renderer nobody
+    # recorded is how a reference drifts; doing it in CI would rewrite the ground truth from
+    # whatever browser the runner happened to ship.
+    if _accepting() and (os.environ.get("CI") or os.environ.get("GITHUB_ACTIONS")):
+        pytest.exit(
+            "K3D_ACCEPT_REFERENCES is set in CI. References are written by hand, in the pinned "
+            "image, and reviewed as a diff - never by an automated run.",
+            returncode=2,
+        )
+
     # Only run webpack if the directory exists (e.g. not in installed package)
     js_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), "../../js"))
     if os.path.exists(js_dir) and os.path.isdir(js_dir):
@@ -74,12 +91,34 @@ def pytest_sessionstart(session):
     pytest.headless = k3d_remote(pytest.plot, driver)
     pytest.headless.browser.execute_script("window.randomMul = 0.0;")
 
+    # every test starts from this state, and prepare() restores all of it
+    capture_baseline(pytest.plot)
+
+
+def pytest_terminal_summary(terminalreporter, exitstatus, config):
+    """Say plainly how much of this run asserted nothing."""
+    from .plot_compare import ACCEPTED
+
+    if ACCEPTED:
+        terminalreporter.write_sep("=", "REFERENCES ACCEPTED", red=True, bold=True)
+        terminalreporter.write_line(
+            "%d reference image(s) overwritten; nothing was asserted for them. "
+            "Review the diff before committing." % len(ACCEPTED)
+        )
+        for name in sorted(ACCEPTED):
+            terminalreporter.write_line("  %s" % name)
+
 
 def pytest_sessionfinish(session, exitstatus):
     """
     Called after whole test run finished, right before
     returning the exit status to the system.
     """
+    from .plot_compare import ACCEPTED
+
+    # A run that rewrote its own ground truth is not a passing run, whatever pytest thinks.
+    if ACCEPTED and exitstatus == 0:
+        session.exitstatus = 3
 
     pytest.headless.close()
 
