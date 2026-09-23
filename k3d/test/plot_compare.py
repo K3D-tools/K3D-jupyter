@@ -29,7 +29,28 @@ CINEMATIC_SCREENSHOT_SCALE = 0.5
 
 # Glyph edges move by a few pixels between freetype versions (Debian image vs CI runner); a
 # misplaced or missing label differs by hundreds, so text tests tolerate this much and no more.
+#
+# Measured in the pinned image: every text test renders bit-exact there, so this budget buys
+# nothing locally. It is kept for the CI runner, whose freetype is not the image's - pinning
+# Chrome does not pin the font rasteriser. The first CI run at zero tolerance says whether it
+# is still needed; if it is not, delete it rather than leaving 32 pixels of slack unused.
 GLYPH_AA_BUDGET = 32
+
+# How different two pixels have to be before they count as different, as a fraction passed to
+# pixelmatch, which calls a pixel different when the YIQ distance exceeds 35215 * threshold^2.
+#
+# This was 0.2, which is a distance of 1409 - a uniform shift of 52 levels per channel on every
+# pixel of the image, unnoticed. It hid an entire renderer feature: the advanced renderer draws
+# ambient occlusion and the simple one does not, so nine tests asserting "advanced renders this
+# exactly like simple" were asserting nothing of the sort. At 0.2 they passed; the occlusion they
+# were hiding reaches 42 levels.
+#
+# 0.012 is a distance of 5.07, and it is measured rather than picked. Comparing every reference
+# against a re-render splits cleanly in two: the renderer's own arithmetic noise, which is what an
+# extra compositing pass costs in 8-bit rounding, tops out at a distance of 4.02 (single pixels),
+# and the smallest real difference starts at 30.2 - a gap of 7.5x. The threshold sits in that gap.
+# In levels: a uniform 3-level shift still passes, where a uniform 52-level shift used to.
+DEFAULT_THRESHOLD = 0.012
 
 # Modes listed in K3D_ACCEPT_REFERENCES ("cinematic", "simple,advanced", "all") have their
 # renders written as the new reference instead of asserted. Never set in CI.
@@ -147,7 +168,7 @@ def prepare(depth_peels=0):
 def compare(
         name,
         only_canvas=True,
-        threshold=0.2,
+        threshold=DEFAULT_THRESHOLD,
         max_mismatched_pixels=0,
         camera_factor=1.0,
         modes=("simple", "advanced", "cinematic"),
@@ -158,12 +179,10 @@ def compare(
 
     threshold             per-pixel colour-distance tolerance passed to pixelmatch,
                           a fraction in 0..1. Governs when a single pixel counts as
-                          different at all. pixelmatch calls a pixel different when the
-                          YIQ distance exceeds 35215 * threshold^2, so the default 0.2
-                          lets a uniform shift of 52 levels per channel through on every
-                          pixel of the image. That tolerance is what absorbs driver-level
-                          antialiasing differences; it is not an exact match, and a change
-                          in exposure, tone mapping or light intensity can hide under it.
+                          different at all. See DEFAULT_THRESHOLD for what the default
+                          admits and how it was measured; raising it here re-opens the
+                          blind spot for one test, so say in a comment what is hiding in
+                          it and why that is acceptable.
     max_mismatched_pixels how many differing pixels the image may still contain and
                           pass, as an absolute count (pixelmatch's return value).
                           0 means no pixel may differ *by more than threshold*.
