@@ -1,3 +1,4 @@
+import json
 import os
 from io import BytesIO
 
@@ -52,6 +53,54 @@ BASELINE = {}
 #     value produces no diff and never arrives
 #   depth_peels: prepare() takes it as an argument
 _BASELINE_SKIP = {"mode", "camera", "depthPeels"}
+
+
+# What drew the committed references. A reference is only ground truth for the browser and
+# rasterizer that made it: the Dockerfile pins Chrome for exactly this reason, and a run in a
+# different one produces a wall of pixel differences that says nothing about the change under test.
+ENVIRONMENT_PATH = os.path.join(REFERENCES_DIR, "ENVIRONMENT.json")
+
+# Mismatches found at session start, reported once at the end rather than per test.
+ENVIRONMENT_MISMATCH = []
+
+
+def _environment(headless):
+    """Browser and rasterizer identity, as the references record it."""
+    info = headless.get_gl_info() or {}
+
+    return {
+        "browserVersion": headless.browser.capabilities.get("browserVersion"),
+        "unmaskedRenderer": info.get("unmaskedRenderer"),
+        "maxTextureSize": info.get("maxTextureSize"),
+    }
+
+
+def check_environment(headless):
+    """Compare this run's renderer against the one the references were drawn with.
+
+    Writes the file instead when the run is accepting references: whatever it draws becomes the
+    new ground truth, so the environment that drew it is part of that record.
+    """
+    actual = _environment(headless)
+
+    if ACCEPT_REFERENCES:
+        with open(ENVIRONMENT_PATH, "w", encoding="utf-8") as f:
+            json.dump(actual, f, indent=2, sort_keys=True)
+            f.write("\n")
+
+        return actual
+
+    if not os.path.isfile(ENVIRONMENT_PATH):
+        return actual
+
+    with open(ENVIRONMENT_PATH, encoding="utf-8") as f:
+        expected = json.load(f)
+
+    for key, want in expected.items():
+        if actual.get(key) != want:
+            ENVIRONMENT_MISMATCH.append((key, want, actual.get(key)))
+
+    return actual
 
 
 def capture_baseline(plot):

@@ -32,6 +32,26 @@ jobs :
           python -m pip install ruff==0.16.5
           python -m ruff check .
           cd js && npm ci && npx grunt codeStyle
+      - name : Pin Chrome to the build the references were drawn with
+        # Single source: the ARG in Dockerfile, where the reasoning already lives. The runner
+        # ships its own Chrome and selenium 4.48 prefers an installed stable build over the
+        # symlink, so the package goes first - exactly what the image does and for the same
+        # reason. Without this the visual suite compares renders from whatever browser GitHub
+        # happened to install that week against references drawn by a pinned one.
+        run : |
+          CHROME_VERSION=$(sed -n 's/^ARG CHROME_VERSION=//p' Dockerfile)
+          CFT=$(sed -n 's/^ARG CFT=//p' Dockerfile)
+          echo "pinning Chrome to $CHROME_VERSION"
+          sudo apt-get remove -y google-chrome-stable || true
+          sudo rm -rf /opt/google
+          wget -q -O /tmp/chrome.zip "$CFT/$CHROME_VERSION/linux64/chrome-linux64.zip"
+          wget -q -O /tmp/chromedriver.zip "$CFT/$CHROME_VERSION/linux64/chromedriver-linux64.zip"
+          sudo unzip -q /tmp/chrome.zip -d /opt
+          sudo unzip -q /tmp/chromedriver.zip -d /opt
+          sudo ln -sf /opt/chrome-linux64/chrome /usr/bin/google-chrome
+          sudo ln -sf /opt/chrome-linux64/chrome /usr/bin/google-chrome-stable
+          sudo ln -sf /opt/chromedriver-linux64/chromedriver /usr/local/bin/chromedriver
+          google-chrome --version && chromedriver --version
       - name : Install
         run : python -m pip install -e ".[dev,examples]"
       - name : Run tests

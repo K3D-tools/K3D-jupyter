@@ -14,7 +14,7 @@ import pytest
 import k3d
 from k3d.headless import get_headless_driver, k3d_remote
 
-from .plot_compare import capture_baseline
+from .plot_compare import capture_baseline, check_environment
 
 
 def pytest_addoption(parser):
@@ -94,10 +94,24 @@ def pytest_sessionstart(session):
     # every test starts from this state, and prepare() restores all of it
     capture_baseline(pytest.plot)
 
+    # one sync so the page has a plot to report its renderer from
+    pytest.headless.sync(hold_until_refreshed=True)
+    check_environment(pytest.headless)
+
 
 def pytest_terminal_summary(terminalreporter, exitstatus, config):
-    """Say plainly how much of this run asserted nothing."""
-    from .plot_compare import ACCEPTED
+    """Say plainly how much of this run asserted nothing, and what drew it."""
+    from .plot_compare import ACCEPTED, ENVIRONMENT_MISMATCH
+
+    if ENVIRONMENT_MISMATCH:
+        terminalreporter.write_sep("=", "RENDERER DOES NOT MATCH THE REFERENCES", red=True, bold=True)
+        for key, want, got in ENVIRONMENT_MISMATCH:
+            terminalreporter.write_line("  %s: references were drawn with %r, this run has %r"
+                                        % (key, want, got))
+        terminalreporter.write_line(
+            "Every visual comparison in this run comes from a different rasterizer than the "
+            "committed references. Run the suite through docker compose, which pins both."
+        )
 
     if ACCEPTED:
         terminalreporter.write_sep("=", "REFERENCES ACCEPTED", red=True, bold=True)
@@ -114,7 +128,11 @@ def pytest_sessionfinish(session, exitstatus):
     Called after whole test run finished, right before
     returning the exit status to the system.
     """
-    from .plot_compare import ACCEPTED
+    from .plot_compare import ACCEPTED, ENVIRONMENT_MISMATCH
+
+    # In CI a wrong rasterizer is not a warning: every image it compared was meaningless.
+    if ENVIRONMENT_MISMATCH and (os.environ.get("CI") or os.environ.get("GITHUB_ACTIONS")):
+        session.exitstatus = 4
 
     # A run that rewrote its own ground truth is not a passing run, whatever pytest thinks.
     if ACCEPTED and exitstatus == 0:
