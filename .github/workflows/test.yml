@@ -5,9 +5,84 @@ on :
     branches : [ main, devel ]
   pull_request :
 
+# A rapid push sequence used to queue 1.5-hour visual jobs behind each other. Only the newest
+# commit's answer is worth anything, so the older runs are cancelled rather than waited for.
+concurrency :
+  group : ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress : true
+
 jobs :
+  fast :
+    name : Lint, and the tests that need no browser
+    runs-on : ubuntu-22.04
+
+    steps :
+      - uses : actions/checkout@v7
+      - uses : actions/setup-python@v7
+        with :
+          python-version : "3.12"
+      - name : Use Node.js
+        uses : actions/setup-node@v7
+        with :
+          node-version : "22"
+      - name : Lint
+        # before the install, so a style break fails in seconds rather than after a build
+        run : |
+          # pinned, and the same version the Docker image pins: an unpinned linter turns the
+          # build red on its own release schedule. The path is the one RELEASE.md uses.
+          python -m pip install ruff==0.16.5
+          python -m ruff check .
+          cd js && npm ci && npx grunt codeStyle
+      - name : Install
+        # no `examples` extra: nothing under k3d/test imports matplotlib, numba or opencv
+        run : python -m pip install -e ".[dev]"
+      - name : Run the tests that need no browser
+        # --no-browser skips a test the moment it reaches for the harness, so the set is
+        # discovered by running rather than kept as a list that drifts from the tests.
+        run : cd k3d && python -m pytest --no-browser
+
+  changes :
+    name : Decide whether the visual suite has anything to check
+    runs-on : ubuntu-22.04
+    outputs :
+      code : ${{ steps.filter.outputs.code }}
+
+    steps :
+      - uses : actions/checkout@v7
+        with :
+          fetch-depth : 0
+      - name : Look at what this push or pull request touched
+        id : filter
+        # `paths:` is only a workflow-level key, so the decision is made here and read by the
+        # visual job's `if:`. A job skipped this way still reports a check, which a workflow
+        # filtered by `paths:` would not - that is what blocks a required check forever.
+        run : |
+          WATCHED='^(k3d/|js/|pyproject\.toml|requirements\.txt|Dockerfile|docker-compose\.yml|\.github/workflows/)'
+          BEFORE="${{ github.event.pull_request.base.sha || github.event.before }}"
+
+          # A new branch reports an all-zero parent and a force-push can leave one unreachable.
+          # Either way the honest answer is "no idea", and the safe one is to run the suite.
+          if [ -z "$BEFORE" ] || ! git cat-file -e "$BEFORE^{commit}" 2>/dev/null; then
+            echo "cannot see what changed ($BEFORE) - running the visual suite"
+            echo "code=true" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          echo "changed files:"
+          git diff --name-only "$BEFORE" "${{ github.sha }}" | sed 's/^/  /'
+
+          if git diff --name-only "$BEFORE" "${{ github.sha }}" | grep -Eq "$WATCHED"; then
+            echo "code changed - running the visual suite"
+            echo "code=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "nothing the renders depend on changed - skipping the visual suite"
+            echo "code=false" >> "$GITHUB_OUTPUT"
+          fi
+
   test :
     name : Run pytest on ${{ matrix.os }} / Python ${{ matrix.python-version }}
+    needs : [ fast, changes ]
+    if : needs.changes.outputs.code == 'true'
     runs-on : ${{ matrix.os }}
     strategy :
       fail-fast : false
@@ -24,14 +99,8 @@ jobs :
         uses : actions/setup-node@v7
         with :
           node-version : "22"
-      - name : Lint
-        # before the install, so a style break fails in seconds rather than after a build
-        run : |
-          # pinned, and the same version the Docker image pins: an unpinned linter turns the
-          # build red on its own release schedule. The path is the one RELEASE.md uses.
-          python -m pip install ruff==0.16.5
-          python -m ruff check .
-          cd js && npm ci && npx grunt codeStyle
+      - name : Install the JS toolchain
+        run : cd js && npm ci
       - name : Pin Chrome to the build the references were drawn with
         # Single source: the ARG in Dockerfile, where the reasoning already lives. The runner
         # ships its own Chrome and selenium 4.48 prefers an installed stable build over the
@@ -53,7 +122,7 @@ jobs :
           sudo ln -sf /opt/chromedriver-linux64/chromedriver /usr/local/bin/chromedriver
           google-chrome --version && chromedriver --version
       - name : Install
-        run : python -m pip install -e ".[dev,examples]"
+        run : python -m pip install -e ".[dev]"
       - name : Run tests
         run : cd k3d && python -m pytest
       # Artifact names must be unique across matrix legs: upload-artifact@v4 fails the job

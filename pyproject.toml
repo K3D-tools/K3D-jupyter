@@ -80,6 +80,8 @@ dev = [
     "pixelmatch==0.4.0",
     "ruff",
     "pytest",
+    # one browser per worker: the suite is serial by construction, not by necessity
+    "pytest-xdist",
     "selenium",
     # imported by k3d/test, so the suite is installable from this extra alone
     "pillow",
