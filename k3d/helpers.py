@@ -35,6 +35,32 @@ if not logger.hasHandlers():
 logger.setLevel(logging.INFO)
 
 
+def check_unsigned_range(value: np.ndarray, target: np.dtype) -> None:
+    """Raise TraitError if casting `value` into the unsigned dtype `target` would wrap.
+
+    The cast happens before any .valid() validator runs: -1 reaches a validator promising to
+    reject it as 65535, and 256 into a uint8 array becomes 0, an empty voxel.
+    """
+    target = np.dtype(target)
+
+    if target.kind != "u" or value.dtype.kind not in "iuf" or not value.size:
+        return
+
+    if value.dtype.kind in "if" and (value < 0).any():
+        raise TraitError("Negative values cannot be stored in a %s array" % target.name)
+
+    # an unsigned array no wider than the target cannot overflow, so skip the scan
+    if value.dtype.kind == "u" and value.dtype.itemsize <= target.itemsize:
+        return
+
+    limit = 2 ** (8 * target.itemsize)
+
+    if (value >= limit).any():
+        raise TraitError(
+            "Values above %d cannot be stored in a %s array" % (limit - 1, target.name)
+        )
+
+
 class Array(_TraitArray):
     """Array trait that converts silently in two cases: float64 narrowed to the float32 the
     GPU takes, and a dtype differing only in byte order (legacy VTK files are big-endian),
@@ -46,12 +72,7 @@ class Array(_TraitArray):
         if self.dtype is not None and isinstance(value, np.ndarray):
             target = np.dtype(self.dtype)
 
-            # the cast below happens before any .valid() validator runs, and into an unsigned
-            # dtype it wraps: -1 reaches a validator promising to reject it as 65535
-            if target.kind == "u" and value.dtype.kind in "if" and (value < 0).any():
-                raise TraitError(
-                    "Negative values cannot be stored in a %s array" % target.name
-                )
+            check_unsigned_range(value, target)
 
             if target == np.float32 and value.dtype == np.float64:
                 value = value.astype(np.float32)
