@@ -1,4 +1,10 @@
-FROM python:3.12-slim
+# Pinned by digest, for the same reason CHROME_VERSION below is pinned and spelled out at
+# length: the references are tied to a rasterizer. Chrome draws the geometry, but glyphs go
+# through freetype, which comes from this base - so a floating `python:3.12-slim` moves text
+# antialiasing on every rebuild exactly the way a floating Chrome moves everything else.
+# This digest is Debian trixie with libfreetype6 2.13.3+dfsg-1+deb13u1, which is what drew the
+# committed references. Raising it is expected to require regenerating the text references.
+FROM python:3.12-slim@sha256:3d5ed973e45820f5ba5e46bd065bd88b3a504ff0724d85980dcd05eab361fcf4
 
 SHELL ["/bin/bash", "--login", "-c"]
 

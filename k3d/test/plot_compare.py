@@ -27,15 +27,6 @@ RESULTS_DIR = os.path.join(TEST_DIR, "results")
 REF_SAMPLES = 16
 CINEMATIC_SCREENSHOT_SCALE = 0.5
 
-# Glyph edges move by a few pixels between freetype versions (Debian image vs CI runner); a
-# misplaced or missing label differs by hundreds, so text tests tolerate this much and no more.
-#
-# Measured in the pinned image: every text test renders bit-exact there, so this budget buys
-# nothing locally. It is kept for the CI runner, whose freetype is not the image's - pinning
-# Chrome does not pin the font rasteriser. The first CI run at zero tolerance says whether it
-# is still needed; if it is not, delete it rather than leaving 32 pixels of slack unused.
-GLYPH_AA_BUDGET = 32
-
 # How different two pixels have to be before they count as different, as a fraction passed to
 # pixelmatch, which calls a pixel different when the YIQ distance exceeds 35215 * threshold^2.
 #

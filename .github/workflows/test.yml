@@ -92,39 +92,32 @@ jobs :
 
     steps :
       - uses : actions/checkout@v7
-      - uses : actions/setup-python@v7
+      - name : Set up Buildx
+        uses : docker/setup-buildx-action@v3
+      - name : Build the image the references were drawn in
+        # The suite renders inside the project's own image rather than on the runner. Pinning
+        # Chrome on the runner was not enough: glyphs go through freetype, which the runner
+        # supplies and the image pins, so the same text rendered 114 to 3143 pixels differently
+        # on identical glyphs - same font, same metrics, different edge rasterisation. There is
+        # no pixel budget that separates that from a missing label, so the environment has to
+        # match instead of the comparison being widened.
+        uses : docker/build-push-action@v6
         with :
-          python-version : ${{ matrix.python-version }}
-      - name : Use Node.js
-        uses : actions/setup-node@v7
-        with :
-          node-version : "22"
-      - name : Install the JS toolchain
-        run : cd js && npm ci
-      - name : Pin Chrome to the build the references were drawn with
-        # Single source: the ARG in Dockerfile, where the reasoning already lives. The runner
-        # ships its own Chrome and selenium 4.48 prefers an installed stable build over the
-        # symlink, so the package goes first - exactly what the image does and for the same
-        # reason. Without this the visual suite compares renders from whatever browser GitHub
-        # happened to install that week against references drawn by a pinned one.
-        run : |
-          CHROME_VERSION=$(sed -n 's/^ARG CHROME_VERSION=//p' Dockerfile)
-          CFT=$(sed -n 's/^ARG CFT=//p' Dockerfile)
-          echo "pinning Chrome to $CHROME_VERSION"
-          sudo apt-get remove -y google-chrome-stable || true
-          sudo rm -rf /opt/google
-          wget -q -O /tmp/chrome.zip "$CFT/$CHROME_VERSION/linux64/chrome-linux64.zip"
-          wget -q -O /tmp/chromedriver.zip "$CFT/$CHROME_VERSION/linux64/chromedriver-linux64.zip"
-          sudo unzip -q /tmp/chrome.zip -d /opt
-          sudo unzip -q /tmp/chromedriver.zip -d /opt
-          sudo ln -sf /opt/chrome-linux64/chrome /usr/bin/google-chrome
-          sudo ln -sf /opt/chrome-linux64/chrome /usr/bin/google-chrome-stable
-          sudo ln -sf /opt/chromedriver-linux64/chromedriver /usr/local/bin/chromedriver
-          google-chrome --version && chromedriver --version
-      - name : Install
-        run : python -m pip install -e ".[dev]"
+          context : .
+          load : true
+          tags : k3d-build:ci
+          # the heavy layers are pip installs that change only when requirements do; a cache
+          # miss costs a slow build, never a wrong one
+          cache-from : type=gha
+          cache-to : type=gha,mode=max
       - name : Run tests
-        run : cd k3d && python -m pytest
+        # --shm-size: Docker's default 64 MB fits one Chrome at 1280x720 and not two, and a
+        # renderer that dies of it returns a blank canvas rather than an error.
+        run : |
+          docker run --rm --shm-size=2g -v "$PWD":/opt/app/src -w /opt/app/src/k3d k3d-build:ci bash -lc "python -m pytest"
+      - name : Let the runner read what the container wrote
+        if : ${{ failure() }}
+        run : sudo chown -R "$(id -u):$(id -g)" k3d/test/results || true
       # Artifact names must be unique across matrix legs: upload-artifact@v4 fails the job
       # on a name collision instead of merging, unlike v3.
       - uses : actions/upload-artifact@v7
@@ -132,8 +125,3 @@ jobs :
         with :
           name : comparison_results-${{ matrix.os }}-py${{ matrix.python-version }}
           path : ./k3d/test/results/*
-      - uses : actions/upload-artifact@v7
-        if : ${{ failure() }}
-        with :
-          name : npm-logs-${{ matrix.os }}-py${{ matrix.python-version }}
-          path : /home/runner/.npm/_logs/*

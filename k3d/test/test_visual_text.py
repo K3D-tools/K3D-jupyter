@@ -2,7 +2,7 @@ import pytest
 
 import k3d
 
-from .plot_compare import GLYPH_AA_BUDGET, compare, prepare
+from .plot_compare import compare, prepare
 
 
 def test_text():
@@ -32,7 +32,7 @@ def test_text():
         reference_point="rb",
     )
 
-    compare("text", False, max_mismatched_pixels=GLYPH_AA_BUDGET)
+    compare("text", False)
 
 
 def test_text_without_box():
@@ -65,4 +65,4 @@ def test_text_without_box():
         label_box=False,
     )
 
-    compare("text_without_box", False, max_mismatched_pixels=GLYPH_AA_BUDGET)
+    compare("text_without_box", False)
