@@ -111,10 +111,12 @@ jobs :
           cache-from : type=gha
           cache-to : type=gha,mode=max
       - name : Run tests
+        # npm ci first: a fresh checkout has no js/node_modules, and the harness builds the
+        # bundle itself - without it webpack is simply missing and the build exits 127.
         # --shm-size: Docker's default 64 MB fits one Chrome at 1280x720 and not two, and a
         # renderer that dies of it returns a blank canvas rather than an error.
         run : |
-          docker run --rm --shm-size=2g -v "$PWD":/opt/app/src -w /opt/app/src/k3d k3d-build:ci bash -lc "python -m pytest"
+          docker run --rm --shm-size=2g -v "$PWD":/opt/app/src -w /opt/app/src k3d-build:ci bash -lc "cd js && npm ci && cd ../k3d && python -m pytest"
       - name : Let the runner read what the container wrote
         if : ${{ failure() }}
         run : sudo chown -R "$(id -u):$(id -g)" k3d/test/results || true
