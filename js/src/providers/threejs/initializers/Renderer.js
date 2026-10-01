@@ -496,6 +496,13 @@ module.exports = function (K3D) {
             return;
         }
 
+        // GTAO applies pow(ao, aoStrength), so at 0 the buffer is 1 everywhere and the overlay
+        // multiplies the frame by itself. The whole chain - a scene depth pass, two fullscreen
+        // passes and the overlay - was running to produce that.
+        if (K3D.parameters.aoStrength === 0) {
+            return;
+        }
+
         const world = K3D.getWorld();
         const box = new THREE.Box3().setFromObject(world.K3DObjects);
 
@@ -514,6 +521,7 @@ module.exports = function (K3D) {
         const hidden = [];
         const impostors = [];
         const wireframes = [];
+        const occluders = [];
 
         world.K3DObjects.traverse((obj) => {
             if (!obj.visible) {
@@ -537,8 +545,24 @@ module.exports = function (K3D) {
                     || obj.material.opacity < 0.5))) {
                 obj.visible = false;
                 hidden.push(obj);
+
+                return;
+            }
+            if (obj.isMesh) {
+                occluders.push(obj);
             }
         });
+
+        // Nothing left that can cast occlusion: the depth prepass would leave the target at its
+        // clear value, GTAO and the denoiser would discard every pixel, and the overlay would
+        // multiply the frame by 1. A scatter-only or line-only plot paid for all of it.
+        if (occluders.length === 0 && impostors.length === 0 && wireframes.length === 0) {
+            hidden.forEach((obj) => {
+                obj.visible = true;
+            });
+
+            return;
+        }
 
         globalPeelUniforms.uLayer.value = 0;
 

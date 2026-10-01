@@ -5,7 +5,7 @@
 const fs = require('fs');
 const path = require('path');
 
-const BUNDLES = ['standalone.js', 'standalone.js.map'];
+const BUNDLES = ['standalone.js', 'k3d-bvh-worker.js'];
 const dist = path.join(__dirname, 'dist');
 
 function fail(message) {
@@ -28,6 +28,15 @@ const missing = BUNDLES.filter((name) => !fs.existsSync(path.join(dist, name)));
 
 if (missing.length > 0) {
     fail(`dist/ is missing ${missing.join(', ')} - run npm run build`);
+}
+
+// The build stopped emitting these and stopped copying them, but nothing deletes what an older
+// build left behind - and dist/ is an allowlisted directory, so a stale map would be published.
+// It was 71% of the package the last time one was.
+const maps = fs.readdirSync(dist).filter((name) => name.endsWith('.map'));
+
+if (maps.length > 0) {
+    fail(`dist/ still holds ${maps.join(', ')} from an older build - delete dist/ and rebuild`);
 }
 
 function newestMtime(dir) {

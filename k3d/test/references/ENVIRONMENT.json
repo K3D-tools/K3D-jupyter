@@ -1,0 +1,5 @@
+{
+  "browserVersion": "152.0.7977.42",
+  "maxTextureSize": 8192,
+  "unmaskedRenderer": "ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device (Subzero) (0x0000C0DE)), SwiftShader driver)"
+}

@@ -5,6 +5,10 @@ services :
     build :
       dockerfile : Dockerfile
       context : .
+    # Docker gives a container 64 MB of /dev/shm, which one Chrome at 1280x720 just fits and
+    # two do not: the second renderer dies and its canvas comes back blank, which reads as every
+    # visual test failing rather than as running out of shared memory. pytest -n needs the room.
+    shm_size : 2gb
     volumes :
       - ./:/opt/app/src:delegated
     ports :

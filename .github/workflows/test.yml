@@ -5,21 +5,22 @@ on :
     branches : [ main, devel ]
   pull_request :
 
+# A rapid push sequence used to queue 1.5-hour visual jobs behind each other. Only the newest
+# commit's answer is worth anything, so the older runs are cancelled rather than waited for.
+concurrency :
+  group : ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress : true
+
 jobs :
-  test :
-    name : Run pytest on ${{ matrix.os }} / Python ${{ matrix.python-version }}
-    runs-on : ${{ matrix.os }}
-    strategy :
-      fail-fast : false
-      matrix :
-        os : [ ubuntu-22.04 ]
-        python-version : [ "3.12" ]
+  fast :
+    name : Lint, and the tests that need no browser
+    runs-on : ubuntu-22.04
 
     steps :
       - uses : actions/checkout@v7
       - uses : actions/setup-python@v7
         with :
-          python-version : ${{ matrix.python-version }}
+          python-version : "3.12"
       - name : Use Node.js
         uses : actions/setup-node@v7
         with :
@@ -33,9 +34,92 @@ jobs :
           python -m ruff check .
           cd js && npm ci && npx grunt codeStyle
       - name : Install
-        run : python -m pip install -e ".[dev,examples]"
+        # no `examples` extra: nothing under k3d/test imports matplotlib, numba or opencv
+        run : python -m pip install -e ".[dev]"
+      - name : Run the tests that need no browser
+        # --no-browser skips a test the moment it reaches for the harness, so the set is
+        # discovered by running rather than kept as a list that drifts from the tests.
+        run : cd k3d && python -m pytest --no-browser
+
+  changes :
+    name : Decide whether the visual suite has anything to check
+    runs-on : ubuntu-22.04
+    outputs :
+      code : ${{ steps.filter.outputs.code }}
+
+    steps :
+      - uses : actions/checkout@v7
+        with :
+          fetch-depth : 0
+      - name : Look at what this push or pull request touched
+        id : filter
+        # `paths:` is only a workflow-level key, so the decision is made here and read by the
+        # visual job's `if:`. A job skipped this way still reports a check, which a workflow
+        # filtered by `paths:` would not - that is what blocks a required check forever.
+        run : |
+          WATCHED='^(k3d/|js/|pyproject\.toml|requirements\.txt|Dockerfile|docker-compose\.yml|\.github/workflows/)'
+          BEFORE="${{ github.event.pull_request.base.sha || github.event.before }}"
+
+          # A new branch reports an all-zero parent and a force-push can leave one unreachable.
+          # Either way the honest answer is "no idea", and the safe one is to run the suite.
+          if [ -z "$BEFORE" ] || ! git cat-file -e "$BEFORE^{commit}" 2>/dev/null; then
+            echo "cannot see what changed ($BEFORE) - running the visual suite"
+            echo "code=true" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          echo "changed files:"
+          git diff --name-only "$BEFORE" "${{ github.sha }}" | sed 's/^/  /'
+
+          if git diff --name-only "$BEFORE" "${{ github.sha }}" | grep -Eq "$WATCHED"; then
+            echo "code changed - running the visual suite"
+            echo "code=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "nothing the renders depend on changed - skipping the visual suite"
+            echo "code=false" >> "$GITHUB_OUTPUT"
+          fi
+
+  test :
+    name : Run pytest on ${{ matrix.os }} / Python ${{ matrix.python-version }}
+    needs : [ fast, changes ]
+    if : needs.changes.outputs.code == 'true'
+    runs-on : ${{ matrix.os }}
+    strategy :
+      fail-fast : false
+      matrix :
+        os : [ ubuntu-22.04 ]
+        python-version : [ "3.12" ]
+
+    steps :
+      - uses : actions/checkout@v7
+      - name : Set up Buildx
+        uses : docker/setup-buildx-action@v3
+      - name : Build the image the references were drawn in
+        # The suite renders inside the project's own image rather than on the runner. Pinning
+        # Chrome on the runner was not enough: glyphs go through freetype, which the runner
+        # supplies and the image pins, so the same text rendered 114 to 3143 pixels differently
+        # on identical glyphs - same font, same metrics, different edge rasterisation. There is
+        # no pixel budget that separates that from a missing label, so the environment has to
+        # match instead of the comparison being widened.
+        uses : docker/build-push-action@v6
+        with :
+          context : .
+          load : true
+          tags : k3d-build:ci
+          # the heavy layers are pip installs that change only when requirements do; a cache
+          # miss costs a slow build, never a wrong one
+          cache-from : type=gha
+          cache-to : type=gha,mode=max
       - name : Run tests
-        run : cd k3d && python -m pytest
+        # npm ci first: a fresh checkout has no js/node_modules, and the harness builds the
+        # bundle itself - without it webpack is simply missing and the build exits 127.
+        # --shm-size: Docker's default 64 MB fits one Chrome at 1280x720 and not two, and a
+        # renderer that dies of it returns a blank canvas rather than an error.
+        run : |
+          docker run --rm --shm-size=2g -v "$PWD":/opt/app/src -w /opt/app/src k3d-build:ci bash -lc "cd js && npm ci && cd ../k3d && python -m pytest"
+      - name : Let the runner read what the container wrote
+        if : ${{ failure() }}
+        run : sudo chown -R "$(id -u):$(id -g)" k3d/test/results || true
       # Artifact names must be unique across matrix legs: upload-artifact@v4 fails the job
       # on a name collision instead of merging, unlike v3.
       - uses : actions/upload-artifact@v7
@@ -43,8 +127,3 @@ jobs :
         with :
           name : comparison_results-${{ matrix.os }}-py${{ matrix.python-version }}
           path : ./k3d/test/results/*
-      - uses : actions/upload-artifact@v7
-        if : ${{ failure() }}
-        with :
-          name : npm-logs-${{ matrix.os }}-py${{ matrix.python-version }}
-          path : /home/runner/.npm/_logs/*

@@ -17,13 +17,28 @@ ColorMap = Union[TypingList[TypingList[float]], TypingDict[str, Any], np.ndarray
 ColorRange = TypingList[float]
 OpacityFunction = TypingList[float]
 
-# Optional dependency
-try:
-    import vtk
-    from vtk.util import numpy_support as nps
-except ImportError:
-    vtk = None
-    nps = None
+# Optional dependency, imported on first use rather than at import time: loading it pulls in
+# ~160 extension modules and is a third of `import k3d` for everyone who has it installed, which
+# includes everyone who installed pyvista for something else. Only vtk_poly_data touches it.
+vtk = None
+nps = None
+
+
+def _require_vtk():
+    """Import VTK, raising what the module-scope guard used to raise when it is missing."""
+    global vtk, nps
+
+    if vtk is not None:
+        return
+
+    try:
+        import vtk as vtk_module
+        from vtk.util import numpy_support
+    except ImportError:
+        raise RuntimeError("vtk module is not available") from None
+
+    vtk = vtk_module
+    nps = numpy_support
 
 
 def vtk_poly_data(
@@ -141,8 +156,7 @@ def vtk_poly_data(
     if color_map is None:
         color_map = default_colormap
 
-    if vtk is None:
-        raise RuntimeError("vtk module is not available")
+    _require_vtk()
 
     # indices below read GetPolys() only, so strips have to be triangulated whatever their
     # size: a strip of exactly 3 points left the mesh with no indices at all

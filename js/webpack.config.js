@@ -39,6 +39,13 @@ const mode = 'production';
 const resolve = {
     alias: {
         'lil-gui': path.resolve(__dirname, 'node_modules/lil-gui/dist/lil-gui.esm.js'),
+        // js/src is CommonJS and three-gpu-pathtracer is ESM, so webpack resolved both export
+        // conditions and shipped two complete, mutually incompatible copies of three.js - and of
+        // three-mesh-bvh behind it. Two class hierarchies means every instanceof between the
+        // raster path and the cinematic one is a coin toss, and users get a console warning
+        // about it. Same reason as lil-gui above: name the build, end the ambiguity.
+        three$: path.resolve(__dirname, 'node_modules/three/build/three.module.js'),
+        'three-mesh-bvh$': path.resolve(__dirname, 'node_modules/three-mesh-bvh/src/index.js'),
     },
 };
 
@@ -60,7 +67,11 @@ module.exports = [
             publicPath: '',
         },
         mode,
-        devtool: 'source-map',
+        // hidden: the map is emitted for local debugging but the bundle stops pointing at it.
+        // widget.mjs reaches the browser through the Jupyter comm, not from a URL, so a
+        // sourceMappingURL in it can never resolve - every user who opens devtools on a plot
+        // gets a 404 for a file the wheel does not even carry.
+        devtool: 'hidden-source-map',
         resolve,
         module: {
             rules,
@@ -78,7 +89,10 @@ module.exports = [
                 publicPath: `https://unpkg.com/k3d@${version}/dist/`,
             },
         mode,
-        devtool: 'source-map',
+        // hidden as well, and the map is no longer published: it was 9.8 MB of a 13.9 MB npm
+        // package - 71% - for a consumer nobody could name, and the worker chunk's own map was
+        // never copied at all, so unpkg served a dangling reference beside it.
+        devtool: 'hidden-source-map',
         resolve,
         module: {
             rules,
@@ -100,7 +114,7 @@ module.exports = [
                 apply: (compiler) => {
                     compiler.hooks.afterEmit.tap('CopyBuildPlugin', () => {
                         const outputPath = compiler.options.output.path;
-                        const files = ['standalone.js', 'standalone.js.map', 'k3d-bvh-worker.js'];
+                        const files = ['standalone.js', 'k3d-bvh-worker.js'];
                         const targetDir = path.resolve(__dirname, 'dist');
 
                         if (!fs.existsSync(targetDir)) {

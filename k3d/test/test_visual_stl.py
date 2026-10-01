@@ -2,7 +2,6 @@ import numpy as np
 import pytest
 
 import k3d
-from k3d.helpers import download
 
 from .plot_compare import compare, prepare
 
@@ -10,9 +9,7 @@ from .plot_compare import compare, prepare
 def test_stl():
     prepare()
 
-    filename = download(
-        "https://github.com/To-Fujita/Babylon.js_3D_Graphics/raw/master/scenes/stl/Cute%20Darth%20Vader.stl"
-    )
+    filename = "./test/assets/darth_vader.stl"
 
     with open(filename, "rb") as f:
         mesh = k3d.stl(
@@ -30,9 +27,7 @@ def test_stl():
 def test_stl_color():
     prepare()
 
-    filename = download(
-        "https://github.com/To-Fujita/Babylon.js_3D_Graphics/raw/master/scenes/stl/Cute%20Darth%20Vader.stl"
-    )
+    filename = "./test/assets/darth_vader.stl"
 
     with open(filename, "rb") as f:
         mesh = k3d.stl(
@@ -49,9 +44,7 @@ def test_stl_color():
 def test_stl_wireframe():
     prepare()
 
-    filename = download(
-        "https://github.com/To-Fujita/Babylon.js_3D_Graphics/raw/master/scenes/stl/Cute%20Darth%20Vader.stl"
-    )
+    filename = "./test/assets/darth_vader.stl"
 
     with open(filename, "rb") as f:
         mesh = k3d.stl(
@@ -68,9 +61,7 @@ def test_stl_wireframe():
 def test_stl_smooth():
     prepare()
 
-    filename = download(
-        "https://github.com/To-Fujita/Babylon.js_3D_Graphics/raw/master/scenes/stl/Cute%20Darth%20Vader.stl"
-    )
+    filename = "./test/assets/darth_vader.stl"
 
     with open(filename, "rb") as f:
         mesh = k3d.stl(

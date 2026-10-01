@@ -7,7 +7,7 @@ VERTICES = np.array([[0, 0, 0], [1, 0, 0], [0, 1, 0]], dtype=np.float32)
 INDICES = np.array([[0, 1, 2]], dtype=np.uint32)
 
 
-def test_esm_is_packaged():
+def test_esm_is_packaged(bundle):
     from k3d._widget import _STATIC
 
     assert (_STATIC / "widget.mjs").exists()

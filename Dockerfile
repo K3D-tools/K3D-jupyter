@@ -1,4 +1,10 @@
-FROM python:3.12-slim
+# Pinned by digest, for the same reason CHROME_VERSION below is pinned and spelled out at
+# length: the references are tied to a rasterizer. Chrome draws the geometry, but glyphs go
+# through freetype, which comes from this base - so a floating `python:3.12-slim` moves text
+# antialiasing on every rebuild exactly the way a floating Chrome moves everything else.
+# This digest is Debian trixie with libfreetype6 2.13.3+dfsg-1+deb13u1, which is what drew the
+# committed references. Raising it is expected to require regenerating the text references.
+FROM python:3.12-slim@sha256:3d5ed973e45820f5ba5e46bd065bd88b3a504ff0724d85980dcd05eab361fcf4
 
 SHELL ["/bin/bash", "--login", "-c"]
 
@@ -59,7 +65,7 @@ RUN pip install -r requirements.txt
 # pixelmatch and ruff are pinned for the same reason CHROME_VERSION is: pixelmatch decides
 # whether a visual test passes, and ruff is the lint gate - neither should move on a rebuild.
 # webdriver-manager is gone with chromedriver-binary: nothing imported it either.
-RUN pip install pytest pixelmatch==0.4.0 flask selenium scikit-image vtk build twine \
+RUN pip install pytest pytest-xdist pixelmatch==0.4.0 flask selenium scikit-image vtk build twine \
         jupyterlab hatch-jupyter-builder ruff==0.16.5
 
 # `cd docs && make html` needs these. pyvista and SimpleITK are imported by gallery thumbnail

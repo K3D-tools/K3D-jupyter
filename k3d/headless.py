@@ -363,7 +363,6 @@ class k3d_remote:
 
         driver.set_window_size(width, height)
 
-        self.port = port
         self.browser = driver
         self.k3d_plot = k3d_plot
         self.refresh_timeout = refresh_timeout
@@ -375,6 +374,9 @@ class k3d_remote:
         self.server = make_server(
             "localhost", port, self.api, request_handler=_QuietRequestHandler
         )
+
+        # port=0 asks the OS for a free one, which is the only way two of these can coexist
+        self.port = self.server.server_port
 
         self.thread = threading.Thread(
             target=lambda: self.server.serve_forever(), daemon=True
@@ -429,7 +431,7 @@ class k3d_remote:
                     % (startup_timeout, _browser_errors(self.browser))
                 )
             time.sleep(1)
-            self.browser.get(url="http://localhost:" + str(port) + "/headless.html")
+            self.browser.get(url="http://localhost:" + str(self.port) + "/headless.html")
 
         self.browser.execute_script(f"window.init({width}, {height});")
 
