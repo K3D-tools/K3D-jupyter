@@ -75,7 +75,7 @@
     "requirejs": "^2.3.8",
     "screenfull": "^6.0.2",
     "stats.js": "^0.17.0",
-    "three": "^0.185.1",
+    "three": "^0.186.1",
     "three-gpu-pathtracer": "0.0.24",
     "three-mesh-bvh": "^0.9.14"
   }
