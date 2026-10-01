@@ -5,6 +5,7 @@
 [![Anaconda-Server Badge](https://anaconda.org/conda-forge/k3d/badges/downloads.svg)](https://anaconda.org/conda-forge/k3d)
 [![CodeQL](https://github.com/K3D-tools/K3D-jupyter/workflows/CodeQL/badge.svg)](https://github.com/K3D-tools/K3D-jupyter/actions)
 [![GitHub Sponsor](https://img.shields.io/github/sponsors/K3D-tools?label=Sponsor&logo=GitHub)](https://github.com/sponsors/K3D-tools)
+[![Mentioned in Awesome VTK](https://awesome.re/mentioned-badge.svg)](https://github.com/tkoyama010/awesome-vtk)
 
 <div>
 
