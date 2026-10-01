@@ -16,6 +16,28 @@ def test_vectors_box_spans_origin_to_tip():
     assert np.allclose(v.get_bounding_box(), [10, 11, 10, 10, 10, 10])
 
 
+def test_voxels_honours_separate_bound_arguments():
+    """voxels() used to always inject its own "bounds" into kwargs, even when the caller
+    passed xmin/xmax/... instead of bounds. process_transform_arguments only falls back to
+    those separate arguments when "bounds" is absent from kwargs, so they were silently
+    dropped and the object was placed at the data-derived default box instead.
+    """
+    data = np.ones((4, 4, 4), np.uint8)
+
+    v = k3d.voxels(data, xmin=-1, xmax=1, ymin=-1, ymax=1, zmin=-1, zmax=1)
+
+    assert np.allclose(v.get_bounding_box(), [-1, 1, -1, 1, -1, 1])
+
+
+def test_voxels_without_bounds_keeps_data_derived_box():
+    """With no bounds and no separate arguments, the box still comes from the data shape."""
+    data = np.ones((4, 5, 6), np.uint8)
+
+    v = k3d.voxels(data)
+
+    assert np.allclose(v.get_bounding_box(), [0, 6, 0, 5, 0, 4])
+
+
 def test_auto_grid_is_min_max_interleaved():
     p = k3d.plot()
     p += k3d.points(np.array([[0, 0, 0], [2, 4, 6]], dtype=np.float32))

@@ -561,9 +561,12 @@ def voxels(
     if color_map is None:
         color_map = nice_colors
 
+    # process_transform_arguments only reads separate xmin/xmax/... out of **kwargs when
+    # "bounds" is absent from it, so always setting kwargs["bounds"] here (as a prior revision
+    # did) shadowed those arguments even when the caller passed them and not bounds.
     if bounds is not None:
         kwargs["bounds"] = bounds
-    else:
+    elif not any(k in kwargs for k in ("xmin", "xmax", "ymin", "ymax", "zmin", "zmax")):
         max_z, max_y, max_x = np.shape(voxels)
         kwargs["bounds"] = np.array([0, max_x, 0, max_y, 0, max_z])
 
