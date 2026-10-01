@@ -65,3 +65,55 @@ def test_numpy_integers_are_accepted_as_ints():
     obj = k3d.volume(DATA, compression_level=np.int32(1))
 
     assert obj.compression_level == 1
+
+
+@pytest.mark.parametrize("dtype", [np.int64, np.int32, np.uint16, np.float32])
+def test_voxels_above_uint8_range_are_rejected_not_wrapped(dtype):
+    data = np.ones((2, 2, 2), dtype=dtype)
+    data[1, 1, 1] = 256
+
+    with pytest.raises(TraitError):
+        k3d.voxels(data)
+
+    obj = k3d.voxels(np.ones((2, 2, 2), dtype=np.uint8))
+
+    with pytest.raises(TraitError):
+        obj.voxels = data
+
+
+def test_voxels_at_uint8_limit_are_kept():
+    data = np.zeros((2, 2, 2), dtype=np.int64)
+    data[0, 0, 0] = 255
+
+    assert k3d.voxels(data).voxels[0, 0, 0] == 255
+
+
+def test_colors_above_uint32_range_are_rejected_not_wrapped():
+    positions = np.zeros((2, 3), dtype=np.float32)
+
+    with pytest.raises(TraitError):
+        k3d.points(positions, colors=np.array([2**32 + 0xFF, 0], dtype=np.int64))
+
+
+def test_voxel_chunk_above_uint8_range_is_rejected_not_wrapped():
+    with pytest.raises(TraitError):
+        k3d.voxel_chunk(np.array([[[1, 256]]], dtype=np.int64), [0, 0, 0])
+
+
+def test_voxel_chunk_still_takes_lists():
+    chunk = k3d.voxel_chunk([[[1, 255]]], [0, 0, 0])
+
+    assert chunk.voxels.dtype == np.uint8
+    assert chunk.voxels.ravel().tolist() == [1, 255]
+
+
+def test_voxel_chunk_conversion_does_not_warn(recwarn):
+    k3d.voxel_chunk(np.array([[[1, 255]]], dtype=np.int64), [0, 0, 0])
+    k3d.voxel_chunk([[[1, 255]]], [0, 0, 0])
+
+    assert len(recwarn) == 0
+
+
+def test_voxel_chunk_negative_value_is_rejected():
+    with pytest.raises(TraitError):
+        k3d.voxel_chunk(np.array([[[-1, 2]]], dtype=np.int64), [0, 0, 0])

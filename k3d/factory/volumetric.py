@@ -7,7 +7,7 @@ from typing import List as TypingList
 
 import numpy as np
 
-from ..helpers import check_attribute_color_range, rgb_volume_channels
+from ..helpers import check_attribute_color_range, check_unsigned_range, rgb_volume_channels
 from ..objects import MIP, MarchingCubes, SparseVoxels, Volume, VolumeSlice, VoxelChunk, Voxels, VoxelsGroup
 from ..transform import process_transform_arguments
 from .common import _default_color, default_colormap, nice_colors
@@ -961,8 +961,11 @@ def voxel_chunk(
     VoxelChunk
         VoxelChunk object.
     """
+    voxels = np.asarray(voxels)
+    check_unsigned_range(voxels, np.uint8)
+
     return VoxelChunk(
-        voxels=np.array(voxels, np.uint8),
+        voxels=voxels.astype(np.uint8),
         coord=np.array(coord, np.uint32),
         multiple=multiple,
         compression_level=compression_level,
