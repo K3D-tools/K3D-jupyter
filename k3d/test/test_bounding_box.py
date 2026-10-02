@@ -5,6 +5,7 @@ None of this touches a browser: the boxes are computed from the traits alone.
 """
 
 import numpy as np
+import pytest
 
 import k3d
 
@@ -14,6 +15,28 @@ def test_vectors_box_spans_origin_to_tip():
     v = k3d.vectors([[10, 10, 10]], [[1, 0, 0]])
 
     assert np.allclose(v.get_bounding_box(), [10, 11, 10, 10, 10, 10])
+
+
+@pytest.mark.parametrize("vectors, expected", [
+    (
+        np.array([[[[0, 0, 0], [0, 0, 0]], [[0, 0, 0], [0, 0, 0]]],
+                  [[[0, 0, 0], [0, 0, 0]], [[0, 0, 0], [8, -4, 2]]]], dtype=np.float32),
+        [-0.5, 4, -2, 0, -0.5, 1],
+    ),
+    (
+        np.array([[[0, 0], [0, 0]], [[0, 0], [-8, 6]]], dtype=np.float32),
+        [-4, 0, -0.5, 3, 0, 0],
+    ),
+])
+def test_vector_field_box_spans_grid_origins_and_arrow_tips(vectors, expected):
+    field = k3d.vector_field(vectors, scale=2)
+    plot = k3d.plot()
+    plot += field
+
+    assert np.allclose(field.get_bounding_box(), expected)
+    assert np.allclose(plot.get_auto_grid(), expected)
+    expected_center = (np.array(expected[::2]) + np.array(expected[1::2])) / 2
+    assert np.allclose(plot.get_auto_camera()[3:6], expected_center)
 
 
 def test_voxels_honours_separate_bound_arguments():

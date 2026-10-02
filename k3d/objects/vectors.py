@@ -76,7 +76,36 @@ class VectorField(Drawable):
         return np.array(proposal["value"], np.float32)
 
     def get_bounding_box(self):
-        return get_bounding_box(self.model_matrix)
+        vectors = self.vectors
+        if vectors.size == 0:
+            return get_bounding_box(self.model_matrix)
+
+        if vectors.ndim == 3:
+            height, width, _ = vectors.shape
+            length = 1
+            origins = (
+                np.arange(width).reshape(1, width) / width - 0.5,
+                np.arange(height).reshape(height, 1) / height - 0.5,
+            )
+        else:
+            length, height, width, _ = vectors.shape
+            origins = (
+                np.arange(width).reshape(1, 1, width) / width - 0.5,
+                np.arange(height).reshape(1, height, 1) / height - 0.5,
+                np.arange(length).reshape(length, 1, 1) / length - 0.5,
+            )
+
+        # Match the grid and arrow length used by the browser's VectorField renderer.
+        scalar = (self.scale or 1.0) / max(width, height, length) / 2.0
+        bounds = []
+        for axis, origin in enumerate(origins):
+            tip = origin + vectors[..., axis] * scalar
+            bounds.extend([min(float(np.min(origin)), float(np.nanmin(tip))),
+                           max(float(np.max(origin)), float(np.nanmax(tip)))])
+        if vectors.ndim == 3:
+            bounds.extend([0.0, 0.0])
+
+        return get_bounding_box(self.model_matrix, bounds)
 
 
 class Vectors(Drawable):
