@@ -41,6 +41,8 @@ make html
 gh release create vX.Y.Z --repo K3D-tools/K3D-jupyter --target main --title "vX.Y.Z" --generate-notes
 
 # Confirm Zenodo picked it up (a few minutes):
-curl -s https://zenodo.org/api/records/3247652 | python -c "import json,sys; m=json.load(sys.stdin)['metadata']; print(m.get('version'), m.get('publication_date'))"
+# -L is not optional: 3247652 is the concept DOI and answers 302 with HTML, pointing at the
+# record for the version just archived. Without it this prints a JSONDecodeError.
+curl -sL https://zenodo.org/api/records/3247652 | python -c "import json,sys; m=json.load(sys.stdin)['metadata']; print(m.get('version'), m.get('publication_date'))"
 
 # Finally bump `version` and `date-released` in CITATION.cff to the version just published.
