@@ -4,6 +4,15 @@
 # same two linters, so this is the local shortcut rather than the only gate.
 # The suite has to run in docker: the visual references are tied to the Chrome pinned in
 # the image, and a host Chrome differs by enough pixels to fail every visual test.
+#
+# Install the JS dependencies first: the grunt linter and the suite both read js/node_modules,
+# and neither creates it. A checkout that was never installed, or whose lockfile moved since it
+# was, renders with whatever is on disk - which does not read as a stale install, it reads as a
+# wall of failed visual tests. The tell is the direction: an older three.js draws the same
+# scenes a few levels BRIGHTER than the references, because r186's energy-conservation fix only
+# ever darkens. `npm ci`, not `npm install` - it installs exactly the lockfile and refuses when
+# package.json disagrees with it, instead of rewriting the lock in the middle of a release.
+docker compose run --rm k3d-build bash -lc "cd /opt/app/src/js && npm ci"
 docker compose run --rm k3d-build bash -lc "cd /opt/app/src && python -m ruff check ."
 docker compose run --rm k3d-build bash -lc "cd /opt/app/src/js && npx grunt codeStyle"
 docker compose run --rm k3d-build bash -lc "cd /opt/app/src/k3d && python -m pytest"

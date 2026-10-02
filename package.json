@@ -27,7 +27,7 @@
   "scripts": {
     "build": "npm run install:js && npm run build:js",
     "build:prod": "npm run install:js && npm run build:js",
-    "install:js": "cd js && npm install",
+    "install:js": "cd js && npm ci",
     "build:js": "cd js && npm run build",
     "prepare": "npm run build:prod"
   }
