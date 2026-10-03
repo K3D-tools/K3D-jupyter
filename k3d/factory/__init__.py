@@ -3,6 +3,7 @@
 # Import all factory functions and constants from submodules
 from .common import _default_color, default_colormap, nice_colors
 from .geometry import line, lines, mesh, stl, surface
+from .gltf import glb, gltf
 from .plot import plot
 from .points import points
 from .text import label, text, text2d, texture_text
@@ -36,6 +37,8 @@ __all__ = [
     "points",
     "texture",
     "vtk_poly_data",
+    "glb",
+    "gltf",
     "plot",
     # Constants
     "_default_color",

@@ -5,6 +5,8 @@ from .colormaps import basic_color_maps, matplotlib_color_maps, paraview_color_m
 from .factory import (
                         _default_color,
                         default_colormap,
+                        glb,
+                        gltf,
                         label,
                         line,
                         lines,
@@ -43,6 +45,8 @@ __all__ = [
     "clone_object",
     "create_object",
     "default_colormap",
+    "glb",
+    "gltf",
     "label",
     "line",
     "lines",
