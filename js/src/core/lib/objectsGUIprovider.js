@@ -82,6 +82,16 @@ function update(K3D, json, GUI, changes) {
         return controller;
     }
 
+    // controls that exist only for some values of another parameter
+    const dependent = {
+        // thick and mesh read it; simple draws one-pixel lines
+        width: () => (json.type === 'Line' || json.type === 'Lines')
+            && (json.shader === 'mesh' || json.shader === 'thick'),
+        // only LineMesh and LinesMesh read it - it is the tube's cross-section
+        radial_segments: () => (json.type === 'Line' || json.type === 'Lines')
+            && json.shader === 'mesh',
+    };
+
     function findControllers(param) {
         const folder = K3D.gui_map[json.id];
         let main;
@@ -214,7 +224,18 @@ function update(K3D, json, GUI, changes) {
         json.sliceViewer = (K3D.parameters.sliceViewerObjectId === json.id);
     }
 
-    ((changes && Object.keys(changes)) || Object.keys(json)).forEach(function (param) {
+    const params = (changes && Object.keys(changes)) || Object.keys(json);
+
+    // a shader change does not carry the dependent controls: revisit them
+    if (changes && params.indexOf('shader') !== -1) {
+        Object.keys(dependent).forEach((name) => {
+            if (params.indexOf(name) === -1) {
+                params.push(name);
+            }
+        });
+    }
+
+    params.forEach(function (param) {
         let colorMapLegendControllers;
         let controller;
 
@@ -264,6 +285,18 @@ function update(K3D, json, GUI, changes) {
             if (json.colorLegend) {
                 K3D.setColorMapLegend(json);
             }
+        }
+
+        // removed before tryUpdate, which would refresh a stale control in place
+        if (Object.prototype.hasOwnProperty.call(dependent, param) && !dependent[param]()) {
+            const existing = K3D.gui_map[json.id].controllersMap[param];
+
+            if (typeof (existing) !== 'undefined') {
+                existing.destroy();
+                delete K3D.gui_map[json.id].controllersMap[param];
+            }
+
+            return;
         }
 
         if (tryUpdate(param)) {
@@ -408,16 +441,18 @@ function update(K3D, json, GUI, changes) {
                 }
                 break;
             case 'width':
-                if ((json.type === 'Line' || json.type === 'Lines') && json.shader === 'mesh') {
+                if (dependent.width()) {
                     addController(K3D.gui_map[json.id], json, param).onChange(
                         changeParameter.bind(this, K3D, json, param),
                     );
                 }
                 break;
             case 'radial_segments':
-                addController(K3D.gui_map[json.id], json, param, 0, 64, 1).name('radialSeg').onChange(
-                    changeParameter.bind(this, K3D, json, param),
-                );
+                if (dependent.radial_segments()) {
+                    addController(K3D.gui_map[json.id], json, param, 0, 64, 1)
+                        .name('radialSeg')
+                        .onChange(changeParameter.bind(this, K3D, json, param));
+                }
                 break;
             case 'mesh_detail':
                 if (json.shader === 'mesh') {

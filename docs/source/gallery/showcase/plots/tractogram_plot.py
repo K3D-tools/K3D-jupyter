@@ -18,7 +18,7 @@ def generate():
     v = (np.nan_to_num(v) * 255).astype(np.int32)
     colors = np.sum((v * np.array([1, 256, 256 * 256])), axis=1).astype(np.uint32)
 
-    streamlines = k3d.line(data, shader='simple', colors=colors)
+    streamlines = k3d.line(data, shader='simple', colors=colors, radial_segments=4)
 
     plot = k3d.plot(grid_visible=False,
                     camera_auto_fit=False,

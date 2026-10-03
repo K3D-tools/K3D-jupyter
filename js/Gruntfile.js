@@ -1,3 +1,6 @@
+// set before the webpack config is required: serve and watch build with source maps
+process.env.K3D_DEV = process.argv.some((a) => a === 'serve' || a === 'watch') ? '1' : '';
+
 const webpackConfig = require('./webpack.config');
 
 module.exports = function (grunt) {
