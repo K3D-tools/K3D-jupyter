@@ -281,6 +281,20 @@ module.exports = function createWebGLBackend(renderer) {
     // The tracer's merge appends one group per source geometry and never clears them, so a
     // rebuilt scene stacks a fresh set on top of every previous one. Harmless for the image -
     // the duplicates repeat the same ranges - but it grows for the life of the page.
+    // three-mesh-bvh 0.9.15 reuses the last scene's index when its length equals the new triangle count
+    function forgetCachedIndex() {
+        const struct = tracer._pathTracer && tracer._pathTracer.material
+            && tracer._pathTracer.material.bvh;
+
+        if (!struct || !('_cachedIndexAttr' in struct)) {
+            throw new Error(
+                'cinematic: three-mesh-bvh internals changed - cannot drop the cached BVH index',
+            );
+        }
+
+        struct._cachedIndexAttr = null;
+    }
+
     function clearMergedGroups() {
         const geometry = tracer._generator && tracer._generator.geometry;
 
@@ -404,6 +418,7 @@ module.exports = function createWebGLBackend(renderer) {
         // the volume uniforms follow the material texture setScene uploads, on the same material
         setScene(scene, camera) {
             clearMergedGroups();
+            forgetCachedIndex();
             tracer.setScene(scene, camera);
             syncVolume(scene);
         },
@@ -420,6 +435,7 @@ module.exports = function createWebGLBackend(renderer) {
 
                 tracer.setBVHWorker(worker);
                 clearMergedGroups();
+                forgetCachedIndex();
 
                 return tracer.setSceneAsync(scene, camera, { onProgress }).then(
                     () => {
