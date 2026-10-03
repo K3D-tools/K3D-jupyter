@@ -86,8 +86,11 @@ function normalizeTexture(texture) {
     return clone;
 }
 
+// every image slot the tracer reads; aoMap is not among them - it traces the occlusion
+const TRACED_MAPS = ['map', 'emissiveMap', 'normalMap', 'roughnessMap', 'metalnessMap', 'alphaMap'];
+
 // clone() intentionally drops the depth-peel onBeforeCompile and its expando uniforms
-function sanitizeMaterial(material) {
+function sanitizeMaterial(material, json) {
     let clean = null;
 
     if (material.isMeshStandardMaterial || material.isMeshPhysicalMaterial) {
@@ -109,14 +112,18 @@ function sanitizeMaterial(material) {
         return null;
     }
 
-    // undo the depth-peel branch flags; the peel pipeline does not exist here
+    // undo the depth-peel branch flags; under peeling a blended mesh is not flagged transparent
     clean.blending = THREE.NormalBlending;
-    clean.transparent = material.transparent || clean.opacity < 1.0;
+    clean.transparent = material.transparent || clean.opacity < 1.0
+        || Boolean(json && json.alpha_mode === 'blend');
     clean.depthWrite = !clean.transparent;
 
-    if (clean.map) {
-        clean.map = normalizeTexture(clean.map);
-    }
+    TRACED_MAPS.forEach((slot) => {
+        if (clean[slot]) {
+            clean[slot] = normalizeTexture(clean[slot]);
+        }
+    });
+    clean.aoMap = null;
 
     return clean;
 }
@@ -129,7 +136,37 @@ function bakeWorldMatrix(node, source) {
     return node;
 }
 
-function buildPassthrough(sourceObj) {
+// a colormap injected next to image maps is lost with onBeforeCompile: baked into the colours
+function bakeInjectedColorMap(geometry, json) {
+    const values = geometry.getAttribute('k3dColorMapValue');
+    const sample = colorMapSampler(json.color_map.data, opacityFunctionOf(json));
+    const existing = geometry.getAttribute('color');
+    const itemSize = existing ? existing.itemSize : 3;
+    const colors = new Float32Array(values.count * itemSize);
+
+    for (let i = 0; i < values.count; i++) {
+        const rgba = sample(values.getX(i));
+
+        for (let c = 0; c < itemSize; c++) {
+            const base = existing ? existing.array[i * itemSize + c] : 1.0;
+
+            colors[i * itemSize + c] = c < 3 ? base * rgba[c] : base;
+        }
+    }
+
+    // the raster object keeps its geometry; this shares every buffer but the colours
+    const baked = new THREE.BufferGeometry();
+
+    baked.index = geometry.index;
+    Object.keys(geometry.attributes).forEach((name) => {
+        baked.setAttribute(name, geometry.attributes[name]);
+    });
+    baked.setAttribute('color', new THREE.BufferAttribute(colors, itemSize));
+
+    return baked;
+}
+
+function buildPassthrough(sourceObj, json) {
     const group = new THREE.Group();
 
     sourceObj.traverse((obj) => {
@@ -137,13 +174,20 @@ function buildPassthrough(sourceObj) {
             return;
         }
 
-        const material = sanitizeMaterial(obj.material);
+        const material = sanitizeMaterial(obj.material, json);
 
         if (material === null) {
             return;
         }
 
-        const clone = new THREE.Mesh(obj.geometry, material);
+        let geometry = obj.geometry;
+
+        if (obj.material.userData.k3dColorMap && geometry.getAttribute('k3dColorMapValue')) {
+            geometry = bakeInjectedColorMap(geometry, json);
+            material.vertexColors = true;
+        }
+
+        const clone = new THREE.Mesh(geometry, material);
 
         group.add(bakeWorldMatrix(clone, obj));
     });
@@ -151,7 +195,10 @@ function buildPassthrough(sourceObj) {
     return group.children.length > 0 ? group : null;
 }
 
+// baked with the base colour multiplied in, as the raster shaders multiply it
 function pointColors(json, count) {
+    const tint = new THREE.Color(json.color !== undefined ? json.color : 0xffffff);
+
     if (usesColorMap(json)) {
         const sample = colorMapSampler(json.color_map.data, opacityFunctionOf(json));
         const attribute = json.attribute.data;
@@ -160,16 +207,16 @@ function pointColors(json, count) {
         for (let i = 0; i < count; i++) {
             const rgba = sample(Fn.scaleToColorRange(attribute[i], json.color_range[0], json.color_range[1]));
 
-            colors[i * 3] = rgba[0];
-            colors[i * 3 + 1] = rgba[1];
-            colors[i * 3 + 2] = rgba[2];
+            colors[i * 3] = rgba[0] * tint.r;
+            colors[i * 3 + 1] = rgba[1] * tint.g;
+            colors[i * 3 + 2] = rgba[2] * tint.b;
         }
 
         return colors;
     }
 
     if (hasData(json.colors) && json.colors.data.length === count) {
-        return buffer.colorsToFloat32Array(json.colors.data);
+        return Fn.tintedColors(json.colors.data, tint);
     }
 
     return null;
@@ -663,8 +710,8 @@ function isMeshVolume(json) {
 // the same attribute set (StaticGeometryGenerator takes the set from the first geometry and
 // rejects the rest), so a scene mixing a vertex-coloured tube with plain icospheres loses the
 // colours. A synthesised colour is white and so cannot tint a material with vertexColors off,
-// which the tracer honours; uv is zeroed where nothing samples it.
-const MERGE_ATTRIBUTES = { color: 3, uv: 2 };
+// which the tracer honours; uv is zeroed where nothing samples it. Colour keeps its alpha.
+const MERGE_ATTRIBUTES = { color: 4, uv: 2 };
 
 function normalizeMergeAttributes(node) {
     if (node === null) {
@@ -720,6 +767,11 @@ function normalizeMergeAttributes(node) {
             const itemSize = MERGE_ATTRIBUTES[name];
             const attribute = source.getAttribute(name);
             const array = new Float32Array(attribute.count * itemSize);
+
+            // an RGB colour widened to RGBA is opaque
+            if (name === 'color') {
+                array.fill(1.0);
+            }
 
             for (let i = 0; i < attribute.count; i++) {
                 for (let c = 0; c < attribute.itemSize && c < itemSize; c++) {
@@ -802,7 +854,7 @@ function buildProxyForObject(sourceObj, json, camera) {
         );
     }
 
-    return buildPassthrough(sourceObj);
+    return buildPassthrough(sourceObj, json);
 }
 
 module.exports = function createSceneProxy(K3D) {
@@ -985,8 +1037,14 @@ module.exports = function createSceneProxy(K3D) {
                             && json.opacity_function.data
                             && json.opacity_function.data.length > 0);
 
-                        node.material.transparent = json.opacity < 1.0 || hasOpacityFunction;
+                        node.material.transparent = json.opacity < 1.0 || hasOpacityFunction
+                            || json.alpha_mode === 'blend';
                         node.material.depthWrite = !node.material.transparent;
+
+                        if (json.alpha_mode === 'mask') {
+                            node.material.alphaTest = (typeof json.alpha_cutoff !== 'undefined'
+                                ? json.alpha_cutoff : 0.5) * json.opacity;
+                        }
                     }
 
                     node.material.needsUpdate = true;

@@ -90,6 +90,8 @@ function update(K3D, json, GUI, changes) {
         // only LineMesh and LinesMesh read it - it is the tube's cross-section
         radial_segments: () => (json.type === 'Line' || json.type === 'Lines')
             && json.shader === 'mesh',
+        // the threshold of the mask mode alone
+        alpha_cutoff: () => json.type === 'Mesh' && json.alpha_mode === 'mask',
     };
 
     function findControllers(param) {
@@ -197,7 +199,9 @@ function update(K3D, json, GUI, changes) {
     const availableParams = defaultParams.concat(['color', 'origin_color', 'origin_color', 'head_color',
         'outlines_color', 'text', 'shader', 'shadow_res', 'shadow', 'width', 'radial_segments',
         'mesh_detail', 'opacity', 'color_range', 'name', 'group', 'color_map', 'mode',
-        'direction', 'slice_x', 'slice_y', 'slice_z', 'volumeSliceMask']);
+        'direction', 'slice_x', 'slice_y', 'slice_z', 'volumeSliceMask',
+        'emissive', 'emissive_intensity', 'alpha_mode', 'alpha_cutoff', 'normal_scale',
+        'occlusion_strength']);
 
     // handle sliceViewer
     if (json.type === 'VolumeSlice') {
@@ -226,8 +230,8 @@ function update(K3D, json, GUI, changes) {
 
     const params = (changes && Object.keys(changes)) || Object.keys(json);
 
-    // a shader change does not carry the dependent controls: revisit them
-    if (changes && params.indexOf('shader') !== -1) {
+    // a shader or alpha_mode change does not carry the dependent controls: revisit them
+    if (changes && (params.indexOf('shader') !== -1 || params.indexOf('alpha_mode') !== -1)) {
         Object.keys(dependent).forEach((name) => {
             if (params.indexOf(name) === -1) {
                 params.push(name);
@@ -358,6 +362,51 @@ function update(K3D, json, GUI, changes) {
                 addColorController(K3D.gui_map[json.id], json, param).onChange(
                     changeParameter.bind(this, K3D, json, param),
                 );
+                break;
+            case 'emissive':
+                if (json.type === 'Mesh') {
+                    addColorController(K3D.gui_map[json.id], json, param).onChange(
+                        changeParameter.bind(this, K3D, json, param),
+                    );
+                }
+                break;
+            case 'emissive_intensity':
+                if (json.type === 'Mesh') {
+                    addController(K3D.gui_map[json.id], json, param, 0, 10, 0.05)
+                        .name('emissiveIntensity')
+                        .onChange(changeParameter.bind(this, K3D, json, param));
+                }
+                break;
+            case 'alpha_mode':
+                if (json.type === 'Mesh') {
+                    addController(K3D.gui_map[json.id], json, param, ['opaque', 'blend', 'mask'])
+                        .name('alphaMode')
+                        .onChange(changeParameter.bind(this, K3D, json, param));
+                }
+                break;
+            case 'alpha_cutoff':
+                if (dependent.alpha_cutoff()) {
+                    addController(K3D.gui_map[json.id], json, param, 0, 1, 0.01)
+                        .name('alphaCutoff')
+                        .onChange(changeParameter.bind(this, K3D, json, param));
+                }
+                break;
+            case 'normal_scale':
+                // only a mesh with a normal map reads it
+                if (json.type === 'Mesh' && json.normal_map && json.normal_map.data
+                    && json.normal_map.data.length > 0) {
+                    addController(K3D.gui_map[json.id], json, param, -2, 2, 0.01)
+                        .name('normalScale')
+                        .onChange(changeParameter.bind(this, K3D, json, param));
+                }
+                break;
+            case 'occlusion_strength':
+                if (json.type === 'Mesh' && json.occlusion_map && json.occlusion_map.data
+                    && json.occlusion_map.data.length > 0) {
+                    addController(K3D.gui_map[json.id], json, param, 0, 1, 0.01)
+                        .name('occlusionStrength')
+                        .onChange(changeParameter.bind(this, K3D, json, param));
+                }
                 break;
             case 'text':
                 if (json.type !== 'STL' && !Array.isArray(json.text)) {

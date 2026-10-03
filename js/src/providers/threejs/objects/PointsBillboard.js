@@ -1,5 +1,4 @@
 const THREE = require('three');
-const buffer = require('../../../core/lib/helpers/buffer');
 const colorMapHelper = require('../../../core/lib/helpers/colorMap');
 const interactionsHelper = require('../helpers/Interactions');
 const pointsCallback = require('../interactions/PointsCallback');
@@ -10,7 +9,6 @@ const injectGGX = require('../helpers/ggxChunk');
 const { commonUpdate } = Fn;
 const { areAllChangesResolve } = Fn;
 const { getColorsArray } = Fn;
-const { colorsToFloat32Array } = buffer;
 
 /**
  * Loader strategy to handle Points object
@@ -82,7 +80,7 @@ module.exports = {
             };
         } else {
             colors = (pointColors && pointColors.length === pointPositions.length / 3
-                ? colorsToFloat32Array(pointColors) : getColorsArray(color, pointPositions.length / 3)
+                ? Fn.tintedColors(pointColors, color) : getColorsArray(color, pointPositions.length / 3)
             );
         }
 
@@ -93,6 +91,8 @@ module.exports = {
                 {
                     roughness: { value: typeof (config.roughness) !== 'undefined' ? config.roughness : 0.4 },
                     metalness: { value: typeof (config.metalness) !== 'undefined' ? config.metalness : 0.0 },
+                    // multiplies the colormap; the colours carry it already
+                    k3dTint: { value: useColorMap ? color.clone() : new THREE.Color(1, 1, 1) },
                 },
                 uniforms,
             ]),
@@ -272,13 +272,22 @@ module.exports = {
             resolvedChanges.opacities = null;
         }
 
-        if (typeof (changes.color) !== 'undefined' && !changes.color.timeSeries
-            && obj.geometry.attributes.color
-            && !(config.colors && config.colors.data && config.colors.data.length > 0)) {
-            obj.geometry.attributes.color.array.set(
-                getColorsArray(new THREE.Color(changes.color), obj.geometry.attributes.color.array.length / 3),
-            );
-            obj.geometry.attributes.color.needsUpdate = true;
+        if (typeof (changes.color) !== 'undefined' && !changes.color.timeSeries) {
+            const pointColors = config.colors && config.colors.data && config.colors.data.length > 0
+                ? config.colors.data : null;
+
+            // the base colour multiplies the colours and the colormap
+            if (obj.geometry.attributes.color) {
+                obj.geometry.attributes.color.array.set(pointColors !== null
+                    ? Fn.tintedColors(pointColors, new THREE.Color(changes.color))
+                    : getColorsArray(
+                        new THREE.Color(changes.color),
+                        obj.geometry.attributes.color.array.length / 3,
+                    ));
+                obj.geometry.attributes.color.needsUpdate = true;
+            } else if (obj.material.uniforms.k3dTint) {
+                obj.material.uniforms.k3dTint.value.set(changes.color);
+            }
 
             resolvedChanges.color = null;
         }
@@ -286,7 +295,9 @@ module.exports = {
         if (typeof (changes.colors) !== 'undefined' && !changes.colors.timeSeries
             && obj.geometry.attributes.color
             && changes.colors.data.length === obj.geometry.attributes.color.array.length / 3) {
-            obj.geometry.attributes.color.array.set(colorsToFloat32Array(changes.colors.data));
+            obj.geometry.attributes.color.array.set(
+                Fn.tintedColors(changes.colors.data, new THREE.Color(config.color)),
+            );
             obj.geometry.attributes.color.needsUpdate = true;
 
             resolvedChanges.colors = null;

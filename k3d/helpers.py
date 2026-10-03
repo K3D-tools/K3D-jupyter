@@ -358,6 +358,55 @@ def callback_serialization_wrap(name: str) -> TypingDict[str, Any]:
     }
 
 
+# leading bytes of the image formats a browser decodes, by the name image/<name> takes
+IMAGE_SIGNATURES = (
+    (b"\x89PNG\r\n\x1a\n", "png"),
+    (b"\xff\xd8\xff", "jpeg"),
+    (b"GIF87a", "gif"),
+    (b"GIF89a", "gif"),
+    (b"BM", "bmp"),
+)
+
+
+def image_format(data: Optional[bytes]) -> Optional[str]:
+    """The image/ MIME subtype of encoded image bytes, None unless PNG, JPEG, GIF, WebP or BMP."""
+    if not data:
+        return None
+
+    head = bytes(data[:12])
+
+    if head[:4] == b"RIFF" and head[8:12] == b"WEBP":
+        return "webp"
+
+    for signature, name in IMAGE_SIGNATURES:
+        if head.startswith(signature):
+            return name
+
+    return None
+
+
+def pack_colors(colors: Any) -> Tuple[Any, Optional[np.ndarray]]:
+    """Packed 0xRRGGBB and alpha (or None) of (N, 3|4) colours - floats 0..1 or ints 0..255."""
+    if isinstance(colors, dict):
+        return colors, None
+
+    array = np.asarray(colors)
+
+    if array.ndim != 2 or array.shape[1] not in (3, 4):
+        return colors, None
+
+    if np.issubdtype(array.dtype, np.floating):
+        channels = np.clip(np.rint(array * 255.0), 0, 255).astype(np.uint32)
+        alpha = array[:, 3].astype(np.float32) if array.shape[1] == 4 else None
+    else:
+        channels = np.clip(array, 0, 255).astype(np.uint32)
+        alpha = (array[:, 3] / 255.0).astype(np.float32) if array.shape[1] == 4 else None
+
+    packed = (channels[:, 0] << 16) | (channels[:, 1] << 8) | channels[:, 2]
+
+    return packed.astype(np.uint32), alpha
+
+
 def download(url: str) -> str:
     """
     Retrieve the file at url, save it locally and return its name.

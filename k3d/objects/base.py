@@ -17,6 +17,30 @@ SHININESS_REMOVED = (
 )
 
 
+# what a colour left out turns into when another colour source is given: they multiply
+NEUTRAL_COLOR = 0xFFFFFF
+
+
+def has_data(value):
+    """Whether a trait value carries anything - an array, bytes, or a dict of keyframes."""
+    if value is None:
+        return False
+    if isinstance(value, (dict, bytes, bytearray, str)):
+        return len(value) > 0
+    return np.size(value) > 0
+
+
+def resolve_color(kwargs, sources, name="color"):
+    """A colour left out becomes white next to another colour source, which it multiplies."""
+    if kwargs.get(name, None) is not None:
+        return
+
+    kwargs.pop(name, None)
+
+    if any(has_data(kwargs.get(source)) for source in sources):
+        kwargs[name] = NEUTRAL_COLOR
+
+
 class TimeSeries(Union):
     """A trait, or a dict of keyframes of it.
 

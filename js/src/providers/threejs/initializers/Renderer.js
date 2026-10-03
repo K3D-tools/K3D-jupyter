@@ -83,6 +83,74 @@ function colorOnBeforeCompile(globalPeelUniforms, shader) {
 }
 
 /**
+ * AO prepass depth of a cut-out or glowing mesh; a glow writes 3 + glow to .g, which the
+ * overlay spares from darkening. Null when the shared override material will do.
+ * @param {Object} globalPeelUniforms
+ * @param {THREE.Material} material the mesh's colour material, maps already assigned
+ * @param {Object} config the mesh's json
+ * @return {THREE.MeshDepthMaterial|null}
+ */
+function createAODepthMaterial(globalPeelUniforms, material, config) {
+    const mode = config.alpha_mode || 'opaque';
+    const cut = mode !== 'opaque' && Boolean(material.map);
+    const emissive = material.emissive
+        ? material.emissive.clone().multiplyScalar(material.emissiveIntensity || 0) : null;
+    const glow = emissive !== null && (emissive.r + emissive.g + emissive.b) > 0;
+
+    if (!cut && !glow) {
+        return null;
+    }
+
+    const depth = new THREE.MeshDepthMaterial({
+        side: THREE.DoubleSide,
+        depthPacking: THREE.RGBADepthPacking,
+    });
+
+    if (cut) {
+        depth.map = material.map;
+        // a blended surface counts as solid from half alpha up, as opacity does for occluders
+        depth.alphaTest = mode === 'mask' && typeof (config.alpha_cutoff) !== 'undefined'
+            ? config.alpha_cutoff : 0.5;
+    }
+
+    const glowMap = glow ? material.emissiveMap : null;
+
+    depth.onBeforeCompile = function (shader) {
+        depthOnBeforeCompile(globalPeelUniforms, shader);
+
+        if (!glow) {
+            return;
+        }
+
+        shader.uniforms.k3dGlow = { value: emissive };
+
+        let glowValue = 'k3dGlow';
+
+        if (glowMap) {
+            shader.uniforms.k3dGlowMap = { value: glowMap };
+            shader.vertexShader = `varying vec2 vK3dGlowUv;\n${shader.vertexShader.replace(
+                '#include <begin_vertex>',
+                '#include <begin_vertex>\nvK3dGlowUv = uv;',
+            )}`;
+            shader.fragmentShader = `uniform sampler2D k3dGlowMap;\nvarying vec2 vK3dGlowUv;\n${
+                shader.fragmentShader}`;
+            glowValue = 'k3dGlow * texture2D(k3dGlowMap, vK3dGlowUv).rgb';
+        }
+
+        shader.fragmentShader = `uniform vec3 k3dGlow;\n${shader.fragmentShader.replace(
+            'gl_FragColor = vec4( gl_FragCoord.z, 0.0, 0.0, 1.0 );',
+            `vec3 k3dGlowColor = ${glowValue};\n`
+            + 'gl_FragColor = vec4( gl_FragCoord.z, '
+            + '3.0 + clamp(max(k3dGlowColor.r, max(k3dGlowColor.g, k3dGlowColor.b)), 0.0, 1.0), '
+            + '0.0, 1.0 );',
+        )}`;
+    };
+    depth.customProgramCacheKey = () => `k3dAODepth:${glow ? 1 : 0}:${glowMap ? 1 : 0}`;
+
+    return depth;
+}
+
+/**
  * Renderer initializer for Three.js library
  * @this K3D.Core world
  * @method Renderer
@@ -121,6 +189,7 @@ module.exports = function (K3D) {
             toneMappingExposure: { value: 1.0 },
             tAO: { value: null },
             tAOVol: { value: null },
+            tAODepth: { value: null },
             uAoScale: { value: new THREE.Vector2(1, 1) },
             uAoBias: { value: new THREE.Vector2(0, 0) },
             uAoEnabled: { value: 0 },
@@ -307,6 +376,7 @@ module.exports = function (K3D) {
     }
 
     K3D.colorOnBeforeCompile = colorOnBeforeCompile.bind(this, globalPeelUniforms);
+    K3D.createAODepthMaterial = createAODepthMaterial.bind(this, globalPeelUniforms);
 
     canvas.addEventListener('webglcontextlost', handleContextLoss, false);
 
@@ -525,6 +595,13 @@ module.exports = function (K3D) {
 
         world.K3DObjects.traverse((obj) => {
             if (!obj.visible) {
+                return;
+            }
+            // a mesh's own depth material does not lift it over the opacity rule below
+            if (obj.isMesh && obj.userData.k3dAODepthMaterial && obj.material
+                && !obj.material.isShaderMaterial && obj.material.opacity < 0.5) {
+                obj.visible = false;
+                hidden.push(obj);
                 return;
             }
             if (obj.userData.k3dAODepthMaterial) {
@@ -857,6 +934,7 @@ module.exports = function (K3D) {
         if (aoTexture !== null) {
             compositeMaterial.uniforms.tAO.value = aoTexture;
             compositeMaterial.uniforms.tAOVol.value = aoVolTexture;
+            compositeMaterial.uniforms.tAODepth.value = aoTargets.depth.texture;
 
             if (camera.view && camera.view.enabled) {
                 // strip target: vUv covers camera.view rows of the full-frame AO buffer

@@ -142,7 +142,7 @@ function interpolate(a, b, f, property) {
 
     if (_.isNumber(a)) {
         // a packed 0xRRGGBB blended as a number carries bits across the byte boundaries
-        if (typeof (property) === 'string' && /(^|_)color$/.test(property)) {
+        if (typeof (property) === 'string' && (/(^|_)color$/.test(property) || property === 'emissive')) {
             const channel = (v, shift) => ((v >> shift) & 255);
             const mix = (shift) => {
                 const ca = channel(a, shift);

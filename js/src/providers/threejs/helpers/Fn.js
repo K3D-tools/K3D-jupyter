@@ -103,6 +103,42 @@ module.exports = {
      * @param  {Number} size
      * @return {Float32Array}
      */
+    /**
+     * Base colour of a json without one: white next to another colour source, as in Python.
+     * @param {Object} config
+     * @param {Array<String>} sources keys of the other colour sources
+     * @param {Number} fallback the colour when none of them is given
+     * @return {Number}
+     */
+    baseColor(config, sources, fallback) {
+        const given = sources.some((key) => {
+            const value = config[key];
+
+            return Boolean(value && ((value.data && value.data.length > 0)
+                || (Array.isArray(value) && value.length > 0)));
+        });
+
+        return given ? 0xffffff : fallback;
+    },
+
+    /**
+     * Packed colours as floats, multiplied by a base colour.
+     * @param {Array} packed 0xRRGGBB per item
+     * @param {THREE.Color} color
+     * @return {Float32Array}
+     */
+    tintedColors(packed, color) {
+        const colors = new Float32Array(packed.length * 3);
+
+        for (let i = 0; i < packed.length; i++) {
+            colors[i * 3] = (((packed[i] >> 16) & 255) / 255) * color.r;
+            colors[i * 3 + 1] = (((packed[i] >> 8) & 255) / 255) * color.g;
+            colors[i * 3 + 2] = ((packed[i] & 255) / 255) * color.b;
+        }
+
+        return colors;
+    },
+
     getColorsArray(color, size) {
         const colors = new Float32Array(size * 3);
         let i;

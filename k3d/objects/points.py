@@ -4,7 +4,7 @@ import numpy as np
 from traitlets import TraitError, Unicode, validate
 
 from ..helpers import Array, Float, Int, array_serialization_wrap, get_bounding_box_points
-from .base import EPSILON, DrawableWithCallback, ListOrArray, TimeSeries
+from .base import EPSILON, DrawableWithCallback, ListOrArray, TimeSeries, resolve_color
 
 
 class Points(DrawableWithCallback):
@@ -17,7 +17,8 @@ class Points(DrawableWithCallback):
         colors: `array_like`.
             Same-length array of (`int`) packed RGB color of the points (0xff0000 is red, 0xff is blue).
         color: `int`.
-            Packed RGB color of the points (0xff0000 is red, 0xff is blue) when `colors` is empty.
+            Packed RGB color of the points (0xff0000 is red, 0xff is blue). It multiplies `colors`
+            and the colormap; left out, it is white when either is given.
         point_size: `float`.
             Diameter of the balls representing the points in 3D space.
         point_sizes: `array_like`.
@@ -98,6 +99,8 @@ class Points(DrawableWithCallback):
     )
 
     def __init__(self, **kwargs):
+        resolve_color(kwargs, ("colors", "attribute"))
+
         super().__init__(**kwargs)
 
         self.set_trait("type", "Points")

@@ -4,7 +4,7 @@ import numpy as np
 from traitlets import Bool, List, TraitError, Unicode, validate
 
 from ..helpers import Array, Float, Int, array_serialization_wrap, get_bounding_box, get_bounding_box_points
-from .base import Drawable, TimeSeries
+from .base import Drawable, TimeSeries, resolve_color
 
 
 class VectorField(Drawable):
@@ -166,6 +166,9 @@ class Vectors(Drawable):
     )
 
     def __init__(self, **kwargs):
+        resolve_color(kwargs, ("colors",), "origin_color")
+        resolve_color(kwargs, ("colors",), "head_color")
+
         super().__init__(**kwargs)
 
         self.set_trait("type", "Vectors")

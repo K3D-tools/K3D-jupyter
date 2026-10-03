@@ -14,7 +14,12 @@ void main (void)
     // volumetric shells (depth.g == 2.0) take AO computed from the shells alone -
     // meshes must not cast onto the whole ray integral. The floor keeps deep AO of a
     // corrugated isosurface from dropping dark colormaps into black noise
-    if (texture2D(tDepth, uv).g > 1.5) {
+    float marker = texture2D(tDepth, uv).g;
+
+    if (marker > 2.5) {
+        // a glowing surface (3 + glow): occlusion takes away bounced light, not its own
+        ao = mix(ao, 1.0, clamp(marker - 3.0, 0.0, 1.0));
+    } else if (marker > 1.5) {
         ao = max(texture2D(tAOVol, uv).r, 0.4);
     }
 

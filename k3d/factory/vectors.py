@@ -8,7 +8,7 @@ import numpy as np
 
 from ..objects import VectorField, Vectors
 from ..transform import process_transform_arguments
-from .common import _default_color
+from .common import _default_color, factory_color
 
 # Type aliases for better readability
 ArrayLike = Union[TypingList, np.ndarray, Tuple]
@@ -50,7 +50,8 @@ def vector_field(
         empty. Default is None.
     color : int, optional
         Packed RGB color of the vectors (0xff0000 is red, 0xff is blue), used for whichever of
-        `origin_color` and `head_color` is not given. Default is 255.
+        `origin_color` and `head_color` is not given. Both multiply `colors`. Default is 255,
+        or white when `colors` is given.
     use_head : bool, optional
         Whether vectors should display an arrow head. Default is True.
     head_size : float, optional
@@ -106,7 +107,7 @@ def vectors(
         colors: TypingList[int] = None,
         origin_color: Optional[int] = None,
         head_color: Optional[int] = None,
-        color: int = _default_color,
+        color: Optional[int] = None,
         use_head: bool = True,
         head_size: float = 1.0,
         labels: TypingList[str] = None,
@@ -140,7 +141,8 @@ def vectors(
         color. Default is None.
     color : int, optional
         Packed RGB color of the vectors (0xff0000 is red, 0xff is blue), used for whichever of
-        `origin_color` and `head_color` is not given. Default is 255.
+        `origin_color` and `head_color` is not given. Both multiply `colors`. Default is 255,
+        or white when `colors` is given.
     use_head : bool, optional
         Whether vectors should display an arrow head. Default is True.
     head_size : float, optional
@@ -171,6 +173,7 @@ def vectors(
     """
     if colors is None:
         colors = []
+    color = factory_color(color, colors)
     if labels is None:
         labels = []
 
