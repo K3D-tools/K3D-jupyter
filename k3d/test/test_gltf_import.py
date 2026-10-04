@@ -201,10 +201,41 @@ def test_only_gltf_2_is_read():
 def test_required_extensions_it_cannot_read_are_an_error():
     doc = Document()
     doc.mesh([doc.triangle()])
-    doc.json["extensionsRequired"] = ["KHR_draco_mesh_compression"]
+    doc.json["extensionsRequired"] = ["EXT_meshopt_compression"]
 
     with pytest.raises(NotImplementedError, match="decompress"):
         read(doc)
+
+
+def test_draco_compressed_geometry_matches_the_plain_file():
+    pytest.importorskip("DracoPy")
+
+    plain = only(k3d.glb(os.path.join(ASSETS, "Box.glb")))
+    draco = only(k3d.gltf(os.path.join(ASSETS, "BoxDraco", "Box.gltf")))
+
+    # Draco may reorder vertices: compare the triangles as sets of corner positions
+    def corners(mesh):
+        triangles = np.asarray(mesh.vertices)[np.asarray(mesh.indices)].round(5)
+        return sorted(tuple(sorted(map(tuple, t))) for t in triangles)
+
+    assert corners(plain) == corners(draco)
+    np.testing.assert_allclose(plain.model_matrix, draco.model_matrix)
+
+
+def test_draco_without_dracopy_says_what_to_install(monkeypatch):
+    import builtins
+
+    real_import = builtins.__import__
+
+    def no_dracopy(name, *args, **kwargs):
+        if name == "DracoPy":
+            raise ImportError(name)
+        return real_import(name, *args, **kwargs)
+
+    monkeypatch.setattr(builtins, "__import__", no_dracopy)
+
+    with pytest.raises(ImportError, match="pip install DracoPy"):
+        k3d.gltf(os.path.join(ASSETS, "BoxDraco", "Box.gltf"))
 
 
 # -- accessors ----------------------------------------------------------------------------
@@ -430,6 +461,25 @@ def test_factors_are_converted_from_linear():
     assert mesh.side == "double"
 
 
+def test_transmission_ior_and_volume():
+    doc = Document()
+    material = doc.material(extensions={
+        "KHR_materials_transmission": {"transmissionFactor": 0.9},
+        "KHR_materials_ior": {"ior": 2.4},
+        "KHR_materials_volume": {"thicknessFactor": 0.2, "attenuationDistance": 3.0,
+                                 "attenuationColor": [1.0, 0.2158605, 1.0]},
+    })
+    doc.mesh([doc.triangle(material=material)])
+
+    mesh = only(read(doc))
+
+    assert mesh.transmission == pytest.approx(0.9)
+    assert mesh.ior == pytest.approx(2.4)
+    assert mesh.thickness == pytest.approx(0.2)
+    assert mesh.attenuation_distance == pytest.approx(3.0)
+    assert mesh.attenuation_color == 0xFF80FF
+
+
 def test_the_default_material_is_glTFs():
     doc = Document()
     doc.mesh([doc.triangle()])
@@ -561,6 +611,8 @@ def test_members_share_the_group_and_carry_names():
     assert {o.group for o in group} == {"VertexColorTest"}
     assert all(o.name for o in group)
     assert all("gltf_node" in o.custom_data for o in group)
+    # the material name picks parts to restyle
+    assert {o.custom_data["gltf_material"] for o in group} == {"Label_Mat", "VC_Checks_Mat"}
     assert group[list(group)[0].name] is list(group)[0]
 
 

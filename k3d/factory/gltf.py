@@ -45,8 +45,12 @@ POINTS, LINES, LINE_LOOP, LINE_STRIP, TRIANGLES, TRIANGLE_STRIP, TRIANGLE_FAN = 
 
 # extensions read in full, or whose absence costs nothing visible
 SUPPORTED_EXTENSIONS = {
+    "KHR_draco_mesh_compression",
     "KHR_materials_emissive_strength",
+    "KHR_materials_ior",
+    "KHR_materials_transmission",
     "KHR_materials_unlit",
+    "KHR_materials_volume",
     "KHR_mesh_quantization",
     "KHR_texture_transform",
     "EXT_mesh_gpu_instancing",
@@ -57,6 +61,9 @@ SUPPORTED_EXTENSIONS = {
 Y_UP_TO_Z_UP = np.array(
     [[1, 0, 0, 0], [0, 0, -1, 0], [0, 1, 0, 0], [0, 0, 0, 1]], dtype=np.float32
 )
+
+READ_MATERIAL_EXTENSIONS = ("KHR_materials_emissive_strength", "KHR_materials_ior",
+                            "KHR_materials_transmission", "KHR_materials_unlit", "KHR_materials_volume")
 
 TRANSFORM_ARGUMENTS = ("translation", "rotation", "scaling", "model_matrix", "transform")
 
@@ -137,6 +144,7 @@ class _Reader:
         self.ignored = set()
         self._buffers = {}
         self._images = {}
+        self._draco = {}
 
         asset = document.get("asset", {})
         version = str(asset.get("version", ""))
@@ -147,9 +155,8 @@ class _Reader:
         required = set(document.get("extensionsRequired", [])) - SUPPORTED_EXTENSIONS
 
         if required:
-            compressed = required & {"KHR_draco_mesh_compression", "EXT_meshopt_compression"}
             hint = (" - decompress it first, e.g. `npx @gltf-transform/cli copy in.glb out.glb`"
-                    if compressed else "")
+                    if "EXT_meshopt_compression" in required else "")
             raise NotImplementedError(
                 "%s requires %s, which K3D does not read%s" % (label, ", ".join(sorted(required)), hint)
             )
@@ -243,6 +250,44 @@ class _Reader:
             values = values.astype(np.float32, copy=False)
 
         return values
+
+    def draco(self, primitive):
+        """Attributes and indices of a Draco-compressed primitive, None when it is not one."""
+        extension = primitive.get("extensions", {}).get("KHR_draco_mesh_compression")
+
+        if extension is None:
+            return None
+
+        if extension["bufferView"] in self._draco:
+            return self._draco[extension["bufferView"]]
+
+        try:
+            import DracoPy
+        except ImportError:
+            raise ImportError(
+                "%s is Draco-compressed, which needs DracoPy: pip install DracoPy" % self.label
+            ) from None
+
+        data, _ = self.buffer_view(extension["bufferView"])
+        mesh = DracoPy.decode(bytes(data))
+        attributes = {}
+
+        for name, unique_id in extension["attributes"].items():
+            values = np.asarray(mesh.get_attribute_by_unique_id(unique_id)["data"])
+            accessor = self.document["accessors"][primitive["attributes"][name]]
+            values = values.reshape(len(values), -1)
+
+            if accessor.get("normalized", False) and values.dtype in NORMALIZED:
+                values = np.maximum(values.astype(np.float32) / NORMALIZED[values.dtype], -1.0)
+
+            attributes[name] = values
+
+        faces = getattr(mesh, "faces", None)
+        indices = np.asarray(faces).reshape(-1) if faces is not None and np.size(faces) else None
+
+        self._draco[extension["bufferView"]] = attributes, indices
+
+        return attributes, indices
 
     def image(self, index):
         """Encoded bytes of an image, or None when no browser can be relied on to decode it."""
@@ -390,7 +435,7 @@ class _Builder:
         extensions = material.get("extensions", {})
 
         for name in extensions:
-            if name not in ("KHR_materials_emissive_strength", "KHR_materials_unlit"):
+            if name not in READ_MATERIAL_EXTENSIONS:
                 reader.warn(name)
 
         if "KHR_materials_pbrSpecularGlossiness" in extensions and "pbrMetallicRoughness" not in material:
@@ -453,6 +498,22 @@ class _Builder:
         if wrap is not None:
             params["texture_wrap"] = wrap
 
+        transmission = extensions.get("KHR_materials_transmission")
+        if transmission is not None:
+            params["transmission"] = float(transmission.get("transmissionFactor", 0.0))
+            if "transmissionTexture" in transmission:
+                reader.warn("transmission textures (the factor is used)")
+        if "KHR_materials_ior" in extensions:
+            params["ior"] = float(np.clip(extensions["KHR_materials_ior"].get("ior", 1.5), 1.0, 5.0))
+        volume = extensions.get("KHR_materials_volume")
+        if volume is not None:
+            params["thickness"] = float(volume.get("thicknessFactor", 0.0))
+            params["attenuation_color"] = int(_pack(_srgb(volume.get("attenuationColor", [1, 1, 1]))))
+            distance = volume.get("attenuationDistance")
+            params["attenuation_distance"] = float(distance) if distance is not None else 0.0
+            if "thicknessTexture" in volume:
+                reader.warn("thickness textures (the factor is used)")
+
         if "KHR_materials_unlit" in extensions:
             # unlit: the base colour emitted, the black diffuse keeping only the texture alpha
             params["emissive"] = params["color"]
@@ -470,7 +531,10 @@ class _Builder:
     def attributes(self, primitive, weights):
         """The vertex attributes of a primitive, with the default morph weights applied."""
         reader = self.reader
-        attributes = {name: reader.accessor(index) for name, index in primitive["attributes"].items()}
+        draco = reader.draco(primitive)
+        decoded = draco[0] if draco is not None else {}
+        attributes = {name: decoded[name] if name in decoded else reader.accessor(index)
+                      for name, index in primitive["attributes"].items()}
         targets = primitive.get("targets", [])
 
         if targets:
@@ -487,6 +551,7 @@ class _Builder:
     def primitive(self, primitive, name, weights, transform, custom_data):
         reader = self.reader
         attributes = self.attributes(primitive, weights)
+        draco = reader.draco(primitive)
 
         if "POSITION" not in attributes:
             return
@@ -495,7 +560,9 @@ class _Builder:
         count = len(vertices)
         mode = primitive.get("mode", TRIANGLES)
 
-        if "indices" in primitive:
+        if draco is not None and draco[1] is not None:
+            indices = draco[1].astype(np.uint32)
+        elif "indices" in primitive:
             indices = reader.accessor(primitive["indices"]).reshape(-1).astype(np.uint32)
         else:
             indices = np.arange(count, dtype=np.uint32)
@@ -662,6 +729,9 @@ class _Builder:
                     name = "%s [%d]" % (name, i)
 
                 custom_data = {"gltf_node": index, "gltf_mesh": node["mesh"], "gltf_primitive": p}
+                material = primitive.get("material")
+                if material is not None:
+                    custom_data["gltf_material"] = self.document["materials"][material].get("name", material)
                 self.primitive(primitive, name, weights, instance, custom_data)
 
     def instance_matrices(self, attributes):
@@ -801,16 +871,18 @@ def glb(
 
     Materials map onto mesh parameters: base colour (`color`, `opacity`, `texture`),
     metallic-roughness, normal, occlusion and emissive maps, `alpha_mode` and
-    `alpha_cutoff`, double-sidedness and the texture wrapping. Factors and vertex
+    `alpha_cutoff`, transmission, index of refraction and volume, double-sidedness and
+    the texture wrapping; texture transforms are baked into the uvs. Factors and vertex
     colours, which glTF stores as linear values, are converted to the display values
     K3D colours are. Node transforms are kept as a hierarchy of
     :class:`k3d.transform.Transform`: each object's `model_matrix` is its node's, and
     the group's `model_matrix` (or `transform`) moves the whole model.
 
+    Draco-compressed geometry is read when DracoPy is installed (``pip install DracoPy``).
     Not shown, with one warning naming what was left out: animations, skins (the
-    vertices are shown as stored), cameras and lights, KHR_texture_transform, Draco and
-    meshopt compression, KTX2 textures, and material extensions other than emissive
-    strength. Morph targets are applied with their default weights.
+    vertices are shown as stored), cameras and lights, KTX2 textures, and the other
+    material extensions - clearcoat, sheen, dispersion and the like. Meshopt
+    compression is refused. Morph targets are applied with their default weights.
 
     .. versionadded:: 3.2.0
 
