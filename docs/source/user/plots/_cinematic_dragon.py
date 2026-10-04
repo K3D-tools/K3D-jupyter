@@ -14,7 +14,7 @@ from k3d.headless import get_headless_driver, k3d_remote
 from k3d.helpers import download
 
 # the directive caches each PNG, so only a cold build pays for these six renders
-SAMPLES = 64
+SAMPLES = 32
 WIDTH = 560
 HEIGHT = 360
 
@@ -71,7 +71,7 @@ def screenshot(environment):
                     screenshot_scale=1,
                     axes_helper=0,
                     cinematic_samples=SAMPLES,
-                    cinematic_denoise=0.8,
+                    cinematic_denoise=1.0,
                     cinematic_bounces=6)
 
     plot += k3d.vtk_poly_data(dragon,

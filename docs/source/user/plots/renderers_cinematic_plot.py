@@ -10,8 +10,8 @@ def generate():
     plot = material_grid_plot(renderer='cinematic')
     plot.environment = 'studio'
     # this embed accumulates in the reader's browser, and is denoised there
-    plot.cinematic_samples = 64
-    plot.cinematic_denoise = 0.8
+    plot.cinematic_samples = 32
+    plot.cinematic_denoise = 1.0
     plot.cinematic_bounces = 4
 
     plot.snapshot_type = 'inline'

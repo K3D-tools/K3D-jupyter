@@ -180,7 +180,7 @@ the same camera and the same environment:
           :width: 100%
           :target: ../_images/renderers_heart_cinematic.png
 
-     - ``cinematic`` at 64 samples with ``cinematic_denoise=0.8``. Delta tracked as a
+     - ``cinematic`` at 32 samples with ``cinematic_denoise=1.0``. Delta tracked as a
        participating medium: light that enters the tissue scatters inside it and is
        attenuated on the way out, so interiors go dark against the vessels that catch
        the light, and a density gradient steep enough to be a boundary shades as a

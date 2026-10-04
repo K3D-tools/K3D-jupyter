@@ -26,8 +26,8 @@ def generate():
                      np.array([[0, 1, 2], [0, 2, 3]], np.uint32),
                      color=0xD9C089, side='double', name='plane')
 
-    plot.cinematic_samples = 64
-    plot.cinematic_denoise = 0.8
+    plot.cinematic_samples = 32
+    plot.cinematic_denoise = 1.0
     plot.cinematic_bounces = 4
     plot.camera = [2.4, -2.4, 1.6, 0, 0, 0, 0, 0, 1]
 

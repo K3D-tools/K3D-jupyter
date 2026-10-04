@@ -8,8 +8,8 @@ from k3d.headless import get_headless_driver, k3d_remote
 
 # A cold build renders this in software, and it is the only cinematic thumbnail in the gallery
 # that traces a CT volume rather than a mesh - at 256 that took minutes and looked like a hung
-# build. 64 with the denoiser on is indistinguishable at the 155 px the grid shows.
-SAMPLES = 64
+# build. 32 with the denoiser on is indistinguishable at the 155 px the grid shows.
+SAMPLES = 32
 BOUNCES = 5
 WIDTH = 800
 HEIGHT = 800
@@ -57,7 +57,7 @@ def generate():
                     screenshot_scale=1,
                     cinematic_samples=SAMPLES,
                     cinematic_bounces=BOUNCES,
-                    cinematic_denoise=0.8,
+                    cinematic_denoise=1.0,
                     cinematic_bokeh_size=10.0,
                     lighting=1.5)
     plot += plt_volume
