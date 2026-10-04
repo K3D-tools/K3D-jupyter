@@ -597,9 +597,10 @@ module.exports = function (K3D) {
             if (!obj.visible) {
                 return;
             }
-            // a mesh's own depth material does not lift it over the opacity rule below
-            if (obj.isMesh && obj.userData.k3dAODepthMaterial && obj.material
-                && !obj.material.isShaderMaterial && obj.material.opacity < 0.5) {
+            // a mesh's own depth material does not lift it over the opacity rule below; glass occludes nothing
+            if (obj.isMesh && obj.material && !obj.material.isShaderMaterial
+                && ((obj.userData.k3dAODepthMaterial && obj.material.opacity < 0.5)
+                    || obj.material.transmission > 0)) {
                 obj.visible = false;
                 hidden.push(obj);
                 return;

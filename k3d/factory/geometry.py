@@ -313,6 +313,11 @@ def mesh(
         occlusion_strength: float = 1.0,
         alpha_mode: Optional[str] = None,
         alpha_cutoff: float = 0.5,
+        transmission: float = 0.0,
+        ior: float = 1.5,
+        thickness: float = 0.0,
+        attenuation_color: int = 0xFFFFFF,
+        attenuation_distance: float = 0.0,
         slice_planes: ArrayLike = None,
         name: Optional[str] = None,
         group: Optional[str] = None,
@@ -413,6 +418,17 @@ def mesh(
         the mesh in every mode. By default 'blend' when `opacities` are given, 'opaque' otherwise.
     alpha_cutoff : float, optional
         Threshold of the 'mask' mode, by default 0.5.
+    transmission : float, optional
+        How much light passes through the surface, refracted - glass, water, gems - from 0
+        to 1, by default 0.
+    ior : float, optional
+        Index of refraction of a transmissive mesh, by default 1.5.
+    thickness : float, optional
+        Thickness of the volume behind a transmissive surface, by default 0 (a thin wall).
+    attenuation_color : int, optional
+        Hex colour light takes on after `attenuation_distance` in the volume, by default white.
+    attenuation_distance : float, optional
+        Distance after which light has the `attenuation_color`, by default 0 (no attenuation).
     name : str, optional
         Object name, by default None.
     group : str, optional
@@ -551,6 +567,11 @@ def mesh(
             occlusion_strength=occlusion_strength,
             alpha_mode=alpha_mode,
             alpha_cutoff=alpha_cutoff,
+            transmission=transmission,
+            ior=ior,
+            thickness=thickness,
+            attenuation_color=attenuation_color,
+            attenuation_distance=attenuation_distance,
             slice_planes=slice_planes,
             name=name,
             group=group,

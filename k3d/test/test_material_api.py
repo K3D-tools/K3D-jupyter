@@ -107,7 +107,8 @@ def test_material_parameters_arrive():
         "emissive": 0x112233, "emissive_intensity": 2.5, "emissive_map": PNG_HEAD,
         "normal_map": PNG_HEAD, "normal_scale": -0.5, "metalness_roughness_map": PNG_HEAD,
         "occlusion_map": PNG_HEAD, "occlusion_strength": 0.75, "alpha_mode": "mask",
-        "alpha_cutoff": 0.3, "texture_wrap": "repeat",
+        "alpha_cutoff": 0.3, "texture_wrap": "repeat", "transmission": 0.8, "ior": 1.33,
+        "thickness": 0.5, "attenuation_color": 0x80C0FF, "attenuation_distance": 2.0,
     }
     mesh = k3d.mesh(*TRIANGLE, uvs2=[[0, 0], [1, 0], [0, 1]], **given)
 

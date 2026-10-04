@@ -306,6 +306,16 @@ class Mesh(DrawableWithCallback):
             :`mask`: cut out where it is below `alpha_cutoff`, the rest is solid.
         alpha_cutoff: `float`.
             Threshold of the 'mask' mode.
+        transmission: `float`.
+            How much light passes through the surface, refracted - glass, water, gems - 0 to 1.
+        ior: `float`.
+            Index of refraction of a transmissive mesh.
+        thickness: `float`.
+            Thickness of the volume behind a transmissive surface; 0 is a thin wall.
+        attenuation_color: `int`.
+            Packed RGB colour light takes on travelling `attenuation_distance` through the volume.
+        attenuation_distance: `float`.
+            Distance after which light has the `attenuation_color`; 0 means no attenuation.
         model_matrix: `array_like`.
             4x4 model transform matrix.
     """
@@ -382,6 +392,11 @@ class Mesh(DrawableWithCallback):
     occlusion_strength = TimeSeries(Float(min=0.0, max=1.0, default_value=1.0)).tag(sync=True)
     alpha_mode = Unicode("opaque").tag(sync=True)
     alpha_cutoff = TimeSeries(Float(min=0.0, max=1.0, default_value=0.5)).tag(sync=True)
+    transmission = TimeSeries(Float(min=0.0, max=1.0, default_value=0.0)).tag(sync=True)
+    ior = TimeSeries(Float(min=1.0, max=5.0, default_value=1.5)).tag(sync=True)
+    thickness = TimeSeries(Float(min=0.0, default_value=0.0)).tag(sync=True)
+    attenuation_color = TimeSeries(Int(min=0, max=0xFFFFFF, default_value=0xFFFFFF)).tag(sync=True)
+    attenuation_distance = TimeSeries(Float(min=0.0, default_value=0.0)).tag(sync=True)
     model_matrix = TimeSeries(Array(dtype=np.float32)).tag(
         sync=True, **array_serialization_wrap("model_matrix")
     )

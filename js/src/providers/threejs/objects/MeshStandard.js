@@ -238,7 +238,13 @@ function create(config, K3D) {
     config.alpha_mode = config.alpha_mode || 'opaque';
 
     const modelMatrix = new THREE.Matrix4();
-    const MaterialConstructor = config.wireframe ? THREE.MeshBasicMaterial : THREE.MeshStandardMaterial;
+    const transmissive = (config.transmission || 0) > 0;
+    // transmission, ior and volume exist on the physical material only
+    let MaterialConstructor = transmissive ? THREE.MeshPhysicalMaterial : THREE.MeshStandardMaterial;
+
+    if (config.wireframe) {
+        MaterialConstructor = THREE.MeshBasicMaterial;
+    }
     const colorRange = config.color_range;
     const colorMap = (config.color_map && config.color_map.data) || null;
     const attribute = (config.attribute && config.attribute.data) || null;
@@ -294,6 +300,15 @@ function create(config, K3D) {
         wireframe: false,
         opacity: config.opacity,
     });
+
+    if (material.isMeshPhysicalMaterial) {
+        material.transmission = config.transmission;
+        material.ior = typeof (config.ior) !== 'undefined' ? config.ior : 1.5;
+        material.thickness = config.thickness || 0;
+        material.attenuationColor.set(typeof (config.attenuation_color) !== 'undefined'
+            ? config.attenuation_color : 0xffffff);
+        material.attenuationDistance = config.attenuation_distance > 0 ? config.attenuation_distance : Infinity;
+    }
 
     if (K3D.parameters.depthPeels !== 0) {
         material.blending = THREE.NoBlending;

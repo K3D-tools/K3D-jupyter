@@ -210,3 +210,26 @@ def test_vectors_colour_composition():
                                head_color=0x00FFFF, line_width=0.05)
 
     compare("vectors_colour_composition")
+
+
+def sphere(center, radius=0.45, n=48):
+    u, v = np.meshgrid(np.linspace(0, 2 * np.pi, n), np.linspace(0, np.pi, n // 2))
+    unit = np.stack([np.cos(u) * np.sin(v), np.sin(u) * np.sin(v), np.cos(v)], -1).reshape(-1, 3)
+    faces = [[i * n + j, (i + 1) * n + j, i * n + j + 1] for i in range(n // 2 - 1) for j in range(n - 1)]
+    faces += [[i * n + j + 1, (i + 1) * n + j, (i + 1) * n + j + 1] for i in range(n // 2 - 1) for j in range(n - 1)]
+    return (unit * radius + center).astype(np.float32), np.array(faces, np.uint32), unit.astype(np.float32)
+
+
+def test_mesh_transmission():
+    prepare()
+
+    pytest.plot += quad((-0.3, 0.8, -0.3), scale=3.0, texture=png(checker(64, 6)))
+    # clear glass, a denser gem, and tinted glass that darkens with thickness
+    for i, (ior, color, distance) in enumerate([(1.5, 0xFFFFFF, 0.0), (2.4, 0xFFFFFF, 0.0),
+                                                (1.5, 0x60A0FF, 0.5)]):
+        vertices, indices, normals = sphere([0.3 + i * 0.9, 0, 0.9])
+        pytest.plot += k3d.mesh(vertices, indices, normals=normals, flat_shading=False, color=0xFFFFFF,
+                                roughness=0.05, transmission=1.0, ior=ior, thickness=0.9,
+                                attenuation_color=color, attenuation_distance=distance)
+
+    compare("mesh_transmission")

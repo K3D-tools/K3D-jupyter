@@ -201,7 +201,7 @@ function update(K3D, json, GUI, changes) {
         'mesh_detail', 'opacity', 'color_range', 'name', 'group', 'color_map', 'mode',
         'direction', 'slice_x', 'slice_y', 'slice_z', 'volumeSliceMask',
         'emissive', 'emissive_intensity', 'alpha_mode', 'alpha_cutoff', 'normal_scale',
-        'occlusion_strength']);
+        'occlusion_strength', 'transmission', 'ior']);
 
     // handle sliceViewer
     if (json.type === 'VolumeSlice') {
@@ -397,6 +397,16 @@ function update(K3D, json, GUI, changes) {
                     && json.normal_map.data.length > 0) {
                     addController(K3D.gui_map[json.id], json, param, -2, 2, 0.01)
                         .name('normalScale')
+                        .onChange(changeParameter.bind(this, K3D, json, param));
+                }
+                break;
+            case 'transmission':
+            case 'ior':
+                // a transmissive mesh has the physical material these belong to
+                if (json.type === 'Mesh' && json.transmission > 0) {
+                    const [low, high] = param === 'ior' ? [1, 2.5] : [0, 1];
+
+                    addController(K3D.gui_map[json.id], json, param, low, high, 0.01)
                         .onChange(changeParameter.bind(this, K3D, json, param));
                 }
                 break;
