@@ -251,10 +251,6 @@ API
    :screenshot:
 
 .. k3d_plot::
-   :filename: api/thumbnails/volume_rgb_thumbnail.py
-   :screenshot:
-
-.. k3d_plot::
    :filename: api/thumbnails/voxels_shapes_thumbnail.py
    :screenshot:
 
@@ -329,10 +325,6 @@ API
 .. image:: volume_render_mhd_thumbnail.png
    :width: 155
    :target: ../reference/factory.volume.html#render-mhd-volumetric-data
-
-.. image:: volume_rgb_thumbnail.png
-   :width: 155
-   :target: ../reference/factory.volume.html#colour-per-voxel
 
 .. image:: voxels_shapes_thumbnail.png
    :width: 155
