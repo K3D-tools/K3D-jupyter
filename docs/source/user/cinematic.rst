@@ -23,6 +23,12 @@ other. Soft shadows, mirror and glossy reflections, and colour bleeding between
 nearby objects all appear without a single extra knob - they are consequences of
 the simulation rather than effects layered on top of it.
 
+The path tracer is `three-gpu-pathtracer <https://github.com/gkjohnson/three-gpu-pathtracer>`_
+by Garrett Johnson, on his `three-mesh-bvh <https://github.com/gkjohnson/three-mesh-bvh>`_; K3D
+hands it a scene and adds volumes, its own sampling loop and the controls below. The denoiser is
+Intel's `Open Image Denoise <https://www.openimagedenoise.org>`_, run in the browser by
+`oidn-web <https://github.com/pissang/oidn-web>`_. Our thanks to all of them.
+
 The image is progressive: one sample per animation frame, with a counter in the
 corner, until it reaches ``cinematic_samples`` - a hard ceiling, after which the
 loop stops and an idle plot costs nothing. Any change to the camera, the scene or
