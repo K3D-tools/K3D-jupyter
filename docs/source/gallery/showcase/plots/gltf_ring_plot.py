@@ -38,7 +38,8 @@ def scene(renderer):
                     camera_auto_fit=False,
                     background_color=0xE6E6E6,
                     camera_fov=30,
-                    cinematic_samples=512,
+                    cinematic_samples=64,
+                    cinematic_denoise=0.8,
                     cinematic_bounces=32)
     plot += ring
 

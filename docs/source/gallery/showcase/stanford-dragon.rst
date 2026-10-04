@@ -20,7 +20,7 @@ bounds honest, and the camera and the floor below are derived from them. And the
 floor is not decoration: it is where the bounced light comes from, and without it
 a path traced model floats in the environment and reads flatter than it is.
 
-Both images are the same scene at 256 samples: the gallery thumbnail accumulates
+Both images are the same scene at 64 samples, denoised: the gallery thumbnail accumulates
 them once, when these pages are built, the plot below in your browser.
 ``tone_mapping='aces'`` matters at this budget - bounced light between the gold
 and the floor genuinely exceeds 1.0, and without a curve it clips.
@@ -66,7 +66,8 @@ and the floor genuinely exceeds 1.0, and without a curve it clips.
                     grid_visible=False,
                     camera_auto_fit=False,
                     background_color=0x2A2C30,
-                    cinematic_samples=256,
+                    cinematic_samples=64,
+                    cinematic_denoise=0.8,
                     cinematic_bounces=6)
 
     plot += k3d.vtk_poly_data(dragon,

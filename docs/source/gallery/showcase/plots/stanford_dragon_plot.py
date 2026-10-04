@@ -41,7 +41,8 @@ def generate():
                     grid_visible=False,
                     camera_auto_fit=False,
                     background_color=0x2A2C30,
-                    cinematic_samples=256,
+                    cinematic_samples=64,
+                    cinematic_denoise=0.8,
                     cinematic_bounces=6)
 
     plot += k3d.vtk_poly_data(dragon,

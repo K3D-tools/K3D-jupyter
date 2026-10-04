@@ -45,9 +45,9 @@ tissue, the denser boundaries shade as surfaces, and what lights them is the env
                     grid_visible=False,
                     camera_auto_fit=False,
                     colorbar_object_id=0,
-                    cinematic_samples=256,
+                    cinematic_samples=64,
                     cinematic_bounces=5,
-                    cinematic_denoise=1.0,
+                    cinematic_denoise=0.8,
                     cinematic_bokeh_size=10.0,
                     cinematic_focus_distance=185.2,
                     lighting=1.5)

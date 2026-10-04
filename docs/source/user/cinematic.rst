@@ -303,8 +303,8 @@ light while ``plot.lighting`` stays the exposure knob. Rotating it moves the
 highlights without changing their intensity, which is often the quickest way to
 make a specific surface read well.
 
-The same gold dragon on a polished floor, under six environments, at 256 samples
-each. Nothing changes between these images except ``plot.environment`` - so every
+The same gold dragon on a polished floor, under six environments, at 64 samples
+each, denoised. Nothing changes between these images except ``plot.environment`` - so every
 difference you see is the light itself and what the metal reflects of it:
 
 .. list-table::
