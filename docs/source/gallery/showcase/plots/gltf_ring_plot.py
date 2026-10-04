@@ -1,7 +1,8 @@
+import os
+
 import numpy as np
 
 import k3d
-from k3d.helpers import download
 
 
 def lerp_color(a, b, t):
@@ -13,9 +14,8 @@ def lerp_color(a, b, t):
 
 def scene(renderer):
     # Model: "Sasha" by saber7711 on Blendswap (https://blendswap.com/blend/29574), CC-BY;
-    # glTF conversion from https://github.com/gkjohnson/3d-demo-data. Draco-compressed: needs DracoPy.
-    filename = download('https://raw.githubusercontent.com/gkjohnson/3d-demo-data/main/'
-                        'models/blendswap/sasha.glb')
+    # converted to glTF for these docs (see assets/sasha.md). Draco-compressed: needs DracoPy.
+    filename = os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', 'assets', 'sasha.glb')
 
     ring = k3d.glb(filename, rotation=[np.pi / 4, 0, -1, 0], compression_level=9)
 
@@ -33,6 +33,7 @@ def scene(renderer):
     plot = k3d.plot(renderer=renderer,
                     environment='brown_photostudio_02',
                     tone_mapping='aces',
+                    lighting=2.0,
                     grid_visible=False,
                     camera_auto_fit=False,
                     background_color=0xE6E6E6,

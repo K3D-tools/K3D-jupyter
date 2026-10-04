@@ -8,30 +8,33 @@ glTF ring
     - :ref:`cinematic`
 
 A jewellery model read from a Draco-compressed ``.glb`` and path traced. The stones are
-:ref:`mesh` objects with ``transmission=1`` and an index of refraction of 2.09, read from the
-file's ``KHR_materials_transmission`` and ``KHR_materials_ior``: light enters them, bends, and
-bounces between the facets before it leaves, which is why the renderer gets 32 bounces here
-rather than the default. The floor under the ring is what catches its shadow and the light it
-throws back.
+:ref:`mesh` objects with ``transmission=1``, an index of refraction of 2.09 and a ``thickness``,
+read from the file's ``KHR_materials_transmission``, ``KHR_materials_ior`` and
+``KHR_materials_volume``. The thickness is what makes them solid: without it glTF reads a
+transmissive surface as a thin wall that light crosses almost unbent, like a window. Here light
+enters the stones, bends, and bounces between the facets before it leaves, which is why the
+renderer gets 32 bounces rather than the default. The floor under the ring is what catches its
+shadow and the light it throws back.
 
-The band's material is restyled after reading. Every part keeps the name of its glTF material
-in ``custom_data``, so the parts that share a material are found by that name and changed like
-any other object - here pushed towards rose gold and polished.
+Every part keeps the name of its glTF material in ``custom_data``, so the parts that share a
+material are found by that name and changed like any other object - here the band, pushed
+towards rose gold and polished.
 
 Reading Draco-compressed geometry needs `DracoPy <https://pypi.org/project/DracoPy/>`_
 (``pip install DracoPy``); everything else :func:`k3d.glb` reads with numpy alone.
+
+:download:`sasha.glb <./assets/sasha.glb>` - converted from the original ``.blend`` as
+``assets/sasha.md`` describes.
 
 .. code-block:: python3
 
     import numpy as np
 
     import k3d
-    from k3d.helpers import download
 
-    # Model: "Sasha" by saber7711 on Blendswap (https://blendswap.com/blend/29574), CC-BY;
-    # glTF conversion from https://github.com/gkjohnson/3d-demo-data
-    filename = download('https://raw.githubusercontent.com/gkjohnson/3d-demo-data/main/'
-                        'models/blendswap/sasha.glb')
+    # Model: "Sasha" by saber7711 on Blendswap (https://blendswap.com/blend/29574), CC-BY,
+    # converted to glTF for these docs
+    filename = 'sasha.glb'
 
     ring = k3d.glb(filename, rotation=[np.pi / 4, 0, -1, 0], compression_level=9)
 
@@ -56,6 +59,7 @@ Reading Draco-compressed geometry needs `DracoPy <https://pypi.org/project/Draco
     plot = k3d.plot(renderer='cinematic',
                     environment='brown_photostudio_02',
                     tone_mapping='aces',
+                    lighting=2.0,
                     grid_visible=False,
                     camera_auto_fit=False,
                     background_color=0xE6E6E6,

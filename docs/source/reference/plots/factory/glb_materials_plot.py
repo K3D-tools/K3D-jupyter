@@ -18,7 +18,7 @@ def halved(data):
     return buffer.getvalue()
 
 
-def scene(renderer):
+def generate():
     # Model: BoomBox, Microsoft, CC0,
     # https://github.com/KhronosGroup/glTF-Sample-Assets/tree/main/Models/BoomBox
     filename = download('https://raw.githubusercontent.com/KhronosGroup/glTF-Sample-Assets/'
@@ -37,17 +37,15 @@ def scene(renderer):
     centre = (low + high) / 2
     size = float((high - low).max())
 
-    plot = k3d.plot(renderer=renderer,
+    plot = k3d.plot(renderer='advanced',
                     environment='studio',
                     tone_mapping='aces',
                     grid_visible=False,
                     camera_auto_fit=False,
-                    background_color=0x1E2126,
-                    cinematic_samples=256,
-                    cinematic_bounces=6)
+                    background_color=0x1E2126)
     plot += boombox
 
-    # what the cinematic renderer bounces light off, and what the speaker grille shadows
+    # something for the speaker to stand on and shadow
     span = 1.5 * size
     floor_z = float(low[2])
     plot += k3d.mesh(np.array([[centre[0] - span, centre[1] - span, floor_z],
@@ -59,12 +57,6 @@ def scene(renderer):
 
     eye = centre + np.array([0.55, -1.2, 0.45]) * size
     plot.camera = [*eye, *centre, 0, 0, 1]
-
-    return plot
-
-
-def generate():
-    plot = scene('advanced')
 
     plot.snapshot_type = 'inline'
     return plot.get_snapshot()
