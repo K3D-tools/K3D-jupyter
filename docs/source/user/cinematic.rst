@@ -191,7 +191,9 @@ below what an eye can see long before the noise is gone.
 denoiser Blender's Cycles uses, through `oidn-web <https://github.com/pissang/oidn-web>`_: a
 neural network trained on path-traced images, which reads far more of the neighbourhood than a
 filter can. 0 is off - the only value that leaves the image exactly as it was traced - 1 shows
-the denoised image, and between them the two are mixed.
+the denoised image, and between them the two are mixed. The mix is not a strength: the network has
+none, and 0.5 keeps half of the grain. It is for keeping some of the texture the network smooths,
+which is worth it from about 0.7 up; moving the slider on a finished image only recomposes it.
 
 It runs once, when the accumulation reaches ``cinematic_samples``; while the samples come in the
 image is shown as traced, and a moved camera starts both over. On surfaces it is guided by the

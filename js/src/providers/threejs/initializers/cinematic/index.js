@@ -811,10 +811,16 @@ module.exports = function cinematic(K3D, renderer, hooks) {
         },
 
         // what the canvas is showing, and a key that changes whenever it stops being that
+        // asked before the tracer exists too: a parameter can change before the first frame
         accumulation() {
+            const ready = backend.isReady();
+
             return {
-                key: backend.accumulationKey(),
-                target: backend.targetRenderTarget(),
+                key: ready ? backend.accumulationKey() : null,
+                target: ready ? backend.targetRenderTarget() : null,
+                // the interactive loop has parked on a finished image
+                converged: ready && !isHeadless && !wanted && frameHandle === null
+                    && backend.sampleCount() >= K3D.parameters.cinematicSamples,
             };
         },
 

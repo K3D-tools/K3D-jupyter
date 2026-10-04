@@ -118,8 +118,8 @@ module.exports = function createOIDN() {
         return unets[kind];
     }
 
-    // resolves with the denoised floats, or null when cancelled
-    function execute(unet, color, albedo, normal, width, height) {
+    // resolves with the denoised floats, or null when cancelled; progress sees every tile
+    function execute(unet, color, albedo, normal, width, height, progress) {
         return new Promise((resolve) => {
             const stop = unet.tileExecute({
                 color: { data: color, width, height },
@@ -127,6 +127,7 @@ module.exports = function createOIDN() {
                     albedo: { data: albedo, width, height },
                     normal: { data: normal, width, height },
                 } : {}),
+                progress,
                 done(output) {
                     abort = null;
                     resolve(output.data);
@@ -145,7 +146,9 @@ module.exports = function createOIDN() {
 
         // color: premultiplied linear RGBA floats; albedo and normal: RGBA bytes, or both null.
         // Resolves with denoised premultiplied RGBA floats of the same size, or null if cancelled.
-        denoise(color, albedo, normal, width, height) {
+        // onProgress(image, done, total), if given, gets the traced image with every finished
+        // tile denoised in it - the same array each time, so it is read before the next tile.
+        denoise(color, albedo, normal, width, height, onProgress) {
             const kind = albedo ? 'aux' : 'plain';
             const run = () => loadUNet(kind).then((unet) => {
                 const field = (unet._modelSpec && unet._modelSpec.receptiveField)
@@ -168,6 +171,39 @@ module.exports = function createOIDN() {
 
                 const pw = size.width;
                 const ph = size.height;
+                let progress;
+
+                if (onProgress) {
+                    const preview = new Float32Array(width * height * 4);
+
+                    for (let i = 0; i < width * height * 4; i += 4) {
+                        preview[i] = rgb[i];
+                        preview[i + 1] = rgb[i + 1];
+                        preview[i + 2] = rgb[i + 2];
+                        preview[i + 3] = Number.isFinite(color[i + 3])
+                            ? Math.min(Math.max(color[i + 3], 0), 1) : 0;
+                    }
+
+                    // the tile is in padded coordinates; only its part inside the image is shown
+                    progress = (output, tileData, tile, index, total) => {
+                        const x1 = Math.min(tile.x + tile.width, width);
+                        const y1 = Math.min(tile.y + tile.height, height);
+
+                        for (let y = tile.y; y < y1; y++) {
+                            for (let x = tile.x; x < x1; x++) {
+                                const from = (y * pw + x) * 4;
+                                const to = (y * width + x) * 4;
+
+                                preview[to] = output.data[from];
+                                preview[to + 1] = output.data[from + 1];
+                                preview[to + 2] = output.data[from + 2];
+                            }
+                        }
+
+                        onProgress(preview, index + 1, total);
+                    };
+                }
+
                 const paddedAlbedo = albedo ? pad(albedo, width, height, pw, ph, Uint8ClampedArray) : null;
                 const paddedNormal = normal ? pad(normal, width, height, pw, ph, Uint8ClampedArray) : null;
 
@@ -178,6 +214,7 @@ module.exports = function createOIDN() {
                     paddedNormal,
                     pw,
                     ph,
+                    progress,
                 ).then((denoised) => {
                     if (denoised === null) {
                         return null;

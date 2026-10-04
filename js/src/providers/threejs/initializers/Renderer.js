@@ -1341,6 +1341,32 @@ module.exports = function (K3D) {
     // internal hook for determinism and benchmark probes
     K3D.__cinematicSpike = getCinematic;
 
+    // cinematic_denoise changed: on a finished image only the composition changes, so present it
+    // again - denoising it first if that has not happened - instead of tracing one more sample,
+    // which would make the denoised image stale and run the network again. False: render.
+    self.recomposeCinematic = function () {
+        if (cinematicMode === null || K3D.parameters.renderer !== 'cinematic') {
+            return false;
+        }
+
+        const { key, target, converged } = cinematicMode.accumulation();
+
+        if (!converged) {
+            return false;
+        }
+
+        if ((K3D.parameters.cinematicDenoise || 0.0) > 0.0
+            && (denoised === null || denoised.key !== key)) {
+            denoiseConverged();
+
+            return true;
+        }
+
+        presentCinematic(target.texture);
+
+        return true;
+    };
+
     // a concrete reason, or null; never a silent fallback to another renderer
     self.cinematicUnsupportedReason = function () {
         try {
@@ -1938,7 +1964,7 @@ module.exports = function (K3D) {
     }
 
     // resolves with the denoised accumulation as a float texture, or null
-    function runOIDN(target, width, height) {
+    function runOIDN(target, width, height, onProgress) {
         const engine = getOIDN();
         const reason = engine.unavailableReason();
 
@@ -1955,7 +1981,7 @@ module.exports = function (K3D) {
 
         const aux = renderAuxBuffers(width, height);
 
-        return engine.denoise(color, aux && aux.albedo, aux && aux.normal, width, height)
+        return engine.denoise(color, aux && aux.albedo, aux && aux.normal, width, height, onProgress)
             .then((pixels) => {
                 if (pixels === null) {
                     return null;
@@ -1998,7 +2024,7 @@ module.exports = function (K3D) {
         const mode = getCinematic();
         const { key, target } = mode.accumulation();
 
-        if ((denoised !== null && denoised.key === key) || denoising === key) {
+        if ((denoised !== null && denoised.key === key && !denoised.partial) || denoising === key) {
             return;
         }
 
@@ -2009,7 +2035,36 @@ module.exports = function (K3D) {
         denoising = key;
         mode.setHud('cinematic: denoising…');
 
-        runOIDN(target, target.width, target.height).then((texture) => {
+        const { width, height } = target;
+        let preview = null;
+
+        // every finished tile is shown as it lands, over the traced image
+        function onProgress(pixels, done, total) {
+            if (mode.accumulation().key !== key) {
+                return;
+            }
+
+            if (preview === null) {
+                preview = new THREE.DataTexture(
+                    pixels,
+                    width,
+                    height,
+                    THREE.RGBAFormat,
+                    THREE.FloatType,
+                );
+                preview.minFilter = THREE.NearestFilter;
+                preview.magFilter = THREE.NearestFilter;
+                replaceDenoised({
+                    key, texture: preview, width, height, partial: true,
+                });
+            }
+
+            preview.needsUpdate = true;
+            mode.setHud(`cinematic: denoising ${done} / ${total}`);
+            presentCinematic(target.texture);
+        }
+
+        runOIDN(target, width, height, onProgress).then((texture) => {
             if (denoising === key) {
                 denoising = null;
             }
@@ -2023,7 +2078,7 @@ module.exports = function (K3D) {
             }
 
             replaceDenoised({
-                key, texture, width: target.width, height: target.height,
+                key, texture, width, height,
             });
             mode.setHud(null);
             presentCinematic(target.texture);

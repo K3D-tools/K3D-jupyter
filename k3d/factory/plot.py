@@ -177,7 +177,9 @@ def plot(
     cinematic_denoise : float, optional
         How much of the denoised image the cinematic renderer shows. Default 0 is off, and the
         only value that leaves the image exactly as it was traced; 1 shows the image Open Image
-        Denoise makes of it, and between the two they are mixed (above 1 is the same as 1). The
+        Denoise makes of it. Between the two they are mixed, which is not a strength: OIDN has
+        none, and a mix keeps that share of the grain along with the texture the network smooths
+        - worth it from about 0.7 up. Above 1 is the same as 1. The
         denoiser runs once the accumulation reaches cinematic_samples - while it accumulates
         the trace is shown as it is - and needs WebGPU: without it the image is shown
         undenoised and the console says why. On surfaces it is guided by their albedo and

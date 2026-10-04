@@ -305,6 +305,10 @@ module.exports = function createWebGLBackend(renderer) {
 
     // the blend target holding the latest complete average (see targetTexture)
     function currentTarget() {
+        if (!tracer) {
+            return null;
+        }
+
         const inner = tracer._pathTracer;
 
         if (!inner || !inner._alpha || !inner._blendTargets) {
@@ -551,6 +555,10 @@ module.exports = function createWebGLBackend(renderer) {
         // equal keys, equal image: epoch moves with every change of what is accumulated
         accumulationKey() {
             return `${epoch}:${tracer ? tracer.samples : 0}`;
+        },
+
+        sampleCount() {
+            return tracer ? tracer.samples : 0;
         },
 
         updateMaterials() {

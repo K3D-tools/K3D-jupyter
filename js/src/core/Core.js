@@ -1373,6 +1373,12 @@ function K3D(provider, targetDOMNode, parameters) {
      */
     this.setCinematicDenoise = function (strength) {
         self.parameters.cinematicDenoise = strength;
+
+        // a slider drag must not trace a sample and denoise again on every step
+        if (world.recomposeCinematic && world.recomposeCinematic()) {
+            return;
+        }
+
         self.render();
     };
 
