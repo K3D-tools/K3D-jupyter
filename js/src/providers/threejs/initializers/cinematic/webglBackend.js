@@ -303,6 +303,17 @@ module.exports = function createWebGLBackend(renderer) {
         }
     }
 
+    // the blend target holding the latest complete average (see targetTexture)
+    function currentTarget() {
+        const inner = tracer._pathTracer;
+
+        if (!inner || !inner._alpha || !inner._blendTargets) {
+            return tracer.target;
+        }
+
+        return inner._blendTargets[Math.ceil(inner.samples) % 2];
+    }
+
     return {
         isSupported() {
             return this.unsupportedReason() === null;
@@ -506,14 +517,7 @@ module.exports = function createWebGLBackend(renderer) {
             tracer._pathTracer.setSize(width, height);
 
             // A screenshot resolution costs three more float targets of that size, about 400 MB
-            // at 4K. Worth skipping when the buffer only feeds a number nobody reads while a
-            // render is running - and not worth skipping when the denoiser is guided by it, or
-            // the screenshot comes out unfiltered while the viewport is not.
-            // A screenshot keeps the halves when something consumes them - the filter is
-            // guided by them, and switching them off here is what made a screenshot come out
-            // unfiltered while the viewport was not. It costs three float targets at screenshot
-            // resolution, which is the price of a filtered screenshot and cannot be avoided:
-            // the guide has to exist at the resolution being filtered.
+            // at 4K: skipped unless the caller said it reads the halves (setVariance required).
             if (variance !== null && !varianceRequired) {
                 wantVariance = variance.isEnabled() || wantVariance;
                 variance.setEnabled(false);
@@ -537,17 +541,16 @@ module.exports = function createWebGLBackend(renderer) {
         // parity instead. Ceil, not round: mid-sample the destination is the one being
         // blended into, which is what upstream shows on its odd samples too.
         targetTexture() {
-            const inner = tracer._pathTracer;
-
-            if (!inner || !inner._alpha || !inner._blendTargets) {
-                const fallback = tracer.target;
-
-                return fallback.texture || fallback;
-            }
-
-            const target = inner._blendTargets[Math.ceil(inner.samples) % 2];
+            const target = currentTarget();
 
             return target.texture || target;
+        },
+
+        targetRenderTarget: currentTarget,
+
+        // equal keys, equal image: epoch moves with every change of what is accumulated
+        accumulationKey() {
+            return `${epoch}:${tracer ? tracer.samples : 0}`;
         },
 
         updateMaterials() {

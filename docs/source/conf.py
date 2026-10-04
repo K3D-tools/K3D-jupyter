@@ -136,6 +136,9 @@ def setup(app):
     shutil.copy('./../js/dist/standalone.js', './source/_static/standalone.js')
     # a sibling of the bundle, or the embeds build their BVH on the main thread
     shutil.copy('./../js/dist/k3d-bvh-worker.js', './source/_static/k3d-bvh-worker.js')
+    # the same for the denoiser weights, or the embeds show the cinematic image undenoised
+    for name in ('rt_hdr_alb_nrm.tza', 'rt_hdr.tza'):
+        shutil.copy('./../js/dist/' + name, './source/_static/' + name)
     # js/node_modules, not the root tree: the root manifest declares no dependencies
     shutil.copy('./../js/node_modules/requirejs/require.js', './source/_static/require.js')
 

@@ -8,6 +8,7 @@ const error = require('../../../core/lib/Error').error;
 const getSSAAChunkedRender = require('../helpers/SSAAChunkedRender');
 const { unpremultiply } = require('../helpers/SSAAChunkedRender');
 const cinematic = require('./cinematic');
+const createOIDN = require('./cinematic/oidn');
 
 // The upstream denoiser noise (GTAOPass._generateNoise) comes from Math.random and would
 // break bit-identical screenshots - a seeded PRNG (mulberry32) replaces it.
@@ -1247,48 +1248,55 @@ module.exports = function (K3D) {
         )];
     };
 
+    function presentCinematic(texture) {
+        const buffer = new THREE.Vector2();
+        const size = new THREE.Vector2();
+
+        // drawing-buffer size, not CSS: gl_FragCoord in the blit spans device pixels
+        self.renderer.getDrawingBufferSize(buffer);
+        self.renderer.getSize(size);
+
+        const clearAlpha = self.renderer.getClearAlpha();
+
+        self.renderer.getClearColor(presentClearColor);
+        // autoClear is off for the whole renderer and the blit composites premultiplied
+        // over what the canvas already holds: presenting onto the previous frame walks a
+        // semi-transparent object up to opaque, one sample at a time. Clearing costs
+        // the axes, which are drawn again after the accumulation.
+        self.renderer.setRenderTarget(null);
+        self.renderer.setViewport(0, 0, size.x, size.y);
+        // background_color is a CSS background on the target node, so the canvas
+        // clears to nothing and lets it through
+        self.renderer.setClearColor(0, 0);
+        self.renderer.clear();
+
+        composeCinematic(texture, null, buffer.x, buffer.y);
+
+        self.renderer.setViewport(
+            size.x - self.axesHelper.width,
+            0,
+            self.axesHelper.width,
+            self.axesHelper.height,
+        );
+        self.renderer.render(self.axesHelper.scene, self.axesHelper.camera);
+        self.renderer.setViewport(0, 0, size.x, size.y);
+        self.renderer.setClearColor(presentClearColor, clearAlpha);
+    }
+
     function getCinematic() {
         if (cinematicMode === null) {
             cinematicMode = cinematic(K3D, self.renderer, {
                 // once per accumulation: the volumes march cut at the proxy depth
                 prepareOverlay(proxyScene, width, height) {
+                    lastProxyScene = proxyScene;
                     cinematicVolume.active = renderCinematicVolumeLayer(proxyScene, width, height);
                 },
 
                 // the accumulation reaches the canvas only via the shared compose/tone blit - one tone curve per mode
-                presentFrame(texture) {
-                    const buffer = new THREE.Vector2();
-                    const size = new THREE.Vector2();
+                presentFrame: presentCinematic,
 
-                    // drawing-buffer size, not CSS: gl_FragCoord in the blit spans device pixels
-                    self.renderer.getDrawingBufferSize(buffer);
-                    self.renderer.getSize(size);
-
-                    const clearAlpha = self.renderer.getClearAlpha();
-
-                    self.renderer.getClearColor(presentClearColor);
-                    // autoClear is off for the whole renderer and the blit composites premultiplied
-                    // over what the canvas already holds: presenting onto the previous frame walks a
-                    // semi-transparent object up to opaque, one sample at a time. Clearing costs
-                    // the axes, which are drawn again after the accumulation.
-                    self.renderer.setRenderTarget(null);
-                    self.renderer.setViewport(0, 0, size.x, size.y);
-                    // background_color is a CSS background on the target node, so the canvas
-                    // clears to nothing and lets it through
-                    self.renderer.setClearColor(0, 0);
-                    self.renderer.clear();
-
-                    composeCinematic(texture, null, buffer.x, buffer.y);
-
-                    self.renderer.setViewport(
-                        size.x - self.axesHelper.width,
-                        0,
-                        self.axesHelper.width,
-                        self.axesHelper.height,
-                    );
-                    self.renderer.render(self.axesHelper.scene, self.axesHelper.camera);
-                    self.renderer.setViewport(0, 0, size.x, size.y);
-                    self.renderer.setClearColor(presentClearColor, clearAlpha);
+                onConverged() {
+                    denoiseConverged();
                 },
 
                 onError(e) {
@@ -1638,34 +1646,36 @@ module.exports = function (K3D) {
     // segment uniforms) and composite premultiplied over the accumulation, before the tone curve.
     const cinematicVolume = { depth: null, layer: null, active: false };
     let composeTarget = null;
-    // One bilateral pass over the traced image, in linear HDR, before tone mapping. Monte Carlo
-    // noise is additive in linear space and is not after a tone curve, which compresses the
-    // highlights the noise sits on. A single 5x5 kernel and nothing wider: that radius covers the
-    // grain and almost nothing else, and a cascade reaching further trades it for a smooth lie.
-    const denoiseMaterial = new THREE.ShaderMaterial({
+    // Open Image Denoise, once per converged accumulation (cinematic/oidn.js). Below 1 the
+    // strength mixes the traced and the denoised image; 0 is off and leaves the trace untouched.
+    const denoiseMixMaterial = new THREE.ShaderMaterial({
         uniforms: {
-            tDiffuse: { value: null },
-            tHalfA: { value: null },
-            tHalfB: { value: null },
-            uSize: { value: new THREE.Vector2(1, 1) },
-            uVarWeight: { value: 0.25 },
-            // overwritten from cinematic_denoise on every use; one default, in one place
-            uPhi: { value: 0.0 },
+            tRaw: { value: null },
+            tDenoised: { value: null },
+            uMix: { value: 1.0 },
         },
         vertexShader: require('./shaders/composite.vertex.glsl'),
-        fragmentShader: require('./shaders/denoise.fragment.glsl'),
+        fragmentShader: require('./shaders/denoiseMix.fragment.glsl'),
         depthTest: false,
         depthWrite: false,
         blending: THREE.NoBlending,
     });
-    const denoiseScene = new THREE.Scene();
-    let denoiseTarget = null;
+    const denoiseMixScene = new THREE.Scene();
+    let denoiseMixTarget = null;
+    let oidn = null;
+    // the last denoised accumulation, valid while the tracer still holds that accumulation
+    let denoised = null;
+    // the accumulation key of the pass in flight
+    let denoising = null;
+    // the scene the tracer was handed: the auxiliary buffers have to see the same geometry
+    let lastProxyScene = null;
+    const oidnWarnings = {};
 
     {
-        const plane = new THREE.Mesh(planeGeometry, denoiseMaterial);
+        const plane = new THREE.Mesh(planeGeometry, denoiseMixMaterial);
 
         plane.frustumCulled = false;
-        denoiseScene.add(plane);
+        denoiseMixScene.add(plane);
     }
 
     const rawBlitMaterial = new THREE.ShaderMaterial({
@@ -1813,11 +1823,217 @@ module.exports = function (K3D) {
         return true;
     }
 
+    function warnOIDN(reason) {
+        if (!oidnWarnings[reason]) {
+            oidnWarnings[reason] = true;
+
+            console.warn(`K3D cinematic: the image is shown without denoising - ${reason}.`);
+        }
+    }
+
+    function getOIDN() {
+        if (oidn === null) {
+            oidn = createOIDN();
+        }
+
+        return oidn;
+    }
+
+    // inside a participating medium there is no first surface for albedo and normals to describe
+    function hasMedium() {
+        const objects = K3D.getWorld().ObjectsListJson;
+
+        return Object.keys(objects).some((id) => {
+            const json = objects[id];
+
+            return (json.type === 'Volume' || json.type === 'MIP') && json.visible !== false;
+        });
+    }
+
+    // Albedo and normals of the first surface, which OIDN uses to keep edges and textures:
+    // the scene the tracer was given, rasterised twice with its materials swapped.
+    function renderAuxBuffers(width, height) {
+        if (lastProxyScene === null || hasMedium()) {
+            return null;
+        }
+
+        const meshes = [];
+
+        lastProxyScene.traverse((object) => {
+            if (object.isMesh && object.material && !Array.isArray(object.material)) {
+                meshes.push([object, object.material]);
+            }
+        });
+
+        const passes = [
+            {
+                // linear, as the target is not sRGB: OIDN wants albedo in linear [0, 1]
+                clear: new THREE.Color(0, 0, 0),
+                make: (m) => new THREE.MeshBasicMaterial({
+                    color: m.color ? m.color.clone() : new THREE.Color(1, 1, 1),
+                    map: m.map || null,
+                    vertexColors: Boolean(m.vertexColors),
+                    side: m.side,
+                    alphaTest: m.alphaTest || 0,
+                    toneMapped: false,
+                }),
+            },
+            {
+                // n * 0.5 + 0.5 in view space; a pixel with no surface has a zero normal
+                clear: new THREE.Color().setRGB(0.5, 0.5, 0.5, THREE.LinearSRGBColorSpace),
+                make: (m) => new THREE.MeshNormalMaterial({
+                    side: m.side,
+                    normalMap: m.normalMap || null,
+                    normalScale: m.normalScale ? m.normalScale.clone() : new THREE.Vector2(1, 1),
+                    flatShading: Boolean(m.flatShading),
+                }),
+            },
+        ];
+        const previousTarget = self.renderer.getRenderTarget();
+        const previousClear = new THREE.Color();
+        const previousAlpha = self.renderer.getClearAlpha();
+        const background = lastProxyScene.background;
+        const target = new THREE.WebGLRenderTarget(width, height, {
+            minFilter: THREE.NearestFilter,
+            magFilter: THREE.NearestFilter,
+        });
+        const out = [];
+
+        self.renderer.getClearColor(previousClear);
+        lastProxyScene.background = null;
+
+        try {
+            passes.forEach((pass) => {
+                const materials = meshes.map(([object, material]) => {
+                    const swapped = pass.make(material);
+
+                    object.material = swapped;
+
+                    return swapped;
+                });
+
+                self.renderer.setRenderTarget(target);
+                self.renderer.setViewport(0, 0, width, height);
+                self.renderer.setClearColor(pass.clear, 1);
+                self.renderer.clear();
+                self.renderer.render(lastProxyScene, self.camera);
+
+                const pixels = new Uint8Array(width * height * 4);
+
+                self.renderer.readRenderTargetPixels(target, 0, 0, width, height, pixels);
+                out.push(new Uint8ClampedArray(pixels.buffer));
+                materials.forEach((material) => material.dispose());
+            });
+        } finally {
+            meshes.forEach(([object, material]) => {
+                object.material = material;
+            });
+            lastProxyScene.background = background;
+            self.renderer.setClearColor(previousClear, previousAlpha);
+            self.renderer.setRenderTarget(previousTarget);
+            target.dispose();
+        }
+
+        return { albedo: out[0], normal: out[1] };
+    }
+
+    // resolves with the denoised accumulation as a float texture, or null
+    function runOIDN(target, width, height) {
+        const engine = getOIDN();
+        const reason = engine.unavailableReason();
+
+        if (reason !== null) {
+            warnOIDN(reason);
+
+            return Promise.resolve(null);
+        }
+
+        // read now: the next sample overwrites the target
+        const color = new Float32Array(width * height * 4);
+
+        self.renderer.readRenderTargetPixels(target, 0, 0, width, height, color);
+
+        const aux = renderAuxBuffers(width, height);
+
+        return engine.denoise(color, aux && aux.albedo, aux && aux.normal, width, height)
+            .then((pixels) => {
+                if (pixels === null) {
+                    return null;
+                }
+
+                const texture = new THREE.DataTexture(
+                    pixels,
+                    width,
+                    height,
+                    THREE.RGBAFormat,
+                    THREE.FloatType,
+                );
+
+                texture.minFilter = THREE.NearestFilter;
+                texture.magFilter = THREE.NearestFilter;
+                texture.needsUpdate = true;
+
+                return texture;
+            }, (e) => {
+                warnOIDN(e.message || String(e));
+
+                return null;
+            });
+    }
+
+    function replaceDenoised(next) {
+        if (denoised !== null) {
+            denoised.texture.dispose();
+        }
+
+        denoised = next;
+    }
+
+    // the interactive loop reached its budget: denoise what it shows, then show that instead
+    function denoiseConverged() {
+        if (!((K3D.parameters.cinematicDenoise || 0.0) > 0.0)) {
+            return;
+        }
+
+        const mode = getCinematic();
+        const { key, target } = mode.accumulation();
+
+        if ((denoised !== null && denoised.key === key) || denoising === key) {
+            return;
+        }
+
+        if (denoising !== null) {
+            getOIDN().cancel();
+        }
+
+        denoising = key;
+        mode.setHud('cinematic: denoising…');
+
+        runOIDN(target, target.width, target.height).then((texture) => {
+            if (denoising === key) {
+                denoising = null;
+            }
+
+            if (texture === null || mode.accumulation().key !== key) {
+                if (texture !== null) {
+                    texture.dispose();
+                }
+
+                return;
+            }
+
+            replaceDenoised({
+                key, texture, width: target.width, height: target.height,
+            });
+            mode.setHud(null);
+            presentCinematic(target.texture);
+        });
+    }
+
     // compose accumulation and volume layer in linear space, then exactly one tone curve
     // The one place the traced image can be filtered: after the accumulation, before tone
-    // mapping, and on the path both the canvas and the screenshot go through. Filtering
-    // after tone mapping would work in display space, where the noise is no longer additive.
-    function denoiseCinematic(ptTexture, width, height) {
+    // mapping, and on the path both the canvas and the screenshot go through.
+    function denoiseCinematic(ptTexture, width, height, override) {
         const strength = K3D.parameters.cinematicDenoise || 0.0;
 
         // zero is off, and the only value that leaves the traced image exactly as it was
@@ -1825,31 +2041,29 @@ module.exports = function (K3D) {
             return ptTexture;
         }
 
-        let guide = null;
+        let texture = override || null;
 
-        try {
-            // Read only. The buffer is switched on where the user asks for the filter, not from
-            // here: setFixedSize deliberately switches it off so a screenshot does not allocate
-            // three float targets at its own resolution, and asking for it back inside the frame
-            // path did that allocation anyway - at 4K, mid-screenshot, which cost the context.
-            guide = getCinematic().varianceHalves();
-        } catch (e) {
-            guide = null;
+        if (texture === null && denoised !== null && denoised.width === width
+            && denoised.height === height && getCinematic().accumulation().key === denoised.key) {
+            texture = denoised.texture;
         }
 
-        // no measurement, no filter: without variance there is nothing to tell noise from
-        // structure, and a filter guided by colour alone is the one upstream already ships
-        if (guide === null) {
+        // still accumulating, or nothing to denoise with: the trace as it is
+        if (texture === null) {
             return ptTexture;
         }
 
-        if (denoiseTarget === null || denoiseTarget.width !== width
-            || denoiseTarget.height !== height) {
-            if (denoiseTarget !== null) {
-                denoiseTarget.dispose();
+        if (strength >= 1.0) {
+            return texture;
+        }
+
+        if (denoiseMixTarget === null || denoiseMixTarget.width !== width
+            || denoiseMixTarget.height !== height) {
+            if (denoiseMixTarget !== null) {
+                denoiseMixTarget.dispose();
             }
 
-            denoiseTarget = new THREE.WebGLRenderTarget(width, height, {
+            denoiseMixTarget = new THREE.WebGLRenderTarget(width, height, {
                 minFilter: THREE.NearestFilter,
                 magFilter: THREE.NearestFilter,
                 type: THREE.FloatType,
@@ -1857,28 +2071,24 @@ module.exports = function (K3D) {
             });
         }
 
-        const u = denoiseMaterial.uniforms;
+        const u = denoiseMixMaterial.uniforms;
 
-        u.tDiffuse.value = ptTexture;
-        u.tHalfA.value = guide.a;
-        u.tHalfB.value = guide.b;
-        u.uVarWeight.value = guide.weight;
-        u.uSize.value.set(width, height);
-        u.uPhi.value = strength;
+        u.tRaw.value = ptTexture;
+        u.tDenoised.value = texture;
+        u.uMix.value = strength;
 
-        self.renderer.setRenderTarget(denoiseTarget);
+        self.renderer.setRenderTarget(denoiseMixTarget);
         self.renderer.setViewport(0, 0, width, height);
-        self.renderer.render(denoiseScene, fsCamera);
+        self.renderer.render(denoiseMixScene, fsCamera);
 
-        u.tDiffuse.value = null;
-        u.tHalfA.value = null;
-        u.tHalfB.value = null;
+        u.tRaw.value = null;
+        u.tDenoised.value = null;
 
-        return denoiseTarget.texture;
+        return denoiseMixTarget.texture;
     }
 
-    function composeCinematic(rawTexture, rt, width, height) {
-        const ptTexture = denoiseCinematic(rawTexture, width, height);
+    function composeCinematic(rawTexture, rt, width, height, denoisedTexture) {
+        const ptTexture = denoiseCinematic(rawTexture, width, height, denoisedTexture);
 
         if (!cinematicVolume.active) {
             toneBlitMaterial.uniforms.tDiffuse.value = ptTexture;
@@ -2001,6 +2211,13 @@ module.exports = function (K3D) {
 
             // the tracer stays pinned to this resolution until released - release on any outcome
             return mode.renderBudget(width, height).then((frame) => {
+                if (!((K3D.parameters.cinematicDenoise || 0.0) > 0.0)) {
+                    return { frame, denoisedTexture: null };
+                }
+
+                return runOIDN(mode.accumulation().target, width, height)
+                    .then((denoisedTexture) => ({ frame, denoisedTexture }));
+            }).then(({ frame, denoisedTexture }) => {
                 const rt = new THREE.WebGLRenderTarget(width, height, {
                     minFilter: THREE.NearestFilter,
                     magFilter: THREE.NearestFilter,
@@ -2011,7 +2228,7 @@ module.exports = function (K3D) {
                     self.renderer.setViewport(0, 0, width, height);
                     self.renderer.setClearColor(0, 0);
                     self.renderer.clear();
-                    composeCinematic(frame.texture, rt, width, height);
+                    composeCinematic(frame.texture, rt, width, height, denoisedTexture);
 
                     const pixels = new Uint8Array(width * height * 4);
 
@@ -2021,6 +2238,10 @@ module.exports = function (K3D) {
                 } finally {
                     self.renderer.setRenderTarget(null);
                     rt.dispose();
+
+                    if (denoisedTexture !== null) {
+                        denoisedTexture.dispose();
+                    }
                 }
             }).finally(() => {
                 mode.releaseFixedSize();

@@ -46,7 +46,7 @@ _MODULE = _STATIC / "widget.mjs"
 # Chunks of the module, served the same way for the same reason: the module runs from a blob
 # URL, where nothing next to it has a resolvable URL. A fixed set - the front end must not be
 # able to name any file it likes.
-_ASSETS = {"k3d-bvh-worker.mjs"}
+_ASSETS = {"k3d-bvh-worker.mjs", "rt_hdr_alb_nrm.tza", "rt_hdr.tza"}
 
 # _esm rides in the synced state of every instance, so the ~5 MB module is fetched from the
 # kernel on demand and cached on globalThis: once per page, not once per plot.

@@ -43,7 +43,7 @@ The parameters
     plot.cinematic_bounces = 6           # light bounces, [1, 32]
     plot.cinematic_glossy_filter = 0.25  # widen glossy lobes after a rough bounce, [0, 1]
     plot.cinematic_seed = None           # None: fresh noise each time; an int: repeatable
-    plot.cinematic_denoise = 0.0         # filter strength in noise sigmas, 0 is off
+    plot.cinematic_denoise = 0.0         # 0 is off, 1 the denoised image, between a mix
     plot.cinematic_bokeh_size = 0.0      # aperture diameter in scene units, 0 is a pinhole
     plot.cinematic_focus_distance = 0.0  # distance from the camera; 0 is as far as its target
     plot.cinematic_aperture_blades = 0   # 0 is a round iris, 3 to 16 a polygonal one
@@ -142,7 +142,7 @@ carries its own small, whole-frame bias.
 .. code-block:: python3
 
     plot.cinematic_seed = 1      # the same sequence for every frame
-    plot.cinematic_denoise = 2.0
+    plot.cinematic_denoise = 1.0
 
 Pinning the seed removes the flicker: every frame draws the identical sequence, so the
 coherent part is identical too and only what you actually animate changes. On its own
@@ -185,32 +185,52 @@ below what an eye can see long before the noise is gone.
 
 .. code-block:: python3
 
-    plot.cinematic_denoise = 2.0   # 0 is off
+    plot.cinematic_denoise = 1.0   # 0 is off
 
-``cinematic_denoise`` is measured in standard deviations of the noise the renderer
-estimates for each pixel, and 0 is off - the only value that leaves the image exactly
-as it was traced. Around 2 removes most of the grain a moderate budget leaves behind.
-By about 4, bone in a CT scan starts to look waxy: the grain and the trabecular texture
-underneath it are the same size, and they leave together.
+``cinematic_denoise`` runs `Open Image Denoise <https://www.openimagedenoise.org>`_, the
+denoiser Blender's Cycles uses, through `oidn-web <https://github.com/pissang/oidn-web>`_: a
+neural network trained on path-traced images, which reads far more of the neighbourhood than a
+filter can. 0 is off - the only value that leaves the image exactly as it was traced - 1 shows
+the denoised image, and between them the two are mixed.
 
-What makes this different from a general-purpose blur is what guides it. The renderer
-splits its own accumulation in two by sample parity and reads the spread between the
-halves, which gives the variance of every pixel for free - the samples were traced
-anyway. Where a pixel has settled the filter passes it through untouched; where it has
-not, it averages. The usual alternative, edge-stopping on depth and normals, does not
-work inside a volume at all: there is no first surface, the first collision is a random
-variable, and at low sample counts those buffers are themselves noise. Accumulated
-opacity is used alongside the variance, because without it the filter cannot tell a
-dark part of the medium from the black behind it.
+It runs once, when the accumulation reaches ``cinematic_samples``; while the samples come in the
+image is shown as traced, and a moved camera starts both over. On surfaces it is guided by the
+albedo and the normals of what the camera sees first, which is how it keeps the edges and the
+textures; inside a volume there is no first surface, and it works from the colour alone.
 
-Three consequences worth knowing.
+It needs WebGPU, which current Chrome and Edge have. Where there is none the image is shown
+undenoised and the browser console says why. The network weights, 3.5 MB, ship with K3D and are
+read the first time a plot asks for them.
 
-It is worth roughly four times the samples on a volume and nothing at all on a
-converged render - it removes error, and a converged image has none left to remove.
-The switch has to be on **before** the render: the halves it is guided by fill one
-sample at a time, so turning it on afterwards finds them empty and restarts the
-accumulation. And it costs memory - three float buffers at the resolution being
-filtered, which at a 4K screenshot is not free.
+**What it does to a volume.** Measured on the CT heart of the gallery, 800 x 800, against the
+mean of two renders of 2048 samples each, in 8-bit levels of the displayed image (the reference's
+own noise is 2.1):
+
+.. list-table::
+   :header-rows: 1
+
+   * - samples
+     - traced
+     - denoised
+   * - 8
+     - 46.6
+     - 9.9
+   * - 16
+     - 37.1
+     - 8.5
+   * - 32
+     - 26.9
+     - 7.0
+   * - 128
+     - 11.6
+     - 4.8
+
+Sixteen samples denoised land closer to the reference than 128 traced. Fine structure that is not
+in the reference - invented detail - stays at the level two 2048-sample renders differ by, so
+nothing measurable is made up. What it does take away, at low budgets, is texture one or two
+pixels across: at 8 samples about half of its contrast, at 128 about a tenth. A thin vessel stays
+where it is; the grain of the tissue on it goes smooth. For a picture, 16 to 32 samples denoised
+is enough; for judging fine texture, give it 128 or more, or look at the traced image.
 
 Depth of field
 ~~~~~~~~~~~~~~

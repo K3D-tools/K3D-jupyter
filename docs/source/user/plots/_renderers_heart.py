@@ -93,7 +93,7 @@ def screenshot(renderer, shadow='off'):
     if renderer == 'cinematic':
         plot.cinematic_samples = SAMPLES
         plot.cinematic_bounces = 5
-        plot.cinematic_denoise = 2.0
+        plot.cinematic_denoise = 1.0
         plot.cinematic_bokeh_size = 10.0
         plot.cinematic_focus_distance = FOCUS_DISTANCE
 

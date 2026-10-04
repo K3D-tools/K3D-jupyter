@@ -57,7 +57,7 @@ def generate():
                     screenshot_scale=1,
                     cinematic_samples=SAMPLES,
                     cinematic_bounces=BOUNCES,
-                    cinematic_denoise=2.0,
+                    cinematic_denoise=1.0,
                     cinematic_bokeh_size=10.0,
                     lighting=1.5)
     plot += plt_volume
