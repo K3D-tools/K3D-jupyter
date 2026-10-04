@@ -41,7 +41,7 @@ def test_a_group_is_indexed_and_counted():
     assert group[0] is a and group["b"] is b
     assert group["id"] == group.id
     with pytest.raises(KeyError):
-        group["nobody"]
+        _ = group["nobody"]
 
 
 def test_a_group_holds_drawables_only():
