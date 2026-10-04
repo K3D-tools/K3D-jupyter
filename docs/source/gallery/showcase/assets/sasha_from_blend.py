@@ -9,13 +9,13 @@ OUT = sys.argv[sys.argv.index("--") + 1]
 # Cycles materials of the scene, as the glTF exporter understands them (colours are linear)
 PRINCIPLED = {
     # white metal of the prongs and settings: Glossy, GGX
-    "Material.001": dict(color=(0.8, 0.8, 0.8), metallic=1.0, roughness=0.15),
+    "Material.001": {"color": (0.8, 0.8, 0.8), "metallic": 1.0, "roughness": 0.15},
     # the band: a layer-weight mix of two glossy golds, averaged
-    "Material.002": dict(color=(0.5729, 0.3835, 0.1187), metallic=1.0, roughness=0.05),
+    "Material.002": {"color": (0.5729, 0.3835, 0.1187), "metallic": 1.0, "roughness": 0.05},
     # the hallmark plate
-    "Material.005": dict(color=(0.07, 0.07, 0.07), metallic=1.0, roughness=0.05),
+    "Material.005": {"color": (0.07, 0.07, 0.07), "metallic": 1.0, "roughness": 0.05},
     # the stones: three added glass BSDFs at IOR 2.08 / 2.09 / 2.095 - dispersion - as one
-    "Material.007": dict(color=(1.0, 1.0, 1.0), metallic=0.0, roughness=0.05, transmission=1.0, ior=2.09),
+    "Material.007": {"color": (1.0, 1.0, 1.0), "metallic": 0.0, "roughness": 0.05, "transmission": 1.0, "ior": 2.09},
 }
 
 for name, params in PRINCIPLED.items():
