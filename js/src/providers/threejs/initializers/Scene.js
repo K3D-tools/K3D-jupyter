@@ -398,6 +398,8 @@ function rebuildSceneData(K3D, grids, axesHelper, force) {
 
                     promises.push(label.then((obj) => {
                         grids.labelsOnPlanes[corner].labels.push(obj);
+                        // born hidden: refreshGrid decides which corner shows, and may have run already
+                        obj.hide();
                     }));
                 }
 
@@ -415,9 +417,10 @@ function rebuildSceneData(K3D, grids, axesHelper, force) {
                     size: 1.0,
                 }, K3D);
 
-                axisLabel.then((obj) => {
+                promises.push(axisLabel.then((obj) => {
                     grids.labelsOnPlanes[corner].labels.push(obj);
-                });
+                    obj.hide();
+                }));
             });
         }
 
@@ -498,6 +501,8 @@ function rebuildSceneData(K3D, grids, axesHelper, force) {
 
     return Promise.all(promises).then((v) => {
         rebuildSceneDataPromises = null;
+        // the new labels are hidden until the grid says which of them show
+        refreshGrid.call(this, K3D, grids);
         return v;
     });
 }
@@ -507,6 +512,11 @@ function refreshGrid(K3D, grids) {
     const cameraDirection = new THREE.Vector3();
 
     this.camera.getWorldDirection(cameraDirection);
+
+    // a rebuild can settle after disable() has torn the grid down
+    if (K3D.disabling) {
+        return;
+    }
 
     Object.keys(grids.planes).forEach((axis) => {
         const dot1 = grids.planes[axis][0].normal.dot(cameraDirection);
