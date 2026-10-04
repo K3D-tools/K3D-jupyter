@@ -49,6 +49,8 @@ k3d/labextension/
 /docs/source/_static/k3d.js
 /docs/source/_static/k3d-bvh-worker.js
 /docs/source/_static/k3dEnvironments.js
+/docs/source/_static/rt_hdr_alb_nrm.tza
+/docs/source/_static/rt_hdr.tza
 .yarn
 build.cmd
 # binary snapshots dropped into the dev page for manual testing
