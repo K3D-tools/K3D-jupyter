@@ -1,8 +1,8 @@
 .. _gltf:
 
-===========
-glTF export
-===========
+=================
+glTF in and out
+=================
 
 A plot leaves K3D either as a PNG or as a stand-alone HTML snapshot: a picture, or a whole
 viewer. Neither of them is a model. glTF export produces the third thing, the geometry itself,
@@ -122,3 +122,36 @@ camera-facing impostors that the vertex and fragment stages assemble on every fr
 Objects hidden with ``visible = False`` are skipped as well, so the panel doubles as a way of
 choosing what goes into the file. The grid, axes, lights and color legend are not part of the
 model and never travel.
+
+Colours go into the file as linear values, which is what glTF stores and what every other viewer
+expects; K3D keeps the values it displays and converts on the way out.
+
+.. versionchanged:: 3.2.0
+    Colours used to be written as displayed, so the model came out brighter elsewhere.
+
+-------------------
+Reading glTF scenes
+-------------------
+
+.. versionadded:: 3.2.0
+
+:ref:`glb` reads a ``.glb`` and :ref:`gltf_factory` a ``.gltf``. A scene comes back as K3D
+objects, one :ref:`mesh` per glTF primitive - with its textures, normal, metalness-roughness,
+occlusion and emissive maps and its alpha mode - so it can be changed, hidden and path traced
+like any other object, and every part shows up in the panel under the file's name.
+
+A file exported from K3D reads back the same. It is z-up already, so ``up='z'`` keeps it
+upright - the default turns glTF's y up into K3D's z up:
+
+.. code:: python3
+
+    @plot.yield_gltfs
+    def round_trip():
+        plot.fetch_gltf()
+        glb = yield
+
+        copy = k3d.plot()
+        copy += k3d.glb(glb, up='z')
+        copy.display()
+
+    round_trip()

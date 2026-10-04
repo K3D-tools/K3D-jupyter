@@ -39,6 +39,8 @@ Showcase
     showcase/tractogram.rst
     showcase/cinematic-heart.rst
     showcase/visible-human.rst
+    showcase/gltf-boombox.rst
+    showcase/gltf-ring.rst
 
 .. k3d_plot::
    :filename: showcase/thumbnails/curl_pearls_thumbnail.py
@@ -98,6 +100,14 @@ Showcase
 
 .. k3d_plot::
    :filename: showcase/thumbnails/visible_human_thumbnail.py
+   :screenshot:
+
+.. k3d_plot::
+   :filename: showcase/thumbnails/gltf_boombox_thumbnail.py
+   :screenshot:
+
+.. k3d_plot::
+   :filename: showcase/thumbnails/gltf_ring_thumbnail.py
    :screenshot:
 
 .. raw:: html
@@ -163,6 +173,14 @@ Showcase
 .. image:: visible_human_thumbnail.png
    :width: 155
    :target: showcase/visible-human.html
+
+.. image:: gltf_boombox_thumbnail.png
+   :width: 155
+   :target: showcase/gltf-boombox.html
+
+.. image:: gltf_ring_thumbnail.png
+   :width: 155
+   :target: showcase/gltf-ring.html
 
 .. raw:: html
 

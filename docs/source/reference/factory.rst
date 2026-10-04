@@ -5,6 +5,8 @@ Plot objects
 .. toctree::
     :maxdepth: 1
     
+    factory.glb
+    factory.gltf
     factory.label
     factory.line
     factory.lines
