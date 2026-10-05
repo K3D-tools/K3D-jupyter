@@ -22,10 +22,10 @@ function depthOnBeforeCompile(globalPeelUniforms, shader) {
         'gl_FragColor = vec4( gl_FragCoord.z, 0.0, 0.0, 1.0 );',
     );
 
-    shader.fragmentShader = require('./shaders/depthShader.fragment.header.glsl') + shader.fragmentShader;
+    shader.fragmentShader = require('../shaders/depthShader.fragment.header.glsl') + shader.fragmentShader;
     shader.fragmentShader = shader.fragmentShader.replace(
         /}(?![\s\S]*})/gm,
-        require('./shaders/depthShader.fragment.tail.glsl'),
+        require('../shaders/depthShader.fragment.tail.glsl'),
     );
 }
 
