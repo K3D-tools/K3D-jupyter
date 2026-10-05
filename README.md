@@ -42,11 +42,12 @@ click either one for how it works.
 `advanced`: image-based lighting and ambient occlusion. A million analytic sphere impostors,
 with the occlusion in the crevices between strands doing the sculpting.
 
-[![The Stanford dragon, path traced](imgs/cinematic_dragon.png)](https://k3d-jupyter.org/user/cinematic.html)
+[![A ring read from glTF, path traced](imgs/cinematic_ring.png)](https://k3d-jupyter.org/gallery/showcase/gltf-ring.html)
 
-`cinematic`: progressive path tracing. 871k triangles read through VTK, 512 samples, lit only
-by an environment map — the shadow under the belly and the light the floor throws back into
-the flank are consequences of the simulation, not effects.
+`cinematic`: progressive path tracing. A Draco-compressed glTF read with `k3d.glb`: the stones
+refract with an index of 2.09 and throw light between their facets, the gold reflects the
+studio around it. 256 samples, denoised with Open Image Denoise. Model: "Sasha" by saber7711,
+CC-BY.
 
 ![points_cloud](imgs/points_cloud.gif)
 
