@@ -1865,6 +1865,72 @@ module.exports = function (K3D) {
         return oidn;
     }
 
+    // Rasterised views averaged over the lens, so that the guides blur where the trace blurs:
+    // sharp albedo under a defocused background makes OIDN draw edges the image does not have.
+    const AUX_LENS_SAMPLES = 128;
+
+    // The aperture points of upstream's camera ray (sampleCircle / sampleRegularPolygon), on an
+    // R2 sequence instead of random draws, in scene units: the radius is half of the bokeh size.
+    function lensSamples(radius, blades, count) {
+        const samples = [];
+        const g = 1.2207440846057596;
+        const a1 = 1 / g;
+        const a2 = 1 / (g * g);
+        const a3 = 1 / (g * g * g);
+
+        for (let i = 0; i < count; i++) {
+            const u = (0.5 + a1 * (i + 1)) % 1;
+            const v = (0.5 + a2 * (i + 1)) % 1;
+            const w = (0.5 + a3 * (i + 1)) % 1;
+            let x;
+            let y;
+
+            if (blades >= 3) {
+                const step = (2 * Math.PI) / blades;
+                const angle1 = step * Math.floor(blades * u);
+                const angle2 = angle1 + step;
+                let r1 = v;
+                let r2 = w;
+
+                if (r1 + r2 > 1) {
+                    r1 = 1 - r1;
+                    r2 = 1 - r2;
+                }
+
+                x = Math.sin(angle1) * r1 + Math.sin(angle2) * r2;
+                y = Math.cos(angle1) * r1 + Math.cos(angle2) * r2;
+            } else {
+                x = Math.cos(2 * Math.PI * u) * Math.sqrt(v);
+                y = Math.sin(2 * Math.PI * u) * Math.sqrt(v);
+            }
+
+            samples.push([x * radius, y * radius]);
+        }
+
+        return samples;
+    }
+
+    // The camera moved across the lens by (ox, oy), its frustum sheared so that the plane at the
+    // focus distance stays where it was. The tracer focuses on a sphere around the eye rather than
+    // a plane; the two agree on the axis and part a little towards the corners.
+    function lensCamera(camera, ox, oy, focus) {
+        const lens = camera.clone();
+        const right = new THREE.Vector3().setFromMatrixColumn(camera.matrixWorld, 0);
+        const up = new THREE.Vector3().setFromMatrixColumn(camera.matrixWorld, 1);
+
+        lens.position.addScaledVector(right, ox).addScaledVector(up, oy);
+        lens.updateMatrixWorld(true);
+        lens.projectionMatrix.copy(camera.projectionMatrix);
+
+        const m = lens.projectionMatrix.elements;
+
+        m[8] -= (m[0] * ox) / focus;
+        m[9] -= (m[5] * oy) / focus;
+        lens.projectionMatrixInverse.copy(lens.projectionMatrix).invert();
+
+        return lens;
+    }
+
     // inside a participating medium there is no first surface for albedo and normals to describe
     function hasMedium() {
         const objects = K3D.getWorld().ObjectsListJson;
@@ -1915,6 +1981,13 @@ module.exports = function (K3D) {
                 }),
             },
         ];
+        // the lens as the tracer reads it off the camera, millimetres included - not the plot
+        // parameter, which reaches the camera through an fStop the focal length then rescales
+        const lens = self.camera;
+        const views = (K3D.parameters.cinematicBokehSize || 0.0) > 0.0 && lens.bokehSize > 0.0
+            ? lensSamples(lens.bokehSize * 0.5e-3, lens.apertureBlades || 0, AUX_LENS_SAMPLES)
+                .map(([ox, oy]) => lensCamera(lens, ox, oy, lens.focusDistance))
+            : [self.camera];
         const previousTarget = self.renderer.getRenderTarget();
         const previousClear = new THREE.Color();
         const previousAlpha = self.renderer.getClearAlpha();
@@ -1938,16 +2011,31 @@ module.exports = function (K3D) {
                     return swapped;
                 });
 
-                self.renderer.setRenderTarget(target);
-                self.renderer.setViewport(0, 0, width, height);
-                self.renderer.setClearColor(pass.clear, 1);
-                self.renderer.clear();
-                self.renderer.render(lastProxyScene, self.camera);
-
                 const pixels = new Uint8Array(width * height * 4);
+                const sum = views.length > 1 ? new Float32Array(width * height * 4) : null;
 
-                self.renderer.readRenderTargetPixels(target, 0, 0, width, height, pixels);
-                out.push(new Uint8ClampedArray(pixels.buffer));
+                views.forEach((view) => {
+                    self.renderer.setRenderTarget(target);
+                    self.renderer.setViewport(0, 0, width, height);
+                    self.renderer.setClearColor(pass.clear, 1);
+                    self.renderer.clear();
+                    self.renderer.render(lastProxyScene, view);
+                    self.renderer.readRenderTargetPixels(target, 0, 0, width, height, pixels);
+
+                    if (sum !== null) {
+                        for (let i = 0; i < pixels.length; i++) {
+                            sum[i] += pixels[i];
+                        }
+                    }
+                });
+
+                if (sum === null) {
+                    out.push(new Uint8ClampedArray(pixels.buffer));
+                } else {
+                    // Uint8ClampedArray rounds on assignment
+                    out.push(Uint8ClampedArray.from(sum, (value) => value / views.length));
+                }
+
                 materials.forEach((material) => material.dispose());
             });
         } finally {

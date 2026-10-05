@@ -153,3 +153,82 @@ def test_a_volume_is_denoised_without_surface_buffers():
         plot.cinematic_samples = 64
         plot.renderer = "simple"
         pytest.headless.sync(hold_until_refreshed=True)
+
+
+def _checker_png(size, cells):
+    y, x = np.mgrid[0:size, 0:size] * cells // size
+    mask = ((x + y) % 2 == 0)[..., None]
+    pixels = np.where(mask, np.array([240, 240, 240], np.uint8), np.array([20, 20, 20], np.uint8))
+    buffer = BytesIO()
+    Image.fromarray(pixels).save(buffer, format="PNG")
+    return buffer.getvalue()
+
+
+def _checker_quad(x0, x1, y, z0, z1, cells):
+    vertices = np.array([[x0, y, z0], [x1, y, z0], [x1, y, z1], [x0, y, z1]], np.float32)
+    uvs = np.array([[0, 1], [1, 1], [1, 0], [0, 0]], np.float32)
+    return k3d.mesh(vertices, np.array([[0, 1, 2], [0, 2, 3]], np.uint32), uvs=uvs, side="double",
+                    texture=_checker_png(512, cells))
+
+
+def _fine(image, sigma=1.5):
+    """The image less a gaussian blur of it: what is left is edges and grain."""
+    grey = image.mean(axis=2)
+    r = int(3 * sigma)
+    k = np.exp(-np.arange(-r, r + 1) ** 2 / (2 * sigma ** 2))
+    k /= k.sum()
+    padded = np.pad(grey, r, mode="edge")
+    rows = sum(k[i] * padded[:, i:i + grey.shape[1]] for i in range(2 * r + 1))
+    return grey - sum(k[i] * rows[i:i + grey.shape[0]] for i in range(2 * r + 1))
+
+
+def test_depth_of_field_blurs_the_guides_as_well():
+    """Out of focus, the denoised image must keep the blur, not the albedo guide's edges.
+
+    OIDN keeps whatever edges its albedo and normal guides show. Rasterised through a pinhole,
+    the guides showed a defocused checker sharp, and the network drew harder squares into the
+    blur than the lens leaves there. The guides are now averaged over the lens like the trace.
+    Measured against 1024 traced samples, the fine detail of the denoised background was 8.1
+    levels off with sharp guides and is 5.1 with blurred ones.
+    """
+    prepare()
+    plot = pytest.plot
+    # in focus: a small checker in the middle; behind it, out of focus, a large one
+    plot += _checker_quad(-0.6, 0.6, 0.0, -0.4, 0.4, 8)
+    plot += _checker_quad(-12.0, 12.0, 12.0, -8.0, 8.0, 30)
+    plot.renderer = "cinematic"
+    plot.camera_auto_fit = False
+    plot.camera = [0, -3, 0, 0, 0, 0, 0, 0, 1]
+    plot.cinematic_focus_distance = 3.0
+    plot.cinematic_bokeh_size = 0.1
+    # 512 x 288, one OIDN tile on SwiftShader
+    plot.screenshot_scale = 0.4
+
+    try:
+        plot.cinematic_seed = 7
+        plot.cinematic_samples = 1024
+        reference = _render()
+        plot.cinematic_seed = 1
+        plot.cinematic_samples = 32
+        plot.cinematic_denoise = 1.0
+        denoised = _render()
+
+        h, w = reference.shape[:2]
+        # a band of the defocused checker left of the near one
+        background = np.zeros((h, w), bool)
+        background[int(h * 0.15):int(h * 0.85), int(w * 0.15):int(w * 0.3)] = True
+        off = np.sqrt(((_fine(denoised) - _fine(reference))[background] ** 2).mean())
+
+        assert off < 6.5, (
+            "out of focus, the fine detail of the denoised image is %.1f levels from the traced "
+            "one (8.1 with guides rendered through a pinhole): the guides are not blurred by the "
+            "lens" % off)
+    finally:
+        plot.cinematic_bokeh_size = 0.0
+        plot.cinematic_focus_distance = 0.0
+        plot.cinematic_denoise = 0.0
+        plot.screenshot_scale = 1.0
+        plot.cinematic_samples = 64
+        plot.camera_auto_fit = True
+        plot.renderer = "simple"
+        pytest.headless.sync(hold_until_refreshed=True)
