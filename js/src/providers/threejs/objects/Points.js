@@ -1,5 +1,6 @@
 const PointsMesh = require('./PointsMesh');
 const PointsBillboard = require('./PointsBillboard');
+const { baseColor } = require('../helpers/Fn');
 
 /**
  * Loader strategy to handle Points object
@@ -11,7 +12,8 @@ const PointsBillboard = require('./PointsBillboard');
 module.exports = {
     create(config, K3D) {
         config.visible = typeof (config.visible) !== 'undefined' ? config.visible : true;
-        config.color = typeof (config.color) !== 'undefined' ? config.color : 0xff00;
+        config.color = typeof (config.color) !== 'undefined' ? config.color
+            : baseColor(config, ['colors', 'attribute'], 0xff00);
         config.opacity = typeof (config.opacity) !== 'undefined' ? config.opacity : 1.0;
         config.point_size = typeof (config.point_size) !== 'undefined' ? config.point_size : 1.0;
         config.shader = typeof (config.shader) !== 'undefined' ? config.shader : '3d';

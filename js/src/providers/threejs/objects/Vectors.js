@@ -20,8 +20,10 @@ const { areAllChangesResolve } = Fn;
 module.exports = {
     create(config, K3D) {
         config.visible = typeof (config.visible) !== 'undefined' ? config.visible : true;
-        config.origin_color = typeof (config.origin_color) !== 'undefined' ? config.origin_color : 255;
-        config.head_color = typeof (config.head_color) !== 'undefined' ? config.head_color : 255;
+        config.origin_color = typeof (config.origin_color) !== 'undefined'
+            ? config.origin_color : Fn.baseColor(config, ['colors'], 255);
+        config.head_color = typeof (config.head_color) !== 'undefined'
+            ? config.head_color : Fn.baseColor(config, ['colors'], 255);
         config.use_head = typeof (config.use_head) !== 'undefined' ? config.use_head : true;
         config.head_size = config.head_size || 1.0;
         config.line_width = config.line_width || 0.01;
@@ -44,7 +46,8 @@ module.exports = {
         let heads = null;
         const lineVertices = [];
 
-        colors = colors.length > 0 ? buffer.colorsToFloat32Array(colors)
+        // colours multiply origin_color and head_color, pair by pair
+        colors = colors.length > 0 ? tintPairs(buffer.colorsToFloat32Array(colors), originColor, headColor)
             : getTwoColorsArray(originColor, headColor, (vectors.length / 3) * 2);
 
         if (vectors.length !== origins.length) {
@@ -148,6 +151,19 @@ module.exports = {
         return false;
     },
 };
+
+function tintPairs(colors, originColor, headColor) {
+    for (let i = 0; i < colors.length; i += 6) {
+        colors[i] *= originColor.r;
+        colors[i + 1] *= originColor.g;
+        colors[i + 2] *= originColor.b;
+        colors[i + 3] *= headColor.r;
+        colors[i + 4] *= headColor.g;
+        colors[i + 5] *= headColor.b;
+    }
+
+    return colors;
+}
 
 function addHeads(heads, object) {
     heads = BufferGeometryUtils.mergeGeometries(heads);

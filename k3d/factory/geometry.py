@@ -7,10 +7,11 @@ from typing import List as TypingList
 
 import numpy as np
 
-from ..helpers import check_attribute_color_range
+from ..helpers import check_attribute_color_range, image_format, pack_colors
 from ..objects import STL, Line, Lines, Mesh, Surface
+from ..objects.base import has_data
 from ..transform import process_transform_arguments
-from .common import _default_color, default_colormap
+from .common import _default_color, default_colormap, factory_color
 
 # only LineMesh builds a lit material; thick and simple draw unlit tubes and lines, so these
 # two traits reach the browser and nothing reads them
@@ -280,8 +281,9 @@ def mesh(
         vertices: ArrayLike,
         indices: ArrayLike,
         normals: ArrayLike = None,
-        color: int = _default_color,
+        color: Optional[int] = None,
         colors: TypingList[int] = None,
+        opacities: ArrayLike = None,
         attribute: ArrayLike = None,
         color_map: Optional[ColorMap] = None,
         # lgtm [py/similar-function]
@@ -299,6 +301,23 @@ def mesh(
         opacity_function: ArrayLike = None,
         side: str = "front",
         uvs: Optional[ArrayLike] = None,
+        uvs2: Optional[ArrayLike] = None,
+        texture_wrap: str = "clamp",
+        emissive: int = 0,
+        emissive_intensity: float = 1.0,
+        emissive_map: Optional[bytes] = None,
+        normal_map: Optional[bytes] = None,
+        normal_scale: float = 1.0,
+        metalness_roughness_map: Optional[bytes] = None,
+        occlusion_map: Optional[bytes] = None,
+        occlusion_strength: float = 1.0,
+        alpha_mode: Optional[str] = None,
+        alpha_cutoff: float = 0.5,
+        transmission: float = 0.0,
+        ior: float = 1.5,
+        thickness: float = 0.0,
+        attenuation_color: int = 0xFFFFFF,
+        attenuation_distance: float = 0.0,
         slice_planes: ArrayLike = None,
         name: Optional[str] = None,
         group: Optional[str] = None,
@@ -322,9 +341,18 @@ def mesh(
         Array of vertex normals: float (x, y, z) coordinate triples. Normals are used when flat_shading is false.
         If the normals are not specified here, normals will be automatically computed.
     color : int, optional
-        Hex color of the vertices when `colors` is empty, by default _default_color.
-    colors : list, optional
-        Array of Hex colors when attribute, color_map and color_range are empty, by default [].
+        Hex color of the mesh. It multiplies `colors`, the colormap and `texture`, the way a
+        base colour does in other renderers. By default _default_color, or white when any of
+        them is given.
+
+        .. versionchanged:: 3.2.0
+            `color` used to be ignored when `colors`, a colormap or a texture was given.
+    colors : array_like, optional
+        Colors per vertex: packed hex ints, or an (N, 3) or (N, 4) array of RGB(A) - floats
+        in 0..1 or integers in 0..255. The fourth column becomes `opacities`. By default [].
+    opacities : array_like, optional
+        Alpha per vertex, multiplied into the colour; read when `alpha_mode` is 'blend' or
+        'mask', by default [].
     attribute: list, optional
         List of values used to apply `color_map`, by default [].
     color_map : list, optional
@@ -347,7 +375,7 @@ def mesh(
     texture : bytes, optional
         Image data in a specific format, by default None.
     texture_file_format : str, optional
-        Format of the data, , by default None.
+        Format of the data, by default None - read from the data itself.
         It should be the second part of MIME format of type 'image/',e.g. 'jpeg', 'png', 'gif', 'tiff'.
     volume : list, optional
         3D array of `float`, by default [].
@@ -360,6 +388,47 @@ def mesh(
         Side to render, by default "front".
     uvs : array_like, optional
         float uvs for the texturing corresponding to each vertex, by default None.
+    uvs2 : array_like, optional
+        A second set of uvs, read by `occlusion_map` alone; it falls back to `uvs`, by default None.
+    texture_wrap : str, optional
+        What every texture of the mesh does outside 0..1: 'clamp', 'repeat' or 'mirror', or
+        one for u and one for v, e.g. 'repeat clamp'. By default 'clamp'. The cinematic
+        renderer repeats every texture.
+    emissive : int, optional
+        Hex color the surface emits, unaffected by lighting, by default 0 (none).
+    emissive_intensity : float, optional
+        Multiplier of `emissive`, by default 1.0.
+    emissive_map : bytes, optional
+        Image (PNG, JPEG, WebP, GIF) multiplying `emissive`, by default None.
+    normal_map : bytes, optional
+        Tangent-space normal map image, read with `uvs`, by default None.
+    normal_scale : float, optional
+        Strength of `normal_map`, by default 1.0.
+    metalness_roughness_map : bytes, optional
+        Image whose green channel multiplies `roughness` and blue channel `metalness` - the
+        glTF layout, by default None.
+    occlusion_map : bytes, optional
+        Image whose red channel darkens the indirect light, read with `uvs2` when given,
+        by default None.
+    occlusion_strength : float, optional
+        How much of `occlusion_map` applies, 0 to 1, by default 1.0.
+    alpha_mode : {'opaque', 'blend', 'mask'}, optional
+        How the alpha of `texture` and `opacities` is used: ignored ('opaque'), blended with
+        what is behind ('blend'), or cut out below `alpha_cutoff` ('mask'). `opacity` fades
+        the mesh in every mode. By default 'blend' when `opacities` are given, 'opaque' otherwise.
+    alpha_cutoff : float, optional
+        Threshold of the 'mask' mode, by default 0.5.
+    transmission : float, optional
+        How much light passes through the surface, refracted - glass, water, gems - from 0
+        to 1, by default 0.
+    ior : float, optional
+        Index of refraction of a transmissive mesh, by default 1.5.
+    thickness : float, optional
+        Thickness of the volume behind a transmissive surface, by default 0 (a thin wall).
+    attenuation_color : int, optional
+        Hex colour light takes on after `attenuation_distance` in the volume, by default white.
+    attenuation_distance : float, optional
+        Distance after which light has the `attenuation_color`, by default 0 (no attenuation).
     name : str, optional
         Object name, by default None.
     group : str, optional
@@ -409,6 +478,25 @@ def mesh(
         opacity_function = []
     if uvs is None:
         uvs = []
+    if uvs2 is None:
+        uvs2 = []
+    if opacities is None:
+        opacities = []
+
+    colors, alpha = pack_colors(colors)
+
+    if alpha is not None:
+        if has_data(opacities):
+            raise ValueError("opacities given twice: as the fourth column of colors and as opacities")
+        opacities = alpha
+
+    if alpha_mode is None:
+        alpha_mode = "blend" if has_data(opacities) else "opaque"
+
+    if texture is not None and texture_file_format is None:
+        texture_file_format = image_format(texture)
+
+    color = factory_color(color, colors, attribute, triangles_attribute, texture)
 
     if color_map is None:
         color_map = default_colormap
@@ -416,6 +504,8 @@ def mesh(
         np.array(color_map, np.float32) if type(color_map) is not dict else color_map
     )
     uvs = np.array(uvs, np.float32) if type(uvs) is not dict else uvs
+    uvs2 = np.array(uvs2, np.float32) if type(uvs2) is not dict else uvs2
+    opacities = np.array(opacities, np.float32) if type(opacities) is not dict else opacities
     attribute = (
         np.array(attribute, np.float32) if type(attribute) is not dict else attribute
     )
@@ -463,7 +553,25 @@ def mesh(
             side=side,
             texture=texture,
             uvs=uvs,
+            uvs2=uvs2,
             texture_file_format=texture_file_format,
+            texture_wrap=texture_wrap,
+            opacities=opacities,
+            emissive=emissive,
+            emissive_intensity=emissive_intensity,
+            emissive_map=emissive_map,
+            normal_map=normal_map,
+            normal_scale=normal_scale,
+            metalness_roughness_map=metalness_roughness_map,
+            occlusion_map=occlusion_map,
+            occlusion_strength=occlusion_strength,
+            alpha_mode=alpha_mode,
+            alpha_cutoff=alpha_cutoff,
+            transmission=transmission,
+            ior=ior,
+            thickness=thickness,
+            attenuation_color=attenuation_color,
+            attenuation_distance=attenuation_distance,
             slice_planes=slice_planes,
             name=name,
             group=group,

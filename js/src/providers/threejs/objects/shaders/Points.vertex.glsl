@@ -14,6 +14,7 @@ varying float vPointSize;
 
 #if (USE_COLOR_MAP == 1)
 uniform sampler2D colormap;
+uniform vec3 k3dTint;
 uniform float low;
 uniform float high;
 attribute float attributes;
@@ -54,6 +55,7 @@ void main() {
     #if (USE_COLOR_MAP == 1)
     float scaled_px = k3dScaleToRange(attributes, low, high);
     vec4 finalSphereColor = texture2D(colormap, vec2(scaled_px, 0.5));
+    finalSphereColor.rgb *= k3dTint;
 
     finalSphereColor.a *= perPointOpacity;
     vColor = finalSphereColor;

@@ -668,6 +668,9 @@ def get_headless_driver(no_headless=False, gpu=False, extra_args=None):
             options.add_argument("--headless")
             options.add_argument("--enable-unsafe-swiftshader")
 
+        # the cinematic denoiser runs on WebGPU, which headless Chrome leaves off
+        options.add_argument("--enable-unsafe-webgpu")
+
     for arg in extra_args or []:
         options.add_argument(arg)
 

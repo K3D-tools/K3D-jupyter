@@ -45,7 +45,8 @@ def generate():
                     background_color=0x2A2C30,
                     screenshot_scale=1,
                     axes_helper=0,
-                    cinematic_samples=256,
+                    cinematic_samples=32,
+                    cinematic_denoise=1.0,
                     cinematic_bounces=6)
 
     plot += k3d.vtk_poly_data(dragon,

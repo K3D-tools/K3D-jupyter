@@ -126,9 +126,14 @@ K3D-jupyter follows the Python Software Foundation Code of Conduct in everything
 
 ## Kudos
 
-- Jupyter is my ❤️
-- OpenDreamKit is 🚀
-- Three.js is 🥇
+- [Jupyter](https://jupyter.org) is my ❤️
+- [OpenDreamKit](https://opendreamkit.org) is 🚀
+- [Three.js](https://threejs.org) is 🥇
+- The `cinematic` renderer traces its light with
+  [three-gpu-pathtracer](https://github.com/gkjohnson/three-gpu-pathtracer) and
+  [three-mesh-bvh](https://github.com/gkjohnson/three-mesh-bvh) by Garrett Johnson - thank you 🙏
+- Its denoiser is Intel's [Open Image Denoise](https://www.openimagedenoise.org), run in the browser by
+  [oidn-web](https://github.com/pissang/oidn-web)
 
 ## Acknowledgments
 

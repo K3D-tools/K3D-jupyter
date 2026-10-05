@@ -43,6 +43,7 @@ module.exports = function cinematic(K3D, renderer, hooks) {
     const prepareOverlay = (hooks && hooks.prepareOverlay) || null;
     const onError = (hooks && hooks.onError) || ((e) => { throw e; });
     const rasterizePreview = (hooks && hooks.rasterizePreview) || null;
+    const onConverged = (hooks && hooks.onConverged) || null;
     const isHeadless = typeof window !== 'undefined'
         && typeof window.headlessK3D !== 'undefined';
     // wanted: the image is not converged yet
@@ -57,7 +58,6 @@ module.exports = function cinematic(K3D, renderer, hooks) {
     let envKey = null;
     let lastBounces = null;
     let lastGlossyFilter = null;
-    let lastDenoise = 0.0;
     // the rasterised layer of what the tracer did not take over; rebuilt once per accumulation
     let overlayDirty = true;
     // the camera the traced scene was built with, for the billboards frozen against it
@@ -363,8 +363,6 @@ module.exports = function cinematic(K3D, renderer, hooks) {
             lastBounces = null;
             lastGlossyFilter = null;
             lastSeed = undefined;
-            // dispose() drops the variance buffer; without this the filter is never asked for again
-            lastDenoise = null;
             sceneDirty = true;
             onError(e);
         });
@@ -385,33 +383,6 @@ module.exports = function cinematic(K3D, renderer, hooks) {
             lastBounces = K3D.parameters.cinematicBounces;
             needsWarmup = true;
             holdSamples();
-        }
-
-        // The filter is guided by the two halves of the accumulation, which fill one blend
-        // per completed sample. Switching it on part way through finds them empty and there is
-        // no way to fill them for samples already spent, so this restarts - which is also what
-        // makes switching it off show the raw image straight away.
-        const denoise = K3D.parameters.cinematicDenoise || 0.0;
-
-        if (lastDenoise !== denoise) {
-            const wasOn = lastDenoise > 0.0;
-            const isOn = denoise > 0.0;
-
-            lastDenoise = denoise;
-
-            if (wasOn !== isOn) {
-                // required: a fixed-size render must not switch the buffer off underneath the
-                // filter, or a screenshot comes out unfiltered while the viewport is not
-                backend.setVariance(isOn, true);
-
-                // Only switching it on discards the accumulation. Switching off costs nothing:
-                // the filter reads the accumulation at compose time and never wrote into it, so
-                // the traced samples are still worth exactly what they were.
-                if (isOn) {
-                    needsWarmup = true;
-                    holdSamples();
-                }
-            }
         }
 
         const glossyFilter = K3D.parameters.cinematicGlossyFilter || 0.0;
@@ -823,6 +794,11 @@ module.exports = function cinematic(K3D, renderer, hooks) {
 
                 if (samples >= budget) {
                     wanted = false;
+
+                    if (onConverged !== null) {
+                        onConverged();
+                    }
+
                     K3D.dispatch(K3D.events.RENDERED);
 
                     return;
@@ -833,6 +809,22 @@ module.exports = function cinematic(K3D, renderer, hooks) {
 
             frameHandle = window.requestAnimationFrame(frame);
         },
+
+        // what the canvas is showing, and a key that changes whenever it stops being that
+        // asked before the tracer exists too: a parameter can change before the first frame
+        accumulation() {
+            const ready = backend.isReady();
+
+            return {
+                key: ready ? backend.accumulationKey() : null,
+                target: ready ? backend.targetRenderTarget() : null,
+                // the interactive loop has parked on a finished image
+                converged: ready && !isHeadless && !wanted && frameHandle === null
+                    && backend.sampleCount() >= K3D.parameters.cinematicSamples,
+            };
+        },
+
+        setHud,
 
         // building blocks for headless probes and benchmarks
         renderSample() {

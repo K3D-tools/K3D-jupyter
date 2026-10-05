@@ -4,6 +4,15 @@
 # same two linters, so this is the local shortcut rather than the only gate.
 # The suite has to run in docker: the visual references are tied to the Chrome pinned in
 # the image, and a host Chrome differs by enough pixels to fail every visual test.
+#
+# Install the JS dependencies first: the grunt linter and the suite both read js/node_modules,
+# and neither creates it. A checkout that was never installed, or whose lockfile moved since it
+# was, renders with whatever is on disk - which does not read as a stale install, it reads as a
+# wall of failed visual tests. The tell is the direction: an older three.js draws the same
+# scenes a few levels BRIGHTER than the references, because r186's energy-conservation fix only
+# ever darkens. `npm ci`, not `npm install` - it installs exactly the lockfile and refuses when
+# package.json disagrees with it, instead of rewriting the lock in the middle of a release.
+docker compose run --rm k3d-build bash -lc "cd /opt/app/src/js && npm ci"
 docker compose run --rm k3d-build bash -lc "cd /opt/app/src && python -m ruff check ."
 docker compose run --rm k3d-build bash -lc "cd /opt/app/src/js && npx grunt codeStyle"
 docker compose run --rm k3d-build bash -lc "cd /opt/app/src/k3d && python -m pytest"
@@ -32,6 +41,8 @@ make html
 gh release create vX.Y.Z --repo K3D-tools/K3D-jupyter --target main --title "vX.Y.Z" --generate-notes
 
 # Confirm Zenodo picked it up (a few minutes):
-curl -s https://zenodo.org/api/records/3247652 | python -c "import json,sys; m=json.load(sys.stdin)['metadata']; print(m.get('version'), m.get('publication_date'))"
+# -L is not optional: 3247652 is the concept DOI and answers 302 with HTML, pointing at the
+# record for the version just archived. Without it this prints a JSONDecodeError.
+curl -sL https://zenodo.org/api/records/3247652 | python -c "import json,sys; m=json.load(sys.stdin)['metadata']; print(m.get('version'), m.get('publication_date'))"
 
 # Finally bump `version` and `date-released` in CITATION.cff to the version just published.

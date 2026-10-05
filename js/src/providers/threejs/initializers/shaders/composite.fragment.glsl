@@ -11,6 +11,8 @@ uniform int uToneMapping;
 // gas over an occluded sphere vanished with the sphere's own AO)
 uniform sampler2D tAO;
 uniform sampler2D tAOVol;
+// the prepass depth: .g above 2.5 marks a glowing surface, 3 + how much it glows
+uniform sampler2D tAODepth;
 uniform vec2 uAoScale;
 uniform vec2 uAoBias;
 uniform int uAoEnabled;
@@ -53,8 +55,16 @@ void main(){
         gl_FragColor.xyz *= gl_FragColor.a;
 
         if (uAoEnabled == 1) {
-            // geometry layers take the mesh-and-shell AO
-            gl_FragColor.xyz *= texture2D(tAO, uAoBias + vUv * uAoScale).r;
+            // geometry layers take the mesh-and-shell AO, glowing surfaces only in part
+            vec2 aoUv = uAoBias + vUv * uAoScale;
+            float ao = texture2D(tAO, aoUv).r;
+            float glow = texture2D(tAODepth, aoUv).g;
+
+            if (glow > 2.5) {
+                ao = mix(ao, 1.0, clamp(glow - 3.0, 0.0, 1.0));
+            }
+
+            gl_FragColor.xyz *= ao;
         }
     }
 

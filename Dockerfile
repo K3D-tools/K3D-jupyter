@@ -65,8 +65,8 @@ RUN pip install -r requirements.txt
 # pixelmatch and ruff are pinned for the same reason CHROME_VERSION is: pixelmatch decides
 # whether a visual test passes, and ruff is the lint gate - neither should move on a rebuild.
 # webdriver-manager is gone with chromedriver-binary: nothing imported it either.
-RUN pip install pytest pytest-xdist pixelmatch==0.4.0 flask selenium scikit-image vtk build twine \
-        jupyterlab hatch-jupyter-builder ruff==0.16.5
+RUN pip install pytest pytest-xdist pixelmatch==0.4.0 flask selenium scikit-image vtk DracoPy build twine \
+        jupyterlab hatch-jupyter-builder ruff==0.16.5 DracoPy
 
 # `cd docs && make html` needs these. pyvista and SimpleITK are imported by gallery thumbnail
 # scripts, so the build fails on the first one without them rather than skipping the page.

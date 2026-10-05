@@ -1,6 +1,6 @@
 {
   "name": "k3d",
-  "version": "3.1.2",
+  "version": "3.2.0",
   "description": "WebGL 3D plotting for Jupyter: meshes, isosurfaces, volumes, voxels and point clouds",
   "keywords": [
     "jupyter",
@@ -27,7 +27,7 @@
   "scripts": {
     "build": "npm run install:js && npm run build:js",
     "build:prod": "npm run install:js && npm run build:js",
-    "install:js": "cd js && npm install",
+    "install:js": "cd js && npm ci",
     "build:js": "cd js && npm run build",
     "prepare": "npm run build:prod"
   }

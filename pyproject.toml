@@ -86,7 +86,9 @@ dev = [
     # imported by k3d/test, so the suite is installable from this extra alone
     "pillow",
     "scikit-image",
-    "vtk"
+    "vtk",
+    # Draco-compressed glTF, read by k3d.glb / k3d.gltf when installed
+    "DracoPy"
 ]
 # these cover all packages necessary to run the notebooks in `examples/`
 examples = [
@@ -100,7 +102,8 @@ examples = [
     "scikit-learn",
     "scipy",
     "tqdm",
-    "vtk"
+    "vtk",
+    "DracoPy"
 ]
 
 
@@ -122,6 +125,9 @@ artifacts = [
     "k3d/static/require.js",
     "k3d/static/require.js.LICENSE.txt",
     "k3d/static/fflate.js",
+    "k3d/static/rt_hdr_alb_nrm.tza",
+    "k3d/static/rt_hdr.tza",
+    "k3d/static/oidn-weights.LICENSE.txt",
 ]
 
 [tool.hatch.version]
@@ -168,6 +174,9 @@ artifacts = [
     "k3d/static/require.js",
     "k3d/static/require.js.LICENSE.txt",
     "k3d/static/fflate.js",
+    "k3d/static/rt_hdr_alb_nrm.tza",
+    "k3d/static/rt_hdr.tza",
+    "k3d/static/oidn-weights.LICENSE.txt",
 ]
 
 [tool.hatch.build.hooks.jupyter-builder]

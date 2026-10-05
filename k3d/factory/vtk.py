@@ -9,7 +9,7 @@ import numpy as np
 from ..helpers import check_attribute_color_range
 from ..objects import Mesh
 from ..transform import process_transform_arguments
-from .common import _default_color, default_colormap
+from .common import default_colormap, factory_color
 
 # Type aliases for better readability
 ArrayLike = Union[TypingList, np.ndarray, Tuple]
@@ -43,7 +43,7 @@ def _require_vtk():
 
 def vtk_poly_data(
         poly_data: Any,  # vtk.vtkPolyData
-        color: int = _default_color,
+        color: Optional[int] = None,
         color_attribute: Optional[Tuple[str, float, float]] = None,
         color_map: Optional[ColorMap] = None,
         side: str = "front",
@@ -77,8 +77,8 @@ def vtk_poly_data(
         The polygonal data to convert. Cells with more than three points, and triangle strips, are
         triangulated first.
     color : int, optional
-        Packed RGB color of the mesh (0xff0000 is red, 0xff is blue) when not using color maps.
-        Default is 255.
+        Packed RGB color of the mesh (0xff0000 is red, 0xff is blue). It multiplies the
+        colormap. Default is 255, or white when a color attribute is given.
     color_attribute : tuple, optional
         Attribute to colour by, as (array name, min, max) read from the point data. Default is
         None.
@@ -188,6 +188,8 @@ def vtk_poly_data(
         color_range = cell_color_attribute[1:3]
     elif len(volume) > 0:
         color_range = check_attribute_color_range(volume, color_range)
+
+    color = factory_color(color, attribute, triangles_attribute)
 
     vertices = nps.vtk_to_numpy(poly_data.GetPoints().GetData())
     indices = nps.vtk_to_numpy(poly_data.GetPolys().GetData()).reshape(-1, 4)[:, 1:4]

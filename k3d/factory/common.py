@@ -1,6 +1,7 @@
 """Common constants and utilities for factory functions."""
 
 from ..colormaps import matplotlib_color_maps
+from ..objects.base import has_data
 
 # Default colors and constants
 _default_color = 0x0000FF  # blue
@@ -30,3 +31,11 @@ nice_colors = (
 )
 
 default_colormap = matplotlib_color_maps.Inferno
+
+
+def factory_color(color, *sources):
+    """A colour left out: None next to another source (the object makes it white), else the default."""
+    if color is not None:
+        return color
+
+    return None if any(has_data(source) for source in sources) else _default_color

@@ -7,6 +7,7 @@ const timeSeries = require('./core/lib/timeSeries');
 const ThreeJsProvider = require('./providers/threejs/provider');
 const _ = require('./lodash');
 const bvhWorkerSource = require('./core/lib/bvhWorkerSource');
+const oidnWeightsSource = require('./core/lib/oidnWeightsSource');
 const { version } = require('./version');
 
 const Float16Array = require('./core/lib/helpers/float16Array');
@@ -23,12 +24,8 @@ require('katex/dist/katex.min.css');
 // a page that has no copy now will not grow one.
 let bvhWorkerMissing = false;
 
-bvhWorkerSource.provide(() => {
-    if (bvhWorkerMissing) {
-        return null;
-    }
-
-    const name = 'k3d-bvh-worker.js';
+// where a sibling file of this bundle can be: next to the script, the AMD base, or the release
+function siblingUrls(name) {
     const amd = window.requirejs || window.require;
     const bundle = Array.prototype.filter.call(
         window.document.getElementsByTagName('script'),
@@ -46,6 +43,16 @@ bvhWorkerSource.provide(() => {
 
     // must match webpack's publicPath for this bundle
     candidates.push(`https://unpkg.com/k3d@${version}/dist/${name}`);
+
+    return candidates;
+}
+
+bvhWorkerSource.provide(() => {
+    if (bvhWorkerMissing) {
+        return null;
+    }
+
+    const candidates = siblingUrls('k3d-bvh-worker.js');
 
     function readable(source, url) {
         if (source) {
@@ -66,6 +73,14 @@ bvhWorkerSource.provide(() => {
         return source;
     });
 });
+
+oidnWeightsSource.provide((name) => siblingUrls(name).reduce(
+    (chain, url) => chain.then((bytes) => bytes || fetch(url).then(
+        (response) => (response.ok ? response.arrayBuffer() : null),
+        () => null,
+    )),
+    Promise.resolve(null),
+));
 
 /**
  * Decode msgpack data using the custom codec.

@@ -3,6 +3,9 @@ const path = require('path');
 const fs = require('fs');
 const version = require('./package.json').version;
 
+// grunt serve/watch: source maps referenced and copied to dist/; never in a published build
+const dev = Boolean(process.env.K3D_DEV);
+
 // Custom webpack loaders are generally the same for all webpack bundles, hence
 // stored in a separate local variable.
 const rules = [
@@ -71,7 +74,7 @@ module.exports = [
         // widget.mjs reaches the browser through the Jupyter comm, not from a URL, so a
         // sourceMappingURL in it can never resolve - every user who opens devtools on a plot
         // gets a 404 for a file the wheel does not even carry.
-        devtool: 'hidden-source-map',
+        devtool: dev ? 'source-map' : 'hidden-source-map',
         resolve,
         module: {
             rules,
@@ -92,7 +95,7 @@ module.exports = [
         // hidden as well, and the map is no longer published: it was 9.8 MB of a 13.9 MB npm
         // package - 71% - for a consumer nobody could name, and the worker chunk's own map was
         // never copied at all, so unpkg served a dangling reference beside it.
-        devtool: 'hidden-source-map',
+        devtool: dev ? 'source-map' : 'hidden-source-map',
         resolve,
         module: {
             rules,
@@ -106,6 +109,9 @@ module.exports = [
                     { from: './src/core/lib/snapshot_inline.txt' },
                     { from: './node_modules/requirejs/require.js' },
                     { from: './node_modules/fflate/umd/index.js', to: 'fflate.js' },
+                    { from: './src/core/lib/oidn/rt_hdr_alb_nrm.tza' },
+                    { from: './src/core/lib/oidn/rt_hdr.tza' },
+                    { from: './src/core/lib/oidn/LICENSE.txt', to: 'oidn-weights.LICENSE.txt' },
                 ],
             }),
             // js/dist mirrors what npm publishes (unpkg serves standalone for the
@@ -114,7 +120,13 @@ module.exports = [
                 apply: (compiler) => {
                     compiler.hooks.afterEmit.tap('CopyBuildPlugin', () => {
                         const outputPath = compiler.options.output.path;
-                        const files = ['standalone.js', 'k3d-bvh-worker.js'];
+                        // development.html loads dist/, where devtools looks for the maps
+                        const files = dev
+                            ? ['standalone.js', 'standalone.js.map',
+                                'k3d-bvh-worker.js', 'k3d-bvh-worker.js.map']
+                            : ['standalone.js', 'k3d-bvh-worker.js'];
+                        // the denoiser weights travel with either build
+                        files.push('rt_hdr_alb_nrm.tza', 'rt_hdr.tza', 'oidn-weights.LICENSE.txt');
                         const targetDir = path.resolve(__dirname, 'dist');
 
                         if (!fs.existsSync(targetDir)) {

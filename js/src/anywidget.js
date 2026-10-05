@@ -11,6 +11,7 @@ import msgpack from './core/lib/helpers/msgpackCodec';
 import ThreeJsProvider from './providers/threejs/provider';
 import { viewModes } from './core/lib/viewMode';
 import bvhWorkerSource from './core/lib/bvhWorkerSource';
+import oidnWeightsSource from './core/lib/oidnWeightsSource';
 
 // the module can be instantiated more than once (one _esm per widget class), and the
 // object/chunk stub modules may have created the registry first, so every field is
@@ -38,7 +39,7 @@ function deserialized(model, key) {
 // This module is imported from a blob URL, so nothing next to it has a resolvable URL: its
 // worker chunk comes from the kernel that served the module. Resolves null on anything going
 // wrong, including a kernel that never answers - the caller then does the work itself.
-function fetchWidgetAsset(model, name) {
+function fetchWidgetAsset(model, name, binary = false) {
     return new Promise((resolve) => {
         function onMessage(msg, buffers) {
             if (!msg || msg.msg_type !== 'widget_asset' || msg.name !== name) {
@@ -56,7 +57,9 @@ function fetchWidgetAsset(model, name) {
             const raw = buffers[0];
             const bytes = raw instanceof Uint8Array ? raw : new Uint8Array(raw.buffer || raw);
 
-            resolve(new TextDecoder().decode(bytes));
+            resolve(binary
+                ? bytes.slice().buffer
+                : new TextDecoder().decode(bytes));
         }
 
         model.on('msg:custom', onMessage);
@@ -429,6 +432,7 @@ function renderPlot({ model, el }) {
     const container = window.document.createElement('div');
 
     bvhWorkerSource.provide(() => fetchWidgetAsset(model, 'k3d-bvh-worker.mjs'));
+    oidnWeightsSource.provide((name) => fetchWidgetAsset(model, name, true));
 
     containerEnvelope.style.cssText = [
         `height:${model.get('height')}px`,

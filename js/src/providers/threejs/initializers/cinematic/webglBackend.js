@@ -281,12 +281,41 @@ module.exports = function createWebGLBackend(renderer) {
     // The tracer's merge appends one group per source geometry and never clears them, so a
     // rebuilt scene stacks a fresh set on top of every previous one. Harmless for the image -
     // the duplicates repeat the same ranges - but it grows for the life of the page.
+    // three-mesh-bvh 0.9.15 reuses the last scene's index when its length equals the new triangle count
+    function forgetCachedIndex() {
+        const struct = tracer._pathTracer && tracer._pathTracer.material
+            && tracer._pathTracer.material.bvh;
+
+        if (!struct || !('_cachedIndexAttr' in struct)) {
+            throw new Error(
+                'cinematic: three-mesh-bvh internals changed - cannot drop the cached BVH index',
+            );
+        }
+
+        struct._cachedIndexAttr = null;
+    }
+
     function clearMergedGroups() {
         const geometry = tracer._generator && tracer._generator.geometry;
 
         if (geometry) {
             geometry.clearGroups();
         }
+    }
+
+    // the blend target holding the latest complete average (see targetTexture)
+    function currentTarget() {
+        if (!tracer) {
+            return null;
+        }
+
+        const inner = tracer._pathTracer;
+
+        if (!inner || !inner._alpha || !inner._blendTargets) {
+            return tracer.target;
+        }
+
+        return inner._blendTargets[Math.ceil(inner.samples) % 2];
     }
 
     return {
@@ -404,6 +433,7 @@ module.exports = function createWebGLBackend(renderer) {
         // the volume uniforms follow the material texture setScene uploads, on the same material
         setScene(scene, camera) {
             clearMergedGroups();
+            forgetCachedIndex();
             tracer.setScene(scene, camera);
             syncVolume(scene);
         },
@@ -420,6 +450,7 @@ module.exports = function createWebGLBackend(renderer) {
 
                 tracer.setBVHWorker(worker);
                 clearMergedGroups();
+                forgetCachedIndex();
 
                 return tracer.setSceneAsync(scene, camera, { onProgress }).then(
                     () => {
@@ -490,14 +521,7 @@ module.exports = function createWebGLBackend(renderer) {
             tracer._pathTracer.setSize(width, height);
 
             // A screenshot resolution costs three more float targets of that size, about 400 MB
-            // at 4K. Worth skipping when the buffer only feeds a number nobody reads while a
-            // render is running - and not worth skipping when the denoiser is guided by it, or
-            // the screenshot comes out unfiltered while the viewport is not.
-            // A screenshot keeps the halves when something consumes them - the filter is
-            // guided by them, and switching them off here is what made a screenshot come out
-            // unfiltered while the viewport was not. It costs three float targets at screenshot
-            // resolution, which is the price of a filtered screenshot and cannot be avoided:
-            // the guide has to exist at the resolution being filtered.
+            // at 4K: skipped unless the caller said it reads the halves (setVariance required).
             if (variance !== null && !varianceRequired) {
                 wantVariance = variance.isEnabled() || wantVariance;
                 variance.setEnabled(false);
@@ -521,17 +545,20 @@ module.exports = function createWebGLBackend(renderer) {
         // parity instead. Ceil, not round: mid-sample the destination is the one being
         // blended into, which is what upstream shows on its odd samples too.
         targetTexture() {
-            const inner = tracer._pathTracer;
-
-            if (!inner || !inner._alpha || !inner._blendTargets) {
-                const fallback = tracer.target;
-
-                return fallback.texture || fallback;
-            }
-
-            const target = inner._blendTargets[Math.ceil(inner.samples) % 2];
+            const target = currentTarget();
 
             return target.texture || target;
+        },
+
+        targetRenderTarget: currentTarget,
+
+        // equal keys, equal image: epoch moves with every change of what is accumulated
+        accumulationKey() {
+            return `${epoch}:${tracer ? tracer.samples : 0}`;
+        },
+
+        sampleCount() {
+            return tracer ? tracer.samples : 0;
         },
 
         updateMaterials() {

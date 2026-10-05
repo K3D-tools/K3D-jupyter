@@ -1,3 +1,4 @@
+const THREE = require('three');
 const FileSaver = require('file-saver');
 const { GLTFExporter } = require('three/examples/jsm/exporters/GLTFExporter.js');
 
@@ -30,6 +31,63 @@ function isExportable(node) {
     const position = node.geometry && node.geometry.attributes.position;
 
     return !!position && position.count > 0;
+}
+
+/**
+ * glTF colours are linear, K3D's are displayed values: converts them for the export.
+ * @param {Array<THREE.Object3D>} nodes the nodes being exported
+ * @return {Function} restores every colour it converted
+ */
+function linearizeColors(nodes) {
+    const materials = new Map();
+    const attributes = [];
+
+    nodes.forEach((node) => {
+        const material = Array.isArray(node.material) ? node.material[0] : node.material;
+
+        if (material && !materials.has(material)) {
+            materials.set(material, {
+                color: material.color ? material.color.clone() : null,
+                emissive: material.emissive ? material.emissive.clone() : null,
+            });
+
+            if (material.color) {
+                material.color.convertSRGBToLinear();
+            }
+            if (material.emissive) {
+                material.emissive.convertSRGBToLinear();
+            }
+        }
+
+        const color = node.geometry && node.geometry.getAttribute('color');
+
+        if (color && !attributes.some(([geometry]) => geometry === node.geometry)) {
+            const linear = color.clone();
+            const converted = new THREE.Color();
+
+            for (let i = 0; i < linear.count; i++) {
+                converted.setRGB(linear.getX(i), linear.getY(i), linear.getZ(i)).convertSRGBToLinear();
+                linear.setXYZ(i, converted.r, converted.g, converted.b);
+            }
+
+            attributes.push([node.geometry, color]);
+            node.geometry.setAttribute('color', linear);
+        }
+    });
+
+    return () => {
+        materials.forEach((saved, material) => {
+            if (saved.color) {
+                material.color.copy(saved.color);
+            }
+            if (saved.emissive) {
+                material.emissive.copy(saved.emissive);
+            }
+        });
+        attributes.forEach(([geometry, color]) => {
+            geometry.setAttribute('color', color);
+        });
+    };
 }
 
 /**
@@ -96,7 +154,18 @@ function getGLTF(K3D) {
         );
     }
 
+    const exported = [];
+
+    world.K3DObjects.traverse((node) => {
+        if (node.visible && isExportable(node)) {
+            exported.push(node);
+        }
+    });
+
+    const restoreColors = linearizeColors(exported);
+
     const restore = () => {
+        restoreColors();
         hidden.forEach((node) => {
             node.visible = true;
         });

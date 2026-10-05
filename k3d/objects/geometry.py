@@ -12,7 +12,17 @@ from ..validation.stl import (
     vertices_from_ascii,
     vertices_from_binary,
 )
-from .base import EPSILON, Drawable, DrawableWithCallback, ListOrArray, TimeSeries
+from .base import (
+    EPSILON,
+    Drawable,
+    DrawableWithCallback,
+    ListOrArray,
+    TimeSeries,
+    resolve_color,
+)
+
+TEXTURE_WRAPS = ("clamp", "repeat", "mirror")
+ALPHA_MODES = ("opaque", "blend", "mask")
 
 
 class Line(Drawable):
@@ -227,9 +237,13 @@ class Mesh(DrawableWithCallback):
             Array of vertex normals: float (x, y, z) coordinate triples. Normals are used when flat_shading is false.
             If the normals are not specified here, normals will be automatically computed.
         color: `int`.
-            Packed RGB color of the mesh (0xff0000 is red, 0xff is blue) when not using color maps.
+            Packed RGB color of the mesh (0xff0000 is red, 0xff is blue). It multiplies `colors`,
+            the colormap and `texture`; left out, it is white when any of them is given.
         colors: `array_like`.
             Same-length array of (`int`) packed RGB color of the points (0xff0000 is red, 0xff is blue).
+        opacities: `array_like`.
+            Same-length array of `float` alpha per vertex, multiplied into the colour. Read when
+            `alpha_mode` is 'blend' or 'mask'.
         attribute: `array_like`.
             Array of float attribute for the color mapping, coresponding to each vertex.
         triangles_attribute: `array_like`.
@@ -261,6 +275,47 @@ class Mesh(DrawableWithCallback):
             for example 'jpeg', 'png', 'gif', 'tiff'.
         uvs: `array_like`.
             Array of float uvs for the texturing, coresponding to each vertex.
+        uvs2: `array_like`.
+            A second set of uvs, read by `occlusion_map` alone; it falls back to `uvs`.
+        texture_wrap: `str`.
+            What the textures do outside 0..1: 'clamp' (the default), 'repeat' or 'mirror' - or
+            one for u and one for v, e.g. 'repeat clamp'.
+        emissive: `int`.
+            Packed RGB color the surface emits, unaffected by lighting (0 is none).
+        emissive_intensity: `float`.
+            Multiplier of `emissive`.
+        emissive_map: `bytes`.
+            Image multiplying `emissive`, in PNG, JPEG, WebP or GIF.
+        normal_map: `bytes`.
+            Tangent-space normal map image, read with `uvs`.
+        normal_scale: `float`.
+            Strength of `normal_map`.
+        metalness_roughness_map: `bytes`.
+            Image whose green channel multiplies `roughness` and blue channel `metalness`.
+        occlusion_map: `bytes`.
+            Image whose red channel darkens indirect light, read with `uvs2` when given.
+        occlusion_strength: `float`.
+            How much of `occlusion_map` applies, 0 to 1.
+        alpha_mode: `str`.
+            How the alpha of `texture` and `opacities` is used:
+
+            :`opaque`: ignored, only `opacity` fades the mesh (the default),
+
+            :`blend`: blended with what is behind,
+
+            :`mask`: cut out where it is below `alpha_cutoff`, the rest is solid.
+        alpha_cutoff: `float`.
+            Threshold of the 'mask' mode.
+        transmission: `float`.
+            How much light passes through the surface, refracted - glass, water, gems - 0 to 1.
+        ior: `float`.
+            Index of refraction of a transmissive mesh.
+        thickness: `float`.
+            Thickness of the volume behind a transmissive surface; 0 is a thin wall.
+        attenuation_color: `int`.
+            Packed RGB colour light takes on travelling `attenuation_distance` through the volume.
+        attenuation_distance: `float`.
+            Distance after which light has the `attenuation_color`; 0 means no attenuation.
         model_matrix: `array_like`.
             4x4 model transform matrix.
     """
@@ -312,14 +367,74 @@ class Mesh(DrawableWithCallback):
         sync=True, **array_serialization_wrap("opacity_function")
     )
     slice_planes = TimeSeries(ListOrArray(empty_ok=True)).tag(sync=True)
+    opacities = TimeSeries(Array(dtype=np.float32)).tag(
+        sync=True, **array_serialization_wrap("opacities")
+    )
+    uvs2 = TimeSeries(Array(dtype=np.float32)).tag(
+        sync=True, **array_serialization_wrap("uvs2")
+    )
+    texture_wrap = Unicode("clamp").tag(sync=True)
+    emissive = TimeSeries(Int(min=0, max=0xFFFFFF)).tag(sync=True)
+    emissive_intensity = TimeSeries(Float(min=0.0, default_value=1.0)).tag(sync=True)
+    emissive_map = Bytes(allow_none=True).tag(
+        sync=True, **array_serialization_wrap("emissive_map")
+    )
+    normal_map = Bytes(allow_none=True).tag(
+        sync=True, **array_serialization_wrap("normal_map")
+    )
+    normal_scale = TimeSeries(Float(default_value=1.0)).tag(sync=True)
+    metalness_roughness_map = Bytes(allow_none=True).tag(
+        sync=True, **array_serialization_wrap("metalness_roughness_map")
+    )
+    occlusion_map = Bytes(allow_none=True).tag(
+        sync=True, **array_serialization_wrap("occlusion_map")
+    )
+    occlusion_strength = TimeSeries(Float(min=0.0, max=1.0, default_value=1.0)).tag(sync=True)
+    alpha_mode = Unicode("opaque").tag(sync=True)
+    alpha_cutoff = TimeSeries(Float(min=0.0, max=1.0, default_value=0.5)).tag(sync=True)
+    transmission = TimeSeries(Float(min=0.0, max=1.0, default_value=0.0)).tag(sync=True)
+    ior = TimeSeries(Float(min=1.0, max=5.0, default_value=1.5)).tag(sync=True)
+    thickness = TimeSeries(Float(min=0.0, default_value=0.0)).tag(sync=True)
+    attenuation_color = TimeSeries(Int(min=0, max=0xFFFFFF, default_value=0xFFFFFF)).tag(sync=True)
+    attenuation_distance = TimeSeries(Float(min=0.0, default_value=0.0)).tag(sync=True)
     model_matrix = TimeSeries(Array(dtype=np.float32)).tag(
         sync=True, **array_serialization_wrap("model_matrix")
     )
 
     def __init__(self, **kwargs):
+        resolve_color(kwargs, ("colors", "attribute", "triangles_attribute", "texture"))
+
         super().__init__(**kwargs)
 
         self.set_trait("type", "Mesh")
+
+    @validate("texture_wrap")
+    def _validate_texture_wrap(self, proposal):
+        modes = proposal["value"].split()
+        if not 1 <= len(modes) <= 2 or any(mode not in TEXTURE_WRAPS for mode in modes):
+            raise TraitError("texture_wrap must be one of %s, or two of them for u and v "
+                             "('repeat clamp'), not %r" % (", ".join(TEXTURE_WRAPS), proposal["value"]))
+        return proposal["value"]
+
+    @validate("alpha_mode")
+    def _validate_alpha_mode(self, proposal):
+        if proposal["value"] not in ALPHA_MODES:
+            raise TraitError("alpha_mode must be one of %s, not %r"
+                             % (", ".join(ALPHA_MODES), proposal["value"]))
+        return proposal["value"]
+
+    @validate("opacities")
+    def _validate_opacities(self, proposal):
+        if type(proposal["value"]) is dict or type(self.vertices) is dict:
+            return proposal["value"]
+
+        required = self.vertices.size // 3
+        actual = proposal["value"].size
+        if actual != 0 and required != actual:
+            raise TraitError(
+                "opacities has wrong size: %s (%s required, one per vertex)" % (actual, required)
+            )
+        return proposal["value"]
 
     @validate("colors")
     def _validate_colors(self, proposal):

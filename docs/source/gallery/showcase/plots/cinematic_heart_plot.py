@@ -6,8 +6,8 @@ import SimpleITK as sitk
 import k3d
 
 # a low budget for a page that traces in the reader's browser; the denoiser is what makes it
-# presentable. The still in the gallery is rendered at 256.
-SAMPLES = 128
+# presentable. The still in the gallery is rendered with the same budget.
+SAMPLES = 32
 BOUNCES = 5
 
 # the framing Artur settled on, read off the plot with the camera he orbited to
@@ -50,7 +50,7 @@ def generate():
                     screenshot_scale=1,
                     cinematic_samples=SAMPLES,
                     cinematic_bounces=BOUNCES,
-                    cinematic_denoise=2.0,
+                    cinematic_denoise=1.0,
                     cinematic_bokeh_size=10.0,
                     lighting=1.5)
     plot += plt_volume

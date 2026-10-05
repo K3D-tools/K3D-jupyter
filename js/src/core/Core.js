@@ -305,15 +305,13 @@ function K3D(provider, targetDOMNode, parameters) {
             }));
 
         // One number rather than a switch beside a strength, the way cinematic_bokeh_size
-        // already works: 0 is off and is the only value that leaves the image as it was
-        // traced. Around 2 takes out most of the grain a moderate budget leaves; by 4 bone
-        // in a CT scan goes waxy, because the grain and the trabecular texture under it
-        // leave together.
+        // already works: 0 is off and leaves the image as traced, 1 is the denoised image,
+        // and between them the two are mixed.
         cinematicControls.push(GUI.controls.add(self.parameters, 'cinematicDenoise')
             .name('denoise')
             .step(0.05)
             .min(0.0)
-            .max(6.0)
+            .max(1.0)
             .listen()
             .onChange((value) => {
                 self.setCinematicDenoise(value);
@@ -1369,12 +1367,18 @@ function K3D(provider, targetDOMNode, parameters) {
     };
 
     /**
-     * Set how hard the cinematic renderer filters noise out of the traced image
+     * Set how much of the denoised image the cinematic renderer shows
      * @memberof K3D.Core
-     * @param {Number} strength in standard deviations of the estimated noise; 0 is off
+     * @param {Number} strength 0 is off, 1 (or more) the denoised image, between them a mix
      */
     this.setCinematicDenoise = function (strength) {
         self.parameters.cinematicDenoise = strength;
+
+        // a slider drag must not trace a sample and denoise again on every step
+        if (world.recomposeCinematic && world.recomposeCinematic()) {
+            return;
+        }
+
         self.render();
     };
 

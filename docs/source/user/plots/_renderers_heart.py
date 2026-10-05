@@ -29,7 +29,7 @@ CAMERA = [82.32, -141.33, 74.31, -3.12, 5.48, -7.39, 0.03, 0.17, 0.99]
 FOCUS_DISTANCE = 131.2
 LIGHT_SCALE = 2.25
 ALPHA_COEF = 250
-SAMPLES = 128
+SAMPLES = 32
 
 # advanced only - the occlusion pass is what it adds over simple, and its defaults (0.07 / 1.8)
 # are tuned for geometry. A volume contributes the shell where its accumulated opacity crosses
@@ -93,7 +93,7 @@ def screenshot(renderer, shadow='off'):
     if renderer == 'cinematic':
         plot.cinematic_samples = SAMPLES
         plot.cinematic_bounces = 5
-        plot.cinematic_denoise = 2.0
+        plot.cinematic_denoise = 1.0
         plot.cinematic_bokeh_size = 10.0
         plot.cinematic_focus_distance = FOCUS_DISTANCE
 

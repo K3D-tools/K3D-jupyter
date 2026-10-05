@@ -9,7 +9,7 @@ import numpy as np
 from ..helpers import check_attribute_color_range
 from ..objects import Points
 from ..transform import process_transform_arguments
-from .common import _default_color, default_colormap
+from .common import default_colormap, factory_color
 
 # Type aliases for better readability
 ArrayLike = Union[TypingList, np.ndarray, Tuple]
@@ -21,7 +21,7 @@ OpacityFunction = TypingList[float]
 def points(
         positions: ArrayLike,
         colors: TypingList[int] = None,
-        color: int = _default_color,
+        color: Optional[int] = None,
         point_size: float = 1.0,
         point_sizes: ArrayLike = None,
         roughness: float = 0.4,
@@ -55,8 +55,8 @@ def points(
         Same-length array of (`int`) packed RGB color of the points (0xff0000 is red, 0xff is
         blue). Default is None.
     color : int, optional
-        Packed RGB color of the points (0xff0000 is red, 0xff is blue) when `colors` is empty.
-        Default is 255.
+        Packed RGB color of the points (0xff0000 is red, 0xff is blue). It multiplies `colors`
+        and the colormap. Default is 255, or white when `colors` or `attribute` is given.
     point_size : float, optional
         Diameter of the balls representing the points in 3D space. Default is 1.0.
     point_sizes : array_like, optional
@@ -143,6 +143,7 @@ def points(
         np.array(attribute, np.float32) if type(attribute) is not dict else attribute
     )
     color_range = check_attribute_color_range(attribute, color_range)
+    color = factory_color(color, colors, attribute)
 
     return process_transform_arguments(
         Points(

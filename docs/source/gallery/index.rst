@@ -25,19 +25,20 @@ Showcase
     :hidden:
 
     showcase/curl-pearls.rst
-    showcase/lorenz-system.rst
-    showcase/menger-sponge.rst
-    showcase/orbits.rst
-    showcase/plasma-wind.rst
-    showcase/point-cloud.rst
-    showcase/segmentation.rst
     showcase/stanford-dragon.rst
-    showcase/streamlines.rst
-    showcase/turbine-cfd.rst
-    showcase/terrain.rst
-    showcase/vtk-cutter.rst
-    showcase/tractogram.rst
     showcase/cinematic-heart.rst
+    showcase/tractogram.rst
+    showcase/plasma-wind.rst
+    showcase/menger-sponge.rst
+    showcase/streamlines.rst
+    showcase/vtk-cutter.rst
+    showcase/segmentation.rst
+    showcase/turbine-cfd.rst
+    showcase/gltf-ring.rst
+    showcase/point-cloud.rst
+    showcase/lorenz-system.rst
+    showcase/orbits.rst
+    showcase/terrain.rst
     showcase/visible-human.rst
 
 .. k3d_plot::
@@ -45,47 +46,11 @@ Showcase
    :screenshot:
 
 .. k3d_plot::
-   :filename: showcase/thumbnails/lorenz_system_thumbnail.py
-   :screenshot:
-
-.. k3d_plot::
-   :filename: showcase/thumbnails/menger_sponge_thumbnail.py
-   :screenshot:
-
-.. k3d_plot::
-   :filename: showcase/thumbnails/orbits_thumbnail.py
-   :screenshot:
-
-.. k3d_plot::
-   :filename: showcase/thumbnails/plasma_wind_thumbnail.py
-   :screenshot:
-
-.. k3d_plot::
-   :filename: showcase/thumbnails/point_cloud_thumbnail.py
-   :screenshot:
-
-.. k3d_plot::
-   :filename: showcase/thumbnails/segmentation_thumbnail.py
-   :screenshot:
-
-.. k3d_plot::
    :filename: showcase/thumbnails/stanford_dragon_thumbnail.py
    :screenshot:
 
 .. k3d_plot::
-   :filename: showcase/thumbnails/streamlines_thumbnail.py
-   :screenshot:
-
-.. k3d_plot::
-   :filename: showcase/thumbnails/turbine_cfd_thumbnail.py
-   :screenshot:
-
-.. k3d_plot::
-   :filename: showcase/thumbnails/terrain_thumbnail.py
-   :screenshot:
-
-.. k3d_plot::
-   :filename: showcase/thumbnails/vtk_cutter_thumbnail.py
+   :filename: showcase/thumbnails/cinematic_heart_thumbnail.py
    :screenshot:
 
 .. k3d_plot::
@@ -93,7 +58,47 @@ Showcase
     :screenshot:
 
 .. k3d_plot::
-   :filename: showcase/thumbnails/cinematic_heart_thumbnail.py
+   :filename: showcase/thumbnails/plasma_wind_thumbnail.py
+   :screenshot:
+
+.. k3d_plot::
+   :filename: showcase/thumbnails/menger_sponge_thumbnail.py
+   :screenshot:
+
+.. k3d_plot::
+   :filename: showcase/thumbnails/streamlines_thumbnail.py
+   :screenshot:
+
+.. k3d_plot::
+   :filename: showcase/thumbnails/vtk_cutter_thumbnail.py
+   :screenshot:
+
+.. k3d_plot::
+   :filename: showcase/thumbnails/segmentation_thumbnail.py
+   :screenshot:
+
+.. k3d_plot::
+   :filename: showcase/thumbnails/turbine_cfd_thumbnail.py
+   :screenshot:
+
+.. k3d_plot::
+   :filename: showcase/thumbnails/gltf_ring_thumbnail.py
+   :screenshot:
+
+.. k3d_plot::
+   :filename: showcase/thumbnails/point_cloud_thumbnail.py
+   :screenshot:
+
+.. k3d_plot::
+   :filename: showcase/thumbnails/lorenz_system_thumbnail.py
+   :screenshot:
+
+.. k3d_plot::
+   :filename: showcase/thumbnails/orbits_thumbnail.py
+   :screenshot:
+
+.. k3d_plot::
+   :filename: showcase/thumbnails/terrain_thumbnail.py
    :screenshot:
 
 .. k3d_plot::
@@ -108,57 +113,61 @@ Showcase
    :width: 155
    :target: showcase/curl-pearls.html
 
-.. image:: lorenz_system_thumbnail.png
-   :width: 155
-   :target: showcase/lorenz-system.html
-
-.. image:: menger_sponge_thumbnail.png
-   :width: 155
-   :target: showcase/menger-sponge.html
-
-.. image:: orbits_thumbnail.png
-   :width: 155
-   :target: showcase/orbits.html
-
-.. image:: plasma_wind_thumbnail.png
-   :width: 155
-   :target: showcase/plasma-wind.html
-
-.. image:: point_cloud_thumbnail.png
-   :width: 155
-   :target: showcase/point-cloud.html
-
-.. image:: segmentation_thumbnail.png
-   :width: 155
-   :target: showcase/segmentation.html
-
 .. image:: stanford_dragon_thumbnail.png
    :width: 155
    :target: showcase/stanford-dragon.html
 
-.. image:: streamlines_thumbnail.png
+.. image:: cinematic_heart_thumbnail.png
    :width: 155
-   :target: showcase/streamlines.html
-
-.. image:: turbine_cfd_thumbnail.png
-   :width: 155
-   :target: showcase/turbine-cfd.html
-
-.. image:: terrain_thumbnail.png
-   :width: 155
-   :target: showcase/terrain.html
-
-.. image:: vtk_cutter_thumbnail.png
-   :width: 155
-   :target: showcase/vtk-cutter.html
+   :target: showcase/cinematic-heart.html
 
 .. image:: tractogram_thumbnail.png
    :width: 155
    :target: showcase/tractogram.html
 
-.. image:: cinematic_heart_thumbnail.png
+.. image:: plasma_wind_thumbnail.png
    :width: 155
-   :target: showcase/cinematic-heart.html
+   :target: showcase/plasma-wind.html
+
+.. image:: menger_sponge_thumbnail.png
+   :width: 155
+   :target: showcase/menger-sponge.html
+
+.. image:: streamlines_thumbnail.png
+   :width: 155
+   :target: showcase/streamlines.html
+
+.. image:: vtk_cutter_thumbnail.png
+   :width: 155
+   :target: showcase/vtk-cutter.html
+
+.. image:: segmentation_thumbnail.png
+   :width: 155
+   :target: showcase/segmentation.html
+
+.. image:: turbine_cfd_thumbnail.png
+   :width: 155
+   :target: showcase/turbine-cfd.html
+
+.. image:: gltf_ring_thumbnail.png
+   :width: 155
+   :target: showcase/gltf-ring.html
+
+.. image:: point_cloud_thumbnail.png
+   :width: 155
+   :target: showcase/point-cloud.html
+
+.. image:: lorenz_system_thumbnail.png
+   :width: 155
+   :target: showcase/lorenz-system.html
+
+.. image:: orbits_thumbnail.png
+   :width: 155
+   :target: showcase/orbits.html
+
+.. image:: terrain_thumbnail.png
+   :width: 155
+   :target: showcase/terrain.html
 
 .. image:: visible_human_thumbnail.png
    :width: 155
@@ -230,10 +239,6 @@ API
 
 .. k3d_plot::
    :filename: api/thumbnails/volume_render_mhd_thumbnail.py
-   :screenshot:
-
-.. k3d_plot::
-   :filename: api/thumbnails/volume_rgb_thumbnail.py
    :screenshot:
 
 .. k3d_plot::
@@ -311,10 +316,6 @@ API
 .. image:: volume_render_mhd_thumbnail.png
    :width: 155
    :target: ../reference/factory.volume.html#render-mhd-volumetric-data
-
-.. image:: volume_rgb_thumbnail.png
-   :width: 155
-   :target: ../reference/factory.volume.html#colour-per-voxel
 
 .. image:: voxels_shapes_thumbnail.png
    :width: 155

@@ -17,6 +17,30 @@ SHININESS_REMOVED = (
 )
 
 
+# what a colour left out turns into when another colour source is given: they multiply
+NEUTRAL_COLOR = 0xFFFFFF
+
+
+def has_data(value):
+    """Whether a trait value carries anything - an array, bytes, or a dict of keyframes."""
+    if value is None:
+        return False
+    if isinstance(value, (dict, bytes, bytearray, str)):
+        return len(value) > 0
+    return np.size(value) > 0
+
+
+def resolve_color(kwargs, sources, name="color"):
+    """A colour left out becomes white next to another colour source, which it multiplies."""
+    if kwargs.get(name, None) is not None:
+        return
+
+    kwargs.pop(name, None)
+
+    if any(has_data(kwargs.get(source)) for source in sources):
+        kwargs[name] = NEUTRAL_COLOR
+
+
 class TimeSeries(Union):
     """A trait, or a dict of keyframes of it.
 
@@ -267,34 +291,76 @@ class Group(Drawable):
     """
     An aggregated group of Drawables, itself a Drawable.
 
-    It can be inserted or removed from a Plot including all members.
+    It can be inserted or removed from a Plot including all members. It has no properties of
+    its own - setting one raises - except `model_matrix`: given to every member, or for a group
+    read with k3d.glb / k3d.gltf, to the root of its node hierarchy (`transform`).
     """
 
     __objs = None
+    __root = None
+    __sealed = False
 
-    def __init__(self, *args):
+    def __init__(self, *args, transform=None):
         self.__objs = tuple(
             self.__assert_drawable(drawable)
             for drawables in args
             for drawable in drawables
         )
+        self.__root = transform
 
         super().__init__()
+
+        self.__sealed = True
 
     def __iter__(self):
         return self.__objs.__iter__()
 
+    def __len__(self):
+        return len(self.__objs)
+
+    def __getitem__(self, key):
+        if isinstance(key, str):
+            # Drawable reads traits by name through here; any other name picks a member
+            if self.has_trait(key):
+                return getattr(self, key)
+            for obj in self.__objs:
+                if obj.name == key:
+                    return obj
+            raise KeyError(key)
+
+        return self.__objs[key]
+
+    @property
+    def transform(self):
+        """The Transform at the root of a hierarchy read from a file, None otherwise."""
+        return self.__root
+
     def __setattr__(self, key, value):
-        """Special method override which allows for setting model matrix for all members of the group."""
         if key == "model_matrix":
-            for d in self:
-                d.model_matrix = value
-        else:
+            if self.__root is not None:
+                self.__root.custom_matrix = value
+            else:
+                for d in self:
+                    d.model_matrix = value
+            return
+
+        # traitlets internals, and the constructor before the group is sealed
+        if key.startswith("_") or not self.__sealed:
             super().__setattr__(key, value)
+            return
+
+        if key == "transform" or key in self.trait_names(sync=True) or not hasattr(self, key):
+            raise AttributeError(
+                "a Group has no property %r - it is only a collection of objects; set it on "
+                "each of them: for obj in group: obj.%s = ..." % (key, key)
+            )
+
+        super().__setattr__(key, value)
 
     @staticmethod
     def __assert_drawable(arg):
-        assert isinstance(arg, Drawable)
+        if not isinstance(arg, Drawable):
+            raise TypeError("a Group holds Drawables, not %s" % type(arg).__name__)
 
         return arg
 

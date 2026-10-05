@@ -9,8 +9,9 @@ from renderers_scene import material_grid_plot
 def generate():
     plot = material_grid_plot(renderer='cinematic')
     plot.environment = 'studio'
-    # low budget: this embed accumulates in the reader's browser
-    plot.cinematic_samples = 24
+    # this embed accumulates in the reader's browser, and is denoised there
+    plot.cinematic_samples = 32
+    plot.cinematic_denoise = 1.0
     plot.cinematic_bounces = 4
 
     plot.snapshot_type = 'inline'

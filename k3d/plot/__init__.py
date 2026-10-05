@@ -201,18 +201,18 @@ class Plot(
             None every accumulation starts from fresh noise; with a seed the same scene renders
             the same image every time. 0 is refused, so that "unset" and "seeded" never blur.
         cinematic_denoise: `Float`.
-            How hard the cinematic renderer filters Monte Carlo noise out of the
-            traced image, measured in standard deviations of the noise it estimates
-            per pixel. Default 0 is off, and the only value that leaves the image
-            exactly as it was traced. Around 2 removes most of the grain a moderate
-            sample budget leaves behind; around 4 bone in a CT scan starts to look
-            waxy, because the grain and the trabecular texture under it go together.
-            The filter is guided by the spread between two halves of the accumulation
-            and runs in linear space before tone mapping, over a five by five kernel
-            and no wider - which is where the grain is and where almost nothing else
-            is. It is not a substitute for samples: it is worth roughly four times as
-            many of them on a volume, and nothing at all once the render has
-            converged.
+            How much of the denoised image the cinematic renderer shows. Default 0 is off, and the
+            only value that leaves the image exactly as it was traced; 1 shows the image Open Image
+            Denoise makes of it. Between the two they are mixed, which is not a strength: OIDN has
+            none, and a mix keeps that share of the grain along with the texture the network smooths
+            - worth it from about 0.7 up. Above 1 is the same as 1. The
+            denoiser runs once the accumulation reaches cinematic_samples - while it accumulates
+            the trace is shown as it is - and needs WebGPU: without it the image is shown
+            undenoised and the console says why. On surfaces it is guided by their albedo and
+            normals; inside a volume by the colour alone. Measured on a CT heart against 2048
+            samples, 16 samples denoised are as close as 64 filtered by the earlier denoiser and
+            closer than 128 untouched, with no structure added beyond what two 2048-sample renders
+            differ by - but at low budgets it smooths texture one or two pixels across.
         cinematic_bokeh_size: `Float`.
             Diameter of the cinematic renderer's aperture, in scene units. Default 0,
             a pinhole - everything in focus, and the only value that leaves the image
