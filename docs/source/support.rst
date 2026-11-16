@@ -46,8 +46,8 @@ rather than a donation.
       - Team
       - Organisation
     * - Price
-      - €2,000 per year
-      - €6,000 per year
+      - $2,000 per year
+      - $6,000 per year
     * - First response to your issues
       - within 5 business days
       - within 5 business days
@@ -90,7 +90,7 @@ Integration help
 
 Hands-on help putting K3D into your product or pipeline: embedding the standalone
 JavaScript build, rendering without a display, performance on your data.
-Billed at €100 per hour, or as a fixed price for a defined scope.
+Billed at $100 per hour, or as a fixed price for a defined scope.
 
 ------------------
 Grant applications
