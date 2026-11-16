@@ -10,7 +10,7 @@ Jupyter, browser and GPU releases, answering issues and building what comes next
 K3D is installed from PyPI more than two thousand times a day and is looked after
 by a very small team.
 
-.. |company| replace:: **[TODO: company name]**
+.. |company| replace:: Artur Trzęsiok CubeProject.pl
 
 -----------------------
 Help that costs nothing
@@ -90,7 +90,7 @@ Integration help
 
 Hands-on help putting K3D into your product or pipeline: embedding the standalone
 JavaScript build, rendering without a display, performance on your data.
-Billed at €150 per hour, or as a fixed price for a defined scope.
+Billed at €100 per hour, or as a fixed price for a defined scope.
 
 ------------------
 Grant applications
