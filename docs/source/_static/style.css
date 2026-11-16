@@ -32,3 +32,12 @@ i.fa-box-open:before {
 i.fa-circle-notch:before {
   color: #44a833;
 }
+
+.navbar-icon-links svg.fa-heart {
+  color: #db61a2;
+}
+
+table.support-plans td:first-child,
+table.support-plans th:first-child {
+  font-weight: 600;
+}

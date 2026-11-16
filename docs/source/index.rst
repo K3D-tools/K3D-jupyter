@@ -111,6 +111,7 @@ Click to open YouTube video.
     User Guide <user/index>
     API reference <reference/index>
     Gallery <gallery/index>
+    Support <support>
 
 .. Links
 .. _Jupyter Notebook: https://jupyter.org/
