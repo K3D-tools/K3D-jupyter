@@ -1,3 +1,8 @@
+---
+name: Bug report or question
+about: Something does not work as expected, or you are not sure how to do something
+---
+
 Note (please remove it):
 Before you report an error please make sure the Python and JavaScript
 versions of k3d match. The plot panel's Info folder shows both.

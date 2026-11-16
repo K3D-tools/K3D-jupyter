@@ -112,6 +112,12 @@ html_theme_options = {
             "url": "https://anaconda.org/conda-forge/k3d",
             "icon": "fas fa-circle-notch",
             "type": "fontawesome",
+        },
+        {
+            "name": "Support K3D",
+            "url": "https://k3d-jupyter.org/support.html",
+            "icon": "fas fa-heart",
+            "type": "fontawesome",
         }
     ]
 }
