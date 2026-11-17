@@ -125,6 +125,16 @@ frontend module (anywidget).
 
 K3D-jupyter follows the Python Software Foundation Code of Conduct in everything we do.
 
+## Support K3D
+
+K3D is MIT-licensed and stays that way - nothing is held back for paying users.
+If it saves you time, you can help keep it maintained:
+
+- **Cite it** - the metadata is in [CITATION.cff](CITATION.cff)
+- **Sponsor it** - [GitHub Sponsors](https://github.com/sponsors/K3D-tools), any amount
+- **Support plans, sponsored features and integration help** for labs and companies,
+  with an invoice - [k3d-jupyter.org/support.html](https://k3d-jupyter.org/support.html)
+
 ## Kudos
 
 - [Jupyter](https://jupyter.org) is my ❤️

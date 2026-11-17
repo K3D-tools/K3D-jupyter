@@ -25,3 +25,5 @@ updates:
       # grunt-webpack 8 needs node ^22.13, above the node this project is developed on
       - dependency-name: grunt-webpack
         update-types: [version-update:semver-major]
+      # cinematic patches this library's internals, so every bump needs the hooks re-checked
+      - dependency-name: three-gpu-pathtracer
