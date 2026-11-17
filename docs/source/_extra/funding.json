@@ -1,0 +1,89 @@
+{
+    "$schema": "https://fundingjson.org/schema/v1.1.0.json",
+    "version": "v1.0.0",
+    "entity": {
+        "type": "individual",
+        "role": "maintainer",
+        "name": "Artur Trzęsiok",
+        "email": "support@k3d-jupyter.org",
+        "description": "I am the lead developer and maintainer of K3D-jupyter, which I have worked on since the project started in 2015. I write the renderer, review contributions, answer issues and publish the releases.\n\nK3D has no institutional funding today. Since the OpenDreamKit grant (Horizon 2020) ended, maintenance and new features have been done in my own time. Funding would let me reserve regular, paid time for the project instead of fitting it around other work.",
+        "webpageUrl": {
+            "url": "https://k3d-jupyter.org/support.html"
+        }
+    },
+    "projects": [
+        {
+            "guid": "k3d-jupyter",
+            "name": "K3D-jupyter",
+            "description": "K3D-jupyter is a 3D plotting library for Jupyter notebooks. It draws meshes, volumes, voxels, point clouds, vector fields and lines straight from NumPy arrays, in JupyterLab, Colab and VS Code, and exports standalone HTML snapshots that open without a server.\n\nIt is used where researchers need to look at 3D data inside the notebook they compute in: medical and biological imaging (CT and microscopy volumes), fluid dynamics, micromagnetics and teaching. Libraries such as ubermag, pyMOR, vedo and sympy_plot_backends use it as a plotting backend.\n\nThe project has been developed in the open since 2015 under the MIT license. It was installed from PyPI about 970,000 times in the first ten and a half months of 2026.\n\nCurrent work: a WebGPU rendering backend replacing WebGL, faster volume rendering for large CT scans, and a physically based path tracer for publication figures. Everything ships in the open-source release; there is no paid edition.",
+            "webpageUrl": {
+                "url": "https://k3d-jupyter.org"
+            },
+            "repositoryUrl": {
+                "url": "https://github.com/K3D-tools/K3D-jupyter",
+                "wellKnown": "https://github.com/K3D-tools/K3D-jupyter/blob/devel/.well-known/funding-manifest-urls"
+            },
+            "licenses": ["spdx:MIT"],
+            "tags": [
+                "visualization",
+                "data-visualization",
+                "scientific-computing",
+                "jupyter",
+                "python",
+                "3d",
+                "graphics",
+                "webgpu",
+                "research",
+                "science"
+            ]
+        }
+    ],
+    "funding": {
+        "channels": [
+            {
+                "guid": "bank",
+                "type": "bank",
+                "address": "",
+                "description": "Bank transfer against an invoice from Artur Trzęsiok CubeProject.pl (Poland). Write to support@k3d-jupyter.org for details."
+            },
+            {
+                "guid": "github-sponsors",
+                "type": "payment-provider",
+                "address": "https://github.com/sponsors/K3D-tools",
+                "description": "One-time and monthly sponsorship by card."
+            }
+        ],
+        "plans": [
+            {
+                "guid": "maintainer-year",
+                "status": "active",
+                "name": "One year of maintainer time",
+                "description": "Roughly half-time work on K3D for twelve months: finishing and stabilising the WebGPU backend, volume rendering for large medical and microscopy datasets, keeping K3D working as Jupyter, browsers and GPU drivers change, and answering issues.",
+                "amount": 50000,
+                "currency": "USD",
+                "frequency": "yearly",
+                "channels": ["bank"]
+            },
+            {
+                "guid": "maintenance",
+                "status": "active",
+                "name": "Maintenance only",
+                "description": "Compatibility fixes, releases, issue triage and review of contributions for one year, without new features.",
+                "amount": 10000,
+                "currency": "USD",
+                "frequency": "yearly",
+                "channels": ["bank"]
+            },
+            {
+                "guid": "sponsor",
+                "status": "active",
+                "name": "Individual sponsorship",
+                "description": "Any amount, one-time or monthly.",
+                "amount": 0,
+                "currency": "USD",
+                "frequency": "other",
+                "channels": ["github-sponsors"]
+            }
+        ]
+    }
+}

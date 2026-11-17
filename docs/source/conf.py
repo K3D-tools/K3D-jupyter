@@ -92,7 +92,7 @@ ogp_custom_meta_tags = [
 html_theme_options = {
     "show_prev_next": False,
     "analytics": {
-        "google_analytics_id": 'UA-141840477-1',
+        "google_analytics_id": 'G-GQTG5K6702',
     },
     "icon_links": [
         {
