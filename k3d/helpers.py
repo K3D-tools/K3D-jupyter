@@ -103,6 +103,9 @@ class Int(_TraitInt):
         return super().validate(obj, value)
 
 
+COMM_BUDGET_BYTES = 64 * 1024 * 1024
+
+
 # pylint: disable=unused-argument
 # noinspection PyUnusedLocal
 def array_to_json(
@@ -111,12 +114,17 @@ def array_to_json(
     """
     Return the serialization of a numpy array.
 
+    Payloads whose narrowed byte size exceeds `COMM_BUDGET_BYTES` (64 MiB) are
+    zlib-compressed at level 1 when `compression_level <= 0` so the widget comm
+    never carries a raw buffer above that budget.
+
     Parameters
     ----------
     ar : ndarray
         A numpy array.
     compression_level : int, optional
-        Level of compression [-1, 9], by default 0.
+        Level of compression [-1, 9], by default 0. Payloads larger than
+        `COMM_BUDGET_BYTES` use level 1 when `compression_level <= 0`.
     force_contiguous : bool, optional
         Make the array contiguous in memory, by default True.
 
@@ -128,7 +136,7 @@ def array_to_json(
     Raises
     ------
     ValueError
-        If the dtype is unsupported.
+        If the dtype is unsupported or the serialized payload exceeds `COMM_BUDGET_BYTES`.
     """
     if ar.dtype.kind not in ["u", "i", "f"]:  # ints and floats
         logger.error(f"Unsupported dtype: {ar.dtype}")
@@ -155,15 +163,30 @@ def array_to_json(
 
     # ravel, not flatten: contiguity is already ensured above, so this is a view, while flatten
     # copies unconditionally. The uncompressed buffer therefore aliases the caller's array.
+    flat = ar.ravel()
     if compression_level > 0:
+        level = compression_level
+    elif flat.nbytes > COMM_BUDGET_BYTES:
+        level = 1
+    else:
+        level = 0
+
+    if level > 0:
+        compressed = zlib.compress(flat, level)
+        if len(compressed) > COMM_BUDGET_BYTES:
+            raise ValueError(
+                f"Serialized array exceeds the {COMM_BUDGET_BYTES}-byte comm budget "
+                f"({flat.nbytes} bytes raw, {len(compressed)} bytes compressed); "
+                "cast to float16 to halve the array on the wire"
+            )
         ret = {
-            "compressed_data": zlib.compress(ar.ravel(), compression_level),
+            "compressed_data": compressed,
             "dtype": str(ar.dtype),
             "shape": ar.shape,
         }
     else:
         ret = {
-            "data": memoryview(ar.ravel()),
+            "data": memoryview(flat),
             "dtype": str(ar.dtype),
             "shape": ar.shape,
         }
