@@ -10,11 +10,13 @@ array, compressed raised "assignment destination is read-only" on the first in-p
 Layout. Nothing promises a user's array is C-contiguous: a Fortran-ordered volume, a transposed
 view or a strided slice are all perfectly sane inputs, and the values have to survive them.
 """
+import zlib
+
 import numpy as np
 import pytest
 
 import k3d
-from k3d.helpers import array_to_json, json_to_array
+from k3d.helpers import COMM_BUDGET_BYTES, array_to_json, json_to_array
 
 BASE = (np.arange(24, dtype=np.float32).reshape(8, 3) * 0.5)
 
@@ -68,3 +70,62 @@ def test_a_loaded_snapshot_hands_back_editable_arrays():
     positions[0, 0] = 42.0
 
     assert positions[0, 0] == 42.0
+
+
+def test_oversized_volume_compresses_under_comm_budget():
+    data = np.ones((512, 512, 128), dtype=np.float32)
+    vol = k3d.volume(data)
+    serialized = vol.get_binary()['volume']
+
+    assert 'data' not in serialized
+    assert len(serialized['compressed_data']) <= COMM_BUDGET_BYTES
+    assert np.array_equal(json_to_array(serialized), data)
+    assert vol.compression_level == 0
+
+
+def test_payload_within_comm_budget_stays_uncompressed():
+    exact = k3d.volume(np.ones((512, 256, 128), dtype=np.float32))
+    serialized = exact.get_binary()['volume']
+
+    assert isinstance(serialized['data'], memoryview)
+    assert serialized['data'].nbytes == COMM_BUDGET_BYTES
+    assert 'compressed_data' not in serialized
+    assert exact.compression_level == 0
+
+    # float64 narrows to float32 before the budget is measured
+    narrowed = array_to_json(np.ones((512, 256, 128), dtype=np.float64))
+    assert isinstance(narrowed['data'], memoryview)
+    assert narrowed['data'].nbytes == COMM_BUDGET_BYTES
+    assert 'compressed_data' not in narrowed
+
+
+@pytest.mark.parametrize('compression_level', [1, 9])
+def test_explicit_compression_level_is_preserved(compression_level):
+    small = k3d.volume(BASE.reshape(2, 3, 4), compression_level=compression_level)
+    assert small.get_binary()['volume']['compressed_data'] == zlib.compress(
+        small.volume.ravel(), compression_level
+    )
+    assert small.compression_level == compression_level
+
+    large = np.ones((512, 257, 128), dtype=np.float32)
+    assert array_to_json(large, compression_level=compression_level)[
+        'compressed_data'
+    ] == zlib.compress(large.ravel(), compression_level)
+
+
+def test_incompressible_payload_over_comm_budget_raises():
+    raw = np.frombuffer(
+        np.random.default_rng(0).bytes(COMM_BUDGET_BYTES + 4096), dtype=np.uint8
+    )
+
+    with pytest.raises(ValueError, match='float16') as exc:
+        array_to_json(raw)
+
+    assert f'{raw.nbytes} bytes raw' in str(exc.value)
+    assert 'bytes compressed' in str(exc.value)
+
+    vol_data = np.frombuffer(
+        np.random.default_rng(0).bytes(512 * 257 * 128 * 4), dtype=np.float32
+    ).reshape(512, 257, 128)
+    with pytest.raises(ValueError, match='float16'):
+        k3d.volume(vol_data, color_range=[0.0, 1.0])
